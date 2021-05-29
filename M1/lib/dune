@@ -1,2 +1,4 @@
 (library
- (name M1))
+ (name M1)
+ (flags
+  (:standard -rectypes)))

@@ -1,3 +1,6 @@
 # M0
 
-Functional fragment of LNLD.
+Functional fragment of QTT. 
+
+* All terms are fully annotated.
+* Variables are stamped for unique representation.
