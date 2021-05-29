@@ -1,2 +1,3 @@
 (library
- (name M0))
+ (name M0)
+ (libraries zarith bindlib))
