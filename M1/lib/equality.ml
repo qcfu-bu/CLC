@@ -30,7 +30,7 @@ and whnf t =
   | Var _ -> t
   | Type -> t
   | Prod _ -> t
-  | Lambda _ -> t
+  | Lambda (_, t1) -> ( match t1 with App (t2, Rel 0) -> t2 | _ -> t)
   | Fix _ -> t
   | App (t1, t2) -> (
       let t1 = whnf t1 in

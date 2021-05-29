@@ -15,15 +15,14 @@ type ('constr, 'types) kind_of_term =
 type t = (t, t) kind_of_term
 
 val binder_of : ('a, 'b) binder_annot -> 'a
+
 val annot_of : ('a, 'b) binder_annot -> 'b
+
 val q_of : ('a, 'b) binder_annot -> int
 
-val bind
-  :  binder:Name.t
-  -> annot:t
-  -> q:int
-  -> t
-  -> (Name.t, t) binder_annot * t
+val bind :
+  binder:Name.t -> annot:t -> q:int -> t -> (Name.t, t) binder_annot * t
 
 val unbind : binder:(Name.t, t) binder_annot -> t -> t
+
 val subst : binder:(Name.t, t) binder_annot -> s:t -> t -> t
