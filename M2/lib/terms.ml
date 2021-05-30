@@ -15,11 +15,11 @@ let _Var = box_var
 
 let _Type = box Type
 
-let _Prod = box_apply3 (fun q t b -> Prod (q, t, b))
+let _Prod q = box_apply2 (fun t b -> Prod (q, t, b))
 
-let _Lambda = box_apply3 (fun q t b -> Lambda (q, t, b))
+let _Lambda q = box_apply2 (fun t b -> Lambda (q, t, b))
 
-let _Fix = box_apply3 (fun q t b -> Fix (q, t, b))
+let _Fix q = box_apply2 (fun t b -> Fix (q, t, b))
 
 let _App = box_apply2 (fun t1 t2 -> App (t1, t2))
 
@@ -29,11 +29,31 @@ let rec lift = function
   | Var x -> _Var x
   | Type  -> _Type
   | Prod (q, t, b) -> 
-    _Prod (box q) (lift t) (box_binder lift b)
+    _Prod q (lift t) (box_binder lift b)
   | Lambda (q, t, b) ->
-    _Lambda (box q) (lift t) (box_binder lift b)
+    _Lambda q (lift t) (box_binder lift b)
   | Fix (q, t, b) ->
-    _Fix (box q) (lift t) (box_binder lift b)
+    _Fix q (lift t) (box_binder lift b)
   | App (t1, t2) ->
     _App (lift t1) (lift t2)
   | Magic -> _Magic
+
+let rec pp fmt = function
+  | Var x -> Format.fprintf fmt "%s" (name_of x)
+  | Type -> Format.fprintf fmt "Type"
+  | Prod (q, t, b) ->
+    let x, b = unbind b in
+    Format.fprintf fmt "forall (%s :%d %a), %a"
+      (name_of x) q pp t pp b
+  | Lambda (q, t, b) ->
+    let x, b = unbind b in
+    Format.fprintf fmt "fun (%s :%d %a) => %a"
+      (name_of x) q pp t pp b
+  | Fix (q, t, b) ->
+    let x, b = unbind b in
+    Format.fprintf fmt "fix (%s :%d %a) := %a"
+      (name_of x) q pp t pp b
+  | App (t1, t2) ->
+    Format.fprintf fmt "(%a) %a" pp t1 pp t2
+  | Magic -> 
+    Format.fprintf fmt "??"
