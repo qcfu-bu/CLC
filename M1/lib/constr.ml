@@ -92,8 +92,8 @@ let rec subst b t s =
   | Rel _ -> t
   | Var id1 -> (
     match b.binder with
-    | Name.Anonymous -> t
-    | Name.Name id2 -> if Id.equal id1 id2 then s else t)
+    | Anonymous -> t
+    | Name id2 -> if Id.equal id1 id2 then s else t)
   | Type -> Type
   | Prod (bind, t) ->
     let bind = { bind with annot = subst b bind.annot s } in
