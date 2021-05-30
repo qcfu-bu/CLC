@@ -1,13 +1,23 @@
 module Id = struct
-  type t = string
+  type t = { name : string; id : int }
 
-  let equal = String.equal
+  let stamp = ref 0
 
-  let compare = String.compare
+  let equal id1 id2 = Int.equal id1.id id2.id
 
-  let of_string s = s
+  let compare id1 id2 = Int.compare id1.id id2.id
 
-  let pp fmt id = Format.fprintf fmt "%s" id
+  let of_string s =
+    let id = { name = s; id = !stamp } in
+    let _ = incr stamp in
+    id
+
+  let refresh id =
+    let id = { id with id = !stamp } in
+    let _ = incr stamp in
+    id
+
+  let pp fmt id = Format.fprintf fmt "%s#%d" id.name id.id
 end
 
 module Name = struct
@@ -34,3 +44,5 @@ module Name = struct
     | Anonymous -> Format.fprintf fmt "_"
     | Name id -> Format.fprintf fmt "%a" Id.pp id
 end
+
+type t = Name.t = Anonymous | Name of Id.t

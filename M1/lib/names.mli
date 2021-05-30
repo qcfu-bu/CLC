@@ -7,6 +7,8 @@ module Id : sig
 
   val of_string : string -> t
 
+  val refresh : t -> t
+
   val pp : Format.formatter -> t -> unit
 end
 
@@ -23,3 +25,5 @@ module Name : sig
 
   val pp : Format.formatter -> t -> unit
 end
+
+type t = Name.t = Anonymous | Name of Id.t
