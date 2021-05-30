@@ -17,5 +17,9 @@ let t =
   Lambda (b, t)
 
 let _ =
+  let ctx = check empty Type 0 ty in
+  if is_zero ctx then () else failwith "ctx"
+
+let _ =
   let ctx = check empty Type 0 (App (t, Type)) in
-  if is_empty (contract ctx) then () else failwith "ctx"
+  if is_zero ctx then () else failwith "ctx"

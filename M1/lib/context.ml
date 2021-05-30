@@ -9,7 +9,11 @@ let empty = FMap.empty
 
 let add = FMap.add
 
+let remove = FMap.remove
+
 let find = FMap.find
+
+let equal = FMap.equal
 
 let scale n ctx = FMap.map (fun x -> { x with q = x.q * n }) ctx
 
@@ -23,8 +27,6 @@ let sum ctx1 ctx2 =
       | _ -> None)
     ctx1 ctx2
 
-let contract ctx = FMap.filter (fun _ x -> x.q <> 0) ctx
-
 let is_positive ctx = FMap.for_all (fun _ x -> x.q >= 0) ctx
 
-let is_empty = FMap.is_empty
+let is_zero ctx = FMap.for_all (fun _ x -> x.q = 0) ctx

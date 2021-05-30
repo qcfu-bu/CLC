@@ -1,7 +1,7 @@
 open Names
 open Constr
-open Equality
 open Context
+open Equality
 
 let rec check ctx ty q = function
   | Rel _ -> failwith "Rel"
@@ -37,7 +37,7 @@ let rec check ctx ty q = function
       let ctx0 = scale 0 ctx in
       let _ = is_type ctx0 ty in
       match whnf ty with
-      | Prod (bind2, ty) ->
+      | Prod (bind2, ty) -> (
           let bind1, t, ty = unbind2 bind1 t ty in
           let bind1_rec = rec_of_binder bind1 in
           let bind2_rec = rec_of_binder bind2 in
@@ -45,18 +45,19 @@ let rec check ctx ty q = function
           let _ = assert (equal bind1_rec.annot bind2_rec.annot) in
           let _ = assert (bind1_rec.q = bind2_rec.q) in
           (* body type *)
-          let ctx =
-            match bind1_rec.binder with
-            | Anonymous ->
-                let _ = assert (bind1_rec.q = 0) in
-                ctx
-            | Name id ->
-                let elem = { elem = bind2_rec.annot; q = q * bind2_rec.q } in
-                add id elem ctx
-          in
-          check ctx ty q t
+          match bind1_rec.binder with
+          | Anonymous ->
+              let _ = assert (bind1_rec.q = 0) in
+              check ctx ty q t
+          | Name id ->
+              let elem = { elem = bind2_rec.annot; q = q * bind2_rec.q } in
+              let ctx = add id elem ctx in
+              let ctx = check ctx ty q t in
+              let t = find id ctx in
+              let _ = assert (t.q = 0) in
+              remove id ctx)
       | _ -> failwith "Lambda")
-  | Fix (bind, t) ->
+  | Fix (bind, t) -> (
       (* target type *)
       let ctx0 = scale 0 ctx in
       let _ = is_type ctx0 ty in
@@ -65,14 +66,15 @@ let rec check ctx ty q = function
       let bind_rec = rec_of_binder bind in
       let _ = is_type ctx0 bind_rec.annot in
       (* body type *)
-      let ctx =
-        match bind_rec.binder with
-        | Anonymous -> failwith "Fix1"
-        | Name id ->
-            let elem = { elem = bind_rec.annot; q = bind_rec.q } in
-            add id elem ctx
-      in
-      check ctx ty q t
+      match bind_rec.binder with
+      | Anonymous -> failwith "Fix1"
+      | Name id ->
+          let elem = { elem = bind_rec.annot; q = q * bind_rec.q } in
+          let ctx = add id elem ctx in
+          let ctx = check ctx ty q t in
+          let t = find id ctx in
+          let _ = assert (t.q = 0) in
+          remove id ctx)
   | App (t1, t2) -> (
       let ctx1, ty1 = infer ctx q t1 in
       match whnf ty1 with
@@ -124,7 +126,7 @@ and infer ctx q = function
         match bind_rec.binder with
         | Anonymous -> failwith "Fix"
         | Name id ->
-            let elem = { elem = bind_rec.annot; q = bind_rec.q } in
+            let elem = { elem = bind_rec.annot; q = q * bind_rec.q } in
             add id elem ctx
       in
       infer ctx q t
@@ -136,6 +138,9 @@ and infer ctx q = function
           let bind_rec = rec_of_binder bind in
           let q' = if q = 0 || bind_rec.q = 0 then 0 else 1 in
           let ctx2 = check ctx bind_rec.annot q' t2 in
+          let _ =
+            assert (Context.equal (fun x y -> equal x.elem y.elem) ctx1 ctx2)
+          in
           let ctx' = sum ctx1 (scale bind_rec.q ctx2) in
           let ctx' = sum ctx' (scale (-bind_rec.q) ctx) in
           let _ = assert (is_positive ctx') in
@@ -146,4 +151,4 @@ and infer ctx q = function
 
 and is_type ctx t =
   let ctx = check ctx Type 0 t in
-  assert (is_empty (contract ctx))
+  assert (is_zero ctx)
