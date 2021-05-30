@@ -3,7 +3,7 @@ module Id = struct
 
   let stamp = ref 0
 
-  let equal id1 id2 = Int.equal id1.id id2.id
+  let equal id1 id2 = id1.id = id2.id
 
   let compare id1 id2 = Int.compare id1.id id2.id
 

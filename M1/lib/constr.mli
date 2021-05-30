@@ -25,3 +25,5 @@ val unbind : (Name.t, t) binder -> t -> (Name.t, t) binder * t
 val unbind2 : (Name.t, t) binder -> t -> t -> (Name.t, t) binder * t * t
 
 val subst : (Name.t, t) binder -> t -> t -> t
+
+val pp : Format.formatter -> t -> unit
