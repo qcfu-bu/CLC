@@ -42,6 +42,13 @@ let rec check ctx ty q t =
     let ctx = add x t (q * q') ctx in
     let ctx = check ctx ty q b in
     contract x ctx
+  | LetIn (q', t1, t2, b) ->
+    assert (is_type ctx t1);
+    let x, b = unbind b in
+    let ctx = check ctx t1 q' t2 in
+    let ctx = add x t1 (q * q') ctx in
+    let ctx = check ctx ty q b in
+    contract x ctx
   | App (t1, t2) -> (
     let ctx1, ty1 = infer ctx q t1 in
     match whnf ty1 with 
@@ -86,6 +93,14 @@ and infer ctx q t =
     assert (is_type ctx t);
     let x, b = unbind b in
     let ctx = add x t (q * q') ctx in
+    let ctx, ty = infer ctx q b in
+    let ctx = contract x ctx in
+    (ctx, ty)
+  | LetIn (q', t1, t2, b) ->
+    assert (is_type ctx t1);
+    let x, b = unbind b in
+    let ctx = check ctx t1 q' t2 in
+    let ctx = add x t1 (q * q') ctx in
     let ctx, ty = infer ctx q b in
     let ctx = contract x ctx in
     (ctx, ty)

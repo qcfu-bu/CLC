@@ -18,6 +18,11 @@ let rec aeq t1 t2 =
     q1 = q2 &&
     aeq t1 t2 &&
     eq_binder aeq b1 b2
+  | LetIn (q1, t11, t12, b1), LetIn (q2, t21, t22, b2) ->
+    q1 = q2 &&
+    aeq t11 t21 &&
+    aeq t12 t22 &&
+    eq_binder aeq b1 b2
   | App (t11, t12), App (t21, t22) ->
     aeq t11 t21 &&
     aeq t12 t22
@@ -47,6 +52,11 @@ and equal_term t1 t2 =
   | Fix (q1, t1, b1), Fix (q2, t2, b2) ->
     q1 = q2 &&
     equal t1 t2 &&
+    eq_binder equal b1 b2
+  | LetIn (q1, t11, t12, b1), LetIn (q2, t21, t22, b2) ->
+    q1 = q2 &&
+    equal t11 t21 &&
+    equal t12 t22 &&
     eq_binder equal b1 b2
   | App (t11, t12), App (t21, t22) ->
     equal t11 t21 &&

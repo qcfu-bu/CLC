@@ -23,6 +23,9 @@ let rec cbv t =
     let b = cbv b in
     let b = unbox (bind_var x (lift b)) in
     Fix (q, t, b)
+  | LetIn (_, _, t, b) ->
+    let t = cbv t in
+    cbv (subst b t)
   | App (t1, t2) -> (
     match t1 with
     | Fix (_, _, b) ->
@@ -56,6 +59,8 @@ let rec cbn t =
     let b = cbn b in
     let b = unbox (bind_var x (lift b)) in
     Fix (q, t, b)
+  | LetIn (_, _, t, b) ->
+    cbn (subst b t)
   | App (t1, t2) -> (
     match t1 with
     | Fix (_, _, b) ->
@@ -73,6 +78,9 @@ let rec whnf t =
   | Prod _ -> t
   | Lambda _ -> t
   | Fix _ -> t
+  | LetIn (_, _, t, b) ->
+    let t = whnf t in
+    whnf (subst b t)
   | App (t1, t2) -> (
     let t1 = whnf t1 in
     match t1 with
