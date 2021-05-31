@@ -6,14 +6,14 @@ open Context
 open Equality
 
 let rec check ctx t p ty =
+  Format.printf "check\n";
+  Format.printf "ctx := %a\n" Context.pp ctx;
+  Format.printf "t   := %a\n" Terms.pp t;
+  Format.printf "q   := %a\n" Rig.pp p;
+  Format.printf "ty  := %a\n" Terms.pp ty;
+  Format.printf "\n";
   match t with
   | Lambda b -> (
-    Format.printf "check\n";
-    Format.printf "ctx := %a\n" Context.pp ctx;
-    Format.printf "t   := %a\n" Terms.pp t;
-    Format.printf "q   := %a\n" Rig.pp p;
-    Format.printf "ty  := %a\n" Terms.pp ty;
-    Format.printf "\n";
     let ctx = check ctx ty _Zero Type in
     match whnf ty with
     | Prod (q, t', b') -> 
@@ -38,11 +38,11 @@ let rec check ctx t p ty =
     ctx
 
 and infer ctx p t = 
-  (* Format.printf "infer\n";
+  Format.printf "infer\n";
   Format.printf "ctx := %a\n" Context.pp ctx;
   Format.printf "t   := %a\n" Terms.pp t;
   Format.printf "q   := %a\n" Rig.pp p;
-  Format.printf "\n"; *)
+  Format.printf "\n";
   match t with
   | Var x ->
     let ty, q = find x ctx in
@@ -66,5 +66,5 @@ and infer ctx p t =
       let ctx2 = check ctx t (p * q)  t' in
       assert (same ctx1 ctx2);
       (sum ctx1 ctx2, subst b' t)
-    | _ -> failwith "")
-  | _ -> failwith ""
+    | _ -> failwith "App")
+  | _ -> failwith "Infer"
