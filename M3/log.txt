@@ -1,269 +1,49 @@
 infer
 ctx := {
 }
-t   := ((((fun a => fun x => fun y => x : forall (a :0 Type), forall (x :1 a), forall (y :w a), a)) forall (a :0 Type), forall (x :1 a), forall (y :w a), a) fun a => fun x => fun y => x) fun a => fun x => fun y => x
-q   := w
-
-infer
-ctx := {
-}
-t   := (((fun a => fun x => fun y => x : forall (a :0 Type), forall (x :1 a), forall (y :w a), a)) forall (a :0 Type), forall (x :1 a), forall (y :w a), a) fun a => fun x => fun y => x
-q   := w
-
-infer
-ctx := {
-}
-t   := ((fun a => fun x => fun y => x : forall (a :0 Type), forall (x :1 a), forall (y :w a), a)) forall (a :0 Type), forall (x :1 a), forall (y :w a), a
-q   := w
-
-infer
-ctx := {
-}
-t   := (fun a => fun x => fun y => x : forall (a :0 Type), forall (x :1 a), forall (y :w a), a)
+t   := (fun  => fun f => fun a => a : forall (a :0 Type), forall (x :1 forall ( :1 a), a), forall ( :w a), a)
 q   := w
 
 check
 ctx := {
 }
-t   := fun a => fun x => fun y => x
+t   := fun  => fun f => fun a => a
 q   := w
-ty  := forall (a :0 Type), forall (x :1 a), forall (y :w a), a
+ty  := forall (a :0 Type), forall (x :1 forall ( :1 a), a), forall ( :w a), a
 
 check
 ctx := {
-	a :0 Type;
+	 :0 Type;
 }
-t   := fun x => fun y => x
+t   := fun f => fun a => a
 q   := 1
-ty  := forall (x :1 a), forall (y :w a), a
+ty  := forall (x :1 forall ( :1 ), ), forall ( :w ), 
 
 check
 ctx := {
-	x :0 a;
-	a :0 Type;
+	f :0 forall ( :1 ), ;
+	 :0 Type;
 }
-t   := fun y => x
+t   := fun a => a
 q   := 1
-ty  := forall (y :w a), a
+ty  := forall ( :w ), 
 
 check
 ctx := {
-	y :0 a;
-	x :0 a;
-	a :0 Type;
-}
-t   := x
-q   := 1
-ty  := a
-
-infer
-ctx := {
-	y :0 a;
-	x :0 a;
-	a :0 Type;
-}
-t   := x
-q   := 1
-
-check
-ctx := {
-}
-t   := forall (a :0 Type), forall (x :1 a), forall (y :w a), a
-q   := 0
-ty  := Type
-
-infer
-ctx := {
-}
-t   := forall (a :0 Type), forall (x :1 a), forall (y :w a), a
-q   := 0
-
-check
-ctx := {
-}
-t   := Type
-q   := 0
-ty  := Type
-
-infer
-ctx := {
-}
-t   := Type
-q   := 0
-
-check
-ctx := {
-	a :0 Type;
-}
-t   := forall (x :1 a), forall (y :w a), a
-q   := 0
-ty  := Type
-
-infer
-ctx := {
-	a :0 Type;
-}
-t   := forall (x :1 a), forall (y :w a), a
-q   := 0
-
-check
-ctx := {
-	a :0 Type;
+	a :0 ;
+	f :0 forall ( :1 ), ;
+	 :0 Type;
 }
 t   := a
-q   := 0
-ty  := Type
+q   := 1
+ty  := 
 
 infer
 ctx := {
-	a :0 Type;
+	a :0 ;
+	f :0 forall ( :1 ), ;
+	 :0 Type;
 }
 t   := a
-q   := 0
-
-check
-ctx := {
-	x :0 a;
-	a :0 Type;
-}
-t   := forall (y :w a), a
-q   := 0
-ty  := Type
-
-infer
-ctx := {
-	x :0 a;
-	a :0 Type;
-}
-t   := forall (y :w a), a
-q   := 0
-
-check
-ctx := {
-	x :0 a;
-	a :0 Type;
-}
-t   := a
-q   := 0
-ty  := Type
-
-infer
-ctx := {
-	x :0 a;
-	a :0 Type;
-}
-t   := a
-q   := 0
-
-check
-ctx := {
-	y :0 a;
-	x :0 a;
-	a :0 Type;
-}
-t   := a
-q   := 0
-ty  := Type
-
-infer
-ctx := {
-	y :0 a;
-	x :0 a;
-	a :0 Type;
-}
-t   := a
-q   := 0
-
-check
-ctx := {
-}
-t   := fun a => fun x => fun y => x
-q   := w
-ty  := forall (a :0 Type), forall (x :1 a), forall (y :w a), a
-
-check
-ctx := {
-	a :0 Type;
-}
-t   := fun x => fun y => x
 q   := 1
-ty  := forall (x :1 a), forall (y :w a), a
-
-check
-ctx := {
-	x :0 a;
-	a :0 Type;
-}
-t   := fun y => x
-q   := 1
-ty  := forall (y :w a), a
-
-check
-ctx := {
-	y :0 a;
-	x :0 a;
-	a :0 Type;
-}
-t   := x
-q   := 1
-ty  := a
-
-infer
-ctx := {
-	y :0 a;
-	x :0 a;
-	a :0 Type;
-}
-t   := x
-q   := 1
-
-check
-ctx := {
-}
-t   := fun a => fun x => fun y => x
-q   := w
-ty  := forall (a :0 Type), forall (x :1 a), forall (y :w a), a
-
-check
-ctx := {
-	a :0 Type;
-}
-t   := fun x => fun y => x
-q   := 1
-ty  := forall (x :1 a), forall (y :w a), a
-
-check
-ctx := {
-	x :0 a;
-	a :0 Type;
-}
-t   := fun y => x
-q   := 1
-ty  := forall (y :w a), a
-
-check
-ctx := {
-	y :0 a;
-	x :0 a;
-	a :0 Type;
-}
-t   := x
-q   := 1
-ty  := a
-
-infer
-ctx := {
-	y :0 a;
-	x :0 a;
-	a :0 Type;
-}
-t   := x
-q   := 1
-
-complete
-ctx := {
-}
-t   := fun a => fun x => fun y => x
-q   := w
-ty  := forall (a :0 Type), forall (x :1 a), forall (y :w a), a
 
