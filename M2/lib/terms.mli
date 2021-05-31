@@ -1,10 +1,10 @@
 type term =
     Var of term Bindlib.var
   | Type
-  | Prod   of int * term * (term, term) Bindlib.binder
-  | Lambda of int * term * (term, term) Bindlib.binder
-  | Fix    of int * term * (term, term) Bindlib.binder
-  | LetIn  of int * term * term * (term, term) Bindlib.binder
+  | Prod   of Ring.ring * term * (term, term) Bindlib.binder
+  | Lambda of Ring.ring * term * (term, term) Bindlib.binder
+  | Fix    of Ring.ring * term * (term, term) Bindlib.binder
+  | LetIn  of Ring.ring * term * term * (term, term) Bindlib.binder
   | App of term * term
   | Magic
 
@@ -13,19 +13,19 @@ type tvar = term Bindlib.var
 val _Var : 'a Bindlib.var -> 'a Bindlib.box
 val _Type : term Bindlib.box
 val _Prod :
-  int ->
+  Ring.ring ->
   term Bindlib.box ->
   (term, term) Bindlib.binder Bindlib.box -> term Bindlib.box
 val _Lambda :
-  int ->
+  Ring.ring ->
   term Bindlib.box ->
   (term, term) Bindlib.binder Bindlib.box -> term Bindlib.box
 val _Fix :
-  int ->
+  Ring.ring ->
   term Bindlib.box ->
   (term, term) Bindlib.binder Bindlib.box -> term Bindlib.box
 val _LetIn :
-  int ->
+  Ring.ring ->
   term Bindlib.box ->
   term Bindlib.box ->
   (term, term) Bindlib.binder Bindlib.box -> term Bindlib.box

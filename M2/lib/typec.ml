@@ -1,13 +1,24 @@
 open Bindlib
+open Ring
 open Terms
 open Context
 open Norm
 open Equality
 
+let d = ref false
+
 let rec check ctx ty q t =
-  Format.printf "t := %a\n" pp t;
-  Format.printf "q := %d\n" q;
-  Format.printf "ty := %a\n\n" pp ty;
+  if !d then begin
+    Format.printf "check\n";
+    Format.printf "ctx := ";
+    iter (fun x (t, q) -> 
+      Format.printf "[%s :%a %a] " (name_of x) Ring.pp q pp t) ctx;
+    Format.printf "\n";
+    Format.printf "t   := %a\n" pp t;
+    Format.printf "q   := %a\n" Ring.pp q;
+    Format.printf "ty  := %a\n\n" pp ty;
+  end;
+  assert (q = z || q = o);
   match t with
   | Var x ->
     let ty', q' = find x ctx in
@@ -19,10 +30,10 @@ let rec check ctx ty q t =
     ctx
   | Prod (_, t, b) ->
     assert (equal ty Type);
-    assert (q = 0);
+    assert (q = z);
     assert (is_type ctx t);
     let x, b = unbind b in
-    assert (is_type (add x t 0 ctx) b);
+    assert (is_type (add x t z ctx) b);
     ctx
   | Lambda (q1, t1, b1) -> (
     assert (is_type ctx ty);
@@ -42,19 +53,24 @@ let rec check ctx ty q t =
     let ctx = add x t (q * q') ctx in
     let ctx = check ctx ty q b in
     contract x ctx
-  | LetIn (q', t1, t2, b) ->
+  | LetIn (q1, t1, t2, b) ->
     assert (is_type ctx t1);
-    let x, b = unbind b in
-    let ctx = check ctx t1 q' t2 in
-    let ctx = add x t1 (q * q') ctx in
-    let ctx = check ctx ty q b in
-    contract x ctx
+    let q2 = if q = z || q1 = z then z else o in
+    let ctx1 = check ctx ty q (subst b (whnf t2)) in
+    let ctx2 = check ctx t1 q2 t2 in
+    assert (Context.equal ctx1 ctx2);
+    let ctx = 
+      sub (sum ctx1 (scale q1 ctx2)) (scale q1 ctx) 
+    in
+    assert (is_positive ctx);
+    ctx
   | App (t1, t2) -> (
     let ctx1, ty1 = infer ctx q t1 in
     match whnf ty1 with 
     | Prod (q1, t, b) ->
-      let q2 = if q = 0 || q1 = 0 then 0 else 1 in
+      let q2 = if q = z || q1 = z then z else o in
       let ctx2 = check ctx t q2 t2 in
+      assert (Context.equal ctx1 ctx2);
       let ctx = 
         sub (sum ctx1 (scale q1 ctx2)) (scale q1 ctx) 
       in
@@ -65,13 +81,21 @@ let rec check ctx ty q t =
   | Magic -> ctx
 
 and is_type ctx t =
-  let ctx = scale 0 ctx in
-  let ctx = check ctx Type 0 t in
+  let ctx = scale z ctx in
+  let ctx = check ctx Type z t in
   is_zero ctx
 
 and infer ctx q t =
-  Format.printf "t := %a\n" pp t;
-  Format.printf "q := %d\n\n" q;
+  if !d then begin
+    Format.printf "infer\n";
+    Format.printf "ctx := ";
+    iter (fun x (t, q) -> 
+      Format.printf "[%s :%a %a] " (name_of x) Ring.pp q pp t) ctx;
+    Format.printf "\n";
+    Format.printf "t   := %a\n" pp t;
+    Format.printf "q   := %a\n\n" Ring.pp q;
+  end;
+  assert (q = z || q = o);
   match t with
   | Var x ->
     let ty, q' = find x ctx in
@@ -96,20 +120,24 @@ and infer ctx q t =
     let ctx, ty = infer ctx q b in
     let ctx = contract x ctx in
     (ctx, ty)
-  | LetIn (q', t1, t2, b) ->
+  | LetIn (q1, t1, t2, b) ->
     assert (is_type ctx t1);
-    let x, b = unbind b in
-    let ctx = check ctx t1 q' t2 in
-    let ctx = add x t1 (q * q') ctx in
-    let ctx, ty = infer ctx q b in
-    let ctx = contract x ctx in
+    let q2 = if q = z || q1 = z then z else o in
+    let ctx1, ty = infer ctx q (subst b (whnf t2)) in
+    let ctx2 = check ctx t1 q2 t2 in
+    assert (Context.equal ctx1 ctx2);
+    let ctx = 
+      sub (sum ctx1 (scale q1 ctx2)) (scale q1 ctx) 
+    in
+    assert (is_positive ctx);
     (ctx, ty)
   | App (t1, t2) -> (
     let ctx1, ty1 = infer ctx q t1 in
     match whnf ty1 with 
     | Prod (q1, t, b) ->
-      let q2 = if q = 0 || q1 = 0 then 0 else 1 in
+      let q2 = if q = z || q1 = z then z else o in
       let ctx2 = check ctx t q2 t2 in
+      assert (Context.equal ctx1 ctx2);
       let ctx = 
         sub (sum ctx1 (scale q1 ctx2)) (scale q1 ctx) 
       in

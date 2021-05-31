@@ -1,2 +1,3 @@
-val check : Context.ctx -> Terms.term -> int -> Terms.term -> Context.ctx
-val infer : Context.ctx -> int -> Terms.term -> Context.ctx * Terms.term
+val d : bool ref 
+val check : Context.ctx -> Terms.term -> Ring.ring -> Terms.term -> Context.ctx
+val infer : Context.ctx -> Ring.ring -> Terms.term -> Context.ctx * Terms.term

@@ -1,0 +1,114 @@
+check
+ctx := 
+t   := fun (a :0 Type) => fun (x :1 a) => fun (y :w a) => x
+q   := 1
+ty  := forall (a :0 Type), forall (x :1 a), forall (y :w a), a
+
+check
+ctx := 
+t   := forall (a :0 Type), forall (x :1 a), forall (y :w a), a
+q   := 0
+ty  := Type
+
+check
+ctx := 
+t   := Type
+q   := 0
+ty  := Type
+
+check
+ctx := [a :0 Type] 
+t   := forall (x :1 a), forall (y :w a), a
+q   := 0
+ty  := Type
+
+check
+ctx := [a :0 Type] 
+t   := a
+q   := 0
+ty  := Type
+
+check
+ctx := [x :0 a] [a :0 Type] 
+t   := forall (y :w a), a
+q   := 0
+ty  := Type
+
+check
+ctx := [x :0 a] [a :0 Type] 
+t   := a
+q   := 0
+ty  := Type
+
+check
+ctx := [y :0 a] [x :0 a] [a :0 Type] 
+t   := a
+q   := 0
+ty  := Type
+
+check
+ctx := [a :0 Type] 
+t   := fun (x :1 a) => fun (y :w a) => x
+q   := 1
+ty  := forall (x :1 a), forall (y :w a), a
+
+check
+ctx := [a :0 Type] 
+t   := forall (x :1 a), forall (y :w a), a
+q   := 0
+ty  := Type
+
+check
+ctx := [a :0 Type] 
+t   := a
+q   := 0
+ty  := Type
+
+check
+ctx := [x :0 a] [a :0 Type] 
+t   := forall (y :w a), a
+q   := 0
+ty  := Type
+
+check
+ctx := [x :0 a] [a :0 Type] 
+t   := a
+q   := 0
+ty  := Type
+
+check
+ctx := [y :0 a] [x :0 a] [a :0 Type] 
+t   := a
+q   := 0
+ty  := Type
+
+check
+ctx := [x :1 a] [a :0 Type] 
+t   := fun (y :w a) => x
+q   := 1
+ty  := forall (y :w a), a
+
+check
+ctx := [x :0 a] [a :0 Type] 
+t   := forall (y :w a), a
+q   := 0
+ty  := Type
+
+check
+ctx := [x :0 a] [a :0 Type] 
+t   := a
+q   := 0
+ty  := Type
+
+check
+ctx := [y :0 a] [x :0 a] [a :0 Type] 
+t   := a
+q   := 0
+ty  := Type
+
+check
+ctx := [y :w a] [x :1 a] [a :0 Type] 
+t   := x
+q   := 1
+ty  := a
+

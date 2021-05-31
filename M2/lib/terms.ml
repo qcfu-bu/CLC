@@ -1,12 +1,13 @@
 open Bindlib
+open Ring
 
 type term =
   | Var of term var
   | Type
-  | Prod   of int * term * (term, term) binder
-  | Lambda of int * term * (term, term) binder
-  | Fix    of int * term * (term, term) binder
-  | LetIn  of int * term * term * (term, term) binder
+  | Prod   of ring * term * (term, term) binder
+  | Lambda of ring * term * (term, term) binder
+  | Fix    of ring * term * (term, term) binder
+  | LetIn  of ring * term * term * (term, term) binder
   | App    of term * term
   | Magic
 
@@ -48,20 +49,20 @@ let rec pp fmt = function
   | Type -> Format.fprintf fmt "Type"
   | Prod (q, t, b) ->
     let x, b = unbind b in
-    Format.fprintf fmt "forall (%s :%d %a), %a"
-      (name_of x) q pp t pp b
+    Format.fprintf fmt "forall (%s :%a %a), %a"
+      (name_of x) Ring.pp q pp t pp b
   | Lambda (q, t, b) ->
     let x, b = unbind b in
-    Format.fprintf fmt "fun (%s :%d %a) => %a"
-      (name_of x) q pp t pp b
+    Format.fprintf fmt "fun (%s :%a %a) => %a"
+      (name_of x) Ring.pp q pp t pp b
   | Fix (q, t, b) ->
     let x, b = unbind b in
-    Format.fprintf fmt "fix (%s :%d %a) := %a"
-      (name_of x) q pp t pp b
+    Format.fprintf fmt "fix (%s :%a %a) := %a"
+      (name_of x) Ring.pp q pp t pp b
   | LetIn (q, t1, t2, b) ->
     let x, b = unbind b in
-    Format.fprintf fmt "let %s :%d %a := %a in %a"
-      (name_of x) q pp t1 pp t2 pp b
+    Format.fprintf fmt "\n  let %s :%a %a := %a in %a"
+      (name_of x) Ring.pp q pp t1 pp t2 pp b
   | App (t1, t2) ->
     Format.fprintf fmt "(%a) %a" pp t1 pp t2
   | Magic -> 
