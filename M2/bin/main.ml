@@ -30,3 +30,15 @@ let _ =
   let t1 = unbox t1 in
   let ctx = check empty ty1 o t1 in
   assert (is_zero ctx)
+
+let t2 =
+  _LetIn z _Type ty1 (bind_var a (
+    _LetIn o ty1 t1 (bind_var f (
+      _LetIn w ty1 t1 (bind_var g (
+        _Var f))))))
+
+let _ =
+  let ty1 = unbox ty1 in
+  let t2 = unbox t2 in
+  let ctx = check empty ty1 o t2 in
+  assert (is_zero ctx)

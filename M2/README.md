@@ -6,3 +6,5 @@ Functional fragment of QTT.
 * Typechecking is bi-directional.
 * Bindlib representation of variables
 * LetIn construct
+
+QTT is inadequate as a programming language foundation.
