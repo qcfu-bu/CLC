@@ -1,7 +1,7 @@
 open Bindlib
 open Rig
 open Terms
-open Norm
+open Norms
 
 let rec aeq t1 t2 = 
   match t1, t2 with
