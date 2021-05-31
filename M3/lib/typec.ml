@@ -14,7 +14,6 @@ let rec check ctx t p ty =
   Format.printf "\n";
   match t with
   | Lambda b -> (
-    let ctx = check ctx ty _Zero Type in
     match whnf ty with
     | Prod (q, t', b') -> 
       let x, b, b' = unbind2 b b' in
@@ -30,7 +29,7 @@ let rec check ctx t p ty =
     let ctx = add x (ty, _Zero) ctx in
     let ctx = check ctx b _One ty in
     let _, q = find x ctx in
-    assert (p = q);
+    assert (q <= p);
     scale p (remove x ctx))
   | _ ->  
     let ctx, ty' = infer ctx p t in
@@ -57,7 +56,7 @@ and infer ctx p t =
     let ctx = add x (t, _Zero) ctx in
     let ctx = check ctx b _Zero Type in
     let _, q = find x ctx in
-    assert (q = _Zero);
+    assert (p = _Zero && q = _Zero);
     (remove x ctx, Type)
   | App (s, t) -> (
     let ctx1, ty = infer ctx p s in

@@ -2,6 +2,7 @@ open Bindlib
 open M3
 open Rig
 open Terms
+open Norms
 open Context
 open Typec
 
@@ -26,5 +27,14 @@ let t1 =
 let t = _Ann t1 ty1
 
 let _ = 
-  let t = unbox t in
-  infer empty _W t
+  let t = unbox (_App (_App (_App t ty1) t1) t1) in
+  let p = _W in
+  let ctx, ty = infer empty p t in
+  let t = cbv t in
+  let ty = cbv ty in
+  Format.printf "complete\n";
+  Format.printf "ctx := %a\n" Context.pp ctx;
+  Format.printf "t   := %a\n" Terms.pp t;
+  Format.printf "q   := %a\n" Rig.pp p;
+  Format.printf "ty  := %a\n" Terms.pp ty;
+  Format.printf "\n";
