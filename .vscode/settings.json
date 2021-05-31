@@ -5,6 +5,7 @@
         "bvar",
         "forall",
         "fvar",
+        "intuitionistic",
         "lolli",
         "struct"
     ],

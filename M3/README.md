@@ -9,7 +9,38 @@
 * Bindlib representation of variables
 * LetIn construct
 
+### Rig
+
+* 0: static
+* 1: linear
+* ω: intuitionistic
+
+#### Add
+```
+ρ+0 = 0+ρ = ρ
+1+1 = ω
+ρ+ω = ω+ρ = ω
+```
+
+#### Times
+```
+ρ*0 = 0*ρ = 0
+ρ*1 = 1*ρ = ρ
+ω*ω = ω
+```
+
+#### Order
+0 ≰ 1 gives rise to linearity.
+```
+0 ≤ 0, 0 ≤ &, 0 ≤ ω
+1 ≤ 1, 1 ≤ &, 1 ≤ ω 
+& ≤ &, & ≤ ω
+ω ≤ ω
+```
+
+
 ### Typechecking algorithm
+Bi-directional typechecking through context inference.
 
 ```
 Γ ↓ Δ ⊢ ρ a ↓ A               Γ ↓ Δ ⊢ ρ a ↑ A
