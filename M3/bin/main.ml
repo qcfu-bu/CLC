@@ -12,7 +12,7 @@ let x = new_var (fun x -> Var x) "x"
 let y = new_var (fun x -> Var x) "y"
 
 let a = new_var (fun x -> Var x) "a"
-let __ = new_var (fun x -> Var x) ""
+let __ = new_var (fun x -> Var x) "_"
 
 let ty1 = 
   _Prod _Zero _Type (bind_var a (
@@ -29,7 +29,7 @@ let t1 =
 let t = 
   _LetIn _One (_AnnTy t1 ty1) (bind_var f (
     _LetIn _W (_AnnTy t1 ty1) (bind_var g (
-      _Var g))))
+      _Var f))))
 
 let _ = 
   let t = unbox t in
