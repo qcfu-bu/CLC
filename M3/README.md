@@ -64,7 +64,7 @@ Infer types from variable annotations.
 
 Type in type.
 ```
--------------(*)
+---------------(*)
 Γ ↓ Γ ⊢ 0 * ↓ *
 ```
 
