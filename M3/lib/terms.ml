@@ -2,9 +2,9 @@ open Bindlib
 open Rig
 
 type term =
-  | Var of term var
-  | AnnTy of term * term
-  | AnnVr of term * term var
+  | Var    of term var
+  | AnnTy  of term * term
+  | AnnVr  of term * term var
   | Type
   | Prod   of rig * term * (term, term) binder
   | Lambda of (term, term) binder
