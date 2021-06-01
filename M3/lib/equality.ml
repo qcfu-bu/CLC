@@ -6,8 +6,11 @@ open Norms
 let rec aeq t1 t2 = 
   match t1, t2 with
   | Var x1, Var x2 -> eq_vars x1 x2
-  | Ann (s1, t1), Ann (s2, t2) ->
+  | AnnTy (s1, t1), AnnTy (s2, t2) ->
     aeq s1 s2 && aeq t1 t2
+  | AnnVr (s1, x1), AnnVr (s2, x2) ->
+    aeq s1 s2 &&
+    eq_vars x1 x2
   | Type, Type -> true
   | Prod (q1, t1, b1), Prod (q2, t2, b2) ->
     q1 = q2 &&
@@ -19,6 +22,10 @@ let rec aeq t1 t2 =
     eq_binder aeq b1 b2
   | App (s1, t1), App (s2, t2) ->
     aeq s1 s2 && aeq t1 t2
+  | LetIn (q1, t1, b1), LetIn (q2, t2, b2) ->
+    q1 = q2 &&
+    aeq t1 t2 &&
+    eq_binder aeq b1 b2
   | _ -> false
 
 let rec equal t1 t2 =

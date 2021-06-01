@@ -76,7 +76,6 @@ Bi-directional typechecking through context inference.
 Γ ↓ Δ + Δ' ⊢ ρ (f a) ↓ B[a/x]
 ```
 
-
 ## References
 * https://gist.github.com/gabriel-barrett/0de85a606b64886052854422fb05ce0c
 * https://gist.github.com/gabriel-barrett/11988a272bc52f0e848db6eceb03417a

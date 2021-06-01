@@ -4,7 +4,8 @@ open Terms
 let rec cbv t =
   match t with
   | Var _ -> t
-  | Ann (s, _) -> cbv s
+  | AnnTy (s, _) -> cbv s
+  | AnnVr (s, _) -> cbv s
   | Type -> t
   | Prod (q, t, b) ->
     let t = cbv t in
@@ -32,11 +33,16 @@ let rec cbv t =
       let t = cbv t in
       cbv (subst b t)
     | _ -> App (s, cbv t))
+  | LetIn (_, t, b) ->
+    let t = cbv t in
+    cbv (subst b t)
+
 
 let rec cbn t =
   match t with
   | Var _ -> t
-  | Ann (s, _) -> cbn s
+  | AnnTy (s, _) -> cbn s
+  | AnnVr (s, _) -> cbn s
   | Type -> t
   | Prod (q, t, b) ->
     let t = cbn t in
@@ -63,11 +69,14 @@ let rec cbn t =
     | Lambda b ->
       cbn (subst b t)
     | _ -> App (s, cbn t))
+  | LetIn (_, t, b) -> 
+    cbn (subst b t)
 
 let rec whnf t =
   match t with
   | Var _ -> t
-  | Ann (s, _) -> whnf s
+  | AnnTy (s, _) -> whnf s
+  | AnnVr (s, _) -> whnf s
   | Type -> t
   | Prod _ -> t
   | Lambda _ -> t
@@ -82,3 +91,6 @@ let rec whnf t =
       let t = whnf t in
       whnf (subst b t)
     | _ -> App (s, whnf t))
+  | LetIn (_, t, b) ->
+    let t = whnf t in
+    whnf (subst b t)

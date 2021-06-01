@@ -20,19 +20,16 @@ let ty1 =
       _Prod _W (_Var a) (bind_var __ (
         _Var a))))))
 
-(* let t1 = 
-  _Lambda (bind_var __ (
-    _Lambda (bind_var f (
-      _Lambda (bind_var a (
-        _App (_Var f) (_Var a))))))) *)
-
 let t1 = 
   _Lambda (bind_var __ (
     _Lambda (bind_var f (
-      _Lambda (bind_var a (
-        _Var a))))))
+      _Lambda (bind_var x (
+        _App (_Var f) (_Var x)))))))
 
-let t = _Ann t1 ty1
+let t = 
+  _LetIn _One (_AnnTy t1 ty1) (bind_var f (
+    _LetIn _W (_AnnTy t1 ty1) (bind_var g (
+      _Var g))))
 
 let _ = 
   let t = unbox t in
@@ -40,9 +37,9 @@ let _ =
   let ctx, ty = infer empty p t in
   let t = cbv t in
   let ty = cbv ty in
-  Format.printf "complete\n";
+  Format.printf "complete1\n";
   Format.printf "ctx := %a\n" Context.pp ctx;
   Format.printf "t   := %a\n" Terms.pp t;
   Format.printf "q   := %a\n" Rig.pp p;
   Format.printf "ty  := %a\n" Terms.pp ty;
-  Format.printf "\n";
+  Format.printf "\n"

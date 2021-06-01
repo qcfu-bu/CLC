@@ -47,8 +47,12 @@ and infer ctx p t =
     let ty, q = find x ctx in
     assert (q = _Zero);
     (add x (ty, p) ctx, ty)
-  | Ann (t, ty) ->
+  | AnnTy (t, ty) ->
     (check ctx t p ty, ty)
+  | AnnVr (_, x) ->
+    let ty, q = find x ctx in
+    assert (q = _Zero);
+    (add x (ty, p) ctx, ty)
   | Type -> ctx, Type
   | Prod (_, t, b) ->
     let x, b = unbind b in
@@ -66,4 +70,15 @@ and infer ctx p t =
       assert (same ctx1 ctx2);
       (sum ctx1 ctx2, subst b' t)
     | _ -> failwith "App")
+  | LetIn (q, t, b) ->
+    let x, _ = unbind b in
+    let ctx1, ty1 = infer ctx (p * q) t in
+    let ctx = add x (ty1, _Zero) ctx in
+    let t = AnnVr (t, x) in
+    let ctx2, ty2 = infer ctx _One (subst b t) in
+    let _, q' = find x ctx2 in
+    let ctx2 = remove x ctx2 in
+    assert (q' <= q);
+    assert (same ctx1 ctx2);
+    (sum ctx1 (scale p ctx2), ty2)
   | _ -> failwith "Infer"
