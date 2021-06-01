@@ -1,7 +1,7 @@
 infer
 ctx := {
 }
-t   := let f :1 := (fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a) in let g :w := (fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a) in f
+t   := let f :1 := (fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a) in let g :1 := (fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a) in f
 q   := w
 
 infer
@@ -85,7 +85,7 @@ infer
 ctx := {
 	f :0 forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a;
 }
-t   := let g :w := (fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a) in ((fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a) 
+t   := let g :1 := (fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a) in ((fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a) 
 f)
 q   := 1
 
@@ -94,14 +94,14 @@ ctx := {
 	f :0 forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a;
 }
 t   := (fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a)
-q   := w
+q   := 1
 
 check
 ctx := {
 	f :0 forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a;
 }
 t   := fun _ => fun f => fun x => (f) x
-q   := w
+q   := 1
 ty  := forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a
 
 check
@@ -183,11 +183,4 @@ ctx := {
 t   := ((fun _ => fun f => fun x => (f) x : forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a) 
 f)
 q   := 1
-
-complete1
-ctx := {
-}
-t   := fun _ => fun f => fun x => (f) x
-q   := w
-ty  := forall (a :0 Type), forall (x :1 forall (_ :1 a), a), forall (_ :w a), a
 
