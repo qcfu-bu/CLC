@@ -6,13 +6,11 @@ open Norms
 open Context
 open Typec
 
-let f = new_var (fun x -> Var x) "f"
-let g = new_var (fun x -> Var x) "g"
-let x = new_var (fun x -> Var x) "x"
-let y = new_var (fun x -> Var x) "y"
-
-let a = new_var (fun x -> Var x) "a"
-let __ = new_var (fun x -> Var x) "_"
+let f = mk "f"
+let g = mk "g"
+let x = mk "x"
+let y = mk "y"
+let a = mk "a"
 
 let ty1 = 
   _Prod _Zero _Type (bind_var a (

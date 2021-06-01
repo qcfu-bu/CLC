@@ -14,6 +14,9 @@ type term =
 
 type tvar = term var
 
+let __ = new_var (fun x -> Var x) "_"
+let mk = new_var (fun x -> Var x)
+
 let _Var = box_var
 let _AnnTy = box_apply2 (fun s t -> AnnTy (s, t))
 let _AnnVr t x = box_apply (fun t -> AnnVr (t, x)) t

@@ -11,6 +11,9 @@ type term =
 
 type tvar = term Bindlib.var
 
+val __ : tvar
+val mk : string -> tvar
+
 val _Var : 'a Bindlib.var -> 'a Bindlib.box
 val _AnnTy : term Bindlib.box -> term Bindlib.box -> term Bindlib.box
 val _AnnVr : 
