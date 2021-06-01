@@ -27,6 +27,7 @@ let t1 =
 let t = 
   _LetIn _One (_AnnTy t1 ty1) (bind_var f (
     _LetIn _One (_AnnTy t1 ty1) (bind_var g (
+      (* no choice of terms here is well typed *)
       _Var f))))
 
 let _ = 
