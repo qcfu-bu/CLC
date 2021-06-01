@@ -42,38 +42,60 @@
 ### Typechecking algorithm
 Bi-directional typechecking through context inference.
 
+Standard conversion rules between infer and check through type
+annotations.
 ```
 Γ ↓ Δ ⊢ ρ a ↓ A               Γ ↓ Δ ⊢ ρ a ↑ A
 ----------------(↓↑)          ----------------------(↑↓)
 Γ ↓ Δ ⊢ ρ a ↑ A               Γ ↓ Δ ⊢ ρ (a :: A) ↓ A
 ```
 
+Variable recording.
 ```
 -----------------------------------------(id)
 Γ, 0 x : A, Γ' ↓ Γ, ρ x : A, Γ' ⊢ ρ x ↓ A
 ```
 
+Infer types from variable annotations.
+```
+-----------------------------------------------(@)
+Γ, 0 x : A, Γ' ↓ Γ, ρ x : A, Γ' ⊢ ρ (a @ x) ↓ A
+```
+
+Type in type.
 ```
 -------------(*)
 Γ ↓ Γ ⊢ 0 * ↓ *
 ```
 
+Dependent function type formation rules.
 ```
 Γ ↓ Δ ⊢ 0 A ↑ *     Γ, 0 x : A ↓ Δ, 0 x : A ⊢ 0 B ↑ *
 -----------------------------------------------------(π)
 Γ ↓ Δ ⊢ 0 (π x : A) → B ↓ *
 ```
 
+Lambda introduction rule.
 ```
 Γ, 0 x : A ↓ Δ, π' x : A ⊢ 1 b ↑ B     π' ≤ π
 ---------------------------------------------(→I)
 Γ ↓ ρ*Δ ⊢ ρ λx. b ↑ (π x : A) → B
 ```
 
+Application rule.
 ```
 Γ ↓ Δ ⊢ ρ f ↓ (π x : A) → B     Γ ↓ Δ' ⊢ ρ*π a ↑ A
 --------------------------------------------------(→E)
 Γ ↓ Δ + Δ' ⊢ ρ (f a) ↓ B[a/x]
+```
+
+Let binding rule.
+```
+Γ ↓ Δ ⊢ ρ*π a ↓ A     
+Γ, 0 x : A ↓ Δ', π' x : A |- 1 b [(a @ x) / x] ↓ B
+π' ≤ π
+------------------------------------------------(let)
+Γ ↓ Δ + ρ*Δ' ⊢ ρ let π x := a in b ↓ B
 ```
 
 ## References
