@@ -8,6 +8,7 @@ type term =
   | Fix    of (term, term) Bindlib.binder
   | App    of term * term
   | LetIn  of Rig.rig * term * (term, term) Bindlib.binder
+  | Axiom  of Rig.rig * term * (term, term) Bindlib.binder
 
 type tvar = term Bindlib.var
 
@@ -23,10 +24,17 @@ val _Prod :
   Rig.rig ->
   term Bindlib.box ->
   (term, term) Bindlib.binder Bindlib.box -> term Bindlib.box
+val _Arrow :
+  Rig.rig -> 
+  term Bindlib.box -> term Bindlib.box -> term Bindlib.box
 val _Lambda : (term, term) Bindlib.binder Bindlib.box -> term Bindlib.box
 val _Fix : (term, term) Bindlib.binder Bindlib.box -> term Bindlib.box
 val _App : term Bindlib.box -> term Bindlib.box -> term Bindlib.box
 val _LetIn :
+  Rig.rig ->
+  term Bindlib.box ->
+  (term, term) Bindlib.binder Bindlib.box -> term Bindlib.box
+val _Axiom :
   Rig.rig ->
   term Bindlib.box ->
   (term, term) Bindlib.binder Bindlib.box -> term Bindlib.box

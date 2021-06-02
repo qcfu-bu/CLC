@@ -43,7 +43,7 @@ let sum ctx1 ctx2 =
 let pp fmt ctx =
   Format.fprintf fmt "{\n";
   iter (fun x (t, q) -> 
-    Format.fprintf fmt "\t%s :%a %a;\n" 
+    Format.fprintf fmt "\t%s :%a %a\n" 
       (name_of x) Rig.pp q pp t)
     ctx;
   Format.fprintf fmt "}";

@@ -6,35 +6,86 @@ open Norms
 open Context
 open Typec
 
-let f = mk "f"
-let g = mk "g"
-let x = mk "x"
-let y = mk "y"
-let a = mk "a"
+let tensor = mk "tensor"
+let tensorTy =
+  _Prod _Zero _Type (bind_var __ (
+    _Prod _Zero _Type (bind_var __ (
+      _Type))))
 
-let ty1 = 
-  _Prod _Zero _Type (bind_var a (
-    _Prod _One (_Prod _One (_Var a) (bind_var __ (_Var a))) (bind_var x (
-      _Prod _W (_Var a) (bind_var __ (
-        _Var a))))))
+let nat = mk "Nat"
+let natTy = _Type
 
-let t1 = 
-  _Lambda (bind_var __ (
-    _Lambda (bind_var f (
-      _Lambda (bind_var x (
-        _App (_Var f) (_Var x)))))))
+let str = mk "String"
+let strTy = _Type
 
-let t = 
-  _LetIn _One (_AnnTy t1 ty1) (bind_var f (
-    _LetIn _One (_AnnTy t1 ty1) (bind_var g (
-      (* no choice of terms here is well typed *)
-      _Var f))))
+let vec = mk "Vec"
+let vecTy =
+  _Prod _Zero (_Var nat) (bind_var __ _Type)
+
+let channel = mk "Channel"
+let channelTy = _Type
+
+let rep = mk "rep"
+let repTy = 
+  let x = mk "x" in
+  _Prod _W (_Var nat) (bind_var x (
+    _App (_Var vec) (_Var x)))
+
+let ch = mk "ch"
+let chTy = _Var channel
+
+let nat_channel = 
+  _App (_App (_Var tensor) (_Var nat)) (_Var channel)
+
+let getnum = mk "getnum"
+let getnumTy =
+  _Prod _One (_Var channel) (bind_var __ (
+    nat_channel))
+
+let fst = mk "fst"
+let fstTy =
+  _Prod _One nat_channel (bind_var __ (
+    _Var nat))
+
+let snd = mk "snd"
+let sndTy =
+  _Prod _One nat_channel (bind_var __ (
+    _Var channel))
+
+let t1 =
+  let x = mk "x" in
+  _Axiom _Zero tensorTy (bind_var tensor (
+  _Axiom _Zero natTy (bind_var nat (
+  _Axiom _Zero strTy (bind_var str (
+  _Axiom _Zero vecTy (bind_var vec (
+  _Axiom _Zero channelTy (bind_var channel (
+  _Axiom _W repTy (bind_var rep (
+  _Axiom _One chTy (bind_var ch (
+  _Axiom _W getnumTy (bind_var getnum (
+  _Axiom _W fstTy (bind_var fst (
+  (* very subtle *)
+  _LetIn _One (_App (_Var fst) (_App (_Var getnum) (_Var ch))) 
+    (* (bind_var x (_App (_Var rep) (_Var x))) *)
+    (bind_var x (_Var x))
+  ))))))))))))))))))
+
+let t2 = 
+  let _A = mk "A" in
+  let _B = mk "B" in
+  let f = mk "f" in
+  let x = mk "x" in
+  _Axiom _Zero _Type (bind_var _A (
+  _Axiom _Zero _Type (bind_var _B (
+  _Axiom _W (_Arrow _One (_Var _A) (_Var _B)) (bind_var f (
+  _Axiom _W (_Var _A) (bind_var x (
+  _App (_Var f) (_Var x)
+  ))))))))
 
 let _ = 
-  let t = unbox t in
-  let p = _W in
+  let t = unbox t1 in
+  let p = _One in
   let ctx, ty = infer empty p t in
-  let t = cbv t in
+  let t = t in
   let ty = cbv ty in
   Format.printf "complete1\n";
   Format.printf "ctx := %a\n" Context.pp ctx;
