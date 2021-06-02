@@ -114,6 +114,11 @@ In an eager semantics, this is not an issue as eager terms will immediately
 consume their linear resource and produce a value, the modality of this
 value can thus be judged independently from the linear resource.
 
+Essentially, all terms touched by linear resources are relegated to 
+linearity forever, without any hope of returning back to intuitionistic land.
+The irony of QTT is that in the pursuit of combining linear and dependent
+types, the gap between linear and intuitionistic types has further widened.
+
 #### Example
 Reading a Nat from a linear channel and adding it to itself. Such an operation
 is forbidden in QTT. This is because the variable `x` is marked as linear due to
