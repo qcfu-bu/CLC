@@ -8,9 +8,7 @@ open Typec
 
 let tensor = mk "tensor"
 let tensorTy =
-  _Prod _Zero _Type (bind_var __ (
-    _Prod _Zero _Type (bind_var __ (
-      _Type))))
+  _Arrow _Zero _Type (_Arrow _Zero _Type _Type)
 
 let nat = mk "Nat"
 let natTy = _Type
@@ -20,7 +18,7 @@ let strTy = _Type
 
 let vec = mk "Vec"
 let vecTy =
-  _Prod _Zero (_Var nat) (bind_var __ _Type)
+  _Arrow _Zero (_Var nat) _Type
 
 let channel = mk "Channel"
 let channelTy = _Type
@@ -39,18 +37,15 @@ let nat_channel =
 
 let getnum = mk "getnum"
 let getnumTy =
-  _Prod _One (_Var channel) (bind_var __ (
-    nat_channel))
+  _Arrow _One (_Var channel) nat_channel
 
 let fst = mk "fst"
 let fstTy =
-  _Prod _One nat_channel (bind_var __ (
-    _Var nat))
+  _Arrow _One nat_channel (_Var nat)
 
 let snd = mk "snd"
 let sndTy =
-  _Prod _One nat_channel (bind_var __ (
-    _Var channel))
+  _Arrow _One nat_channel (_Var channel)
 
 let t1 =
   let x = mk "x" in
