@@ -40,7 +40,8 @@ let rec check ctx t p ty =
         let ctx = add x (t', _Zero) ctx in
         let ctx = check ctx b _One b' in
         let _, q' = find x ctx in
-        assert_check (q' <= q) "Lambda" 
+        assert_check (q' <= q)
+          (Format.asprintf "Lambda %a <= %a" Rig.pp q' Rig.pp q)
           pre_ctx pre_t pre_p pre_ty;
         scale p (remove x ctx)
       | _ -> failwith "Lambda")

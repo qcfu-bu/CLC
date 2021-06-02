@@ -291,7 +291,7 @@ ctx := {
 	Nat :0 Type
 	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (x :w Nat), (Vec) x
+t   := forall (x :1 Nat), (Vec) x
 q   := 0
 ty  := Type
 
@@ -303,13 +303,13 @@ ctx := {
 	Nat :0 Type
 	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (x :w Nat), (Vec) x
+t   := forall (x :1 Nat), (Vec) x
 q   := 0
 ty  := Type
 
 infer
 ctx := {
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -322,7 +322,7 @@ ty  := Type
 
 check
 ctx := {
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -336,7 +336,7 @@ ty  := Type
 infer
 ctx := {
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -350,7 +350,7 @@ ty  := Type
 check
 ctx := {
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -365,7 +365,7 @@ infer
 ctx := {
 	_ :0 Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -380,7 +380,7 @@ infer
 ctx := {
 	_ :0 Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -395,7 +395,7 @@ check
 ctx := {
 	_ :0 Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -410,7 +410,7 @@ infer
 ctx := {
 	_ :0 Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -425,7 +425,7 @@ infer
 ctx := {
 	_ :0 Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -440,7 +440,7 @@ check
 ctx := {
 	_ :0 Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -455,7 +455,7 @@ infer
 ctx := {
 	_ :0 Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -470,7 +470,7 @@ check
 ctx := {
 	_ :0 Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -484,7 +484,7 @@ ty  := Type
 infer
 ctx := {
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -498,7 +498,7 @@ ty  := Type
 check
 ctx := {
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -513,7 +513,7 @@ infer
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -528,7 +528,7 @@ infer
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -543,7 +543,7 @@ check
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -558,7 +558,7 @@ infer
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -573,7 +573,7 @@ infer
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -588,7 +588,7 @@ check
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -603,7 +603,7 @@ infer
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -618,7 +618,7 @@ check
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -634,7 +634,7 @@ ctx := {
 	_ :0 ((tensor) Nat) Channel
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -650,7 +650,7 @@ ctx := {
 	_ :0 ((tensor) Nat) Channel
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -665,7 +665,7 @@ infer
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -680,7 +680,7 @@ check
 ctx := {
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -690,13 +690,130 @@ ctx := {
 t   := forall (_ :1 ((tensor) Nat) Channel), Nat
 q   := 0
 ty  := Type
+
+infer
+ctx := {
+	x :0 Nat
+	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+	ch :0 Channel
+	rep :0 forall (x :1 Nat), (Vec) x
+	Channel :0 Type
+	Vec :0 forall (_ :0 Nat), Type
+	String :0 Type
+	Nat :0 Type
+	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+}
+t   := rep
+q   := 1
+ty  := forall (x :1 Nat), (Vec) x
+
+infer
+ctx := {
+	x :0 Nat
+	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+	ch :0 Channel
+	rep :0 forall (x :1 Nat), (Vec) x
+	Channel :0 Type
+	Vec :0 forall (_ :0 Nat), Type
+	String :0 Type
+	Nat :0 Type
+	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+}
+t   := x
+q   := 1
+ty  := Nat
+
+check
+ctx := {
+	x :0 Nat
+	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+	ch :0 Channel
+	rep :0 forall (x :1 Nat), (Vec) x
+	Channel :0 Type
+	Vec :0 forall (_ :0 Nat), Type
+	String :0 Type
+	Nat :0 Type
+	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+}
+t   := x
+q   := 1
+ty  := Nat
+
+infer
+ctx := {
+	x :0 Nat
+	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+	ch :0 Channel
+	rep :0 forall (x :1 Nat), (Vec) x
+	Channel :0 Type
+	Vec :0 forall (_ :0 Nat), Type
+	String :0 Type
+	Nat :0 Type
+	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+}
+t   := (rep) x
+q   := 1
+ty  := (Vec) x
+
+check
+ctx := {
+	x :0 Nat
+	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+	ch :0 Channel
+	rep :0 forall (x :1 Nat), (Vec) x
+	Channel :0 Type
+	Vec :0 forall (_ :0 Nat), Type
+	String :0 Type
+	Nat :0 Type
+	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+}
+t   := (rep) x
+q   := 1
+ty  := (Vec) x
+
+check
+ctx := {
+	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+	ch :0 Channel
+	rep :0 forall (x :1 Nat), (Vec) x
+	Channel :0 Type
+	Vec :0 forall (_ :0 Nat), Type
+	String :0 Type
+	Nat :0 Type
+	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+}
+t   := fun x => (rep) x
+q   := 1
+ty  := forall (x :1 Nat), (Vec) x
 
 infer
 ctx := {
 	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
+	Channel :0 Type
+	Vec :0 forall (_ :0 Nat), Type
+	String :0 Type
+	Nat :0 Type
+	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+}
+t   := (fun x => (rep) x : forall (x :1 Nat), (Vec) x)
+q   := 1
+ty  := forall (x :1 Nat), (Vec) x
+
+infer
+ctx := {
+	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+	ch :0 Channel
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -712,7 +829,7 @@ ctx := {
 	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -728,7 +845,7 @@ ctx := {
 	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -744,7 +861,7 @@ ctx := {
 	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -760,7 +877,7 @@ ctx := {
 	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -776,7 +893,7 @@ ctx := {
 	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -792,7 +909,23 @@ ctx := {
 	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
+	Channel :0 Type
+	Vec :0 forall (_ :0 Nat), Type
+	String :0 Type
+	Nat :0 Type
+	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+}
+t   := (fst) (getnum) ch
+q   := 1
+ty  := Nat
+
+check
+ctx := {
+	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+	ch :0 Channel
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -805,27 +938,25 @@ ty  := Nat
 
 infer
 ctx := {
-	x :0 Nat
 	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
 	Nat :0 Type
 	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := ((fst) (getnum) ch^x)
+t   := ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
 	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -833,31 +964,14 @@ ctx := {
 	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
 t   := 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
-
-infer
-ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
-}
-t   := 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
-q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
 	ch :0 Channel
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -866,14 +980,13 @@ ctx := {
 }
 t   := 
 	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	rep :0 forall (x :w Nat), (Vec) x
+	rep :0 forall (x :1 Nat), (Vec) x
 	Channel :0 Type
 	Vec :0 forall (_ :0 Nat), Type
 	String :0 Type
@@ -883,10 +996,9 @@ ctx := {
 t   := 
 	axiom ch :1 Channel in 
 	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
@@ -897,13 +1009,12 @@ ctx := {
 	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
 t   := 
-	axiom rep :w forall (x :w Nat), (Vec) x in 
+	axiom rep :w forall (x :1 Nat), (Vec) x in 
 	axiom ch :1 Channel in 
 	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
@@ -914,13 +1025,12 @@ ctx := {
 }
 t   := 
 	axiom Channel :0 Type in 
-	axiom rep :w forall (x :w Nat), (Vec) x in 
+	axiom rep :w forall (x :1 Nat), (Vec) x in 
 	axiom ch :1 Channel in 
 	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
@@ -931,13 +1041,12 @@ ctx := {
 t   := 
 	axiom Vec :0 forall (_ :0 Nat), Type in 
 	axiom Channel :0 Type in 
-	axiom rep :w forall (x :w Nat), (Vec) x in 
+	axiom rep :w forall (x :1 Nat), (Vec) x in 
 	axiom ch :1 Channel in 
 	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
@@ -948,13 +1057,12 @@ t   :=
 	axiom String :0 Type in 
 	axiom Vec :0 forall (_ :0 Nat), Type in 
 	axiom Channel :0 Type in 
-	axiom rep :w forall (x :w Nat), (Vec) x in 
+	axiom rep :w forall (x :1 Nat), (Vec) x in 
 	axiom ch :1 Channel in 
 	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
@@ -965,13 +1073,12 @@ t   :=
 	axiom String :0 Type in 
 	axiom Vec :0 forall (_ :0 Nat), Type in 
 	axiom Channel :0 Type in 
-	axiom rep :w forall (x :w Nat), (Vec) x in 
+	axiom rep :w forall (x :1 Nat), (Vec) x in 
 	axiom ch :1 Channel in 
 	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
@@ -982,13 +1089,12 @@ t   :=
 	axiom String :0 Type in 
 	axiom Vec :0 forall (_ :0 Nat), Type in 
 	axiom Channel :0 Type in 
-	axiom rep :w forall (x :w Nat), (Vec) x in 
+	axiom rep :w forall (x :1 Nat), (Vec) x in 
 	axiom ch :1 Channel in 
 	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 
 complete1
 ctx := {
@@ -999,11 +1105,10 @@ t   :=
 	axiom String :0 Type in 
 	axiom Vec :0 forall (_ :0 Nat), Type in 
 	axiom Channel :0 Type in 
-	axiom rep :w forall (x :w Nat), (Vec) x in 
+	axiom rep :w forall (x :1 Nat), (Vec) x in 
 	axiom ch :1 Channel in 
 	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in 
-	let x :1 := (fst) (getnum) ch in x
+	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
 q   := 1
-ty  := Nat
+ty  := (Vec) (fst) (getnum) ch
 

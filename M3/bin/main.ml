@@ -26,7 +26,7 @@ let channelTy = _Type
 let rep = mk "rep"
 let repTy = 
   let x = mk "x" in
-  _Prod _W (_Var nat) (bind_var x (
+  _Prod _One (_Var nat) (bind_var x (
     _App (_Var vec) (_Var x)))
 
 let ch = mk "ch"
@@ -59,9 +59,11 @@ let t1 =
   _Axiom _W getnumTy (bind_var getnum (
   _Axiom _W fstTy (bind_var fst (
   (* very subtle *)
-  _LetIn _One (_App (_Var fst) (_App (_Var getnum) (_Var ch))) 
-    (* (bind_var x (_App (_Var rep) (_Var x))) *)
-    (bind_var x (_Var x))
+  _App 
+    (_AnnTy 
+      (_Lambda (bind_var x (_App (_Var rep) (_Var x))))
+      (_Prod _One (_Var nat) (bind_var x (_App (_Var vec) (_Var x)))))
+    (_App (_Var fst) (_App (_Var getnum) (_Var ch))) 
   ))))))))))))))))))
 
 let t2 = 
