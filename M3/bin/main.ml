@@ -84,9 +84,9 @@ let _ =
   let ctx, ty = infer empty p t in
   let t = t in
   let ty = cbv ty in
-  Format.printf "complete1\n";
-  Format.printf "ctx := %a\n" Context.pp ctx;
-  Format.printf "t   := %a\n" Terms.pp t;
-  Format.printf "q   := %a\n" Rig.pp p;
-  Format.printf "ty  := %a\n" Terms.pp ty;
+  Format.printf "complete\n";
+  Format.printf "ctx := %a@." Context.pp ctx;
+  Format.printf "@[t   :=@;<1 2> %a@]@." Terms.pp t;
+  Format.printf "@[q   :=@;<1 2> %a@]@." Rig.pp p;
+  Format.printf "@[ty  :=@;<1 2> %a@]@." Terms.pp ty;
   Format.printf "\n"

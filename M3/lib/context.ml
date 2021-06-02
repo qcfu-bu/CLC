@@ -41,9 +41,9 @@ let sum ctx1 ctx2 =
     ctx1 ctx2
 
 let pp fmt ctx =
-  Format.fprintf fmt "{\n";
+  Format.fprintf fmt "{@?";
   iter (fun x (t, q) -> 
-    Format.fprintf fmt "\t%s :%a %a\n" 
+    Format.fprintf fmt "@[<v 0>@;<0 2>@[%s :%a@;<1 2>%a@]@]@?" 
       (name_of x) Rig.pp q pp t)
     ctx;
-  Format.fprintf fmt "}";
+  Format.fprintf fmt "\n}@?";

@@ -55,23 +55,23 @@ let rec pp fmt = function
   | Type -> Format.fprintf fmt "Type"
   | Prod (q, t, b) -> 
     let x, b = unbind b in
-    Format.fprintf fmt "forall (%s :%a %a), %a"
+    Format.fprintf fmt "@[@[forall (%s :%a@;<1 2>%a),@]@;<1 2>%a@]"
       (name_of x) Rig.pp q pp t pp b
   | Lambda b ->
     let x, b = unbind b in
-    Format.fprintf fmt "fun %s => %a"
+    Format.fprintf fmt "@[fun %s =>@;<1 2>%a@]"
       (name_of x) pp b
   | Fix b ->
     let x, b = unbind b in
-    Format.fprintf fmt "fix %s := %a"
+    Format.fprintf fmt "@[fix %s :=@;<1 2>%a@]"
       (name_of x) pp b
   | App (s, t) ->
     Format.fprintf fmt "(%a) %a" pp s pp t
   | LetIn (q, t, b) -> 
     let x, b = unbind b in
-    Format.fprintf fmt "\n\tlet %s :%a := %a in %a"
+    Format.fprintf fmt "@[@[let %s :%a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
       (name_of x) Rig.pp q pp t pp b
   | Axiom (q, t, b) -> 
     let x, b = unbind b in
-    Format.fprintf fmt "\n\taxiom %s :%a %a in %a"
+    Format.fprintf fmt "@[@[axiom %s :%a@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
       (name_of x) Rig.pp q pp t pp b

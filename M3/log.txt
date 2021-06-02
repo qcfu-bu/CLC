@@ -1,1114 +1,1124 @@
 infer
 ctx := {
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	_ :0 Type
+  _ :0 Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	_ :0 Type
+  _ :0 Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	_ :0 Type
-	_ :0 Type
+  _ :0 Type
+  _ :0 Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	_ :0 Type
-	_ :0 Type
+  _ :0 Type
+  _ :0 Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	_ :0 Type
+  _ :0 Type
 }
-t   := forall (_ :0 Type), Type
-q   := 0
-ty  := Type
+t   :=  forall (_ :0 Type), Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	_ :0 Type
+  _ :0 Type
 }
-t   := forall (_ :0 Type), Type
-q   := 0
-ty  := Type
+t   :=  forall (_ :0 Type), Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
 }
-t   := forall (_ :0 Type), forall (_ :0 Type), Type
-q   := 0
-ty  := Type
+t   :=  forall (_ :0 Type), forall (_ :0 Type), Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
 }
-t   := forall (_ :0 Type), forall (_ :0 Type), Type
-q   := 0
-ty  := Type
+t   :=  forall (_ :0 Type), forall (_ :0 Type), Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	_ :0 Nat
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Nat
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	_ :0 Nat
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Nat
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (_ :0 Nat), Type
-q   := 0
-ty  := Type
+t   :=  forall (_ :0 Nat), Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (_ :0 Nat), Type
-q   := 0
-ty  := Type
+t   :=  forall (_ :0 Nat), Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Type
-q   := 0
-ty  := Type
+t   :=  Type
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	x :0 Nat
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Vec
-q   := 0
-ty  := forall (_ :0 Nat), Type
+t   :=  Vec
+q   :=  0
+ty  :=  forall (_ :0 Nat), Type
 
 infer
 ctx := {
-	x :0 Nat
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := x
-q   := 0
-ty  := Nat
+t   :=  x
+q   :=  0
+ty  :=  Nat
 
 check
 ctx := {
-	x :0 Nat
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := x
-q   := 0
-ty  := Nat
+t   :=  x
+q   :=  0
+ty  :=  Nat
 
 infer
 ctx := {
-	x :0 Nat
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (Vec) x
-q   := 0
-ty  := Type
+t   :=  (Vec) x
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	x :0 Nat
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (Vec) x
-q   := 0
-ty  := Type
+t   :=  (Vec) x
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (x :1 Nat), (Vec) x
-q   := 0
-ty  := Type
+t   :=  forall (x :1 Nat), (Vec) x
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (x :1 Nat), (Vec) x
-q   := 0
-ty  := Type
+t   :=  forall (x :1 Nat), (Vec) x
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Channel
-q   := 0
-ty  := Type
+t   :=  Channel
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Channel
-q   := 0
-ty  := Type
+t   :=  Channel
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Channel
-q   := 0
-ty  := Type
+t   :=  Channel
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Channel
-q   := 0
-ty  := Type
+t   :=  Channel
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	_ :0 Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := tensor
-q   := 0
-ty  := forall (_ :0 Type), forall (_ :0 Type), Type
+t   :=  tensor
+q   :=  0
+ty  :=  forall (_ :0 Type), forall (_ :0 Type), Type
 
 infer
 ctx := {
-	_ :0 Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	_ :0 Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	_ :0 Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (tensor) Nat
-q   := 0
-ty  := forall (_ :0 Type), Type
+t   :=  (tensor) Nat
+q   :=  0
+ty  :=  forall (_ :0 Type), Type
 
 infer
 ctx := {
-	_ :0 Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Channel
-q   := 0
-ty  := Type
+t   :=  Channel
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	_ :0 Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Channel
-q   := 0
-ty  := Type
+t   :=  Channel
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	_ :0 Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := ((tensor) Nat) Channel
-q   := 0
-ty  := Type
+t   :=  ((tensor) Nat) Channel
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	_ :0 Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := ((tensor) Nat) Channel
-q   := 0
-ty  := Type
+t   :=  ((tensor) Nat) Channel
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (_ :1 Channel), ((tensor) Nat) Channel
-q   := 0
-ty  := Type
+t   :=  forall (_ :1 Channel), ((tensor) Nat) Channel
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (_ :1 Channel), ((tensor) Nat) Channel
-q   := 0
-ty  := Type
+t   :=  forall (_ :1 Channel), ((tensor) Nat) Channel
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := tensor
-q   := 0
-ty  := forall (_ :0 Type), forall (_ :0 Type), Type
+t   :=  tensor
+q   :=  0
+ty  :=  forall (_ :0 Type), forall (_ :0 Type), Type
 
 infer
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (tensor) Nat
-q   := 0
-ty  := forall (_ :0 Type), Type
+t   :=  (tensor) Nat
+q   :=  0
+ty  :=  forall (_ :0 Type), Type
 
 infer
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Channel
-q   := 0
-ty  := Type
+t   :=  Channel
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Channel
-q   := 0
-ty  := Type
+t   :=  Channel
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := ((tensor) Nat) Channel
-q   := 0
-ty  := Type
+t   :=  ((tensor) Nat) Channel
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := ((tensor) Nat) Channel
-q   := 0
-ty  := Type
+t   :=  ((tensor) Nat) Channel
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	_ :0 ((tensor) Nat) Channel
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 ((tensor) Nat) Channel
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	_ :0 ((tensor) Nat) Channel
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  _ :0 ((tensor) Nat) Channel
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := Nat
-q   := 0
-ty  := Type
+t   :=  Nat
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (_ :1 ((tensor) Nat) Channel), Nat
-q   := 0
-ty  := Type
+t   :=  forall (_ :1 ((tensor) Nat) Channel), Nat
+q   :=  0
+ty  :=  Type
 
 check
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := forall (_ :1 ((tensor) Nat) Channel), Nat
-q   := 0
-ty  := Type
+t   :=  forall (_ :1 ((tensor) Nat) Channel), Nat
+q   :=  0
+ty  :=  Type
 
 infer
 ctx := {
-	x :0 Nat
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := rep
-q   := 1
-ty  := forall (x :1 Nat), (Vec) x
+t   :=  rep
+q   :=  1
+ty  :=  forall (x :1 Nat), (Vec) x
 
 infer
 ctx := {
-	x :0 Nat
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := x
-q   := 1
-ty  := Nat
+t   :=  x
+q   :=  1
+ty  :=  Nat
 
 check
 ctx := {
-	x :0 Nat
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := x
-q   := 1
-ty  := Nat
+t   :=  x
+q   :=  1
+ty  :=  Nat
 
 infer
 ctx := {
-	x :0 Nat
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (rep) x
-q   := 1
-ty  := (Vec) x
+t   :=  (rep) x
+q   :=  1
+ty  :=  (Vec) x
 
 check
 ctx := {
-	x :0 Nat
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  x :0 Nat
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (rep) x
-q   := 1
-ty  := (Vec) x
+t   :=  (rep) x
+q   :=  1
+ty  :=  (Vec) x
 
 check
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := fun x => (rep) x
-q   := 1
-ty  := forall (x :1 Nat), (Vec) x
+t   :=  fun x => (rep) x
+q   :=  1
+ty  :=  forall (x :1 Nat), (Vec) x
 
 infer
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (fun x => (rep) x : forall (x :1 Nat), (Vec) x)
-q   := 1
-ty  := forall (x :1 Nat), (Vec) x
+t   :=  (fun x => (rep) x : forall (x :1 Nat), (Vec) x)
+q   :=  1
+ty  :=  forall (x :1 Nat), (Vec) x
 
 infer
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := fst
-q   := 1
-ty  := forall (_ :1 ((tensor) Nat) Channel), Nat
+t   :=  fst
+q   :=  1
+ty  :=  forall (_ :1 ((tensor) Nat) Channel), Nat
 
 infer
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := getnum
-q   := 1
-ty  := forall (_ :1 Channel), ((tensor) Nat) Channel
+t   :=  getnum
+q   :=  1
+ty  :=  forall (_ :1 Channel), ((tensor) Nat) Channel
 
 infer
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := ch
-q   := 1
-ty  := Channel
+t   :=  ch
+q   :=  1
+ty  :=  Channel
 
 check
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := ch
-q   := 1
-ty  := Channel
+t   :=  ch
+q   :=  1
+ty  :=  Channel
 
 infer
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (getnum) ch
-q   := 1
-ty  := ((tensor) Nat) Channel
+t   :=  (getnum) ch
+q   :=  1
+ty  :=  ((tensor) Nat) Channel
 
 check
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (getnum) ch
-q   := 1
-ty  := ((tensor) Nat) Channel
+t   :=  (getnum) ch
+q   :=  1
+ty  :=  ((tensor) Nat) Channel
 
 infer
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (fst) (getnum) ch
-q   := 1
-ty  := Nat
+t   :=  (fst) (getnum) ch
+q   :=  1
+ty  :=  Nat
 
 check
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := (fst) (getnum) ch
-q   := 1
-ty  := Nat
+t   :=  (fst) (getnum) ch
+q   :=  1
+ty  :=  Nat
 
 infer
 ctx := {
-	fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  fst :0 forall (_ :1 ((tensor) Nat) Channel), Nat
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=  ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  getnum :0 forall (_ :1 Channel), ((tensor) Nat) Channel
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	ch :0 Channel
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  ch :0 Channel
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := 
-	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	rep :0 forall (x :1 Nat), (Vec) x
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  rep :0 forall (x :1 Nat), (Vec) x
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := 
-	axiom ch :1 Channel in 
-	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom ch :1 Channel in
+   axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	Channel :0 Type
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Channel :0 Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := 
-	axiom rep :w forall (x :1 Nat), (Vec) x in 
-	axiom ch :1 Channel in 
-	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom rep :w forall (x :1 Nat), (Vec) x in
+   axiom ch :1 Channel in
+   axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	Vec :0 forall (_ :0 Nat), Type
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Vec :0 forall (_ :0 Nat), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := 
-	axiom Channel :0 Type in 
-	axiom rep :w forall (x :1 Nat), (Vec) x in 
-	axiom ch :1 Channel in 
-	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom Channel :0 Type in
+   axiom rep :w forall (x :1 Nat), (Vec) x in
+   axiom ch :1 Channel in
+   axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	String :0 Type
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  String :0 Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := 
-	axiom Vec :0 forall (_ :0 Nat), Type in 
-	axiom Channel :0 Type in 
-	axiom rep :w forall (x :1 Nat), (Vec) x in 
-	axiom ch :1 Channel in 
-	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom Vec :0 forall (_ :0 Nat), Type in
+   axiom Channel :0 Type in
+   axiom rep :w forall (x :1 Nat), (Vec) x in
+   axiom ch :1 Channel in
+   axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	Nat :0 Type
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  Nat :0 Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := 
-	axiom String :0 Type in 
-	axiom Vec :0 forall (_ :0 Nat), Type in 
-	axiom Channel :0 Type in 
-	axiom rep :w forall (x :1 Nat), (Vec) x in 
-	axiom ch :1 Channel in 
-	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom String :0 Type in
+   axiom Vec :0 forall (_ :0 Nat), Type in
+   axiom Channel :0 Type in
+   axiom rep :w forall (x :1 Nat), (Vec) x in
+   axiom ch :1 Channel in
+   axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
-	tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
+  tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type
 }
-t   := 
-	axiom Nat :0 Type in 
-	axiom String :0 Type in 
-	axiom Vec :0 forall (_ :0 Nat), Type in 
-	axiom Channel :0 Type in 
-	axiom rep :w forall (x :1 Nat), (Vec) x in 
-	axiom ch :1 Channel in 
-	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom Nat :0 Type in
+   axiom String :0 Type in
+   axiom Vec :0 forall (_ :0 Nat), Type in
+   axiom Channel :0 Type in
+   axiom rep :w forall (x :1 Nat), (Vec) x in
+   axiom ch :1 Channel in
+   axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
 infer
 ctx := {
 }
-t   := 
-	axiom tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type in 
-	axiom Nat :0 Type in 
-	axiom String :0 Type in 
-	axiom Vec :0 forall (_ :0 Nat), Type in 
-	axiom Channel :0 Type in 
-	axiom rep :w forall (x :1 Nat), (Vec) x in 
-	axiom ch :1 Channel in 
-	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type in
+   axiom Nat :0 Type in
+   axiom String :0 Type in
+   axiom Vec :0 forall (_ :0 Nat), Type in
+   axiom Channel :0 Type in
+   axiom rep :w forall (x :1 Nat), (Vec) x in
+   axiom ch :1 Channel in
+   axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 
-complete1
+complete
 ctx := {
 }
-t   := 
-	axiom tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type in 
-	axiom Nat :0 Type in 
-	axiom String :0 Type in 
-	axiom Vec :0 forall (_ :0 Nat), Type in 
-	axiom Channel :0 Type in 
-	axiom rep :w forall (x :1 Nat), (Vec) x in 
-	axiom ch :1 Channel in 
-	axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in 
-	axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
-q   := 1
-ty  := (Vec) (fst) (getnum) ch
+t   :=
+   axiom tensor :0 forall (_ :0 Type), forall (_ :0 Type), Type in
+   axiom Nat :0 Type in
+   axiom String :0 Type in
+   axiom Vec :0 forall (_ :0 Nat), Type in
+   axiom Channel :0 Type in
+   axiom rep :w forall (x :1 Nat), (Vec) x in
+   axiom ch :1 Channel in
+   axiom getnum :w forall (_ :1 Channel), ((tensor) Nat) Channel in
+   axiom fst :w forall (_ :1 ((tensor) Nat) Channel), Nat in
+   ((fun x => (rep) x : forall (x :1 Nat), (Vec) x)) (fst) (getnum) ch
+q   :=  1
+ty  :=  (Vec) (fst) (getnum) ch
 

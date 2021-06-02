@@ -10,20 +10,21 @@ let assert_check cond msg ctx t p ty =
   with _ ->
     Format.printf "check error\n";
     Format.printf "msg := %s\n" msg;
-    Format.printf "ctx := %a\n" Context.pp ctx;
-    Format.printf "t   := %a\n" Terms.pp t;
-    Format.printf "q   := %a\n" Rig.pp p;
-    Format.printf "ty  := %a\n\n" Terms.pp ty;
+    Format.printf "ctx := %a@." Context.pp ctx;
+    Format.printf "@[t   :=@;<1 2> %a@]@." Terms.pp t;
+    Format.printf "@[q   :=@;<1 2> %a@]@." Rig.pp p;
+    Format.printf "@[ty  :=@;<1 2> %a@]@." Terms.pp ty;
+    Format.printf "\n";
     assert false
 
 let assert_infer cond msg ctx p t =
   try assert cond
   with _ ->
     Format.printf "infer error\n";
-    Format.printf "msg := %s\n" msg;
-    Format.printf "ctx := %a\n" Context.pp ctx;
-    Format.printf "t   := %a\n" Terms.pp t;
-    Format.printf "q   := %a\n\n" Rig.pp p;
+    Format.printf "ctx := %a@." Context.pp ctx;
+    Format.printf "@[t   :=@;<1 2> %a@]@." Terms.pp t;
+    Format.printf "@[q   :=@;<1 2> %a@]@." Rig.pp p;
+    Format.printf "\n";
     assert false
 
 let rec check ctx t p ty =
@@ -61,10 +62,11 @@ let rec check ctx t p ty =
       ctx
   in
   Format.printf "check\n";
-  Format.printf "ctx := %a\n" Context.pp pre_ctx;
-  Format.printf "t   := %a\n" Terms.pp t;
-  Format.printf "q   := %a\n" Rig.pp p;
-  Format.printf "ty  := %a\n\n" Terms.pp ty;
+  Format.printf "ctx := %a@." Context.pp pre_ctx;
+  Format.printf "@[t   :=@;<1 2> %a@]@." Terms.pp pre_t;
+  Format.printf "@[q   :=@;<1 2> %a@]@." Rig.pp pre_p;
+  Format.printf "@[ty  :=@;<1 2> %a@]@." Terms.pp pre_ty;
+  Format.printf "\n";
   ctx
 
 and infer ctx p t = 
@@ -138,9 +140,10 @@ and infer ctx p t =
       failwith ""
   in
   Format.printf "infer\n";
-  Format.printf "ctx := %a\n" Context.pp pre_ctx;
-  Format.printf "t   := %a\n" Terms.pp t;
-  Format.printf "q   := %a\n" Rig.pp p;
-  Format.printf "ty  := %a\n\n" Terms.pp ty;
+  Format.printf "ctx := %a@." Context.pp pre_ctx;
+  Format.printf "@[t   :=@;<1 2> %a@]@." Terms.pp pre_t;
+  Format.printf "@[q   :=@;<1 2> %a@]@." Rig.pp pre_p;
+  Format.printf "@[ty  :=@;<1 2> %a@]@." Terms.pp ty;
+  Format.printf "\n";
   (ctx, ty)
   
