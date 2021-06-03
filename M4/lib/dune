@@ -1,2 +1,3 @@
 (library
- (name M4))
+ (name M4)
+ (libraries bindlib))
