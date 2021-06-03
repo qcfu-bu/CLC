@@ -36,6 +36,8 @@ type t =
 
 and ty = t
 
+type tvar = t var
+
 let __ = new_var (fun x -> Var x) "_"
 let mk = new_var (fun x -> Var x)
 

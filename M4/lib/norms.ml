@@ -8,14 +8,7 @@ let rec whnf t =
   | Type _ -> t
   | Prod _ -> t
   | Lolli _ -> t
-  | Lambda (m, b) -> (
-    let x, t = unbind b in
-    match t with
-    | App (t, Var y) ->
-      if eq_vars x y && not (occur x (lift t))
-      then whnf t
-      else Lambda (m, b)
-    | _ -> Lambda (m, b))
+  | Lambda _ -> t
   | App (t1, t2) -> (
     let t1 = whnf t1 in
     match t1 with
@@ -70,4 +63,3 @@ let rec whnf t =
     match t1 with
     | U -> whnf t2
     | _ -> Unit_elim (t1, t2))
-
