@@ -12,7 +12,7 @@ let rec whnf t =
   | App (t1, t2) -> (
     let t1 = whnf t1 in
     match t1 with
-    | Lambda (_, b) ->
+    | Lambda b ->
       let t2 = whnf t2 in
       whnf (subst b t2)
     | _ -> App (t1, t2))

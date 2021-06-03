@@ -83,10 +83,10 @@ let rec infer_i ictx = function
 
 and check_i ictx t ty =
   match t with
-  | Lambda (m, t) -> (
+  | Lambda t -> (
     let () = check_i ictx ty (Type I) in
-    match m, whnf ty with
-    | I, Prod (ty, b) ->
+    match whnf ty with
+    | Prod (ty, b) ->
       let x, t, b = unbind2 t b in
       let ictx = add x ty ictx in
       check_i ictx t b
@@ -187,17 +187,17 @@ and infer_l ictx lctx t : ty * ctx * bool =
 
 and check_l ictx lctx t ty : ctx * bool =
   match t with
-  | Lambda (m, b) -> (
-    let () = check_i ictx ty (Type I) in
-    match m, whnf ty with
-    | I, Lolli (ty1, ty2) ->
+  | Lambda b -> (
+    let () = check_i ictx ty (Type L) in
+    match whnf ty with
+    | Lolli (ty1, ty2) ->
       let x, b = unbind b in
       let lctx = add x ty1 lctx in
       let lctx, slack = check_l ictx lctx b ty2 in
       let () = assert_msg (not (contains x lctx) || slack) "check_l Lambda" in
       let lctx = remove x lctx in
       (lctx, slack)
-    | L, Prod (ty, b') ->
+    | Prod (ty, b') ->
       let x, b, b' = unbind2 b b' in
       let ictx = add x ty ictx in
       check_l ictx lctx b b'

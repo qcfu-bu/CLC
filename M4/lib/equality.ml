@@ -12,8 +12,7 @@ let rec aeq t1 t2 =
     aeq ty1 ty2 && eq_binder aeq b1 b2
   | Lolli (ty11, ty12), Lolli (ty21, ty22) ->
     aeq ty11 ty21 && aeq ty12 ty22
-  | Lambda (m1, b1), Lambda (m2, b2) ->
-    m1 = m2 && eq_binder aeq b1 b2
+  | Lambda b1, Lambda b2 -> eq_binder aeq b1 b2
   | App (t11, t12), App (t21, t22) ->
     aeq t11 t21 && aeq t12 t22
   | G ty1, G ty2 -> aeq ty1 ty2
@@ -58,8 +57,7 @@ let rec equal t1 t2 =
       equal ty1 ty2 && eq_binder equal b1 b2
     | Lolli (ty11, ty12), Lolli (ty21, ty22) ->
       equal ty11 ty21 && equal ty12 ty22
-    | Lambda (m1, b1), Lambda (m2, b2) ->
-      m1 = m2 && eq_binder equal b1 b2
+    | Lambda b1, Lambda b2 -> eq_binder equal b1 b2
     | App (t11, t12), App (t21, t22) ->
       equal t11 t21 && equal t12 t22
     | G ty1, G ty2 -> equal ty1 ty2

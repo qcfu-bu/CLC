@@ -12,7 +12,7 @@ type t =
   | Type        of m                     (* infer *)
   | Prod        of ty * (ty, ty) binder  (* infer *)
   | Lolli       of ty * ty               (* infer *)
-  | Lambda      of m * (t, t) binder     (* check *)
+  | Lambda      of (t, t) binder         (* check *)
   | App         of t * t                 (* infer *)
   (* modality *)
   | G           of ty                    (* infer *)
@@ -49,7 +49,7 @@ let _Arrow ty1 ty2 =
   let ty2 = bind_var __ ty2 in
   box_apply2 (fun ty b -> Prod (ty, b)) ty1 ty2
 let _Lolli = box_apply2 (fun ty1 ty2 -> Lolli (ty1, ty2))
-let _Lambda m = box_apply (fun b -> Lambda (m, b))
+let _Lambda = box_apply (fun b -> Lambda b)
 let _App = box_apply2 (fun t1 t2 -> App (t1, t2))
 let _G = box_apply (fun ty -> G ty)
 let _G_intro = box_apply (fun t -> G_intro t)
@@ -78,7 +78,7 @@ let rec lift = function
   | Type m -> _Type m
   | Prod (ty, b) -> _Prod (lift ty) (box_binder lift b)
   | Lolli (ty1, ty2) -> _Lolli (lift ty1) (lift ty2)
-  | Lambda (m, b) -> _Lambda m (box_binder lift b)
+  | Lambda b -> _Lambda (box_binder lift b)
   | App (t1, t2) -> _App (lift t1) (lift t2)
   | G ty -> _G (lift ty)
   | G_intro t -> _G_intro (lift t)
@@ -115,11 +115,9 @@ let rec pp fmt = function
       (name_of x) pp ty pp b
   | Lolli (ty1, ty2) ->
     Format.fprintf fmt "(%a -o %a)" pp ty1 pp ty2
-  | Lambda (m, b) -> (
+  | Lambda b -> (
     let x, b = unbind b in
-    match m with
-    | I -> Format.fprintf fmt "fun %s => %a" (name_of x) pp b
-    | L -> Format.fprintf fmt "lin %s => %a" (name_of x) pp b)
+    Format.fprintf fmt "fun %s => %a" (name_of x) pp b)
   | App (t1, t2) ->
     Format.fprintf fmt "(%a) %a" pp t1 pp t2
   | G ty ->
