@@ -34,6 +34,37 @@ let rec infer_i ictx = function
       let () = check_i ictx t2 ty in
       subst b t2
     | _ -> failwith "infer_i Prod")
+  | Eq (t1, t2, ty) ->
+    let () = check_i ictx ty (Type I) in
+    let () = check_i ictx t1 ty in
+    let () = check_i ictx t2 ty in
+    Type I
+  | Refl t ->
+    let ty = infer_i ictx t in
+    Eq (t, t, ty)
+  | Ind (p, pf, t1, t2, eq) -> (
+    let p_ty = infer_i ictx p in
+    match p_ty with
+    | Prod (ty, _) ->
+      let x = new_var (fun x -> Var x) "x" in
+      let y = new_var (fun x -> Var x) "y" in
+      let p_ty' = unbox
+        (_Prod (lift ty) (bind_var x
+          (_Prod (lift ty) (bind_var y 
+            (_Arrow (_Eq (_Var x) (_Var y) (lift ty)) (_Type I))))))
+      in
+      let () = assert_msg (equal p_ty p_ty') "infer_i Ind" in
+      let pf_ty = unbox
+        (_Prod (lift ty) (bind_var x 
+          (_App (_App (_App (lift p) (_Var x)) (_Var x)) 
+            (_Refl (_Var x)))))
+      in
+      let () = check_i ictx pf pf_ty in
+      let () = check_i ictx t1 ty in
+      let () = check_i ictx t2 ty in
+      let () = check_i ictx eq (Eq (t1, t2, ty)) in
+      App (App (App (p, t1), t2), eq)
+    | _ -> failwith "infer_i Ind")
   | G ty ->
     let () = check_i ictx ty (Type L) in
     Type I
@@ -125,6 +156,9 @@ and infer_l ictx lctx t : ty * ctx * bool =
       let () = check_i ictx t2 ty in
       (subst b t2, lctx, slack1)
     | _ -> failwith "infer_l App")
+  | Eq _ -> failwith "infer_l Eq"
+  | Refl _ -> failwith "infer_l Refl"
+  | Ind _ -> failwith "infer_l Ind"
   | G _ -> failwith "infer_l G"
   | G_intro _ -> failwith "infer_l G_intro"
   | G_elim t -> (

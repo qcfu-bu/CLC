@@ -14,6 +14,10 @@ type t =
   | Lolli       of ty * ty               (* infer *)
   | Lambda      of (t, t) binder         (* check *)
   | App         of t * t                 (* infer *)
+  (* equality *)
+  | Eq          of t * t * ty            (* infer *)
+  | Refl        of t                     (* infer *)
+  | Ind         of ty * t * t * t * t    (* infer *)
   (* modality *)
   | G           of ty                    (* infer *)
   | G_intro     of t                     (* infer *)
@@ -51,6 +55,11 @@ let _Arrow ty1 ty2 =
 let _Lolli = box_apply2 (fun ty1 ty2 -> Lolli (ty1, ty2))
 let _Lambda = box_apply (fun b -> Lambda b)
 let _App = box_apply2 (fun t1 t2 -> App (t1, t2))
+let _Eq = box_apply3 (fun t1 t2 ty -> Eq (t1, t2, ty))
+let _Refl = box_apply (fun t -> Refl t)
+let _Ind = 
+  let box_apply5 f t1 t2 t3 t4 t5 = apply_box (box_apply4 f t1 t2 t3 t4) t5 in
+  box_apply5 (fun p pf t1 t2 eq -> Ind (p, pf, t1, t2, eq))
 let _G = box_apply (fun ty -> G ty)
 let _G_intro = box_apply (fun t -> G_intro t)
 let _G_elim = box_apply (fun t -> G_intro t)
@@ -80,6 +89,10 @@ let rec lift = function
   | Lolli (ty1, ty2) -> _Lolli (lift ty1) (lift ty2)
   | Lambda b -> _Lambda (box_binder lift b)
   | App (t1, t2) -> _App (lift t1) (lift t2)
+  | Eq (t1, t2, ty) -> _Eq (lift t1) (lift t2) (lift ty)
+  | Refl t -> _Refl (lift t)
+  | Ind (ty, pf, t1, t2, eq) -> 
+    _Ind (lift ty) (lift pf) (lift t1) (lift t2) (lift eq)
   | G ty -> _G (lift ty)
   | G_intro t -> _G_intro (lift t)
   | G_elim t -> _G_elim (lift t)
@@ -120,6 +133,13 @@ let rec pp fmt = function
     Format.fprintf fmt "fun %s => %a" (name_of x) pp b)
   | App (t1, t2) ->
     Format.fprintf fmt "(%a) %a" pp t1 pp t2
+  | Eq (t1, t2, _) ->
+    Format.fprintf fmt "%a === %a" pp t1 pp t2
+  | Refl t ->
+    Format.fprintf fmt "(refl %a)" pp t
+  | Ind (p, pf, t1, t2, eq) ->
+    Format.fprintf fmt "ind (%a, %a, %a, %a, %a)"
+      pp p pp pf pp t1 pp t2 pp eq
   | G ty ->
     Format.fprintf fmt "(G %a)" pp ty
   | G_intro t ->

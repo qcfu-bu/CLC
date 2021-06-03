@@ -16,6 +16,9 @@ let rec whnf t =
       let t2 = whnf t2 in
       whnf (subst b t2)
     | _ -> App (t1, t2))
+  | Eq _ -> t
+  | Refl _ -> t
+  | Ind _ -> t
   | G _ -> t
   | G_intro t -> (
     let t = whnf t in
