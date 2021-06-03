@@ -43,6 +43,9 @@ let _Var = box_var
 let _Ann = box_apply2 (fun t ty -> Ann (t, ty))
 let _Type m = box (Type m)
 let _Prod = box_apply2 (fun ty b -> Prod (ty, b))
+let _Arrow ty1 ty2 =
+  let ty2 = bind_var __ ty2 in
+  box_apply2 (fun ty b -> Prod (ty, b)) ty1 ty2
 let _Lolli = box_apply2 (fun ty1 ty2 -> Lolli (ty1, ty2))
 let _Lambda m = box_apply (fun b -> Lambda (m, b))
 let _App = box_apply2 (fun t1 t2 -> App (t1, t2))
@@ -53,6 +56,9 @@ let _F = box_apply2 (fun ty b -> F (ty, b))
 let _F_intro = box_apply2 (fun t1 t2 -> F_intro (t1, t2))
 let _F_elim = box_apply2 (fun t mb -> F_elim (t, mb))
 let _Sum = box_apply2 (fun ty b -> Sum (ty, b))
+let _Tuple ty1 ty2 = 
+  let ty2 = bind_var __ ty2 in
+  box_apply2 (fun ty b -> Sum (ty, b)) ty1 ty2
 let _Tensor = box_apply2 (fun ty1 ty2 -> Tensor (ty1, ty2))
 let _And = box_apply2 (fun ty1 ty2 -> And (ty1, ty2))
 let _Pair = box_apply2 (fun t1 t2 -> Pair (t1, t2))
