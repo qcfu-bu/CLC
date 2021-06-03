@@ -38,7 +38,7 @@ let rec infer_i ictx = function
   | G_intro t ->
     let ty = infer_l ictx empty t in
     G ty
-  | G_elim t -> failwith "infer_i G_elim"
+  | G_elim _ -> failwith "infer_i G_elim"
   | F (ty, b) ->
     let x, b = unbind b in
     let () = check_i ictx ty (Type I) in
