@@ -1,6 +1,5 @@
 open Bindlib
 open Terms
-open Equality
 
 module VarMap = Map.Make(
   struct
@@ -19,12 +18,18 @@ let contains x = VarMap.exists (fun y _ -> eq_vars x y)
 let remove = VarMap.remove
 let equal ctx1 ctx2 = 
   VarMap.equal (fun _ _ -> true) ctx1 ctx2
-let merge ctx1 ctx2 = 
+let intersect ctx1 ctx2 = 
   VarMap.merge
     (fun _ x1 x2 ->
       match x1, x2 with 
-      | Some _, _ -> x1
-      | _, Some _ -> x2
+      | Some _, Some _ -> x1
       | _ -> None)
     ctx1 ctx2
 let is_empty = VarMap.is_empty
+let not_in x = 
+  VarMap.for_all
+    (fun y _ -> not (eq_vars x y))
+let is_subset ctx1 ctx2 =
+  VarMap.for_all (fun x _ -> 
+    VarMap.exists (fun y _ -> 
+      eq_vars x y) ctx2) ctx1
