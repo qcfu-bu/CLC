@@ -6,33 +6,33 @@ type m =
 
 type t =
   (* variable and annotation *)
-  | Var         of t var
-  | Ann         of t * ty
+  | Var         of t var                 (* infer *)
+  | Ann         of t * ty                (* infer *)
   (* functional *)
-  | Type        of m
-  | Prod        of ty * (ty, ty) binder
-  | Lolli       of ty * ty
-  | Lambda      of m * (t, t) binder
-  | App         of t * t
+  | Type        of m                     (* infer *)
+  | Prod        of ty * (ty, ty) binder  (* infer *)
+  | Lolli       of ty * ty               (* infer *)
+  | Lambda      of m * (t, t) binder     (* check *)
+  | App         of t * t                 (* infer *)
   (* modality *)
-  | G           of ty
-  | G_intro     of t
-  | G_elim      of t
-  | F           of ty * (ty, ty) binder
-  | F_intro     of t * t
-  | F_elim      of t * (t, t) mbinder
+  | G           of ty                    (* infer *)
+  | G_intro     of t                     (* infer *)
+  | G_elim      of t                     (* infer *)
+  | F           of ty * (ty, ty) binder  (* infer *)
+  | F_intro     of t * t                 (* check *)
+  | F_elim      of t * (t, t) mbinder    (* infer *)
   (* data *)
-  | Sum         of ty * (ty, ty) binder
-  | Tensor      of ty * ty
-  | And         of ty * ty
-  | Pair        of t * t
-  | Proj1       of t
-  | Proj2       of t
-  | Tensor_elim of t * (t, t) mbinder
-  | Unit        of m
-  | True
-  | U
-  | Unit_elim   of t * t
+  | Sum         of ty * (ty, ty) binder  (* infer *)
+  | Tensor      of ty * ty               (* infer *)
+  | And         of ty * ty               (* infer *)
+  | Pair        of t * t                 (* check *)
+  | Proj1       of t                     (* infer *)
+  | Proj2       of t                     (* infer *)
+  | Tensor_elim of t * (t, t) mbinder    (* infer *)
+  | Unit        of m                     (* infer *)
+  | True                                 (* infer *)
+  | U                                    (* check *)
+  | Unit_elim   of t * t                 (* infer *)
 
 and ty = t
 

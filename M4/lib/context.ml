@@ -17,11 +17,14 @@ let find x =
   with _ -> failwith ("cannot find " ^ (name_of x))
 let contains x = VarMap.exists (fun y _ -> eq_vars x y)
 let remove = VarMap.remove
-let equal = VarMap.equal equal
-let merge ctx1 ctx2 = VarMap.merge
-  (fun _ x1 x2 ->
-    match x1, x2 with 
-    | Some _, _ -> x1
-    | _, Some _ -> x2
-    | _ -> None)
-  ctx1 ctx2
+let equal ctx1 ctx2 = 
+  VarMap.equal (fun _ _ -> true) ctx1 ctx2
+let merge ctx1 ctx2 = 
+  VarMap.merge
+    (fun _ x1 x2 ->
+      match x1, x2 with 
+      | Some _, _ -> x1
+      | _, Some _ -> x2
+      | _ -> None)
+    ctx1 ctx2
+let is_empty = VarMap.is_empty
