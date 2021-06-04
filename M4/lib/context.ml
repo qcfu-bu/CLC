@@ -33,3 +33,9 @@ let is_subset ctx1 ctx2 =
   VarMap.for_all (fun x _ -> 
     VarMap.exists (fun y _ -> 
       eq_vars x y) ctx2) ctx1
+
+let pp_ctx fmt ctx = 
+  Format.fprintf fmt "{\n";
+  VarMap.iter
+    (fun x ty -> Format.fprintf fmt "\t%s : %a\n" (name_of x) pp ty) ctx;
+  Format.fprintf fmt "}\n"

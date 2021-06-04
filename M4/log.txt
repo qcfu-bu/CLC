@@ -1,0 +1,297 @@
+infer_i
+ictx := {
+}
+t  := axiom A : Linear in axiom B : Linear in (G axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in (() : True))
+
+check_i
+ictx := {
+}
+t  := Linear
+ty := Type
+
+infer_i
+ictx := {
+}
+t  := Linear
+
+infer_i
+ictx := {
+	A : Linear
+}
+t  := axiom B : Linear in (G axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in (() : True))
+
+check_i
+ictx := {
+	A : Linear
+}
+t  := Linear
+ty := Type
+
+infer_i
+ictx := {
+	A : Linear
+}
+t  := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := (G axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in (() : True))
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+}
+t  := axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in (() : True)
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := A
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := A
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	a : A
+}
+t  := axiom b : B in let x := ((a, b) : (A @ B)) in (() : True)
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := B
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := B
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	b : B
+	a : A
+}
+t  := let x := ((a, b) : (A @ B)) in (() : True)
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	b : B
+	a : A
+}
+t  := ((a, b) : (A @ B))
+
+check_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	b : B
+	a : A
+}
+t  := (a, b)
+ty := (A @ B)
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := (A @ B)
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := (A @ B)
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := A
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := A
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := B
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := B
+
+check_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	b : B
+	a : A
+}
+t  := a
+ty := A
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	b : B
+	a : A
+}
+t  := a
+
+check_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	b : B
+}
+t  := b
+ty := B
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	b : B
+}
+t  := b
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := (A @ B)
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := (A @ B)
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := A
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := A
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := B
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := B
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	x : (A @ B)
+}
+t  := (() : True)
+
+check_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	x : (A @ B)
+}
+t  := ()
+ty := True
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := True
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := True
+
+t  := axiom A : Linear in axiom B : Linear in (G axiom a : A in axiom b : B in ())
+ty := (G True)

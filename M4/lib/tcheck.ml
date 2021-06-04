@@ -8,7 +8,36 @@ let assert_msg cond msg =
   if cond then ()
   else failwith msg
 
-let rec infer_i ictx = function
+let debug ictx ?lctx:lctx t ?ty:ty () =
+  match lctx, ty with
+  | Some lctx, Some ty ->
+    Format.printf "check_l\n";
+    Format.printf "ictx := %a" pp_ctx ictx;
+    Format.printf "lctx := %a" pp_ctx lctx;
+    Format.printf "t  := %a\n" pp t;
+    Format.printf "ty := %a\n" pp ty;
+    Format.printf "\n"
+  | Some lctx, None ->
+    Format.printf "infer_l\n";
+    Format.printf "ictx := %a" pp_ctx ictx;
+    Format.printf "lctx := %a" pp_ctx lctx;
+    Format.printf "t  := %a\n" pp t;
+    Format.printf "\n"
+  | None, Some ty ->
+    Format.printf "check_i\n";
+    Format.printf "ictx := %a" pp_ctx ictx;
+    Format.printf "t  := %a\n" pp t;
+    Format.printf "ty := %a\n" pp ty;
+    Format.printf "\n"
+  | None, None ->
+    Format.printf "infer_i\n";
+    Format.printf "ictx := %a" pp_ctx ictx;
+    Format.printf "t  := %a\n" pp t;
+    Format.printf "\n"
+
+let rec infer_i ictx t = 
+  let () = debug ictx t () in
+  match t with
   | Var x -> find x ictx
   | Ann (t, ty) -> 
     let () = check_i ictx t ty in
@@ -50,8 +79,8 @@ let rec infer_i ictx = function
     let p_ty = infer_i ictx p in
     match p_ty with
     | Prod (ty, _) ->
-      let x = new_var (fun x -> Var x) "x" in
-      let y = new_var (fun x -> Var x) "y" in
+      let x = mk "x" in
+      let y = mk "y" in
       let p_ty' = unbox
         (_Prod (lift ty) (bind_var x
           (_Prod (lift ty) (bind_var y 
@@ -122,6 +151,7 @@ let rec infer_i ictx = function
     infer_i ictx b
 
 and check_i ictx t ty =
+  let () = debug ictx t ~ty:ty () in
   match t with
   | Lambda t -> (
     let () = check_i ictx ty (Type I) in
@@ -140,9 +170,11 @@ and check_i ictx t ty =
     | _ -> failwith "check_i Pair")
   | _ -> 
     let t = infer_i ictx t in
-    assert_msg (equal t ty) "check_i"
+    assert_msg (equal t ty) 
+    (Format.asprintf "\ncheck_i\n t  := %a\n ty := %a" pp t pp ty)
 
-and infer_l ictx lctx t : ty * ctx * bool = 
+and infer_l ictx lctx t = 
+  let () = debug ictx ~lctx:lctx t () in
   match t with
   | Var x ->
     let ty = find x lctx in
@@ -242,11 +274,14 @@ and infer_l ictx lctx t : ty * ctx * bool =
     | _ -> failwith "infer_l Unit_elim")
   | Axiom (ty, b) ->
     let x, b = unbind b in
-    let () = check_i ictx ty (Type I) in
-    let ictx = add x ty ictx in
-    infer_l ictx lctx b
+    let () = check_i ictx ty (Type L) in
+    let lctx = add x ty lctx in
+    let ty, lctx, slack = infer_l ictx lctx b in
+    let () = assert_msg (not_in x lctx || slack) "infer_l Axiom" in
+    (ty, lctx, slack)
 
-and check_l ictx lctx t ty : ctx * bool =
+and check_l ictx lctx t ty =
+  let () = debug ictx ~lctx:lctx t ~ty:ty () in
   match t with
   | Lambda b -> (
     let () = check_i ictx ty (Type L) in
@@ -302,5 +337,7 @@ and check_l ictx lctx t ty : ctx * bool =
     | _ -> failwith "check_l U")
   | _ ->
     let t, lctx, slack = infer_l ictx lctx t in
-    let () = assert_msg (equal t ty) "check_l" in
+    let () = assert_msg (equal t ty)
+      (Format.asprintf "\ncheck_l\n t  := %a\n ty := %a" pp t pp ty) 
+    in
     (lctx, slack)

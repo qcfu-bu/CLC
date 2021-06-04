@@ -174,7 +174,7 @@ let rec pp fmt = function
     else Format.fprintf fmt "exists (%s : %a), %a"
       (name_of x) pp ty pp b
   | Tensor (ty1, ty2) ->
-    Format.fprintf fmt "(%a @ %a)" pp ty1 pp ty2
+    Format.fprintf fmt "(%a @@ %a)" pp ty1 pp ty2
   | And (ty1, ty2) ->
     Format.fprintf fmt "(%a & %a)" pp ty1 pp ty2
   | Pair (t1, t2) ->
