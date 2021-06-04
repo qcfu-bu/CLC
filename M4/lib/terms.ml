@@ -131,18 +131,18 @@ let rec pp fmt = function
     let x, b = unbind b in
     if (eq_vars x __) 
     then Format.fprintf fmt "(%a -> %a)" pp ty pp b
-    else Format.fprintf fmt "forall (%s : %a), %a" 
+    else Format.fprintf fmt "@[@[forall (%s :@;<1 2>%a),@]@;<1 2>%a@]" 
       (name_of x) pp ty pp b
   | Lolli (ty1, ty2) ->
-    Format.fprintf fmt "(%a -o %a)" pp ty1 pp ty2
+    Format.fprintf fmt "@[(%a -o@;<1 2>%a)@]" pp ty1 pp ty2
   | Lambda b ->
     let x, b = unbind b in
-    Format.fprintf fmt "fun %s => %a" (name_of x) pp b
+    Format.fprintf fmt "@[fun %s =>@;<1 2>%a@]" (name_of x) pp b
   | App (t1, t2) ->
     Format.fprintf fmt "(%a) %a" pp t1 pp t2
   | LetIn (t, b) ->
     let x, b = unbind b in
-    Format.fprintf fmt "let %s := %a in %a" 
+    Format.fprintf fmt "@[let %s := %a in@;<1 0>%a@]" 
       (name_of x) pp t pp b
   | Eq (t1, t2, _) ->
     Format.fprintf fmt "%a === %a" pp t1 pp t2
@@ -152,26 +152,27 @@ let rec pp fmt = function
     Format.fprintf fmt "ind (%a, %a, %a, %a, %a)"
       pp p pp pf pp t1 pp t2 pp eq
   | G ty ->
-    Format.fprintf fmt "(G %a)" pp ty
+    Format.fprintf fmt "@[(G %a)@]" pp ty
   | G_intro t ->
-    Format.fprintf fmt "(G %a)" pp t
+    Format.fprintf fmt "@[(G %a)@]" pp t
   | G_elim t ->
-    Format.fprintf fmt "(G- %a)" pp t
+    Format.fprintf fmt "@[(G- %a)@]" pp t
   | F (ty, b) ->
     let x, b = unbind b in
-    Format.fprintf fmt "F (%s : %a), %a" (name_of x) pp ty pp b
+    Format.fprintf fmt "@[@[F (%s : %a),@]@;<1 2>%a@]" 
+      (name_of x) pp ty pp b
   | F_intro (t1, t2) ->
     Format.fprintf fmt "F (%a, %a)" pp t1 pp t2
   | F_elim (t, mb) ->
     let mx, b = unmbind mb in
     let x1, x2 = (mx.(0), mx.(1)) in
-    Format.fprintf fmt "let F (%s, %s) := %a in %a"
+    Format.fprintf fmt "@[let F (%s, %s) := %a in@;<1 0>%a@]"
       (name_of x1) (name_of x2) pp t pp b
   | Sum (ty, b) ->
     let x, b = unbind b in
     if (eq_vars x __) 
     then Format.fprintf fmt "(%a * %a)" pp ty pp b
-    else Format.fprintf fmt "exists (%s : %a), %a"
+    else Format.fprintf fmt "@[@[exists (%s : %a),@]@;<1 2>%a@]"
       (name_of x) pp ty pp b
   | Tensor (ty1, ty2) ->
     Format.fprintf fmt "(%a @@ %a)" pp ty1 pp ty2
@@ -186,7 +187,7 @@ let rec pp fmt = function
   | Tensor_elim (t, mb) ->
     let mx, b = unmbind mb in
     let x1, x2 = (mx.(0), mx.(1)) in
-    Format.fprintf fmt "let (%s, %s) := %a in %a"
+    Format.fprintf fmt "@[let (%s, %s) := %a in@;<1 0>%a@]"
       (name_of x1) (name_of x2) pp t pp b
   | Unit m -> (
     match m with
@@ -195,9 +196,9 @@ let rec pp fmt = function
   | True -> Format.fprintf fmt "True"
   | U -> Format.fprintf fmt "()"
   | Unit_elim (t1, t2) ->
-    Format.fprintf fmt "let () := %a in %a" pp t1 pp t2
+    Format.fprintf fmt "@[let () := %a in@;<1 0>%a@]" pp t1 pp t2
   | Axiom (ty, b) ->
     let x, b = unbind b in
-    Format.fprintf fmt "axiom %s : %a in %a"
+    Format.fprintf fmt "@[axiom %s : %a in@;<1 0>%a@]"
       (name_of x) pp ty pp b
     

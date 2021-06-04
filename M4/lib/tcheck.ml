@@ -12,27 +12,27 @@ let debug ictx ?lctx:lctx t ?ty:ty () =
   match lctx, ty with
   | Some lctx, Some ty ->
     Format.printf "check_l\n";
-    Format.printf "ictx := %a" pp_ctx ictx;
-    Format.printf "lctx := %a" pp_ctx lctx;
-    Format.printf "t  := %a\n" pp t;
-    Format.printf "ty := %a\n" pp ty;
+    Format.printf "ictx := %a@." pp_ctx ictx;
+    Format.printf "lctx := %a@." pp_ctx lctx;
+    Format.printf "@[t  :=@;<1 2>%a@]@." pp t;
+    Format.printf "@[ty :=@;<1 2>%a@]@." pp ty;
     Format.printf "\n"
   | Some lctx, None ->
     Format.printf "infer_l\n";
-    Format.printf "ictx := %a" pp_ctx ictx;
-    Format.printf "lctx := %a" pp_ctx lctx;
-    Format.printf "t  := %a\n" pp t;
+    Format.printf "ictx := %a@." pp_ctx ictx;
+    Format.printf "lctx := %a@." pp_ctx lctx;
+    Format.printf "@[t  :=@;<1 2>%a@]@." pp t;
     Format.printf "\n"
   | None, Some ty ->
     Format.printf "check_i\n";
-    Format.printf "ictx := %a" pp_ctx ictx;
-    Format.printf "t  := %a\n" pp t;
-    Format.printf "ty := %a\n" pp ty;
+    Format.printf "ictx := %a@." pp_ctx ictx;
+    Format.printf "@[t  :=@;<1 2>%a@]@." pp t;
+    Format.printf "@[ty :=@;<1 2>%a@]@." pp ty;
     Format.printf "\n"
   | None, None ->
     Format.printf "infer_i\n";
-    Format.printf "ictx := %a" pp_ctx ictx;
-    Format.printf "t  := %a\n" pp t;
+    Format.printf "ictx := %a@." pp_ctx ictx;
+    Format.printf "@[t  :=@;<1 2>%a@]@." pp t;
     Format.printf "\n"
 
 let rec infer_i ictx t = 

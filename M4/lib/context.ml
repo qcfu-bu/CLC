@@ -35,7 +35,9 @@ let is_subset ctx1 ctx2 =
       eq_vars x y) ctx2) ctx1
 
 let pp_ctx fmt ctx = 
-  Format.fprintf fmt "{\n";
+  Format.fprintf fmt "{@?";
   VarMap.iter
-    (fun x ty -> Format.fprintf fmt "\t%s : %a\n" (name_of x) pp ty) ctx;
-  Format.fprintf fmt "}\n"
+    (fun x ty -> 
+      Format.fprintf fmt "@[<v 0>@;<0 2>@[%s :@;<1 2>%a@]@]@?"
+        (name_of x) pp ty) ctx;
+  Format.fprintf fmt "\n}@?"

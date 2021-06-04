@@ -30,5 +30,6 @@ let t1 =
 let _ = 
   let t = unbox t1 in
   let ty = infer_i empty t in
-  Format.printf "t  := %a\n" pp (nf t);
-  Format.printf "ty := %a\n" pp (nf ty)
+  Format.printf "complete@.";
+  Format.printf "@[t  :=@;<1 2>%a@]@." pp (nf t);
+  Format.printf "@[ty :=@;<1 2>%a@]@." pp (nf ty)
