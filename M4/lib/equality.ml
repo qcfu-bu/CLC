@@ -61,7 +61,7 @@ let rec aeq t1 t2 =
 let rec whnf t = 
   match t with
   | Var _ -> t
-  | Ann _ -> t
+  | Ann (t, _) -> whnf t
   | Type _ -> t
   | Prod _ -> t
   | Lolli _ -> t
@@ -161,8 +161,8 @@ and equal t1 t2 =
     let t2 = whnf t2 in
     match t1, t2 with
     | Var x1, Var x2 -> eq_vars x1 x2
-    | Ann (t1, _), _ -> equal t1 t2
-    | _, Ann (t2, _) -> equal t1 t2
+    | Ann (t1, ty1), Ann (t2, ty2) -> 
+      equal t1 t2 && equal ty1 ty2
     | Type m1, Type m2 -> m1 = m2
     | Prod (ty1, b1), Prod (ty2, b2) ->
       equal ty1 ty2 && eq_binder equal b1 b2

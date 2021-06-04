@@ -1,6 +1,5 @@
 open Bindlib
 open Terms
-open Norms
 open Context
 open Equality
 
@@ -8,7 +7,10 @@ let assert_msg cond msg =
   if cond then ()
   else failwith msg
 
+let is_debug = ref false
+
 let debug ictx ?lctx:lctx t ?ty:ty () =
+  if !is_debug then
   match lctx, ty with
   | Some lctx, Some ty ->
     Format.printf "check_l\n";
@@ -107,7 +109,7 @@ let rec infer_i ictx t =
   | Nat_elim (p, t1, t2, n) -> (
     let x = mk "x" in
     let p_ty = unbox (_Arrow _Nat (_Type I)) in
-    let t1_ty = App (p_ty, Zero) in
+    let t1_ty = App (p, Zero) in
     let t2_ty = unbox
       (_Prod _Nat (bind_var x
         (_Arrow (_App (lift p) (_Var x))

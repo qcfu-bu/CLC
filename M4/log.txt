@@ -2,418 +2,1885 @@ infer_i
 ictx := {
 }
 t  :=
-  axiom A : Linear in
-  axiom B : Linear in
-  (G axiom a : A in
-     axiom b : B in
-     let x := ((a, b) : (A ^ B)) in let (x, y) := x in ((x, ()) : (A ^ True)))
+  let add := (fun x =>
+                fun y =>
+                  ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+                    fun _ => fun x => (x +1), x)) : forall (_ : Nat),
+                                                      forall (_ : Nat), Nat in
+  let one := 1 in ((add) one) one
+
+infer_i
+ictx := {
+}
+t  :=
+  (fun x =>
+     fun y =>
+       ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+         fun _ => fun x => (x +1), x)) : forall (_ : Nat),
+                                           forall (_ : Nat), Nat
 
 check_i
 ictx := {
 }
-t  := Linear
+t  :=
+  fun x =>
+    fun y =>
+      ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+        fun _ => fun x => (x +1), x)
+ty := forall (_ : Nat), forall (_ : Nat), Nat
+
+check_i
+ictx := {
+}
+t  := forall (_ : Nat), forall (_ : Nat), Nat
 ty := Type
 
 infer_i
 ictx := {
 }
-t  := Linear
-
-infer_i
-ictx := {
-  A : Linear
-}
-t  :=
-  axiom B : Linear in
-  (G axiom a : A in
-     axiom b : B in
-     let x := ((a, b) : (A ^ B)) in let (x, y) := x in ((x, ()) : (A ^ True)))
+t  := forall (_ : Nat), forall (_ : Nat), Nat
 
 check_i
 ictx := {
-  A : Linear
 }
-t  := Linear
+t  := Nat
 ty := Type
 
 infer_i
 ictx := {
-  A : Linear
 }
-t  := Linear
+t  := Nat
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : Nat
+}
+t  := forall (_ : Nat), Nat
+
+check_i
+ictx := {
+  _ : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  x : Nat
 }
 t  :=
-  (G axiom a : A in
-     axiom b : B in
-     let x := ((a, b) : (A ^ B)) in let (x, y) := x in ((x, ()) : (A ^ True)))
+  fun y =>
+    ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+      fun _ => fun x => (x +1), x)
+ty := forall (_ : Nat), Nat
 
-infer_l
+check_i
 ictx := {
-  B : Linear
-  A : Linear
+  x : Nat
 }
-lctx := {
+t  := forall (_ : Nat), Nat
+ty := Type
+
+infer_i
+ictx := {
+  x : Nat
+}
+t  := forall (_ : Nat), Nat
+
+check_i
+ictx := {
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
 }
 t  :=
-  axiom a : A in
-  axiom b : B in
-  let x := ((a, b) : (A ^ B)) in let (x, y) := x in ((x, ()) : (A ^ True))
-
-check_i
-ictx := {
-  B : Linear
-  A : Linear
-}
-t  := A
-ty := Linear
+  ind ((fun _ => Nat) : forall (_ : Nat), Type, y, fun _ => fun x => (x +1),
+    x)
+ty := Nat
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
-}
-t  := A
-
-infer_l
-ictx := {
-  B : Linear
-  A : Linear
-}
-lctx := {
-  a : A
+  y : Nat
+  x : Nat
 }
 t  :=
-  axiom b : B in
-  let x := ((a, b) : (A ^ B)) in let (x, y) := x in ((x, ()) : (A ^ True))
+  ind ((fun _ => Nat) : forall (_ : Nat), Type, y, fun _ => fun x => (x +1),
+    x)
 
 check_i
 ictx := {
-  B : Linear
-  A : Linear
+  y : Nat
+  x : Nat
 }
-t  := B
-ty := Linear
+t  := (fun _ => Nat) : forall (_ : Nat), Type
+ty := forall (_ : Nat), Type
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  y : Nat
+  x : Nat
 }
-t  := B
+t  := (fun _ => Nat) : forall (_ : Nat), Type
 
-infer_l
+check_i
 ictx := {
-  B : Linear
-  A : Linear
+  y : Nat
+  x : Nat
 }
-lctx := {
-  b : B
-  a : A
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+ty := Type
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Type
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := y
+ty := ((fun _ => Nat) : forall (_ : Nat), Type) 0
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := y
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := fun _ => fun x => (x +1)
+ty :=
+  forall (x : Nat),
+    forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) x),
+      ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
 }
 t  :=
-  let x := ((a, b) : (A ^ B)) in let (x, y) := x in ((x, ()) : (A ^ True))
-
-infer_l
-ictx := {
-  B : Linear
-  A : Linear
-}
-lctx := {
-  b : B
-  a : A
-}
-t  := ((a, b) : (A ^ B))
-
-check_l
-ictx := {
-  B : Linear
-  A : Linear
-}
-lctx := {
-  b : B
-  a : A
-}
-t  := (a, b)
-ty := (A ^ B)
-
-check_i
-ictx := {
-  B : Linear
-  A : Linear
-}
-t  := (A ^ B)
-ty := Linear
+  forall (x : Nat),
+    forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) x),
+      ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
+ty := Type
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  y : Nat
+  x : Nat
 }
-t  := (A ^ B)
+t  :=
+  forall (x : Nat),
+    forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) x),
+      ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
 
 check_i
 ictx := {
-  B : Linear
-  A : Linear
+  y : Nat
+  x : Nat
 }
-t  := A
-ty := Linear
+t  := Nat
+ty := Type
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  y : Nat
+  x : Nat
 }
-t  := A
+t  := Nat
+
+infer_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  :=
+  forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) x),
+    ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
 
 check_i
 ictx := {
-  B : Linear
-  A : Linear
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := B
-ty := Linear
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) x
+ty := Type
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := B
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) x
 
-check_l
+infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  x : Nat
+  y : Nat
+  x : Nat
 }
-lctx := {
-  b : B
-  a : A
-}
-t  := a
-ty := A
-
-infer_l
-ictx := {
-  B : Linear
-  A : Linear
-}
-lctx := {
-  b : B
-  a : A
-}
-t  := a
-
-check_l
-ictx := {
-  B : Linear
-  A : Linear
-}
-lctx := {
-  b : B
-}
-t  := b
-ty := B
-
-infer_l
-ictx := {
-  B : Linear
-  A : Linear
-}
-lctx := {
-  b : B
-}
-t  := b
+t  := (fun _ => Nat) : forall (_ : Nat), Type
 
 check_i
 ictx := {
-  B : Linear
-  A : Linear
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := (A ^ B)
-ty := Linear
-
-infer_i
-ictx := {
-  B : Linear
-  A : Linear
-}
-t  := (A ^ B)
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
 
 check_i
 ictx := {
-  B : Linear
-  A : Linear
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := A
-ty := Linear
+t  := forall (_ : Nat), Type
+ty := Type
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := A
+t  := forall (_ : Nat), Type
 
 check_i
 ictx := {
-  B : Linear
-  A : Linear
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := B
-ty := Linear
+t  := Nat
+ty := Type
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := B
+t  := Nat
 
-infer_l
+infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : Nat
+  x : Nat
+  y : Nat
+  x : Nat
 }
-lctx := {
-  x : (A ^ B)
-}
-t  := let (x, y) := x in ((x, ()) : (A ^ True))
+t  := Type
 
-infer_l
+check_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : Nat
+  x : Nat
+  y : Nat
+  x : Nat
 }
-lctx := {
-  x : (A ^ B)
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := x
+ty := Nat
+
+infer_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
 }
 t  := x
 
-infer_l
+infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
 }
-lctx := {
-  y : B
-  x : A
-}
-t  := ((x, ()) : (A ^ True))
-
-check_l
-ictx := {
-  B : Linear
-  A : Linear
-}
-lctx := {
-  y : B
-  x : A
-}
-t  := (x, ())
-ty := (A ^ True)
-
-check_i
-ictx := {
-  B : Linear
-  A : Linear
-}
-t  := (A ^ True)
-ty := Linear
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := (A ^ True)
+t  := (fun _ => Nat) : forall (_ : Nat), Type
 
 check_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := A
-ty := Linear
-
-infer_i
-ictx := {
-  B : Linear
-  A : Linear
-}
-t  := A
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
 
 check_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := True
-ty := Linear
+t  := forall (_ : Nat), Type
+ty := Type
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := True
+t  := forall (_ : Nat), Type
 
-check_l
+check_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
 }
-lctx := {
-  y : B
-  x : A
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Type
+
+check_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := (x +1)
+ty := Nat
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := (x +1)
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
 }
 t  := x
-ty := A
-
-infer_l
-ictx := {
-  B : Linear
-  A : Linear
-}
-lctx := {
-  y : B
-  x : A
-}
-t  := x
-
-check_l
-ictx := {
-  B : Linear
-  A : Linear
-}
-lctx := {
-  y : B
-}
-t  := ()
-ty := True
-
-check_i
-ictx := {
-  B : Linear
-  A : Linear
-}
-t  := True
-ty := Linear
+ty := Nat
 
 infer_i
 ictx := {
-  B : Linear
-  A : Linear
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
 }
-t  := True
+t  := x
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := fun x => (x +1)
+ty :=
+  forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) _),
+    ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  :=
+  forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) _),
+    ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  :=
+  forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) _),
+    ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) _
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) _
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (fun _ => Nat) : forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Type
+
+check_i
+ictx := {
+  _ : Nat
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := _
+ty := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := _
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (fun _ => Nat) : forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+ty := Type
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Type
+
+check_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (_ +1)
+ty := Nat
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (_ +1)
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := _
+ty := Nat
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := _
+
+check_i
+ictx := {
+  x : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (x +1)
+ty := ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+
+infer_i
+ictx := {
+  x : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (x +1)
+
+check_i
+ictx := {
+  x : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := x
+ty := Nat
+
+infer_i
+ictx := {
+  x : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := x
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := x
+ty := Nat
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := x
+
+check_i
+ictx := {
+}
+t  := forall (_ : Nat), forall (_ : Nat), Nat
+ty := Type
+
+infer_i
+ictx := {
+}
+t  := forall (_ : Nat), forall (_ : Nat), Nat
+
+check_i
+ictx := {
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+}
+t  := forall (_ : Nat), Nat
+
+check_i
+ictx := {
+  _ : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+}
+t  :=
+  let one := 1 in
+  (((fun x =>
+       fun y =>
+         ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+           fun _ => fun x => (x +1), x)) : forall (_ : Nat),
+                                             forall (_ : Nat), Nat) one) one
+
+infer_i
+ictx := {
+}
+t  := 1
+
+check_i
+ictx := {
+}
+t  := 0
+ty := Nat
+
+infer_i
+ictx := {
+}
+t  := 0
+
+check_i
+ictx := {
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+}
+t  := Nat
+
+infer_i
+ictx := {
+}
+t  :=
+  (((fun x =>
+       fun y =>
+         ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+           fun _ => fun x => (x +1), x)) : forall (_ : Nat),
+                                             forall (_ : Nat), Nat) 1) 1
+
+infer_i
+ictx := {
+}
+t  :=
+  ((fun x =>
+      fun y =>
+        ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+          fun _ => fun x => (x +1), x)) : forall (_ : Nat),
+                                            forall (_ : Nat), Nat) 1
+
+infer_i
+ictx := {
+}
+t  :=
+  (fun x =>
+     fun y =>
+       ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+         fun _ => fun x => (x +1), x)) : forall (_ : Nat),
+                                           forall (_ : Nat), Nat
+
+check_i
+ictx := {
+}
+t  :=
+  fun x =>
+    fun y =>
+      ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+        fun _ => fun x => (x +1), x)
+ty := forall (_ : Nat), forall (_ : Nat), Nat
+
+check_i
+ictx := {
+}
+t  := forall (_ : Nat), forall (_ : Nat), Nat
+ty := Type
+
+infer_i
+ictx := {
+}
+t  := forall (_ : Nat), forall (_ : Nat), Nat
+
+check_i
+ictx := {
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+}
+t  := forall (_ : Nat), Nat
+
+check_i
+ictx := {
+  _ : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  x : Nat
+}
+t  :=
+  fun y =>
+    ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+      fun _ => fun x => (x +1), x)
+ty := forall (_ : Nat), Nat
+
+check_i
+ictx := {
+  x : Nat
+}
+t  := forall (_ : Nat), Nat
+ty := Type
+
+infer_i
+ictx := {
+  x : Nat
+}
+t  := forall (_ : Nat), Nat
+
+check_i
+ictx := {
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  :=
+  ind ((fun _ => Nat) : forall (_ : Nat), Type, y, fun _ => fun x => (x +1),
+    x)
+ty := Nat
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  :=
+  ind ((fun _ => Nat) : forall (_ : Nat), Type, y, fun _ => fun x => (x +1),
+    x)
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := (fun _ => Nat) : forall (_ : Nat), Type
+ty := forall (_ : Nat), Type
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := (fun _ => Nat) : forall (_ : Nat), Type
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+ty := Type
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Type
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := y
+ty := ((fun _ => Nat) : forall (_ : Nat), Type) 0
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := y
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := fun _ => fun x => (x +1)
+ty :=
+  forall (x : Nat),
+    forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) x),
+      ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  :=
+  forall (x : Nat),
+    forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) x),
+      ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
+ty := Type
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  :=
+  forall (x : Nat),
+    forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) x),
+      ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  :=
+  forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) x),
+    ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
+
+check_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) x
+ty := Type
+
+infer_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) x
+
+infer_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := (fun _ => Nat) : forall (_ : Nat), Type
+
+check_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+ty := Type
+
+infer_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Type
+
+check_i
+ictx := {
+  _ : Nat
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := x
+ty := Nat
+
+infer_i
+ictx := {
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := x
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) (x +1)
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := (fun _ => Nat) : forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+ty := Type
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Type
+
+check_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := (x +1)
+ty := Nat
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := (x +1)
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := x
+ty := Nat
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) x
+  x : Nat
+  y : Nat
+  x : Nat
+}
+t  := x
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := fun x => (x +1)
+ty :=
+  forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) _),
+    ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  :=
+  forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) _),
+    ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  :=
+  forall (_ : ((fun _ => Nat) : forall (_ : Nat), Type) _),
+    ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) _
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) _
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (fun _ => Nat) : forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Type
+
+check_i
+ictx := {
+  _ : Nat
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := _
+ty := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := _
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (fun _ => Nat) : forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := fun _ => Nat
+ty := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+ty := Type
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := forall (_ : Nat), Type
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Type
+
+check_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+ty := Type
+
+infer_i
+ictx := {
+  _ : Nat
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := Nat
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (_ +1)
+ty := Nat
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (_ +1)
+
+check_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := _
+ty := Nat
+
+infer_i
+ictx := {
+  _ : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := _
+
+check_i
+ictx := {
+  x : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (x +1)
+ty := ((fun _ => Nat) : forall (_ : Nat), Type) (_ +1)
+
+infer_i
+ictx := {
+  x : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := (x +1)
+
+check_i
+ictx := {
+  x : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := x
+ty := Nat
+
+infer_i
+ictx := {
+  x : ((fun _ => Nat) : forall (_ : Nat), Type) _
+  _ : Nat
+  y : Nat
+  x : Nat
+}
+t  := x
+
+check_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := x
+ty := Nat
+
+infer_i
+ictx := {
+  y : Nat
+  x : Nat
+}
+t  := x
+
+check_i
+ictx := {
+}
+t  := 1
+ty := Nat
+
+infer_i
+ictx := {
+}
+t  := 1
+
+check_i
+ictx := {
+}
+t  := 0
+ty := Nat
+
+infer_i
+ictx := {
+}
+t  := 0
+
+check_i
+ictx := {
+}
+t  := 1
+ty := Nat
+
+infer_i
+ictx := {
+}
+t  := 1
+
+check_i
+ictx := {
+}
+t  := 0
+ty := Nat
+
+infer_i
+ictx := {
+}
+t  := 0
 
 complete
-t  :=
-  axiom A : Linear in
-  axiom B : Linear in (G axiom a : A in axiom b : B in (a, ()))
-ty := (G (A ^ True))
+t  := 2
+ty := Nat

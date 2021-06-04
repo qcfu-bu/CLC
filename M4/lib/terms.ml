@@ -60,10 +60,16 @@ let _Type m = box (Type m)
 let _Prod = box_apply2 (fun ty b -> Prod (ty, b))
 let _Arrow ty1 ty2 =
   let ty2 = bind_var __ ty2 in
-  box_apply2 (fun ty b -> Prod (ty, b)) ty1 ty2
+  _Prod ty1 ty2
 let _Lolli = box_apply2 (fun ty1 ty2 -> Lolli (ty1, ty2))
 let _Lambda = box_apply (fun b -> Lambda b)
+let _Const t =
+  let t = bind_var __ t in
+  _Lambda t
 let _App = box_apply2 (fun t1 t2 -> App (t1, t2))
+let _mApp f args = 
+  List.fold_left
+    (fun f arg -> _App f arg) f args
 let _LetIn = box_apply2 (fun t b -> LetIn (t, b))
 let _Eq = box_apply3 (fun t1 t2 ty -> Eq (t1, t2, ty))
 let _Refl = box_apply (fun t -> Refl t)
@@ -138,7 +144,7 @@ let rec pp fmt = function
   | Var x -> 
     Format.fprintf fmt "%s" (name_of x)
   | Ann (t, ty) -> 
-    Format.fprintf fmt "(%a : %a)" pp t pp ty
+    Format.fprintf fmt "(%a) : %a" pp t pp ty
   | Type m -> (
     match m with
     | I -> Format.fprintf fmt "Type"
@@ -155,7 +161,7 @@ let rec pp fmt = function
     let x, b = unbind b in
     Format.fprintf fmt "@[fun %s =>@;<1 2>%a@]" (name_of x) pp b
   | App (t1, t2) ->
-    Format.fprintf fmt "@[(%a)@;<1 2>%a@]" pp t1 pp t2
+    Format.fprintf fmt "@[(%a) %a@]" pp t1 pp t2
   | LetIn (t, b) ->
     let x, b = unbind b in
     Format.fprintf fmt "@[let %s := %a in@;<1 0>%a@]" 
@@ -222,7 +228,7 @@ let rec pp fmt = function
   | Unit m -> (
     match m with
     | I -> Format.fprintf fmt "unit"
-    | L -> Format.fprintf fmt "lnit")
+    | L -> Format.fprintf fmt "null")
   | True -> Format.fprintf fmt "True"
   | U -> Format.fprintf fmt "()"
   | Unit_elim (t1, t2) ->
