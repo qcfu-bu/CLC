@@ -18,58 +18,96 @@ let one = mk "one"
 let two = mk "two"
 let add = mk "add"
 
-let t1 = 
-  _Axiom (_Type L) (bind_var _A (
-  _Axiom (_Type L) (bind_var _B (
-  _G_intro (
-    _Axiom (_Var _A) (bind_var a (
-    _Axiom (_Var _B) (bind_var b (
-    _LetIn (_Ann (_Pair (_Var a) (_Var b)) 
-                 (_Tensor (_Var _A) (_Var _B))) (bind_var x (
-    _Tensor_elim (_Var x) (bind_mvar [| x; y |] (
-    _Ann (_Pair (_Var x) (_U)) 
-                (_Tensor (_Var _A) (_True))
-    )))))))))))))
+let pf = mk "pf"
 
-let _One = _Succ _Zero
+let _One = (_Succ _Zero)
 
 let _ConstNat = 
-  _Ann (_Const _Nat) (_Arrow _Nat (_Type I))
+  (_Ann (_Const _Nat) (_Arrow _Nat (_Type I)))
 
 let _Add = 
-  _Ann
-    (_Lambda (bind_var x (
-    _Lambda (bind_var y (
-    _Nat_elim
+  (_Ann
+    (_Lambda (bind_var x 
+    (_Lambda (bind_var y 
+    (_Nat_elim
       (_ConstNat)
       (_Var y)
-      (_Const (
-       _Lambda (bind_var x (
-         _Succ (_Var x)))))
+      (_Const 
+      (_Lambda (bind_var x 
+        (_Succ (_Var x)))))
       (_Var x))))))
-    (_Arrow _Nat (_Arrow _Nat _Nat))
+    (_Arrow _Nat (_Arrow _Nat _Nat)))
 
-let t2 = 
-  _LetIn _Add (bind_var add (
-  _LetIn _One (bind_var one (
-  _mApp (_Var add) [_Var one; _Var one]))))
+let _Lemma0 =
+  (* t := fun x y _ => S x === S y
+   * t :: forall x y : Nat, x === y -> U *)
+  (_Ann
+    (_Lambda (bind_var x 
+      (_Lambda (bind_var y 
+        (_Const (_Eq (_Succ (_Var x)) 
+                     (_Succ (_Var y)) 
+                     (_Nat)))))))
+    (_Prod _Nat (bind_var x 
+      (_Prod _Nat (bind_var y 
+        (_Arrow 
+          (_Eq (_Var x) (_Var y) _Nat)
+          (_Type I)))))))
 
-let t3 = 
-  _LetIn _Add (bind_var add (
-  _LetIn _One (bind_var one (
-  _LetIn (_mApp (_Var add) [_Var one; _Var one]) (bind_var two (
-  _G_intro 
-    (_Ann
-      (_Pair (_F_intro (_mApp (_Var add) [_Var two; _Var two]) _U)
-             (_F_intro (_Var two) _U))
-      (_Tensor
-        (_F (_Nat) (bind_var x (_Unit L)))
-        (_F (_Nat) (bind_var x (_Unit L)))))
-  ))))))
+let _Lemma1 =
+  (* forall x : Nat, lemma(x, x, refl x) *)
+  (_Ann
+    (_Lambda (bind_var x 
+      (_Refl (_Succ (_Var x)))))
+    (_Prod _Nat (bind_var x 
+      (_mApp _Lemma0 [_Var x; _Var x; _Refl (_Var x)]))))
+
+let _Lemma =
+  (_Ann
+    (_Lambda (bind_var x
+      (_Lambda (bind_var y
+        (_Lambda (bind_var pf 
+          (_Ind _Lemma0 _Lemma1 (_Var x) (_Var y) (_Var pf))))))))
+    (_Prod _Nat (bind_var x 
+      (_Prod _Nat (bind_var y 
+        (_Arrow 
+          (_Eq (_Var x) (_Var y) _Nat)
+          (_Eq (_Succ (_Var x)) (_Succ (_Var y)) _Nat)))))))
+
+let _Theorem0 =
+  (* Nat -> Type *)
+  (_Ann 
+    (_Lambda (bind_var x 
+      (_Eq (_mApp _Add [_Var x; _Zero]) (_Var x) _Nat)))
+    (_Arrow _Nat (_Type I)))
+
+let _Theorem1 =
+  (_Ann 
+    (_Refl _Zero)
+    (_App _Theorem0 _Zero))
+
+let _Theorem2 =
+  (_Ann
+    (_Lambda (bind_var x 
+      (_Lambda (bind_var pf
+        (_mApp _Lemma 
+          [ _mApp _Add [_Var x; _Zero]
+          ; _Var x
+          ; _Var pf])))))
+    (_Prod _Nat (bind_var x 
+      (_Arrow (_App _Theorem0 (_Var x)) 
+              (_App _Theorem0 (_Succ (_Var x)))))))
+
+let _Theorem =
+  (_Ann
+    (_Lambda (bind_var x
+      (_Nat_elim _Theorem0 _Theorem1 _Theorem2 (_Var x))))
+    (_Prod _Nat (bind_var x 
+      (_Eq (_mApp _Add [_Var x; _Zero]) (_Var x) _Nat))))
 
 let _ = 
   let () = is_debug := true in
-  let t = unbox t2 in
+  let t = unbox _Theorem
+  in
   let ty = infer_i empty t in
   Format.printf "complete@.";
   Format.printf "@[t  :=@;<1 2>%a@]@." pp (nf t);

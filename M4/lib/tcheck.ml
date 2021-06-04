@@ -220,18 +220,13 @@ and infer_l ictx lctx t =
       (subst b t2, lctx, slack1)
     | _ -> failwith "infer_l App")
   | LetIn (t, b) -> (
-    try 
-      let x, b = unbind b in
-      let ty, lctx, slack1 = infer_l ictx lctx t in
-      let () = check_i ictx ty (Type L) in
-      let lctx = add x ty lctx in
-      let ty, lctx, slack2 = infer_l ictx lctx b in
-      let () = assert_msg (not_in x lctx || slack2) "infer_l F_elim" in
-      (ty, lctx, slack1 || slack2)
-    with _ -> 
-      let ty = infer_i ictx t in
-      let () = check_i ictx ty (Type I) in
-      infer_l ictx lctx (subst b t))
+    let x, b = unbind b in
+    let ty, lctx, slack1 = infer_l ictx lctx t in
+    let () = check_i ictx ty (Type L) in
+    let lctx = add x ty lctx in
+    let ty, lctx, slack2 = infer_l ictx lctx b in
+    let () = assert_msg (not_in x lctx || slack2) "infer_l F_elim" in
+    (ty, lctx, slack1 || slack2))
   | Eq _ -> failwith "infer_l Eq"
   | Refl _ -> failwith "infer_l Refl"
   | Ind _ -> failwith "infer_l Ind"
