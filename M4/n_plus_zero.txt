@@ -10,15 +10,14 @@ t  :=
                       fun _ => fun x => (x +1), x)) : forall (_ : Nat),
                                                         forall (_ : Nat), Nat) x) 0 ===
                x) : forall (_ : Nat), Type,
-       ((refl 0)) : ((fun x =>
-                        (((fun x =>
-                             fun y =>
-                               ind ((fun _ => Nat) : forall (_ : Nat), Type,
-                                 y, fun _ => fun x => (x +1), x)) : forall (_ :
-                                                                    Nat),
-                                                                    forall (_ :
-                                                                    Nat), Nat) x) 0 ===
-                          x) : forall (_ : Nat), Type) 0,
+       ((refl 0 Nat)) : ((fun x =>
+                            (((fun x =>
+                                 fun y =>
+                                   ind ((fun _ => Nat) : forall (_ : Nat),
+                                                           Type,
+                                     y, fun _ => fun x => (x +1), x)) : 
+                             forall (_ : Nat), forall (_ : Nat), Nat) x) 0 ===
+                              x) : forall (_ : Nat), Type) 0,
        (fun x =>
           fun pf =>
             ((((fun x =>
@@ -27,16 +26,18 @@ t  :=
                       ind ((fun x => fun y => fun _ => (x +1) === (y +1)) : 
                       forall (x : Nat),
                         forall (y : Nat), forall (_ : x === y), Type,
-                        (fun x => (refl (x +1))) : forall (x : Nat),
-                                                     ((((fun x =>
-                                                           fun y =>
-                                                             fun _ =>
-                                                               (x +1) ===
-                                                                 (y +1)) : 
-                                                       forall (x : Nat),
-                                                         forall (y : Nat),
-                                                           forall (_ :
-                                                             x === y), Type) x) x) (refl x),
+                        (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                                         ((((fun x =>
+                                                               fun y =>
+                                                                 fun _ =>
+                                                                   (x +1) ===
+                                                                    (y +1)) : 
+                                                           forall (x : Nat),
+                                                             forall (y :
+                                                               Nat),
+                                                               forall (_ :
+                                                                 x === y),
+                                                                 Type) x) x) (refl x Nat),
                         x, y, pf)) : forall (x : Nat),
                                        forall (y : Nat),
                                          forall (_ : x === y),
@@ -93,15 +94,14 @@ t  :=
                      fun _ => fun x => (x +1), x)) : forall (_ : Nat),
                                                        forall (_ : Nat), Nat) x) 0 ===
               x) : forall (_ : Nat), Type,
-      ((refl 0)) : ((fun x =>
-                       (((fun x =>
-                            fun y =>
-                              ind ((fun _ => Nat) : forall (_ : Nat), Type,
-                                y, fun _ => fun x => (x +1), x)) : forall (_ :
-                                                                    Nat),
-                                                                    forall (_ :
-                                                                    Nat), Nat) x) 0 ===
-                         x) : forall (_ : Nat), Type) 0,
+      ((refl 0 Nat)) : ((fun x =>
+                           (((fun x =>
+                                fun y =>
+                                  ind ((fun _ => Nat) : forall (_ : Nat),
+                                                          Type,
+                                    y, fun _ => fun x => (x +1), x)) : 
+                            forall (_ : Nat), forall (_ : Nat), Nat) x) 0 ===
+                             x) : forall (_ : Nat), Type) 0,
       (fun x =>
          fun pf =>
            ((((fun x =>
@@ -110,16 +110,17 @@ t  :=
                      ind ((fun x => fun y => fun _ => (x +1) === (y +1)) : 
                      forall (x : Nat),
                        forall (y : Nat), forall (_ : x === y), Type,
-                       (fun x => (refl (x +1))) : forall (x : Nat),
-                                                    ((((fun x =>
-                                                          fun y =>
-                                                            fun _ =>
-                                                              (x +1) ===
-                                                                (y +1)) : 
-                                                      forall (x : Nat),
-                                                        forall (y : Nat),
-                                                          forall (_ :
-                                                            x === y), Type) x) x) (refl x),
+                       (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                                        ((((fun x =>
+                                                              fun y =>
+                                                                fun _ =>
+                                                                  (x +1) ===
+                                                                    (y +1)) : 
+                                                          forall (x : Nat),
+                                                            forall (y : Nat),
+                                                              forall (_ :
+                                                                x === y),
+                                                                Type) x) x) (refl x Nat),
                        x, y, pf)) : forall (x : Nat),
                                       forall (y : Nat),
                                         forall (_ : x === y),
@@ -1271,15 +1272,13 @@ t  :=
                    fun _ => fun x => (x +1), x)) : forall (_ : Nat),
                                                      forall (_ : Nat), Nat) x) 0 ===
             x) : forall (_ : Nat), Type,
-    ((refl 0)) : ((fun x =>
-                     (((fun x =>
-                          fun y =>
-                            ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
-                              fun _ => fun x => (x +1), x)) : forall (_ :
-                                                                Nat),
-                                                                forall (_ :
-                                                                  Nat), Nat) x) 0 ===
-                       x) : forall (_ : Nat), Type) 0,
+    ((refl 0 Nat)) : ((fun x =>
+                         (((fun x =>
+                              fun y =>
+                                ind ((fun _ => Nat) : forall (_ : Nat), Type,
+                                  y, fun _ => fun x => (x +1), x)) : 
+                          forall (_ : Nat), forall (_ : Nat), Nat) x) 0 === x) : 
+                     forall (_ : Nat), Type) 0,
     (fun x =>
        fun pf =>
          ((((fun x =>
@@ -1288,15 +1287,16 @@ t  :=
                    ind ((fun x => fun y => fun _ => (x +1) === (y +1)) : 
                    forall (x : Nat),
                      forall (y : Nat), forall (_ : x === y), Type,
-                     (fun x => (refl (x +1))) : forall (x : Nat),
-                                                  ((((fun x =>
-                                                        fun y =>
-                                                          fun _ =>
-                                                            (x +1) === (y +1)) : 
-                                                    forall (x : Nat),
-                                                      forall (y : Nat),
-                                                        forall (_ : x === y),
-                                                          Type) x) x) (refl x),
+                     (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                                      ((((fun x =>
+                                                            fun y =>
+                                                              fun _ =>
+                                                                (x +1) ===
+                                                                  (y +1)) : 
+                                                        forall (x : Nat),
+                                                          forall (y : Nat),
+                                                            forall (_ :
+                                                              x === y), Type) x) x) (refl x Nat),
                      x, y, pf)) : forall (x : Nat),
                                     forall (y : Nat),
                                       forall (_ : x === y), (x +1) === (y +1)) 
@@ -1342,15 +1342,13 @@ t  :=
                    fun _ => fun x => (x +1), x)) : forall (_ : Nat),
                                                      forall (_ : Nat), Nat) x) 0 ===
             x) : forall (_ : Nat), Type,
-    ((refl 0)) : ((fun x =>
-                     (((fun x =>
-                          fun y =>
-                            ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
-                              fun _ => fun x => (x +1), x)) : forall (_ :
-                                                                Nat),
-                                                                forall (_ :
-                                                                  Nat), Nat) x) 0 ===
-                       x) : forall (_ : Nat), Type) 0,
+    ((refl 0 Nat)) : ((fun x =>
+                         (((fun x =>
+                              fun y =>
+                                ind ((fun _ => Nat) : forall (_ : Nat), Type,
+                                  y, fun _ => fun x => (x +1), x)) : 
+                          forall (_ : Nat), forall (_ : Nat), Nat) x) 0 === x) : 
+                     forall (_ : Nat), Type) 0,
     (fun x =>
        fun pf =>
          ((((fun x =>
@@ -1359,15 +1357,16 @@ t  :=
                    ind ((fun x => fun y => fun _ => (x +1) === (y +1)) : 
                    forall (x : Nat),
                      forall (y : Nat), forall (_ : x === y), Type,
-                     (fun x => (refl (x +1))) : forall (x : Nat),
-                                                  ((((fun x =>
-                                                        fun y =>
-                                                          fun _ =>
-                                                            (x +1) === (y +1)) : 
-                                                    forall (x : Nat),
-                                                      forall (y : Nat),
-                                                        forall (_ : x === y),
-                                                          Type) x) x) (refl x),
+                     (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                                      ((((fun x =>
+                                                            fun y =>
+                                                              fun _ =>
+                                                                (x +1) ===
+                                                                  (y +1)) : 
+                                                        forall (x : Nat),
+                                                          forall (y : Nat),
+                                                            forall (_ :
+                                                              x === y), Type) x) x) (refl x Nat),
                      x, y, pf)) : forall (x : Nat),
                                     forall (y : Nat),
                                       forall (_ : x === y), (x +1) === (y +1)) 
@@ -2656,14 +2655,15 @@ ictx := {
   x : Nat
 }
 t  :=
-  ((refl 0)) : ((fun x =>
-                   (((fun x =>
-                        fun y =>
-                          ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
-                            fun _ => fun x => (x +1), x)) : forall (_ : Nat),
-                                                              forall (_ :
-                                                                Nat), Nat) x) 0 ===
-                     x) : forall (_ : Nat), Type) 0
+  ((refl 0 Nat)) : ((fun x =>
+                       (((fun x =>
+                            fun y =>
+                              ind ((fun _ => Nat) : forall (_ : Nat), Type,
+                                y, fun _ => fun x => (x +1), x)) : forall (_ :
+                                                                    Nat),
+                                                                    forall (_ :
+                                                                    Nat), Nat) x) 0 ===
+                         x) : forall (_ : Nat), Type) 0
 ty :=
   ((fun x =>
       (((fun x =>
@@ -2678,20 +2678,21 @@ ictx := {
   x : Nat
 }
 t  :=
-  ((refl 0)) : ((fun x =>
-                   (((fun x =>
-                        fun y =>
-                          ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
-                            fun _ => fun x => (x +1), x)) : forall (_ : Nat),
-                                                              forall (_ :
-                                                                Nat), Nat) x) 0 ===
-                     x) : forall (_ : Nat), Type) 0
+  ((refl 0 Nat)) : ((fun x =>
+                       (((fun x =>
+                            fun y =>
+                              ind ((fun _ => Nat) : forall (_ : Nat), Type,
+                                y, fun _ => fun x => (x +1), x)) : forall (_ :
+                                                                    Nat),
+                                                                    forall (_ :
+                                                                    Nat), Nat) x) 0 ===
+                         x) : forall (_ : Nat), Type) 0
 
 check_i
 ictx := {
   x : Nat
 }
-t  := (refl 0)
+t  := (refl 0 Nat)
 ty :=
   ((fun x =>
       (((fun x =>
@@ -2705,7 +2706,14 @@ infer_i
 ictx := {
   x : Nat
 }
-t  := (refl 0)
+t  := (refl 0 Nat)
+
+check_i
+ictx := {
+  x : Nat
+}
+t  := 0
+ty := Nat
 
 infer_i
 ictx := {
@@ -2726,15 +2734,16 @@ t  :=
                  ind ((fun x => fun y => fun _ => (x +1) === (y +1)) : 
                  forall (x : Nat),
                    forall (y : Nat), forall (_ : x === y), Type,
-                   (fun x => (refl (x +1))) : forall (x : Nat),
-                                                ((((fun x =>
-                                                      fun y =>
-                                                        fun _ =>
-                                                          (x +1) === (y +1)) : 
-                                                  forall (x : Nat),
-                                                    forall (y : Nat),
-                                                      forall (_ : x === y),
-                                                        Type) x) x) (refl x),
+                   (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                                    ((((fun x =>
+                                                          fun y =>
+                                                            fun _ =>
+                                                              (x +1) ===
+                                                                (y +1)) : 
+                                                      forall (x : Nat),
+                                                        forall (y : Nat),
+                                                          forall (_ :
+                                                            x === y), Type) x) x) (refl x Nat),
                    x, y, pf)) : forall (x : Nat),
                                   forall (y : Nat),
                                     forall (_ : x === y), (x +1) === (y +1)) 
@@ -2790,15 +2799,16 @@ t  :=
                  ind ((fun x => fun y => fun _ => (x +1) === (y +1)) : 
                  forall (x : Nat),
                    forall (y : Nat), forall (_ : x === y), Type,
-                   (fun x => (refl (x +1))) : forall (x : Nat),
-                                                ((((fun x =>
-                                                      fun y =>
-                                                        fun _ =>
-                                                          (x +1) === (y +1)) : 
-                                                  forall (x : Nat),
-                                                    forall (y : Nat),
-                                                      forall (_ : x === y),
-                                                        Type) x) x) (refl x),
+                   (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                                    ((((fun x =>
+                                                          fun y =>
+                                                            fun _ =>
+                                                              (x +1) ===
+                                                                (y +1)) : 
+                                                      forall (x : Nat),
+                                                        forall (y : Nat),
+                                                          forall (_ :
+                                                            x === y), Type) x) x) (refl x Nat),
                    x, y, pf)) : forall (x : Nat),
                                   forall (y : Nat),
                                     forall (_ : x === y), (x +1) === (y +1)) 
@@ -2837,15 +2847,16 @@ t  :=
                 ind ((fun x => fun y => fun _ => (x +1) === (y +1)) : 
                 forall (x : Nat),
                   forall (y : Nat), forall (_ : x === y), Type,
-                  (fun x => (refl (x +1))) : forall (x : Nat),
-                                               ((((fun x =>
-                                                     fun y =>
-                                                       fun _ =>
-                                                         (x +1) === (y +1)) : 
-                                                 forall (x : Nat),
-                                                   forall (y : Nat),
-                                                     forall (_ : x === y),
-                                                       Type) x) x) (refl x),
+                  (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                                   ((((fun x =>
+                                                         fun y =>
+                                                           fun _ =>
+                                                             (x +1) ===
+                                                               (y +1)) : 
+                                                     forall (x : Nat),
+                                                       forall (y : Nat),
+                                                         forall (_ :
+                                                           x === y), Type) x) x) (refl x Nat),
                   x, y, pf)) : forall (x : Nat),
                                  forall (y : Nat),
                                    forall (_ : x === y), (x +1) === (y +1)) 
@@ -6773,14 +6784,15 @@ t  :=
                                                                     forall (_ :
                                                                     x === y),
                                                                     Type,
-                (fun x => (refl (x +1))) : forall (x : Nat),
-                                             ((((fun x =>
-                                                   fun y =>
-                                                     fun _ =>
-                                                       (x +1) === (y +1)) : 
-                                               forall (x : Nat),
-                                                 forall (y : Nat),
-                                                   forall (_ : x === y), Type) x) x) (refl x),
+                (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                                 ((((fun x =>
+                                                       fun y =>
+                                                         fun _ =>
+                                                           (x +1) === (y +1)) : 
+                                                   forall (x : Nat),
+                                                     forall (y : Nat),
+                                                       forall (_ : x === y),
+                                                         Type) x) x) (refl x Nat),
                 x, y, pf)) : forall (x : Nat),
                                forall (y : Nat),
                                  forall (_ : x === y), (x +1) === (y +1)) 
@@ -10679,13 +10691,15 @@ t  :=
                                                                     forall (_ :
                                                                     x === y),
                                                                     Type,
-              (fun x => (refl (x +1))) : forall (x : Nat),
-                                           ((((fun x =>
-                                                 fun y =>
-                                                   fun _ => (x +1) === (y +1)) : 
-                                             forall (x : Nat),
-                                               forall (y : Nat),
-                                                 forall (_ : x === y), Type) x) x) (refl x),
+              (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                               ((((fun x =>
+                                                     fun y =>
+                                                       fun _ =>
+                                                         (x +1) === (y +1)) : 
+                                                 forall (x : Nat),
+                                                   forall (y : Nat),
+                                                     forall (_ : x === y),
+                                                       Type) x) x) (refl x Nat),
               x, y, pf)) : forall (x : Nat),
                              forall (y : Nat),
                                forall (_ : x === y), (x +1) === (y +1)) 
@@ -10727,13 +10741,15 @@ t  :=
                                                                     forall (_ :
                                                                     x === y),
                                                                     Type,
-              (fun x => (refl (x +1))) : forall (x : Nat),
-                                           ((((fun x =>
-                                                 fun y =>
-                                                   fun _ => (x +1) === (y +1)) : 
-                                             forall (x : Nat),
-                                               forall (y : Nat),
-                                                 forall (_ : x === y), Type) x) x) (refl x),
+              (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                               ((((fun x =>
+                                                     fun y =>
+                                                       fun _ =>
+                                                         (x +1) === (y +1)) : 
+                                                 forall (x : Nat),
+                                                   forall (y : Nat),
+                                                     forall (_ : x === y),
+                                                       Type) x) x) (refl x Nat),
               x, y, pf)) : forall (x : Nat),
                              forall (y : Nat),
                                forall (_ : x === y), (x +1) === (y +1)) 
@@ -10767,13 +10783,15 @@ t  :=
                                                                     forall (_ :
                                                                     x === y),
                                                                     Type,
-             (fun x => (refl (x +1))) : forall (x : Nat),
-                                          ((((fun x =>
-                                                fun y =>
-                                                  fun _ => (x +1) === (y +1)) : 
-                                            forall (x : Nat),
-                                              forall (y : Nat),
-                                                forall (_ : x === y), Type) x) x) (refl x),
+             (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                              ((((fun x =>
+                                                    fun y =>
+                                                      fun _ =>
+                                                        (x +1) === (y +1)) : 
+                                                forall (x : Nat),
+                                                  forall (y : Nat),
+                                                    forall (_ : x === y),
+                                                      Type) x) x) (refl x Nat),
              x, y, pf)) : forall (x : Nat),
                             forall (y : Nat),
                               forall (_ : x === y), (x +1) === (y +1)) 
@@ -10807,13 +10825,14 @@ t  :=
                                                                     forall (_ :
                                                                     x === y),
                                                                     Type,
-            (fun x => (refl (x +1))) : forall (x : Nat),
-                                         ((((fun x =>
-                                               fun y =>
-                                                 fun _ => (x +1) === (y +1)) : 
-                                           forall (x : Nat),
-                                             forall (y : Nat),
-                                               forall (_ : x === y), Type) x) x) (refl x),
+            (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                             ((((fun x =>
+                                                   fun y =>
+                                                     fun _ =>
+                                                       (x +1) === (y +1)) : 
+                                               forall (x : Nat),
+                                                 forall (y : Nat),
+                                                   forall (_ : x === y), Type) x) x) (refl x Nat),
             x, y, pf)) : forall (x : Nat),
                            forall (y : Nat),
                              forall (_ : x === y), (x +1) === (y +1)) 
@@ -10847,13 +10866,14 @@ t  :=
                                                                    forall (_ :
                                                                     x === y),
                                                                     Type,
-           (fun x => (refl (x +1))) : forall (x : Nat),
-                                        ((((fun x =>
-                                              fun y =>
-                                                fun _ => (x +1) === (y +1)) : 
-                                          forall (x : Nat),
-                                            forall (y : Nat),
-                                              forall (_ : x === y), Type) x) x) (refl x),
+           (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                            ((((fun x =>
+                                                  fun y =>
+                                                    fun _ =>
+                                                      (x +1) === (y +1)) : 
+                                              forall (x : Nat),
+                                                forall (y : Nat),
+                                                  forall (_ : x === y), Type) x) x) (refl x Nat),
            x, y, pf)) : forall (x : Nat),
                           forall (y : Nat),
                             forall (_ : x === y), (x +1) === (y +1)
@@ -10882,13 +10902,13 @@ t  :=
                                                                   forall (_ :
                                                                     x === y),
                                                                     Type,
-          (fun x => (refl (x +1))) : forall (x : Nat),
-                                       ((((fun x =>
-                                             fun y =>
-                                               fun _ => (x +1) === (y +1)) : 
-                                         forall (x : Nat),
-                                           forall (y : Nat),
-                                             forall (_ : x === y), Type) x) x) (refl x),
+          (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                           ((((fun x =>
+                                                 fun y =>
+                                                   fun _ => (x +1) === (y +1)) : 
+                                             forall (x : Nat),
+                                               forall (y : Nat),
+                                                 forall (_ : x === y), Type) x) x) (refl x Nat),
           x, y, pf)
 ty :=
   forall (x : Nat), forall (y : Nat), forall (_ : x === y), (x +1) === (y +1)
@@ -11389,13 +11409,13 @@ t  :=
                                                                 forall (_ :
                                                                   x === y),
                                                                   Type,
-        (fun x => (refl (x +1))) : forall (x : Nat),
-                                     ((((fun x =>
-                                           fun y =>
-                                             fun _ => (x +1) === (y +1)) : 
-                                       forall (x : Nat),
-                                         forall (y : Nat),
-                                           forall (_ : x === y), Type) x) x) (refl x),
+        (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                         ((((fun x =>
+                                               fun y =>
+                                                 fun _ => (x +1) === (y +1)) : 
+                                           forall (x : Nat),
+                                             forall (y : Nat),
+                                               forall (_ : x === y), Type) x) x) (refl x Nat),
         x, y, pf)
 ty := forall (y : Nat), forall (_ : x === y), (x +1) === (y +1)
 
@@ -11847,12 +11867,13 @@ t  :=
                                                               forall (_ :
                                                                 x === y),
                                                                 Type,
-      (fun x => (refl (x +1))) : forall (x : Nat),
-                                   ((((fun x =>
-                                         fun y => fun _ => (x +1) === (y +1)) : 
-                                     forall (x : Nat),
-                                       forall (y : Nat),
-                                         forall (_ : x === y), Type) x) x) (refl x),
+      (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                       ((((fun x =>
+                                             fun y =>
+                                               fun _ => (x +1) === (y +1)) : 
+                                         forall (x : Nat),
+                                           forall (y : Nat),
+                                             forall (_ : x === y), Type) x) x) (refl x Nat),
       x, y, pf)
 ty := forall (_ : x === y), (x +1) === (y +1)
 
@@ -12255,12 +12276,13 @@ t  :=
                                                           forall (y : Nat),
                                                             forall (_ :
                                                               x === y), Type,
-    (fun x => (refl (x +1))) : forall (x : Nat),
-                                 ((((fun x =>
-                                       fun y => fun _ => (x +1) === (y +1)) : 
-                                   forall (x : Nat),
-                                     forall (y : Nat),
-                                       forall (_ : x === y), Type) x) x) (refl x),
+    (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                     ((((fun x =>
+                                           fun y =>
+                                             fun _ => (x +1) === (y +1)) : 
+                                       forall (x : Nat),
+                                         forall (y : Nat),
+                                           forall (_ : x === y), Type) x) x) (refl x Nat),
     x, y, pf)
 ty := (x +1) === (y +1)
 
@@ -12285,12 +12307,13 @@ t  :=
                                                           forall (y : Nat),
                                                             forall (_ :
                                                               x === y), Type,
-    (fun x => (refl (x +1))) : forall (x : Nat),
-                                 ((((fun x =>
-                                       fun y => fun _ => (x +1) === (y +1)) : 
-                                   forall (x : Nat),
-                                     forall (y : Nat),
-                                       forall (_ : x === y), Type) x) x) (refl x),
+    (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                     ((((fun x =>
+                                           fun y =>
+                                             fun _ => (x +1) === (y +1)) : 
+                                       forall (x : Nat),
+                                         forall (y : Nat),
+                                           forall (_ : x === y), Type) x) x) (refl x Nat),
     x, y, pf)
 
 infer_i
@@ -13496,18 +13519,18 @@ ictx := {
   x : Nat
 }
 t  :=
-  (fun x => (refl (x +1))) : forall (x : Nat),
-                               ((((fun x =>
-                                     fun y => fun _ => (x +1) === (y +1)) : 
-                                 forall (x : Nat),
-                                   forall (y : Nat),
-                                     forall (_ : x === y), Type) x) x) (refl x)
+  (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                   ((((fun x =>
+                                         fun y => fun _ => (x +1) === (y +1)) : 
+                                     forall (x : Nat),
+                                       forall (y : Nat),
+                                         forall (_ : x === y), Type) x) x) (refl x Nat)
 ty :=
   forall (x : Nat),
     ((((fun x => fun y => fun _ => (x +1) === (y +1)) : forall (x : Nat),
                                                           forall (y : Nat),
                                                             forall (_ :
-                                                              x === y), Type) x) x) (refl x)
+                                                              x === y), Type) x) x) (refl x Nat)
 
 infer_i
 ictx := {
@@ -13526,12 +13549,12 @@ ictx := {
   x : Nat
 }
 t  :=
-  (fun x => (refl (x +1))) : forall (x : Nat),
-                               ((((fun x =>
-                                     fun y => fun _ => (x +1) === (y +1)) : 
-                                 forall (x : Nat),
-                                   forall (y : Nat),
-                                     forall (_ : x === y), Type) x) x) (refl x)
+  (fun x => (refl (x +1) Nat)) : forall (x : Nat),
+                                   ((((fun x =>
+                                         fun y => fun _ => (x +1) === (y +1)) : 
+                                     forall (x : Nat),
+                                       forall (y : Nat),
+                                         forall (_ : x === y), Type) x) x) (refl x Nat)
 
 check_i
 ictx := {
@@ -13549,13 +13572,13 @@ ictx := {
   x : Nat
   x : Nat
 }
-t  := fun x => (refl (x +1))
+t  := fun x => (refl (x +1) Nat)
 ty :=
   forall (x : Nat),
     ((((fun x => fun y => fun _ => (x +1) === (y +1)) : forall (x : Nat),
                                                           forall (y : Nat),
                                                             forall (_ :
-                                                              x === y), Type) x) x) (refl x)
+                                                              x === y), Type) x) x) (refl x Nat)
 
 check_i
 ictx := {
@@ -13578,7 +13601,7 @@ t  :=
     ((((fun x => fun y => fun _ => (x +1) === (y +1)) : forall (x : Nat),
                                                           forall (y : Nat),
                                                             forall (_ :
-                                                              x === y), Type) x) x) (refl x)
+                                                              x === y), Type) x) x) (refl x Nat)
 ty := Type
 
 infer_i
@@ -13602,7 +13625,7 @@ t  :=
     ((((fun x => fun y => fun _ => (x +1) === (y +1)) : forall (x : Nat),
                                                           forall (y : Nat),
                                                             forall (_ :
-                                                              x === y), Type) x) x) (refl x)
+                                                              x === y), Type) x) x) (refl x Nat)
 
 check_i
 ictx := {
@@ -13662,7 +13685,7 @@ t  :=
   ((((fun x => fun y => fun _ => (x +1) === (y +1)) : forall (x : Nat),
                                                         forall (y : Nat),
                                                           forall (_ :
-                                                            x === y), Type) x) x) (refl x)
+                                                            x === y), Type) x) x) (refl x Nat)
 
 infer_i
 ictx := {
@@ -15049,7 +15072,7 @@ ictx := {
   x : Nat
   x : Nat
 }
-t  := (refl x)
+t  := (refl x Nat)
 ty := x === x
 
 infer_i
@@ -15069,7 +15092,27 @@ ictx := {
   x : Nat
   x : Nat
 }
-t  := (refl x)
+t  := (refl x Nat)
+
+check_i
+ictx := {
+  x : Nat
+  pf : x === y
+  y : Nat
+  x : Nat
+  pf :
+    ((fun x =>
+        (((fun x =>
+             fun y =>
+               ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+                 fun _ => fun x => (x +1), x)) : forall (_ : Nat),
+                                                   forall (_ : Nat), Nat) x) 0 ===
+          x) : forall (_ : Nat), Type) x
+  x : Nat
+  x : Nat
+}
+t  := x
+ty := Nat
 
 infer_i
 ictx := {
@@ -15107,12 +15150,12 @@ ictx := {
   x : Nat
   x : Nat
 }
-t  := (refl (x +1))
+t  := (refl (x +1) Nat)
 ty :=
   ((((fun x => fun y => fun _ => (x +1) === (y +1)) : forall (x : Nat),
                                                         forall (y : Nat),
                                                           forall (_ :
-                                                            x === y), Type) x) x) (refl x)
+                                                            x === y), Type) x) x) (refl x Nat)
 
 infer_i
 ictx := {
@@ -15131,7 +15174,27 @@ ictx := {
   x : Nat
   x : Nat
 }
-t  := (refl (x +1))
+t  := (refl (x +1) Nat)
+
+check_i
+ictx := {
+  x : Nat
+  pf : x === y
+  y : Nat
+  x : Nat
+  pf :
+    ((fun x =>
+        (((fun x =>
+             fun y =>
+               ind ((fun _ => Nat) : forall (_ : Nat), Type, y,
+                 fun _ => fun x => (x +1), x)) : forall (_ : Nat),
+                                                   forall (_ : Nat), Nat) x) 0 ===
+          x) : forall (_ : Nat), Type) x
+  x : Nat
+  x : Nat
+}
+t  := (x +1)
+ty := Nat
 
 infer_i
 ictx := {
@@ -17361,11 +17424,11 @@ complete
 t  :=
   fun x =>
     ind (fun x => ind (fun _ => Nat, 0, fun _ => fun x => (x +1), x) === x,
-      (refl 0),
+      (refl 0 Nat),
       fun x =>
         fun pf =>
           ind (fun x => fun y => fun _ => (x +1) === (y +1),
-            fun x => (refl (x +1)),
+            fun x => (refl (x +1) Nat),
             ind (fun _ => Nat, 0, fun _ => fun x => (x +1), x), x, pf),
       x)
 ty :=

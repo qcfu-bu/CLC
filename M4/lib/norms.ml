@@ -32,7 +32,7 @@ let rec nf t =
     nf (subst b t)
   | Eq (t1, t2, ty) ->
     Eq (nf t1, nf t2, nf ty)
-  | Refl t -> Refl (nf t)
+  | Refl (t, ty) -> Refl (nf t, nf ty)
   | Ind (p, pf, t1, t2, eq) -> (
     let p = nf p in
     let pf = nf pf in
@@ -40,10 +40,10 @@ let rec nf t =
     let t2 = nf t2 in
     let eq = nf eq in
     match eq with
-    | Refl t3 ->
+    | Refl (t3, ty) ->
       if (equal t1 t3 && equal t2 t3)
       then nf (App (pf, t3))
-      else Ind (p, pf, t1, t2, Refl t3)
+      else Ind (p, pf, t1, t2, Refl (t3, ty))
     | _ -> Ind (p, pf, t1, t2, eq))
   | Nat -> Nat
   | Zero -> Zero

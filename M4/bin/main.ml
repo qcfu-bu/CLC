@@ -57,9 +57,9 @@ let _Lemma1 =
   (* forall x : Nat, lemma(x, x, refl x) *)
   (_Ann
     (_Lambda (bind_var x 
-      (_Refl (_Succ (_Var x)))))
+      (_Refl (_Succ (_Var x)) _Nat)))
     (_Prod _Nat (bind_var x 
-      (_mApp _Lemma0 [_Var x; _Var x; _Refl (_Var x)]))))
+      (_mApp _Lemma0 [_Var x; _Var x; _Refl (_Var x) _Nat]))))
 
 let _Lemma =
   (_Ann
@@ -82,7 +82,7 @@ let _Theorem0 =
 
 let _Theorem1 =
   (_Ann 
-    (_Refl _Zero)
+    (_Refl _Zero _Nat)
     (_App _Theorem0 _Zero))
 
 let _Theorem2 =

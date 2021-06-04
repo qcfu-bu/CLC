@@ -17,7 +17,7 @@ type t =
   | LetIn       of t * (t, t) binder     (* infer *)
   (* equality *)
   | Eq          of t * t * ty            (* infer *)
-  | Refl        of t                     (* infer *)
+  | Refl        of t * ty                (* infer *)
   | Ind         of ty * t * t * t * t    (* infer *)
   (* natural numbers *)
   | Nat                                  (* infer *)
@@ -72,7 +72,7 @@ let _mApp f args =
     (fun f arg -> _App f arg) f args
 let _LetIn = box_apply2 (fun t b -> LetIn (t, b))
 let _Eq = box_apply3 (fun t1 t2 ty -> Eq (t1, t2, ty))
-let _Refl = box_apply (fun t -> Refl t)
+let _Refl = box_apply2 (fun t ty -> Refl (t, ty))
 let _Ind = 
   let box_apply5 f t1 t2 t3 t4 t5 = apply_box (box_apply4 f t1 t2 t3 t4) t5 in
   box_apply5 (fun p pf t1 t2 eq -> Ind (p, pf, t1, t2, eq))
@@ -113,7 +113,7 @@ let rec lift = function
   | App (t1, t2) -> _App (lift t1) (lift t2)
   | LetIn (t, b) -> _LetIn (lift t) (box_binder lift b)
   | Eq (t1, t2, ty) -> _Eq (lift t1) (lift t2) (lift ty)
-  | Refl t -> _Refl (lift t)
+  | Refl (t, ty) -> _Refl (lift t) (lift ty)
   | Ind (ty, pf, t1, t2, eq) -> 
     _Ind (lift ty) (lift pf) (lift t1) (lift t2) (lift eq)
   | Nat -> _Nat
@@ -168,8 +168,8 @@ let rec pp fmt = function
       (name_of x) pp t pp b
   | Eq (t1, t2, _) ->
     Format.fprintf fmt "@[%a ===@;<1 2>%a@]" pp t1 pp t2
-  | Refl t ->
-    Format.fprintf fmt "(refl %a)" pp t
+  | Refl (t, ty) ->
+    Format.fprintf fmt "(refl %a %a)" pp t pp ty
   | Ind (p, pf, t1, t2, eq) ->
     Format.fprintf fmt 
       "@[ind (%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"

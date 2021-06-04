@@ -74,12 +74,12 @@ let rec infer_i ictx t =
     let () = check_i ictx t1 ty in
     let () = check_i ictx t2 ty in
     Type I
-  | Refl t ->
-    let ty = infer_i ictx t in
+  | Refl (t, ty) ->
+    let () = check_i ictx t ty in
     Eq (t, t, ty)
   | Ind (p, pf, t1, t2, eq) -> (
     let p_ty = infer_i ictx p in
-    match p_ty with
+    match whnf p_ty with
     | Prod (ty, _) ->
       let x = mk "x" in
       let y = mk "y" in
@@ -93,7 +93,7 @@ let rec infer_i ictx t =
       let pf_ty = unbox
         (_Prod (lift ty) (bind_var x 
           (_App (_App (_App (lift p) (_Var x)) (_Var x)) 
-            (_Refl (_Var x)))))
+            (_Refl (_Var x) (lift ty)))))
       in
       let () = check_i ictx pf pf_ty in
       let () = check_i ictx t1 ty in
