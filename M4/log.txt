@@ -1,7 +1,7 @@
 infer_i
 ictx := {
 }
-t  := axiom A : Linear in axiom B : Linear in (G axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in (() : True))
+t  := axiom A : Linear in axiom B : Linear in (G axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in let (x, y) := x in ((x, ()) : (A @ True)))
 
 check_i
 ictx := {
@@ -18,7 +18,7 @@ infer_i
 ictx := {
 	A : Linear
 }
-t  := axiom B : Linear in (G axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in (() : True))
+t  := axiom B : Linear in (G axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in let (x, y) := x in ((x, ()) : (A @ True)))
 
 check_i
 ictx := {
@@ -38,7 +38,7 @@ ictx := {
 	B : Linear
 	A : Linear
 }
-t  := (G axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in (() : True))
+t  := (G axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in let (x, y) := x in ((x, ()) : (A @ True)))
 
 infer_l
 ictx := {
@@ -47,7 +47,7 @@ ictx := {
 }
 lctx := {
 }
-t  := axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in (() : True)
+t  := axiom a : A in axiom b : B in let x := ((a, b) : (A @ B)) in let (x, y) := x in ((x, ()) : (A @ True))
 
 check_i
 ictx := {
@@ -72,7 +72,7 @@ ictx := {
 lctx := {
 	a : A
 }
-t  := axiom b : B in let x := ((a, b) : (A @ B)) in (() : True)
+t  := axiom b : B in let x := ((a, b) : (A @ B)) in let (x, y) := x in ((x, ()) : (A @ True))
 
 check_i
 ictx := {
@@ -98,7 +98,7 @@ lctx := {
 	b : B
 	a : A
 }
-t  := let x := ((a, b) : (A @ B)) in (() : True)
+t  := let x := ((a, b) : (A @ B)) in let (x, y) := x in ((x, ()) : (A @ True))
 
 infer_l
 ictx := {
@@ -265,7 +265,28 @@ ictx := {
 lctx := {
 	x : (A @ B)
 }
-t  := (() : True)
+t  := let (x, y) := x in ((x, ()) : (A @ True))
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	x : (A @ B)
+}
+t  := x
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	y : B
+	x : A
+}
+t  := ((x, ()) : (A @ True))
 
 check_l
 ictx := {
@@ -273,7 +294,87 @@ ictx := {
 	A : Linear
 }
 lctx := {
-	x : (A @ B)
+	y : B
+	x : A
+}
+t  := (x, ())
+ty := (A @ True)
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := (A @ True)
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := (A @ True)
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := A
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := A
+
+check_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := True
+ty := Linear
+
+infer_i
+ictx := {
+	B : Linear
+	A : Linear
+}
+t  := True
+
+check_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	y : B
+	x : A
+}
+t  := x
+ty := A
+
+infer_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	y : B
+	x : A
+}
+t  := x
+
+check_l
+ictx := {
+	B : Linear
+	A : Linear
+}
+lctx := {
+	y : B
 }
 t  := ()
 ty := True
@@ -293,5 +394,5 @@ ictx := {
 }
 t  := True
 
-t  := axiom A : Linear in axiom B : Linear in (G axiom a : A in axiom b : B in ())
-ty := (G True)
+t  := axiom A : Linear in axiom B : Linear in (G axiom a : A in axiom b : B in (a, ()))
+ty := (G (A @ True))

@@ -81,6 +81,7 @@ let rec infer_i ictx t =
     | Prod (ty, _) ->
       let x = mk "x" in
       let y = mk "y" in
+      let ty = whnf ty in
       let p_ty' = unbox
         (_Prod (lift ty) (bind_var x
           (_Prod (lift ty) (bind_var y 
@@ -197,7 +198,7 @@ and infer_l ictx lctx t =
       let () = check_i ictx t2 ty in
       (subst b t2, lctx, slack1)
     | _ -> failwith "infer_l App")
-  | LetIn (t, b) ->  (
+  | LetIn (t, b) -> (
     try 
       let x, b = unbind b in
       let ty, lctx, slack1 = infer_l ictx lctx t in
@@ -250,7 +251,7 @@ and infer_l ictx lctx t =
     | And (_, ty) -> (ty, lctx, slack)
     | _ -> failwith "infer_l Proj2")
   | Tensor_elim (t, mb) -> (
-    let t, lctx, slack1 = infer_l lctx ictx t in
+    let t, lctx, slack1 = infer_l ictx lctx t in
     match whnf t with
     | Tensor (ty1, ty2) ->
       let mx, b = unmbind mb in

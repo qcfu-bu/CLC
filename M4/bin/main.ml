@@ -22,8 +22,10 @@ let t1 =
     _Axiom (_Var _B) (bind_var b (
     _LetIn (_Ann (_Pair (_Var a) (_Var b)) 
                  (_Tensor (_Var _A) (_Var _B))) (bind_var x (
-      (_Ann _U _True)
-    )))))))))))
+    _Tensor_elim (_Var x) (bind_mvar [| x; y |] (
+    _Ann (_Pair (_Var x) (_U)) 
+                (_Tensor (_Var _A) (_True))
+    )))))))))))))
 
 let _ = 
   let t = unbox t1 in
