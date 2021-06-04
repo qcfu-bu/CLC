@@ -1,2 +1,3 @@
 (test
- (name M4))
+ (name test)
+ (libraries M4))
