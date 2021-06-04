@@ -19,6 +19,11 @@ type t =
   | Eq          of t * t * ty            (* infer *)
   | Refl        of t                     (* infer *)
   | Ind         of ty * t * t * t * t    (* infer *)
+  (* natural numbers *)
+  | Nat                                  (* infer *)
+  | Zero                                 (* infer *)
+  | Succ        of t                     (* infer *)
+  | Nat_elim    of ty * t * t * t        (* infer *)
   (* modality *)
   | G           of ty                    (* infer *)
   | G_intro     of t                     (* infer *)
@@ -26,7 +31,12 @@ type t =
   | F           of ty * (ty, ty) binder  (* infer *)
   | F_intro     of t * t                 (* check *)
   | F_elim      of t * (t, t) mbinder    (* infer *)
-  (* data *)
+  (* unit data *)
+  | Unit        of m                     (* infer *)
+  | True                                 (* infer *)
+  | U                                    (* check *)
+  | Unit_elim   of t * t                 (* infer *)
+  (* tuple data *)
   | Sum         of ty * (ty, ty) binder  (* infer *)
   | Tensor      of ty * ty               (* infer *)
   | And         of ty * ty               (* infer *)
@@ -34,10 +44,6 @@ type t =
   | Proj1       of t                     (* infer *)
   | Proj2       of t                     (* infer *)
   | Tensor_elim of t * (t, t) mbinder    (* infer *)
-  | Unit        of m                     (* infer *)
-  | True                                 (* infer *)
-  | U                                    (* check *)
-  | Unit_elim   of t * t                 (* infer *)
   (* magic *)
   | Axiom       of ty * (ty, t) binder   (* infer *)
 
@@ -64,6 +70,11 @@ let _Refl = box_apply (fun t -> Refl t)
 let _Ind = 
   let box_apply5 f t1 t2 t3 t4 t5 = apply_box (box_apply4 f t1 t2 t3 t4) t5 in
   box_apply5 (fun p pf t1 t2 eq -> Ind (p, pf, t1, t2, eq))
+let _Nat = box Nat
+let _Zero = box Zero
+let _Succ = box_apply (fun t -> Succ t)
+let _Nat_elim = 
+  box_apply4 (fun p t1 t2 n -> Nat_elim (p, t1, t2, n)) 
 let _G = box_apply (fun ty -> G ty)
 let _G_intro = box_apply (fun t -> G_intro t)
 let _G_elim = box_apply (fun t -> G_intro t)
@@ -99,6 +110,11 @@ let rec lift = function
   | Refl t -> _Refl (lift t)
   | Ind (ty, pf, t1, t2, eq) -> 
     _Ind (lift ty) (lift pf) (lift t1) (lift t2) (lift eq)
+  | Nat -> _Nat
+  | Zero -> _Zero
+  | Succ t -> _Succ (lift t)
+  | Nat_elim (p, t1, t2, n) ->
+    _Nat_elim (lift p) (lift t1) (lift t2) (lift n)
   | G ty -> _G (lift ty)
   | G_intro t -> _G_intro (lift t)
   | G_elim t -> _G_elim (lift t)
@@ -130,7 +146,7 @@ let rec pp fmt = function
   | Prod (ty, b) ->
     let x, b = unbind b in
     if (eq_vars x __) 
-    then Format.fprintf fmt "(%a -> %a)" pp ty pp b
+    then Format.fprintf fmt "@[(%a ->@;<1 2>%a)@]" pp ty pp b
     else Format.fprintf fmt "@[@[forall (%s :@;<1 2>%a),@]@;<1 2>%a@]" 
       (name_of x) pp ty pp b
   | Lolli (ty1, ty2) ->
@@ -139,18 +155,32 @@ let rec pp fmt = function
     let x, b = unbind b in
     Format.fprintf fmt "@[fun %s =>@;<1 2>%a@]" (name_of x) pp b
   | App (t1, t2) ->
-    Format.fprintf fmt "(%a) %a" pp t1 pp t2
+    Format.fprintf fmt "@[(%a)@;<1 2>%a@]" pp t1 pp t2
   | LetIn (t, b) ->
     let x, b = unbind b in
     Format.fprintf fmt "@[let %s := %a in@;<1 0>%a@]" 
       (name_of x) pp t pp b
   | Eq (t1, t2, _) ->
-    Format.fprintf fmt "%a === %a" pp t1 pp t2
+    Format.fprintf fmt "@[%a ===@;<1 2>%a@]" pp t1 pp t2
   | Refl t ->
     Format.fprintf fmt "(refl %a)" pp t
   | Ind (p, pf, t1, t2, eq) ->
-    Format.fprintf fmt "ind (%a, %a, %a, %a, %a)"
+    Format.fprintf fmt 
+      "@[ind (%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
       pp p pp pf pp t1 pp t2 pp eq
+  | Nat -> Format.fprintf fmt "Nat"
+  | Zero -> Format.fprintf fmt "0"
+  | Succ t -> 
+    let rec loop i = function
+      | Succ t -> loop (i + 1) t
+      | Zero -> Format.fprintf fmt "%d" i
+      | t -> Format.fprintf fmt "(%a +1)" pp t
+    in
+    loop 1 t
+  | Nat_elim (p, t1, t2, n) ->
+    Format.fprintf fmt 
+      "@[ind (%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
+      pp p pp t1 pp t2 pp n
   | G ty ->
     Format.fprintf fmt "@[(G %a)@]" pp ty
   | G_intro t ->
@@ -171,15 +201,15 @@ let rec pp fmt = function
   | Sum (ty, b) ->
     let x, b = unbind b in
     if (eq_vars x __) 
-    then Format.fprintf fmt "(%a * %a)" pp ty pp b
+    then Format.fprintf fmt "@[(%a *@;<1 2>%a)@]" pp ty pp b
     else Format.fprintf fmt "@[@[exists (%s : %a),@]@;<1 2>%a@]"
       (name_of x) pp ty pp b
   | Tensor (ty1, ty2) ->
-    Format.fprintf fmt "(%a @@ %a)" pp ty1 pp ty2
+    Format.fprintf fmt "@[(%a ^@;<1 2>%a)@]" pp ty1 pp ty2
   | And (ty1, ty2) ->
-    Format.fprintf fmt "(%a & %a)" pp ty1 pp ty2
+    Format.fprintf fmt "@[(%a &@;<1 2>%a)@]" pp ty1 pp ty2
   | Pair (t1, t2) ->
-    Format.fprintf fmt "(%a, %a)" pp t1 pp t2
+    Format.fprintf fmt "@[(%a,@;<1 2>%a)@]" pp t1 pp t2
   | Proj1 t ->
     Format.fprintf fmt "(%a).1" pp t
   | Proj2 t ->

@@ -1,6 +1,5 @@
 open Bindlib
 open Terms
-open Norms
 
 let rec aeq t1 t2 =
   match t1, t2 with
@@ -22,9 +21,13 @@ let rec aeq t1 t2 =
   | Refl t1, Refl t2 ->
     aeq t1 t2
   | Ind (p1, pf1, t11, t12, eq1), Ind (p2, pf2, t21, t22, eq2) ->
-    aeq p1 p2 && aeq pf1 pf2 && 
-    aeq t11 t21 && aeq t12 t22 && 
+    aeq p1 p2 && aeq pf1 pf2 && aeq t11 t21 && aeq t12 t22 && 
     aeq eq1 eq2
+  | Nat, Nat -> true
+  | Zero, Zero -> true
+  | Succ t1, Succ t2 -> aeq t1 t2
+  | Nat_elim (p1, t11, t12, n1), Nat_elim (p2, t21, t22, n2) ->
+    aeq p1 p2 && aeq t11 t21 && aeq t12 t22 && aeq n1 n2
   | G ty1, G ty2 -> aeq ty1 ty2
   | G_intro t1, G_intro t2 -> aeq t1 t2
   | G_elim t1, G_elim t2 -> aeq t1 t2
@@ -55,7 +58,103 @@ let rec aeq t1 t2 =
     aeq ty1 ty2 && eq_binder aeq b1 b2
   | _ -> false
 
-let rec equal t1 t2 =
+let rec whnf t = 
+  match t with
+  | Var _ -> t
+  | Ann _ -> t
+  | Type _ -> t
+  | Prod _ -> t
+  | Lolli _ -> t
+  | Lambda _ -> t
+  | App (t1, t2) -> (
+    let t1 = whnf t1 in
+    match t1 with
+    | Lambda b ->
+      let t2 = whnf t2 in
+      whnf (subst b t2)
+    | _ -> App (t1, t2))
+  | LetIn (t, b) ->
+    let t = whnf t in
+    whnf (subst b t)
+  | Eq _ -> t
+  | Refl _ -> t
+  | Ind (p, pf, t1, t2, eq) -> (
+    let p = whnf p in
+    let pf = whnf pf in
+    let t1 = whnf t1 in
+    let t2 = whnf t2 in
+    let eq = whnf eq in
+    match eq with
+    | Refl t3 ->
+      if (equal t1 t3 && equal t2 t3)
+      then whnf (App (pf, t3))
+      else Ind (p, pf, t1, t2, Refl t3)
+    | _ -> Ind (p, pf, t1, t2, eq))
+  | Nat -> t
+  | Zero -> t
+  | Succ _ -> t
+  | Nat_elim (p, t1, t2, n) -> (
+    let p = whnf p in
+    let t1 = whnf t1 in
+    let t2 = whnf t2 in
+    let n = whnf n in
+    match n with
+    | Zero -> whnf t1
+    | Succ n ->
+      whnf (App (App (t2, n), Nat_elim (p, t1, t2, n)))
+    | _ -> Nat_elim (p, t1, t2, n))
+  | G _ -> t
+  | G_intro t -> (
+    let t = whnf t in
+    match t with
+    | G_elim t -> whnf t
+    | _ -> G_intro t)
+  | G_elim t -> (
+    let t = whnf t in
+    match t with
+    | G_intro t -> whnf t
+    | _ -> G_elim t)
+  | F _ -> t
+  | F_intro _ -> t
+  | F_elim (t, mb) -> (
+    let t = whnf t in
+    match t with
+    | F_intro (t1, t2) ->
+      whnf (msubst mb [| t1; t2 |])
+    | _ -> F_elim (t, mb))
+  | Sum _ -> t
+  | Tensor _ -> t
+  | And _ -> t
+  | Pair _ -> t
+  | Proj1 t -> (
+    let t = whnf t in
+    match t with
+    | Pair (t, _) -> whnf t
+    | _ -> Proj1 t)
+  | Proj2 t -> (
+    let t = whnf t in
+    match t with
+    | Pair (_, t) -> whnf t
+    | _ -> Proj1 t)
+  | Tensor_elim (t, mb) -> (
+    let t = whnf t in
+    match t with
+    | Pair (t1, t2) ->
+      whnf (msubst mb [| t1; t2 |])
+    | _ -> Tensor_elim (t, mb))
+  | Unit _ -> t
+  | True -> t
+  | U -> t
+  | Unit_elim (t1, t2) -> (
+    let t1 = whnf t1 in
+    match t1 with
+    | U -> whnf t2
+    | _ -> Unit_elim (t1, t2))
+  | Axiom (ty, b) -> 
+    let ty = whnf ty in
+    Axiom (ty, b)
+
+and equal t1 t2 =
   if aeq t1 t2 then true
   else
     let t1 = whnf t1 in
@@ -77,26 +176,14 @@ let rec equal t1 t2 =
     | Eq (t11, t12, ty1), Eq (t21, t22, ty2) ->
       equal t11 t21 && equal t12 t22 && equal ty1 ty2
     | Refl t1, Refl t2 -> equal t1 t2
-    | Ind (p1, pf1, t11, t12, eq1), _ -> (
-      if equal t11 t12 && equal (Refl t11) eq1
-      then equal (App (pf1, t11)) t2
-      else
-        match t2 with
-        | Ind (p2, pf2, t21, t22, eq2) ->
-          equal p1 p2 && equal pf1 pf2 &&
-          equal t11 t21 && equal t12 t22 &&
-          equal eq1 eq2
-        | _ -> false)
-    | _, Ind (p2, pf2, t21, t22, eq2) -> (
-      if equal t21 t22 && equal (Refl t21) eq2
-      then equal t1 (App (pf2, t21))
-      else
-        match t1 with
-        | Ind (p1, pf1, t11, t12, eq1) ->
-          equal p1 p2 && equal pf1 pf2 &&
-          equal t11 t21 && equal t12 t22 &&
-          equal eq1 eq2
-        | _ -> false)
+    | Ind (p1, pf1, t11, t12, eq1), Ind (p2, pf2, t21, t22, eq2) ->
+      equal p1 p2 && equal pf1 pf2 && equal t11 t21 && equal t12 t22 &&
+      equal eq1 eq2
+    | Nat, Nat -> true
+    | Zero, Zero -> true
+    | Succ t1, Succ t2 -> equal t1 t2
+    | Nat_elim (p1, t11, t12, n1), Nat_elim (p2, t21, t22, n2) ->
+      equal p1 p2 && equal t11 t21 && equal t12 t22 && aeq n1 n2
     | G ty1, G ty2 -> equal ty1 ty2
     | G_intro t1, G_intro t2 -> equal t1 t2
     | G_elim t1, G_elim t2 -> equal t1 t2

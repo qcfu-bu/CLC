@@ -1,77 +1,6 @@
 open Bindlib
 open Terms
-
-let rec whnf t = 
-  match t with
-  | Var _ -> t
-  | Ann _ -> t
-  | Type _ -> t
-  | Prod _ -> t
-  | Lolli _ -> t
-  | Lambda _ -> t
-  | App (t1, t2) -> (
-    let t1 = whnf t1 in
-    match t1 with
-    | Lambda b ->
-      let t2 = whnf t2 in
-      whnf (subst b t2)
-    | _ -> App (t1, t2))
-  | LetIn (t, b) ->
-    let t = whnf t in
-    whnf (subst b t)
-  | Eq _ -> t
-  | Refl _ -> t
-  | Ind _ -> t
-  | G _ -> t
-  | G_intro t -> (
-    let t = whnf t in
-    match t with
-    | G_elim t -> whnf t
-    | _ -> G_intro t)
-  | G_elim t -> (
-    let t = whnf t in
-    match t with
-    | G_intro t -> whnf t
-    | _ -> G_elim t)
-  | F _ -> t
-  | F_intro _ -> t
-  | F_elim (t, mb) -> (
-    let t = whnf t in
-    match t with
-    | F_intro (t1, t2) ->
-      whnf (msubst mb [| t1; t2 |])
-    | _ -> F_elim (t, mb))
-  | Sum _ -> t
-  | Tensor _ -> t
-  | And _ -> t
-  | Pair _ -> t
-  | Proj1 t -> (
-    let t = whnf t in
-    match t with
-    | Pair (t, _) -> whnf t
-    | _ -> Proj1 t)
-  | Proj2 t -> (
-    let t = whnf t in
-    match t with
-    | Pair (_, t) -> whnf t
-    | _ -> Proj1 t)
-  | Tensor_elim (t, mb) -> (
-    let t = whnf t in
-    match t with
-    | Pair (t1, t2) ->
-      whnf (msubst mb [| t1; t2 |])
-    | _ -> Tensor_elim (t, mb))
-  | Unit _ -> t
-  | True -> t
-  | U -> t
-  | Unit_elim (t1, t2) -> (
-    let t1 = whnf t1 in
-    match t1 with
-    | U -> whnf t2
-    | _ -> Unit_elim (t1, t2))
-  | Axiom (ty, b) -> 
-    let ty = whnf ty in
-    Axiom (ty, b)
+open Equality
 
 let rec nf t = 
   match t with
@@ -104,8 +33,31 @@ let rec nf t =
   | Eq (t1, t2, ty) ->
     Eq (nf t1, nf t2, nf ty)
   | Refl t -> Refl (nf t)
-  | Ind (p, pf, t1, t2, eq) ->
-    Ind (nf p, nf pf, nf t1, nf t2, nf eq)
+  | Ind (p, pf, t1, t2, eq) -> (
+    let p = nf p in
+    let pf = nf pf in
+    let t1 = nf t1 in
+    let t2 = nf t2 in
+    let eq = nf eq in
+    match eq with
+    | Refl t3 ->
+      if (equal t1 t3 && equal t2 t3)
+      then nf (App (pf, t3))
+      else Ind (p, pf, t1, t2, Refl t3)
+    | _ -> Ind (p, pf, t1, t2, eq))
+  | Nat -> Nat
+  | Zero -> Zero
+  | Succ t -> Succ (nf t)
+  | Nat_elim (p, t1, t2, n) -> (
+    let p = nf p in
+    let t1 = nf t1 in
+    let t2 = nf t2 in
+    let n = nf n in
+    match n with
+    | Zero -> nf t1
+    | Succ n ->
+      nf (App (App (t2, n), Nat_elim (p, t1, t2, n)))
+    | _ -> Nat_elim (p, t1, t2, n))
   | G t -> G (nf t)
   | G_intro t -> (
     let t = nf t in

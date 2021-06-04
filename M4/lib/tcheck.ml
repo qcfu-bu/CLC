@@ -99,6 +99,25 @@ let rec infer_i ictx t =
       let () = check_i ictx eq (Eq (t1, t2, ty)) in
       whnf (App (App (App (p, t1), t2), eq))
     | _ -> failwith "infer_i Ind")
+  | Nat -> Type I
+  | Zero -> Nat
+  | Succ t ->
+    let () = check_i ictx t Nat in
+    Nat
+  | Nat_elim (p, t1, t2, n) -> (
+    let x = mk "x" in
+    let p_ty = unbox (_Arrow _Nat (_Type I)) in
+    let t1_ty = App (p_ty, Zero) in
+    let t2_ty = unbox
+      (_Prod _Nat (bind_var x
+        (_Arrow (_App (lift p) (_Var x))
+                (_App (lift p) (_Succ (_Var x))))))
+    in
+    let () = check_i ictx p p_ty in
+    let () = check_i ictx t1 t1_ty in
+    let () = check_i ictx t2 t2_ty in
+    let () = check_i ictx n Nat in
+    whnf (App (p, n)))
   | G ty ->
     let () = check_i ictx ty (Type L) in
     Type I
@@ -214,6 +233,10 @@ and infer_l ictx lctx t =
   | Eq _ -> failwith "infer_l Eq"
   | Refl _ -> failwith "infer_l Refl"
   | Ind _ -> failwith "infer_l Ind"
+  | Nat -> failwith "infer_l Nat"
+  | Zero -> failwith "infer_l Zero"
+  | Succ _ -> failwith "infer_l Succ"
+  | Nat_elim _ -> failwith "infer_l Nat_elim"
   | G _ -> failwith "infer_l G"
   | G_intro _ -> failwith "infer_l G_intro"
   | G_elim t -> (
