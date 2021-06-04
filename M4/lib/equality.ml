@@ -15,6 +15,8 @@ let rec aeq t1 t2 =
   | Lambda b1, Lambda b2 -> eq_binder aeq b1 b2
   | App (t11, t12), App (t21, t22) ->
     aeq t11 t21 && aeq t12 t22
+  | LetIn (t1, b1), LetIn (t2, b2) ->
+    aeq t1 t2 && eq_binder aeq b1 b2
   | Eq (t11, t12, ty1), Eq (t21, t22, ty2) ->
     aeq t11 t21 && aeq t12 t22 && aeq ty1 ty2
   | Refl t1, Refl t2 ->
@@ -49,6 +51,8 @@ let rec aeq t1 t2 =
   | U, U -> true
   | Unit_elim (t11, t12), Unit_elim (t21, t22) ->
     aeq t11 t21 && aeq t12 t22
+  | Axiom (ty1, b1), Axiom (ty2, b2) ->
+    aeq ty1 ty2 && eq_binder aeq b1 b2
   | _ -> false
 
 let rec equal t1 t2 =
@@ -68,6 +72,8 @@ let rec equal t1 t2 =
     | Lambda b1, Lambda b2 -> eq_binder equal b1 b2
     | App (t11, t12), App (t21, t22) ->
       equal t11 t21 && equal t12 t22
+    | LetIn (t1, b1), LetIn (t2, b2) ->
+      equal t1 t2 && eq_binder equal b1 b2
     | Eq (t11, t12, ty1), Eq (t21, t22, ty2) ->
       equal t11 t21 && equal t12 t22 && equal ty1 ty2
     | Refl t1, Refl t2 -> equal t1 t2
@@ -117,4 +123,6 @@ let rec equal t1 t2 =
     | U, U -> true
     | Unit_elim (t11, t12), Unit_elim (t21, t22) ->
       equal t11 t21 && equal t12 t22
+    | Axiom (ty1, b1), Axiom (ty2, b2) ->
+      equal ty1 ty2 && eq_binder equal b1 b2
     | _ -> false

@@ -16,6 +16,9 @@ let rec whnf t =
       let t2 = whnf t2 in
       whnf (subst b t2)
     | _ -> App (t1, t2))
+  | LetIn (t, b) ->
+    let t = whnf t in
+    whnf (subst b t)
   | Eq _ -> t
   | Refl _ -> t
   | Ind _ -> t
@@ -66,3 +69,6 @@ let rec whnf t =
     match t1 with
     | U -> whnf t2
     | _ -> Unit_elim (t1, t2))
+  | Axiom (ty, b) -> 
+    let ty = whnf ty in
+    Axiom (ty, b)

@@ -34,6 +34,10 @@ let rec infer_i ictx = function
       let () = check_i ictx t2 ty in
       subst b t2
     | _ -> failwith "infer_i Prod")
+  | LetIn (t, b) -> (
+    let ty = infer_i ictx t in
+    let () = check_i ictx ty (Type I) in
+    infer_i ictx (subst b t))
   | Eq (t1, t2, ty) ->
     let () = check_i ictx ty (Type I) in
     let () = check_i ictx t1 ty in
@@ -63,7 +67,7 @@ let rec infer_i ictx = function
       let () = check_i ictx t1 ty in
       let () = check_i ictx t2 ty in
       let () = check_i ictx eq (Eq (t1, t2, ty)) in
-      App (App (App (p, t1), t2), eq)
+      whnf (App (App (App (p, t1), t2), eq))
     | _ -> failwith "infer_i Ind")
   | G ty ->
     let () = check_i ictx ty (Type L) in
@@ -111,6 +115,11 @@ let rec infer_i ictx = function
   | True -> Type L
   | U -> Unit I
   | Unit_elim _ -> failwith "infer_i Unit_elim"
+  | Axiom (ty, b) -> 
+    let x, b = unbind b in
+    let () = check_i ictx ty (Type I) in
+    let ictx = add x ty ictx in
+    infer_i ictx b
 
 and check_i ictx t ty =
   match t with
@@ -156,6 +165,19 @@ and infer_l ictx lctx t : ty * ctx * bool =
       let () = check_i ictx t2 ty in
       (subst b t2, lctx, slack1)
     | _ -> failwith "infer_l App")
+  | LetIn (t, b) ->  (
+    try 
+      let x, b = unbind b in
+      let ty, lctx, slack1 = infer_l ictx lctx t in
+      let () = check_i ictx ty (Type L) in
+      let lctx = add x ty lctx in
+      let ty, lctx, slack2 = infer_l ictx lctx b in
+      let () = assert_msg (not_in x lctx || slack2) "infer_l F_elim" in
+      (ty, lctx, slack1 || slack2)
+    with _ -> 
+      let ty = infer_i ictx t in
+      let () = check_i ictx ty (Type I) in
+      infer_l ictx lctx (subst b t))
   | Eq _ -> failwith "infer_l Eq"
   | Refl _ -> failwith "infer_l Refl"
   | Ind _ -> failwith "infer_l Ind"
@@ -178,7 +200,7 @@ and infer_l ictx lctx t : ty * ctx * bool =
       let ictx = add x1 t ictx in
       let lctx = add x2 b lctx in
       let ty, lctx, slack2 = infer_l ictx lctx mb in
-      let () = assert_msg (not (contains x2 lctx)) "infer_l F_elim" in
+      let () = assert_msg (not_in x2 lctx || slack2) "infer_l F_elim" in
       (ty, lctx, slack1 || slack2)
     | _ -> failwith "infer_l F_elim")
   | Sum _ -> failwith "infer_l Sum"
@@ -218,6 +240,11 @@ and infer_l ictx lctx t : ty * ctx * bool =
       let t2, lctx, slack2 = infer_l ictx lctx t2 in
       (t2, lctx, slack1 || slack2)
     | _ -> failwith "infer_l Unit_elim")
+  | Axiom (ty, b) ->
+    let x, b = unbind b in
+    let () = check_i ictx ty (Type I) in
+    let ictx = add x ty ictx in
+    infer_l ictx lctx b
 
 and check_l ictx lctx t ty : ctx * bool =
   match t with
@@ -228,7 +255,7 @@ and check_l ictx lctx t ty : ctx * bool =
       let x, b = unbind b in
       let lctx = add x ty1 lctx in
       let lctx, slack = check_l ictx lctx b ty2 in
-      let () = assert_msg (not (contains x lctx) || slack) "check_l Lambda" in
+      let () = assert_msg (not_in x lctx || slack) "check_l Lambda" in
       let lctx = remove x lctx in
       (lctx, slack)
     | Prod (ty, b') ->

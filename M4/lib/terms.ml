@@ -14,6 +14,7 @@ type t =
   | Lolli       of ty * ty               (* infer *)
   | Lambda      of (t, t) binder         (* check *)
   | App         of t * t                 (* infer *)
+  | LetIn       of t * (t, t) binder     (* infer *)
   (* equality *)
   | Eq          of t * t * ty            (* infer *)
   | Refl        of t                     (* infer *)
@@ -37,6 +38,8 @@ type t =
   | True                                 (* infer *)
   | U                                    (* check *)
   | Unit_elim   of t * t                 (* infer *)
+  (* magic *)
+  | Axiom       of ty * (ty, t) binder   (* infer *)
 
 and ty = t
 
@@ -55,6 +58,7 @@ let _Arrow ty1 ty2 =
 let _Lolli = box_apply2 (fun ty1 ty2 -> Lolli (ty1, ty2))
 let _Lambda = box_apply (fun b -> Lambda b)
 let _App = box_apply2 (fun t1 t2 -> App (t1, t2))
+let _LetIn = box_apply2 (fun t b -> LetIn (t, b))
 let _Eq = box_apply3 (fun t1 t2 ty -> Eq (t1, t2, ty))
 let _Refl = box_apply (fun t -> Refl t)
 let _Ind = 
@@ -80,6 +84,7 @@ let _Unit m = box (Unit m)
 let _True = box True
 let _U = box U
 let _Unit_elim = box_apply2 (fun t1 t2 -> Unit_elim (t1, t2))
+let _Axiom = box_apply2 (fun ty b -> Axiom (ty, b))
 
 let rec lift = function
   | Var x -> _Var x
@@ -89,6 +94,7 @@ let rec lift = function
   | Lolli (ty1, ty2) -> _Lolli (lift ty1) (lift ty2)
   | Lambda b -> _Lambda (box_binder lift b)
   | App (t1, t2) -> _App (lift t1) (lift t2)
+  | LetIn (t, b) -> _LetIn (lift t) (box_binder lift b)
   | Eq (t1, t2, ty) -> _Eq (lift t1) (lift t2) (lift ty)
   | Refl t -> _Refl (lift t)
   | Ind (ty, pf, t1, t2, eq) -> 
@@ -110,6 +116,7 @@ let rec lift = function
   | True -> _True
   | U -> _U
   | Unit_elim (t1, t2) -> _Unit_elim (lift t1) (lift t2)
+  | Axiom (ty, b) -> _Axiom (lift ty) (box_binder lift b)
 
 let rec pp fmt = function
   | Var x -> 
@@ -128,11 +135,15 @@ let rec pp fmt = function
       (name_of x) pp ty pp b
   | Lolli (ty1, ty2) ->
     Format.fprintf fmt "(%a -o %a)" pp ty1 pp ty2
-  | Lambda b -> (
+  | Lambda b ->
     let x, b = unbind b in
-    Format.fprintf fmt "fun %s => %a" (name_of x) pp b)
+    Format.fprintf fmt "fun %s => %a" (name_of x) pp b
   | App (t1, t2) ->
     Format.fprintf fmt "(%a) %a" pp t1 pp t2
+  | LetIn (t, b) ->
+    let x, b = unbind b in
+    Format.fprintf fmt "let %s := %a in %a" 
+      (name_of x) pp t pp b
   | Eq (t1, t2, _) ->
     Format.fprintf fmt "%a === %a" pp t1 pp t2
   | Refl t ->
@@ -185,4 +196,8 @@ let rec pp fmt = function
   | U -> Format.fprintf fmt "()"
   | Unit_elim (t1, t2) ->
     Format.fprintf fmt "let () := %a in %a" pp t1 pp t2
+  | Axiom (ty, b) ->
+    let x, b = unbind b in
+    Format.fprintf fmt "axiom %s : %a in %a"
+      (name_of x) pp ty pp b
     
