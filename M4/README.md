@@ -100,6 +100,9 @@ The elimination rule for =ₓ is omitted, refer to HoTT book for details.
 Γ;⋅ ⊢ G⁻¹ e : A       Γ;⋅ ⊢ () : I       Γ;Δ ⊢ () : ⊤
 ```
 
+## Shortcomings
+The type system is quite bulky, requiring F and G to map between modalities. 
+This adds complexity to extending with user defined data types.
 
 ## References
 * https://homotopytypetheory.org/book/
