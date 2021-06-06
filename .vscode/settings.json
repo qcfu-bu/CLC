@@ -9,6 +9,7 @@
         "intuitionistic",
         "lctx",
         "lolli",
+        "runtest",
         "struct"
     ],
     "editor.renderIndentGuides": false

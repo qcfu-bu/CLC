@@ -185,14 +185,14 @@ let rec pp fmt = function
     loop 1 t
   | Nat_elim (p, t1, t2, n) ->
     Format.fprintf fmt 
-      "@[ind (%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
+      "@[indn (%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
       pp p pp t1 pp t2 pp n
   | G ty ->
-    Format.fprintf fmt "@[(Pack %a)@]" pp ty
+    Format.fprintf fmt "@[(G %a)@]" pp ty
   | G_intro t ->
-    Format.fprintf fmt "@[(pack %a)@]" pp t
+    Format.fprintf fmt "@[(G+ %a)@]" pp t
   | G_elim t ->
-    Format.fprintf fmt "@[(unpack %a)@]" pp t
+    Format.fprintf fmt "@[(G- %a)@]" pp t
   | F (ty, b) ->
     let x, b = unbind b in
     Format.fprintf fmt "@[@[F (%s : %a),@]@;<1 2>%a@]" 
