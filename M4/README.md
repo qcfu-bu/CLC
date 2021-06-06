@@ -104,6 +104,15 @@ The elimination rule for =ₓ is omitted, refer to HoTT book for details.
 The type system is quite bulky, requiring F and G to map between modalities. 
 This adds complexity to extending with user defined data types.
 
+## Planned Changes
+* Universe subtyping
+```
+------------
+Γ : Uᵢ <: Lᵢ
+```
+* Merge F and G back into !
+
+
 ## References
 * https://homotopytypetheory.org/book/
 * https://www.cs.cmu.edu/~fp/courses/15816-f01/handouts/linfp.pdf

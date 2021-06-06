@@ -10,7 +10,8 @@
         "lctx",
         "lolli",
         "runtest",
-        "struct"
+        "struct",
+        "subtyping"
     ],
     "editor.renderIndentGuides": false
 }
