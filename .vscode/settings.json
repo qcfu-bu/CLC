@@ -10,6 +10,8 @@
         "intuitionistic",
         "lctx",
         "lolli",
+        "refl",
+        "reflₓ",
         "runtest",
         "struct",
         "subtyping"
