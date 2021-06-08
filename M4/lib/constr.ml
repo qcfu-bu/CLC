@@ -33,7 +33,6 @@ let exists x ty1 ty2 =
   _Sum ty1 (bind_var x ty2)
 let ( * ) ty1 ty2 = exists __ ty1 ty2
 let ( ^ ) ty1 ty2 = _Tensor ty1 ty2
-let ( & ) ty1 ty2 = _And ty1 ty2
 let p (t1, t2) = _Pair t1 t2
 let proj1 t = _Proj1 t
 let proj2 t = _Proj2 t
@@ -41,7 +40,6 @@ let let_t (x, y) t1 t2 =
   _Tensor_elim t1 (bind_mvar [| x; y |] t2)
 let unit_ty = _Unit I
 let unit_li = _Unit L
-let void = _True
 let unit = _U
 let let_u t1 t2 = _Unit_elim t1 t2
 let axiom x ty t = _Axiom ty (bind_var x t)

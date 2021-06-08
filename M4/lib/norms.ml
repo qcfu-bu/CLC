@@ -89,8 +89,6 @@ let rec nf t =
     Sum (ty, b)
   | Tensor (ty1, ty2) ->
     Tensor (nf ty1, nf ty2)
-  | And (ty1, ty2) ->
-    And (nf ty1, nf ty2)
   | Pair (t1, t2) ->
     Pair (nf t1, nf t2)
   | Proj1 t -> (
@@ -110,7 +108,6 @@ let rec nf t =
       nf (msubst mb [| t1; t2 |])
     | _ -> Tensor_elim (t, mb))
   | Unit _ -> t
-  | True -> t
   | U -> t
   | Unit_elim (t1, t2) -> (
     let t1 = nf t1 in

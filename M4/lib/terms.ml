@@ -33,13 +33,11 @@ type t =
   | F_elim      of t * (t, t) mbinder    (* infer *)
   (* unit data *)
   | Unit        of m                     (* infer *)
-  | True                                 (* infer *)
   | U                                    (* check *)
   | Unit_elim   of t * t                 (* infer *)
   (* tuple data *)
   | Sum         of ty * (ty, ty) binder  (* infer *)
   | Tensor      of ty * ty               (* infer *)
-  | And         of ty * ty               (* infer *)
   | Pair        of t * t                 (* check *)
   | Proj1       of t                     (* infer *)
   | Proj2       of t                     (* infer *)
@@ -92,13 +90,11 @@ let _Tuple ty1 ty2 =
   let ty2 = bind_var __ ty2 in
   box_apply2 (fun ty b -> Sum (ty, b)) ty1 ty2
 let _Tensor = box_apply2 (fun ty1 ty2 -> Tensor (ty1, ty2))
-let _And = box_apply2 (fun ty1 ty2 -> And (ty1, ty2))
 let _Pair = box_apply2 (fun t1 t2 -> Pair (t1, t2))
 let _Proj1 = box_apply (fun t -> Proj1 t)
 let _Proj2 = box_apply (fun t -> Proj2 t)
 let _Tensor_elim = box_apply2 (fun t mb -> Tensor_elim (t, mb))
 let _Unit m = box (Unit m)
-let _True = box True
 let _U = box U
 let _Unit_elim = box_apply2 (fun t1 t2 -> Unit_elim (t1, t2))
 let _Axiom = box_apply2 (fun ty b -> Axiom (ty, b))
@@ -129,13 +125,11 @@ let rec lift = function
   | F_elim (t, b) -> _F_elim (lift t) (box_mbinder lift b)
   | Sum (ty, b) -> _Sum (lift ty) (box_binder lift b)
   | Tensor (ty1, ty2) -> _Tensor (lift ty1) (lift ty2)
-  | And (ty1, ty2) -> _And (lift ty1) (lift ty2)
   | Pair (t1, t2) -> _Pair (lift t1) (lift t2)
   | Proj1 t -> _Proj1 (lift t)
   | Proj2 t -> _Proj2 (lift t)
   | Tensor_elim (t, mb) -> _Tensor_elim (lift t) (box_mbinder lift mb)
   | Unit m -> _Unit m
-  | True -> _True
   | U -> _U
   | Unit_elim (t1, t2) -> _Unit_elim (lift t1) (lift t2)
   | Axiom (ty, b) -> _Axiom (lift ty) (box_binder lift b)
@@ -212,8 +206,6 @@ let rec pp fmt = function
       (name_of x) pp ty pp b
   | Tensor (ty1, ty2) ->
     Format.fprintf fmt "@[(%a ^@;<1 2>%a)@]" pp ty1 pp ty2
-  | And (ty1, ty2) ->
-    Format.fprintf fmt "@[(%a &@;<1 2>%a)@]" pp ty1 pp ty2
   | Pair (t1, t2) ->
     Format.fprintf fmt "@[(%a,@;<1 2>%a)@]" pp t1 pp t2
   | Proj1 t ->
@@ -229,7 +221,6 @@ let rec pp fmt = function
     match m with
     | I -> Format.fprintf fmt "unit"
     | L -> Format.fprintf fmt "null")
-  | True -> Format.fprintf fmt "True"
   | U -> Format.fprintf fmt "()"
   | Unit_elim (t1, t2) ->
     Format.fprintf fmt "@[let () := %a in@;<1 0>%a@]" pp t1 pp t2
