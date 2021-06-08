@@ -159,7 +159,7 @@ let rec infer_i ictx t =
   | Proj2 t -> (
     let ty = infer_i ictx t in
     match whnf ty with
-    | Sum (_, b) -> subst b (Proj2 t)
+    | Sum (_, b) -> subst b (Proj1 t)
     | _ -> failwith "infer_i Proj2")
   | Tensor_elim _ -> failwith "infer_i Tensor_elim"
   | Unit m -> Type m
