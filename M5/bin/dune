@@ -1,4 +1,0 @@
-(executable
- (public_name M5)
- (name main)
- (libraries M5))

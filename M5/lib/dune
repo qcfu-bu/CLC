@@ -1,3 +1,0 @@
-(library
- (name M5)
- (libraries bindlib))
