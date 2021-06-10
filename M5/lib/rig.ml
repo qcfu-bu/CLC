@@ -1,7 +1,7 @@
 
 type rig =
   | Zero
-  | One
+  | One 
   | W
 
 let ( + ) r1 r2 =

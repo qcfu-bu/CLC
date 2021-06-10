@@ -1,6 +1,7 @@
 open Bindlib
 open Rig
 open Terms
+open Equality
 
 module VarMap = Map.Make(
   struct
@@ -22,6 +23,11 @@ let find x ctx =
   try VarMap.find x ctx
   with _ ->
     failwith ("Cannot find : " ^ name_of x)
+
+let same ctx1 ctx2 =
+  VarMap.equal
+    (fun (t1, _) (t2, _) -> equal t1 t2)
+    ctx1 ctx2
 
 let scale n ctx =
   VarMap.map (fun (t, q) -> (t, q * n)) ctx
