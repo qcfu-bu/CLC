@@ -55,7 +55,6 @@ let rec infer ctx t =
       let _, r3 = find x ctx2 in
       if (r1 = One)
       then
-        let () = assert_msg (r2 = One) "infer LnProd" in
         let () = assert_msg (r3 = Zero) "infer LnProd" in
         (Linear, sum ctx1 ctx2)
       else
