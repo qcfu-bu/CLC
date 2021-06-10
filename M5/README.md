@@ -61,7 +61,7 @@ Combining features of LNLD and QTT.
 ### Term Formation
 ```
 Γ₁ ⊢ (x:Xᵃ) -> Y : Uᵢʷ    Γ₂,[x:Xʳ::a] ⊢ e : Y    r ≤ a
-(∀ [x:Xʳ::1] ∈ Γ₂, => r = 0)
+(∀ [x:Xʳ::1] ∈ Γ₂, r = 0)
 -------------------------------------------------------
 Γ₂ ⊢ λx.e : (x:Xᵃ) -> Y
 
