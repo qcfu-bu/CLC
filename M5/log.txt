@@ -14,856 +14,1385 @@ post_ctx := {
 
 infer
 pre_ctx := {
-  nat :0 Type
+  unit :0 Type@::w]
 }
-t  := Linear
+t  := Type
 post_ctx := {
-  nat :0 Type
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  nat :0 Type
+  unit :0 Type@::w]
 }
-t  := Linear
+t  := Type
 post_ctx := {
-  nat :0 Type
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  channel :0 Linear
-  nat :0 Type
-}
-t  := channel
-post_ctx := {
-  channel :1 Linear
-  nat :0 Type
-}
-
-infer
-pre_ctx := {
-  channel :0 Linear
-  nat :0 Type
-}
-t  := channel
-post_ctx := {
-  channel :1 Linear
-  nat :0 Type
-}
-
-infer
-pre_ctx := {
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := channel
-post_ctx := {
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
-}
-
-infer
-pre_ctx := {
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := channel
-post_ctx := {
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
-}
-
-infer
-pre_ctx := {
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := channel
-post_ctx := {
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
-}
-
-infer
-pre_ctx := {
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  _ :0 nat
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := channel
-post_ctx := {
-  _ :0 nat
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
-}
-
-infer
-pre_ctx := {
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := (_ : nat)>> channel
-post_ctx := {
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :1 Type
-}
-
-infer
-pre_ctx := {
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := (_ : channel)-> (_ : nat)>> channel
-post_ctx := {
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :w Linear
-  nat :1 Type
-}
-
-infer
-pre_ctx := {
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := channel
-post_ctx := {
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
-}
-
-infer
-pre_ctx := {
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  _ :0 nat
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := channel
-post_ctx := {
-  _ :0 nat
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
-}
-
-infer
-pre_ctx := {
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := (_ : nat)>> channel
-post_ctx := {
-  _ :0 channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :1 Type
-}
-
-infer
-pre_ctx := {
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := (_ : channel)-> (_ : nat)>> channel
-post_ctx := {
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :w Linear
-  nat :1 Type
-}
-
-infer
-pre_ctx := {
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  _ :0 nat
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  _ :0 nat@::w]
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  _ :0 nat
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  _ :0 nat@::w]
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := (_ : nat)-> nat
 post_ctx := {
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :w Type
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :w Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := (_ : nat)-> (_ : nat)-> nat
 post_ctx := {
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :w Type
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :w Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  _ :0 nat
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  _ :0 nat@::w]
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  _ :0 nat
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  _ :0 nat@::w]
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := (_ : nat)-> nat
 post_ctx := {
-  _ :0 nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :w Type
+  _ :0 nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :w Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := (_ : nat)-> (_ : nat)-> nat
 post_ctx := {
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :w Type
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :w Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := read
+t  := Linear
 post_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :1 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := Linear
+post_ctx := {
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := nat
+post_ctx := {
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 nat@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := channel
 post_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
+  _ :0 nat@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := ch1
+t  := (_ : nat)-> channel
 post_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :1 channel
-  channel :0 Linear
-  nat :0 Type
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := nat
+post_ctx := {
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 nat@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := channel
+post_ctx := {
+  _ :0 nat@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := (_ : nat)-> channel
+post_ctx := {
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := channel
+post_ctx := {
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 channel@::1]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := unit
+post_ctx := {
+  _ :0 channel@::1]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :1 Type@::w]
+}
+
+infer
+pre_ctx := {
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := (_ : channel)-> unit
+post_ctx := {
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :1 Type@::w]
+}
+
+infer
+pre_ctx := {
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := channel
+post_ctx := {
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 channel@::1]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := unit
+post_ctx := {
+  _ :0 channel@::1]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :1 Type@::w]
+}
+
+infer
+pre_ctx := {
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := (_ : channel)-> unit
+post_ctx := {
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :1 Type@::w]
+}
+
+infer
+pre_ctx := {
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := channel
+post_ctx := {
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := nat
+post_ctx := {
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 nat@::w]
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := channel
+post_ctx := {
+  _ :0 nat@::w]
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := (nat * _ ->channel)
+post_ctx := {
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := (_ : channel)-> (nat * _ ->channel)
+post_ctx := {
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :w Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := channel
+post_ctx := {
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := nat
+post_ctx := {
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 nat@::w]
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := channel
+post_ctx := {
+  _ :0 nat@::w]
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := (nat * _ ->channel)
+post_ctx := {
+  _ :0 channel@::1]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := (_ : channel)-> (nat * _ ->channel)
+post_ctx := {
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :w Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := openCh
+post_ctx := {
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :1 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := nat
+post_ctx := {
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := one
+post_ctx := {
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :1 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 check
 pre_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := ch1
-ty := channel
+t  := one
+ty := nat
 post_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :1 channel
-  channel :0 Linear
-  nat :0 Type
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :1 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := (read) ch1
+t  := (openCh) one
 post_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :1 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :1 channel
-  channel :0 Linear
-  nat :0 Type
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :1 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :1 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := nat
-post_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
-}
-
-infer
-pre_ctx := {
-  _ :0 nat
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := channel
 post_ctx := {
-  _ :0 nat
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := (_ : nat)>> channel
+t  := readn
 post_ctx := {
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :1 Type
+  ch :0 channel@::1]
+  readn :1 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-t  := read
-post_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :1 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
-}
-
-infer
-pre_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := channel
 post_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := ch2
+t  := ch
 post_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :1 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :1 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 check
 pre_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := ch2
+t  := ch
 ty := channel
 post_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :1 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :1 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := (read) ch2
+t  := (readn) ch
 post_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :1 (_ : channel)-> (_ : nat)>> channel
-  ch2 :1 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :1 channel@::1]
+  readn :1 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := nat
 post_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :1 Type
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  _ :0 nat
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  _ :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 t  := channel
 post_ctx := {
-  _ :0 nat
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :0 Type
+  _ :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :1 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := (_ : nat)>> channel
+t  := addn
 post_ctx := {
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :1 Linear
-  nat :1 Type
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :1 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 
 infer
 pre_ctx := {
-  y :0 (_ : nat)>> channel
-  x :0 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
-t  := x
+t  := nat
 post_ctx := {
-  y :0 (_ : nat)>> channel
-  x :1 (_ : nat)>> channel
-  add :0 (_ : nat)-> (_ : nat)-> nat
-  one :0 nat
-  read :0 (_ : channel)-> (_ : nat)>> channel
-  ch2 :0 channel
-  ch1 :0 channel
-  channel :0 Linear
-  nat :0 Type
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := n
+post_ctx := {
+  ch :0 channel@::1]
+  n :1 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+check
+pre_ctx := {
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := n
+ty := nat
+post_ctx := {
+  ch :0 channel@::1]
+  n :1 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := (addn) n
+post_ctx := {
+  ch :0 channel@::1]
+  n :1 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :1 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := nat
+post_ctx := {
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :1 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := n
+post_ctx := {
+  ch :0 channel@::1]
+  n :1 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+check
+pre_ctx := {
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := n
+ty := nat
+post_ctx := {
+  ch :0 channel@::1]
+  n :1 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+
+infer
+pre_ctx := {
+  ch :0 channel@::1]
+  n :0 nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :0 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
+}
+t  := ((addn) n) n
+post_ctx := {
+  ch :0 channel@::1]
+  n :w nat@::w]
+  ch :0 channel@::1]
+  readn :0 (_ : channel)-> (nat * _ ->channel)@::w]
+  closeCh :0 (_ : channel)-> unit@::w]
+  openCh :0 (_ : nat)-> channel@::w]
+  channel :0 Linear@::w]
+  addn :1 (_ : nat)-> (_ : nat)-> nat@::w]
+  one :0 nat@::w]
+  zero :0 nat@::w]
+  nat :0 Type@::w]
+  unit :0 Type@::w]
 }
 

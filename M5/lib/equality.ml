@@ -16,6 +16,12 @@ let rec aeq t1 t2 =
     eq_binder aeq b1 b2
   | App (s1, t1), App (s2, t2) ->
     aeq s1 s2 && aeq t1 t2
+  | Tensor (ty1, b1), Tensor (ty2, b2) ->
+    aeq ty1 ty2 && eq_binder aeq b1 b2
+  | Pair (t11, t12), Pair (t21, t22) ->
+    aeq t11 t21 && aeq t12 t22
+  | LetPair (t1, mb1), LetPair (t2, mb2) ->
+    aeq t1 t2 && eq_mbinder aeq mb1 mb2
   | LetIn (t1, b1), LetIn (t2, b2) ->
     aeq t1 t2 && eq_binder aeq b1 b2
   | Axiom (t1, b1), Axiom (t2, b2) ->
@@ -38,6 +44,14 @@ let rec whnf t =
       let t = whnf t in
       whnf (subst b t)
     | _ -> App (s, whnf t))
+  | Tensor _ -> t
+  | Pair _ -> t
+  | LetPair (t, mb) -> (
+    let t = whnf t in
+    match t with
+    | Pair (t1, t2) ->
+      whnf (msubst mb [| t1; t2 |])
+    | _ -> LetPair (t, mb))
   | LetIn (t, b) ->
     let t = whnf t in
     whnf (subst b t)
@@ -69,6 +83,12 @@ and equal t1 t2 =
       eq_binder equal b1 b2
     | App (s1, t1), App (s2, t2) ->
       equal s1 s2 && equal t1 t2
+    | Tensor (ty1, b1), Tensor (ty2, b2) ->
+      equal ty1 ty2 && eq_binder equal b1 b2
+    | Pair (t11, t12), Pair (t21, t22) ->
+      equal t11 t21 && equal t12 t22
+    | LetPair (t1, mb1), LetPair (t2, mb2) ->
+      equal t1 t2 && eq_mbinder equal mb1 mb2
     | LetIn (t1, b1), LetIn (t2, b2) ->
       equal t1 t2 && eq_binder equal b1 b2
     | Axiom (t1, b1), Axiom (t2, b2) ->

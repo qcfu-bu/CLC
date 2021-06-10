@@ -9,7 +9,7 @@ module VarMap = Map.Make(
     let compare = compare_vars
   end)
 
-type ctx = (t * rig) VarMap.t
+type ctx = (t * rig * rig) VarMap.t
 
 let empty = VarMap.empty
 
@@ -26,24 +26,25 @@ let find x ctx =
 
 let same ctx1 ctx2 =
   VarMap.equal
-    (fun (t1, _) (t2, _) -> equal t1 t2)
+    (fun (t1, r11, r12) (t2, r21, r22) -> 
+      equal t1 t2 && r11 = r21 && r12 = r22)
     ctx1 ctx2
 
 let scale n ctx =
-  VarMap.map (fun (t, q) -> (t, q * n)) ctx
+  VarMap.map (fun (t, q1, q2) -> (t, q1 * n, q2)) ctx
 
 let sum ctx1 ctx2 =
   VarMap.merge
     (fun _ x1 x2 -> 
       match x1, x2 with
-      | Some (t, q1), Some (_, q2) -> Some (t, q1 + q2)
+      | Some (t, q1, q), Some (_, q2, _) -> Some (t, q1 + q2, q)
       | _ -> None)
     ctx1 ctx2
 
 let pp fmt ctx =
   Format.fprintf fmt "{@?";
-  iter (fun x (t, q) -> 
-    Format.fprintf fmt "@[<v 0>@;<0 2>@[%s :%a@;<1 2>%a@]@]@?" 
-      (name_of x) Rig.pp q pp t)
+  iter (fun x (t, q1, q2) -> 
+    Format.fprintf fmt "@[<v 0>@;<0 2>@[%s :%a@;<1 2>%a@::%a]@]@?" 
+      (name_of x) Rig.pp q1 pp t Rig.pp q2)
     ctx;
   Format.fprintf fmt "\n}@?";

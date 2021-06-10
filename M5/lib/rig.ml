@@ -31,6 +31,9 @@ let ( <= ) r1 r2 =
   | W, W       -> true
   | _          -> false
 
+let min r1 r2 =
+  if r1 <= r2 then r1 else r2
+
 let pp fmt = function
   | Zero -> Format.fprintf fmt "0"
   | One -> Format.fprintf fmt "1"
