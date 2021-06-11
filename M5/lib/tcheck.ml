@@ -65,13 +65,13 @@ let rec infer ctx t : ty * ctx =
       let t1_ty, ctx1 = infer ctx t1 in
       match whnf t1_ty with
       | TyProd (ty, b) ->
-        let _ = infer_rig ctx ty in
+        let r, _ = infer_rig ctx ty in
         let ctx2 = check ctx t2 ty in
-        (subst b t2, sum ctx1 ctx2)
+        (subst b t2, sum ctx1 (scale r ctx2))
       | LnProd (ty, b) ->
-        let _ = infer_rig ctx ty in
+        let r, _ = infer_rig ctx ty in
         let ctx2 = check ctx t2 ty in
-        (subst b t2, sum ctx1 ctx2)
+        (subst b t2, sum ctx1 (scale r ctx2))
       | _ -> failwith "infer App")
     | Tensor (ty, b) ->
       let x, b = unbind b in
