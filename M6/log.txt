@@ -8,6 +8,7 @@ t  := let tyId := (fun A => fun x => x : (A : Type) -> A -> A) in
                Nat -> Nat -> Nat) in
                let ch1 := ((open) 0 : Channel) in
                let ch2 := ((open) 0 : Channel) in
+               let ch3 := ((open) 1 : Channel) in
                let readClose :=
                  (fun ch =>
                     let (n, ch) := (read) ch in
@@ -20,8 +21,9 @@ t  := let tyId := (fun A => fun x => x : (A : Type) -> A -> A) in
                       let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : 
                Channel -> Nat -> (Channel * Channel) -> Nat) in
                let main :=
-                 (let n := ((adversary) readClose) (ch1, ch2) in () : 
-               unit) in main
+                 (let n := ((adversary) readClose) (ch1, ch2) in
+                  let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+               in main
 
 infer
 pre_ctx := {
@@ -3654,6 +3656,220 @@ post_ctx := {
 
 infer
 pre_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := open
+ty := Nat -> Channel
+post_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := 0
+ty := Nat
+post_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+check
+pre_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := 0
+ty := Nat
+post_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := 1
+ty := Nat
+post_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+check
+pre_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := 1
+ty := Nat
+post_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := (open) 1
+ty := Channel
+post_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+check
+pre_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := (open) 1
+ty := Channel
+post_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := ((open) 1 : Channel)
+ty := Channel
+post_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
   add :0 (Nat -> Nat -> Nat)::w
   lnId :0 ((A : Linear) -> A -> A)::w
   tyId :0 ((A : Type) -> A -> A)::w
@@ -4090,6 +4306,7 @@ post_ctx := {
 
 check
 pre_ctx := {
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -4106,6 +4323,7 @@ post_ctx := {
 
 infer
 pre_ctx := {
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5298,6 +5516,7 @@ post_ctx := {
 check
 pre_ctx := {
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5320,6 +5539,7 @@ post_ctx := {
 infer
 pre_ctx := {
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5517,6 +5737,7 @@ infer
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5528,6 +5749,7 @@ ty := Channel -> Nat -> (Channel * Channel) -> Nat
 post_ctx := {
   adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5647,6 +5869,7 @@ infer
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5658,6 +5881,7 @@ ty := Channel -> Nat
 post_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :1 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5669,6 +5893,7 @@ check
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5680,6 +5905,7 @@ ty := Channel -> Nat
 post_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :1 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5691,6 +5917,7 @@ infer
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5702,6 +5929,7 @@ ty := (Channel * Channel) -> Nat
 post_ctx := {
   adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :w (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5839,6 +6067,7 @@ infer
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5850,6 +6079,7 @@ ty := Channel
 post_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5861,6 +6091,7 @@ check
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5872,6 +6103,7 @@ ty := Channel
 post_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5901,6 +6133,7 @@ infer
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5912,6 +6145,7 @@ ty := Channel
 post_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :1 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5923,6 +6157,7 @@ check
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5934,6 +6169,7 @@ ty := Channel
 post_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :1 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5945,6 +6181,7 @@ check
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5956,6 +6193,7 @@ ty := (Channel * Channel)
 post_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :1 (Channel)::1
   ch1 :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5967,6 +6205,7 @@ infer
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -5978,6 +6217,7 @@ ty := Nat
 post_ctx := {
   adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :w (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :1 (Channel)::1
   ch1 :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6008,18 +6248,538 @@ pre_ctx := {
   n :0 (Nat)::w
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
   lnId :0 ((A : Linear) -> A -> A)::w
   tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := ()
-ty := unit
+t  := write
+ty := (Nat * Channel) -> Channel
 post_ctx := {
   n :0 (Nat)::w
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  _ :0 (Nat)::w
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  _ :0 (Nat)::w
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := (Nat * Channel)
+ty := Linear
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  _ :0 (Nat)::w
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  _ :0 (Nat)::w
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := (Nat * Channel)
+ty := Linear
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := n
+ty := Nat
+post_ctx := {
+  n :1 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+check
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := n
+ty := Nat
+post_ctx := {
+  n :1 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := ch3
+ty := Channel
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+check
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := ch3
+ty := Channel
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+check
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := (n, ch3)
+ty := (Nat * Channel)
+post_ctx := {
+  n :1 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := (write) (n, ch3)
+ty := Channel
+post_ctx := {
+  n :1 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  ch3 :0 (Channel)::1
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := close
+ty := Channel -> unit
+post_ctx := {
+  ch3 :0 (Channel)::1
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  ch3 :0 (Channel)::1
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := ch3
+ty := Channel
+post_ctx := {
+  ch3 :1 (Channel)::1
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+check
+pre_ctx := {
+  ch3 :0 (Channel)::1
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := ch3
+ty := Channel
+post_ctx := {
+  ch3 :1 (Channel)::1
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  ch3 :0 (Channel)::1
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := (close) ch3
+ty := unit
+post_ctx := {
+  ch3 :1 (Channel)::1
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := let ch3 := (write) (n, ch3) in (close) ch3
+ty := unit
+post_ctx := {
+  n :1 (Nat)::w
+  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
+  readClose :0 (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6031,17 +6791,21 @@ infer
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
   lnId :0 ((A : Linear) -> A -> A)::w
   tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := let n := ((adversary) readClose) (ch1, ch2) in ()
+t  :=
+  let n := ((adversary) readClose) (ch1, ch2) in
+  let ch3 := (write) (n, ch3) in (close) ch3
 ty := unit
 post_ctx := {
   adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :w (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
   ch2 :1 (Channel)::1
   ch1 :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6053,17 +6817,21 @@ check
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
   lnId :0 ((A : Linear) -> A -> A)::w
   tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := let n := ((adversary) readClose) (ch1, ch2) in ()
+t  :=
+  let n := ((adversary) readClose) (ch1, ch2) in
+  let ch3 := (write) (n, ch3) in (close) ch3
 ty := unit
 post_ctx := {
   adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :w (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
   ch2 :1 (Channel)::1
   ch1 :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6075,17 +6843,21 @@ infer
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
   lnId :0 ((A : Linear) -> A -> A)::w
   tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := (let n := ((adversary) readClose) (ch1, ch2) in () : unit)
+t  :=
+  (let n := ((adversary) readClose) (ch1, ch2) in
+   let ch3 := (write) (n, ch3) in (close) ch3 : unit)
 ty := unit
 post_ctx := {
   adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :w (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
   ch2 :1 (Channel)::1
   ch1 :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6116,6 +6888,7 @@ pre_ctx := {
   main :0 (unit)::w
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6128,6 +6901,7 @@ post_ctx := {
   main :1 (unit)::w
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6139,6 +6913,7 @@ infer
 pre_ctx := {
   adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6146,12 +6921,15 @@ pre_ctx := {
   tyId :0 ((A : Type) -> A -> A)::w
 }
 t  :=
-  let main := (let n := ((adversary) readClose) (ch1, ch2) in () : unit) in
-  main
+  let main :=
+    (let n := ((adversary) readClose) (ch1, ch2) in
+     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+  in main
 ty := unit
 post_ctx := {
   adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
   readClose :w (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
   ch2 :1 (Channel)::1
   ch1 :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6162,6 +6940,7 @@ post_ctx := {
 infer
 pre_ctx := {
   readClose :0 (Channel -> Nat)::w
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6178,11 +6957,14 @@ t  :=
                                                                    (Channel * Channel) ->
                                                                     Nat)
   in
-  let main := (let n := ((adversary) readClose) (ch1, ch2) in () : unit) in
-  main
+  let main :=
+    (let n := ((adversary) readClose) (ch1, ch2) in
+     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+  in main
 ty := unit
 post_ctx := {
   readClose :w (Channel -> Nat)::w
+  ch3 :1 (Channel)::1
   ch2 :1 (Channel)::1
   ch1 :1 (Channel)::1
   add :1 (Nat -> Nat -> Nat)::w
@@ -6192,6 +6974,7 @@ post_ctx := {
 
 infer
 pre_ctx := {
+  ch3 :0 (Channel)::1
   ch2 :0 (Channel)::1
   ch1 :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
@@ -6211,8 +6994,46 @@ t  :=
                                                                    (Channel * Channel) ->
                                                                     Nat)
   in
-  let main := (let n := ((adversary) readClose) (ch1, ch2) in () : unit) in
-  main
+  let main :=
+    (let n := ((adversary) readClose) (ch1, ch2) in
+     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+  in main
+ty := unit
+post_ctx := {
+  ch3 :1 (Channel)::1
+  ch2 :1 (Channel)::1
+  ch1 :1 (Channel)::1
+  add :1 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  ch2 :0 (Channel)::1
+  ch1 :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+  lnId :0 ((A : Linear) -> A -> A)::w
+  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  :=
+  let ch3 := ((open) 1 : Channel) in
+  let readClose :=
+    (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
+  Channel -> Nat) in
+  let adversary :=
+    (fun f =>
+       fun x =>
+         let (x1, x2) := x in
+         let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel ->
+                                                                   Nat ->
+                                                                   (Channel * Channel) ->
+                                                                    Nat)
+  in
+  let main :=
+    (let n := ((adversary) readClose) (ch1, ch2) in
+     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+  in main
 ty := unit
 post_ctx := {
   ch2 :1 (Channel)::1
@@ -6231,6 +7052,7 @@ pre_ctx := {
 }
 t  :=
   let ch2 := ((open) 0 : Channel) in
+  let ch3 := ((open) 1 : Channel) in
   let readClose :=
     (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
   Channel -> Nat) in
@@ -6243,8 +7065,10 @@ t  :=
                                                                    (Channel * Channel) ->
                                                                     Nat)
   in
-  let main := (let n := ((adversary) readClose) (ch1, ch2) in () : unit) in
-  main
+  let main :=
+    (let n := ((adversary) readClose) (ch1, ch2) in
+     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+  in main
 ty := unit
 post_ctx := {
   ch1 :1 (Channel)::1
@@ -6262,6 +7086,7 @@ pre_ctx := {
 t  :=
   let ch1 := ((open) 0 : Channel) in
   let ch2 := ((open) 0 : Channel) in
+  let ch3 := ((open) 1 : Channel) in
   let readClose :=
     (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
   Channel -> Nat) in
@@ -6274,8 +7099,10 @@ t  :=
                                                                    (Channel * Channel) ->
                                                                     Nat)
   in
-  let main := (let n := ((adversary) readClose) (ch1, ch2) in () : unit) in
-  main
+  let main :=
+    (let n := ((adversary) readClose) (ch1, ch2) in
+     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+  in main
 ty := unit
 post_ctx := {
   add :1 (Nat -> Nat -> Nat)::w
@@ -6294,6 +7121,7 @@ t  :=
   Nat -> Nat -> Nat) in
   let ch1 := ((open) 0 : Channel) in
   let ch2 := ((open) 0 : Channel) in
+  let ch3 := ((open) 1 : Channel) in
   let readClose :=
     (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
   Channel -> Nat) in
@@ -6306,8 +7134,10 @@ t  :=
                                                                    (Channel * Channel) ->
                                                                     Nat)
   in
-  let main := (let n := ((adversary) readClose) (ch1, ch2) in () : unit) in
-  main
+  let main :=
+    (let n := ((adversary) readClose) (ch1, ch2) in
+     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+  in main
 ty := unit
 post_ctx := {
   lnId :0 ((A : Linear) -> A -> A)::w
@@ -6325,6 +7155,7 @@ t  :=
   Nat -> Nat -> Nat) in
   let ch1 := ((open) 0 : Channel) in
   let ch2 := ((open) 0 : Channel) in
+  let ch3 := ((open) 1 : Channel) in
   let readClose :=
     (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
   Channel -> Nat) in
@@ -6337,8 +7168,10 @@ t  :=
                                                                    (Channel * Channel) ->
                                                                     Nat)
   in
-  let main := (let n := ((adversary) readClose) (ch1, ch2) in () : unit) in
-  main
+  let main :=
+    (let n := ((adversary) readClose) (ch1, ch2) in
+     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+  in main
 ty := unit
 post_ctx := {
   tyId :0 ((A : Type) -> A -> A)::w
@@ -6355,6 +7188,7 @@ t  :=
   Nat -> Nat -> Nat) in
   let ch1 := ((open) 0 : Channel) in
   let ch2 := ((open) 0 : Channel) in
+  let ch3 := ((open) 1 : Channel) in
   let readClose :=
     (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
   Channel -> Nat) in
@@ -6367,8 +7201,10 @@ t  :=
                                                                    (Channel * Channel) ->
                                                                     Nat)
   in
-  let main := (let n := ((adversary) readClose) (ch1, ch2) in () : unit) in
-  main
+  let main :=
+    (let n := ((adversary) readClose) (ch1, ch2) in
+     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+  in main
 ty := unit
 post_ctx := {
 }
@@ -6376,5 +7212,9 @@ post_ctx := {
 complete
 post_ctx := {
 }
-t  := ()
-ty := unit
+t  := (close) (write) (iter (fun _ => Nat,
+                         let (n, ch) := (read) (open) 0 in n,
+                         fun _ => fun x => (x +1),
+                         let (n, ch) := (read) (open) 0 in n), (open) 1)
+ty := 
+unit

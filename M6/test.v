@@ -10,6 +10,8 @@ Definition add : (Nat -> Nat -> Nat) :=
 
 Definition ch1 : Channel := open 0.
 Definition ch2 : Channel := open 0.
+Definition ch3 : Channel := open 1.
+
 
 Definition readClose : Channel -> Nat := 
   fun ch =>
@@ -25,5 +27,6 @@ Definition adversary : ((Channel -> Nat) -> (Channel * Channel) -> Nat) :=
     add n1 n2.
 
 Definition main : Unit := 
-  let n := adversary readClose (ch1, ch2) in  
-  ().
+  let n := adversary readClose (ch1, ch2) in
+  let ch3 := write (n, ch3) in
+  close ch3.
