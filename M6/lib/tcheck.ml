@@ -109,30 +109,30 @@ and infer ctx t =
       let () = assert_msg (ty_r = W) "infer Refl" in
       let t_ctx = check ctx t ty in
       (Eq (t, t, ty), t_ctx)
-    | Ind (p, pf, t1, t2, eq) -> (
-      let p_ty, _ = infer ctx p in
-      match whnf p_ty with
-      | TyProd (ty, _) ->
-        let x = mk "x" in
-        let y = mk "y" in
-        let ty = whnf ty in
-        let p_ty' = unbox
-          (_TyProd (lift ty) (bind_var x
-            (_TyProd (lift ty) (bind_var y 
-              (_Arrow (_Eq (_Var x) (_Var y) (lift ty)) (_Type))))))
-        in
-        let () = assert_msg (equal p_ty p_ty') "infer_i Ind" in
-        let pf_ty = unbox
-          (_TyProd (lift ty) (bind_var x 
-            (_App (_App (_App (lift p) (_Var x)) (_Var x)) 
-              (_Refl (_Var x) (lift ty)))))
-        in
-        let _ = check ctx pf pf_ty in
-        let t1_ctx = check ctx t1 ty in
-        let t2_ctx = check ctx t2 ty in
-        let _ = check ctx eq (Eq (t1, t2, ty)) in
-        (whnf (App (App (App (p, t1), t2), eq)), sum t1_ctx t2_ctx)
-      | _ -> failwith "infer_i Ind")
+    | Ind (p, pf, t1, t2, eq, ty) ->
+      (* TODO *)
+      let ty_r, _ = infer_sort ctx ty in
+      let () = assert_msg (ty_r = W) "infer Ind" in
+      let x = mk "x" in
+      let y = mk "y" in
+      let ty = whnf ty in
+      let p_ty = unbox
+        (_TyProd (lift ty) (bind_var x
+          (_TyProd (lift ty) (bind_var y 
+            (_Arrow (_Eq (_Var x) (_Var y) (lift ty)) (_Type))))))
+      in 
+      let _ = check ctx p p_ty in
+      let p = Ann (p, p_ty) in
+      let pf_ty = unbox
+        (_TyProd (lift ty) (bind_var x 
+          (_App (_App (_App (lift p) (_Var x)) (_Var x)) 
+            (_Refl (_Var x) (lift ty)))))
+      in
+      let _ = check ctx pf pf_ty in
+      let t1_ctx = check ctx t1 ty in
+      let t2_ctx = check ctx t2 ty in
+      let _ = check ctx eq (Eq (t1, t2, ty)) in
+      (whnf (App (App (App (p, t1), t2), eq)), sum t1_ctx t2_ctx)
     | Tensor (ty, b) ->
       let x, b = unbind b in
       let ty_r, ty_ctx = infer_sort ctx ty in

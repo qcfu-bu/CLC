@@ -22,9 +22,9 @@ let rec aeq t1 t2 =
     aeq t11 t21 && aeq t12 t22 && aeq ty1 ty2
   | Refl (t1, ty1), Refl (t2, ty2) ->
     aeq t1 t2 && aeq ty1 ty2
-  | Ind (p1, pf1, t11, t12, eq1), Ind (p2, pf2, t21, t22, eq2) ->
+  | Ind (p1, pf1, t11, t12, eq1, ty1), Ind (p2, pf2, t21, t22, eq2, ty2) ->
     aeq p1 p2 && aeq pf1 pf2 && aeq t11 t21 && aeq t12 t22 && 
-    aeq eq1 eq2
+    aeq eq1 eq2 && aeq ty1 ty2
   | Tensor (ty1, b1), Tensor (ty2, b2) ->
     aeq ty1 ty2 && eq_binder aeq b1 b2
   | Pair (t11, t12), Pair (t21, t22) ->
@@ -79,18 +79,19 @@ let rec whnf t =
     whnf (subst b t)
   | Eq _ -> t
   | Refl _ -> t
-  | Ind (p, pf, t1, t2, eq) -> (
+  | Ind (p, pf, t1, t2, eq, ty) -> (
     let p = whnf p in
     let pf = whnf pf in
     let t1 = whnf t1 in
     let t2 = whnf t2 in
     let eq = whnf eq in
+    let ty = whnf ty in
     match eq with
-    | Refl (t3, ty) ->
-      if (equal t1 t3 && equal t2 t3)
+    | Refl (t3, eq_ty) ->
+      if (equal t1 t3 && equal t2 t3 && equal ty eq_ty)
       then whnf (App (pf, t3))
-      else Ind (p, pf, t1, t2, Refl (t3, ty))
-    | _ -> Ind (p, pf, t1, t2, eq))
+      else Ind (p, pf, t1, t2, eq, ty)
+    | _ -> Ind (p, pf, t1, t2, eq, ty))
   | Tensor _ -> t
   | Pair _ -> t
   | LetPair (t, mb) -> (
@@ -164,9 +165,9 @@ and equal t1 t2 =
       equal t11 t21 && equal t12 t22 && equal ty1 ty2
     | Refl (t1, ty1), Refl (t2, ty2) ->
       equal t1 t2 && equal ty1 ty2
-    | Ind (p1, pf1, t11, t12, eq1), Ind (p2, pf2, t21, t22, eq2) ->
+    | Ind (p1, pf1, t11, t12, eq1, ty1), Ind (p2, pf2, t21, t22, eq2, ty2) ->
       equal p1 p2 && equal pf1 pf2 && equal t11 t21 && equal t12 t22 && 
-      equal eq1 eq2
+      equal eq1 eq2 && equal ty1 ty2
     | Tensor (ty1, b1), Tensor (ty2, b2) ->
       equal ty1 ty2 && eq_binder equal b1 b2
     | Pair (t11, t12), Pair (t21, t22) ->

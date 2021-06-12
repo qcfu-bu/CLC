@@ -34,18 +34,19 @@ let rec eval t =
     eval (subst b t)
   | Eq (t1, t2, ty) -> Eq (eval t1, eval t2, eval ty)
   | Refl (t, ty) -> Refl (eval t, eval ty)
-  | Ind (p, pf, t1, t2, eq) -> (
+  | Ind (p, pf, t1, t2, eq, ty) -> (
     let p = eval p in
     let pf = eval pf in
     let t1 = eval t1 in
     let t2 = eval t2 in
     let eq = eval eq in
+    let ty = eval ty in
     match eq with
-    | Refl (t3, ty) ->
-      if (equal t1 t3 && equal t2 t3)
+    | Refl (t3, eq_ty) ->
+      if (equal t1 t3 && equal t2 t3 && equal ty eq_ty)
       then eval (App (pf, t3))
-      else Ind (p, pf, t1, t2, Refl (t3, ty))
-    | _ -> Ind (p, pf, t1, t2, eq))
+      else Ind (p, pf, t1, t2, eq, ty)
+    | _ -> Ind (p, pf, t1, t2, eq, ty))
   | Tensor (ty, b) -> 
     let x, b = unbind b in
     let ty = eval ty in

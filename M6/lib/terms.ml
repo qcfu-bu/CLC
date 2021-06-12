@@ -14,7 +14,7 @@ type t =
   (* equality *)
   | Eq      of t * t * ty
   | Refl    of t * ty
-  | Ind     of ty * t * t * t * t
+  | Ind     of ty * t * t * t * t * ty
   (* container *)
   | Tensor  of ty * (t, ty) binder
   | Pair    of t * t
@@ -65,8 +65,10 @@ let _LetIn = box_apply2 (fun t b -> LetIn (t, b))
 let _Eq = box_apply3 (fun t1 t2 ty -> Eq (t1, t2, ty))
 let _Refl = box_apply2 (fun t ty -> Refl (t, ty))
 let _Ind = 
-  let box_apply5 f t1 t2 t3 t4 t5 = apply_box (box_apply4 f t1 t2 t3 t4) t5 in
-  box_apply5 (fun p pf t1 t2 eq -> Ind (p, pf, t1, t2, eq))
+  let box_apply6 f t1 t2 t3 t4 t5 t6 = 
+    apply_box (apply_box (box_apply4 f t1 t2 t3 t4) t5) t6
+  in
+  box_apply6 (fun p pf t1 t2 eq ty -> Ind (p, pf, t1, t2, eq, ty))
 let _Tensor = box_apply2 (fun ty b -> Tensor (ty, b))
 let _Tuple ty1 ty2 = _Tensor ty1 (bind_var __ ty2)
 let _Pair = box_apply2 (fun t1 t2 -> Pair (t1, t2))
@@ -105,8 +107,8 @@ let rec lift = function
   | LetIn (t, b) -> _LetIn (lift t) (box_binder lift b)
   | Eq (t1, t2, ty) -> _Eq (lift t1) (lift t2) (lift ty)
   | Refl (t, ty) -> _Refl (lift t) (lift ty)
-  | Ind (ty, t1, t2, t3, t4) -> 
-    _Ind (lift ty) (lift t1) (lift t2) (lift t3) (lift t4)
+  | Ind (ty, t1, t2, t3, t4, t5) -> 
+    _Ind (lift ty) (lift t1) (lift t2) (lift t3) (lift t4) (lift t5)
   | Tensor (ty, b) -> _Tensor (lift ty) (box_binder lift b)
   | Pair (t1, t2) -> _Pair (lift t1) (lift t2)
   | LetPair (t, mb) -> _LetPair (lift t) (box_mbinder lift mb)
@@ -167,10 +169,10 @@ let rec pp fmt = function
     Format.fprintf fmt "@[%a ===@;<1 2>%a@]" pp t1 pp t2
   | Refl (t, ty) ->
     Format.fprintf fmt "(refl %a %a)" pp t pp ty
-  | Ind (p, pf, t1, t2, eq) ->
+  | Ind (p, pf, t1, t2, eq, ty) ->
     Format.fprintf fmt 
-      "@[ind (%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
-      pp p pp pf pp t1 pp t2 pp eq
+      "@[ind (%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
+      pp p pp pf pp t1 pp t2 pp eq pp ty
   | Tensor (ty, b) ->
     let x, b = unbind b in
     if (name_of x = "_") then

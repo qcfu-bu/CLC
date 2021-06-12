@@ -169,8 +169,10 @@ and ind_parser () =
   let* t2 = t_parser () in
   let* _ = kw "," in
   let* eq = t_parser () in
+  let* _ = kw "," in
+  let* ty = t_parser () in
   let* _ = kw ")" in
-  return (_Ind p pf t1 t2 eq)
+  return (_Ind p pf t1 t2 eq ty)
 
 and tensor_parser () =
   let* ctx = get_user_state in
