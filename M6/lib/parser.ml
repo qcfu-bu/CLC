@@ -272,6 +272,7 @@ and succ_parser () =
 
 and int_parser () =
   let* s = many1_chars digit in
+  let* _ = ws in
   match int_of_string_opt s with
   | Some n ->
     let rec loop i acc =
@@ -402,7 +403,7 @@ and t2_parser () =
     let* _ = kw ">>" in
     return (fun ty1 ty2 -> _Lolli ty1 ty2)
   in
-  let* t = chain_left1 (t1_parser ()) 
+  let* t = chain_right1 (t1_parser ()) 
     (arrow_parser () <|> lolli_parser ())
   in
   return t
@@ -412,18 +413,20 @@ and t_parser () = t2_parser ()
 let def_parser () =
   let* _ = kw "Definition" in
   let* x = var_parser () in
-  let* opt = option (let* _ = kw ":" in t_parser ()) in
+  let* _ = kw ":" in
+  let* ty = t_parser () in
   let* _ = kw ":=" in
   let* t = t_parser () in
-  match opt with
-  | Some ty -> return (x, _Ann t ty)
-  | None -> return (x, t)
+  let* _ = kw "." in
+  return (x, _Ann t ty)
 
 let top_parser () =
   let* ts = many1 (def_parser ()) in
+  let* ctx = get_user_state in
+  let main = _Var (SMap.find "main" ctx) in
   let top = 
     List.fold_right
-      (fun (x, t) b -> _LetIn t (bind_var x b)) ts _U
+      (fun (x, t) b -> _LetIn t (bind_var x b)) ts main
   in
   return top
 

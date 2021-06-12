@@ -72,7 +72,8 @@ and infer ctx t =
         (Linear, sum ty_ctx b_ctx)
       else
         (Linear, sum ty_ctx b_ctx))
-    | Lambda _ -> failwith "infer Lambda"
+    | Lambda _ -> 
+      failwith (Format.asprintf "infer Lambda(%a)" Terms.pp t)
     | App (t1, t2) -> (
       let t1_ty, t1_ctx = infer ctx t1 in
       match whnf t1_ty with
@@ -200,6 +201,7 @@ and infer ctx t =
     | Iter (p, t1, t2, n) -> (
       let x = mk "x" in
       let p_ty = unbox (_Arrow _Nat (_Type)) in
+      let p = Ann (p, p_ty) in
       let t1_ty = App (p, Zero) in
       let t2_ty = unbox
         (_TyProd _Nat (bind_var x
@@ -272,23 +274,30 @@ and check ctx t ty =
     match t with
     | Lambda b1 -> (
       match whnf ty with
-      | TyProd (ty, b2) ->
+      | TyProd (ty, b2) as f_ty ->
         let x, b1, b2 = unbind2 b1 b2 in
         let ty_r, _ = infer_sort ctx ty in
         let b1_ctx = check (add x (ty, Zero, ty_r) ctx) b1 b2 in
         let _, x_r, _ = find x b1_ctx in
         let b1_ctx = remove x b1_ctx in
-        let () = assert_msg (x_r <= ty_r) "check Lambda" in
+        let () = assert_msg (x_r <= ty_r) 
+          (Format.asprintf "check Lambda(x_r := %a, ty_r := %a, f_ty := %a)"
+            Rig.pp x_r Rig.pp ty_r Terms.pp f_ty)
+        in
         b1_ctx
-      | LnProd (ty, b2) ->
+      | LnProd (ty, b2) as f_ty ->
         let x, b1, b2 = unbind2 b1 b2 in
         let ty_r, _ = infer_sort ctx ty in
         let b1_ctx = check (add x (ty, Zero, ty_r) ctx) b1 b2 in
         let _, x_r, _ = find x b1_ctx in
         let b1_ctx = remove x b1_ctx in
-        let () = assert_msg (x_r <= ty_r) "check Lambda" in
+        let () = assert_msg (x_r <= ty_r)
+          (Format.asprintf "check Lambda(x_r := %a, ty_r := %a, f_ty := %a)"
+            Rig.pp x_r Rig.pp ty_r Terms.pp f_ty)
+        in
         b1_ctx
-      | _ -> failwith "check Lambda")
+      | ty -> failwith 
+        (Format.asprintf "check Lambda(ty := %a)" Terms.pp ty))
     | Pair (t1, t2) -> (
       match whnf ty with
       | Tensor (ty, b) ->
