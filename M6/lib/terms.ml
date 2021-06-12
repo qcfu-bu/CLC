@@ -38,7 +38,7 @@ type t =
   | Read    (* Channel -> Nat * Channel *)
   | Write   (* Nat * Channel -> Channel *)
   | PtsTo   of t * ty (* Nat -> Type -> Linear *)
-  | Ptr     of ty     (* (A:Type) -> (Nat * loc -> PtsTo loc A) *)
+  | Ptr     of ty     (* Type -> (Nat * loc -> PtsTo loc A) *)
   | Alloc   (* (A:Type) -> A -> Ptr A *)
   | Free    (* (A:Type) -> Ptr A -> Unit *)
   | Get     (* (A:Type) -> Ptr A -> (A * Ptr A) *)
@@ -57,6 +57,8 @@ let _Type = box Type
 let _Linear = box Linear
 let _TyProd = box_apply2 (fun ty b -> TyProd (ty, b))
 let _LnProd = box_apply2 (fun ty b -> LnProd (ty, b))
+let _Arrow ty1 ty2 = _TyProd ty1 (bind_var __ ty2)
+let _Lolli ty1 ty2 = _LnProd ty1 (bind_var __ ty2)
 let _Lambda = box_apply (fun t -> Lambda t)
 let _App = box_apply2 (fun t1 t2 -> App (t1, t2))
 let _LetIn = box_apply2 (fun t b -> LetIn (t, b))
@@ -66,6 +68,7 @@ let _Ind =
   let box_apply5 f t1 t2 t3 t4 t5 = apply_box (box_apply4 f t1 t2 t3 t4) t5 in
   box_apply5 (fun p pf t1 t2 eq -> Ind (p, pf, t1, t2, eq))
 let _Tensor = box_apply2 (fun ty b -> Tensor (ty, b))
+let _Tuple ty1 ty2 = _Tensor ty1 (bind_var __ ty2)
 let _Pair = box_apply2 (fun t1 t2 -> Pair (t1, t2))
 let _LetPair = box_apply2 (fun t mb -> LetPair (t, mb))
 let _CoProd = box_apply2 (fun ty1 ty2 -> CoProd (ty1, ty2))

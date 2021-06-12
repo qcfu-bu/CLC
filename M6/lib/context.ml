@@ -36,8 +36,12 @@ let sum ctx1 ctx2 =
     (fun _ x1 x2 -> 
       match x1, x2 with
       | Some (t, q1, q), Some (_, q2, _) -> Some (t, q1 + q2, q)
-      | _ -> None)
+      | Some _, None -> x1
+      | None, Some _ -> x2
+      | None, None -> None)
     ctx1 ctx2
+
+let pure ctx = VarMap.filter (fun _ (_, _, r) -> r = W) ctx
 
 let pp fmt ctx =
   Format.fprintf fmt "{@?";

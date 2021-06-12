@@ -39,7 +39,7 @@ let rec infer ctx t : ty * ctx =
     | TyProd (ty, b) -> (
       let x, b = unbind b in
       let r1, ctx1 = infer_rig ctx ty in
-      let r2, ctx2 = infer_rig (add x (ty, Zero, r1) ctx) b in
+      let _, ctx2 = infer_rig (add x (ty, Zero, r1) ctx) b in
       let _, r3, _ = find x ctx2 in
       let ctx2 = remove x ctx2 in
       if (r1 = One)
