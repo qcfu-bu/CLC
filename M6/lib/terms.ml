@@ -143,13 +143,13 @@ let rec pp fmt = function
   | Linear -> Format.fprintf fmt "Linear"
   | TyProd (ty, b) -> 
     let x, b = unbind b in
-    if (eq_vars x __)
+    if (name_of x = "_") 
     then Format.fprintf fmt "@[%a ->@;<1 2>%a@]" pp ty pp b
     else Format.fprintf fmt "@[@[(%s :@;<1 2>%a) ->@]@;<1 2>%a@]"
       (name_of x) pp ty pp b
   | LnProd (ty, b) -> 
     let x, b = unbind b in
-    if (eq_vars x __)
+    if (name_of x = "_") 
     then Format.fprintf fmt "@[%a >>@;<1 2>%a@]" pp ty pp b
     else Format.fprintf fmt "@[@[(%s :@;<1 2>%a) >>@]@;<1 2>%a@]"
       (name_of x) pp ty pp b
@@ -173,7 +173,7 @@ let rec pp fmt = function
       pp p pp pf pp t1 pp t2 pp eq
   | Tensor (ty, b) ->
     let x, b = unbind b in
-    if eq_vars x __ then
+    if (name_of x = "_") then
       Format.fprintf fmt "@[(%a * %a)@]" pp ty pp b
     else
       Format.fprintf fmt "@[(%a * %s -> %a)@]" pp ty (name_of x) pp b

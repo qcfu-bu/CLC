@@ -1,0 +1,232 @@
+letIn_parser
+var(f)
+var ok(f)
+var(fun)
+var(fun)
+var(A)
+var(x)
+var(x)
+var(A)
+var(x)
+var(x)
+var(A)
+var(x)
+var(x)
+var(A)
+var(x)
+var(x)
+var(A)
+var(A)
+var(A)
+var(in)
+var(in)
+t_parser((
+fun A => fun x => x : (A : Type) -> A -> A))
+var(f)
+infer
+pre_ctx := {
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+infer
+pre_ctx := {
+  A :0 Type@::w]
+}
+t  := A
+ty := Type
+post_ctx := {
+  A :1 Type@::w]
+}
+infer
+pre_ctx := {
+  _ :0 A@::w]
+  A :0 Type@::w]
+}
+t  := A
+ty := Type
+post_ctx := {
+  _ :0 A@::w]
+  A :1 Type@::w]
+}
+infer
+pre_ctx := {
+  A :0 Type@::w]
+}
+t  := A -> A
+ty := Type
+post_ctx := {
+  A :w Type@::w]
+}
+infer
+pre_ctx := {
+}
+t  := (A : Type) -> A -> A
+ty := Type
+post_ctx := {
+}
+infer
+pre_ctx := {
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+infer
+pre_ctx := {
+  A :0 Type@::w]
+}
+t  := A
+ty := Type
+post_ctx := {
+  A :1 Type@::w]
+}
+infer
+pre_ctx := {
+  _ :0 A@::w]
+  A :0 Type@::w]
+}
+t  := A
+ty := Type
+post_ctx := {
+  _ :0 A@::w]
+  A :1 Type@::w]
+}
+infer
+pre_ctx := {
+  A :0 Type@::w]
+}
+t  := A -> A
+ty := Type
+post_ctx := {
+  A :w Type@::w]
+}
+infer
+pre_ctx := {
+  A :0 Type@::w]
+}
+t  := A
+ty := Type
+post_ctx := {
+  A :1 Type@::w]
+}
+infer
+pre_ctx := {
+  x :0 A@::w]
+  A :0 Type@::w]
+}
+t  := A
+ty := Type
+post_ctx := {
+  x :0 A@::w]
+  A :1 Type@::w]
+}
+infer
+pre_ctx := {
+  x :0 A@::w]
+  A :0 Type@::w]
+}
+t  := x
+ty := A
+post_ctx := {
+  x :1 A@::w]
+  A :0 Type@::w]
+}
+check
+pre_ctx := {
+  x :0 A@::w]
+  A :0 Type@::w]
+}
+t  := x
+ty := A
+post_ctx := {
+  x :1 A@::w]
+  A :0 Type@::w]
+}
+check
+pre_ctx := {
+  A :0 Type@::w]
+}
+t  := fun x => x
+ty := A -> A
+post_ctx := {
+  A :0 Type@::w]
+}
+check
+pre_ctx := {
+}
+t  := fun A => fun x => x
+ty := (A : Type) -> A -> A
+post_ctx := {
+}
+infer
+pre_ctx := {
+}
+t  := (fun A => fun x => x : (A : Type) -> A -> A)
+ty := (A : Type) -> A -> A
+post_ctx := {
+}
+infer
+pre_ctx := {
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+infer
+pre_ctx := {
+  A :0 Type@::w]
+}
+t  := A
+ty := Type
+post_ctx := {
+  A :1 Type@::w]
+}
+infer
+pre_ctx := {
+  _ :0 A@::w]
+  A :0 Type@::w]
+}
+t  := A
+ty := Type
+post_ctx := {
+  _ :0 A@::w]
+  A :1 Type@::w]
+}
+infer
+pre_ctx := {
+  A :0 Type@::w]
+}
+t  := A -> A
+ty := Type
+post_ctx := {
+  A :w Type@::w]
+}
+infer
+pre_ctx := {
+}
+t  := (A : Type) -> A -> A
+ty := Type
+post_ctx := {
+}
+infer
+pre_ctx := {
+  f :0 (A : Type) -> A -> A@::w]
+}
+t  := f
+ty := (A : Type) -> A -> A
+post_ctx := {
+  f :1 (A : Type) -> A -> A@::w]
+}
+infer
+pre_ctx := {
+}
+t  := let f := (fun A => fun x => x : (A : Type) -> A -> A) in f
+ty := (A : Type) -> A -> A
+post_ctx := {
+}
+complete
+post_ctx := {
+}
+ty := (A : Type) -> A -> A
