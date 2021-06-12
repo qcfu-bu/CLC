@@ -72,7 +72,7 @@ let parens p =
 
 let rec var_parser ?pat:(p=false) () =
   let* s1 = many1_chars (letter <|> char '_') in
-  let* s2 = many_chars (alphanum <|> char '_') in
+  let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
   let* _ = ws in
   let s = s1 ^ s2 in
   if s = "_" then 
