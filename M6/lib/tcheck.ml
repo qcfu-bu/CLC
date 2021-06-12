@@ -3,6 +3,7 @@ open Terms
 open Rig
 open Context
 open Equality
+open Format
 
 let assert_msg cond msg = 
   if cond then ()
@@ -23,11 +24,11 @@ let sort_of_rig = function
 
 let debug pre_ctx t ty post_ctx msg=
   if !is_debug then
-  Format.printf "%s\n" msg;
-  Format.printf "pre_ctx := %a@." pp pre_ctx;
-  Format.printf "@[t  :=@;<1 2>%a@]@." Terms.pp t;
-  Format.printf "@[ty :=@;<1 2>%a@]@." Terms.pp ty;
-  Format.printf "post_ctx := %a@.@." pp post_ctx
+  printf "%s\n" msg;
+  printf "pre_ctx := %a@." pp pre_ctx;
+  printf "@[t  :=@;<1 2>%a@]@." Terms.pp t;
+  printf "@[ty :=@;<1 2>%a@]@." Terms.pp ty;
+  printf "post_ctx := %a@.@." pp post_ctx
 
 let rec infer_sort ctx ty =
   let ty, ctx = infer ctx ty in
@@ -73,7 +74,7 @@ and infer ctx t =
       else
         (Linear, sum ty_ctx b_ctx))
     | Lambda _ -> 
-      failwith (Format.asprintf "infer Lambda(%a)" Terms.pp t)
+      failwith (asprintf "infer Lambda(%a)" Terms.pp t)
     | App (t1, t2) -> (
       let t1_ty, t1_ctx = infer ctx t1 in
       match whnf t1_ty with
@@ -94,7 +95,7 @@ and infer ctx t =
       let _, x_r, _ = find x b_ctx in
       let b_ctx = remove x b_ctx in
       let () = assert_msg (x_r <= t_r)
-        (Format.asprintf "infer LetIn(t := %a; t_r := %a; x_r := %a)"
+        (asprintf "infer LetIn(t := %a; t_r := %a; x_r := %a)"
           Terms.pp t Rig.pp t_r Rig.pp x_r)
       in
       (b_ty, sum t_ctx b_ctx)
@@ -281,7 +282,7 @@ and check ctx t ty =
         let _, x_r, _ = find x b1_ctx in
         let b1_ctx = remove x b1_ctx in
         let () = assert_msg (x_r <= ty_r) 
-          (Format.asprintf "check Lambda(x_r := %a, ty_r := %a, f_ty := %a)"
+          (asprintf "check Lambda(x_r := %a, ty_r := %a, f_ty := %a)"
             Rig.pp x_r Rig.pp ty_r Terms.pp f_ty)
         in
         b1_ctx
@@ -292,12 +293,12 @@ and check ctx t ty =
         let _, x_r, _ = find x b1_ctx in
         let b1_ctx = remove x b1_ctx in
         let () = assert_msg (x_r <= ty_r)
-          (Format.asprintf "check Lambda(x_r := %a, ty_r := %a, f_ty := %a)"
+          (asprintf "check Lambda(x_r := %a, ty_r := %a, f_ty := %a)"
             Rig.pp x_r Rig.pp ty_r Terms.pp f_ty)
         in
         b1_ctx
       | ty -> failwith 
-        (Format.asprintf "check Lambda(ty := %a)" Terms.pp ty))
+        (asprintf "check Lambda(ty := %a)" Terms.pp ty))
     | Pair (t1, t2) -> (
       match whnf ty with
       | Tensor (ty, b) ->
@@ -318,7 +319,7 @@ and check ctx t ty =
     | _ ->
       let t_ty, t_ctx = infer ctx t in
       let () = assert_msg (equal t_ty ty) 
-        (Format.asprintf "check(t_ty := %a; ty := %a)" 
+        (asprintf "check(t_ty := %a; ty := %a)" 
           Terms.pp t_ty Terms.pp ty)
       in
       t_ctx

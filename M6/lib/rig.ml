@@ -1,3 +1,4 @@
+open Format
 
 type rig =
   | Zero
@@ -35,6 +36,6 @@ let min r1 r2 =
   if r1 <= r2 then r1 else r2
 
 let pp fmt = function
-  | Zero -> Format.fprintf fmt "0"
-  | One -> Format.fprintf fmt "1"
-  | W -> Format.fprintf fmt "w"
+  | Zero -> fprintf fmt "0"
+  | One -> fprintf fmt "1"
+  | W -> fprintf fmt "w"
