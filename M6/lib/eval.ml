@@ -99,7 +99,6 @@ let rec eval t =
   | Read -> t
   | Write -> t
   | PtsTo _ -> t
-  | Ptr _ -> t
   | Alloc -> t
   | Free -> t
   | Get -> t

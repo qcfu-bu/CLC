@@ -49,6 +49,14 @@ let sum ctx1 ctx2 =
 
 let pure ctx = VarMap.filter (fun _ (_, _, r) -> r = W) ctx
 
+let is_pure ctx = 
+  VarMap.for_all 
+    (fun _ (_, q, r) -> 
+      if r = Rig.One 
+      then q = Rig.Zero 
+      else true) 
+    ctx
+
 let pp fmt ctx =
   fprintf fmt "{@?";
   iter (fun x (t, q1, q2) -> 

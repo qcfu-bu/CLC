@@ -196,10 +196,10 @@ and ind_parser () =
 and tensor_parser () =
   let* ctx = get_user_state in
   let* _ = kw "(" in
+  let* x = var_parser () in
+  let* _ = kw ":" in
   let* ty1 = t_parser () in
   let* _ = kw "*" in
-  let* x = var_parser () in
-  let* _ = kw "->" in
   let* ty2 = t_parser () in
   let* _ = kw ")" in
   let* _ = set_user_state ctx in
@@ -343,20 +343,13 @@ and ptsTo_parser () =
   let* _ = kw "]" in
   return (_PtsTo n t)
 
-and ptr_parser () =
-  let* _ = kw "*" in
-  let* _ = kw "(" in
-  let* ty = t_parser () in
-  let* _ = kw ")" in
-  return (_Ptr ty)
-
 and alloc_parser () =
   let* _ = kw "alloc" in
   return (_Alloc)
 
 and free_parser () =
   let* _ = kw "free" in
-  return (_Alloc)
+  return (_Free)
 
 and get_parser () =
   let* _ = kw "get" in
@@ -399,7 +392,6 @@ and t0_parser () =
     read_parser ();
     write_parser ();
     ptsTo_parser ();
-    ptr_parser ();
     alloc_parser ();
     free_parser ();
     get_parser ();

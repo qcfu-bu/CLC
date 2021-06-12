@@ -38,7 +38,6 @@ type t =
   | Read    (* Channel -> Nat * Channel *)
   | Write   (* Nat * Channel -> Channel *)
   | PtsTo   of t * ty (* Nat -> Type -> Linear *)
-  | Ptr     of ty     (* Type -> (Nat * loc -> PtsTo loc A) *)
   | Alloc   (* (A:Type) -> A -> Ptr A *)
   | Free    (* (A:Type) -> Ptr A -> Unit *)
   | Get     (* (A:Type) -> Ptr A -> (A * Ptr A) *)
@@ -89,7 +88,9 @@ let _Close = box Close
 let _Read = box Read
 let _Write = box Write
 let _PtsTo = box_apply2 (fun t ty -> PtsTo (t, ty))
-let _Ptr = box_apply (fun t -> Ptr t)
+let _Ptr ty =
+  let x = mk "x" in
+  _Tensor _Nat (bind_var x (_PtsTo (_Var x) ty))
 let _Alloc = box Alloc
 let _Free = box Free
 let _Get = box Get
@@ -130,7 +131,6 @@ let rec lift = function
   | Read -> _Read
   | Write -> _Write
   | PtsTo (t, ty) -> _PtsTo (lift t) (lift ty)
-  | Ptr ty -> _Ptr (lift ty)
   | Alloc -> _Alloc
   | Free -> _Free
   | Get -> _Get
@@ -178,7 +178,7 @@ let rec pp fmt = function
     if (name_of x = "_") then
       Format.fprintf fmt "@[(%a * %a)@]" pp ty pp b
     else
-      Format.fprintf fmt "@[(%a * %s -> %a)@]" pp ty (name_of x) pp b
+      Format.fprintf fmt "@[(%s : %a * %a)@]" (name_of x) pp ty pp b
   | Pair (t1, t2) ->
     Format.fprintf fmt "@[(%a, %a)@]" pp t1 pp t2
   | LetPair (t, mb) ->
@@ -198,7 +198,7 @@ let rec pp fmt = function
     let x2, b2 = unbind b2 in
     Format.fprintf fmt "@[case %a of@;<1; 0> %s => %a@;<1; 0>|%s => %a]"
       pp t (name_of x1) pp b1 (name_of x2) pp b2
-  | Unit -> Format.fprintf fmt "@[unit@]"
+  | Unit -> Format.fprintf fmt "@[Unit@]"
   | U -> Format.fprintf fmt "()"
   | Nat -> Format.fprintf fmt "Nat"
   | Zero -> Format.fprintf fmt "0"
@@ -220,7 +220,6 @@ let rec pp fmt = function
   | Write -> Format.fprintf fmt "write"
   | PtsTo (t, ty) -> 
     Format.fprintf fmt "@[[%a |-> %a]@]" pp t pp ty
-  | Ptr ty -> Format.fprintf fmt "*(%a)" pp ty
   | Alloc -> Format.fprintf fmt "alloc"
   | Free -> Format.fprintf fmt "free"
   | Get -> Format.fprintf fmt "get"

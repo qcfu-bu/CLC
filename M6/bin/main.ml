@@ -18,7 +18,7 @@ let _ =
     printf "checking\n";
     printf "t  := %a\n\n" Terms.pp t;
     let ty, post_ctx = infer pre_ctx t in
-    let () = assert_msg (Context.same pre_ctx post_ctx) "main" in
+    let () = assert_msg (Context.same pre_ctx post_ctx) "Pre/Post Context" in
     printf "complete\n";
     printf "post_ctx := %a@." pp post_ctx;
     printf "t  := %a\n" Terms.pp (eval t);

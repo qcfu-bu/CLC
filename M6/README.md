@@ -118,6 +118,9 @@
 The type system is fairly pleasant for programming, but the requirement
 of inferring universes makes type checking inefficient.
 
+The let-binding rule is deceptively difficult. A proper formalization will
+likely have several let binding rules to resolve different use cases.
+
 ## References
 * https://link.springer.com/chapter/10.1007/3-540-58027-1_24
 * https://link.springer.com/chapter/10.1007/3-540-52335-9_47

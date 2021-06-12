@@ -1,28 +1,10 @@
 checking
-t  := let tyId := (fun A => fun x => x : (A : Type) -> A -> A) in
-               let lnId := (fun A => fun x => x : (A : Linear) -> A -> A) in
-               let add :=
-                 (fun x =>
-                    fun y =>
-                      iter (fun _ => Nat, y, fun _ => fun x => (x +1), x) : 
-               Nat -> Nat -> Nat) in
-               let ch1 := ((open) 0 : Channel) in
-               let ch2 := ((open) 0 : Channel) in
-               let ch3 := ((open) 1 : Channel) in
-               let readClose :=
-                 (fun ch =>
-                    let (n, ch) := (read) ch in
-                    let _ := ((close) ch : unit) in n : Channel -> Nat)
+t  := let Ptr := (fun A => (x : Nat * [x |-> A]) : Type -> Linear)
                in
-               let adversary :=
-                 (fun f =>
-                    fun x =>
-                      let (x1, x2) := x in
-                      let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : 
-               Channel -> Nat -> (Channel * Channel) -> Nat) in
+               let nbox := (((alloc) Nat) 1 : (Ptr) Nat) in
                let main :=
-                 (let n := ((adversary) readClose) (ch1, ch2) in
-                  let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+                 (let (n, nbox) := ((get) Nat) nbox in
+                  let _ := ((free) Nat) nbox in n : Nat)
                in main
 
 infer
@@ -35,7186 +17,1676 @@ post_ctx := {
 
 infer
 pre_ctx := {
-  A :0 (Type)::w
-}
-t  := A
-ty := Type
-post_ctx := {
-  A :1 (Type)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (A)::w
-  A :0 (Type)::w
-}
-t  := A
-ty := Type
-post_ctx := {
-  _ :0 (A)::w
-  A :1 (Type)::w
-}
-
-infer
-pre_ctx := {
-  A :0 (Type)::w
-}
-t  := A -> A
-ty := Type
-post_ctx := {
-  A :w (Type)::w
-}
-
-infer
-pre_ctx := {
-}
-t  := (A : Type) -> A -> A
-ty := Type
-post_ctx := {
-}
-
-infer
-pre_ctx := {
-}
-t  := Type
-ty := Type
-post_ctx := {
-}
-
-infer
-pre_ctx := {
-  A :0 (Type)::w
-}
-t  := A
-ty := Type
-post_ctx := {
-  A :1 (Type)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (A)::w
-  A :0 (Type)::w
-}
-t  := A
-ty := Type
-post_ctx := {
-  _ :0 (A)::w
-  A :1 (Type)::w
-}
-
-infer
-pre_ctx := {
-  A :0 (Type)::w
-}
-t  := A -> A
-ty := Type
-post_ctx := {
-  A :w (Type)::w
-}
-
-infer
-pre_ctx := {
-  A :0 (Type)::w
-}
-t  := A
-ty := Type
-post_ctx := {
-  A :1 (Type)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (A)::w
-  A :0 (Type)::w
-}
-t  := A
-ty := Type
-post_ctx := {
-  x :0 (A)::w
-  A :1 (Type)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (A)::w
-  A :0 (Type)::w
-}
-t  := x
-ty := A
-post_ctx := {
-  x :1 (A)::w
-  A :0 (Type)::w
-}
-
-check
-pre_ctx := {
-  x :0 (A)::w
-  A :0 (Type)::w
-}
-t  := x
-ty := A
-post_ctx := {
-  x :1 (A)::w
-  A :0 (Type)::w
-}
-
-check
-pre_ctx := {
-  A :0 (Type)::w
-}
-t  := fun x => x
-ty := A -> A
-post_ctx := {
-  A :0 (Type)::w
-}
-
-check
-pre_ctx := {
-}
-t  := fun A => fun x => x
-ty := (A : Type) -> A -> A
-post_ctx := {
-}
-
-infer
-pre_ctx := {
-}
-t  := (fun A => fun x => x : (A : Type) -> A -> A)
-ty := (A : Type) -> A -> A
-post_ctx := {
-}
-
-infer
-pre_ctx := {
-}
-t  := Type
-ty := Type
-post_ctx := {
-}
-
-infer
-pre_ctx := {
-  A :0 (Type)::w
-}
-t  := A
-ty := Type
-post_ctx := {
-  A :1 (Type)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (A)::w
-  A :0 (Type)::w
-}
-t  := A
-ty := Type
-post_ctx := {
-  _ :0 (A)::w
-  A :1 (Type)::w
-}
-
-infer
-pre_ctx := {
-  A :0 (Type)::w
-}
-t  := A -> A
-ty := Type
-post_ctx := {
-  A :w (Type)::w
-}
-
-infer
-pre_ctx := {
-}
-t  := (A : Type) -> A -> A
-ty := Type
-post_ctx := {
-}
-
-infer
-pre_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
+  _ :0 (Type)::w
 }
 t  := Linear
 ty := Type
 post_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
+  _ :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := A
-ty := Linear
-post_ctx := {
-  A :1 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := A
-ty := Linear
-post_ctx := {
-  A :1 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := A -> A
+t  := Type -> Linear
 ty := Type
 post_ctx := {
-  A :w (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := (A : Linear) -> A -> A
+t  := Type
 ty := Type
 post_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :0 (Type)::w
 }
 t  := Linear
 ty := Type
 post_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :0 (Type)::w
 }
-t  := A
-ty := Linear
-post_ctx := {
-  A :1 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := A
-ty := Linear
-post_ctx := {
-  A :1 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := A -> A
+t  := Nat
 ty := Type
 post_ctx := {
-  A :w (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
-t  := A
-ty := Linear
+t  := Nat
+ty := Type
 post_ctx := {
-  A :1 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := A
-ty := Linear
-post_ctx := {
-  A :1 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (A)::1
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 t  := x
-ty := A
+ty := Nat
 post_ctx := {
-  x :1 (A)::1
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :1 (Nat)::w
+  A :0 (Type)::w
 }
 
 check
 pre_ctx := {
-  x :0 (A)::1
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 t  := x
-ty := A
+ty := Nat
 post_ctx := {
-  x :1 (A)::1
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun x => x
-ty := A -> A
-post_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun A => fun x => x
-ty := (A : Linear) -> A -> A
-post_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :1 (Nat)::w
+  A :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
-t  := (fun A => fun x => x : (A : Linear) -> A -> A)
-ty := (A : Linear) -> A -> A
+t  := Type
+ty := Type
 post_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+t  := A
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  A :1 (Type)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+t  := A
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  A :1 (Type)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+t  := [x |-> A]
+ty := Linear
+post_ctx := {
+  x :1 (Nat)::w
+  A :1 (Type)::w
+}
+
+infer
+pre_ctx := {
+  A :0 (Type)::w
+}
+t  := (x : Nat * [x |-> A])
+ty := Linear
+post_ctx := {
+  A :1 (Type)::w
+}
+
+check
+pre_ctx := {
+  A :0 (Type)::w
+}
+t  := (x : Nat * [x |-> A])
+ty := Linear
+post_ctx := {
+  A :1 (Type)::w
+}
+
+check
+pre_ctx := {
+}
+t  := fun A => (x : Nat * [x |-> A])
+ty := Type -> Linear
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := (fun A => (x : Nat * [x |-> A]) : Type -> Linear)
+ty := Type -> Linear
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+  _ :0 (Type)::w
 }
 t  := Linear
 ty := Type
 post_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
+  _ :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Type -> Linear
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+  _ :0 (Type)::w
+}
+t  := Linear
+ty := Type
+post_ctx := {
+  _ :0 (Type)::w
+}
+
+infer
+pre_ctx := {
+}
+t  := Type -> Linear
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+  A :0 (Type)::w
+}
+t  := Linear
+ty := Type
+post_ctx := {
+  A :0 (Type)::w
+}
+
+infer
+pre_ctx := {
+  A :0 (Type)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  A :0 (Type)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+  A :0 (Type)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+  A :0 (Type)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+t  := Type
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 t  := A
-ty := Linear
+ty := Type
 post_ctx := {
-  A :1 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :1 (Type)::w
 }
 
-infer
+check
 pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 t  := A
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  A :1 (Type)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  A :0 (Type)::w
+}
+t  := [x |-> A]
 ty := Linear
 post_ctx := {
-  A :1 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  A :0 (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := A -> A
-ty := Type
-post_ctx := {
-  A :w (Linear)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (A : Linear) -> A -> A
-ty := Type
-post_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Nat -> Nat
-ty := Type
-post_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Nat
-ty := Type
-post_ctx := {
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Type
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Type
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun _ => Nat
-ty := Nat -> Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (fun _ => Nat : Nat -> Type)
-ty := Nat -> Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (fun _ => Nat : Nat -> Type)
-ty := Nat -> Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Type
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun _ => Nat
-ty := Nat -> Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (fun _ => Nat : Nat -> Type)
-ty := Nat -> Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := 0
-ty := Nat
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := 0
-ty := Nat
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((fun _ => Nat : Nat -> Type)) 0
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := y
-ty := Nat
-post_ctx := {
-  y :1 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := y
-ty := ((fun _ => Nat : Nat -> Type)) 0
-post_ctx := {
-  y :1 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Type
-ty := Type
-post_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun _ => Nat
-ty := Nat -> Type
-post_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (fun _ => Nat : Nat -> Type)
-ty := Nat -> Type
-post_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x
-ty := Nat
-post_ctx := {
   x :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :1 (Type)::w
 }
 
-check
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x
-ty := Nat
-post_ctx := {
-  x :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((fun _ => Nat : Nat -> Type)) x
-ty := Type
-post_ctx := {
-  x :w (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Type
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun _ => Nat
-ty := Nat -> Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (fun _ => Nat : Nat -> Type)
-ty := Nat -> Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x
-ty := Nat
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x
-ty := Nat
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (x +1)
-ty := Nat
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (x +1)
-ty := Nat
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((fun _ => Nat : Nat -> Type)) (x +1)
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
-  x :w (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  ((fun _ => Nat : Nat -> Type)) x -> ((fun _ => Nat : Nat -> Type)) (x +1)
-ty := Type
-post_ctx := {
-  x :w (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  (x : Nat) ->
-    ((fun _ => Nat : Nat -> Type)) x -> ((fun _ => Nat : Nat -> Type)) (x +1)
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun _ => Nat
-ty := Nat -> Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (fun _ => Nat : Nat -> Type)
-ty := Nat -> Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := _
-ty := Nat
-post_ctx := {
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := _
-ty := Nat
-post_ctx := {
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((fun _ => Nat : Nat -> Type)) _
-ty := Type
-post_ctx := {
-  _ :w (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Type
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun _ => Nat
-ty := Nat -> Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (fun _ => Nat : Nat -> Type)
-ty := Nat -> Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := _
-ty := Nat
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := _
-ty := Nat
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (_ +1)
-ty := Nat
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (_ +1)
-ty := Nat
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((fun _ => Nat : Nat -> Type)) (_ +1)
-ty := Type
-post_ctx := {
-  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :w (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  ((fun _ => Nat : Nat -> Type)) _ -> ((fun _ => Nat : Nat -> Type)) (_ +1)
-ty := Type
-post_ctx := {
-  _ :w (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun _ => Nat
-ty := Nat -> Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (fun _ => Nat : Nat -> Type)
-ty := Nat -> Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := _
-ty := Nat
-post_ctx := {
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := _
-ty := Nat
-post_ctx := {
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((fun _ => Nat : Nat -> Type)) _
-ty := Type
-post_ctx := {
-  _ :w (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Type
-ty := Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Type
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun _ => Nat
-ty := Nat -> Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (fun _ => Nat : Nat -> Type)
-ty := Nat -> Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := _
-ty := Nat
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := _
-ty := Nat
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (_ +1)
-ty := Nat
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (_ +1)
-ty := Nat
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :1 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((fun _ => Nat : Nat -> Type)) (_ +1)
-ty := Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :w (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x
-ty := ((fun _ => Nat : Nat -> Type)) _
-post_ctx := {
-  x :1 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x
-ty := Nat
-post_ctx := {
-  x :1 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (x +1)
-ty := Nat
-post_ctx := {
-  x :1 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (x +1)
-ty := ((fun _ => Nat : Nat -> Type)) (_ +1)
-post_ctx := {
-  x :1 (((fun _ => Nat : Nat -> Type)) _)::w
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun x => (x +1)
-ty :=
-  ((fun _ => Nat : Nat -> Type)) _ -> ((fun _ => Nat : Nat -> Type)) (_ +1)
-post_ctx := {
-  _ :0 (Nat)::w
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun _ => fun x => (x +1)
-ty :=
-  (x : Nat) ->
-    ((fun _ => Nat : Nat -> Type)) x -> ((fun _ => Nat : Nat -> Type)) (x +1)
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x
-ty := Nat
-post_ctx := {
-  y :0 (Nat)::w
-  x :1 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x
-ty := Nat
-post_ctx := {
-  y :0 (Nat)::w
-  x :1 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := iter (fun _ => Nat, y, fun _ => fun x => (x +1), x)
-ty := Nat
-post_ctx := {
-  y :1 (Nat)::w
-  x :1 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  y :0 (Nat)::w
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := iter (fun _ => Nat, y, fun _ => fun x => (x +1), x)
-ty := Nat
-post_ctx := {
-  y :1 (Nat)::w
-  x :1 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  x :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun y => iter (fun _ => Nat, y, fun _ => fun x => (x +1), x)
-ty := Nat -> Nat
-post_ctx := {
-  x :1 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun x => fun y => iter (fun _ => Nat, y, fun _ => fun x => (x +1), x)
-ty := Nat -> Nat -> Nat
-post_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  (fun x => fun y => iter (fun _ => Nat, y, fun _ => fun x => (x +1), x) : 
-Nat -> Nat -> Nat)
-ty := Nat -> Nat -> Nat
-post_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Nat
-ty := Type
-post_ctx := {
-  _ :0 (Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat -> Nat -> Nat
-ty := Type
-post_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
 infer
 pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :0 (Type)::w
 }
-t  := Channel
+t  := (x : Nat * [x |-> A])
 ty := Linear
 post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := open
-ty := Nat -> Channel
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := 0
-ty := Nat
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :1 (Type)::w
 }
 
 check
 pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :0 (Type)::w
 }
-t  := 0
-ty := Nat
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (open) 0
-ty := Channel
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (open) 0
-ty := Channel
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((open) 0 : Channel)
-ty := Channel
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
+t  := (x : Nat * [x |-> A])
 ty := Linear
 post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := open
-ty := Nat -> Channel
-post_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := 0
-ty := Nat
-post_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :1 (Type)::w
 }
 
 check
 pre_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := 0
-ty := Nat
+t  := fun A => (x : Nat * [x |-> A])
+ty := Type -> Linear
 post_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := (open) 0
-ty := Channel
+t  := (fun A => (x : Nat * [x |-> A]) : Type -> Linear)
+ty := Type -> Linear
 post_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Nat
+ty := Type
+post_ctx := {
 }
 
 check
 pre_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := (open) 0
-ty := Channel
+t  := Nat
+ty := Type
 post_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := ((open) 0 : Channel)
-ty := Channel
-post_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
+t  := ((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat
 ty := Linear
 post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := Channel
-ty := Linear
+t  := alloc
+ty := (A : Type) -> A -> (x : Nat * [x |-> A])
 post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := open
-ty := Nat -> Channel
+t  := Type
+ty := Type
 post_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := 0
-ty := Nat
-post_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 check
 pre_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := 0
-ty := Nat
+t  := Nat
+ty := Type
 post_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := (alloc) Nat
+ty := Nat -> (x : Nat * [x |-> Nat])
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Nat
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Nat
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Nat
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := 0
+ty := Nat
+post_ctx := {
+}
+
+check
+pre_ctx := {
+}
+t  := 0
+ty := Nat
+post_ctx := {
+}
+
+infer
+pre_ctx := {
 }
 t  := 1
 ty := Nat
 post_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 check
 pre_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 t  := 1
 ty := Nat
 post_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := (open) 1
-ty := Channel
+t  := ((alloc) Nat) 1
+ty := (x : Nat * [x |-> Nat])
 post_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 check
 pre_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := (open) 1
-ty := Channel
+t  := ((alloc) Nat) 1
+ty := ((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat
 post_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((open) 1 : Channel)
-ty := Channel
-post_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel -> Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := read
-ty := Channel -> (Nat * Channel)
-post_ctx := {
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch
-ty := Channel
-post_ctx := {
-  ch :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch
-ty := Channel
-post_ctx := {
-  ch :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (read) ch
-ty := (Nat * Channel)
-post_ctx := {
-  ch :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  _ :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := unit
-ty := Type
-post_ctx := {
-  n :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch :0 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := close
-ty := Channel -> unit
-post_ctx := {
-  ch :0 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  n :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  n :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch :0 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch
-ty := Channel
-post_ctx := {
-  ch :1 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  ch :0 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch
-ty := Channel
-post_ctx := {
-  ch :1 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch :0 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (close) ch
-ty := unit
-post_ctx := {
-  ch :1 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  ch :0 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (close) ch
-ty := unit
-post_ctx := {
-  ch :1 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch :0 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((close) ch : unit)
-ty := unit
-post_ctx := {
-  ch :1 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := unit
-ty := Type
-post_ctx := {
-  n :0 (Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (unit)::w
-  ch :0 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := n
-ty := Nat
-post_ctx := {
-  _ :0 (unit)::w
-  ch :0 (Channel)::1
-  n :1 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch :0 (Channel)::1
-  n :0 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := let _ := ((close) ch : unit) in n
-ty := Nat
-post_ctx := {
-  ch :1 (Channel)::1
-  n :1 (Nat)::w
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n
-ty := let (n, ch) := (read) ch in Nat
-post_ctx := {
-  ch :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  ch :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n
-ty := Nat
-post_ctx := {
-  ch :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n
-ty := Channel -> Nat
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 t  :=
-  (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
-Channel -> Nat)
-ty := Channel -> Nat
+  (((alloc) Nat) 1 : ((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)
+ty := ((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat
 post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := Channel
-ty := Linear
+t  := Type
+ty := Type
 post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  _ :0 (Type)::w
+}
+t  := Linear
+ty := Type
+post_ctx := {
+  _ :0 (Type)::w
+}
+
+infer
+pre_ctx := {
+}
+t  := Type -> Linear
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Type
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+  A :0 (Type)::w
+}
+t  := Linear
+ty := Type
+post_ctx := {
+  A :0 (Type)::w
+}
+
+infer
+pre_ctx := {
+  A :0 (Type)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel -> Nat
-ty := Type
-post_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel -> Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (Channel * Channel)
-ty := Linear
-post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (Channel * Channel) -> Nat
-ty := Type
-post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel -> Nat -> (Channel * Channel) -> Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel -> Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (Channel * Channel)
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (Channel * Channel) -> Nat
-ty := Type
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (Channel * Channel)
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 t  := x
-ty := (Channel * Channel)
+ty := Nat
 post_ctx := {
-  x :1 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := f
-ty := Channel -> Nat
-post_ctx := {
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :1 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x1
-ty := Channel
-post_ctx := {
-  x2 :0 (Channel)::1
-  x1 :1 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :1 (Nat)::w
+  A :0 (Type)::w
 }
 
 check
 pre_ctx := {
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
-t  := x1
-ty := Channel
-post_ctx := {
-  x2 :0 (Channel)::1
-  x1 :1 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (f) x1
+t  := x
 ty := Nat
 post_ctx := {
-  x2 :0 (Channel)::1
-  x1 :1 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :1 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :1 (Nat)::w
+  A :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
-t  := Nat
+t  := Type
 ty := Type
 post_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
 
 infer
 pre_ctx := {
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
-t  := f
-ty := Channel -> Nat
+t  := A
+ty := Type
 post_ctx := {
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :1 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := x2
-ty := Channel
-post_ctx := {
-  n1 :0 (Nat)::w
-  x2 :1 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :1 (Type)::w
 }
 
 check
 pre_ctx := {
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
-t  := x2
-ty := Channel
-post_ctx := {
-  n1 :0 (Nat)::w
-  x2 :1 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (f) x2
-ty := Nat
-post_ctx := {
-  n1 :0 (Nat)::w
-  x2 :1 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :1 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
+t  := A
 ty := Type
 post_ctx := {
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :1 (Type)::w
 }
 
 infer
 pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+  A :0 (Type)::w
 }
-t  := add
-ty := Nat -> Nat -> Nat
+t  := [x |-> A]
+ty := Linear
 post_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :1 (Nat)::w
+  A :1 (Type)::w
 }
 
 infer
 pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :0 (Type)::w
 }
-t  := Nat
-ty := Type
+t  := (x : Nat * [x |-> A])
+ty := Linear
 post_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := n1
-ty := Nat
-post_ctx := {
-  n2 :0 (Nat)::w
-  n1 :1 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :1 (Type)::w
 }
 
 check
 pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :0 (Type)::w
 }
-t  := n1
-ty := Nat
+t  := (x : Nat * [x |-> A])
+ty := Linear
 post_ctx := {
-  n2 :0 (Nat)::w
-  n1 :1 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (add) n1
-ty := Nat -> Nat
-post_ctx := {
-  n2 :0 (Nat)::w
-  n1 :w (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := n2
-ty := Nat
-post_ctx := {
-  n2 :1 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  A :1 (Type)::w
 }
 
 check
 pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := n2
-ty := Nat
+t  := fun A => (x : Nat * [x |-> A])
+ty := Type -> Linear
 post_ctx := {
-  n2 :1 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  n2 :0 (Nat)::w
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := ((add) n1) n2
-ty := Nat
+t  := (fun A => (x : Nat * [x |-> A]) : Type -> Linear)
+ty := Type -> Linear
 post_ctx := {
-  n2 :w (Nat)::w
-  n1 :w (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  n1 :0 (Nat)::w
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := let n2 := (f) x2 in ((add) n1) n2
-ty := Nat
+t  := Type
+ty := Type
 post_ctx := {
-  n1 :w (Nat)::w
-  x2 :1 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :1 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  x2 :0 (Channel)::1
-  x1 :0 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2
-ty := Nat
+t  := Type
+ty := Type
 post_ctx := {
-  x2 :1 (Channel)::1
-  x1 :1 (Channel)::1
-  x :0 ((Channel * Channel))::1
-  f :w (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  let (x1, x2) := x in let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2
-ty := let (x1, x2) := x in Nat
-post_ctx := {
-  x :1 ((Channel * Channel))::1
-  f :w (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  x :0 ((Channel * Channel))::1
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  let (x1, x2) := x in let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2
-ty := Nat
-post_ctx := {
-  x :1 ((Channel * Channel))::1
-  f :w (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  f :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  fun x =>
-    let (x1, x2) := x in
-    let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2
-ty := (Channel * Channel) -> Nat
-post_ctx := {
-  f :w (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  fun f =>
-    fun x =>
-      let (x1, x2) := x in
-      let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2
-ty := Channel -> Nat -> (Channel * Channel) -> Nat
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  (fun f =>
-     fun x =>
-       let (x1, x2) := x in
-       let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel -> Nat ->
-                                                                 (Channel * Channel) ->
-                                                                   Nat)
-ty := Channel -> Nat -> (Channel * Channel) -> Nat
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
-infer
+check
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel -> Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (Channel * Channel)
-ty := Linear
-post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := (Channel * Channel) -> Nat
-ty := Type
-post_ctx := {
-  _ :0 (Channel -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel -> Nat -> (Channel * Channel) -> Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := unit
-ty := Type
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := adversary
-ty := Channel -> Nat -> (Channel * Channel) -> Nat
-post_ctx := {
-  adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
+t  := ((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat
 ty := Linear
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
-t  := Channel -> Nat
+t  := get
+ty := (A : Type) -> (x : Nat * [x |-> A]) -> (A * (x : Nat * [x |-> A]))
+post_ctx := {
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+infer
+pre_ctx := {
+}
+t  := Type
 ty := Type
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := Channel
-ty := Linear
+t  := Type
+ty := Type
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
-infer
+check
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
-t  := Channel -> Nat
+t  := Nat
 ty := Type
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
-t  := readClose
-ty := Channel -> Nat
+t  := (get) Nat
+ty := (x : Nat * [x |-> Nat]) -> (Nat * (x : Nat * [x |-> Nat]))
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :1 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := readClose
-ty := Channel -> Nat
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :1 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := (adversary) readClose
-ty := (Channel * Channel) -> Nat
+t  := Nat
+ty := Type
 post_ctx := {
-  adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :w (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
 }
-t  := Channel
-ty := Linear
+t  := Nat
+ty := Type
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
 }
-t  := Channel
-ty := Linear
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (Channel * Channel)
-ty := Linear
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (Channel * Channel)
-ty := Linear
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch1
-ty := Channel
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch1
-ty := Channel
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch2
-ty := Channel
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch2
-ty := Channel
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (ch1, ch2)
-ty := (Channel * Channel)
-post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ((adversary) readClose) (ch1, ch2)
+t  := x
 ty := Nat
 post_ctx := {
-  adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :w (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :1 (Nat)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+}
+t  := Type
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
 }
 
-infer
+check
 pre_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := write
-ty := (Nat * Channel) -> Channel
-post_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  x :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+}
+t  := [x |-> Nat]
+ty := Linear
+post_ctx := {
+  x :1 (Nat)::w
+}
+
+infer
+pre_ctx := {
+}
+t  := (x : Nat * [x |-> Nat])
+ty := Linear
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+}
+t  := Nat
+ty := Type
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+}
+t  := Type
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+}
+t  := [x |-> Nat]
+ty := Linear
+post_ctx := {
+  x :1 (Nat)::w
+}
+
+infer
+pre_ctx := {
+}
+t  := (x : Nat * [x |-> Nat])
+ty := Linear
+post_ctx := {
+}
+
+infer
+pre_ctx := {
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+t  := nbox
+ty := ((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat
+post_ctx := {
+  nbox :1 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+check
+pre_ctx := {
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+t  := nbox
+ty := (x : Nat * [x |-> Nat])
+post_ctx := {
+  nbox :1 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+infer
+pre_ctx := {
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+t  := ((get) Nat) nbox
+ty := (Nat * (x : Nat * [x |-> Nat]))
+post_ctx := {
+  nbox :1 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+infer
+pre_ctx := {
+}
+t  := Nat
+ty := Type
+post_ctx := {
 }
 
 infer
 pre_ctx := {
   _ :0 (Nat)::w
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := Channel
+t  := Nat
+ty := Type
+post_ctx := {
+  _ :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+  _ :0 (Nat)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+  _ :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+t  := Type
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  _ :0 (Nat)::w
+}
+t  := [x |-> Nat]
+ty := Linear
+post_ctx := {
+  x :1 (Nat)::w
+  _ :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  _ :0 (Nat)::w
+}
+t  := (x : Nat * [x |-> Nat])
 ty := Linear
 post_ctx := {
   _ :0 (Nat)::w
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (Nat * Channel)
-ty := Linear
-post_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 (Nat)::w
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
-t  := Channel
-ty := Linear
+t  := free
+ty := (A : Type) -> (x : Nat * [x |-> A]) -> Unit
 post_ctx := {
-  _ :0 (Nat)::w
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := (Nat * Channel)
-ty := Linear
+t  := Type
+ty := Type
 post_ctx := {
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := Type
+ty := Type
+post_ctx := {
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+check
+pre_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+infer
+pre_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+t  := (free) Nat
+ty := (x : Nat * [x |-> Nat]) -> Unit
+post_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+  n :0 (Nat)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := Type
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := [x |-> Nat]
+ty := Linear
+post_ctx := {
+  x :1 (Nat)::w
+  n :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+}
+t  := (x : Nat * [x |-> Nat])
+ty := Linear
+post_ctx := {
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+  n :0 (Nat)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := x
+ty := Nat
+post_ctx := {
+  x :1 (Nat)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := Type
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+
+check
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  n :0 (Nat)::w
+}
+t  := [x |-> Nat]
+ty := Linear
+post_ctx := {
+  x :1 (Nat)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+}
+t  := (x : Nat * [x |-> Nat])
+ty := Linear
+post_ctx := {
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+t  := nbox
+ty := (x : Nat * [x |-> Nat])
+post_ctx := {
+  nbox :1 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+check
+pre_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+t  := nbox
+ty := (x : Nat * [x |-> Nat])
+post_ctx := {
+  nbox :1 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+infer
+pre_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+t  := ((free) Nat) nbox
+ty := Unit
+post_ctx := {
+  nbox :1 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+}
+t  := Unit
+ty := Type
+post_ctx := {
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  _ :0 (Unit)::w
+  n :0 (Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  _ :0 (Unit)::w
+  n :0 (Nat)::w
+}
+
+infer
+pre_ctx := {
+  _ :0 (Unit)::w
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 t  := n
 ty := Nat
 post_ctx := {
+  _ :0 (Unit)::w
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
   n :1 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 check
 pre_ctx := {
+  _ :0 (Unit)::w
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 t  := n
 ty := Nat
 post_ctx := {
+  _ :0 (Unit)::w
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
   n :1 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
+  _ :0 (Unit)::w
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
-t  := Channel
-ty := Linear
+t  := (n : Nat)
+ty := Nat
 post_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  _ :0 (Unit)::w
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
+  n :1 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
-t  := ch3
-ty := Channel
+t  := let _ := ((free) Nat) nbox in (n : Nat)
+ty := Nat
 post_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :1 ((x : Nat * [x |-> Nat]))::1
+  n :1 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 check
 pre_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
-t  := ch3
-ty := Channel
+t  := let _ := ((free) Nat) nbox in (n : Nat)
+ty := Nat
 post_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (n, ch3)
-ty := (Nat * Channel)
-post_ctx := {
+  nbox :1 ((x : Nat * [x |-> Nat]))::1
   n :1 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
+  nbox :0 ((x : Nat * [x |-> Nat]))::1
   n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
-t  := (write) (n, ch3)
-ty := Channel
+t  := (let _ := ((free) Nat) nbox in n : Nat)
+ty := Nat
 post_ctx := {
+  nbox :1 ((x : Nat * [x |-> Nat]))::1
   n :1 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch3 :0 (Channel)::1
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := close
-ty := Channel -> unit
-post_ctx := {
-  ch3 :0 (Channel)::1
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch3 :0 (Channel)::1
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch3
-ty := Channel
-post_ctx := {
-  ch3 :1 (Channel)::1
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-check
-pre_ctx := {
-  ch3 :0 (Channel)::1
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := ch3
-ty := Channel
-post_ctx := {
-  ch3 :1 (Channel)::1
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch3 :0 (Channel)::1
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := (close) ch3
-ty := unit
-post_ctx := {
-  ch3 :1 (Channel)::1
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  n :0 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  := let ch3 := (write) (n, ch3) in (close) ch3
-ty := unit
-post_ctx := {
-  n :1 (Nat)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 t  :=
-  let n := ((adversary) readClose) (ch1, ch2) in
-  let ch3 := (write) (n, ch3) in (close) ch3
-ty := unit
+  let (n, nbox) := ((get) Nat) nbox in
+  (let _ := ((free) Nat) nbox in n : Nat)
+ty := let (n, nbox) := ((get) Nat) nbox in Nat
 post_ctx := {
-  adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :w (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :1 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 check
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 t  :=
-  let n := ((adversary) readClose) (ch1, ch2) in
-  let ch3 := (write) (n, ch3) in (close) ch3
-ty := unit
+  let (n, nbox) := ((get) Nat) nbox in
+  (let _ := ((free) Nat) nbox in n : Nat)
+ty := Nat
 post_ctx := {
-  adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :w (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :1 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 t  :=
-  (let n := ((adversary) readClose) (ch1, ch2) in
-   let ch3 := (write) (n, ch3) in (close) ch3 : unit)
-ty := unit
+  (let (n, nbox) := ((get) Nat) nbox in let _ := ((free) Nat) nbox in n : Nat)
+ty := Nat
 post_ctx := {
-  adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :w (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :1 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
-t  := unit
+t  := Nat
 ty := Type
 post_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
-  main :0 (unit)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  main :0 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 t  := main
-ty := unit
+ty := Nat
 post_ctx := {
-  main :1 (unit)::w
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  main :1 (Nat)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
-  adversary :0 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :0 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 t  :=
   let main :=
-    (let n := ((adversary) readClose) (ch1, ch2) in
-     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+    (let (n, nbox) := ((get) Nat) nbox in let _ := ((free) Nat) nbox in n : Nat)
   in main
-ty := unit
+ty := Nat
 post_ctx := {
-  adversary :1 (Channel -> Nat -> (Channel * Channel) -> Nat)::w
-  readClose :w (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
+  nbox :1 (((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)::1
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 t  :=
-  let adversary :=
-    (fun f =>
-       fun x =>
-         let (x1, x2) := x in
-         let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel ->
-                                                                   Nat ->
-                                                                   (Channel * Channel) ->
-                                                                    Nat)
+  let nbox :=
+    (((alloc) Nat) 1 : ((fun A => (x : Nat * [x |-> A]) : Type -> Linear)) Nat)
   in
   let main :=
-    (let n := ((adversary) readClose) (ch1, ch2) in
-     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+    (let (n, nbox) := ((get) Nat) nbox in let _ := ((free) Nat) nbox in n : Nat)
   in main
-ty := unit
+ty := Nat
 post_ctx := {
-  readClose :w (Channel -> Nat)::w
-  ch3 :1 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch3 :0 (Channel)::1
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
-  Channel -> Nat) in
-  let adversary :=
-    (fun f =>
-       fun x =>
-         let (x1, x2) := x in
-         let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel ->
-                                                                   Nat ->
-                                                                   (Channel * Channel) ->
-                                                                    Nat)
-  in
-  let main :=
-    (let n := ((adversary) readClose) (ch1, ch2) in
-     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
-  in main
-ty := unit
-post_ctx := {
-  ch3 :1 (Channel)::1
-  ch2 :1 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch2 :0 (Channel)::1
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  let ch3 := ((open) 1 : Channel) in
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
-  Channel -> Nat) in
-  let adversary :=
-    (fun f =>
-       fun x =>
-         let (x1, x2) := x in
-         let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel ->
-                                                                   Nat ->
-                                                                   (Channel * Channel) ->
-                                                                    Nat)
-  in
-  let main :=
-    (let n := ((adversary) readClose) (ch1, ch2) in
-     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
-  in main
-ty := unit
-post_ctx := {
-  ch2 :1 (Channel)::1
-  ch1 :1 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  ch1 :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  let ch2 := ((open) 0 : Channel) in
-  let ch3 := ((open) 1 : Channel) in
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
-  Channel -> Nat) in
-  let adversary :=
-    (fun f =>
-       fun x =>
-         let (x1, x2) := x in
-         let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel ->
-                                                                   Nat ->
-                                                                   (Channel * Channel) ->
-                                                                    Nat)
-  in
-  let main :=
-    (let n := ((adversary) readClose) (ch1, ch2) in
-     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
-  in main
-ty := unit
-post_ctx := {
-  ch1 :1 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  let ch1 := ((open) 0 : Channel) in
-  let ch2 := ((open) 0 : Channel) in
-  let ch3 := ((open) 1 : Channel) in
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
-  Channel -> Nat) in
-  let adversary :=
-    (fun f =>
-       fun x =>
-         let (x1, x2) := x in
-         let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel ->
-                                                                   Nat ->
-                                                                   (Channel * Channel) ->
-                                                                    Nat)
-  in
-  let main :=
-    (let n := ((adversary) readClose) (ch1, ch2) in
-     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
-  in main
-ty := unit
-post_ctx := {
-  add :1 (Nat -> Nat -> Nat)::w
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  let add :=
-    (fun x => fun y => iter (fun _ => Nat, y, fun _ => fun x => (x +1), x) : 
-  Nat -> Nat -> Nat) in
-  let ch1 := ((open) 0 : Channel) in
-  let ch2 := ((open) 0 : Channel) in
-  let ch3 := ((open) 1 : Channel) in
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
-  Channel -> Nat) in
-  let adversary :=
-    (fun f =>
-       fun x =>
-         let (x1, x2) := x in
-         let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel ->
-                                                                   Nat ->
-                                                                   (Channel * Channel) ->
-                                                                    Nat)
-  in
-  let main :=
-    (let n := ((adversary) readClose) (ch1, ch2) in
-     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
-  in main
-ty := unit
-post_ctx := {
-  lnId :0 ((A : Linear) -> A -> A)::w
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-
-infer
-pre_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
-}
-t  :=
-  let lnId := (fun A => fun x => x : (A : Linear) -> A -> A) in
-  let add :=
-    (fun x => fun y => iter (fun _ => Nat, y, fun _ => fun x => (x +1), x) : 
-  Nat -> Nat -> Nat) in
-  let ch1 := ((open) 0 : Channel) in
-  let ch2 := ((open) 0 : Channel) in
-  let ch3 := ((open) 1 : Channel) in
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
-  Channel -> Nat) in
-  let adversary :=
-    (fun f =>
-       fun x =>
-         let (x1, x2) := x in
-         let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel ->
-                                                                   Nat ->
-                                                                   (Channel * Channel) ->
-                                                                    Nat)
-  in
-  let main :=
-    (let n := ((adversary) readClose) (ch1, ch2) in
-     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
-  in main
-ty := unit
-post_ctx := {
-  tyId :0 ((A : Type) -> A -> A)::w
 }
 
 infer
 pre_ctx := {
 }
 t  :=
-  let tyId := (fun A => fun x => x : (A : Type) -> A -> A) in
-  let lnId := (fun A => fun x => x : (A : Linear) -> A -> A) in
-  let add :=
-    (fun x => fun y => iter (fun _ => Nat, y, fun _ => fun x => (x +1), x) : 
-  Nat -> Nat -> Nat) in
-  let ch1 := ((open) 0 : Channel) in
-  let ch2 := ((open) 0 : Channel) in
-  let ch3 := ((open) 1 : Channel) in
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
-  Channel -> Nat) in
-  let adversary :=
-    (fun f =>
-       fun x =>
-         let (x1, x2) := x in
-         let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : Channel ->
-                                                                   Nat ->
-                                                                   (Channel * Channel) ->
-                                                                    Nat)
-  in
+  let Ptr := (fun A => (x : Nat * [x |-> A]) : Type -> Linear) in
+  let nbox := (((alloc) Nat) 1 : (Ptr) Nat) in
   let main :=
-    (let n := ((adversary) readClose) (ch1, ch2) in
-     let ch3 := (write) (n, ch3) in (close) ch3 : unit)
+    (let (n, nbox) := ((get) Nat) nbox in let _ := ((free) Nat) nbox in n : Nat)
   in main
-ty := unit
+ty := Nat
 post_ctx := {
 }
 
 complete
 post_ctx := {
 }
-t  := (close) (write) (iter (fun _ => Nat,
-                         let (n, ch) := (read) (open) 0 in n,
-                         fun _ => fun x => (x +1),
-                         let (n, ch) := (read) (open) 0 in n), (open) 1)
-ty := 
-unit
+t  := let (n, nbox) := ((get) Nat) ((alloc) Nat) 1 in n
+ty := Nat

@@ -31,11 +31,13 @@ let debug pre_ctx t ty post_ctx msg=
   printf "post_ctx := %a@.@." pp post_ctx
 
 let rec infer_sort ctx ty =
-  let ty, ctx = infer (pure ctx) ty in
-  match whnf ty with
+  let ty_ty, ctx = infer (pure ctx) ty in
+  match whnf ty_ty with
   | Type -> (W, ctx)
   | Linear -> (One, ctx)
-  | _ -> failwith "infer_sort"
+  | ty_ty -> failwith 
+    (asprintf "infer_sort(ty := %a; ty_ty := %a)" 
+      Terms.pp ty Terms.pp ty_ty)
 
 and infer ctx t =
   let pre_ctx = ctx in
@@ -44,9 +46,21 @@ and infer ctx t =
     | Var x ->
       let ty, _, r = find x ctx in
       (ty, add x (ty, One, r) ctx)
-    | Ann (t, ty) ->
-      let ctx = check ctx t ty in
-      (ty, ctx)
+    | Ann (t, ty) -> (
+      match t with
+      | LetIn (t, b) ->
+        let x, b = unbind b in
+        let b = unbox (bind_var x (lift (Ann (b, ty)))) in
+        let ctx = check ctx (LetIn (t, b)) ty in
+        (ty, ctx)
+      | LetPair (t, mb) ->
+        let x, mb = unmbind mb in
+        let mb = unbox (bind_mvar x (lift (Ann (mb, ty)))) in
+        let ctx = check ctx (LetPair (t, mb)) ty in
+        (ty, ctx)
+      | _ ->
+        let ctx = check ctx t ty in
+        (ty, ctx))
     | Type -> (Type, ctx)
     | Linear -> (Type, ctx)
     | TyProd (ty, b) -> (
@@ -88,15 +102,21 @@ and infer ctx t =
         (subst b t2, sum t1_ctx (scale ty_r t2_ctx))
       | _ -> failwith "infer App")
     | LetIn (t, b) ->
-      let x, b = unbind b in
       let t_ty, t_ctx = infer ctx t in
       let t_r, _ = infer_sort ctx t_ty in
-      let b_ty, b_ctx = infer (add x (t_ty, Zero, t_r) ctx) b in
-      let x_r = occur x b_ctx in
-      let b_ctx = remove x b_ctx in
-      let () = assert_msg (x_r <= t_r)
-        (asprintf "infer LetIn(t := %a; t_r := %a; x_r := %a)"
-          Terms.pp t Rig.pp t_r Rig.pp x_r)
+      let b_ty, b_ctx = 
+        if t_r = W && is_pure t_ctx then
+          infer ctx (subst b t)
+        else
+          let x, b = unbind b in
+          let b_ty, b_ctx = infer (add x (t_ty, Zero, t_r) ctx) b  in
+          let x_r = occur x b_ctx in
+          let b_ctx = remove x b_ctx in
+          let () = assert_msg (x_r <= t_r)
+            (asprintf "infer LetIn(t := %a; t_r := %a; x_r := %a)"
+              Terms.pp t Rig.pp t_r Rig.pp x_r)
+          in
+          (b_ty, b_ctx)
       in
       (b_ty, sum t_ctx b_ctx)
     | Eq (t1, t2, ty) ->
@@ -230,13 +250,6 @@ and infer ctx t =
       let t_ctx = check ctx t Nat in
       let ty_ctx = check ctx ty Type in
       (Linear, sum t_ctx ty_ctx)
-    | Ptr ty ->
-      let ty_ctx = check ctx ty Type in
-      let x = mk "x" in
-      let ty = _Tensor _Nat (bind_var x 
-        (_PtsTo (_Var x) (lift ty)))
-      in
-      (unbox ty, ty_ctx)
     | Alloc ->
       let _A = mk "A" in
       let ty = _TyProd _Type (bind_var _A
@@ -304,7 +317,7 @@ and check ctx t ty =
         let t1_ctx = check ctx t1 ty in
         let t2_ctx = check ctx t2 (subst b t1) in
         sum t1_ctx t2_ctx
-      | _ -> failwith "check Tensor")
+      | ty -> failwith (asprintf "check Pair(%a)" Terms.pp ty))
     | InjL t -> (
       match whnf ty with
       | CoProd (ty1, _) ->

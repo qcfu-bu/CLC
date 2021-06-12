@@ -1,4 +1,4 @@
-Definition tyId : (A : Type) -> A -> A := 
+(* Definition tyId : (A : Type) -> A -> A := 
   fun A x => x.
 
 Definition lnId : (A : Linear) -> A -> A :=
@@ -6,10 +6,23 @@ Definition lnId : (A : Linear) -> A -> A :=
 
 Definition add : (Nat -> Nat -> Nat) := 
   fun x y =>
-    iter(fun _ => Nat, y, fun _ x => S x, x).
+    iter(fun _ => Nat, y, fun _ x => S x, x). *)
 
 Definition ch1 : Channel := open 0.
-Definition ch2 : Channel := open 0.
+
+Definition readClose : Channel -> Nat := 
+  fun ch =>
+    let (x, ch) := read ch in
+    let _ := close ch in
+    x.
+
+Definition main : (Nat * Nat) := 
+  let x := readClose ch1 in
+  (x, x).
+
+
+
+(* Definition ch2 : Channel := open 0.
 Definition ch3 : Channel := open 1.
 
 
@@ -29,4 +42,4 @@ Definition adversary : ((Channel -> Nat) -> (Channel * Channel) -> Nat) :=
 Definition main : Unit := 
   let n := adversary readClose (ch1, ch2) in
   let ch3 := write (n, ch3) in
-  close ch3.
+  close ch3. *)

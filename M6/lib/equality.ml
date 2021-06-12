@@ -51,7 +51,6 @@ let rec aeq t1 t2 =
   | Write, Write -> true
   | PtsTo (t1, ty1), PtsTo (t2, ty2) ->
     aeq t1 t2 && aeq ty1 ty2
-  | Ptr t1, Ptr t2 -> aeq t1 t2
   | Alloc, Alloc -> true
   | Free, Free -> true
   | Get, Get -> true
@@ -134,7 +133,6 @@ let rec whnf t =
   | Read -> t
   | Write -> t
   | PtsTo _ -> t
-  | Ptr _ -> t
   | Alloc -> t
   | Free -> t
   | Get -> t
@@ -194,7 +192,6 @@ and equal t1 t2 =
     | Write, Write -> true
     | PtsTo (t1, ty1), PtsTo (t2, ty2) ->
       equal t1 t2 && equal ty1 ty2
-    | Ptr t1, Ptr t2 -> equal t1 t2
     | Alloc, Alloc -> true
     | Free, Free -> true
     | Get, Get -> true
