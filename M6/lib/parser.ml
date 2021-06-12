@@ -146,13 +146,13 @@ and letIn_parser () =
   let* opt = option (attempt (kw ":" >> t_parser ())) in
   let* _ = kw ":=" in
   let* t = t_parser () in
+  let t = 
+    match opt with
+    | Some ty -> _Ann t ty
+    | None -> t
+  in
   let* _ = kw "in" in
   let* b = t_parser () in
-  let b = 
-    match opt with
-    | Some ty -> _Ann b ty
-    | None -> b
-  in
   let* _ = set_user_state ctx in
   return (_LetIn t (bind_var x b))
 
@@ -379,6 +379,7 @@ and t0_parser () =
     refl_parser ();
     ind_parser ();
     tensor_parser ();
+    tuple_parser ();
     pair_parser ();
     letPair_parser ();
     coProd_parser ();

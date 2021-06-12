@@ -24,6 +24,11 @@ let find x ctx =
   with _ ->
     failwith ("Cannot find : " ^ name_of x)
 
+let occur x ctx =
+  try 
+    let _, r, _ = VarMap.find x ctx in r
+  with _ -> Rig.Zero
+
 let same ctx1 ctx2 =
   VarMap.equal
     (fun (_, r11, r12) (_, r21, r22) -> r11 = r21 && r12 = r22)

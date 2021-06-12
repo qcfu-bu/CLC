@@ -4,15 +4,21 @@ t  := let add :=
                     fun y =>
                       iter (fun _ => Nat, y, fun _ => fun x => (x +1), x) : 
                Nat -> Nat -> Nat) in
-               let stdio := ((open) 0 : Channel) in
+               let stdin := ((open) 0 : Channel) in
+               let stdout := ((open) 0 : Channel) in
                let readClose :=
                  (fun ch =>
-                    let (n, ch) := (read) ch in let _ := (close) ch in n : 
-               Channel -> Nat) in
-               let eq :=
-                 ((refl (readClose) stdio Nat) : (readClose) stdio ===
-                                                   (readClose) stdio)
-               in let main := (((add) 1) 2 : Nat) in main
+                    let (n, ch) := (read) ch in
+                    let _ := ((close) ch : unit) in n : Channel >> Nat)
+               in
+               let adversary :=
+                 (fun f =>
+                    fun x =>
+                      let (x1, x2) := x in
+                      let n1 := (f) x1 in let n2 := (f) x2 in ((add) n1) n2 : 
+               Channel >> Nat -> (Channel * Channel) -> Nat) in
+               let main := (((adversary) readClose) (stdin, stdout) : Nat) in
+               main
 
 infer
 pre_ctx := {
@@ -2357,179 +2363,281 @@ post_ctx := {
 
 infer
 pre_ctx := {
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := open
+ty := Nat -> Channel
+post_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := Channel -> Nat
+t  := Nat
 ty := Type
 post_ctx := {
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  stdio :0 (Channel)::1
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := 0
+ty := Nat
+post_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+check
+pre_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := 0
+ty := Nat
+post_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (open) 0
+ty := Channel
+post_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+check
+pre_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (open) 0
+ty := Channel
+post_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := ((open) 0 : Channel)
+ty := Channel
+post_ctx := {
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel >> Nat
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := read
 ty := Channel -> (Nat * Channel)
 post_ctx := {
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := ch
 ty := Channel
 post_ctx := {
   ch :1 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 check
 pre_ctx := {
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := ch
 ty := Channel
 post_ctx := {
   ch :1 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := (read) ch
 ty := (Nat * Channel)
 post_ctx := {
   ch :1 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
   _ :0 (Nat)::w
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
   _ :0 (Nat)::w
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := unit
+ty := Type
+post_ctx := {
+  n :0 (Nat)::w
   add :0 (Nat -> Nat -> Nat)::w
 }
 
@@ -2538,7 +2646,8 @@ pre_ctx := {
   ch :0 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := close
@@ -2547,43 +2656,32 @@ post_ctx := {
   ch :0 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  ch :0 (Channel)::1
   n :0 (Nat)::w
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  ch :0 (Channel)::1
   n :0 (Nat)::w
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  ch :0 (Channel)::1
   n :0 (Nat)::w
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  ch :0 (Channel)::1
   n :0 (Nat)::w
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
@@ -2592,7 +2690,8 @@ pre_ctx := {
   ch :0 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := ch
@@ -2601,7 +2700,8 @@ post_ctx := {
   ch :1 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
@@ -2610,7 +2710,8 @@ pre_ctx := {
   ch :0 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := ch
@@ -2619,7 +2720,8 @@ post_ctx := {
   ch :1 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
@@ -2628,7 +2730,8 @@ pre_ctx := {
   ch :0 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := (close) ch
@@ -2637,7 +2740,28 @@ post_ctx := {
   ch :1 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+check
+pre_ctx := {
+  ch :0 (Channel)::1
+  n :0 (Nat)::w
+  ch :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (close) ch
+ty := unit
+post_ctx := {
+  ch :1 (Channel)::1
+  n :0 (Nat)::w
+  ch :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
@@ -2646,16 +2770,30 @@ pre_ctx := {
   ch :0 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := ((close) ch : unit)
+ty := unit
+post_ctx := {
+  ch :1 (Channel)::1
+  n :0 (Nat)::w
+  ch :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  n :0 (Nat)::w
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := unit
 ty := Type
 post_ctx := {
-  ch :0 (Channel)::1
   n :0 (Nat)::w
-  ch :0 (Channel)::1
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
@@ -2665,7 +2803,8 @@ pre_ctx := {
   ch :0 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := n
@@ -2675,7 +2814,8 @@ post_ctx := {
   ch :0 (Channel)::1
   n :1 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
@@ -2684,1274 +2824,352 @@ pre_ctx := {
   ch :0 (Channel)::1
   n :0 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := let _ := (close) ch in n
+t  := let _ := ((close) ch : unit) in n
 ty := Nat
 post_ctx := {
   ch :1 (Channel)::1
   n :1 (Nat)::w
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := let (n, ch) := (read) ch in let _ := (close) ch in n
+t  := let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n
 ty := let (n, ch) := (read) ch in Nat
 post_ctx := {
   ch :1 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 check
 pre_ctx := {
   ch :0 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := let (n, ch) := (read) ch in let _ := (close) ch in n
+t  := let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n
 ty := Nat
 post_ctx := {
   ch :1 (Channel)::1
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 check
 pre_ctx := {
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := fun ch => let (n, ch) := (read) ch in let _ := (close) ch in n
-ty := Channel -> Nat
+t  := fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n
+ty := Channel >> Nat
 post_ctx := {
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  :=
-  (fun ch => let (n, ch) := (read) ch in let _ := (close) ch in n : Channel ->
-                                                                    Nat)
-ty := Channel -> Nat
+  (fun ch => let (n, ch) := (read) ch in let _ := ((close) ch : unit) in n : 
+Channel >> Nat)
+ty := Channel >> Nat
 post_ctx := {
-  stdio :0 (Channel)::1
+  stdout :0 (Channel)::1
+  stdin :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Channel
-ty := Linear
-post_ctx := {
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  _ :0 (Channel)::1
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  _ :0 (Channel)::1
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Channel -> Nat
-ty := Type
-post_ctx := {
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := readClose
-ty := Channel -> Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel >> Nat
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := stdio
-ty := Channel
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := stdio
-ty := Channel
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := readClose
-ty := Channel -> Nat
+t  := Channel >> Nat
+ty := Linear
 post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := stdio
-ty := Channel
+t  := (Channel * Channel)
+ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := stdio
-ty := Channel
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio === (readClose) stdio
-ty := Type
-post_ctx := {
-  readClose :w (Channel -> Nat)::w
-  stdio :w (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := Nat
+t  := (Channel * Channel) -> Nat
 ty := Type
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := readClose
-ty := Channel -> Nat
+t  := Channel >> Nat -> (Channel * Channel) -> Nat
+ty := Type
 post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel >> Nat
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := stdio
-ty := Channel
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := stdio
-ty := Channel
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (refl (readClose) stdio Nat)
-ty := (readClose) stdio === (readClose) stdio
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (refl (readClose) stdio Nat)
-ty := (readClose) stdio === (readClose) stdio
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  :=
-  ((refl (readClose) stdio Nat) : (readClose) stdio === (readClose) stdio)
-ty := (readClose) stdio === (readClose) stdio
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := readClose
-ty := Channel -> Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (Channel * Channel)
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (Channel * Channel) -> Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := stdio
-ty := Channel
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := stdio
-ty := Channel
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := readClose
-ty := Channel -> Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (Channel * Channel)
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 ((Channel * Channel))::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := x
+ty := (Channel * Channel)
+post_ctx := {
+  x :1 ((Channel * Channel))::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
   add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Channel
 ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
-t  := stdio
-ty := Channel
+t  := Channel
+ty := Linear
 post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
   add :0 (Nat -> Nat -> Nat)::w
 }
 
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := stdio
-ty := Channel
-post_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (readClose) stdio === (readClose) stdio
-ty := Type
-post_ctx := {
-  readClose :w (Channel -> Nat)::w
-  stdio :w (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := add
-ty := Nat -> Nat -> Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 0
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 0
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 1
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 1
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (add) 1
-ty := Nat -> Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 0
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 0
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 1
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 1
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 2
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := 2
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := ((add) 1) 2
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-}
-
-check
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := ((add) 1) 2
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := (((add) 1) 2 : Nat)
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := Nat
-ty := Type
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  main :0 (Nat)::w
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := main
-ty := Nat
-post_ctx := {
-  main :1 (Nat)::w
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  := let main := (((add) 1) 2 : Nat) in main
-ty := Nat
-post_ctx := {
-  eq :0 ((readClose) stdio === (readClose) stdio)::w
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  readClose :0 (Channel -> Nat)::w
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  :=
-  let eq :=
-    ((refl (readClose) stdio Nat) : (readClose) stdio === (readClose) stdio)
-  in let main := (((add) 1) 2 : Nat) in main
-ty := Nat
-post_ctx := {
-  readClose :1 (Channel -> Nat)::w
-  stdio :1 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  stdio :0 (Channel)::1
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  :=
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := (close) ch in n : 
-  Channel -> Nat) in
-  let eq :=
-    ((refl (readClose) stdio Nat) : (readClose) stdio === (readClose) stdio)
-  in let main := (((add) 1) 2 : Nat) in main
-ty := Nat
-post_ctx := {
-  stdio :1 (Channel)::1
-  add :1 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-  add :0 (Nat -> Nat -> Nat)::w
-}
-t  :=
-  let stdio := ((open) 0 : Channel) in
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := (close) ch in n : 
-  Channel -> Nat) in
-  let eq :=
-    ((refl (readClose) stdio Nat) : (readClose) stdio === (readClose) stdio)
-  in let main := (((add) 1) 2 : Nat) in main
-ty := Nat
-post_ctx := {
-  add :1 (Nat -> Nat -> Nat)::w
-}
-
-infer
-pre_ctx := {
-}
-t  :=
-  let add :=
-    (fun x => fun y => iter (fun _ => Nat, y, fun _ => fun x => (x +1), x) : 
-  Nat -> Nat -> Nat) in
-  let stdio := ((open) 0 : Channel) in
-  let readClose :=
-    (fun ch => let (n, ch) := (read) ch in let _ := (close) ch in n : 
-  Channel -> Nat) in
-  let eq :=
-    ((refl (readClose) stdio Nat) : (readClose) stdio === (readClose) stdio)
-  in let main := (((add) 1) 2 : Nat) in main
-ty := Nat
-post_ctx := {
-}
-
-complete
-post_ctx := {
-}
-t  := 3
-ty := Nat

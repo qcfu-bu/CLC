@@ -31,7 +31,7 @@ let debug pre_ctx t ty post_ctx msg=
   printf "post_ctx := %a@.@." pp post_ctx
 
 let rec infer_sort ctx ty =
-  let ty, ctx = infer ctx ty in
+  let ty, ctx = infer (pure ctx) ty in
   match whnf ty with
   | Type -> (W, ctx)
   | Linear -> (One, ctx)
@@ -53,7 +53,7 @@ and infer ctx t =
       let x, b = unbind b in
       let ty_r, ty_ctx = infer_sort ctx ty in
       let _, b_ctx = infer_sort (add x (ty, Zero, ty_r) ctx) b in
-      let _, x_r, _ = find x b_ctx in
+      let x_r = occur x b_ctx in
       let b_ctx = remove x b_ctx in
       if (ty_r = One)
       then
@@ -65,7 +65,7 @@ and infer ctx t =
       let x, b = unbind b in
       let ty_r, ty_ctx = infer_sort ctx ty in
       let _, b_ctx = infer_sort (add x (ty, Zero, ty_r) ctx) b in
-      let _, x_r, _ = find x b_ctx in
+      let x_r = occur x b_ctx in
       let b_ctx = remove x b_ctx in
       if (ty_r = One)
       then
@@ -92,7 +92,7 @@ and infer ctx t =
       let t_ty, t_ctx = infer ctx t in
       let t_r, _ = infer_sort ctx t_ty in
       let b_ty, b_ctx = infer (add x (t_ty, Zero, t_r) ctx) b in
-      let _, x_r, _ = find x b_ctx in
+      let x_r = occur x b_ctx in
       let b_ctx = remove x b_ctx in
       let () = assert_msg (x_r <= t_r)
         (asprintf "infer LetIn(t := %a; t_r := %a; x_r := %a)"
@@ -111,7 +111,6 @@ and infer ctx t =
       let t_ctx = check ctx t ty in
       (Eq (t, t, ty), t_ctx)
     | Ind (p, pf, t1, t2, eq, ty) ->
-      (* TODO *)
       let ty_r, _ = infer_sort ctx ty in
       let () = assert_msg (ty_r = W) "infer Ind" in
       let x = mk "x" in
@@ -138,7 +137,7 @@ and infer ctx t =
       let x, b = unbind b in
       let ty_r, ty_ctx = infer_sort ctx ty in
       let b_r, b_ctx = infer_sort (add x (ty, Zero, ty_r) ctx) b in
-      let _, x_r, _ = find x b_ctx in
+      let x_r = occur x b_ctx in
       let b_ctx = remove x b_ctx in
       if (ty_r = One)
       then
@@ -160,8 +159,8 @@ and infer ctx t =
         let ctx = add x1 (ty, Zero, ty_r) ctx in
         let ctx = add x2 (subst b (Var x1), Zero, ub_r) ctx in
         let mb_ty, mb_ctx = infer ctx mb in
-        let _, x1_r, _ = find x1 mb_ctx in
-        let _, x2_r, _ = find x2 mb_ctx in
+        let x1_r = occur x1 mb_ctx in
+        let x2_r = occur x2 mb_ctx in
         let mb_ctx = remove x1 mb_ctx in
         let mb_ctx = remove x2 mb_ctx in
         let () = assert_msg (x1_r <= ty_r) "infer LetPair" in
@@ -185,8 +184,8 @@ and infer ctx t =
         let ty2_r, _ = infer_sort ctx ty2 in
         let b1_ty, b1_ctx = infer (add x1 (ty1, Zero, ty1_r) ctx) b1 in
         let b2_ty, b2_ctx = infer (add x2 (ty2, Zero, ty2_r) ctx) b2 in
-        let _, x1_r, _ = find x1 b1_ctx in
-        let _, x2_r, _ = find x2 b2_ctx in
+        let x1_r = occur x1 b1_ctx in
+        let x2_r = occur x2 b2_ctx in
         let () = assert_msg (x1_r <= ty1_r) "infer Case" in
         let () = assert_msg (x2_r <= ty2_r) "infer Case" in
         let () = assert_msg (equal b1_ty b2_ty) "infer Case" in
@@ -278,8 +277,8 @@ and check ctx t ty =
       | TyProd (ty, b2) as f_ty ->
         let x, b1, b2 = unbind2 b1 b2 in
         let ty_r, _ = infer_sort ctx ty in
-        let b1_ctx = check (add x (ty, Zero, ty_r) ctx) b1 b2 in
-        let _, x_r, _ = find x b1_ctx in
+        let b1_ctx = check (add x (ty, Zero, ty_r) (pure ctx)) b1 b2 in
+        let x_r = occur x b1_ctx in
         let b1_ctx = remove x b1_ctx in
         let () = assert_msg (x_r <= ty_r) 
           (asprintf "check Lambda(x_r := %a, ty_r := %a, f_ty := %a)"
@@ -290,7 +289,7 @@ and check ctx t ty =
         let x, b1, b2 = unbind2 b1 b2 in
         let ty_r, _ = infer_sort ctx ty in
         let b1_ctx = check (add x (ty, Zero, ty_r) ctx) b1 b2 in
-        let _, x_r, _ = find x b1_ctx in
+        let x_r = occur x b1_ctx in
         let b1_ctx = remove x b1_ctx in
         let () = assert_msg (x_r <= ty_r)
           (asprintf "check Lambda(x_r := %a, ty_r := %a, f_ty := %a)"
