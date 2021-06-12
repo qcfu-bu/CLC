@@ -98,7 +98,11 @@ let rec whnf t =
     match t with
     | Pair (t1, t2) ->
       whnf (msubst mb [| t1; t2 |])
-    | _ -> LetPair (t, mb))
+    | _ -> 
+      let occurs = mbinder_occurs mb in
+      if Array.for_all (fun x -> not x) occurs then
+        whnf (snd (unmbind mb))
+      else LetPair (t, mb))
   | CoProd _ -> t
   | InjL _ -> t
   | InjR _ -> t

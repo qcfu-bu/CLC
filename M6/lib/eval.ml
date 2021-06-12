@@ -61,9 +61,13 @@ let rec eval t =
     | Pair (t1, t2) ->
       eval (msubst mb [| t1; t2 |])
     | _ -> 
-      let mx, mb = unmbind mb in
-      let mb = unbox (bind_mvar mx (lift (eval mb))) in
-      LetPair (t, mb))
+      let occurs = mbinder_occurs mb in
+      if Array.for_all (fun x -> not x) occurs then
+        eval (snd (unmbind mb))
+      else 
+        let mx, mb = unmbind mb in
+        let mb = unbox (bind_mvar mx (lift (eval mb))) in
+        LetPair (t, mb))
   | CoProd (ty1, ty2) -> CoProd (eval ty1, eval ty2)
   | InjL t -> InjL (eval t)
   | InjR t -> InjR (eval t)

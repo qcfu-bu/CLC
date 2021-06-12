@@ -124,7 +124,7 @@ and letIn_parser () =
   let* ctx = get_user_state in
   let* _ = kw "let" in
   let* x = var_parser ~pat:true () in
-  let* opt = option (let* _ = kw ":" in t_parser ()) in
+  let* opt = option (attempt (kw ":" >> t_parser ())) in
   let* _ = kw ":=" in
   let* t = t_parser () in
   let* _ = kw "in" in
@@ -408,11 +408,19 @@ and t2_parser () =
   in
   return t
 
-and t_parser () = t2_parser ()
+and t_parser () = 
+  attempt (t2_parser ())
+  <|>
+  let* _ = kw "(" in
+  let* t = t2_parser () in
+  let* _ = kw ":" in
+  let* ty = t2_parser () in
+  let* _ = kw ")" in
+  return (_Ann t ty)
 
 let def_parser () =
   let* _ = kw "Definition" in
-  let* x = var_parser () in
+  let* x = var_parser ~pat:true () in
   let* _ = kw ":" in
   let* ty = t_parser () in
   let* _ = kw ":=" in

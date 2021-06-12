@@ -317,7 +317,10 @@ and check ctx t ty =
       | _ -> failwith "check InjR")
     | _ ->
       let t_ty, t_ctx = infer ctx t in
-      let () = assert_msg (equal t_ty ty) "check" in
+      let () = assert_msg (equal t_ty ty) 
+        (Format.asprintf "check(t_ty := %a; ty := %a)" 
+          Terms.pp t_ty Terms.pp ty)
+      in
       t_ctx
   in
   let () = debug pre_ctx t ty post_ctx "check" in

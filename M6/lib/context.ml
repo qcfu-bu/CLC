@@ -46,7 +46,7 @@ let pure ctx = VarMap.filter (fun _ (_, _, r) -> r = W) ctx
 let pp fmt ctx =
   Format.fprintf fmt "{@?";
   iter (fun x (t, q1, q2) -> 
-    Format.fprintf fmt "@[<v 0>@;<0 2>@[%s :%a@;<1 2>%a::%a@]@]@?" 
+    Format.fprintf fmt "@[<v 0>@;<0 2>@[%s :%a@;<1 2>(%a)::%a@]@]@?" 
       (name_of x) Rig.pp q1 pp t Rig.pp q2)
     ctx;
   Format.fprintf fmt "\n}@?";

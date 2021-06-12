@@ -3,7 +3,12 @@ t  := let add :=
                  (fun x =>
                     fun y =>
                       iter (fun _ => Nat, y, fun _ => fun x => (x +1), x) : 
-               Nat -> Nat -> Nat) in let main := (((add) 1) 2 : Nat) in main
+               Nat -> Nat -> Nat) in
+               let stdio := ((open) 0 : Channel) in
+               let x :=
+                 (let (n, stdio) := (read) stdio in
+                  let _ := (close) stdio in n : Nat)
+               in let main := (((add) 1) 2 : Nat) in main
 
 infer
 pre_ctx := {
@@ -15,34 +20,34 @@ post_ctx := {
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
+  _ :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
+  _ :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
+  _ :0 (Nat)::w
 }
 t  := Nat -> Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
+  _ :0 (Nat)::w
 }
 
 infer
@@ -63,2121 +68,2121 @@ post_ctx := {
 
 infer
 pre_ctx := {
-  x :0 Nat::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 Nat::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Nat
 ty := Type
 post_ctx := {
-  x :0 Nat::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 Nat::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Type
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Type
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun _ => Nat
 ty := Nat -> Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (fun _ => Nat : Nat -> Type)
 ty := Nat -> Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (fun _ => Nat : Nat -> Type)
 ty := Nat -> Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Type
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun _ => Nat
 ty := Nat -> Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (fun _ => Nat : Nat -> Type)
 ty := Nat -> Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := 0
 ty := Nat
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := 0
 ty := Nat
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := ((fun _ => Nat : Nat -> Type)) 0
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := y
 ty := Nat
 post_ctx := {
-  y :1 Nat::w
-  x :0 Nat::w
+  y :1 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := y
 ty := ((fun _ => Nat : Nat -> Type)) 0
 post_ctx := {
-  y :1 Nat::w
-  x :0 Nat::w
+  y :1 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Type
 ty := Type
 post_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun _ => Nat
 ty := Nat -> Type
 post_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (fun _ => Nat : Nat -> Type)
 ty := Nat -> Type
 post_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := x
 ty := Nat
 post_ctx := {
-  x :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := x
 ty := Nat
 post_ctx := {
-  x :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := ((fun _ => Nat : Nat -> Type)) x
 ty := Type
 post_ctx := {
-  x :w Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :w (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Type
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun _ => Nat
 ty := Nat -> Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (fun _ => Nat : Nat -> Type)
 ty := Nat -> Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := x
 ty := Nat
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := x
 ty := Nat
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (x +1)
 ty := Nat
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (x +1)
 ty := Nat
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := ((fun _ => Nat : Nat -> Type)) (x +1)
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) x::w
-  x :w Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) x)::w
+  x :w (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  :=
   ((fun _ => Nat : Nat -> Type)) x -> ((fun _ => Nat : Nat -> Type)) (x +1)
 ty := Type
 post_ctx := {
-  x :w Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :w (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  :=
   (x : Nat) ->
     ((fun _ => Nat : Nat -> Type)) x -> ((fun _ => Nat : Nat -> Type)) (x +1)
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun _ => Nat
 ty := Nat -> Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (fun _ => Nat : Nat -> Type)
 ty := Nat -> Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := _
 ty := Nat
 post_ctx := {
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := _
 ty := Nat
 post_ctx := {
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := ((fun _ => Nat : Nat -> Type)) _
 ty := Type
 post_ctx := {
-  _ :w Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :w (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Type
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun _ => Nat
 ty := Nat -> Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (fun _ => Nat : Nat -> Type)
 ty := Nat -> Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := _
 ty := Nat
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := _
 ty := Nat
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (_ +1)
 ty := Nat
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (_ +1)
 ty := Nat
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := ((fun _ => Nat : Nat -> Type)) (_ +1)
 ty := Type
 post_ctx := {
-  _ :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :w Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :w (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  :=
   ((fun _ => Nat : Nat -> Type)) _ -> ((fun _ => Nat : Nat -> Type)) (_ +1)
 ty := Type
 post_ctx := {
-  _ :w Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :w (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun _ => Nat
 ty := Nat -> Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (fun _ => Nat : Nat -> Type)
 ty := Nat -> Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := _
 ty := Nat
 post_ctx := {
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := _
 ty := Nat
 post_ctx := {
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := ((fun _ => Nat : Nat -> Type)) _
 ty := Type
 post_ctx := {
-  _ :w Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :w (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat -> Type
 ty := Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Type
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun _ => Nat
 ty := Nat -> Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (fun _ => Nat : Nat -> Type)
 ty := Nat -> Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := _
 ty := Nat
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := _
 ty := Nat
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (_ +1)
 ty := Nat
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (_ +1)
 ty := Nat
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :1 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :1 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := ((fun _ => Nat : Nat -> Type)) (_ +1)
 ty := Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :w Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :w (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := x
 ty := ((fun _ => Nat : Nat -> Type)) _
 post_ctx := {
-  x :1 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :1 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := x
 ty := Nat
 post_ctx := {
-  x :1 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :1 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (x +1)
 ty := Nat
 post_ctx := {
-  x :1 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :1 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  x :0 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :0 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := (x +1)
 ty := ((fun _ => Nat : Nat -> Type)) (_ +1)
 post_ctx := {
-  x :1 ((fun _ => Nat : Nat -> Type)) _::w
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  x :1 (((fun _ => Nat : Nat -> Type)) _)::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun x => (x +1)
 ty :=
   ((fun _ => Nat : Nat -> Type)) _ -> ((fun _ => Nat : Nat -> Type)) (_ +1)
 post_ctx := {
-  _ :0 Nat::w
-  y :0 Nat::w
-  x :0 Nat::w
+  _ :0 (Nat)::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 check
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := fun _ => fun x => (x +1)
 ty :=
   (x : Nat) ->
     ((fun _ => Nat : Nat -> Type)) x -> ((fun _ => Nat : Nat -> Type)) (x +1)
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := x
 ty := Nat
 post_ctx := {
-  y :0 Nat::w
-  x :1 Nat::w
+  y :0 (Nat)::w
+  x :1 (Nat)::w
 }
 
 check
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := x
 ty := Nat
 post_ctx := {
-  y :0 Nat::w
-  x :1 Nat::w
+  y :0 (Nat)::w
+  x :1 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := iter (fun _ => Nat, y, fun _ => fun x => (x +1), x)
 ty := Nat
 post_ctx := {
-  y :1 Nat::w
-  x :1 Nat::w
+  y :1 (Nat)::w
+  x :1 (Nat)::w
 }
 
 check
 pre_ctx := {
-  y :0 Nat::w
-  x :0 Nat::w
+  y :0 (Nat)::w
+  x :0 (Nat)::w
 }
 t  := iter (fun _ => Nat, y, fun _ => fun x => (x +1), x)
 ty := Nat
 post_ctx := {
-  y :1 Nat::w
-  x :1 Nat::w
+  y :1 (Nat)::w
+  x :1 (Nat)::w
 }
 
 check
 pre_ctx := {
-  x :0 Nat::w
+  x :0 (Nat)::w
 }
 t  := fun y => iter (fun _ => Nat, y, fun _ => fun x => (x +1), x)
 ty := Nat -> Nat
 post_ctx := {
-  x :1 Nat::w
+  x :1 (Nat)::w
 }
 
 check
@@ -2208,34 +2213,34 @@ post_ctx := {
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
+  _ :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
+  _ :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
-  _ :0 Nat::w
+  _ :0 (Nat)::w
+  _ :0 (Nat)::w
 }
 
 infer
 pre_ctx := {
-  _ :0 Nat::w
+  _ :0 (Nat)::w
 }
 t  := Nat -> Nat
 ty := Type
 post_ctx := {
-  _ :0 Nat::w
+  _ :0 (Nat)::w
 }
 
 infer
@@ -2248,264 +2253,801 @@ post_ctx := {
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  add :0 (Nat -> Nat -> Nat)::w
 }
-t  := Nat
-ty := Type
+t  := Channel
+ty := Linear
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := open
+ty := Nat -> Channel
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := 0
+ty := Nat
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+check
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := 0
+ty := Nat
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (open) 0
+ty := Channel
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+check
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (open) 0
+ty := Channel
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := ((open) 0 : Channel)
+ty := Channel
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := read
+ty := Channel -> (Nat * Channel)
+post_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := stdio
+ty := Channel
+post_ctx := {
+  stdio :1 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+check
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := stdio
+ty := Channel
+post_ctx := {
+  stdio :1 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (read) stdio
+ty := (Nat * Channel)
+post_ctx := {
+  stdio :1 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  _ :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  _ :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := close
+ty := Channel -> unit
+post_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Channel
+ty := Linear
+post_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := stdio
+ty := Channel
+post_ctx := {
+  stdio :1 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+check
+pre_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := stdio
+ty := Channel
+post_ctx := {
+  stdio :1 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (close) stdio
+ty := unit
+post_ctx := {
+  stdio :1 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := unit
+ty := Type
+post_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  _ :0 (unit)::w
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := n
+ty := Nat
+post_ctx := {
+  _ :0 (unit)::w
+  stdio :0 (Channel)::1
+  n :1 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  n :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := let _ := (close) stdio in n
+ty := Nat
+post_ctx := {
+  stdio :1 (Channel)::1
+  n :1 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := let (n, stdio) := (read) stdio in let _ := (close) stdio in n
+ty := let (n, stdio) := (read) stdio in Nat
+post_ctx := {
+  stdio :1 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+check
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := let (n, stdio) := (read) stdio in let _ := (close) stdio in n
+ty := Nat
+post_ctx := {
+  stdio :1 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := (let (n, stdio) := (read) stdio in let _ := (close) stdio in n : Nat)
+ty := Nat
+post_ctx := {
+  stdio :1 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  := Nat
+ty := Type
+post_ctx := {
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := add
 ty := Nat -> Nat -> Nat
 post_ctx := {
-  add :1 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :1 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 0
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 check
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 0
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 1
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 check
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 1
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := (add) 1
 ty := Nat -> Nat
 post_ctx := {
-  add :1 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :1 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 0
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 check
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 0
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 1
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 check
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 1
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 2
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 check
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := 2
 ty := Nat
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := ((add) 1) 2
 ty := Nat
 post_ctx := {
-  add :1 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :1 (Nat -> Nat -> Nat)::w
 }
 
 check
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := ((add) 1) 2
 ty := Nat
 post_ctx := {
-  add :1 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :1 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := (((add) 1) 2 : Nat)
 ty := Nat
 post_ctx := {
-  add :1 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :1 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := Nat
 ty := Type
 post_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  main :0 Nat::w
-  add :0 Nat -> Nat -> Nat::w
+  main :0 (Nat)::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := main
 ty := Nat
 post_ctx := {
-  main :1 Nat::w
-  add :0 Nat -> Nat -> Nat::w
+  main :1 (Nat)::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 
 infer
 pre_ctx := {
-  add :0 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
 }
 t  := let main := (((add) 1) 2 : Nat) in main
 ty := Nat
 post_ctx := {
-  add :1 Nat -> Nat -> Nat::w
+  x :0 (Nat)::w
+  stdio :0 (Channel)::1
+  add :1 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  stdio :0 (Channel)::1
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  :=
+  let x :=
+    (let (n, stdio) := (read) stdio in let _ := (close) stdio in n : Nat)
+  in let main := (((add) 1) 2 : Nat) in main
+ty := Nat
+post_ctx := {
+  stdio :1 (Channel)::1
+  add :1 (Nat -> Nat -> Nat)::w
+}
+
+infer
+pre_ctx := {
+  add :0 (Nat -> Nat -> Nat)::w
+}
+t  :=
+  let stdio := ((open) 0 : Channel) in
+  let x :=
+    (let (n, stdio) := (read) stdio in let _ := (close) stdio in n : Nat)
+  in let main := (((add) 1) 2 : Nat) in main
+ty := Nat
+post_ctx := {
+  add :1 (Nat -> Nat -> Nat)::w
 }
 
 infer
@@ -2514,7 +3056,11 @@ pre_ctx := {
 t  :=
   let add :=
     (fun x => fun y => iter (fun _ => Nat, y, fun _ => fun x => (x +1), x) : 
-  Nat -> Nat -> Nat) in let main := (((add) 1) 2 : Nat) in main
+  Nat -> Nat -> Nat) in
+  let stdio := ((open) 0 : Channel) in
+  let x :=
+    (let (n, stdio) := (read) stdio in let _ := (close) stdio in n : Nat)
+  in let main := (((add) 1) 2 : Nat) in main
 ty := Nat
 post_ctx := {
 }
