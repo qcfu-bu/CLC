@@ -38,7 +38,26 @@ type 'a tparser = ('a, tvar SMap.t) parser
 
 let (let*) = bind
 
-let ws = many (blank <|> newline)
+let comment = 
+  let* _ = string "(*" in
+  let* _ = many (
+    let* opt =
+      (look_ahead (string "*)") >> return None) 
+      <|>
+      (any_char_or_nl >>= (fun c -> return (Some c)))
+    in
+    match opt with
+    | Some c -> return c
+    | None -> zero)
+  in
+  let* _ = string "*)" in
+  return ()
+
+let ws = many (choice [
+  blank >> return ();
+  newline >> return ();
+  comment >> return ();
+])
 
 let kw s = 
   let* _ = string s in
@@ -349,24 +368,25 @@ and set_parser () =
 
 and t0_parser () =
   let* _ = return () in
-  choice [
+  choice (List.map attempt [
+    var_parser () >>= (fun x -> return (_Var x));
     sort_parser ();
-    attempt (tyProd_parser ());
-    attempt (lnProd_parser ());
+    tyProd_parser ();
+    lnProd_parser ();
     lambda_parser ();
-    attempt (letIn_parser ());
+    letIn_parser ();
     eq_parser ();
     refl_parser ();
     ind_parser ();
-    attempt (tensor_parser ());
-    attempt (pair_parser ());
-    attempt (letPair_parser ());
-    attempt (coProd_parser ());
+    tensor_parser ();
+    pair_parser ();
+    letPair_parser ();
+    coProd_parser ();
     injL_parser ();
     injR_parser ();
     case_parser ();
     unit_parser ();
-    attempt (u_parser ());
+    u_parser ();
     nat_parser ();
     zero_parser ();
     succ_parser ();
@@ -383,9 +403,8 @@ and t0_parser () =
     free_parser ();
     get_parser ();
     set_parser ();
-    attempt (var_parser () >>= (fun x -> return (_Var x)));
     parens (t_parser ())
-  ]
+  ])
 
 and t1_parser () =
   let* _ = return () in

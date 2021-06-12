@@ -4,9 +4,13 @@ Definition add : (Nat -> Nat -> Nat) :=
 
 Definition stdio : Channel := open 0.
 
-Definition x : Nat := 
-  let (n, stdio) := read stdio in
-  let _ := close stdio in
-  n.
+Definition readClose : Channel -> Nat := 
+  fun ch =>
+    let (n, ch) := read ch in
+    let _ := close ch in
+    n.
+
+Definition eq : Eq (readClose stdio, readClose stdio, Nat) :=
+  refl(readClose stdio, Nat).
 
 Definition main : Nat := add 1 2.
