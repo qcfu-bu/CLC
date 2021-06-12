@@ -52,11 +52,10 @@ let parens p =
   return t
 
 let rec var_parser ?pat:(p=false) () =
-  let* s1 = many1_chars letter in
+  let* s1 = many1_chars (letter <|> char '_') in
   let* s2 = many_chars (alphanum <|> char '_') in
   let* _ = ws in
   let s = s1 ^ s2 in
-  let _ = Format.printf "var(%s)\n" s in
   if s = "_" then 
     if p then return __ else fail "non pattern variable"
   else
@@ -79,27 +78,34 @@ and sort_parser () =
 and tyProd_parser () =
   let* ctx = get_user_state in
   let* _ = kw "(" in
-  let* x = var_parser () in
+  let* xs = many1 (var_parser ()) in
   let* _ = kw ":" in
   let* ty = t_parser () in
   let* _ = kw ")" in
   let* _ = kw "->" in
   let* b = t_parser () in
   let* _ = set_user_state ctx in
-  let tyProd = _TyProd ty (bind_var x b) in
+  let tyProd = 
+    List.fold_right
+      (fun x b -> _TyProd ty (bind_var x b)) xs b
+  in
   return (tyProd)
 
 and lnProd_parser () =
   let* ctx = get_user_state in
   let* _ = kw "(" in
-  let* x = var_parser () in
+  let* xs = many1 (var_parser ()) in
   let* _ = kw ":" in
   let* ty = t_parser () in
   let* _ = kw ")" in
   let* _ = kw ">>" in
   let* b = t_parser () in
   let* _ = set_user_state ctx in
-  return (_TyProd ty (bind_var x b))
+  let lnProd = 
+    List.fold_right
+      (fun x b -> _LnProd ty (bind_var x b)) xs b
+  in
+  return (lnProd)
 
 and lambda_parser () =
   let* ctx = get_user_state in
@@ -117,14 +123,17 @@ and lambda_parser () =
 and letIn_parser () =
   let* ctx = get_user_state in
   let* _ = kw "let" in
-  let _ = print_endline "letIn_parser" in
   let* x = var_parser ~pat:true () in
-  let* _ = kw "=" in
-  let _ = Format.printf "var ok(%s)\n" (name_of x) in
+  let* opt = option (let* _ = kw ":" in t_parser ()) in
+  let* _ = kw ":=" in
   let* t = t_parser () in
-  let _ = Format.printf "t_parser(%a)\n" pp (unbox t) in
   let* _ = kw "in" in
   let* b = t_parser () in
+  let b = 
+    match opt with
+    | Some ty -> _Ann b ty
+    | None -> b
+  in
   let* _ = set_user_state ctx in
   return (_LetIn t (bind_var x b))
 
@@ -199,7 +208,7 @@ and letPair_parser () =
   let* _ = kw "," in
   let* y = var_parser ~pat:true () in
   let* _ = kw ")" in
-  let* _ = kw "=" in
+  let* _ = kw ":=" in
   let* t = t_parser () in
   let* _ = kw "in" in
   let* b = t_parser () in
@@ -398,19 +407,32 @@ and t2_parser () =
   in
   return t
 
-and t_parser () =
-  let* t = t2_parser () in
+and t_parser () = t2_parser ()
+
+let def_parser () =
+  let* _ = kw "Definition" in
+  let* x = var_parser () in
   let* opt = option (let* _ = kw ":" in t_parser ()) in
+  let* _ = kw ":=" in
+  let* t = t_parser () in
   match opt with
-  | Some ty -> return (_Ann t ty) 
-  | None -> return t
+  | Some ty -> return (x, _Ann t ty)
+  | None -> return (x, t)
+
+let top_parser () =
+  let* ts = many1 (def_parser ()) in
+  let top = 
+    List.fold_right
+      (fun (x, t) b -> _LetIn t (bind_var x b)) ts _U
+  in
+  return top
 
 let parse s =
-  match parse_string (ws >> t_parser ()) s SMap.empty with
+  match parse_string (ws >> top_parser ()) s SMap.empty with
   | Success t -> unbox t
   | Failed (s, _) -> failwith s
 
 let parse_ch ch =
-  match parse_channel (ws >> t_parser ()) ch SMap.empty with
+  match parse_channel (ws >> top_parser ()) ch SMap.empty with
   | Success t -> unbox t
   | Failed (s, _) -> failwith s

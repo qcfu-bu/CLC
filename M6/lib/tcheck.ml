@@ -27,7 +27,7 @@ let debug pre_ctx t ty post_ctx msg=
   Format.printf "pre_ctx := %a@." pp pre_ctx;
   Format.printf "@[t  :=@;<1 2>%a@]@." Terms.pp t;
   Format.printf "@[ty :=@;<1 2>%a@]@." Terms.pp ty;
-  Format.printf "post_ctx := %a@." pp post_ctx
+  Format.printf "post_ctx := %a@.@." pp post_ctx
 
 let rec infer_sort ctx ty =
   let ty, ctx = infer ctx ty in
