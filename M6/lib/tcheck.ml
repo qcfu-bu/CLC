@@ -48,7 +48,7 @@ and infer ctx t =
       let ctx = check ctx t ty in
       (ty, ctx)
     | Type -> (Type, ctx)
-    | Linear -> (Linear, ctx)
+    | Linear -> (Type, ctx)
     | TyProd (ty, b) -> (
       let x, b = unbind b in
       let ty_r, ty_ctx = infer_sort ctx ty in
