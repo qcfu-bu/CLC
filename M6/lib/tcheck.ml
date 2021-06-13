@@ -7,7 +7,7 @@ open Format
 
 let assert_msg cond msg = 
   if cond then ()
-  else (prerr_endline msg; assert false)
+  else failwith msg
 
 let is_debug = ref false
 
@@ -220,7 +220,17 @@ and infer ctx t =
       (Nat, t_ctx)
     | Iter (p, t1, t2, n) -> (
       let x = mk "x" in
-      let p_ty = unbox (_Arrow _Nat (_Type)) in
+      let flag = ref false in
+      let p_ty = 
+        let p_ty = unbox (_Arrow _Nat (_Type)) in
+        let p_ln = unbox (_Arrow _Nat (_Linear)) in
+        try
+          let _ = check ctx p p_ty in p_ty
+        with _ -> 
+          let _ = check ctx p p_ln in 
+          let _ = flag := true in
+          p_ln
+      in
       let p = Ann (p, p_ty) in
       let t1_ty = App (p, Zero) in
       let t2_ty = unbox
@@ -228,7 +238,6 @@ and infer ctx t =
           (_Arrow (_App (lift p) (_Var x))
                   (_App (lift p) (_Succ (_Var x))))))
       in
-      let _ = check ctx p p_ty in
       let t1_ctx = check ctx t1 t1_ty in
       let t2_ctx = check ctx t2 t2_ty in
       let n_ctx = check ctx n Nat in
@@ -309,8 +318,10 @@ and check ctx t ty =
             Rig.pp x_r Rig.pp ty_r Terms.pp f_ty)
         in
         b1_ctx
-      | ty -> failwith 
-        (asprintf "check Lambda(ty := %a)" Terms.pp ty))
+      | ty -> 
+        failwith
+          (asprintf "@[check Lambda(@;<1 2>t := %a;@;<1 2>ty := %a)@]" 
+            Terms.pp (Eval.eval t) Terms.pp (Eval.eval ty)))
     | Pair (t1, t2) -> (
       match whnf ty with
       | Tensor (ty, b) ->
@@ -351,8 +362,8 @@ and check ctx t ty =
     | _ ->
       let t_ty, t_ctx = infer ctx t in
       let () = assert_msg (equal t_ty ty) 
-        (asprintf "check(t_ty := %a; ty := %a)" 
-          Terms.pp t_ty Terms.pp ty)
+        (asprintf "check(t := %a; t_ty := %a; ty := %a)" 
+          Terms.pp (Eval.eval t) Terms.pp t_ty Terms.pp ty)
       in
       t_ctx
   in

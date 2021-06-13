@@ -35,6 +35,12 @@ t  :=
          let (c, ls) := ls in let _ := ((free) (cons) l1) (l2, c) in (l1, ls) :
       (n : Nat) -> (List) (n +1) -> (List) n)
   in
+  let MakeList :=
+    (fun n =>
+       iter(fun n => (List) n, (Nil) (), fun n => fun lsN => ((Cons) n) lsN,
+         n) :
+      (n : Nat) -> (List) n)
+  in
   let FreeList :=
     (fun n =>
        iter(fun n => (List) n -> Unit, fun ls => ((free) nil) ls,
@@ -42,17 +48,14 @@ t  :=
            fun FreeN => fun ls => let ls := ((Uncons) n) ls in (FreeN) ls,
          n) :
       (n : Nat) -> (List) n -> Unit)
-  in
-  let main :=
-    (let ls := ((Cons) 1) ((Cons) 0) (Nil) () in ((FreeList) 2) ls : Unit)
-  in main
+  in let main := ((MakeList) 5 : (List) 5) in main
 complete
 post_ctx := {
 }
 t  :=
-  ((free) (x : (Unit | Nat) * Eq(x, (left ()))))
-    let (l2, ls) :=
-      let (l2, ls) :=
+  let (l1, ls) :=
+    let (l1, ls) :=
+      let (l1, ls) :=
         let (l1, ls) :=
           let (l1, ls) :=
             ((alloc) (x : (Unit | Nat) * Eq(x, (left ()))))
@@ -67,6 +70,31 @@ t  :=
           ((alloc) (x : (Unit | Nat) * Eq(x, (right l1))))
             ((right l1), refl((right l1),  (Unit | Nat)))
         in (l2, (l1, (c, ls)))
-      in let (l1, ls) := ls in let (c, ls) := ls in (l1, ls)
-    in let (l1, ls) := ls in let (c, ls) := ls in (l1, ls)
-ty := Unit
+      in
+      let (l2, c) :=
+        ((alloc) (x : (Unit | Nat) * Eq(x, (right l1))))
+          ((right l1), refl((right l1),  (Unit | Nat)))
+      in (l2, (l1, (c, ls)))
+    in
+    let (l2, c) :=
+      ((alloc) (x : (Unit | Nat) * Eq(x, (right l1))))
+        ((right l1), refl((right l1),  (Unit | Nat)))
+    in (l2, (l1, (c, ls)))
+  in
+  let (l2, c) :=
+    ((alloc) (x : (Unit | Nat) * Eq(x, (right l1))))
+      ((right l1), refl((right l1),  (Unit | Nat)))
+  in (l2, (l1, (c, ls)))
+ty :=
+  (l : Nat *
+    (l' : Nat *
+      ([l |-> (x : (Unit | Nat) * Eq(x, (right l')))] *
+        (l'0 : Nat *
+          ([l' |-> (x : (Unit | Nat) * Eq(x, (right l'0)))] *
+            (l'1 : Nat *
+              ([l'0 |-> (x : (Unit | Nat) * Eq(x, (right l'1)))] *
+                (l'2 : Nat *
+                  ([l'1 |-> (x : (Unit | Nat) * Eq(x, (right l'2)))] *
+                    (l'3 : Nat *
+                      ([l'2 |-> (x : (Unit | Nat) * Eq(x, (right l'3)))] *
+                        [l'3 |-> (x : (Unit | Nat) * Eq(x, (left ())))])))))))))))

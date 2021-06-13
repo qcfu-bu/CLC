@@ -25,7 +25,7 @@ Definition Cons : (n : Nat) -> List n -> List (S n) :=
     let (l1, ls) := ls in
     let (l2, c) := alloc (cons l1) (right l1, refl(right l1, UL)) in
     (l2, (l1, (c, ls))).
- 
+
 Definition Uncons : (n : Nat) -> List (S n) -> List n := 
   fun _ ls => 
     let (l2, ls) := ls in
@@ -33,6 +33,10 @@ Definition Uncons : (n : Nat) -> List (S n) -> List n :=
     let (c, ls) := ls in
     let _ := free (cons l1) (l2, c) in
     (l1, ls).
+
+Definition MakeList : (n : Nat) -> List n := 
+  fun n => 
+    iter(fun n => List n, Nil (), fun n lsN => Cons n lsN, n).
 
 Definition FreeList : (n : Nat) -> List n -> Unit := 
   fun n => 
@@ -44,6 +48,4 @@ Definition FreeList : (n : Nat) -> List n -> Unit :=
         FreeN ls,
       n).
 
-Definition main : Unit := 
-  let ls := Cons 1 (Cons 0 (Nil ())) in
-  FreeList 2 ls.
+Definition main : List 5 := MakeList 5.
