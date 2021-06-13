@@ -11,8 +11,7 @@ Definition LList : Nat -> Loc -> Linear :=
     iter(
       fun _ => Loc -> Linear, 
       fun l => [l |-> nil],
-      fun n LListn l => 
-        (l' : Loc * ([l |-> cons l'] * (LListn l'))),
+      fun n LListn l => (l' : Loc * ([l |-> cons l'] * (LListn l'))),
       n).
 
 Definition List : (n : Nat) -> Linear := 
