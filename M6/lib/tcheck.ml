@@ -184,11 +184,20 @@ and infer ctx t =
         let x2_r = occur x2 mb_ctx in
         let mb_ctx = remove x1 mb_ctx in
         let mb_ctx = remove x2 mb_ctx in
-        let () = assert_msg (x1_r <= ty_r) "infer LetPair" in
-        let () = assert_msg (x2_r <= ub_r) "infer LetPair" in
+        let () = assert_msg (x1_r <= ty_r) 
+          (asprintf "infer LetPair(x1_r := %a; ty_r := %a)"
+            Rig.pp x1_r Rig.pp ty_r) 
+        in
+        let () = assert_msg (x2_r <= ub_r) 
+          (asprintf "infer LetPair(x1_r := %a; ty_r := %a)"
+            Rig.pp x2_r Rig.pp ub_r) 
+        in
         let mb_ty = unbox (bind_mvar [| x1; x2 |] (lift mb_ty)) in
         (LetPair (t, mb_ty), sum t_ctx mb_ctx)
-      | _ -> failwith "infer LetPair")
+      | ty -> 
+        failwith 
+          (asprintf "infer LetPair(t := %a, ty := %a)"
+            Terms.pp t Terms.pp ty))
     | CoProd (ty1, ty2) -> (
       let ty1_r, ty1_ctx = infer_sort ctx ty1 in
       let ty2_r, ty2_ctx = infer_sort ctx ty2 in
@@ -285,11 +294,13 @@ and infer ctx t =
       (unbox ty, ctx)
     | Set ->
       let _A = mk "A" in
+      let _B = mk "B" in
       let x = mk "x" in
       let ty = _TyProd _Type (bind_var _A
-        (_TyProd _Nat (bind_var x 
-          (_Arrow (_Tuple (_Var _A) (_PtsTo (_Var x) (_Var _A)))
-                  (_PtsTo (_Var x) (_Var _A))))))
+        (_TyProd _Type (bind_var _B
+          (_TyProd _Nat (bind_var x 
+            (_Arrow (_PtsTo (_Var x) (_Var _A))
+              (_Arrow (_Var _B) (_PtsTo (_Var x) (_Var _B)))))))))
       in
       (unbox ty, ctx)
   in
