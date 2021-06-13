@@ -160,15 +160,15 @@ let rec pp fmt = function
     Format.fprintf fmt "@[fun %s =>@;<1 2>%a@]"
       (name_of x) pp b
   | App (s, t) ->
-    Format.fprintf fmt "(%a) %a" pp s pp t
+    Format.fprintf fmt "(%a)@;<1 2>%a" pp s pp t
   | LetIn (t, b) -> 
     let x, b = unbind b in
     Format.fprintf fmt "@[@[let %s :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
       (name_of x) pp t pp b
   | Eq (t1, t2, _) ->
-    Format.fprintf fmt "@[Eq(%a, %a)@]" pp t1 pp t2
+    Format.fprintf fmt "@[Eq(%a,@;<1 2>%a)@]" pp t1 pp t2
   | Refl (t, ty) ->
-    Format.fprintf fmt "refl(%a, %a)" pp t pp ty
+    Format.fprintf fmt "refl(%a,@;<1 2> %a)" pp t pp ty
   | Ind (p, pf, t1, t2, eq, ty) ->
     Format.fprintf fmt 
       "@[ind(%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
@@ -176,9 +176,9 @@ let rec pp fmt = function
   | Tensor (ty, b) ->
     let x, b = unbind b in
     if (name_of x = "_") then
-      Format.fprintf fmt "@[(%a * %a)@]" pp ty pp b
+      Format.fprintf fmt "@[(%a *@;<1 2>%a)@]" pp ty pp b
     else
-      Format.fprintf fmt "@[(%s : %a * %a)@]" (name_of x) pp ty pp b
+      Format.fprintf fmt "@[(%s : %a *@;<1 2>%a)@]" (name_of x) pp ty pp b
   | Pair (t1, t2) ->
     Format.fprintf fmt "@[(%a, %a)@]" pp t1 pp t2
   | LetPair (t, mb) ->
@@ -188,7 +188,7 @@ let rec pp fmt = function
     Format.fprintf fmt "@[@[let (%s, %s) :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
       (name_of x1) (name_of x2) pp t pp mb
   | CoProd (ty1, ty2) ->
-    Format.fprintf fmt "@[(%a | %a)@]" pp ty1 pp ty2
+    Format.fprintf fmt "@[(%a |@;<1 2>%a)@]" pp ty1 pp ty2
   | InjL t -> 
     Format.fprintf fmt "@[(left %a)@]" pp t
   | InjR t -> 
@@ -219,7 +219,7 @@ let rec pp fmt = function
   | Read -> Format.fprintf fmt "read"
   | Write -> Format.fprintf fmt "write"
   | PtsTo (t, ty) -> 
-    Format.fprintf fmt "@[[%a |-> %a]@]" pp t pp ty
+    Format.fprintf fmt "@[[%a |->@;<1 2>%a]@]" pp t pp ty
   | Alloc -> Format.fprintf fmt "alloc"
   | Free -> Format.fprintf fmt "free"
   | Get -> Format.fprintf fmt "get"

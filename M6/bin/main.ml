@@ -2,7 +2,6 @@ open M6
 open Parser
 open Context
 open Tcheck
-open Equality
 open Eval
 open Format
 
@@ -22,4 +21,4 @@ let _ =
     printf "complete@.";
     printf "post_ctx := %a@." pp post_ctx;
     printf "@[t  :=@;<1 2>%a@]@." Terms.pp (eval t);
-    printf "@[ty :=@;<1 2>%a@]@." Terms.pp (whnf ty)
+    printf "@[ty :=@;<1 2>%a@]@." Terms.pp (eval ty)
