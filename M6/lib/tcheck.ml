@@ -100,7 +100,8 @@ and infer ctx t =
         let ty_r, _ = infer_sort ctx ty in
         let t2_ctx = check ctx t2 ty in
         (subst b t2, sum t1_ctx (scale ty_r t2_ctx))
-      | _ -> failwith "infer App")
+      | _ -> failwith 
+        (asprintf "infer App(t := %a)" Terms.pp t))
     | LetIn (t, b) ->
       let t_ty, t_ctx = infer ctx t in
       let t_r, _ = infer_sort ctx t_ty in
@@ -267,22 +268,28 @@ and infer ctx t =
       (unbox ty, ctx)
     | Free ->
       let _A = mk "A" in
+      let x = mk "x" in
       let ty = _TyProd _Type (bind_var _A
-        (_Arrow (_Ptr (_Var _A)) _Unit))
+        (_TyProd _Nat (bind_var x
+          (_Arrow (_PtsTo (_Var x) (_Var _A)) _Unit))))
       in
       (unbox ty, ctx)
     | Get ->
       let _A = mk "A" in
+      let x = mk "x" in
       let ty = _TyProd _Type (bind_var _A
-        (_Arrow (_Ptr (_Var _A)) 
-                (_Tuple (_Var _A) (_Ptr (_Var _A)))))
+        (_TyProd _Nat (bind_var x 
+          (_Arrow (_PtsTo (_Var x) (_Var _A))
+                  (_Tuple (_Var _A) (_PtsTo (_Var x) (_Var _A)))))))
       in
       (unbox ty, ctx)
     | Set ->
       let _A = mk "A" in
+      let x = mk "x" in
       let ty = _TyProd _Type (bind_var _A
-        (_Arrow  (_Tuple (_Var _A) (_Ptr (_Var _A)))
-                 (_Ptr (_Var _A))))
+        (_TyProd _Nat (bind_var x 
+          (_Arrow (_Tuple (_Var _A) (_PtsTo (_Var x) (_Var _A)))
+                  (_PtsTo (_Var x) (_Var _A))))))
       in
       (unbox ty, ctx)
   in
@@ -363,7 +370,7 @@ and check ctx t ty =
       let t_ty, t_ctx = infer ctx t in
       let () = assert_msg (equal t_ty ty) 
         (asprintf "check(t := %a; t_ty := %a; ty := %a)" 
-          Terms.pp (Eval.eval t) Terms.pp t_ty Terms.pp ty)
+          Terms.pp (Eval.eval t) Terms.pp (Eval.eval t_ty) Terms.pp (Eval.eval ty))
       in
       t_ctx
   in

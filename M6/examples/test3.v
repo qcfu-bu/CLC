@@ -2,42 +2,39 @@
 
 Definition Loc : Type := Nat.
 
-Definition UL : Type -> Type := 
-  fun A => (Unit | (A * Loc)).
-Definition nil : Type -> Type := 
-  fun A => (x : UL A * Eq(x, left (), UL A)).
-Definition cons : Type -> Loc -> Type := 
-  fun A l => (x : UL A * (a : A * Eq(x, right (a, l), UL A))).
+Definition null : Type := Unit.
+Definition box : Type -> Loc -> Type := 
+  fun A l => (a : A * (l' : Loc * Eq(l, l', Loc))).
 
 Definition LList : Type -> Nat -> Loc -> Linear := 
   fun A n =>
     iter(
       fun _ => Loc -> Linear, 
-      fun l => [l |-> nil A],
-      fun n LListN l => (l' : Loc * ([l |-> cons A l'] * (LListN l'))),
+      fun l => [l |-> null],
+      fun n LListN l => (l' : Loc * ([l |-> box A l'] * (LListN l'))),
       n).
 
 Definition List : Type -> (n : Nat) -> Linear := 
   fun A n => (l : Loc * LList A n l).
  
 Definition Nil : (A : Type) -> List A 0 := 
-  fun A => alloc (nil A) (left (), refl(left (), UL A)).
+  fun A => alloc (null) ().
 
 Definition Cons : (A : Type) -> A -> (n : Nat) -> List A n -> List A (S n) :=
   fun A a _ ls =>
     let (l1, ls) := ls in
-    let (l2, c) := alloc (cons A l1) 
-      (right (a, l1), (a, refl(right (a, l1), UL A))) 
-    in
+    let (l2, c) := alloc (box A l1) (a, (l1, refl(l1, Loc))) in
     (l2, (l1, (c, ls))).
 
-Definition Uncons : (A : Type) -> (n : Nat) -> List A (S n) -> List A n := 
+Definition Uncons : (A : Type) -> (n : Nat) -> List A (S n) -> (A * (List A n)) := 
   fun A _ ls => 
     let (l2, ls) := ls in
     let (l1, ls) := ls in
     let (c, ls) := ls in
-    let _ := free (cons A l1) (l2, c) in
-    (l1, ls).
+    let (bx, c) := get (box A l1) l2 c in
+    let _ := free (box A l1) l2 c in
+    let (a, _) := bx in
+    (a, (l1, ls)).
 
 Definition MakeList : (A : Type) -> A -> (n : Nat) -> List A n := 
   fun A a n => 
@@ -47,10 +44,15 @@ Definition FreeList : (A : Type) -> (n : Nat) -> List A n -> Unit :=
   fun A n => 
     iter(
       fun n => List A n -> Unit,
-      fun ls => free (nil A) ls,
+      fun ls => 
+        let (l, ls) := ls in 
+        free null l ls,
       fun n FreeN ls =>
-        let ls := Uncons A n ls in
+        let (_, ls) := Uncons A n ls in
         FreeN ls,
       n).
 
-Definition main : Unit := ().
+Definition main : Unit := 
+  let x := MakeList Nat 1 10 in
+  let _ := FreeList Nat 10 x in 
+  ().
