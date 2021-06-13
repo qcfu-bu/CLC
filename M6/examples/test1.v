@@ -12,7 +12,7 @@ Definition main : (Nat * Nat) :=
   let (m, c) := get Nat l c in
   let c := set Nat Nat l c 2 in
   let (n, c) := get Nat l c in
-  (* Variables m, n are full abstract, they cannot be proven equal.
+  (* Variables m, n are fully abstract, they cannot be proven equal.
      let pf : Eq(m, n, Nat) := refl(n, Nat) in *)
   let _ := free Nat l c in
   (m, n).
