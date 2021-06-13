@@ -11,7 +11,7 @@ Definition LList : Nat -> Loc -> Linear :=
     iter(
       fun _ => Loc -> Linear, 
       fun l => [l |-> nil],
-      fun n LListn l => (l' : Loc * ([l |-> cons l'] * (LListn l'))),
+      fun n LListN l => (l' : Loc * ([l |-> cons l'] * (LListN l'))),
       n).
 
 Definition List : (n : Nat) -> Linear := 
@@ -34,4 +34,16 @@ Definition Uncons : (n : Nat) -> List (S n) -> List n :=
     let _ := free (cons l1) (l2, c) in
     (l1, ls).
 
-Definition main : List 2 := Cons 1 (Cons 0 (Nil ())).
+Definition FreeList : (n : Nat) -> List n -> Unit := 
+  fun n => 
+    iter(
+      fun n => List n -> Unit,
+      fun ls => free nil ls,
+      fun n FreeN ls =>
+        let ls := Uncons n ls in
+        FreeN ls,
+      n).
+
+Definition main : Unit := 
+  let ls := Cons 1 (Cons 0 (Nil ())) in
+  FreeList 2 ls.
