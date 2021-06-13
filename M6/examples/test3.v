@@ -1,8 +1,6 @@
+(* length indexed Lists via linear pointers *)
 
 Definition Loc : Type := Nat.
-
-Definition Ptr : Type -> Linear := 
-  fun A => (x : Loc * [x |-> A]).
 
 Definition UL : Type := (Unit | Loc).
 Definition nil : Type := 
@@ -10,7 +8,6 @@ Definition nil : Type :=
 Definition cons : Loc -> Type := 
   fun l => (x : UL * Eq(x, right l, UL)).
 
-(* fucking ridiculous *)
 Definition LList : Nat -> Loc -> Linear := 
   fun n =>
     iter(
@@ -23,8 +20,13 @@ Definition LList : Nat -> Loc -> Linear :=
 Definition List : (n : Nat) -> Linear := 
   fun n => (l : Loc * LList n l).
  
-Definition Nil : List 0 := 
-  alloc nil (left (), refl(left (), UL)).
+Definition Nil : Unit -> List 0 := 
+  fun _ => alloc nil (left (), refl(left (), UL)).
 
-Definition main : Unit := 
-  free nil Nil.
+Definition Cons : (n : Nat) -> List n -> List (S n) :=
+  fun _ ls =>
+    let (l1, ls) := ls in
+    let (l2, c) := alloc (cons l1) (right l1, refl(right l1, UL)) in
+    (l2, (l1, (c, ls))).
+
+Definition main : Unit := ().

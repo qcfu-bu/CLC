@@ -7,7 +7,7 @@ open Eval
 open Format
 
 let _ =
-  let _ = is_debug := true in
+  let _ = Tcheck.is_debug := false in
   if Array.length Sys.argv < 1 then
     printf "input file expected\n"
   else

@@ -166,12 +166,12 @@ let rec pp fmt = function
     Format.fprintf fmt "@[@[let %s :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
       (name_of x) pp t pp b
   | Eq (t1, t2, _) ->
-    Format.fprintf fmt "@[%a ===@;<1 2>%a@]" pp t1 pp t2
+    Format.fprintf fmt "@[Eq(%a, %a)@]" pp t1 pp t2
   | Refl (t, ty) ->
-    Format.fprintf fmt "(refl %a %a)" pp t pp ty
+    Format.fprintf fmt "refl(%a, %a)" pp t pp ty
   | Ind (p, pf, t1, t2, eq, ty) ->
     Format.fprintf fmt 
-      "@[ind (%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
+      "@[ind(%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
       pp p pp pf pp t1 pp t2 pp eq pp ty
   | Tensor (ty, b) ->
     let x, b = unbind b in
@@ -211,7 +211,7 @@ let rec pp fmt = function
     loop 1 t
   | Iter (p, t1, t2, n) ->
     Format.fprintf fmt 
-      "@[iter (%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
+      "@[iter(%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
       pp p pp t1 pp t2 pp n
   | Channel -> Format.fprintf fmt "Channel"
   | Open -> Format.fprintf fmt "open"

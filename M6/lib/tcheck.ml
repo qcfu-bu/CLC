@@ -7,7 +7,7 @@ open Format
 
 let assert_msg cond msg = 
   if cond then ()
-  else failwith msg
+  else (prerr_endline msg; assert false)
 
 let is_debug = ref false
 
@@ -23,12 +23,12 @@ let sort_of_rig = function
   | Zero -> failwith "Non-Zero rig Expected"
 
 let debug pre_ctx t ty post_ctx msg=
-  if !is_debug then
-  printf "%s\n" msg;
-  printf "pre_ctx := %a@." pp pre_ctx;
-  printf "@[t  :=@;<1 2>%a@]@." Terms.pp t;
-  printf "@[ty :=@;<1 2>%a@]@." Terms.pp ty;
-  printf "post_ctx := %a@.@." pp post_ctx
+  if !is_debug then (
+    printf "%s\n" msg;
+    printf "pre_ctx := %a@." pp pre_ctx;
+    printf "@[t  :=@;<1 2>%a@]@." Terms.pp t;
+    printf "@[ty :=@;<1 2>%a@]@." Terms.pp ty;
+    printf "post_ctx := %a@.@." pp post_ctx)
 
 let rec infer_sort ctx ty =
   let ty_ty, ctx = infer (pure ctx) ty in
@@ -328,6 +328,26 @@ and check ctx t ty =
       | CoProd (_, ty2) ->
         check ctx t ty2
       | _ -> failwith "check InjR")
+    | LetIn (t, b) -> 
+      let x, b = unbind b in
+      let b = Ann (b, ty) in
+      let b = unbox (bind_var x (lift b)) in
+      let t_ty, t_ctx = infer ctx (LetIn (t, b)) in
+      let () = assert_msg (equal t_ty ty) 
+        (asprintf "check LetIn(t_ty := %a; ty := %a)" 
+          Terms.pp t_ty Terms.pp ty)
+      in
+      t_ctx
+    | LetPair (t, mb) -> 
+      let x, mb = unmbind mb in
+      let mb = Ann (mb, ty) in
+      let mb = unbox (bind_mvar x (lift mb)) in
+      let t_ty, t_ctx = infer ctx (LetPair (t, mb)) in
+      let () = assert_msg (equal t_ty ty) 
+        (asprintf "check Pair(t_ty := %a; ty := %a)" 
+          Terms.pp t_ty Terms.pp ty)
+      in
+      t_ctx
     | _ ->
       let t_ty, t_ctx = infer ctx t in
       let () = assert_msg (equal t_ty ty) 

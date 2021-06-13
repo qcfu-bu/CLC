@@ -98,7 +98,7 @@ let rec eval t =
   | Close -> t
   | Read -> t
   | Write -> t
-  | PtsTo _ -> t
+  | PtsTo (t, ty) -> PtsTo (eval t, eval ty)
   | Alloc -> t
   | Free -> t
   | Get -> t
