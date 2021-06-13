@@ -15,11 +15,11 @@ let _ =
     let ch = open_in fname in
     let t = parse_ch ch in
     let pre_ctx = empty in
-    printf "checking\n";
-    printf "t  := %a\n\n" Terms.pp t;
+    printf "checking@.";
+    printf "@[t  :=@;<1 2>%a@]@." Terms.pp t;
     let ty, post_ctx = infer pre_ctx t in
     let () = assert_msg (Context.same pre_ctx post_ctx) "Pre/Post Context" in
-    printf "complete\n";
+    printf "complete@.";
     printf "post_ctx := %a@." pp post_ctx;
-    printf "t  := %a\n" Terms.pp (eval t);
-    printf "ty := %a\n" Terms.pp (whnf ty)
+    printf "@[t  :=@;<1 2>%a@]@." Terms.pp (eval t);
+    printf "@[ty :=@;<1 2>%a@]@." Terms.pp (whnf ty);
