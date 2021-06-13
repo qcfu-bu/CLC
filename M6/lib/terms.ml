@@ -140,7 +140,7 @@ let rec pp fmt = function
   | Var x -> 
     Format.fprintf fmt "%s" (name_of x)
   | Ann (s, t) -> 
-    Format.fprintf fmt "(%a : %a)" pp s pp t
+    Format.fprintf fmt "@[(%a :@;<1 2>%a)]" pp s pp t
   | Type -> Format.fprintf fmt "Type"
   | Linear -> Format.fprintf fmt "Linear"
   | TyProd (ty, b) -> 
