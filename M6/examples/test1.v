@@ -1,3 +1,5 @@
+(* Capabilities are computationally irrelevant. *)
+
 Definition Loc : Type := Nat.
 
 Definition Ptr : Type -> Linear := 
@@ -12,5 +14,3 @@ Definition main : Nat :=
   let (n, c) := get Nat l c in
   let _ := free Nat l c in
   n.
-
-

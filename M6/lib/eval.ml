@@ -1,6 +1,7 @@
 open Bindlib
 open Terms
 open Equality
+open Format
 
 module Heap : sig
   type loc = int
@@ -46,14 +47,14 @@ let rec int_of_nat t =
   match t with
   | Zero -> 0
   | Succ t -> 1 + (int_of_nat t)
-  | _ -> failwith "non-nat value"
+  | _ -> failwith (asprintf "non-nat value(%a)" Terms.pp t)
 
 let rec spine t =
   match t with
   | App (t1, t2) -> spine t1 @ [t2]
   | _ -> [t]
 
-let rec eval t =
+and eval t =
   match t with
   | Var _ -> t
   | Ann (t, _) -> eval t
@@ -76,19 +77,20 @@ let rec eval t =
     match t1 with
     | Lambda b ->
       eval (subst b t2)
-    | App (Alloc, _) ->
-      let l = Heap.alloc t2 in
-      Pair (nat_of_int l, U)
-    | App (App(Free, _), l) ->
-      let _ = Heap.free (int_of_nat l) in
-      U
-    | App (App (Get, _), l) ->
-      let t = Heap.get (int_of_nat l) in
-      Pair (t, U)
-    | App (App (App (App (Set, _), _), l), _) ->
-      let _ = Heap.set (int_of_nat l) t2 in
-      U
-    | _ -> App (t1, eval t2))
+    | _ -> (
+      let sp = spine t1 in
+      match sp with
+      | [ Alloc; _ ] ->
+        let l = Heap.alloc t2 in
+        Pair (nat_of_int l, U)
+      | [ Free; _; l ] ->
+        Heap.free (int_of_nat l); U
+      | [ Get; _; l ] ->
+        let t = Heap.get (int_of_nat l) in
+        Pair (t, U)
+      | [ Set; _; _; l; _ ] ->
+        Heap.set (int_of_nat l) t2; U
+      | _ -> App (t1, t2)))
   | LetIn (t, b) ->
     let t = eval t in
     eval (subst b t)
