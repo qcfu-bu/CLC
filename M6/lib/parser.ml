@@ -23,9 +23,12 @@ let keywords = SSet.of_list [
   "O";
   "S";
   "iter";
-  "Channel";
-  "open";
-  "close";
+  "InChannel";
+  "OutChannel";
+  "open_in";
+  "open_out";
+  "close_in";
+  "close_out";
   "read";
   "write";
   "alloc";
@@ -315,26 +318,6 @@ and iter_parser () =
   let* _ = kw ")" in
   return (_Iter p t1 t2 n)
 
-and channel_parser () =
-  let* _ = kw "Channel" in
-  return _Channel
-
-and open_parser () =
-  let* _ = kw "open" in
-  return _Open
-
-and close_parser () =
-  let* _ = kw "close" in
-  return _Close
-
-and read_parser () =
-  let* _ = kw "read" in
-  return _Read
-
-and write_parser () = 
-  let* _ = kw "write" in
-  return _Write
-
 and ptsTo_parser () =
   let* _ = kw "[" in
   let* n = t_parser () in
@@ -386,11 +369,6 @@ and t0_parser () =
     succ_parser ();
     int_parser ();
     iter_parser ();
-    channel_parser ();
-    open_parser ();
-    close_parser ();
-    read_parser ();
-    write_parser ();
     ptsTo_parser ();
     alloc_parser ();
     free_parser ();

@@ -32,16 +32,11 @@ type t =
   | Succ    of t
   | Iter    of ty * t * t * t
   (* imperative *)
-  | Channel (* Linear *)
-  | Open    (* Nat -> Channel *)
-  | Close   (* Channel -> Unit *)
-  | Read    (* Channel -> Nat * Channel *)
-  | Write   (* Nat * Channel -> Channel *)
   | PtsTo   of t * ty (* Nat -> Type -> Linear *)
-  | Alloc   (* (A:Type) -> A -> Ptr A *)
-  | Free    (* (A:Type) -> Ptr A -> Unit *)
-  | Get     (* (A:Type) -> Ptr A -> (A * Ptr A) *)
-  | Set     (* (A:Type) -> (A * Ptr A) -> Ptr A *)
+  | Alloc      (* (A:Type) -> A -> Ptr A *)
+  | Free       (* (A:Type) -> Ptr A -> Unit *)
+  | Get        (* (A:Type) -> Ptr A -> (A * Ptr A) *)
+  | Set        (* (A:Type) -> (A * Ptr A) -> Ptr A *)
 
 and ty = t
 
@@ -82,11 +77,6 @@ let _Nat = box Nat
 let _Zero = box Zero
 let _Succ = box_apply (fun t -> Succ t)
 let _Iter = box_apply4 (fun ty t1 t2 t3 -> Iter (ty, t1, t2, t3))
-let _Channel = box Channel
-let _Open = box Open
-let _Close = box Close
-let _Read = box Read
-let _Write = box Write
 let _PtsTo = box_apply2 (fun t ty -> PtsTo (t, ty))
 let _Ptr ty =
   let x = mk "x" in
@@ -125,11 +115,6 @@ let rec lift = function
   | Succ t -> _Succ (lift t)
   | Iter (ty, t1, t2, t3) -> 
     _Iter (lift ty) (lift t1) (lift t2) (lift t3)
-  | Channel -> _Channel
-  | Open -> _Open
-  | Close -> _Close
-  | Read -> _Read
-  | Write -> _Write
   | PtsTo (t, ty) -> _PtsTo (lift t) (lift ty)
   | Alloc -> _Alloc
   | Free -> _Free
@@ -213,11 +198,6 @@ let rec pp fmt = function
     Format.fprintf fmt 
       "@[iter(%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
       pp p pp t1 pp t2 pp n
-  | Channel -> Format.fprintf fmt "Channel"
-  | Open -> Format.fprintf fmt "open"
-  | Close -> Format.fprintf fmt "close"
-  | Read -> Format.fprintf fmt "read"
-  | Write -> Format.fprintf fmt "write"
   | PtsTo (t, ty) -> 
     Format.fprintf fmt "@[[%a |->@;<1 2>%a]@]" pp t pp ty
   | Alloc -> Format.fprintf fmt "alloc"

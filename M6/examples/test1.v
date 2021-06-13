@@ -1,45 +1,16 @@
-(* Definition tyId : (A : Type) -> A -> A := 
-  fun A x => x.
+Definition Loc : Type := Nat.
 
-Definition lnId : (A : Linear) -> A -> A :=
-  fun A x => x.
+Definition Ptr : Type -> Linear := 
+  fun A => (x : Loc * [x |-> A]).
 
-Definition add : (Nat -> Nat -> Nat) := 
-  fun x y =>
-    iter(fun _ => Nat, y, fun _ x => S x, x). *)
+Definition nbox : Ptr Nat := (alloc Nat 1).
 
-Definition ch1 : Channel := open 0.
-
-Definition readClose : Channel -> Nat := 
-  fun ch =>
-    let (x, ch) := read ch in
-    let _ := close ch in
-    x.
-
-Definition main : (Nat * Nat) := 
-  let x := readClose ch1 in
-  (x, x).
+Definition main : Nat := 
+  let (l, c) := nbox in
+  let (n, c) := get Nat l c in
+  let c := set Nat Nat l c 2 in
+  let (n, c) := get Nat l c in
+  let _ := free Nat l c in
+  n.
 
 
-
-(* Definition ch2 : Channel := open 0.
-Definition ch3 : Channel := open 1.
-
-
-Definition readClose : Channel -> Nat := 
-  fun ch =>
-    let (n, ch) := read ch in
-    let _ : Unit := close ch in
-    n.
-
-Definition adversary : ((Channel -> Nat) -> (Channel * Channel) -> Nat) :=
-  fun f x =>
-    let (x1, x2) := x in
-    let n1 := f x1 in
-    let n2 := f x2 in
-    add n1 n2.
-
-Definition main : Unit := 
-  let n := adversary readClose (ch1, ch2) in
-  let ch3 := write (n, ch3) in
-  close ch3. *)

@@ -44,11 +44,6 @@ let rec aeq t1 t2 =
   | Succ t1, Succ t2 -> aeq t1 t2
   | Iter (ty1, t11, t12, t13), Iter (ty2, t21, t22, t23) ->
     aeq ty1 ty2 && aeq t11 t21 && aeq t12 t22 && aeq t13 t23
-  | Channel, Channel -> true
-  | Open, Open -> true
-  | Close, Close -> true
-  | Read, Read -> true
-  | Write, Write -> true
   | PtsTo (t1, ty1), PtsTo (t2, ty2) ->
     aeq t1 t2 && aeq ty1 ty2
   | Alloc, Alloc -> true
@@ -127,11 +122,6 @@ let rec whnf t =
     | Succ n ->
       whnf (App (App (t2, n), Iter (p, t1, t2, n)))
     | _ -> Iter (p, t1, t2, n))
-  | Channel -> t
-  | Open -> t
-  | Close -> t
-  | Read -> t
-  | Write -> t
   | PtsTo _ -> t
   | Alloc -> t
   | Free -> t
@@ -185,11 +175,6 @@ and equal t1 t2 =
     | Succ t1, Succ t2 -> equal t1 t2
     | Iter (ty1, t11, t12, t13), Iter (ty2, t21, t22, t23) ->
       equal ty1 ty2 && equal t11 t21 && equal t12 t22 && equal t13 t23
-    | Channel, Channel -> true
-    | Open, Open -> true
-    | Close, Close -> true
-    | Read, Read -> true
-    | Write, Write -> true
     | PtsTo (t1, ty1), PtsTo (t2, ty2) ->
       equal t1 t2 && equal ty1 ty2
     | Alloc, Alloc -> true

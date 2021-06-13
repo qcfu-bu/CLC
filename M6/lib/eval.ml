@@ -2,6 +2,57 @@ open Bindlib
 open Terms
 open Equality
 
+module Heap : sig
+  type loc = int
+  type heap
+  val alloc : t -> loc
+  val free : loc -> unit
+  val get : loc -> t
+  val set : loc -> t -> unit
+end =
+struct
+  type loc = int
+  type heap = t option array
+  let heap : heap = Array.make 4096 None
+  let stack = ref (List.init 4096 (fun x -> x))
+
+  let alloc t =  
+    match !stack with
+    | [] -> failwith "memory exhausted"
+    | x :: xs ->
+      heap.(x) <- Some t;
+      stack := xs;
+      x
+
+  let free l =
+    heap.(l) <- None;
+    stack := l :: !stack
+
+  let get l =
+    match heap.(l) with
+    | Some t -> t
+    | None -> failwith "cannot access memory location"
+
+  let set l t =
+    heap.(l) <- Some t
+end
+
+let rec nat_of_int n =
+  if n <= 0 
+  then Zero
+  else Succ (nat_of_int (n - 1))
+
+let rec int_of_nat t =
+  match t with
+  | Zero -> 0
+  | Succ t -> 1 + (int_of_nat t)
+  | _ -> failwith "non-nat value"
+
+let rec spine t =
+  match t with
+  | App (t1, t2) -> spine t1 @ [t2]
+  | _ -> [t]
+
 let rec eval t =
   match t with
   | Var _ -> t
@@ -17,17 +68,26 @@ let rec eval t =
     let x, b = unbind b in
     let ty = eval ty in
     let b = unbox (bind_var x (lift (eval b))) in
-    TyProd (ty, b)
-  | Lambda b -> 
-    let x, b = unbind b in
-    let b = unbox (bind_var x (lift (eval b))) in
-    Lambda b
+    LnProd (ty, b)
+  | Lambda _ -> t
   | App (t1, t2) -> (
     let t1 = eval t1 in
+    let t2 = eval t2 in
     match t1 with
     | Lambda b ->
-      let t2 = eval t2 in
       eval (subst b t2)
+    | App (Alloc, _) ->
+      let l = Heap.alloc t2 in
+      Pair (nat_of_int l, U)
+    | App (App(Free, _), l) ->
+      let _ = Heap.free (int_of_nat l) in
+      U
+    | App (App (Get, _), l) ->
+      let t = Heap.get (int_of_nat l) in
+      Pair (t, U)
+    | App (App (App (App (Set, _), _), l), _) ->
+      let _ = Heap.set (int_of_nat l) t2 in
+      U
     | _ -> App (t1, eval t2))
   | LetIn (t, b) ->
     let t = eval t in
@@ -93,11 +153,6 @@ let rec eval t =
     | Succ n ->
       eval (App (App (t2, n), Iter (p, t1, t2, n)))
     | _ -> Iter (p, t1, t2, n))
-  | Channel -> t
-  | Open -> t
-  | Close -> t
-  | Read -> t
-  | Write -> t
   | PtsTo (t, ty) -> PtsTo (eval t, eval ty)
   | Alloc -> t
   | Free -> t

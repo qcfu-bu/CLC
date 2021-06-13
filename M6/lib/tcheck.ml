@@ -252,19 +252,6 @@ and infer ctx t =
       let t2_ctx = check ctx t2 t2_ty in
       let n_ctx = check ctx n Nat in
       (whnf (App (p, n)), sum (sum t1_ctx t2_ctx) n_ctx))
-    | Channel -> (Linear, ctx)
-    | Open -> 
-      let ty = _Arrow _Nat _Channel in
-      (unbox ty, ctx)
-    | Close -> 
-      let ty = _Arrow _Channel _Unit in
-      (unbox ty, ctx)
-    | Read -> 
-      let ty = _Arrow _Channel (_Tuple _Nat _Channel) in
-      (unbox ty, ctx)
-    | Write ->
-      let ty = _Arrow (_Tuple _Nat _Channel) _Channel in
-      (unbox ty, ctx)
     | PtsTo (t, ty) ->
       let t_ctx = check ctx t Nat in
       let ty_ctx = check ctx ty Type in
@@ -339,7 +326,7 @@ and check ctx t ty =
       | ty -> 
         failwith
           (asprintf "@[check Lambda(@;<1 2>t := %a;@;<1 2>ty := %a)@]" 
-            Terms.pp (Eval.eval t) Terms.pp (Eval.eval ty)))
+            Terms.pp t Terms.pp ty))
     | Pair (t1, t2) -> (
       match whnf ty with
       | Tensor (ty, b) ->
@@ -381,7 +368,7 @@ and check ctx t ty =
       let t_ty, t_ctx = infer ctx t in
       let () = assert_msg (equal t_ty ty) 
         (asprintf "check(t := %a; t_ty := %a; ty := %a)" 
-          Terms.pp (Eval.eval t) Terms.pp (Eval.eval t_ty) Terms.pp (Eval.eval ty))
+          Terms.pp t Terms.pp t_ty Terms.pp ty)
       in
       t_ctx
   in
