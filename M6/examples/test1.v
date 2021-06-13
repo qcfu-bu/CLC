@@ -7,10 +7,12 @@ Definition Ptr : Type -> Linear :=
 
 Definition nbox : Ptr Nat := (alloc Nat 1).
 
-Definition main : Nat := 
+Definition main : (Nat * Nat) := 
   let (l, c) := nbox in
-  let (n, c) := get Nat l c in
+  let (m, c) := get Nat l c in
   let c := set Nat Nat l c 2 in
   let (n, c) := get Nat l c in
+  (* Variables m, n are full abstract, they cannot be proven equal.
+     let pf : Eq(m, n, Nat) := refl(n, Nat) in *)
   let _ := free Nat l c in
-  n.
+  (m, n).
