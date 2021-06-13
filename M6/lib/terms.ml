@@ -140,7 +140,7 @@ let rec pp fmt = function
   | Var x -> 
     Format.fprintf fmt "%s" (name_of x)
   | Ann (s, t) -> 
-    Format.fprintf fmt "@[(%a :@;<1 2>%a)]" pp s pp t
+    Format.fprintf fmt "@[(%a :@;<1 2>%a)@]" pp s pp t
   | Type -> Format.fprintf fmt "Type"
   | Linear -> Format.fprintf fmt "Linear"
   | TyProd (ty, b) -> 
@@ -160,7 +160,7 @@ let rec pp fmt = function
     Format.fprintf fmt "@[fun %s =>@;<1 2>%a@]"
       (name_of x) pp b
   | App (s, t) ->
-    Format.fprintf fmt "(%a)@;<1 2>%a" pp s pp t
+    Format.fprintf fmt "@[(%a)@;<1 2>%a@]" pp s pp t
   | LetIn (t, b) -> 
     let x, b = unbind b in
     Format.fprintf fmt "@[@[let %s :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
@@ -168,7 +168,7 @@ let rec pp fmt = function
   | Eq (t1, t2, _) ->
     Format.fprintf fmt "@[Eq(%a,@;<1 2>%a)@]" pp t1 pp t2
   | Refl (t, ty) ->
-    Format.fprintf fmt "refl(%a,@;<1 2> %a)" pp t pp ty
+    Format.fprintf fmt "@[refl(%a,@;<1 2> %a)@]" pp t pp ty
   | Ind (p, pf, t1, t2, eq, ty) ->
     Format.fprintf fmt 
       "@[ind(%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
