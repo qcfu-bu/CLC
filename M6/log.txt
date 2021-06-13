@@ -24,9 +24,39 @@ t  :=
          let (l2, c) :=
            ((alloc) (cons) l1) ((right l1), refl((right l1), UL))
          in (l2, (l1, (c, ls))) : (n : Nat) -> (List) n -> (List) (n +1))
-  in let main := (() : Unit) in main
+  in let main := (((Cons) 1) ((Cons) 0) (Nil) () : (List) 2) in main
 complete
 post_ctx := {
 }
-t  := ()
-ty := Unit
+t  :=
+  let (l1, ls) :=
+    let (l1, ls) :=
+      ((alloc) (x : (Unit | Nat) * Eq(x, (left ())))) ((left ()), refl(
+                                                      (left ()), (Unit | Nat)))
+    in
+    let (l2, c) :=
+      ((alloc) (x : (Unit | Nat) * Eq(x, (right l1)))) ((right l1), refl(
+                                                       (right l1), (Unit | Nat)))
+    in (l2, (l1, (c, ls)))
+  in
+  let (l2, c) :=
+    ((alloc) (x : (Unit | Nat) * Eq(x, (right l1)))) ((right l1), refl(
+                                                     (right l1), (Unit | Nat)))
+  in (l2, (l1, (c, ls)))
+ty :=
+  (l : (Nat : Type) * (((fun n =>
+                           iter(fun _ => (Nat : Type) -> Linear,
+                             fun l =>
+                               [l |-> ((x : ((Unit | (Nat : Type)) : Type) * 
+                                       Eq(x, (left ()))) : Type)],
+                             fun n =>
+                               fun LListn =>
+                                 fun l =>
+                                   (l' : (Nat : Type) * ([l |-> ((fun l =>
+                                                                    (x : (
+                                                                    (
+                                                                    Unit | (Nat : Type)) : Type) * 
+                                                                    Eq(x, 
+                                                                    (right l))) : 
+                                                         (Nat : Type) -> Type)) l'] * (LListn) l')),
+                             n) : Nat -> (Nat : Type) -> Linear)) 2) l)

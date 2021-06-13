@@ -29,4 +29,4 @@ Definition Cons : (n : Nat) -> List n -> List (S n) :=
     let (l2, c) := alloc (cons l1) (right l1, refl(right l1, UL)) in
     (l2, (l1, (c, ls))).
 
-Definition main : Unit := ().
+Definition main : List 2 := Cons 1 (Cons 0 (Nil ())).
