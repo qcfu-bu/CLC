@@ -3,10 +3,8 @@
 Definition Loc : Type := Nat.
 
 Definition UL : Type := (Unit | Loc).
-Definition nil : Type := 
-  (x : UL * Eq(x, left (), UL)).
-Definition cons : Loc -> Type := 
-  fun l => (x : UL * Eq(x, right l, UL)).
+Definition nil : Type := (x : UL * Eq(x, left (), UL)).
+Definition cons : Loc -> Type := fun l => (x : UL * Eq(x, right l, UL)).
 
 Definition LList : Nat -> Loc -> Linear := 
   fun n =>
