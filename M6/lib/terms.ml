@@ -121,7 +121,20 @@ let rec lift = function
   | Get -> _Get
   | Set -> _Set
 
-let rec pp fmt = function
+let rec spine t = 
+  match t with
+  | Lambda b ->
+    let x, b = unbind b in
+    let xs, t = spine b in
+    (x :: xs, t)
+  | _ -> ([], t)
+
+let rec pp fmt t = 
+  let pp_aux fmt =
+    List.iter (fun x -> 
+      Format.fprintf fmt "%s " (name_of x))
+  in
+  match t with
   | Var x -> 
     Format.fprintf fmt "%s" (name_of x)
   | Ann (s, t) -> 
@@ -142,8 +155,9 @@ let rec pp fmt = function
       (name_of x) pp ty pp b
   | Lambda b ->
     let x, b = unbind b in
-    Format.fprintf fmt "@[fun %s =>@;<1 2>%a@]"
-      (name_of x) pp b
+    let xs, b = spine b in
+    Format.fprintf fmt "@[fun %s %a=>@;<1 2>%a@]"
+      (name_of x) pp_aux xs pp b
   | App (s, t) ->
     Format.fprintf fmt "@[(%a)@;<1 2>%a@]" pp s pp t
   | LetIn (t, b) -> 

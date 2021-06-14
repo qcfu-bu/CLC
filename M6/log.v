@@ -1,81 +1,32 @@
 checking
 t  :=
-           let Loc := (Nat : Type) in
-           let null := (Unit : Type) in
-           let box :=
-             (fun A => fun l => (a : A * (l' : Loc * Eq(l, l'))) :
-               Type -> Loc -> Type)
-           in
-           let LList :=
-             (fun A =>
-                fun n =>
-                  iter(fun _ => Loc -> Linear, fun l => [l |-> null],
-                    fun n =>
-                      fun LListN =>
-                        fun l =>
-                          (l' : Loc * ([l |-> ((box) A) l'] * (LListN) l')),
-                    n) :
-               Type -> Nat -> Loc -> Linear)
-           in
-           let List :=
-             (fun A => fun n => (l : Loc * (((LList) A) n) l) :
-               Type -> (n : Nat) -> Linear)
-           in
-           let Nil :=
-             (fun A => ((alloc) null) () : (A : Type) -> ((List) A) 0)
-           in
-           let Cons :=
-             (fun A =>
-                fun a =>
-                  fun _ =>
-                    fun ls =>
-                      let (l1, ls) := ls in
-                      let (l2, c) :=
-                        ((alloc) ((box) A) l1) (a, (l1, refl(l1,  Loc)))
-                      in (l2, (l1, (c, ls))) :
-               (A : Type) ->
-                 A -> (n : Nat) -> ((List) A) n -> ((List) A) (n +1))
-           in
-           let Uncons :=
-             (fun A =>
-                fun _ =>
-                  fun ls =>
-                    let (l2, ls) := ls in
-                    let (l1, ls) := ls in
-                    let (c, ls) := ls in
-                    let (bx, c) := (((get) ((box) A) l1) l2) c in
-                    let _ := (((free) ((box) A) l1) l2) c in
-                    let (a, _) := bx in (a, (l1, ls)) :
-               (A : Type) ->
-                 (n : Nat) -> ((List) A) (n +1) -> (A * ((List) A) n))
-           in
-           let MakeList :=
-             (fun A =>
-                fun a =>
-                  fun n =>
-                    iter(fun n => ((List) A) n, (Nil) A,
-                      fun n => fun lsN => ((((Cons) A) a) n) lsN, n) :
-               (A : Type) -> A -> (n : Nat) -> ((List) A) n)
-           in
-           let FreeList :=
-             (fun A =>
-                fun n =>
-                  iter(fun n => ((List) A) n -> Unit,
-                    fun ls => let (l, ls) := ls in (((free) null) l) ls,
-                    fun n =>
-                      fun FreeN =>
-                        fun ls =>
-                          let (_, ls) := (((Uncons) A) n) ls in (FreeN) ls,
-                    n) :
-               (A : Type) -> (n : Nat) -> ((List) A) n -> Unit)
-           in
-           let main :=
-             (let x := (((MakeList) Nat) 1) 10 in
-              let _ := (((FreeList) Nat) 10) x in () : Unit)
-           in main
+  let Loc := (Nat : Type) in
+  let Ptr := (fun A => (x : Loc * [x |-> A]) : Type -> Linear) in
+  let Alloc := (fun A x => ((alloc) A) x : (A : Type) -> A -> (Ptr) A) in
+  let Get :=
+    (fun A ptr =>
+       let (l, c) := ptr in let (x, c) := (((get) A) l) c in (x, (l, c)) :
+      (A : Type) -> (Ptr) A -> (A * (Ptr) A))
+  in
+  let Set :=
+    (fun A ptr x =>
+       let (l, c) := ptr in let c := (((((set) A) A) l) c) x in (l, c) :
+      (A : Type) -> (Ptr) A -> A >> (Ptr) A)
+  in
+  let Free :=
+    (fun A ptr => let (l, c) := ptr in (((free) A) l) c :
+      (A : Type) -> (Ptr) A -> Unit)
+  in
+  let main :=
+    (let ptr := ((Alloc) Nat) 1 in
+     let (m, ptr) := ((Get) Nat) ptr in
+     let ptr := (((Set) Nat) ptr) 2 in
+     let (n, ptr) := ((Get) Nat) ptr in let _ := ((Free) Nat) ptr in (m, n) :
+      (Nat * Nat))
+  in main
 complete
 post_ctx := { }
-ty := Unit
+ty := (Nat * Nat)
 evaluate
-t  := ()
+t  := (1, 2)
 heap := [ ]
