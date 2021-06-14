@@ -14,7 +14,7 @@ Definition Get : (A : Type) -> Ref A -> (A * Ref A) :=
     let (x, c) := get A l c in
     (x, (l, c)).
 
-(* Subtlety in arrow type of codomain.
+(* Subtlty wrong in arrow type of codomain.
    Definition Assign : (A : Type) -> Ref A -> A -> Ref A := 
      fun A ref _ =>
        let (l, c) := ref in
