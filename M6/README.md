@@ -124,6 +124,7 @@ The let-binding rule is deceptively difficult. A proper formalization will
 likely have several let binding rules to resolve different use cases.
 
 ## References
+* https://dl.acm.org/doi/10.5555/788018.788831
 * https://link.springer.com/chapter/10.1007/3-540-58027-1_24
 * https://link.springer.com/chapter/10.1007/3-540-52335-9_47
 * https://link.springer.com/article/10.1007/BF01211308
