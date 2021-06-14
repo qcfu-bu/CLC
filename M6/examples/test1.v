@@ -30,7 +30,7 @@ Definition Free : (A : Type) -> Ref A -> Unit :=
   fun A ref => 
     let (l, c) := ref in free A l c.
 
-Definition main : (Nat * Nat) := 
+Definition main : (Nat * (Nat * Nat)) := 
   let ref := New Nat 1 in
   let (m, ref) := Get Nat ref in
   let ref := Assign Nat ref 2 in
@@ -38,4 +38,4 @@ Definition main : (Nat * Nat) :=
   (* Variables m, n are fully abstract, they cannot be proven equal.
      let pf : Eq(m, n, Nat) := refl(n, Nat) in *)
   let _ := Free Nat ref in
-  (m, n).
+  (m, (n, n)).

@@ -21,12 +21,12 @@ t  :=
     (let ref := ((New) Nat) 1 in
      let (m, ref) := ((Get) Nat) ref in
      let ref := (((Assign) Nat) ref) 2 in
-     let (n, ref) := ((Get) Nat) ref in let _ := ((Free) Nat) ref in (m, n) :
-      (Nat * Nat))
+     let (n, ref) := ((Get) Nat) ref in
+     let _ := ((Free) Nat) ref in (m, (n, n)) : (Nat * (Nat * Nat)))
   in main
 complete
 post_ctx := { }
-ty := (Nat * Nat)
+ty := (Nat * (Nat * Nat))
 evaluate
-t  := (1, 2)
+t  := (1, (2, 2))
 heap := [ ]
