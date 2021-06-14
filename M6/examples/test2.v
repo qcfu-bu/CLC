@@ -52,7 +52,8 @@ Definition FreeList : (A : Type) -> (n : Nat) -> List A n -> Unit :=
         FreeN ls,
       n).
 
-Definition main : Unit := 
-  let x := MakeList Nat 1 10 in
-  let _ := FreeList Nat 10 x in 
-  ().
+Definition main : Nat := 
+  let xs := MakeList Nat 3 10 in
+  let (x, xs) := Uncons Nat 9 xs in
+  let _ := FreeList Nat 9 xs in 
+  x.
