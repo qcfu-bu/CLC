@@ -9,6 +9,7 @@
   - 0 binding
 * LNLD
   - sort separation between modalities
+  - Linear has sort Type
 * L3
   - linear capabilities
 * ATS
