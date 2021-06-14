@@ -58,10 +58,9 @@ let is_pure ctx =
     ctx
 
 let pp fmt ctx =
-  fprintf fmt "{@?";
-  iter (fun x (t, q1, q2) -> 
-    fprintf fmt "@[<v 0>@;<0 2>@[%s :%a@;<1 2>(%a)::%a@]@]@?" 
-      (name_of x) Rig.pp q1 pp t Rig.pp q2)
-    ctx;
-  fprintf fmt "\n}@?";
-
+  let pp_aux fmt ctx =
+    VarMap.iter (fun x (t, q1, q2) -> 
+      fprintf fmt "@[<v 0>@;<0 2>@[%s :%a@;<1 2>(%a)::%a@]@]@?" 
+        (name_of x) Rig.pp q1 pp t Rig.pp q2) ctx
+  in
+  fprintf fmt "@[<hv>{@?@[%a@;<1 0>@]}@]@?" pp_aux ctx

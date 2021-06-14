@@ -6,10 +6,12 @@ open Format
 module Heap : sig
   type loc = int
   type heap
+  val heap : heap
   val alloc : t -> loc
   val free : loc -> unit
   val get : loc -> t
   val set : loc -> t -> unit
+  val pp : formatter -> heap -> unit
 end =
 struct
   type loc = int
@@ -36,6 +38,17 @@ struct
 
   let set l t =
     heap.(l) <- Some t
+
+  let pp fmt h =
+    let pp_aux fmt h =
+      Array.iteri (fun l ty_opt -> 
+        match ty_opt with
+        | Some ty ->
+          fprintf fmt "@[<v 0>@;<0 2>@[%d :=@;<1 2>%a@]@]@?" 
+            l Terms.pp ty
+        | _ -> ()) h
+    in
+  fprintf fmt "@[<hv>[@?@[%a@;<1 0>@]]@]@?" pp_aux h
 end
 
 let rec nat_of_int n =
