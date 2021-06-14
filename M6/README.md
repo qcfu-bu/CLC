@@ -12,6 +12,7 @@
   - Linear has sort Type
 * L3
   - linear capabilities
+  - computational irrelevance of capabilities
 * ATS
   - implicit modality conversions via sorts
   - arrow modalities
