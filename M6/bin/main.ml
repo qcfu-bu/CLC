@@ -20,7 +20,7 @@ let _ =
     let () = assert_msg (Context.same pre_ctx post_ctx) "Pre/Post Context" in
     printf "complete@.";
     printf "post_ctx := %a@." pp post_ctx;
-    printf "@[ty :=@;<1 2>%a@]@." Terms.pp (eval ty);
+    printf "@[ty :=@;<1 2>%a@]@." Terms.pp (nf ty);
     printf "evaluate@.";
     printf "@[t  :=@;<1 2>%a@]@." Terms.pp (eval t);
     printf "heap := %a@." Heap.pp Heap.heap;

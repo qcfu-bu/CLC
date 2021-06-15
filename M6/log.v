@@ -18,15 +18,13 @@ t  :=
       (A : Type) -> (Ref) A -> Unit)
   in
   let main :=
-    (let ref := ((New) Nat) 1 in
-     let (m, ref) := ((Get) Nat) ref in
-     let ref := (((Assign) Nat) ref) 2 in
-     let (n, ref) := ((Get) Nat) ref in
-     let _ := ((Free) Nat) ref in (m, (n, n)) : (Nat * (Nat * Nat)))
+    (7 :
+      let ref := ((New) Nat) 2 in
+      let ref := (((Assign) Nat) ref) 1 in let _ := ((Free) Nat) ref in Nat)
   in main
 complete
 post_ctx := { }
-ty := (Nat * (Nat * Nat))
+ty := Nat
 evaluate
-t  := (1, (2, 2))
+t  := 7
 heap := [ ]

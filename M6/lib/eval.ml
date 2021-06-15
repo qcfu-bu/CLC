@@ -173,3 +173,99 @@ and eval t =
   | Free -> t
   | Get -> t
   | Set -> t
+
+let rec nf t =
+  match t with
+  | Var _ -> t
+  | Ann (t, _) -> nf t
+  | Type -> t
+  | Linear -> t
+  | TyProd (ty, b) -> 
+    let x, b = unbind b in
+    let ty = nf ty in
+    let b = unbox (bind_var x (lift (nf b))) in
+    TyProd (ty, b)
+  | LnProd (ty, b) ->
+    let x, b = unbind b in
+    let ty = nf ty in
+    let b = unbox (bind_var x (lift (nf b))) in
+    LnProd (ty, b)
+  | Lambda b -> 
+    let x, b = unbind b in
+    let b = unbox (bind_var x (lift (nf b))) in
+    Lambda b
+  | App (t1, t2) -> (
+    let t1 = nf t1 in
+    let t2 = nf t2 in
+    match t1 with
+    | Lambda b -> nf (subst b t2)
+    | _ -> App (t1, t2))
+  | LetIn (t, b) ->
+    let t = nf t in
+    nf (subst b t)
+  | Eq (t1, t2, ty) -> Eq (nf t1, nf t2, nf ty)
+  | Refl (t, ty) -> Refl (nf t, nf ty)
+  | Ind (p, pf, t1, t2, eq, ty) -> (
+    let p = nf p in
+    let pf = nf pf in
+    let t1 = nf t1 in
+    let t2 = nf t2 in
+    let eq = nf eq in
+    let ty = nf ty in
+    match eq with
+    | Refl (t3, eq_ty) ->
+      if (equal t1 t3 && equal t2 t3 && equal ty eq_ty)
+      then nf (App (pf, t3))
+      else Ind (p, pf, t1, t2, eq, ty)
+    | _ -> Ind (p, pf, t1, t2, eq, ty))
+  | Tensor (ty, b) -> 
+    let x, b = unbind b in
+    let ty = nf ty in
+    let b = unbox (bind_var x (lift (nf b))) in
+    Tensor (ty, b)
+  | Pair (t1, t2) ->
+    let t1 = nf t1 in
+    let t2 = nf t2 in
+    Pair (t1, t2)
+  | LetPair (t, mb) -> (
+    let t = nf t in
+    match t with
+    | Pair (t1, t2) ->
+      nf (msubst mb [| t1; t2 |])
+    | _ -> 
+      let occurs = mbinder_occurs mb in
+      if Array.for_all (fun x -> not x) occurs then
+        nf (snd (unmbind mb))
+      else 
+        let mx, mb = unmbind mb in
+        let mb = unbox (bind_mvar mx (lift (nf mb))) in
+        LetPair (t, mb))
+  | CoProd (ty1, ty2) -> CoProd (nf ty1, nf ty2)
+  | InjL t -> InjL (nf t)
+  | InjR t -> InjR (nf t)
+  | Case (t, b1, b2) -> (
+    let t = nf t in
+    match t with
+    | InjL t -> nf (subst b1 t)
+    | InjR t -> nf (subst b2 t)
+    | _ -> Case (t, b1, b2))
+  | Unit -> t
+  | U -> t
+  | Nat -> t
+  | Zero -> t
+  | Succ t -> Succ (nf t)
+  | Iter (p, t1, t2, n) -> (
+    let p = nf p in
+    let t1 = nf t1 in
+    let t2 = nf t2 in
+    let n = nf n in
+    match n with
+    | Zero -> nf t1
+    | Succ n ->
+      nf (App (App (t2, n), Iter (p, t1, t2, n)))
+    | _ -> Iter (p, t1, t2, n))
+  | PtsTo (t, ty) -> PtsTo (nf t, nf ty)
+  | Alloc -> t
+  | Free -> t
+  | Get -> t
+  | Set -> t
