@@ -47,7 +47,6 @@ type top =
   | Datype of tcons * top
 and tpbinder = (t, top) binder
 
-
 let rec equal_p0 p1 p2 =
   match p1, p2 with
   | P0Rel, P0Rel -> true
@@ -63,18 +62,30 @@ let rec equal_p0 p1 p2 =
     with _ -> false)
   | _ -> false
 
-let rec mt_of_pt0 p0 t =
+and pp_p0 fmt = function
+  | P0Rel -> fprintf fmt "P0Rel"
+  | P0DCons (id, _) ->
+    fprintf fmt "P0DCons %a" Id.pp id
+  | P0TCons (id, _) ->
+    fprintf fmt "P0TCons %a" Id.pp id
+
+
+and mt_of_pt0 p0 t =
   match p0, t with
   | P0Rel, _ -> [| t |]
-  | P0TCons (_, ps), TCons (_, ts) ->
-    List.fold_left2 
-      (fun acc p t -> Array.append acc (mt_of_pt0 p t)) [| |] ps ts
-  | P0DCons (_, ps), DCons (_, ts) ->
-    List.fold_left2 
-      (fun acc p t -> Array.append acc (mt_of_pt0 p t)) [| |] ps ts
+  | P0TCons (id1, ps), TCons (id2, ts) ->
+    if Id.equal id1 id2 then
+      List.fold_left2 
+        (fun acc p t -> Array.append acc (mt_of_pt0 p t)) [| |] ps ts
+    else failwith "mt_of_pt0"
+  | P0DCons (id1, ps), DCons (id2, ts) ->
+    if Id.equal id1 id2 then
+      List.fold_left2 
+        (fun acc p t -> Array.append acc (mt_of_pt0 p t)) [| |] ps ts
+    else failwith "mt_of_pt0"
   | _ -> failwith "mt_of_pt0"
 
-let rec mvar_of_p = function
+and mvar_of_p = function
   | PVar x -> (P0Rel, [| x |])
   | PTCons (id, ps) ->
     let ps0, m =
@@ -95,7 +106,7 @@ let rec mvar_of_p = function
     in
     (P0DCons (id, List.rev ps0), m)
 
-let rec p_of_mvar p0 m =
+and p_of_mvar p0 m =
   match p0 with
   | P0Rel ->
     let x = m.(0) in
@@ -120,31 +131,161 @@ let rec p_of_mvar p0 m =
     in
     (PDCons (id, List.rev ps), m)
 
-let bind_p p tb =
+and bind_p p tb =
   let p0, m = mvar_of_p p in
   let mb = bind_mvar m tb in
   box_apply (fun mb -> (p0, mb)) mb
 
-let unbind_p pb =
+and unbind_p pb =
   let p0, mb = pb in
   let m, t = unmbind mb in
   let p, _ = p_of_mvar p0 m in
   (p, t)
 
-let subst_p pb t =
+and subst_p pb t =
   let p0, mb = pb in
   let m = mt_of_pt0 p0 t in
-  msubst mb m
+  let t = msubst mb m in
+  t
 
-let box_binder_p f pb =
+and box_binder_p f pb =
   let p0, mb = pb in
   let mb = box_mbinder f mb in
   box_apply (fun mb -> (p0, mb)) mb
 
-let eq_binder_p f pb1 pb2 =
+and eq_binder_p f pb1 pb2 =
   let p1, mb1 = pb1 in
   let p2, mb2 = pb2 in
   equal_p0 p1 p2 && eq_mbinder f mb1 mb2
+
+and pp_v fmt x = fprintf fmt "%s_%d" (name_of x) (uid_of x)
+
+and pp_p fmt = function
+  | PVar x -> fprintf fmt "%a" pp_v x
+  | PTCons (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps ps
+  | PDCons (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps ps
+
+and pp_ps fmt = function
+  | p :: [] -> fprintf fmt "%a" pp_p p
+  | p :: ps -> fprintf fmt "@[%a@;<1 2>%a@]" pp_p p pp_ps ps
+  | _ -> ()
+
+and spine t = 
+  match t with
+  | Lambda b ->
+    let x, b = unbind_p b in
+    let xs, t = spine b in
+    (x :: xs, t)
+  | _ -> ([], t)
+
+and pp fmt t = 
+  let pp_aux fmt =
+    List.iter (fun x -> 
+      fprintf fmt "%a " pp_p x)
+  in
+  match t with
+  | Var x -> 
+    fprintf fmt "%a" pp_v x
+  | Ann (s, t) -> 
+    fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp s pp t
+  | Type -> fprintf fmt "Type"
+  | Linear -> fprintf fmt "Linear"
+  | TyProd (ty, b) -> 
+    let x, b = unbind b in
+    if (name_of x = "_") 
+    then fprintf fmt "@[%a ->@;<1 2>%a@]" pp ty pp b
+    else fprintf fmt "@[@[(%a :@;<1 2>%a) ->@]@;<1 2>%a@]"
+      pp_v x pp ty pp b
+  | LnProd (ty, b) -> 
+    let x, b = unbind b in
+    if (name_of x = "_") 
+    then fprintf fmt "@[%a >>@;<1 2>%a@]" pp ty pp b
+    else fprintf fmt "@[@[(%a :@;<1 2>%a) >>@]@;<1 2>%a@]"
+      pp_v x pp ty pp b
+  | Lambda b ->
+    let p, b = unbind_p b in
+    let ps, b = spine b in
+    fprintf fmt "@[fun %a %a=>@;<1 2>%a@]"
+      pp_p p pp_aux ps pp b
+  | Fix b ->
+    let x, b = unbind b in
+    let ps, b = spine b in
+    fprintf fmt "@[fix %a %a=>@;<1 2>%a@]"
+      pp_v x pp_aux ps pp b
+  | App (s, t) ->
+    fprintf fmt "@[App((%a)@;<1 2>%a)@]" pp s pp t
+  | LetIn (t, b) -> 
+    let p, b = unbind_p b in
+    fprintf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
+      pp_p p pp t pp b
+  | TCons (id, ts) -> (
+    match ts with
+    | [] -> fprintf fmt "%a" Id.pp id
+    | _ -> fprintf fmt "@[TCons(%a (%a))@]" Id.pp id pp_ts ts)
+  | DCons (id, ts) -> (
+    match ts with
+    | [] -> fprintf fmt "%a" Id.pp id
+    | _ -> fprintf fmt "@[DCons(%a (%a))@]" Id.pp id pp_ts ts)
+  | Match (t, mt, cls) ->
+    fprintf fmt "@[<v 0>@[match %a @[%a@]with@]@;<1 0>@[%a@]end@]"
+      pp t pp_mt mt pp_cls cls
+  | Axiom (id, _) ->
+    fprintf fmt "%a" Id.pp id
+
+and pp_ts fmt = function
+  | t :: [] -> fprintf fmt "%a" pp t
+  | t :: ts -> fprintf fmt "@[%a,@;<1 2>%a@]" pp t pp_ts ts
+  | _ -> ()
+
+and pp_mt fmt = function
+  | Some mt ->
+    let x, pb = unbind mt in
+    let p, b = unbind_p pb in
+    if (name_of x = "_")
+    then fprintf fmt "in %a return %a" pp_p p pp b
+    else fprintf fmt "as %a in %a return %a" pp_v x pp_p p pp b
+  | None -> ()
+
+and pp_cl fmt pb =
+  let p, t = unbind_p pb in
+  fprintf fmt "@[| %a =>@;<1 2>%a@]" pp_p p pp t
+
+and pp_cls fmt = function
+  | cl :: cls ->
+    fprintf fmt "@[<v 0>%a@;<1 0>%a@]" pp_cl cl pp_cls cls
+  | _ -> ()
+
+let rec pp_top fmt = function
+  | Empty -> ()
+  | Define (t, tp) ->
+    let x, tp = unbind tp in
+    fprintf fmt "@[Definition %a :=@;<1 2>%a.@.@.%a@]" 
+      pp_v x pp t pp_top tp
+  | Datype (dcs, tp) ->
+    let TConstr (id, ts, cs) = dcs in
+    fprintf fmt "@[Inductive %a : %a :=@.%a@.@.%a@]" 
+      Id.pp id pp_tscope ts pp_dcons cs pp_top tp
+    
+and pp_tscope fmt = function
+  | Base t -> fprintf fmt "Base(%a)" pp t
+  | Bind (ty, b) ->
+    let x, b = unbind b in
+    if (name_of x = "_") 
+    then fprintf fmt "@[Bind(%a ->@;<1 2>%a)@]" pp ty pp_tscope b
+    else fprintf fmt "@[@[Bind((%a :@;<1 2>%a) ->@]@;<1 2>%a)@]"
+      pp_v x pp ty pp_tscope b
+
+and pp_dcons fmt = function
+  | c :: [] ->
+    let DConstr (id, ts) = c in
+    fprintf fmt "@[| %a : %a.@]" 
+      Id.pp id pp_tscope ts
+  | c :: cs ->
+    let DConstr (id, ts) = c in
+    fprintf fmt "@[<v 0>| %a : %a@;<1 0>%a@]" 
+      Id.pp id pp_tscope ts pp_dcons cs
+  | _ -> ()
+
 
 let mk = new_var (fun x -> Var x)
 let __ = mk "_"
@@ -212,108 +353,3 @@ let rec lift = function
     _Match (lift t) (box_opt (box_binder (box_binder_p lift)) opt) 
                     (box_map (box_binder_p lift) pbs)
   | Axiom (id, t) -> _Axiom id (lift t)
-
-
-let rec pp_p fmt = function
-  | PVar x -> fprintf fmt "%s_%d" (name_of x) (uid_of x)
-  | PTCons (id, ps) ->
-    fprintf fmt ""
-  
-
-(* let rec spine t = 
-  match t with
-  | Lambda b ->
-    let x, b = unbind_p b in
-    let xs, t = spine b in
-    (x :: xs, t)
-  | _ -> ([], t)
-
-let rec pp fmt t = 
-  let pp_aux fmt =
-    List.iter (fun x -> 
-      Format.fprintf fmt "%s " (name_of x))
-  in
-  match t with
-  | Var x -> 
-    Format.fprintf fmt "%s" (name_of x)
-  | Ann (s, t) -> 
-    Format.fprintf fmt "@[(%a :@;<1 2>%a)@]" pp s pp t
-  | Type -> Format.fprintf fmt "Type"
-  | Linear -> Format.fprintf fmt "Linear"
-  | TyProd (ty, b) -> 
-    let x, b = unbind b in
-    if (name_of x = "_") 
-    then Format.fprintf fmt "@[%a ->@;<1 2>%a@]" pp ty pp b
-    else Format.fprintf fmt "@[@[(%s :@;<1 2>%a) ->@]@;<1 2>%a@]"
-      (name_of x) pp ty pp b
-  | LnProd (ty, b) -> 
-    let x, b = unbind b in
-    if (name_of x = "_") 
-    then Format.fprintf fmt "@[%a >>@;<1 2>%a@]" pp ty pp b
-    else Format.fprintf fmt "@[@[(%s :@;<1 2>%a) >>@]@;<1 2>%a@]"
-      (name_of x) pp ty pp b
-  | Lambda b ->
-    let x, b = unbind b in
-    let xs, b = spine b in
-    Format.fprintf fmt "@[fun %s %a=>@;<1 2>%a@]"
-      (name_of x) pp_aux xs pp b
-  | App (s, t) ->
-    Format.fprintf fmt "@[(%a)@;<1 2>%a@]" pp s pp t
-  | LetIn (t, b) -> 
-    let x, b = unbind b in
-    Format.fprintf fmt "@[@[let %s :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
-      (name_of x) pp t pp b
-  | Eq (t1, t2, _) ->
-    Format.fprintf fmt "@[Eq(%a,@;<1 2>%a)@]" pp t1 pp t2
-  | Refl (t, ty) ->
-    Format.fprintf fmt "@[refl(%a,@;<1 2> %a)@]" pp t pp ty
-  | Ind (p, pf, t1, t2, eq, ty) ->
-    Format.fprintf fmt 
-      "@[ind(%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
-      pp p pp pf pp t1 pp t2 pp eq pp ty
-  | Tensor (ty, b) ->
-    let x, b = unbind b in
-    if (name_of x = "_") then
-      Format.fprintf fmt "@[(%a *@;<1 2>%a)@]" pp ty pp b
-    else
-      Format.fprintf fmt "@[(%s : %a *@;<1 2>%a)@]" (name_of x) pp ty pp b
-  | Pair (t1, t2) ->
-    Format.fprintf fmt "@[(%a, %a)@]" pp t1 pp t2
-  | LetPair (t, mb) ->
-    let x, mb = unmbind mb in
-    let x1 = x.(0) in
-    let x2 = x.(1) in
-    Format.fprintf fmt "@[@[let (%s, %s) :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
-      (name_of x1) (name_of x2) pp t pp mb
-  | CoProd (ty1, ty2) ->
-    Format.fprintf fmt "@[(%a |@;<1 2>%a)@]" pp ty1 pp ty2
-  | InjL t -> 
-    Format.fprintf fmt "@[(left %a)@]" pp t
-  | InjR t -> 
-    Format.fprintf fmt "@[(right %a)@]" pp t
-  | Case (t, b1, b2) ->
-    let x1, b1 = unbind b1 in
-    let x2, b2 = unbind b2 in
-    Format.fprintf fmt "@[case %a of@;<1; 0> %s => %a@;<1; 0>|%s => %a]"
-      pp t (name_of x1) pp b1 (name_of x2) pp b2
-  | Unit -> Format.fprintf fmt "@[Unit@]"
-  | U -> Format.fprintf fmt "()"
-  | Nat -> Format.fprintf fmt "Nat"
-  | Zero -> Format.fprintf fmt "0"
-  | Succ t -> 
-    let rec loop i = function
-      | Succ t -> loop (i + 1) t
-      | Zero -> Format.fprintf fmt "%d" i
-      | t -> Format.fprintf fmt "(%a +1)" pp t
-    in
-    loop 1 t
-  | Iter (p, t1, t2, n) ->
-    Format.fprintf fmt 
-      "@[iter(%a,@;<1 2>%a,@;<1 2>%a,@;<1 2>%a)@]"
-      pp p pp t1 pp t2 pp n
-  | PtsTo (t, ty) -> 
-    Format.fprintf fmt "@[[%a |->@;<1 2>%a]@]" pp t pp ty
-  | Alloc -> Format.fprintf fmt "alloc"
-  | Free -> Format.fprintf fmt "free"
-  | Get -> Format.fprintf fmt "get"
-  | Set -> Format.fprintf fmt "set" *)

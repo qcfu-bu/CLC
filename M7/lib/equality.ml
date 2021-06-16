@@ -59,11 +59,11 @@ let rec whnf t =
     let t = whnf t in
     let opt = 
       List.fold_left 
-        (fun opt p -> 
+        (fun opt pb -> 
           match opt with
           | Some _ -> opt
           | None ->
-            try Some (subst_p p t)
+            try Some (subst_p pb t)
             with _ -> None) 
         None ps
     in
@@ -71,6 +71,59 @@ let rec whnf t =
     | Some t -> whnf t
     | None -> Match (t, m, ps))
   | Axiom _ -> t
+
+let rec nf t =
+  match t with
+  | Var _ -> t
+  | Ann (t, _) -> nf t
+  | Type -> t
+  | Linear -> t
+  | TyProd (t, b) ->
+    let x, b = unbind b in
+    let b = unbox (bind_var x (lift (nf b))) in
+    TyProd (nf t, b)
+  | LnProd (t, b) ->
+    let x, b = unbind b in
+    let b = unbox (bind_var x (lift (nf b))) in
+    LnProd (nf t, b)
+  | Lambda pb -> 
+    let p, b = unbind_p pb in
+    let pb = unbox (bind_p p (lift (nf b))) in
+    Lambda pb
+  | Fix b -> 
+    let x, b = unbind b in
+    let b = unbox (bind_var x (lift (nf b))) in
+    Fix b
+  | App (t1, t2) -> (
+    let t1 = nf t1 in
+    let t2 = nf t2 in
+    match t1 with
+    | Lambda pb -> nf (subst_p pb t2)
+    | Fix b -> nf (App (subst b t1, t2))
+    | _ -> App (t1, t2))
+  | LetIn (t, pb) ->
+    let t = nf t in
+    nf (subst_p pb t)
+  | TCons (id, ts) ->
+    TCons (id, List.map nf ts)
+  | DCons (id, ts) ->
+    DCons (id, List.map nf ts)
+  | Match (t, m, ps) -> (
+    let t = nf t in
+    let opt = 
+      List.fold_left 
+        (fun opt pb -> 
+          match opt with
+          | Some _ -> opt
+          | None ->
+            try Some (subst_p pb t)
+            with _ -> None) 
+        None ps
+    in
+    match opt with 
+    | Some t -> nf t
+    | None -> Match (t, m, ps))
+  | Axiom (id, ty) -> Axiom (id, nf ty)
 
 let rec equal t1 t2 =
   if aeq t1 t2 then true
