@@ -19,7 +19,7 @@ Fixpoint count (A : Type) (ls : List A) : Nat :=
   | cons _ _ ls => S (count A ls)
   end.
 
-Fixpoint count0 (A : Type) (ls : List A) : Nat :=
+Fixpoint count' (A : Type) (ls : List A) : Nat :=
   match ls as x in List A return
     match A with
     | O => List A
@@ -27,7 +27,7 @@ Fixpoint count0 (A : Type) (ls : List A) : Nat :=
     end
   with
   | nil _ => O
-  | cons _ _ ls => S (count0 A ls)
+  | cons _ _ ls => S (count' A ls)
   end.
 
 Definition ls : List Nat := 

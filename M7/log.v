@@ -23,8 +23,8 @@ Definition count_38 :=
       end) :
     (A_46 : Type) -> (ls_47 : (TList#3 A_46)) -> TNat#0).
 
-Definition count0_48 :=
-  ((fix count0_49 A_50 ls_51 =>
+Definition count'_48 :=
+  ((fix count'_49 A_50 ls_51 =>
       match ls_51 as x_52 in (TList#3 A_53) return
         match A_53 with
         | (DO#1 ) => (TList#3 A_53)
@@ -32,7 +32,7 @@ Definition count0_48 :=
         end
       with
       | (Dnil#4 __55) => DO#1
-      | (Dcons#5 __56 __57 ls_58) => (DS#2 ((count0_49) A_50) ls_58)
+      | (Dcons#5 __56 __57 ls_58) => (DS#2 ((count'_49) A_50) ls_58)
       end) :
     (A_59 : Type) -> (ls_60 : (TList#3 A_59)) -> TNat#0).
 
