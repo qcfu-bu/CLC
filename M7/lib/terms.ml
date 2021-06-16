@@ -213,7 +213,7 @@ and pp fmt t =
     fprintf fmt "@[fix %a %a=>@;<1 2>%a@]"
       pp_v x pp_aux ps pp b
   | App (s, t) ->
-    fprintf fmt "@[App((%a)@;<1 2>%a)@]" pp s pp t
+    fprintf fmt "@[(%a)@;<1 2>%a@]" pp s pp t
   | LetIn (t, b) -> 
     let p, b = unbind_p b in
     fprintf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
@@ -221,20 +221,20 @@ and pp fmt t =
   | TCons (id, ts) -> (
     match ts with
     | [] -> fprintf fmt "%a" Id.pp id
-    | _ -> fprintf fmt "@[TCons(%a (%a))@]" Id.pp id pp_ts ts)
+    | _ -> fprintf fmt "@[(%a %a)@]" Id.pp id pp_ts ts)
   | DCons (id, ts) -> (
     match ts with
     | [] -> fprintf fmt "%a" Id.pp id
-    | _ -> fprintf fmt "@[DCons(%a (%a))@]" Id.pp id pp_ts ts)
+    | _ -> fprintf fmt "@[(%a %a)@]" Id.pp id pp_ts ts)
   | Match (t, mt, cls) ->
-    fprintf fmt "@[<v 0>@[match %a @[%a@]with@]@;<1 0>@[%a@]end@]"
+    fprintf fmt "@[<v 0>@[match %a%a@;<1 0>with@]@;<1 0>@[%a@]end@]"
       pp t pp_mt mt pp_cls cls
   | Axiom (id, _) ->
     fprintf fmt "%a" Id.pp id
 
 and pp_ts fmt = function
   | t :: [] -> fprintf fmt "%a" pp t
-  | t :: ts -> fprintf fmt "@[%a,@;<1 2>%a@]" pp t pp_ts ts
+  | t :: ts -> fprintf fmt "@[%a@;<1 2>%a@]" pp t pp_ts ts
   | _ -> ()
 
 and pp_mt fmt = function
@@ -242,8 +242,8 @@ and pp_mt fmt = function
     let x, pb = unbind mt in
     let p, b = unbind_p pb in
     if (name_of x = "_")
-    then fprintf fmt "in %a return %a" pp_p p pp b
-    else fprintf fmt "as %a in %a return %a" pp_v x pp_p p pp b
+    then fprintf fmt " in %a return@;<1 2>%a" pp_p p pp b
+    else fprintf fmt " as %a in %a return@;<1 2>%a" pp_v x pp_p p pp b
   | None -> ()
 
 and pp_cl fmt pb =
@@ -267,12 +267,12 @@ let rec pp_top fmt = function
       Id.pp id pp_tscope ts pp_dcons cs pp_top tp
     
 and pp_tscope fmt = function
-  | Base t -> fprintf fmt "Base(%a)" pp t
+  | Base t -> fprintf fmt "%a" pp t
   | Bind (ty, b) ->
     let x, b = unbind b in
     if (name_of x = "_") 
-    then fprintf fmt "@[Bind(%a ->@;<1 2>%a)@]" pp ty pp_tscope b
-    else fprintf fmt "@[@[Bind((%a :@;<1 2>%a) ->@]@;<1 2>%a)@]"
+    then fprintf fmt "@[(%a) ->@;<1 2>%a@]" pp ty pp_tscope b
+    else fprintf fmt "@[@[(%a :@;<1 2>%a) ->@]@;<1 2>%a@]"
       pp_v x pp ty pp_tscope b
 
 and pp_dcons fmt = function

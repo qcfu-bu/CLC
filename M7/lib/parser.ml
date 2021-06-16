@@ -226,7 +226,6 @@ and match_parser () =
     | None -> _None
   in
   let* _ = kw "with" in
-  let _ = printf "magicMatch(%a)\n" pp (unbox t) in
   let* cls = many (clause_parser ()) in
   let* _ = kw "end" in
   return (_Match t m (box_of_list cls))
