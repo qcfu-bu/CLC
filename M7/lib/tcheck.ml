@@ -105,14 +105,73 @@ and infer v_ctx id_ctx t =
   | DCons (id, ts) ->
     let DConstr (_, tscope) = find_dcons id id_ctx in
     check_scope v_ctx id_ctx ts tscope
-  | Match _ -> ??
+  | Match (t, opt, pbs) -> ??
   | Axiom (_, ty) ->
     let _ = infer_sort v_ctx id_ctx ty in
     (ty, v_ctx)
 
-and check v_ctx id_ctx t = ??
-
-and infer_pbinder v_ctx id_ctx = ??
+and check v_ctx id_ctx t ty =
+  let m, _ = infer_sort v_ctx id_ctx ty in
+  match t with
+  | Lambda pb -> (
+    let p, b1 = unbind_p pb in
+    match p with
+    | PVar x -> (
+      match whnf ty with
+      | TyProd (ty, b2) ->
+        let b2 = subst b2 (Var x) in
+        let m, _ = infer_sort v_ctx id_ctx ty in
+        let v_ctx1 = 
+          check (VarMap.add x (ty, Zero, m) (pure v_ctx)) id_ctx b1 b2 
+        in
+        let r = occur x v_ctx1 in
+        let v_ctx' = VarMap.remove x v_ctx1 in
+        assert_msg (r <= m)
+          (asprintf "check Lambda(m := %a, r := %a)"
+            Rig.pp m Rig.pp r);
+        v_ctx'
+      | LnProd (ty, b2) ->
+        let b2 = subst b2 (Var x) in
+        let m, _ = infer_sort v_ctx id_ctx ty in
+        let v_ctx' = 
+          check (VarMap.add x (ty, Zero, m) v_ctx) id_ctx b1 b2 
+        in
+        let r = occur x v_ctx' in
+        let v_ctx' = VarMap.remove x v_ctx' in
+        assert_msg (r <= m)
+          (asprintf "check Lambda(m := %a, r := %a)"
+            Rig.pp m Rig.pp r);
+        v_ctx'
+      | _ -> 
+        failwith
+          (asprintf "@[check Lambda(@;<1 2>t := %a;@;<1 2>ty := %a)@]" 
+            Terms.pp t Terms.pp ty))
+    | _ ->
+      let x = mk "x" in
+      let b = Match (Var x, None, [pb]) in
+      let b = unbox (bind_p (PVar x) (lift b)) in
+      check v_ctx id_ctx (Lambda b) ty)
+  | Fix b ->
+    let x, b = unbind b in
+    let v_ctx' = 
+      check (pure (VarMap.add x (ty, Zero, m) v_ctx)) id_ctx b ty
+    in
+    VarMap.remove x v_ctx'
+  | LetIn (t, pb) ->
+    let p, b = unbind_p pb in
+    let b = Ann (b, ty) in
+    let b = unbox (bind_p p (lift b)) in
+    let ty', v_ctx' = infer v_ctx id_ctx (LetIn (t, b)) in
+    assert_msg (equal ty ty')
+      (asprintf "check LetIn(ty := %a; ty' := %a)" 
+        Terms.pp ty Terms.pp ty');
+    v_ctx'
+  | _ ->
+    let ty', v_ctx' = infer v_ctx id_ctx t in
+    assert_msg (equal ty ty')
+      (asprintf "check LetIn(ty := %a; ty' := %a)" 
+        Terms.pp ty Terms.pp ty');
+    v_ctx'
 
 and check_scope v_ctx id_ctx ts tscope =
   match ts, tscope with
