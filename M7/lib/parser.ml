@@ -167,12 +167,12 @@ and lnProd_parser () =
 and lambda_parser () =
   let* ctx = get_user_state in
   let* _ = kw "fun" in
-  let* xs = many1 (p_parser ()) in
+  let* xs = many1 (var_parser ~pat:true ()) in
   let* _ = kw "=>" in
   let* t = t_parser () in
   let f = 
     List.fold_right
-      (fun x t -> _Lambda (bind_p x t)) xs t
+      (fun x t -> _Lambda (bind_var x t)) xs t
   in
   let* _ = set_user_state ctx in
   return f
@@ -181,12 +181,12 @@ and fix_parser () =
   let* ctx = get_user_state in
   let* _ = kw "fix" in
   let* x = var_parser () in
-  let* xs = many1 (p_parser ()) in
+  let* xs = many1 (var_parser ~pat:true ()) in
   let* _ = kw "=>" in
   let* t = t_parser () in
   let f = 
     List.fold_right
-      (fun x t -> _Lambda (bind_p x t)) xs t
+      (fun x t -> _Lambda (bind_var x t)) xs t
   in
   let* _ = set_user_state ctx in
   return (_Fix (bind_var x f))
@@ -194,7 +194,7 @@ and fix_parser () =
 and letIn_parser () =
   let* ctx = get_user_state in
   let* _ = kw "let" in
-  let* x = p_parser () in
+  let* x = var_parser ~pat:true () in
   let* opt = option (attempt (kw ":" >> t_parser ())) in
   let* _ = kw ":=" in
   let* t = t_parser () in
@@ -206,7 +206,7 @@ and letIn_parser () =
   let* _ = kw "in" in
   let* b = t_parser () in
   let* _ = set_user_state ctx in
-  return (_LetIn t (bind_p x b))
+  return (_LetIn t (bind_var x b))
 
 and cons_parser () =
   let* id = id_parser () in
@@ -332,7 +332,7 @@ let rec definition_parser () =
   let t =
     List.fold_right
       (fun (x, _) acc -> 
-        _Lambda (bind_p (PVar x) acc) ) ps t
+        _Lambda (bind_var x acc) ) ps t
   in
   let* _ = kw "." in
   let* _ = set_user_state ctx in
@@ -357,7 +357,7 @@ and fixpoint_parser () =
     _Fix (bind_var x
       (List.fold_right
         (fun (x, _) acc -> 
-          _Lambda (bind_p (PVar x) acc) ) ps t))
+          _Lambda (bind_var x acc) ) ps t))
   in
   let* _ = kw "." in
   let* _ = set_user_state ctx in

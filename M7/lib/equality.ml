@@ -14,13 +14,13 @@ let rec aeq t1 t2 =
   | LnProd (t1, b1), LnProd (t2, b2) ->
     aeq t1 t2 && eq_binder aeq b1 b2
   | Lambda pb1, Lambda pb2 ->
-    eq_binder_p aeq pb1 pb2
+    eq_binder aeq pb1 pb2
   | Fix b1, Fix b2 ->
     eq_binder aeq b1 b2
   | App (t11, t12), App (t21, t22) ->
     aeq t11 t21 && aeq t12 t22
   | LetIn (t1, pb1), LetIn (t2, pb2) ->
-    aeq t1 t2 && eq_binder_p aeq pb1 pb2
+    aeq t1 t2 && eq_binder aeq pb1 pb2
   | TCons (id1, ts1), TCons (id2, ts2) ->
     Id.equal id1 id2 && List.equal aeq ts1 ts2
   | DCons (id1, ts1), DCons (id2, ts2) ->
@@ -47,12 +47,12 @@ let rec whnf t =
     let t1 = whnf t1 in
     let t2 = whnf t2 in
     match t1 with
-    | Lambda pb -> whnf (subst_p pb t2)
+    | Lambda pb -> whnf (subst pb t2)
     | Fix b -> whnf (App (subst b t1, t2))
     | _ -> App (t1, t2))
   | LetIn (t, pb) ->
     let t = whnf t in
-    whnf (subst_p pb t)
+    whnf (subst pb t)
   | TCons _ -> t
   | DCons _ -> t
   | Match (t, m, ps) -> (
@@ -86,10 +86,10 @@ let rec nf t =
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
     LnProd (nf t, b)
-  | Lambda pb -> 
-    let p, b = unbind_p pb in
-    let pb = unbox (bind_p p (lift (nf b))) in
-    Lambda pb
+  | Lambda b -> 
+    let x, b = unbind b in
+    let b = unbox (bind_var x (lift (nf b))) in
+    Lambda b
   | Fix b -> 
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
@@ -98,12 +98,12 @@ let rec nf t =
     let t1 = nf t1 in
     let t2 = nf t2 in
     match t1 with
-    | Lambda pb -> nf (subst_p pb t2)
+    | Lambda b -> nf (subst b t2)
     | Fix b -> nf (App (subst b t1, t2))
     | _ -> App (t1, t2))
-  | LetIn (t, pb) ->
+  | LetIn (t, b) ->
     let t = nf t in
-    nf (subst_p pb t)
+    nf (subst b t)
   | TCons (id, ts) ->
     TCons (id, List.map nf ts)
   | DCons (id, ts) ->
@@ -141,13 +141,13 @@ let rec equal t1 t2 =
     | LnProd (t1, b1), LnProd (t2, b2) ->
       equal t1 t2 && eq_binder equal b1 b2
     | Lambda pb1, Lambda pb2 ->
-      eq_binder_p equal pb1 pb2
+      eq_binder equal pb1 pb2
     | Fix b1, Fix b2 ->
       eq_binder equal b1 b2
     | App (t11, t12), App (t21, t22) ->
       equal t11 t21 && equal t12 t22
     | LetIn (t1, pb1), LetIn (t2, pb2) ->
-      equal t1 t2 && eq_binder_p equal pb1 pb2
+      equal t1 t2 && eq_binder equal pb1 pb2
     | TCons (id1, ts1), TCons (id2, ts2) ->
       Id.equal id1 id2 && List.equal equal ts1 ts2
     | DCons (id1, ts1), DCons (id2, ts2) ->

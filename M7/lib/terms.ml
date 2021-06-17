@@ -10,10 +10,10 @@ type t =
   | Linear
   | TyProd of t * tbinder
   | LnProd of t * tbinder
-  | Lambda of pbinder
+  | Lambda of tbinder
   | Fix    of tbinder
   | App    of t * t
-  | LetIn  of t * pbinder
+  | LetIn  of t * tbinder
   (* data *)
   | TCons  of Id.t * t list
   | DCons  of Id.t * t list
@@ -68,7 +68,6 @@ and pp_p0 fmt = function
     fprintf fmt "P0DCons %a" Id.pp id
   | P0TCons (id, _) ->
     fprintf fmt "P0TCons %a" Id.pp id
-
 
 and mt_of_pt0 p0 t =
   match p0, t with
@@ -173,7 +172,7 @@ and pp_ps fmt = function
 and spine t = 
   match t with
   | Lambda b ->
-    let x, b = unbind_p b in
+    let x, b = unbind b in
     let xs, t = spine b in
     (x :: xs, t)
   | _ -> ([], t)
@@ -181,7 +180,7 @@ and spine t =
 and pp fmt t = 
   let pp_aux fmt =
     List.iter (fun x -> 
-      fprintf fmt "%a " pp_p x)
+      fprintf fmt "%a " pp_v x)
   in
   match t with
   | Var x -> 
@@ -203,10 +202,10 @@ and pp fmt t =
     else fprintf fmt "@[@[(%a :@;<1 2>%a) >>@]@;<1 2>%a@]"
       pp_v x pp ty pp b
   | Lambda b ->
-    let p, b = unbind_p b in
+    let x, b = unbind b in
     let ps, b = spine b in
     fprintf fmt "@[fun %a %a=>@;<1 2>%a@]"
-      pp_p p pp_aux ps pp b
+      pp_v x pp_aux ps pp b
   | Fix b ->
     let x, b = unbind b in
     let ps, b = spine b in
@@ -215,9 +214,9 @@ and pp fmt t =
   | App (s, t) ->
     fprintf fmt "@[(%a)@;<1 2>%a@]" pp s pp t
   | LetIn (t, b) -> 
-    let p, b = unbind_p b in
+    let x, b = unbind b in
     fprintf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
-      pp_p p pp t pp b
+      pp_v x pp t pp b
   | TCons (id, ts) -> (
     match ts with
     | [] -> fprintf fmt "%a" Id.pp id
@@ -343,10 +342,10 @@ let rec lift = function
   | Linear -> _Linear
   | TyProd (ty, b) -> _TyProd (lift ty) (box_binder lift b)
   | LnProd (ty, b) -> _LnProd (lift ty) (box_binder lift b)
-  | Lambda pb -> _Lambda (box_binder_p lift pb)
+  | Lambda pb -> _Lambda (box_binder lift pb)
   | Fix b -> _Fix (box_binder lift b)
   | App (t1, t2) -> _App (lift t1) (lift t2)
-  | LetIn (t, pb) -> _LetIn (lift t) (box_binder_p lift pb)
+  | LetIn (t, pb) -> _LetIn (lift t) (box_binder lift pb)
   | TCons (id, ts) -> _TCons id (box_map lift ts)
   | DCons (id, ts) -> _DCons id (box_map lift ts)
   | Match (t, opt, pbs) ->
