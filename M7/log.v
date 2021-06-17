@@ -1,49 +1,61 @@
-Inductive TNat#0 : Type :=
-| DO#1 : TNat#0
-| DS#2 : (TNat#0) -> TNat#0.
+Inductive TUnit#0 : Type :=
+| Dtt#1 : TUnit#0.
 
-Inductive TList#3 : (Type) -> Type :=
-| Dnil#4 : (A_26 : Type) -> (TList#3 A_26)
-| Dcons#5 : (A_27 : Type) ->
-              (A_27 -> A_27) -> ((TList#3 A_27)) -> (TList#3 A_27).
+Inductive TNat#2 : Type :=
+| DO#3 : TNat#2
+| DS#4 : (TNat#2) -> TNat#2.
 
-Definition plus_31 :=
-  ((fix plus_32 x_33 y_34 =>
-      match x_33 with
-      | (DO#1 ) => y_34
-      | (DS#2 x_35) => (DS#2 ((plus_32) x_35) y_34)
+Inductive TBool#5 : Type :=
+| Dtrue#6 : TBool#5
+| Dfalse#7 : TBool#5.
+
+Inductive TSNat#8 : (TNat#2) -> Type :=
+| DZero#9 : (TSNat#8 DO#3)
+| DSucc#10 : (n_19 : TNat#2) -> ((TSNat#8 n_19)) -> (TSNat#8 (DS#4 n_19)).
+
+Definition neg_21 :=
+  ((fun b_22 =>
+      match b_22 with
+      | (Dtrue#6 ) => Dfalse#7
+      | (Dfalse#7 ) => Dtrue#6
       end) :
-    (x_36 : TNat#0) -> (y_37 : TNat#0) -> TNat#0).
+    (b_23 : TBool#5) -> TBool#5).
 
-Definition count_38 :=
-  ((fix count_39 A_40 ls_41 =>
-      match ls_41 with
-      | (Dnil#4 __42) => DO#1
-      | (Dcons#5 __43 __44 ls_45) => (DS#2 ((count_39) A_40) ls_45)
+Definition add_24 :=
+  ((fix add_25 x_26 y_27 =>
+      match x_26 with
+      | (DO#3 ) => y_27
+      | (DS#4 x_28) => (DS#4 ((add_25) x_28) y_27)
       end) :
-    (A_46 : Type) -> (ls_47 : (TList#3 A_46)) -> TNat#0).
+    (x_29 : TNat#2) -> (y_30 : TNat#2) -> TNat#2).
 
-Definition count'_48 :=
-  ((fix count'_49 A_50 ls_51 =>
-      match ls_51 as x_52 in (TList#3 A_53) return
-        match A_53 with
-        | (DO#1 ) => (TList#3 A_53)
-        | (DS#2 x_54) => (TList#3 x_54)
+Definition pred_31 :=
+  ((fun n_32 x_33 =>
+      match x_33 in (TSNat#8 n_35) return
+        match n_35 with
+        | (DO#3 ) => TUnit#0
+        | (DS#4 n_36) => (TSNat#8 n_36)
         end
       with
-      | (Dnil#4 __55) => DO#1
-      | (Dcons#5 __56 __57 ls_58) => (DS#2 ((count'_49) A_50) ls_58)
+      | (DZero#9 ) => Dtt#1
+      | (DSucc#10 __37 x_38) => x_38
       end) :
-    (A_59 : Type) -> (ls_60 : (TList#3 A_59)) -> TNat#0).
+    (n_39 : TNat#2) -> (x_40 : (TSNat#8 (DS#4 n_39))) -> (TSNat#8 n_39)).
 
-Definition ls_61 :=
-  (((Dcons#5 TNat#0 DO#1 (Dnil#4 TNat#0))) : (TList#3 TNat#0)).
+Definition One_41 := (((DSucc#10 DO#3 DZero#9)) : (TSNat#8 (DS#4 DO#3))).
 
-Definition main_62 :=
-  ((((plus_31) ((plus_31) (DS#2 DO#1)) (DS#2 DO#1)) ((count_38) TNat#0) ls_61) :
-    TNat#0).
+Definition main_42 := ((((pred_31) DO#3) One_41) : (TSNat#8 DO#3)).
 
 
 
-(DS#2 (DS#2 (DS#2 DO#1)))
+v_ctx  := {
+  main :0 ((TSNat#8 DO#3))::w
+  One :0 ((TSNat#8 (DS#4 DO#3)))::w
+  pred :0
+    ((n_134 : TNat#2) -> (x_135 : (TSNat#8 (DS#4 n_134))) -> (TSNat#8 n_134))::w
+  add :0 ((x_136 : TNat#2) -> (y_137 : TNat#2) -> TNat#2)::w
+  neg :0 ((b_138 : TBool#5) -> TBool#5)::w
+}
+
+DZero#9
 

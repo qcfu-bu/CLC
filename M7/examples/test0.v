@@ -1,37 +1,41 @@
+Inductive Unit : Type :=
+| tt : Unit.
 
 Inductive Nat : Type :=
 | O : Nat
 | S : Nat -> Nat.
 
-Inductive List : Type -> Type :=
-| nil : (A : Type) -> List A
-| cons : (A : Type) -> (A -> A) -> List A -> List A.
+Inductive Bool : Type :=
+| true : Bool
+| false : Bool.
 
-Fixpoint plus (x : Nat) (y : Nat) : Nat := 
+Inductive SNat : Nat -> Type :=
+| Zero : SNat O
+| Succ : (n : Nat) -> SNat n -> SNat (S n).
+
+Definition neg (b : Bool) : Bool := 
+  match b with  
+  | true => false
+  | false => true
+  end.
+
+Fixpoint add (x : Nat) (y : Nat) : Nat :=
   match x with
   | O => y
-  | S x => S (plus x y)
+  | S x => S (add x y)
   end.
 
-Fixpoint count (A : Type) (ls : List A) : Nat :=
-  match ls with
-  | nil _ => O
-  | cons _ _ ls => S (count A ls)
-  end.
-
-Fixpoint count' (A : Type) (ls : List A) : Nat :=
-  match ls as x in List A return
-    match A with
-    | O => List A
-    | S x => List x
+Definition pred (n : Nat) (x : SNat (S n)) : SNat n := 
+  match x in SNat n return
+    match n with
+    | O => Unit
+    | S n => SNat n
     end
   with
-  | nil _ => O
-  | cons _ _ ls => S (count' A ls)
+  | Zero => tt
+  | Succ _ x => x
   end.
 
-Definition ls : List Nat := 
-  cons Nat O (nil Nat).
+Definition One : SNat (S O) := Succ O Zero.
 
-Definition main : Nat := 
-  plus (plus (S O) (S O)) (count Nat ls).
+Definition main : SNat O := pred O One.

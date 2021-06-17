@@ -25,8 +25,8 @@ let occur x ctx =
 
 let equal ctx1 ctx2 =
   VarMap.equal
-    (fun (_, m1, r1) (_, m2, r2) -> 
-      m1 = m2 && r1 = r2) 
+    (fun (_, r1, m1) (_, r2, m2) -> 
+      m1 = m2 && if m1 = One then r1 = r2 else true) 
     ctx1 ctx2
   
 let scale r ctx =
