@@ -33,12 +33,16 @@ and tbinder = (t, t) binder
 and motive = (t, pbinder) binder
 
 type tcons = 
-  TConstr of Id.t * tscope * dcons list
+  TConstr of Id.t * pscope * dcons list
 and dcons = 
-  DConstr of Id.t * tscope 
+  DConstr of Id.t * pscope 
+and pscope =
+  | PBase of tscope
+  | PBind of t * psbinder
+and psbinder = (t, pscope) binder
 and tscope = 
-  | Base of t
-  | Bind of t * tsbinder
+  | TBase of t
+  | TBind of t * tsbinder
 and tsbinder = (t, tscope) binder
 
 type top =
@@ -220,7 +224,8 @@ and pp fmt t =
   | TCons (id, ts) -> (
     match ts with
     | [] -> fprintf fmt "%a" Id.pp id
-    | _ -> fprintf fmt "@[(%a %a)@]" Id.pp id pp_ts ts)
+    | _ -> 
+      fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ts ts)
   | DCons (id, ts) -> (
     match ts with
     | [] -> fprintf fmt "%a" Id.pp id
@@ -262,12 +267,21 @@ let rec pp_top fmt = function
       pp_v x pp t pp_top tp
   | Datype (dcs, tp) ->
     let TConstr (id, ts, cs) = dcs in
-    fprintf fmt "@[Inductive %a : %a :=@.%a@.@.%a@]" 
-      Id.pp id pp_tscope ts pp_dcons cs pp_top tp
+    fprintf fmt "@[Inductive %a %a :=@.%a@.@.%a@]" 
+      Id.pp id pp_pscope ts pp_dcons cs pp_top tp
+
+and pp_pscope fmt = function
+  | PBase t -> fprintf fmt ": %a" pp_tscope t
+  | PBind (ty, b) ->
+    let x, b = unbind b in
+    if (name_of x = "_") 
+    then fprintf fmt "@[%a@;<1 2>%a@]" pp ty pp_pscope b
+    else fprintf fmt "@[@[(%a :@;<1 2>%a)@]@;<1 2>%a@]"
+      pp_v x pp ty pp_pscope b
     
 and pp_tscope fmt = function
-  | Base t -> fprintf fmt "%a" pp t
-  | Bind (ty, b) ->
+  | TBase t -> fprintf fmt "%a" pp t
+  | TBind (ty, b) ->
     let x, b = unbind b in
     if (name_of x = "_") 
     then fprintf fmt "@[(%a) ->@;<1 2>%a@]" pp ty pp_tscope b
@@ -277,12 +291,12 @@ and pp_tscope fmt = function
 and pp_dcons fmt = function
   | c :: [] ->
     let DConstr (id, ts) = c in
-    fprintf fmt "@[| %a : %a.@]" 
-      Id.pp id pp_tscope ts
+    fprintf fmt "@[| %a %a.@]" 
+      Id.pp id pp_pscope ts
   | c :: cs ->
     let DConstr (id, ts) = c in
-    fprintf fmt "@[<v 0>| %a : %a@;<1 0>%a@]" 
-      Id.pp id pp_tscope ts pp_dcons cs
+    fprintf fmt "@[<v 0>| %a %a@;<1 0>%a@]" 
+      Id.pp id pp_pscope ts pp_dcons cs
   | _ -> ()
 
 
@@ -309,9 +323,12 @@ let _Axiom id = box_apply (fun t -> Axiom (id, t))
 let _TConstr id = box_apply2 (fun ts dc -> TConstr (id, ts, dc))
 let _DConstr id = box_apply (fun ts -> DConstr (id, ts))
 
-let _Base = box_apply (fun t -> Base t)
-let _Bind = box_apply2 (fun t b -> Bind (t, b))
-let _Bnd ty1 ty2 = _Bind ty1 (bind_var __ ty2)
+let _PBase = box_apply (fun t -> PBase t)
+let _PBind = box_apply2 (fun t b -> PBind (t, b))
+let _PBnd ty1 ty2 = _PBind ty1 (bind_var __ ty2)
+let _TBase = box_apply (fun t -> TBase t)
+let _TBind = box_apply2 (fun t b -> TBind (t, b))
+let _TBnd ty1 ty2 = _TBind ty1 (bind_var __ ty2)
 
 let _DConstr id = box_apply (fun ts -> DConstr (id, ts))
 
@@ -346,7 +363,7 @@ let rec lift = function
   | Fix b -> _Fix (box_binder lift b)
   | App (t1, t2) -> _App (lift t1) (lift t2)
   | LetIn (t, pb) -> _LetIn (lift t) (box_binder lift pb)
-  | TCons (id, ts) -> _TCons id (box_map lift ts)
+  | TCons (id, ts) -> _TCons id (box_map lift ts) 
   | DCons (id, ts) -> _DCons id (box_map lift ts)
   | Match (t, opt, pbs) ->
     _Match (lift t) (box_opt (box_binder (box_binder_p lift)) opt) 

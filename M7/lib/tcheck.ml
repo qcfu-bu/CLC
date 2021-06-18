@@ -98,22 +98,20 @@ and infer v_ctx id_ctx t =
     in
     (ty2, merge v_ctx1 v_ctx2)
   | TCons (id, ts) ->
-    let TConstr (_, tscope, _) = IdMap.find id id_ctx in
-    check_constr v_ctx id_ctx ts tscope
-  | DCons (id, ts) ->
-    let DConstr (_, tscope) = find_dcons id id_ctx in
-    check_constr v_ctx id_ctx ts tscope
+    let TConstr (_, pscope, _) = IdMap.find id id_ctx in
+    infer_pscope v_ctx id_ctx ts pscope
+  | DCons _ -> failwith (asprintf "infer DCons(%a)" Terms.pp t)
   | Match (t, opt, pbs) -> (
     let ty, v_ctx1 = infer v_ctx id_ctx t in
     let m, _ = infer_sort v_ctx id_ctx ty in
     match whnf ty with
-    | TCons (id, _) -> (
+    | TCons (id, ts) -> (
       let TConstr (_, _, ds) = IdMap.find id id_ctx in
-      let cover = coverage v_ctx id_ctx pbs ds in
+      let cover = coverage v_ctx id_ctx pbs ds ts in
       match opt with 
       | Some mot -> (
         let ty' = subst_p (subst mot t) ty in
-        let v_ctxs = check_cover cover id_ctx mot ty m in
+        let v_ctxs = check_motive cover id_ctx mot ty m in
         match v_ctxs with
         | [] -> (ty', v_ctx)
         | (v_ctx2) :: v_ctxs -> 
@@ -138,7 +136,7 @@ and infer v_ctx id_ctx t =
     let _ = infer_sort v_ctx id_ctx ty in
     (ty, v_ctx)
 
-and coverage v_ctx id_ctx pbs ds =
+and coverage v_ctx id_ctx pbs ds ts =
   let strip = function
     | PVar x -> x
     | _ -> failwith "strip"
@@ -152,16 +150,24 @@ and coverage v_ctx id_ctx pbs ds =
         (d', d :: ds')
     | _ -> failwith "find"
   in
-  let rec arity v_ctx tscope xs =
+  let rec arity_pscope v_ctx pscope ts xs =
+    match pscope, ts with
+    | PBind (ty, pscope), t :: ts ->
+      let pscope = subst pscope (Ann (t, ty)) in
+      let (v_ctx, ty, xm) = arity_pscope v_ctx pscope ts xs in
+      (v_ctx, ty, xm)
+    | PBase tscope, _ -> arity_tscope v_ctx tscope xs
+    | _ -> failwith "arity_pscope"
+  and arity_tscope v_ctx tscope xs =
     match tscope, xs with
-    | Bind (ty, tscope), x :: xs ->
+    | TBind (ty, tscope), x :: xs ->
       let m, _ = infer_sort v_ctx id_ctx ty in
       let v_ctx = VarMap.add x (ty, Zero, m) v_ctx in
       let tscope = subst tscope (Var x) in
-      let (v_ctx, ty, xm) = arity v_ctx tscope xs in
+      let (v_ctx, ty, xm) = arity_tscope v_ctx tscope xs in
       (v_ctx, ty, (x, m) :: xm)
-    | Base ty, [] -> (v_ctx, ty, [])
-    | _ -> failwith "arity"
+    | TBase ty, [] -> (v_ctx, ty, [])
+    | _ -> failwith "arity_tscope"
   in
   match pbs with
   | pb :: pbs -> (
@@ -169,9 +175,9 @@ and coverage v_ctx id_ctx pbs ds =
     match p with
     | PDCons (id, ps) ->
       let xs = List.map strip ps in 
-      let (DConstr (_, tscope), ds) = find id ds in
-      let (v_ctx', ty, xm) = arity v_ctx tscope xs in
-      let ds = coverage v_ctx id_ctx pbs ds in 
+      let (DConstr (_, pscope), ds) = find id ds in
+      let (v_ctx', ty, xm) = arity_pscope v_ctx pscope ts xs in
+      let ds = coverage v_ctx id_ctx pbs ds ts in 
       (v_ctx', ty, b, xm) :: ds
     | _ -> failwith "coverage")
   | [] -> (
@@ -228,6 +234,23 @@ and check v_ctx id_ctx t ty =
       (asprintf "check LetIn(ty := %a; ty' := %a)" 
         Terms.pp ty Terms.pp ty');
     v_ctx'
+  | DCons (id, ts) -> (
+    match whnf ty with
+    | TCons (_, ts') ->
+      let DConstr (_, pscope) = find_dcons id id_ctx in
+      let pscope = 
+        List.fold_left
+          (fun pscope t -> 
+            match pscope with  
+            | PBind (ty, pb) -> subst pb (Ann (t, ty))
+            | PBase _ -> pscope) pscope ts'
+      in
+      let ty', v_ctx = infer_pscope v_ctx id_ctx ts pscope in
+      assert_msg (equal ty ty') 
+        (asprintf "check DCons(ty := %a; ty' := %a)"
+          Terms.pp ty Terms.pp ty');
+      v_ctx
+    | _ -> failwith "check DCons")
   | Match (t, opt, pbs) -> (
     match opt with
     | Some _ ->
@@ -239,24 +262,23 @@ and check v_ctx id_ctx t ty =
           Terms.pp ty Terms.pp ty');
       v_ctx'
     | _ ->
-      let ty, v_ctx1 = infer v_ctx id_ctx t in
-      let _ = infer_sort v_ctx id_ctx ty in
-      match whnf ty with
-      | TCons (id, _) -> (
+      let ty1, v_ctx1 = infer v_ctx id_ctx t in
+      let _ = infer_sort v_ctx id_ctx ty1 in
+      match whnf ty1 with
+      | TCons (id, ts) -> (
         let TConstr (_, _, ds) = IdMap.find id id_ctx in
-        let cover = coverage v_ctx id_ctx pbs ds in
-        let v_ctxs = infer_cover cover id_ctx in
+        let cover = coverage v_ctx id_ctx pbs ds ts in
+        let v_ctxs = check_cover cover id_ctx ty in
         match v_ctxs with
         | [] -> failwith "check Match0"
-        | (t, v_ctx2) :: v_ctxs -> 
+        | v_ctx2 :: v_ctxs -> 
           List.iter 
-            (fun (t', v_ctx) ->  
-              assert_msg (equal t t')  "check Match1";
+            (fun v_ctx ->  
               assert_msg (Context.equal v_ctx2 v_ctx)  
-                (asprintf "check Match2(%a; %a)" 
+                (asprintf "check Match1(%a; %a)" 
                   Context.pp v_ctx2 Context.pp v_ctx)) v_ctxs;
           (merge v_ctx1 v_ctx2))
-      | _ -> failwith "check Match3")
+      | _ -> failwith "check Match2")
   | _ ->
     let ty', v_ctx' = infer v_ctx id_ctx t in
     assert_msg (equal ty ty')
@@ -264,7 +286,7 @@ and check v_ctx id_ctx t ty =
         Terms.pp (nf ty) Terms.pp (nf ty'));
     v_ctx'
 
-and check_cover cover id_ctx mot ty m =
+and check_motive cover id_ctx mot ty m =
   match cover with
   | (v_ctx, t, b, xm) :: cover ->
     let x, mot' = unbind mot in
@@ -277,12 +299,28 @@ and check_cover cover id_ctx mot ty m =
         (fun v_ctx (x, m) -> 
           let r = occur x v_ctx in
           assert_msg (r <= m) 
-            (asprintf "check_cover(x := %a; r := %a; m := %a)" 
+            (asprintf "check_motive(x := %a; r := %a; m := %a)" 
               pp_v x Rig.pp r Rig.pp m);
           VarMap.remove x v_ctx)
         v_ctx xm
     in
-    v_ctx :: check_cover cover id_ctx mot ty m
+    v_ctx :: check_motive cover id_ctx mot ty m
+  | _ -> []
+
+and check_cover cover id_ctx ty =
+  match cover with
+  | (v_ctx, _, b, xm) :: cover ->
+    let v_ctx = check v_ctx id_ctx b ty in
+    let v_ctx = 
+      List.fold_left 
+        (fun v_ctx (x, m) -> 
+          let r = occur x v_ctx in 
+          assert_msg (r <= m) 
+            (asprintf "infer_cover(r := %a; m := %a)" Rig.pp r Rig.pp m);
+          VarMap.remove x v_ctx)
+        v_ctx xm
+    in 
+    v_ctx :: check_cover cover id_ctx ty
   | _ -> []
 
 and infer_cover cover id_ctx =
@@ -301,15 +339,30 @@ and infer_cover cover id_ctx =
     (ty, v_ctx) :: infer_cover cover id_ctx
   | _ -> []
 
-
-and check_constr v_ctx id_ctx ts tscope =
-  match ts, tscope with
-  | t :: ts, Bind (ty, tscope) ->
+and infer_pscope v_ctx id_ctx ts pscope =
+  match ts, pscope with
+  | t :: ts, PBind (ty, pscope) ->
     let v_ctx1 = check v_ctx id_ctx t ty in
-    let ty, v_ctx2 = check_constr v_ctx id_ctx ts (subst tscope t) in
+    let ty, v_ctx2 = 
+      infer_pscope v_ctx id_ctx ts (subst pscope (Ann (t, ty))) 
+    in
     (ty, merge v_ctx1 v_ctx2)
-  | [], Base ty -> (ty, v_ctx)
-  | _ -> failwith "check_scope"
+  | ts, PBase pscope -> infer_tscope v_ctx id_ctx ts pscope
+  | _ -> 
+    failwith 
+      (asprintf "infer_pscope(%a; %d)" 
+        pp_pscope pscope (List.length ts))
+
+and infer_tscope v_ctx id_ctx ts tscope =
+  match ts, tscope with
+  | t :: ts, TBind (ty, tscope) ->
+    let v_ctx1 = check v_ctx id_ctx t ty in
+    let ty, v_ctx2 = 
+      infer_tscope v_ctx id_ctx ts (subst tscope (Ann (t, ty)))
+    in
+    (ty, merge v_ctx1 v_ctx2)
+  | [], TBase ty -> (ty, v_ctx)
+  | _ -> failwith "infer_tscope"
 
 and t_of_p = function
   | PVar x -> Var x
@@ -343,21 +396,30 @@ let rec infer_top v_ctx id_ctx top =
     (merge v_ctx1 v_ctx2, id_ctx2)
   | Datype (tcs, top) -> (
     match tcs with
-    | TConstr (id, tscope, dcs) -> 
-      let _ = check_tscope v_ctx id_ctx tscope in 
-      let id_ctx = IdMap.add id (TConstr (id, tscope, [])) id_ctx in
+    | TConstr (id, pscope, dcs) -> 
+      let _ = check_pscope v_ctx id_ctx pscope in 
+      let id_ctx = IdMap.add id (TConstr (id, pscope, [])) id_ctx in
       let _ =
         List.map 
           (fun (DConstr (_, tscope)) ->
-            check_tscope v_ctx id_ctx tscope) dcs
+            check_pscope v_ctx id_ctx tscope) dcs
       in 
-      let id_ctx = IdMap.add id (TConstr (id, tscope, dcs)) id_ctx in
+      let id_ctx = IdMap.add id (TConstr (id, pscope, dcs)) id_ctx in
       infer_top v_ctx id_ctx top)
+
+and check_pscope v_ctx id_ctx pscope =
+  match pscope with
+  | PBase tscope -> check_tscope v_ctx id_ctx tscope
+  | PBind (t, pscope) ->
+    let x, pscope = unbind pscope in
+    let m, _ = infer_sort v_ctx id_ctx t in
+    let v_ctx = VarMap.add x (t, Zero, m) v_ctx in
+    check_pscope v_ctx id_ctx pscope
 
 and check_tscope v_ctx id_ctx tscope =
   match tscope with
-  | Base t -> infer_sort v_ctx id_ctx t
-  | Bind (t, tscope) ->
+  | TBase t -> infer_sort v_ctx id_ctx t
+  | TBind (t, tscope) ->
     let x, tscope = unbind tscope in
     let m, _ = infer_sort v_ctx id_ctx t in
     let v_ctx = VarMap.add x (t, Zero, m) v_ctx in

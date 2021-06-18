@@ -368,23 +368,34 @@ and datype_parser () =
   let* _ = kw "Inductive" in
   let* v_ctx, _ = get_user_state in
   let* id = id_parser ~intro:true ~tcons:true () in
+  let* ps = many param_parser in
   let* _ = kw ":" in
   let* ts, n = tscope_parser () in
-  let id = Id.set_arity id n in
+  let ts = 
+    List.fold_right
+      (fun (x, t) ts -> 
+          _PBind t (bind_var x ts)) ps (_PBase ts)
+  in
+  let id = Id.set_arity id (List.length ps + n) in
   let* _ = kw ":=" in
-  let* cstr = many (constr_parser ()) in
+  let* cstr = many (constr_parser ps ()) in
   let* _ = kw "." in
   let* _, id_ctx = get_user_state in
   let* _ = set_user_state (v_ctx, id_ctx) in
   let* tp = top_parser () in
   return (_Datype (_TConstr id ts (box_list cstr)) tp)
 
-and constr_parser () =
+and constr_parser ps () =
   let* _ = kw "|" in
   let* v_ctx, _ = get_user_state in
   let* id = id_parser ~intro:true () in
   let* _ = kw ":" in
   let* ts, n = tscope_parser () in
+  let ts = 
+    List.fold_right
+      (fun (x, t) ts -> 
+          _PBind t (bind_var x ts)) ps (_PBase ts)
+  in
   let id = Id.set_arity id n in
   let* _, id_ctx = get_user_state in
   let* _ = set_user_state (v_ctx, id_ctx) in
@@ -396,8 +407,8 @@ and tscope_parser () =
     | TyProd (ty, b) ->
       let x, t = unbind b in
       let ts, n = tscope_of_t t in
-      (_Bind (lift ty) (bind_var x ts), n + 1)
-    | _ -> (_Base (lift t), 0)
+      (_TBind (lift ty) (bind_var x ts), n + 1)
+    | _ -> (_TBase (lift t), 0)
   in
   let* t = t_parser () in
   return (tscope_of_t (unbox t))
