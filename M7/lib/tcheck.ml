@@ -72,11 +72,11 @@ and infer v_ctx id_ctx t =
     | TyProd (ty, b) ->
       let m, _ = infer_sort v_ctx id_ctx ty in
       let v_ctx2 = check v_ctx id_ctx t2 ty in
-      (subst b t2, merge v_ctx1 (scale m v_ctx2))
+      (whnf (subst b t2), merge v_ctx1 (scale m v_ctx2))
     | LnProd (ty, b) ->
       let m, _ = infer_sort v_ctx id_ctx ty in
       let v_ctx2 = check v_ctx id_ctx t2 ty in
-      (subst b t2, merge v_ctx1 (scale m v_ctx2))
+      (whnf (subst b t2), merge v_ctx1 (scale m v_ctx2))
     | _ -> failwith (asprintf "infer App(t := %a)" Terms.pp t))
   | LetIn (t, b) ->
     let ty1, v_ctx1 = infer v_ctx id_ctx t in 
@@ -204,8 +204,8 @@ and check v_ctx id_ctx t ty =
       let r = occur x v_ctx1 in
       let v_ctx' = VarMap.remove x v_ctx1 in
       assert_msg (r <= m)
-        (asprintf "check Lambda(m := %a, r := %a)"
-          Rig.pp m Rig.pp r);
+        (asprintf "check Lambda(x := %s, m := %a, r := %a)"
+          (name_of x) Rig.pp m Rig.pp r);
       v_ctx'
     | LnProd (ty, b2) ->
       let b2 = subst b2 (Var x) in
@@ -216,8 +216,8 @@ and check v_ctx id_ctx t ty =
       let r = occur x v_ctx' in
       let v_ctx' = VarMap.remove x v_ctx' in
       assert_msg (r <= m)
-        (asprintf "check Lambda(m := %a, r := %a)"
-          Rig.pp m Rig.pp r);
+        (asprintf "check Lambda(x := %s, m := %a, r := %a)"
+          (name_of x) Rig.pp m Rig.pp r);
       v_ctx'
     | _ -> 
       failwith

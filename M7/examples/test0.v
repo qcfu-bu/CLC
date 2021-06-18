@@ -35,8 +35,10 @@ Definition bad : SN (S O) :=
 Definition Loc : Type := Nat.
 
 Axiom PtsTo : Loc -> Type -> Linear.
-Axiom New : (A : Type) -> A -> FTensor Loc (fun l => PtsTo l A).
-Axiom Free : (A : Type) -> FTensor Loc (fun l => PtsTo l A) -> Unit.
+Definition Ptr (A : Type) : Linear := FTensor Loc (fun l => PtsTo l A).
+
+Axiom New : (A : Type) -> A -> Ptr A.
+Axiom Free : (A : Type) -> Ptr A -> Unit.
 Axiom Get : (A : Type) -> (l : Loc) -> PtsTo l A -> FTensor A (fun _ => PtsTo l A).
 Axiom Set : (A : Type) -> (B : Type) -> B -> (l : Loc) -> PtsTo l A -> PtsTo l B.
 
@@ -51,10 +53,22 @@ Definition prev (n : Nat) (x : SNat (S n)) : (SNat n) :=
   | Succ _ x => x
   end.
 
-Definition main : Unit := 
-  let ft := New Nat O in
-  match ft in FTensor L F return 
-    Unit
-  with
-  | FPair l c => Free Nat (FPair l c)
+Definition n : Ptr Nat := New Nat O.
+
+Definition Assign (A : Type) (x : A) (ptr : Ptr A) : Ptr A :=
+  match ptr with
+  | FPair l c =>
+    let c := Set A A x l c in
+    FPair l c
+  end.
+
+Definition main : Nat :=
+  match n with
+  | FPair l c => 
+    let xc := Get Nat l c in
+    match xc with
+    | FPair x c =>
+      let _ := Free Nat (FPair l c) in
+      x
+    end
   end.

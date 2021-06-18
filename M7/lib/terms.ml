@@ -1,5 +1,6 @@
 open Bindlib
 open Format
+open Rig
 open Names
 
 type t =
@@ -68,10 +69,13 @@ let rec equal_p0 p1 p2 =
 
 and pp_p0 fmt = function
   | P0Rel -> fprintf fmt "P0Rel"
-  | P0DCons (id, _) ->
-    fprintf fmt "P0DCons %a" Id.pp id
-  | P0TCons (id, _) ->
-    fprintf fmt "P0TCons %a" Id.pp id
+  | P0TCons (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps0 ps
+  | P0DCons (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps0 ps
+
+and pp_ps0 fmt = function
+  | p :: [] -> fprintf fmt "%a" pp_p0 p
+  | p :: ps -> fprintf fmt "@[%a@;<1 2>%a@]" pp_p0 p pp_ps0 ps
+  | _ -> ()
 
 and mt_of_pt0 p0 t =
   match p0, t with
@@ -80,13 +84,13 @@ and mt_of_pt0 p0 t =
     if Id.equal id1 id2 then
       List.fold_left2 
         (fun acc p t -> Array.append acc (mt_of_pt0 p t)) [| |] ps ts
-    else failwith "mt_of_pt0"
+    else failwith (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t)
   | P0DCons (id1, ps), DCons (id2, ts) ->
     if Id.equal id1 id2 then
       List.fold_left2 
         (fun acc p t -> Array.append acc (mt_of_pt0 p t)) [| |] ps ts
-    else failwith "mt_of_pt0"
-  | _ -> failwith "mt_of_pt0"
+    else failwith (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t)
+  | _ -> failwith (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t)
 
 and mvar_of_p = function
   | PVar x -> (P0Rel, [| x |])
@@ -261,10 +265,16 @@ and pp_cls fmt = function
 
 let rec pp_top fmt = function
   | Empty -> ()
-  | Define (t, tp) ->
-    let x, tp = unbind tp in
-    fprintf fmt "@[Definition %a :=@;<1 2>%a.@.@.%a@]" 
-      pp_v x pp t pp_top tp
+  | Define (t, tp) -> (
+    match t with
+    | Axiom (_, ty) ->
+      let x, tp = unbind tp in
+      fprintf fmt "@[Axiom %a :@;<1 2>%a.@.@.%a@]" 
+        pp_v x pp ty pp_top tp
+    | _ ->
+      let x, tp = unbind tp in
+      fprintf fmt "@[Definition %a :=@;<1 2>%a.@.@.%a@]" 
+        pp_v x pp t pp_top tp)
   | Datype (dcs, tp) ->
     let TConstr (id, ts, cs) = dcs in
     fprintf fmt "@[Inductive %a %a :=@.%a@.@.%a@]" 

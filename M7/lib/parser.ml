@@ -132,6 +132,7 @@ let rec sort_parser () =
   <|>
   (let* _ = kw "Linear" in return _Linear)
 
+
 and tyProd_parser () =
   let* ctx = get_user_state in
   let* _ = kw "(" in
@@ -292,10 +293,8 @@ and t3_parser () =
     let* _ = kw ">>" in
     return (fun ty1 ty2 -> _Lolli ty1 ty2)
   in
-  let* t = chain_right1 (t2_parser ()) 
+  chain_right1 (t2_parser ())
     (arrow_parser () <|> lolli_parser ())
-  in
-  return t
 
 and t_parser () = 
   attempt (t3_parser ())
@@ -373,8 +372,7 @@ and datype_parser () =
   let* ts, n = tscope_parser () in
   let ts = 
     List.fold_right
-      (fun (x, t) ts -> 
-          _PBind t (bind_var x ts)) ps (_PBase ts)
+      (fun (x, t) ts -> _PBind t (bind_var x ts)) ps (_PBase ts)
   in
   let id = Id.set_arity id (List.length ps + n) in
   let* _ = kw ":=" in
@@ -393,8 +391,7 @@ and constr_parser ps () =
   let* ts, n = tscope_parser () in
   let ts = 
     List.fold_right
-      (fun (x, t) ts -> 
-          _PBind t (bind_var x ts)) ps (_PBase ts)
+      (fun (x, t) ts -> _PBind t (bind_var x ts)) ps (_PBase ts)
   in
   let id = Id.set_arity id n in
   let* _, id_ctx = get_user_state in
