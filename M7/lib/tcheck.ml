@@ -426,7 +426,10 @@ and param_tscope tscope id xs =
       assert_msg (eq_vars x t) 
         (asprintf "param_tscope(%a; %a)" pp_v x pp_v t);
       param xs ts
-    | _ -> failwith "param_tscope"
+    | x :: _, t :: _ -> 
+      failwith (asprintf "param_tscope(%a; %a)" pp_v x Terms.pp t);
+    | x :: _, [] -> 
+      failwith (asprintf "param_tscope(%a; ??)" pp_v x);
   in
   match tscope with
   | TBase ty -> (
