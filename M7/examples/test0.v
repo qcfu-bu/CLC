@@ -33,6 +33,17 @@ Axiom Free : (A : Type) -> FTensor Loc (fun l => PtsTo l A) -> Unit.
 Axiom Get : (A : Type) -> (l : Loc) -> PtsTo l A -> FTensor A (fun _ => PtsTo l A).
 Axiom Set : (A : Type) -> (B : Type) -> B -> (l : Loc) -> PtsTo l A -> PtsTo l B.
 
+Definition prev (n : Nat) (x : SNat (S n)) : (SNat n) := 
+  match x in SNat n return
+    match n with
+    | O => Unit
+    | S n => SNat n
+    end
+  with
+  | Zero => tt
+  | Succ _ x => x
+  end.
+
 Definition main : Unit := 
   let ft := New Nat O in
   match ft with

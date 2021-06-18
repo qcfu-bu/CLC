@@ -100,7 +100,11 @@ and infer v_ctx id_ctx t =
   | TCons (id, ts) ->
     let TConstr (_, pscope, _) = IdMap.find id id_ctx in
     infer_pscope v_ctx id_ctx ts pscope
-  | DCons _ -> failwith (asprintf "infer DCons(%a)" Terms.pp t)
+  | DCons (id, ts) -> (
+    match find_dcons id id_ctx with
+    | DConstr (_, PBase tscope) ->
+      infer_tscope v_ctx id_ctx ts tscope
+    | _ -> failwith (asprintf "infer DCons(%a)" Terms.pp t))
   | Match (t, opt, pbs) -> (
     let ty, v_ctx1 = infer v_ctx id_ctx t in
     let m, _ = infer_sort v_ctx id_ctx ty in
