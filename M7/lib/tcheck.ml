@@ -401,15 +401,46 @@ let rec infer_top v_ctx id_ctx top =
   | Datype (tcs, top) -> (
     match tcs with
     | TConstr (id, pscope, dcs) -> 
-      let _ = check_pscope v_ctx id_ctx pscope in 
+      check_pscope v_ctx id_ctx pscope;
       let id_ctx = IdMap.add id (TConstr (id, pscope, [])) id_ctx in
-      let _ =
-        List.map 
-          (fun (DConstr (_, tscope)) ->
-            check_pscope v_ctx id_ctx tscope) dcs
-      in 
+      List.iter
+        (fun (DConstr (_, pscope)) ->
+          check_pscope v_ctx id_ctx pscope;
+          param_pscope pscope id []) dcs;
       let id_ctx = IdMap.add id (TConstr (id, pscope, dcs)) id_ctx in
       infer_top v_ctx id_ctx top)
+  
+and param_pscope pscope id xs =
+  match pscope with
+  | PBase tscope ->
+    param_tscope tscope id (List.rev xs)
+  | PBind (_, pscope) ->
+    let x, pscope = unbind pscope in
+    param_pscope pscope id (x :: xs)
+
+and param_tscope tscope id xs =
+  let rec param xs ts =
+    match xs, ts with
+    | [], _ -> ()
+    | x :: xs, Var t :: ts ->
+      assert_msg (eq_vars x t) 
+        (asprintf "param_tscope(%a; %a)" pp_v x pp_v t);
+      param xs ts
+    | _ -> failwith "param_tscope"
+  in
+  match tscope with
+  | TBase ty -> (
+    match ty with
+    | TCons (id', ts) ->
+      assert_msg (Id.equal id id') 
+        (asprintf "param_tscope(%a)" Terms.pp ty);
+      param xs ts
+    | _ -> 
+      failwith 
+        (asprintf "param_tscope(%a)" Terms.pp ty))
+  | TBind (_, tscope) ->
+    let _, tscope = unbind tscope in
+    param_tscope tscope id xs
 
 and check_pscope v_ctx id_ctx pscope =
   match pscope with
@@ -422,7 +453,8 @@ and check_pscope v_ctx id_ctx pscope =
 
 and check_tscope v_ctx id_ctx tscope =
   match tscope with
-  | TBase t -> infer_sort v_ctx id_ctx t
+  | TBase t -> 
+    let _ = infer_sort v_ctx id_ctx t in ()
   | TBind (t, tscope) ->
     let x, tscope = unbind tscope in
     let m, _ = infer_sort v_ctx id_ctx t in

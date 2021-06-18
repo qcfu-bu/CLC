@@ -25,6 +25,13 @@ Inductive Tensor (A : Linear) (B : Linear) : Linear :=
 Inductive FTensor (A : Type) (F : A -> Linear) : Linear :=
 | FPair : (x : A) -> F x -> FTensor A F.
 
+Inductive SN (N : Nat) : Type :=
+| sn : (n : Nat) -> SN N.
+
+Definition bad : SN (S O) := 
+  sn (S O).
+
+
 Definition Loc : Type := Nat.
 
 Axiom PtsTo : Loc -> Type -> Linear.
@@ -46,6 +53,8 @@ Definition prev (n : Nat) (x : SNat (S n)) : (SNat n) :=
 
 Definition main : Unit := 
   let ft := New Nat O in
-  match ft with
+  match ft in FTensor L F return 
+    Unit
+  with
   | FPair l c => Free Nat (FPair l c)
   end.
