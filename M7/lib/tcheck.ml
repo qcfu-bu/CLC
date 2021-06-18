@@ -104,7 +104,7 @@ and infer v_ctx id_ctx t =
     let DConstr (_, tscope) = find_dcons id id_ctx in
     check_constr v_ctx id_ctx ts tscope
   | Match (t, opt, pbs) -> (
-    let ty, _ = infer v_ctx id_ctx t in
+    let ty, v_ctx1 = infer v_ctx id_ctx t in
     let m, _ = infer_sort v_ctx id_ctx ty in
     match whnf ty with
     | TCons (id, _) -> (
@@ -116,23 +116,23 @@ and infer v_ctx id_ctx t =
         let v_ctxs = check_cover cover id_ctx mot ty m in
         match v_ctxs with
         | [] -> (ty', v_ctx)
-        | (v_ctx) :: v_ctxs -> 
+        | (v_ctx2) :: v_ctxs -> 
           List.iter 
-            (fun v_ctx' ->  
-              assert_msg (Context.equal v_ctx v_ctx')  "infer Match0") v_ctxs;
-          (ty', v_ctx))
+            (fun v_ctx ->  
+              assert_msg (Context.equal v_ctx2 v_ctx)  "infer Match0") v_ctxs;
+          (ty', merge v_ctx1 v_ctx2))
       | _ -> (
         let v_ctxs = infer_cover cover id_ctx in
         match v_ctxs with
         | [] -> failwith "infer Match2"
-        | (t, v_ctx) :: v_ctxs -> 
+        | (t, v_ctx2) :: v_ctxs -> 
           List.iter 
-            (fun (t', v_ctx') ->  
+            (fun (t', v_ctx) ->  
               assert_msg (equal t t')  "infer Match3";
-              assert_msg (Context.equal v_ctx v_ctx')  
+              assert_msg (Context.equal v_ctx2 v_ctx)  
                 (asprintf "infer Match4(%a; %a)"
-                  Context.pp v_ctx Context.pp v_ctx')) v_ctxs;
-          (t, v_ctx)))
+                  Context.pp v_ctx Context.pp v_ctx)) v_ctxs;
+          (t, merge v_ctx1 v_ctx2)))
     | _ -> failwith "infer Match5")
   | Axiom (_, ty) ->
     let _ = infer_sort v_ctx id_ctx ty in
@@ -239,7 +239,7 @@ and check v_ctx id_ctx t ty =
           Terms.pp ty Terms.pp ty');
       v_ctx'
     | _ ->
-      let ty, _ = infer v_ctx id_ctx t in
+      let ty, v_ctx1 = infer v_ctx id_ctx t in
       let _ = infer_sort v_ctx id_ctx ty in
       match whnf ty with
       | TCons (id, _) -> (
@@ -248,20 +248,20 @@ and check v_ctx id_ctx t ty =
         let v_ctxs = infer_cover cover id_ctx in
         match v_ctxs with
         | [] -> failwith "check Match0"
-        | (t, v_ctx) :: v_ctxs -> 
+        | (t, v_ctx2) :: v_ctxs -> 
           List.iter 
-            (fun (t', v_ctx') ->  
+            (fun (t', v_ctx) ->  
               assert_msg (equal t t')  "check Match1";
-              assert_msg (Context.equal v_ctx v_ctx')  
+              assert_msg (Context.equal v_ctx2 v_ctx)  
                 (asprintf "check Match2(%a; %a)" 
-                  Context.pp v_ctx Context.pp v_ctx')) v_ctxs;
-          (v_ctx))
+                  Context.pp v_ctx2 Context.pp v_ctx)) v_ctxs;
+          (merge v_ctx1 v_ctx2))
       | _ -> failwith "check Match3")
   | _ ->
     let ty', v_ctx' = infer v_ctx id_ctx t in
     assert_msg (equal ty ty')
       (asprintf "check (ty := %a; ty' := %a)" 
-        Terms.pp ty Terms.pp ty');
+        Terms.pp (nf ty) Terms.pp (nf ty'));
     v_ctx'
 
 and check_cover cover id_ctx mot ty m =
@@ -271,14 +271,16 @@ and check_cover cover id_ctx mot ty m =
     let v_ctx = VarMap.add x (ty, Zero, m) v_ctx in
     let mot' = subst_p mot' t in
     let v_ctx = check v_ctx id_ctx b mot' in
+    let v_ctx = VarMap.remove x v_ctx in
     let v_ctx = 
       List.fold_left
         (fun v_ctx (x, m) -> 
           let r = occur x v_ctx in
           assert_msg (r <= m) 
-            (asprintf "infer_cover(r := %a; m := %a)" Rig.pp r Rig.pp m);
+            (asprintf "check_cover(x := %a; r := %a; m := %a)" 
+              pp_v x Rig.pp r Rig.pp m);
           VarMap.remove x v_ctx)
-        v_ctx ((x, m) :: xm)
+        v_ctx xm
     in
     v_ctx :: check_cover cover id_ctx mot ty m
   | _ -> []
