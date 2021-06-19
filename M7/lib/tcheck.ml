@@ -463,3 +463,6 @@ and check_tscope v_ctx id_ctx tscope =
     let m, _ = infer_sort v_ctx id_ctx t in
     let v_ctx = VarMap.add x (t, Zero, m) v_ctx in
     check_tscope v_ctx id_ctx tscope
+
+let infer top =
+  infer_top VarMap.empty IdMap.empty top

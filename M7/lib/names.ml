@@ -1,3 +1,26 @@
+module Name : sig
+  type t
+
+  val string_of : t -> string
+  val mk : string -> t
+  val __ : t
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val pp : Format.formatter -> t -> unit
+end =
+struct
+  type t = string * int
+  let stamp = ref (-1)
+
+  let string_of t = fst t
+  let mk s = incr stamp; (s, !stamp)
+  let __ = mk "_"
+  let equal t1 t2 = Int.equal (snd t1) (snd t2)
+  let compare t1 t2 = Int.compare (snd t1) (snd t2)
+  let pp fmt t = Format.fprintf fmt "%s_%d" (fst t) (snd t)
+end
+
+
 module Id : sig
   type t
 

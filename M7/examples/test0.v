@@ -37,10 +37,10 @@ Definition Loc : Type := Nat.
 Axiom PtsTo : Loc -> Type -> Linear.
 Definition Ptr (A : Type) : Linear := FTensor Loc (fun l => PtsTo l A).
 
-Axiom New : (A : Type) -> A -> Ptr A.
+Axiom New  : (A : Type) -> A -> Ptr A.
 Axiom Free : (A : Type) -> Ptr A -> Unit.
-Axiom Get : (A : Type) -> (l : Loc) -> PtsTo l A -> FTensor A (fun _ => PtsTo l A).
-Axiom Set : (A : Type) -> (B : Type) -> B -> (l : Loc) -> PtsTo l A -> PtsTo l B.
+Axiom Get  : (A : Type) -> (l : Loc) -> PtsTo l A -> FTensor A (fun _ => PtsTo l A).
+Axiom Set  : (A : Type) -> (B : Type) -> B -> (l : Loc) -> PtsTo l A -> PtsTo l B.
 
 Definition prev (n : Nat) (x : SNat (S n)) : (SNat n) := 
   match x in SNat n return
@@ -56,19 +56,12 @@ Definition prev (n : Nat) (x : SNat (S n)) : (SNat n) :=
 Definition n : Ptr Nat := New Nat O.
 
 Definition Assign (A : Type) (x : A) (ptr : Ptr A) : Ptr A :=
-  match ptr with
-  | FPair l c =>
-    let c := Set A A x l c in
-    FPair l c
-  end.
+  let FPair l c := ptr in
+  let c := Set A A x l c in
+  FPair l c.
 
 Definition main : Nat :=
-  match n with
-  | FPair l c => 
-    let xc := Get Nat l c in
-    match xc with
-    | FPair x c =>
-      let _ := Free Nat (FPair l c) in
-      x
-    end
-  end.
+  let FPair l c := n in
+  let FPair x c := Get Nat l c in
+  let _ := Free Nat (FPair l c) in
+  x.
