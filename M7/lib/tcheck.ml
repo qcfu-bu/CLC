@@ -77,7 +77,7 @@ and infer v_ctx id_ctx t =
       let m, _ = infer_sort v_ctx id_ctx ty in
       let v_ctx2 = check v_ctx id_ctx t2 ty in
       (subst b t2, merge v_ctx1 (scale m v_ctx2))
-    | _ -> failwith (asprintf "infer App(t := %a)" Terms.pp t))
+    | _ -> failwith (asprintf "@[infer App(t :=@;<1 2>%a)@]" Terms.pp t))
   | LetIn (t, b) ->
     let ty1, v_ctx1 = infer v_ctx id_ctx t in 
     let m, _ = infer_sort v_ctx id_ctx ty1 in

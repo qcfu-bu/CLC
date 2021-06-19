@@ -15,8 +15,7 @@ let basic = parse "
 
   Definition TyInd 
     (A : Type) 
-    (x : A)
-    (y : A)
+    (x y : A)
     (P : A -> Type) 
     (e : Eq A x y)
     (f : P x) :
@@ -28,8 +27,7 @@ let basic = parse "
 
   Definition LnInd 
     (A : Type) 
-    (x : A)
-    (y : A)
+    (x y : A)
     (P : A -> Linear) 
     (e : Eq A x y)
     (f : P x) :
@@ -41,6 +39,9 @@ let basic = parse "
 
   Inductive Unit : Type :=
   | tt : Unit.
+
+  Inductive One : Linear :=
+  | ll : One.
 
   Inductive Nat : Type :=
   | O : Nat

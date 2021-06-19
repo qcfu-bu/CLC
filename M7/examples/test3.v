@@ -1,14 +1,8 @@
-Definition lnId (A : Type) : Linear := A >> A.
-
 Fixpoint add (m n : Nat) : Nat :=
   match m with
   | O => n
   | S m => S (add m n)
   end.
-
-Inductive Fin : Nat -> Type :=
-| F1 : (n : Nat) -> Fin (S n)
-| FS : (n : Nat) -> Fin n -> Fin (S n).
 
 Inductive ArrVec (A : Type) (l : Loc) : Nat -> Linear :=
 | Nil  : ArrVec A l 0
@@ -20,11 +14,11 @@ Definition First (A : Type) (n : Nat) (arr : Array A (S n)) : [A | Array A (S n)
   let [l, v] := arr in
   match v in ArrVec _ _ n1 return
     match n1 with
-    | O => Eq Nat n n >> lnId A
+    | O => One
     | S n2 => Eq Nat n2 n >> [A | Array A (S n)]
     end
   with
-  | Nil => fun _ x => x
+  | Nil => ll
   | Cons n1 c v => 
     fun pf =>
       let f1 : Nat -> Linear := fun n => add l n @ A in
