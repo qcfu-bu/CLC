@@ -1,7 +1,6 @@
 open Format
 open MParser
 open Names
-open Basics
 open Raw
 
 module SMap = Map.Make(String)
@@ -56,7 +55,7 @@ let ws = many (choice [
   blank >> return ();
   newline >> return ();
   comment >> return ();
-]) >> return ()
+])
 
 let kw s = 
   let* _ = string s in
@@ -112,78 +111,26 @@ let rec pvar_parser () =
   let* x = var_parser ~pat:true () in 
   return (PVar x)
 
-and pcons_parser () =
+and pcons_parser ?is_type:(p=false) () =
   let* id = id_parser () in
   let n = Id.get_arity id in
   let* ps = repeatn (p_parser ()) n in
-  if Id.get_tcons id 
-  then return (PTCons (id, ps))
+  if p then return (PTCons (id, ps))
   else return (PDCons (id, ps))
 
-and p_tt_parser () =
-  let* _ = kw "(" in
-  let* _ = kw ")" in
-  return (PDCons (_tt, []))
-
-and p_ftensor_parser () =
-  let* _ = kw "[" in
-  let* p1 = p_parser () in
-  let* _ = kw "|" in
-  let* p2 = p_parser () in
-  let* _ = kw "]" in
-  return (PTCons (_FTensor, [p1; p2]))
-
-and p_pair_parser () =
-  let* _ = kw "(" in
-  let* p1 = p_parser () in
-  let* _ = kw "," in
-  let* p2 = p_parser () in
-  let* _ = kw ")" in
-  return (PDCons (_pair, [p1; p2]))
-
-and p_fpair_parser () =
-  let* _ = kw "[" in
-  let* p1 = p_parser () in
-  let* _ = kw "," in
-  let* p2 = p_parser () in
-  let* _ = kw "]" in
-  return (PDCons (_fpair, [p1; p2]))
-
-and p_tpair_parser () =
-  let* _ = kw "{" in
-  let* p1 = p_parser () in
-  let* _ = kw "," in
-  let* p2 = p_parser () in
-  let* _ = kw "}" in
-  return (PDCons (_tpair, [p1; p2]))
-
-and p0_parser () = 
+and p_parser ?is_type:(p=false) () = 
   let* _ = return () in
   choice (List.map attempt [
-    pcons_parser (); 
+    pcons_parser ~is_type:p (); 
     pvar_parser ();
-    p_tt_parser();
-    p_ftensor_parser ();
-    p_pair_parser ();
-    p_fpair_parser ();
-    p_tpair_parser ();
     parens (p_parser ());
   ])
-
-and p_parser () =
-  let prod_parser =
-   (let* _ = kw "*" in
-    return (fun p1 p2 -> PTCons (_Sigma, [p1; p2])))
-    <|>
-   (let* _ = kw "^" in
-    return (fun p1 p2 -> PTCons (_Tensor, [p1; p2])))
-  in
-  chain_left1 (p0_parser ()) prod_parser
 
 let rec sort_parser () = 
   (let* _ = kw "Type" in return Type)
   <|>
   (let* _ = kw "Linear" in return Linear)
+
 
 and tyProd_parser () =
   let* ctx = get_user_state in
@@ -295,7 +242,7 @@ and motive_parser () =
     | None -> Name.__
   in
   let* _ = kw "in" in
-  let* p = p_parser () in
+  let* p = p_parser ~is_type:true () in
   let* _ = kw "return" in
   let* t = t_parser () in
   return (Some (x, p, t))
@@ -307,64 +254,6 @@ and clause_parser () =
   let* t = t_parser () in
   return (p, t)
 
-and tt_parser () =
-  let* _ = kw "(" in
-  let* _ = kw ")" in
-  return (DCons (_tt, []))
-
-and ftensor_parser () =
-  let* _ = kw "[" in
-  let* x = var_parser () in
-  let* _ = kw ":" in
-  let* ty1 = t_parser () in
-  let* _ = kw "|" in
-  let* ty2 = t_parser () in
-  let* _ = kw "]" in
-  return (TCons (_FTensor, [ty1; Lambda (PVar x, ty2)]))
-
-and fprod_parser () =
-  let* _ = kw "[" in
-  let* ty1 = t_parser () in
-  let* _ = kw "|" in
-  let* ty2 = t_parser () in
-  let* _ = kw "]" in
-  return (TCons (_FTensor, [ty1; Lambda (PVar Name.__, ty2)]))
-
-and pair_parser () =
-  let* _ = kw "(" in
-  let* t1 = t_parser () in
-  let* _ = kw "," in
-  let* t2 = t_parser () in
-  let* _ = kw ")" in
-  return (DCons (_pair, [t1; t2]))
-
-and fpair_parser () =
-  let* _ = kw "[" in
-  let* t1 = t_parser () in
-  let* _ = kw "," in
-  let* t2 = t_parser () in
-  let* _ = kw "]" in
-  return (DCons (_fpair, [t1; t2]))
-
-and tpair_parser () =
-  let* _ = kw "{" in
-  let* t1 = t_parser () in
-  let* _ = kw "," in
-  let* t2 = t_parser () in
-  let* _ = kw "}" in
-  return (DCons (_tpair, [t1; t2]))
-
-and int_parser () =
-  let* s = many1_chars digit in
-  let* _ = ws in
-  match int_of_string_opt s with
-  | Some n ->
-    let rec loop i acc =
-      if i < n then loop (i + 1) (DCons (_S, [acc]))
-      else acc
-    in return (loop 0 (DCons (_O, [])))
-  | None -> fail "non-int"
-
 and t0_parser () =
   let* _ = return () in
   choice (List.map attempt [
@@ -374,13 +263,6 @@ and t0_parser () =
     lambda_parser ();
     letIn_parser ();
     match_parser ();
-    tt_parser ();
-    ftensor_parser ();
-    fprod_parser ();
-    pair_parser ();
-    fpair_parser ();
-    tpair_parser ();
-    int_parser ();
     parens (t_parser ())
   ])
 
@@ -402,20 +284,6 @@ and t2_parser () =
   return t
 
 and t3_parser () =
-  let prod_parser =
-   (let* _ = kw "*" in
-    let p = PVar Name.__ in
-    return (fun ty1 ty2 -> TCons (_Sigma, [ty1; Lambda (p, ty2)])))
-    <|>
-   (let* _ = kw "^" in
-    return (fun ty1 ty2 -> TCons (_Tensor, [ty1; ty2])))
-    <|>
-   (let* _ = kw "@" in
-    return (fun ty1 ty2 -> App (App (Var (_PtsTo), ty1), ty2)))
-  in
-  chain_left1 (t2_parser ()) prod_parser
-
-and t4_parser () =
   let arrow_parser () =
     let* _ = kw "->" in
     return (fun ty1 ty2 -> TyProd (Name.__, ty1, ty2))
@@ -424,26 +292,26 @@ and t4_parser () =
     let* _ = kw ">>" in
     return (fun ty1 ty2 -> LnProd (Name.__, ty1, ty2))
   in
-  chain_right1 (t3_parser ())
+  chain_right1 (t2_parser ())
     (arrow_parser () <|> lolli_parser ())
 
 and t_parser () = 
-  attempt (t4_parser ())
+  attempt (t3_parser ())
   <|>
   let* _ = kw "(" in
-  let* t = t4_parser () in
+  let* t = t3_parser () in
   let* _ = kw ":" in
-  let* ty = t4_parser () in
+  let* ty = t3_parser () in
   let* _ = kw ")" in
   return (Ann (t, ty))
 
 let param_parser =
   let* _ = kw "(" in
-  let* xs = many1 (var_parser ~pat:true ()) in
+  let* x = var_parser ~pat:true () in
   let* _ = kw ":" in
   let* ty = t_parser () in
   let* _ = kw ")" in
-  return (xs, ty)
+  return (x, ty)
 
 let rec definition_parser () =
   let* _ = kw "Definition" in
@@ -453,21 +321,21 @@ let rec definition_parser () =
   let* _ = kw ":" in
   let* ty = t_parser () in
   let ty =
-    List.fold_right (fun (xs, ty) acc -> 
-        List.fold_right (fun x acc -> 
-          TyProd (x, ty, acc)) xs acc) ps ty 
+    List.fold_right
+      (fun (x, ty) acc -> 
+        TyProd (x, ty, acc)) ps ty 
   in
   let* _ = kw ":=" in
   let* t = t_parser () in
   let t =
-    List.fold_right (fun (xs, _) acc -> 
-      List.fold_right (fun x acc -> 
-        Lambda (PVar x, acc)) xs acc) ps t
+    List.fold_right
+      (fun (x, _) acc -> 
+        Lambda (PVar x, acc)) ps t
   in
   let* _ = kw "." in
   let* _ = set_user_state ctx in
-  let* tp = top_parser () in
-  return (Define (x, Ann (t, ty), tp))
+  let* tp, ctx = top_parser () in
+  return (Define (x, Ann (t, ty), tp), ctx)
 
 and fixpoint_parser () =
   let* _ = kw "Fixpoint" in
@@ -477,22 +345,22 @@ and fixpoint_parser () =
   let* _ = kw ":" in
   let* ty = t_parser () in
   let ty =
-    List.fold_right (fun (xs, ty) acc -> 
-      List.fold_right (fun x acc -> 
-        TyProd (x, ty, acc)) xs acc) ps ty 
+    List.fold_right
+      (fun (x, ty) acc -> 
+        TyProd (x, ty, acc)) ps ty 
   in
   let* _ = kw ":=" in
   let* t = t_parser () in
   let t =
     Fix (x,
-      (List.fold_right (fun (xs, _) acc -> 
-        List.fold_right (fun x acc ->
-          Lambda (PVar x, acc)) xs acc) ps t))
+      (List.fold_right
+        (fun (x, _) acc -> 
+          Lambda (PVar x, acc) ) ps t))
   in
   let* _ = kw "." in
   let* _ = set_user_state ctx in
-  let* tp = top_parser () in
-  return (Define (x, Ann (t, ty), tp))
+  let* tp, ctx = top_parser () in
+  return (Define (x, Ann (t, ty), tp), ctx)
 
 and datype_parser () =
   let* _ = kw "Inductive" in
@@ -502,9 +370,8 @@ and datype_parser () =
   let* _ = kw ":" in
   let* ts, n = tscope_parser () in
   let ts = 
-    List.fold_right (fun (xs, t) ts -> 
-      List.fold_right (fun x ts -> 
-        PBind (x, t, ts)) xs ts) ps (PBase ts)
+    List.fold_right
+      (fun (x, t) ts -> PBind (x, t, ts)) ps (PBase ts)
   in
   let id = Id.set_arity id (List.length ps + n) in
   let* _ = kw ":=" in
@@ -512,8 +379,8 @@ and datype_parser () =
   let* _ = kw "." in
   let* _, id_ctx = get_user_state in
   let* _ = set_user_state (v_ctx, id_ctx) in
-  let* tp = top_parser () in
-  return (Datype (TConstr (id, ts, cstr), tp))
+  let* tp, ctx = top_parser () in
+  return (Datype (TConstr (id, ts, cstr), tp), ctx)
 
 and constr_parser ps () =
   let* _ = kw "|" in
@@ -522,9 +389,8 @@ and constr_parser ps () =
   let* _ = kw ":" in
   let* ts, n = tscope_parser () in
   let ts = 
-    List.fold_right (fun (xs, t) ts -> 
-      List.fold_right (fun x ts ->
-      PBind (x, t, ts)) xs ts) ps (PBase ts)
+    List.fold_right
+      (fun (x, t) ts -> PBind (x, t, ts)) ps (PBase ts)
   in
   let id = Id.set_arity id n in
   let* _, id_ctx = get_user_state in
@@ -549,11 +415,12 @@ and axiom_parser () =
   let* _ = kw ":" in
   let* ty = t_parser () in
   let* _ = kw "." in
-  let* tp = top_parser () in
-  return (Define (x, Axiom (id, ty), tp))
+  let* tp, ctx = top_parser () in
+  return (Define (x, Axiom (id, ty), tp), ctx)
 
 and empty_parser () =
-  return Empty
+  let* ctx = get_user_state in
+  return (Empty, ctx)
 
 and top_parser () =
   choice [
@@ -565,13 +432,7 @@ and top_parser () =
   ]
 
 let parse s =
-  let top, ctx = basic in
+  let ctx = (SMap.empty, SMap.empty) in
   match parse_string (ws >> top_parser ()) s ctx with
-  | Success t -> append_top top t
-  | Failed (s, _) -> failwith s
-
-let parse_ch ch =
-  let top, ctx = basic in
-  match parse_channel (ws >> top_parser ()) ch ctx with
-  | Success t -> append_top top t
+  | Success t -> t
   | Failed (s, _) -> failwith s

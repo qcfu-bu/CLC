@@ -25,13 +25,6 @@ Inductive Tensor (A : Linear) (B : Linear) : Linear :=
 Inductive FTensor (A : Type) (F : A -> Linear) : Linear :=
 | FPair : (x : A) -> F x -> FTensor A F.
 
-Inductive SN (N : Nat) : Type :=
-| sn : (n : Nat) -> SN N.
-
-Definition bad : SN (S O) := 
-  sn (S O).
-
-
 Definition Loc : Type := Nat.
 
 Axiom PtsTo : Loc -> Type -> Linear.
@@ -53,15 +46,33 @@ Definition prev (n : Nat) (x : SNat (S n)) : (SNat n) :=
   | Succ _ x => x
   end.
 
-Definition n : Ptr Nat := New Nat O.
+Definition IO (A : Type) : Linear := 
+  Ptr Nat >> FTensor A (fun _ => Ptr Nat).
+
+Definition pure (A : Type) (x : A) : IO A := 
+  fun ptr => FPair x ptr.
+
+Definition bind (A : Type) (B : Type) : IO A >> (A >> IO B) >> IO B := 
+  fun t1 f ptr => 
+    let FPair x ptr := t1 ptr in
+    f x ptr.
+
+
+
+
+(* Definition bind (A : Type) (B : Type) : T A -> (A -> T B) := . *)
+
+
+
+(* Definition n : Ptr Nat := New Nat O.
 
 Definition Assign (A : Type) (x : A) (ptr : Ptr A) : Ptr A :=
   let FPair l c := ptr in
   let c := Set A A x l c in
-  FPair l c.
+  FPair l c. *)
 
-Definition main : Nat :=
-  let FPair l c := n in
+Definition main : Nat := O.
+  (* let FPair l c := n in
   let FPair x c := Get Nat l c in
   let _ := Free Nat (FPair l c) in
-  x.
+  x. *)

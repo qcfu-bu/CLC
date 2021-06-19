@@ -6,9 +6,13 @@ module NMap = Map.Make(Name)
 
 type ctx = Terms.t var NMap.t
 
+let find x ctx =
+  try NMap.find x ctx
+  with _ -> failwith (Format.asprintf "cannot find(%a)" Name.pp x)
+
 let rec desugar (ctx : ctx) t = 
   match t with
-  | Var x -> Terms._Var (NMap.find x ctx)
+  | Var x -> Terms._Var (find x ctx)
   | Ann (t1, t2) -> Terms._Ann (desugar ctx t1) (desugar ctx t2)
   | Type -> Terms._Type
   | Linear -> Terms._Linear
@@ -19,7 +23,7 @@ let rec desugar (ctx : ctx) t =
   | LnProd (v, t1, t2) -> 
     let x = Terms.mk (Name.string_of v) in
     let ctx = NMap.add v x ctx in
-    Terms._TyProd (desugar ctx t1) (bind_var x (desugar ctx t2))
+    Terms._LnProd (desugar ctx t1) (bind_var x (desugar ctx t2))
   | Lambda (p, t) -> (
     match p with
     | PVar v ->

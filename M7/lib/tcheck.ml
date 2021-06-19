@@ -108,7 +108,8 @@ and infer v_ctx id_ctx t =
   | Match (t, opt, pbs) -> (
     let ty, v_ctx1 = infer v_ctx id_ctx t in
     let m, _ = infer_sort v_ctx id_ctx ty in
-    match whnf ty with
+    let ty = whnf ty in
+    match ty with
     | TCons (id, ts) -> (
       let TConstr (_, _, ds) = IdMap.find id id_ctx in
       let cover = coverage v_ctx id_ctx pbs ds ts in
@@ -130,9 +131,11 @@ and infer v_ctx id_ctx t =
         | (t, v_ctx2) :: v_ctxs -> 
           List.iter 
             (fun (t', v_ctx) ->  
-              assert_msg (equal t t')  "infer Match3";
+              assert_msg (equal t t')  
+                (asprintf "infer Match3(%a;@;<1 2>%a)"
+                  Terms.pp t Terms.pp t');
               assert_msg (Context.equal v_ctx2 v_ctx)  
-                (asprintf "infer Match4(%a; %a)"
+                (asprintf "infer Match4(%a;@;<1 2>%a)"
                   Context.pp v_ctx Context.pp v_ctx)) v_ctxs;
           (t, merge v_ctx1 v_ctx2)))
     | _ -> failwith "infer Match5")
@@ -268,7 +271,8 @@ and check v_ctx id_ctx t ty =
     | _ ->
       let ty1, v_ctx1 = infer v_ctx id_ctx t in
       let _ = infer_sort v_ctx id_ctx ty1 in
-      match whnf ty1 with
+      let ty1 = whnf ty1 in
+      match ty1 with
       | TCons (id, ts) -> (
         let TConstr (_, _, ds) = IdMap.find id id_ctx in
         let cover = coverage v_ctx id_ctx pbs ds ts in

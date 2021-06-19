@@ -174,3 +174,11 @@ and pp_dcons fmt = function
     fprintf fmt "@[<v 0>| %a %a@;<1 0>%a@]" 
       Id.pp id pp_pscope ts pp_dcons cs
   | _ -> ()
+
+let rec append_top top1 top2 =
+  match top1 with
+  | Empty -> top2
+  | Define (v, t, top1) ->
+    Define (v, t, append_top top1 top2)
+  | Datype (tcons, top1) ->
+    Datype (tcons, append_top top1 top2)
