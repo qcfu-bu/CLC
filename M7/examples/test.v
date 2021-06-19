@@ -1,7 +1,7 @@
 Require Import Program.
 
 Inductive SN (N : nat) : Type :=
-| sn : forall (n : nat), SN n.
+| sn : forall (n : nat), SN N.
 
 Inductive Sigma (A : Prop) (F : A -> Prop) : Prop :=
 | pair : forall (x : A), F x -> Sigma A F.
