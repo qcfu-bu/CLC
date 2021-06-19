@@ -1,5 +1,44 @@
 open Pparser
 let basic = parse "
+  Inductive Eq (A : Type) (x : A) : A -> Type :=
+  | refl : Eq A x x.
+
+  Definition eq_sym 
+    (A : Type) 
+    (x y : A) 
+    (e : Eq A x y) :
+    Eq A y x
+  :=
+    match e in Eq _ _ y return Eq A y x with
+    | refl => refl
+    end.
+
+  Definition TyInd 
+    (A : Type) 
+    (x : A)
+    (y : A)
+    (P : A -> Type) 
+    (e : Eq A x y)
+    (f : P x) :
+    P y
+  := 
+    match e in Eq _ _ y return P y with
+    | refl => f
+    end.
+
+  Definition LnInd 
+    (A : Type) 
+    (x : A)
+    (y : A)
+    (P : A -> Linear) 
+    (e : Eq A x y)
+    (f : P x) :
+    P y
+  := 
+    match e in Eq _ _ y return P y with
+    | refl => f
+    end.
+
   Inductive Unit : Type :=
   | tt : Unit.
 
@@ -10,9 +49,6 @@ let basic = parse "
   Inductive Bool : Type :=
   | true : Bool
   | false : Bool.
-
-  Inductive Eq (A : Type) : A -> A -> Type :=
-  | refl : (x : A) -> Eq A x x.
 
   Inductive Sigma (A : Type) (F : A -> Type) : Type :=
   | pair : (x : A) -> F x -> Sigma A F.

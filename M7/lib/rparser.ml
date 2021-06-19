@@ -312,6 +312,16 @@ and tt_parser () =
   let* _ = kw ")" in
   return (DCons (_tt, []))
 
+and sigma_parser () =
+  let* _ = kw "(" in
+  let* x = var_parser () in
+  let* _ = kw ":" in
+  let* ty1 = t_parser () in
+  let* _ = kw "*" in
+  let* ty2 = t_parser () in
+  let* _ = kw ")" in
+  return (TCons (_Sigma, [ty1; Lambda (PVar x, ty2)]))
+
 and ftensor_parser () =
   let* _ = kw "[" in
   let* x = var_parser () in
@@ -375,6 +385,7 @@ and t0_parser () =
     letIn_parser ();
     match_parser ();
     tt_parser ();
+    sigma_parser ();
     ftensor_parser ();
     fprod_parser ();
     pair_parser ();
@@ -524,7 +535,7 @@ and constr_parser ps () =
   let ts = 
     List.fold_right (fun (xs, t) ts -> 
       List.fold_right (fun x ts ->
-      PBind (x, t, ts)) xs ts) ps (PBase ts)
+        PBind (x, t, ts)) xs ts) ps (PBase ts)
   in
   let id = Id.set_arity id n in
   let* _, id_ctx = get_user_state in

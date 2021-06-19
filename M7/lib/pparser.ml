@@ -307,11 +307,11 @@ and t_parser () =
 
 let param_parser =
   let* _ = kw "(" in
-  let* x = var_parser ~pat:true () in
+  let* xs = many1 (var_parser ~pat:true ()) in
   let* _ = kw ":" in
   let* ty = t_parser () in
   let* _ = kw ")" in
-  return (x, ty)
+  return (xs, ty)
 
 let rec definition_parser () =
   let* _ = kw "Definition" in
@@ -321,16 +321,16 @@ let rec definition_parser () =
   let* _ = kw ":" in
   let* ty = t_parser () in
   let ty =
-    List.fold_right
-      (fun (x, ty) acc -> 
-        TyProd (x, ty, acc)) ps ty 
+    List.fold_right (fun (xs, ty) acc -> 
+        List.fold_right (fun x acc -> 
+          TyProd (x, ty, acc)) xs acc) ps ty 
   in
   let* _ = kw ":=" in
   let* t = t_parser () in
   let t =
-    List.fold_right
-      (fun (x, _) acc -> 
-        Lambda (PVar x, acc)) ps t
+    List.fold_right (fun (xs, _) acc -> 
+      List.fold_right (fun x acc -> 
+        Lambda (PVar x, acc)) xs acc) ps t
   in
   let* _ = kw "." in
   let* _ = set_user_state ctx in
@@ -345,17 +345,17 @@ and fixpoint_parser () =
   let* _ = kw ":" in
   let* ty = t_parser () in
   let ty =
-    List.fold_right
-      (fun (x, ty) acc -> 
-        TyProd (x, ty, acc)) ps ty 
+    List.fold_right (fun (xs, ty) acc -> 
+      List.fold_right (fun x acc -> 
+        TyProd (x, ty, acc)) xs acc) ps ty 
   in
   let* _ = kw ":=" in
   let* t = t_parser () in
   let t =
     Fix (x,
-      (List.fold_right
-        (fun (x, _) acc -> 
-          Lambda (PVar x, acc) ) ps t))
+      (List.fold_right (fun (xs, _) acc -> 
+        List.fold_right (fun x acc ->
+          Lambda (PVar x, acc)) xs acc) ps t))
   in
   let* _ = kw "." in
   let* _ = set_user_state ctx in
@@ -370,8 +370,9 @@ and datype_parser () =
   let* _ = kw ":" in
   let* ts, n = tscope_parser () in
   let ts = 
-    List.fold_right
-      (fun (x, t) ts -> PBind (x, t, ts)) ps (PBase ts)
+    List.fold_right (fun (xs, t) ts -> 
+      List.fold_right (fun x ts -> 
+        PBind (x, t, ts)) xs ts) ps (PBase ts)
   in
   let id = Id.set_arity id (List.length ps + n) in
   let* _ = kw ":=" in
@@ -389,8 +390,9 @@ and constr_parser ps () =
   let* _ = kw ":" in
   let* ts, n = tscope_parser () in
   let ts = 
-    List.fold_right
-      (fun (x, t) ts -> PBind (x, t, ts)) ps (PBase ts)
+    List.fold_right (fun (xs, t) ts -> 
+      List.fold_right (fun x ts ->
+        PBind (x, t, ts)) xs ts) ps (PBase ts)
   in
   let id = Id.set_arity id n in
   let* _, id_ctx = get_user_state in

@@ -72,11 +72,11 @@ and infer v_ctx id_ctx t =
     | TyProd (ty, b) ->
       let m, _ = infer_sort v_ctx id_ctx ty in
       let v_ctx2 = check v_ctx id_ctx t2 ty in
-      (whnf (subst b t2), merge v_ctx1 (scale m v_ctx2))
+      (subst b t2, merge v_ctx1 (scale m v_ctx2))
     | LnProd (ty, b) ->
       let m, _ = infer_sort v_ctx id_ctx ty in
       let v_ctx2 = check v_ctx id_ctx t2 ty in
-      (whnf (subst b t2), merge v_ctx1 (scale m v_ctx2))
+      (subst b t2, merge v_ctx1 (scale m v_ctx2))
     | _ -> failwith (asprintf "infer App(t := %a)" Terms.pp t))
   | LetIn (t, b) ->
     let ty1, v_ctx1 = infer v_ctx id_ctx t in 
@@ -116,7 +116,7 @@ and infer v_ctx id_ctx t =
       match opt with 
       | Some mot -> (
         let ty' = subst_p (subst mot t) ty in
-        let v_ctxs = check_motive cover id_ctx mot ty m in
+        let v_ctxs = check_motive cover id_ctx mot m in
         match v_ctxs with
         | [] -> (ty', v_ctx)
         | (v_ctx2) :: v_ctxs -> 
@@ -182,10 +182,11 @@ and coverage v_ctx id_ctx pbs ds ts =
     match p with
     | PDCons (id, ps) ->
       let xs = List.map strip ps in 
+      let t = t_of_p p in
       let (DConstr (_, pscope), ds) = find id ds in
       let (v_ctx', ty, xm) = arity_pscope v_ctx pscope ts xs in
       let ds = coverage v_ctx id_ctx pbs ds ts in 
-      (v_ctx', ty, b, xm) :: ds
+      (v_ctx', t, ty, b, xm) :: ds
     | _ -> failwith "coverage")
   | [] -> (
     match ds with
@@ -254,8 +255,8 @@ and check v_ctx id_ctx t ty =
       in
       let ty', v_ctx = infer_pscope v_ctx id_ctx ts pscope in
       assert_msg (equal ty ty') 
-        (asprintf "check DCons(ty := %a; ty' := %a)"
-          Terms.pp ty Terms.pp ty');
+        (asprintf "check DCons(@[ty := %a;@;<1 0>ty' := %a@])"
+          Terms.pp (whnf ty) Terms.pp (whnf ty'));
       v_ctx
     | _ -> failwith "check DCons")
   | Match (t, opt, pbs) -> (
@@ -290,18 +291,21 @@ and check v_ctx id_ctx t ty =
   | _ ->
     let ty', v_ctx' = infer v_ctx id_ctx t in
     assert_msg (equal ty ty')
-      (asprintf "check (ty := %a; ty' := %a)" 
+      (asprintf "check (@[ty := %a;@;<1 0>ty' := %a@])" 
         Terms.pp (nf ty) Terms.pp (nf ty'));
     v_ctx'
 
-and check_motive cover id_ctx mot ty m =
+and check_motive cover id_ctx mot m =
   match cover with
-  | (v_ctx, t, b, xm) :: cover ->
-    let x, mot' = unbind mot in
-    let v_ctx = VarMap.add x (ty, Zero, m) v_ctx in
-    let mot' = subst_p mot' t in
+  | (v_ctx, t, ty, b, xm) :: cover ->
+    let mot' = 
+      if m = W then subst mot t 
+      else (
+        assert_msg (not (binder_occur mot)) "check_motive";
+        snd (unbind mot))
+    in
+    let mot' = subst_p mot' ty in
     let v_ctx = check v_ctx id_ctx b mot' in
-    let v_ctx = VarMap.remove x v_ctx in
     let v_ctx = 
       List.fold_left
         (fun v_ctx (x, m) -> 
@@ -312,12 +316,12 @@ and check_motive cover id_ctx mot ty m =
           VarMap.remove x v_ctx)
         v_ctx xm
     in
-    v_ctx :: check_motive cover id_ctx mot ty m
+    v_ctx :: check_motive cover id_ctx mot m
   | _ -> []
 
 and check_cover cover id_ctx ty =
   match cover with
-  | (v_ctx, _, b, xm) :: cover ->
+  | (v_ctx, _, _, b, xm) :: cover ->
     let v_ctx = check v_ctx id_ctx b ty in
     let v_ctx = 
       List.fold_left 
@@ -333,7 +337,7 @@ and check_cover cover id_ctx ty =
 
 and infer_cover cover id_ctx =
   match cover with
-  | (v_ctx, _, b, xm) :: cover ->
+  | (v_ctx, _, _, b, xm) :: cover ->
     let ty, v_ctx = infer v_ctx id_ctx b in
     let v_ctx = 
       List.fold_left 

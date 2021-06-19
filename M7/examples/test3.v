@@ -16,18 +16,22 @@ Inductive ArrVec (A : Type) (l : Loc) : Nat -> Linear :=
 
 Definition Array (A : Type) (n : Nat) : Linear := [l : Loc | ArrVec A l n].
 
-Definition First (A : Type) (n : Nat) (arr : Array A (S n)) : [A | Array A (S n)] := 
+(* Definition First (A : Type) (n : Nat) (arr : Array A (S n)) : [A | Array A (S n)] := 
   let [l, v] := arr in
-  match v in ArrVec _ _ n return
-    match n with
-    | O => lnId A
-    | S n => [A | Array A (S n)]
+  match v in ArrVec _ _ n1 return
+    match n1 with
+    | O => Eq Nat n n >> lnId A
+    | S n2 => Eq Nat n2 n >> [A | Array A (S n)]
     end
   with
-  | Nil => fun x => x
-  | Cons n c v =>
-    let [x, c] := Get A (add l n) c in
-    [x, [l, Cons n c v]]
-  end.
+  | Nil => fun _ x => x
+  | Cons n1 c v => 
+    fun pf =>
+      let f : Nat -> Linear := fun n => add l n @ A in
+      let c := LnInd Nat n1 n f pf c in
+      let [x, c] := Get A (add l n) c in
+      [x, [l, Cons n c v]]
+  end (refl). *)
+
 
 Definition main : Unit := ().
