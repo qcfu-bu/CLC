@@ -291,7 +291,7 @@ and check v_ctx id_ctx t ty =
   | _ ->
     let ty', v_ctx' = infer v_ctx id_ctx t in
     assert_msg (equal ty ty')
-      (asprintf "check (@[ty := %a;@;<1 0>ty' := %a@])" 
+      (asprintf "check (@[expected := %a;@;<1 0>actual := %a@])" 
         Terms.pp (nf ty) Terms.pp (nf ty'));
     v_ctx'
 

@@ -3,7 +3,7 @@ let basic = parse "
   Inductive Eq (A : Type) (x : A) : A -> Type :=
   | refl : Eq A x x.
 
-  Definition eq_sym 
+  Definition Eq_sym 
     (A : Type) 
     (x y : A) 
     (e : Eq A x y) :
