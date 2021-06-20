@@ -420,13 +420,24 @@ and t3_parser () =
     <|>
    (let* _ = kw "^" in
     return (fun ty1 ty2 -> TCons (_Tensor, [ty1; ty2])))
-    <|>
-   (let* _ = kw "@" in
-    return (fun ty1 ty2 -> App (App (Var (_PtsTo), ty1), ty2)))
   in
   chain_left1 (t2_parser ()) prod_parser
 
 and t4_parser () =
+  let at_parser =
+   (let* _ = kw "+" in
+    return (fun t1 t2 -> App (App (Var (_add), t1), t2)))
+  in
+  chain_left1 (t3_parser ()) at_parser
+
+and t5_parser () =
+  let at_parser =
+   (let* _ = kw "@" in
+    return (fun ty loc -> App (App (Var (_PtsTo), loc), ty)))
+  in
+  chain_left1 (t4_parser ()) at_parser
+
+and t6_parser () =
   let arrow_parser () =
     let* _ = kw "->" in
     return (fun ty1 ty2 -> TyProd (Name.__, ty1, ty2))
@@ -435,16 +446,16 @@ and t4_parser () =
     let* _ = kw ">>" in
     return (fun ty1 ty2 -> LnProd (Name.__, ty1, ty2))
   in
-  chain_right1 (t3_parser ())
+  chain_right1 (t5_parser ())
     (arrow_parser () <|> lolli_parser ())
 
 and t_parser () = 
-  attempt (t4_parser ())
+  attempt (t6_parser ())
   <|>
   let* _ = kw "(" in
-  let* t = t4_parser () in
+  let* t = t6_parser () in
   let* _ = kw ":" in
-  let* ty = t4_parser () in
+  let* ty = t6_parser () in
   let* _ = kw ")" in
   return (Ann (t, ty))
 
