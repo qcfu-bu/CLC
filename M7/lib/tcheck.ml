@@ -258,7 +258,11 @@ and check v_ctx id_ctx t ty =
         (asprintf "check DCons(@[expected := %a;@;<1 0>actual   := %a@])"
           Terms.pp (whnf ty) Terms.pp (whnf ty'));
       v_ctx
-    | _ -> failwith "check DCons")
+    | _ -> 
+      assert_msg false
+        (asprintf "check DCons(@[t := %a;@;<1 0>ty  := %a@])"
+          Terms.pp (whnf t) Terms.pp (whnf ty)); 
+      failwith "")
   | Match (t, opt, pbs) -> (
     match opt with
     | Some _ ->
