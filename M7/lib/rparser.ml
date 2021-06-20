@@ -37,30 +37,32 @@ let rec repeatn p n =
     let* xs = repeatn p (n - 1) in
     return (x :: xs)
 
-let comment : unit tparser = 
+let any = any_char_or_nl >> return ()
+
+let rec comment () : unit tparser = 
   let* _ = string "(*" in
   let* _ = many (
     let* opt =
-      (look_ahead (string "*)") >> return None) 
+      (look_ahead (string "*)") >> return true) 
       <|>
-      (any_char_or_nl >>= (fun c -> return (Some c)))
+      ((comment () <|> any) >> return false)
     in
-    match opt with
-    | Some c -> return c
-    | None -> zero)
+    if opt then zero
+    else return ())
   in
   let* _ = string "*)" in
   return ()
 
-let ws = many (choice [
-  blank >> return ();
-  newline >> return ();
-  comment >> return ();
-]) >> return ()
+and ws () = 
+  many (choice [
+    (blank >> return ());
+    (newline >> return ());
+    (comment ()); 
+  ]) >> return ()
 
 let kw s = 
   let* _ = string s in
-  let* _ = ws in
+  let* _ = ws () in
   return ()
 
 let parens p =
@@ -72,7 +74,7 @@ let parens p =
 let var_parser ?pat:(p=false) () =
   let* s1 = many1_chars (letter <|> char '_') in
   let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
-  let* _ = ws in
+  let* _ = ws () in
   let s = s1 ^ s2 in
   if s = "_" then 
     if p then return Name.__ else fail "non pattern variable"
@@ -91,7 +93,7 @@ let var_parser ?pat:(p=false) () =
 let id_parser ?intro:(p=false) ?tcons:(t=false) ?arity:(n=0) ()  =
   let* s1 = many1_chars (letter <|> char '_') in
   let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
-  let* _ = ws in
+  let* _ = ws () in
   let s = s1 ^ s2 in
   if s = "_" then fail "non pattern variable"
   else
@@ -366,7 +368,7 @@ and tpair_parser () =
 
 and int_parser () =
   let* s = many1_chars digit in
-  let* _ = ws in
+  let* _ = ws () in
   match int_of_string_opt s with
   | Some n ->
     let rec loop i acc =
@@ -588,12 +590,12 @@ and top_parser () =
 
 let parse s =
   let top, ctx = basic in
-  match parse_string (ws >> top_parser ()) s ctx with
+  match parse_string (ws () >> top_parser ()) s ctx with
   | Success t -> append_top top t
   | Failed (s, _) -> failwith s
 
 let parse_ch ch =
   let top, ctx = basic in
-  match parse_channel (ws >> top_parser ()) ch ctx with
+  match parse_channel (ws () >> top_parser ()) ch ctx with
   | Success t -> append_top top t
   | Failed (s, _) -> failwith s

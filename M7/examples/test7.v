@@ -11,11 +11,12 @@ Inductive ArrVec (A : Type) (l : Loc) : Nat -> Linear :=
 Definition Array (A : Type) (n : Nat) : Linear := [l : Loc | ArrVec A l n].
 
 (* proof irrelevant traversal of ArrVec *)
-Fixpoint nth 
+@Irrelevant
+Fixpoint nth
   (A : Type) 
   (l m n : Nat) 
   (pf : lt m n) 
-  (v : ArrVec A l n) : 
+  (v : ArrVec A l n) :
   (A @ l + m) ^ ((A @ l + m) >> ArrVec A l n)
 :=
   match pf in le _ n return
