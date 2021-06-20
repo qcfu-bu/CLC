@@ -6,7 +6,7 @@ Definition lt (m n : Nat) : Type := le (S m) n.
 
 Inductive ArrVec (A : Type) (l : Loc) : Nat -> Linear :=
 | Nil  : ArrVec A l 0
-| Cons : (n : Nat) -> (add l n @ A) -> ArrVec A l n -> ArrVec A l (S n).
+| Cons : (n : Nat) -> (A @ l + n) -> ArrVec A l n -> ArrVec A l (S n).
 
 Definition Array (A : Type) (n : Nat) : Linear := [l : Loc | ArrVec A l n].
 
@@ -16,17 +16,17 @@ Fixpoint nth
   (l m n : Nat) 
   (pf : lt m n) 
   (v : ArrVec A l n) : 
-  (add l m @ A) ^ ((add l m @ A) >> ArrVec A l n)
+  (A @ l + m) ^ ((A @ l + m) >> ArrVec A l n)
 :=
   match pf in le _ n return
-    ArrVec A l n -> (add l m @ A) ^ ((add l m @ A) >> ArrVec A l n)
+    ArrVec A l n -> (A @ l + m) ^ ((A @ l + m) >> ArrVec A l n)
   with
   | le_n =>
     fun v =>
       match v in ArrVec _ _ n return
         match n with
         | O => Base
-        | S n0 => Eq Nat m n0 >> (add l n0 @ A) ^ ((add l n0 @ A) >> ArrVec A l n)
+        | S n0 => Eq Nat m n0 >> (A @ l + n0) ^ ((A @ l + n0) >> ArrVec A l n)
         end
       with
       | Nil => ll
@@ -38,7 +38,7 @@ Fixpoint nth
       match v in ArrVec _ _ n return 
         match n with
         | O => Base
-        | S n0 => lt m n0 >> (add l m @ A) ^ ((add l m @ A) >> ArrVec A l n)
+        | S n0 => lt m n0 >> (A @ l + m) ^ ((A @ l + m) >> ArrVec A l n)
         end
       with
       | Nil => ll
@@ -59,7 +59,7 @@ Definition index
 := 
   let [ l, v ] := a in
   let { c, f } := nth A l m n pf v in
-  let [ x, c ] := Get A (add l m) c in
+  let [ x, c ] := Get A (l + m) c in
   [x, [l, f c]].
 
 
