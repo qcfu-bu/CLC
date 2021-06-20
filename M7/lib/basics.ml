@@ -8,6 +8,7 @@ let v_ctx, id_ctx = snd basic
 let _tt = SMap.find "tt" id_ctx
 let _O = SMap.find "O" id_ctx
 let _S = SMap.find "S" id_ctx
+let _add = SMap.find "add" v_ctx
 let _Sigma = SMap.find "Sigma" id_ctx
 let _pair = SMap.find "pair" id_ctx
 let _Tensor = SMap.find "Tensor" id_ctx

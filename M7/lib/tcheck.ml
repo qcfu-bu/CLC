@@ -413,11 +413,11 @@ let rec infer_top v_ctx id_ctx top =
   | Datype (tcs, top) -> (
     match tcs with
     | TConstr (id, pscope, dcs) -> 
-      check_pscope v_ctx id_ctx pscope;
+      check_pscope v_ctx id_ctx pscope W;
       let id_ctx = IdMap.add id (TConstr (id, pscope, [])) id_ctx in
       List.iter
         (fun (DConstr (_, pscope)) ->
-          check_pscope v_ctx id_ctx pscope;
+          check_pscope v_ctx id_ctx pscope W;
           param_pscope pscope id []) dcs;
       let id_ctx = IdMap.add id (TConstr (id, pscope, dcs)) id_ctx in
       infer_top v_ctx id_ctx top)
@@ -457,24 +457,26 @@ and param_tscope tscope id xs =
     let _, tscope = unbind tscope in
     param_tscope tscope id xs
 
-and check_pscope v_ctx id_ctx pscope =
+and check_pscope v_ctx id_ctx pscope m =
   match pscope with
-  | PBase tscope -> check_tscope v_ctx id_ctx tscope
+  | PBase tscope -> check_tscope v_ctx id_ctx tscope m
   | PBind (t, pscope) ->
     let x, pscope = unbind pscope in
-    let m, _ = infer_sort v_ctx id_ctx t in
-    let v_ctx = VarMap.add x (t, Zero, m) v_ctx in
-    check_pscope v_ctx id_ctx pscope
+    let m', _ = infer_sort v_ctx id_ctx t in
+    let v_ctx = VarMap.add x (t, Zero, m') v_ctx in
+    check_pscope v_ctx id_ctx pscope (min m m')
 
-and check_tscope v_ctx id_ctx tscope =
+and check_tscope v_ctx id_ctx tscope m =
   match tscope with
   | TBase t -> 
-    let _ = infer_sort v_ctx id_ctx t in ()
+    let m', _ = infer_sort v_ctx id_ctx t in
+    assert_msg (m' <= m) 
+      (asprintf "check_tscope(m := %a; m' :=%a)" Rig.pp m Rig.pp m')
   | TBind (t, tscope) ->
     let x, tscope = unbind tscope in
-    let m, _ = infer_sort v_ctx id_ctx t in
-    let v_ctx = VarMap.add x (t, Zero, m) v_ctx in
-    check_tscope v_ctx id_ctx tscope
+    let m', _ = infer_sort v_ctx id_ctx t in
+    let v_ctx = VarMap.add x (t, Zero, m') v_ctx in
+    check_tscope v_ctx id_ctx tscope (min m m')
 
 let infer top =
   infer_top VarMap.empty IdMap.empty top
