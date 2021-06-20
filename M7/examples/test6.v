@@ -62,5 +62,18 @@ Definition index
   let [ x, c ] := Get A (add l m) c in
   [x, [l, f c]].
 
+
+Definition Just0 : Type := (x : Nat | Eq Nat x 0).
+
+
+Definition silly (m n : Nat) (pf : lt m n) (a : Array Just0 n) : Array Just0 n := 
+  let [x_pf, a] := index Just0 m n pf a in
+  let [y_pf, a] := index Just0 m n pf a in
+  let (x, pf1) := x_pf in
+  let (y, pf2) := y_pf in
+  let pf2 := Eq_sym Nat y 0 pf2 in
+  let pf : Eq Nat x y := Eq_trans Nat x 0 y pf1 pf2 in
+  a.
+
 Definition main : Unit := ().
 
