@@ -433,8 +433,8 @@ and top_parser () =
     empty_parser ();
   ]
 
-let parse s =
+let parse ch =
   let ctx = (SMap.empty, SMap.empty) in
-  match parse_string (ws >> top_parser ()) s ctx with
+  match parse_channel (ws >> top_parser ()) ch ctx with
   | Success t -> t
   | Failed (s, _) -> failwith s

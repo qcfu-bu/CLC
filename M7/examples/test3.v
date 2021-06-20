@@ -1,9 +1,3 @@
-Fixpoint add (m n : Nat) : Nat :=
-  match m with
-  | O => n
-  | S m => S (add m n)
-  end.
-
 Inductive ArrVec (A : Type) (l : Loc) : Nat -> Linear :=
 | Nil  : ArrVec A l 0
 | Cons : (n : Nat) -> (add l n @ A) -> ArrVec A l n -> ArrVec A l (S n).
@@ -14,7 +8,7 @@ Definition First (A : Type) (n : Nat) (arr : Array A (S n)) : [A | Array A (S n)
   let [l, v] := arr in
   match v in ArrVec _ _ n1 return
     match n1 with
-    | O => One
+    | O => Base
     | S n2 => Eq Nat n2 n >> [A | Array A (S n)]
     end
   with

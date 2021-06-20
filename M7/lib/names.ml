@@ -70,6 +70,6 @@ struct
 
   let pp fmt t =
     if !t.tcons 
-    then Format.fprintf fmt "T%s#%d" !t.name !t.id
-    else Format.fprintf fmt "D%s#%d" !t.name !t.id
+    then Format.fprintf fmt "%s_%d" !t.name !t.id
+    else Format.fprintf fmt "%s_%d" !t.name !t.id
 end

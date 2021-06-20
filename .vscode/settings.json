@@ -16,5 +16,5 @@
         "struct",
         "subtyping"
     ],
-    "editor.renderIndentGuides": false
+    "editor.renderIndentGuides": true
 }

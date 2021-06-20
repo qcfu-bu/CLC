@@ -255,7 +255,7 @@ and check v_ctx id_ctx t ty =
       in
       let ty', v_ctx = infer_pscope v_ctx id_ctx ts pscope in
       assert_msg (equal ty ty') 
-        (asprintf "check DCons(@[ty := %a;@;<1 0>ty' := %a@])"
+        (asprintf "check DCons(@[expected := %a;@;<1 0>actual   := %a@])"
           Terms.pp (whnf ty) Terms.pp (whnf ty'));
       v_ctx
     | _ -> failwith "check DCons")
@@ -291,7 +291,7 @@ and check v_ctx id_ctx t ty =
   | _ ->
     let ty', v_ctx' = infer v_ctx id_ctx t in
     assert_msg (equal ty ty')
-      (asprintf "check (@[expected := %a;@;<1 0>actual := %a@])" 
+      (asprintf "check (@[expected := %a;@;<1 0>actual   := %a@])" 
         Terms.pp (nf ty) Terms.pp (nf ty'));
     v_ctx'
 

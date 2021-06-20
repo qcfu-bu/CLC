@@ -317,7 +317,7 @@ and sigma_parser () =
   let* x = var_parser () in
   let* _ = kw ":" in
   let* ty1 = t_parser () in
-  let* _ = kw "*" in
+  let* _ = kw "|" in
   let* ty2 = t_parser () in
   let* _ = kw ")" in
   return (TCons (_Sigma, [ty1; Lambda (PVar x, ty2)]))
