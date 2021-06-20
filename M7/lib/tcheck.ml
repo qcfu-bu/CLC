@@ -332,7 +332,8 @@ and check_cover cover id_ctx ty =
         (fun v_ctx (x, m) -> 
           let r = occur x v_ctx in 
           assert_msg (r <= m) 
-            (asprintf "infer_cover(r := %a; m := %a)" Rig.pp r Rig.pp m);
+            (asprintf "infer_cover(x := %a; r := %a; m := %a)" 
+              pp_v x Rig.pp r Rig.pp m);
           VarMap.remove x v_ctx)
         v_ctx xm
     in 

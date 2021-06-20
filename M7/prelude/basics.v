@@ -75,6 +75,9 @@ Inductive Tensor (A : Linear) (B : Linear) : Linear :=
 Inductive FTensor (A : Type) (F : A -> Linear) : Linear :=
 | fpair : (x : A) -> F x -> FTensor A F.
 
+Axiom unsafeC : (A : Linear) -> A -> Unit.
+Axiom unsafeP : (A : Linear) -> A.
+
 Definition Loc : Type := Nat.
 Axiom PtsTo : Loc -> Type -> Linear.
 Definition Ptr (A : Type) : Linear := FTensor Loc (fun l => PtsTo l A).
