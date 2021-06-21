@@ -11,7 +11,6 @@ Inductive ArrVec (A : Type) (l : Loc) : Nat -> Linear :=
 Definition Array (A : Type) (n : Nat) : Linear := [l : Loc | ArrVec A l n].
 
 (* proof irrelevant traversal of ArrVec *)
-@Irrelevant
 Fixpoint nth
   (A : Type) 
   (l m n : Nat) 
@@ -77,4 +76,3 @@ Definition silly (m n : Nat) (pf : lt m n) (a : Array Just0 n) : Array Just0 n :
   a.
 
 Definition main : Unit := ().
-
