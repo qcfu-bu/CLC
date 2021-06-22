@@ -283,7 +283,7 @@ and check v_ctx id_ctx t ty =
         let cover = coverage v_ctx id_ctx pbs ds ts in
         let v_ctxs = check_cover cover id_ctx ty in
         match v_ctxs with
-        | [] -> failwith "check Match0"
+        | [] -> v_ctx1
         | v_ctx2 :: v_ctxs -> 
           List.iter 
             (fun v_ctx ->  
