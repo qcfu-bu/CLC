@@ -13,7 +13,7 @@ module VarMap = Map.Make(
 module IdMap = Map.Make(Id)
 
 type v_ctx = (t * rig * rig) VarMap.t
-type id_ctx = tcons VarMap.t
+type id_ctx = tcons IdMap.t
 
 let find x ctx =
   try VarMap.find x ctx

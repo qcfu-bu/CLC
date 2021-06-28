@@ -78,219 +78,229 @@ Inductive Tensor_14 (A_36 : Linear) (B_37 : Linear) : Linear :=
 | tpair_15 (A_36 : Linear)
              (B_37 : Linear) : (A_36) -> (B_37) -> (Tensor_14 A_36 B_37).
 
-Inductive FTensor_16 (A_38 : Type) (F_39 : A_38 -> Linear) : Linear :=
-| fpair_17 (A_38 : Type)
-             (F_39 : A_38 -> Linear)
-               : (x_41 : A_38) -> ((F_39) x_41) -> (FTensor_16 A_38 F_39).
+Definition tpair2_38 :=
+  ((fun A_39 B_40 x_41 y_42 => (tpair_15 x_41 y_42)) :
+    (A_39 : Linear) ->
+      (B_40 : Linear) -> A_39 -> B_40 >> (Tensor_14 A_39 B_40)).
 
-Axiom unsafeC_42 : (A_44 : Linear) -> A_44 -> Unit_2.
+Definition curryU_43 :=
+  ((fun A_44 B_45 f_46 x_47 __0 => (f_46) x_47) :
+    (A_44 : Linear) ->
+      (B_45 : Type) -> A_44 -> B_45 -> A_44 -> Unit_2 >> B_45).
 
-Axiom unsafeP_45 : (A_47 : Linear) -> A_47.
+Inductive FTensor_16 (A_48 : Type) (F_49 : A_48 -> Linear) : Linear :=
+| fpair_17 (A_48 : Type)
+             (F_49 : A_48 -> Linear)
+               : (x_51 : A_48) -> ((F_49) x_51) -> (FTensor_16 A_48 F_49).
 
-Definition Loc_48 := ((Nat_6) : Type).
+Axiom unsafeC_52 : (A_54 : Linear) -> A_54 -> Unit_2.
 
-Axiom PtsTo_49 : Loc_48 -> Type -> Linear.
+Axiom unsafeP_55 : (A_57 : Linear) -> A_57.
 
-Definition Ptr_50 :=
-  ((fun A_51 => (FTensor_16 Loc_48 fun l_52 => ((PtsTo_49) l_52) A_51)) :
-    (A_51 : Type) -> Linear).
+Definition Loc_58 := ((Nat_6) : Type).
 
-Axiom New_53 : (A_55 : Type) -> A_55 -> (Ptr_50) A_55.
+Axiom PtsTo_59 : Loc_58 -> Type -> Linear.
 
-Axiom Free_56 : (A_58 : Type) -> (Ptr_50) A_58 -> Unit_2.
+Definition Ptr_60 :=
+  ((fun A_61 => (FTensor_16 Loc_58 fun l_62 => ((PtsTo_59) l_62) A_61)) :
+    (A_61 : Type) -> Linear).
 
-Axiom Get_59 :
-  (A_61 : Type) ->
-    (l_63 : Loc_48) ->
-      ((PtsTo_49) l_63) A_61 ->
-        (FTensor_16 A_61 fun __0 => ((PtsTo_49) l_63) A_61).
+Axiom New_63 : (A_65 : Type) -> A_65 -> (Ptr_60) A_65.
 
-Axiom Set_64 :
-  (A_66 : Type) ->
-    (B_68 : Type) ->
-      B_68 ->
-        (l_70 : Loc_48) -> ((PtsTo_49) l_70) A_66 -> ((PtsTo_49) l_70) B_68.
+Axiom Free_66 : (A_68 : Type) -> (Ptr_60) A_68 -> Unit_2.
 
-Inductive le_25 (n_71 : Nat_6) : (Nat_6) -> Type :=
-| le_n_26 (n_71 : Nat_6) : (le_25 n_71 n_71)
-| le_S_27 (n_71 : Nat_6)
-            : (m_75 : Nat_6) ->
-                ((le_25 n_71 m_75)) -> (le_25 n_71 (S_8 m_75)).
+Axiom Get_69 :
+  (A_71 : Type) ->
+    (l_73 : Loc_58) ->
+      ((PtsTo_59) l_73) A_71 ->
+        (FTensor_16 A_71 fun __0 => ((PtsTo_59) l_73) A_71).
 
-Definition lt_77 :=
-  ((fun m_78 n_79 => (le_25 (S_8 m_78) n_79)) :
-    (m_78 : Nat_6) -> (n_79 : Nat_6) -> Type).
+Axiom Set_74 :
+  (A_76 : Type) ->
+    (B_78 : Type) ->
+      B_78 ->
+        (l_80 : Loc_58) -> ((PtsTo_59) l_80) A_76 -> ((PtsTo_59) l_80) B_78.
 
-Inductive ArrVec_28 (A_81 : Type) (l_82 : Loc_48) : (Nat_6) -> Linear :=
-| Nil_29 (A_81 : Type) (l_82 : Loc_48) : (ArrVec_28 A_81 l_82 O_7)
-| Cons_30 (A_81 : Type)
-            (l_82 : Loc_48)
-              : (n_86 : Nat_6) ->
-                  (((PtsTo_49) ((add_29) l_82) n_86) A_81) ->
-                    ((ArrVec_28 A_81 l_82 n_86)) ->
-                      (ArrVec_28 A_81 l_82 (S_8 n_86)).
+Inductive le_25 (n_81 : Nat_6) : (Nat_6) -> Type :=
+| le_n_26 (n_81 : Nat_6) : (le_25 n_81 n_81)
+| le_S_27 (n_81 : Nat_6)
+            : (m_85 : Nat_6) ->
+                ((le_25 n_81 m_85)) -> (le_25 n_81 (S_8 m_85)).
 
-Definition Array_88 :=
-  ((fun A_89 n_90 =>
-      (FTensor_16 Loc_48 fun l_91 => (ArrVec_28 A_89 l_91 n_90))) :
-    (A_89 : Type) -> (n_90 : Nat_6) -> Linear).
+Definition lt_87 :=
+  ((fun m_88 n_89 => (le_25 (S_8 m_88) n_89)) :
+    (m_88 : Nat_6) -> (n_89 : Nat_6) -> Type).
 
-Definition nth_92 :=
-  ((fix nth_92 A_93 l_94 m_95 n_96 pf_97 v_98 =>
-      (match pf_97 in (le_25 __0 n_96) return
-         (ArrVec_28 A_93 l_94 n_96) ->
+Inductive ArrVec_28 (A_91 : Type) (l_92 : Loc_58) : (Nat_6) -> Linear :=
+| Nil_29 (A_91 : Type) (l_92 : Loc_58) : (ArrVec_28 A_91 l_92 O_7)
+| Cons_30 (A_91 : Type)
+            (l_92 : Loc_58)
+              : (n_96 : Nat_6) ->
+                  (((PtsTo_59) ((add_29) l_92) n_96) A_91) ->
+                    ((ArrVec_28 A_91 l_92 n_96)) ->
+                      (ArrVec_28 A_91 l_92 (S_8 n_96)).
+
+Definition Array_98 :=
+  ((fun A_99 n_100 =>
+      (FTensor_16 Loc_58 fun l_101 => (ArrVec_28 A_99 l_101 n_100))) :
+    (A_99 : Type) -> (n_100 : Nat_6) -> Linear).
+
+Definition nth_102 :=
+  ((fix nth_102 A_103 l_104 m_105 n_106 pf_107 v_108 =>
+      (match pf_107 in (le_25 __0 n_106) return
+         (ArrVec_28 A_103 l_104 n_106) ->
            (Tensor_14
-             ((PtsTo_49) ((add_29) l_94) m_95) A_93
-               ((PtsTo_49) ((add_29) l_94) m_95) A_93 >>
-                 (ArrVec_28 A_93 l_94 n_96))
+             ((PtsTo_59) ((add_29) l_104) m_105) A_103
+               ((PtsTo_59) ((add_29) l_104) m_105) A_103 >>
+                 (ArrVec_28 A_103 l_104 n_106))
        with
        | (le_n_26 ) =>
-         fun v_98 =>
-           (match v_98 in (ArrVec_28 __0 __0 n_96) return
-              match n_96 with
+         fun v_108 =>
+           (match v_108 in (ArrVec_28 __0 __0 n_106) return
+              match n_106 with
               | (O_7 ) => Base_4
-              | (S_8 n0_99) =>
-                (Eq_0 Nat_6 m_95 n0_99) >>
+              | (S_8 n0_109) =>
+                (Eq_0 Nat_6 m_105 n0_109) >>
                   (Tensor_14
-                    ((PtsTo_49) ((add_29) l_94) n0_99) A_93
-                      ((PtsTo_49) ((add_29) l_94) n0_99) A_93 >>
-                        (ArrVec_28 A_93 l_94 n_96))
+                    ((PtsTo_59) ((add_29) l_104) n0_109) A_103
+                      ((PtsTo_59) ((add_29) l_104) n0_109) A_103 >>
+                        (ArrVec_28 A_103 l_104 n_106))
               end
             with
             | (Nil_29 ) => ll_5
-            | (Cons_30 n_96 c_100 v_98) =>
+            | (Cons_30 n_106 c_110 v_108) =>
               fun __0 =>
-                (tpair_15 c_100 fun c_100 => (Cons_30 n_96 c_100 v_98))
+                (tpair_15 c_110 fun c_110 => (Cons_30 n_106 c_110 v_108))
             end) refl_1
-       | (le_S_27 __0 pf_97) =>
-         fun v_98 =>
-           (match v_98 in (ArrVec_28 __0 __0 n_96) return
-              match n_96 with
+       | (le_S_27 __0 pf_107) =>
+         fun v_108 =>
+           (match v_108 in (ArrVec_28 __0 __0 n_106) return
+              match n_106 with
               | (O_7 ) => Base_4
-              | (S_8 n0_101) =>
-                ((lt_77) m_95) n0_101 >>
+              | (S_8 n0_111) =>
+                ((lt_87) m_105) n0_111 >>
                   (Tensor_14
-                    ((PtsTo_49) ((add_29) l_94) m_95) A_93
-                      ((PtsTo_49) ((add_29) l_94) m_95) A_93 >>
-                        (ArrVec_28 A_93 l_94 n_96))
+                    ((PtsTo_59) ((add_29) l_104) m_105) A_103
+                      ((PtsTo_59) ((add_29) l_104) m_105) A_103 >>
+                        (ArrVec_28 A_103 l_104 n_106))
               end
             with
             | (Nil_29 ) => ll_5
-            | (Cons_30 n_96 c0_102 v0_103) =>
-              fun pf_97 =>
-                let (tpair_15 c_104 f_105) :=
-                  ((((((nth_92) A_93) l_94) m_95) n_96) pf_97) v0_103
+            | (Cons_30 n_106 c0_112 v0_113) =>
+              fun pf_107 =>
+                let (tpair_15 c_114 f_115) :=
+                  ((((((nth_102) A_103) l_104) m_105) n_106) pf_107) v0_113
                 in
-                (tpair_15 c_104
-                            fun c_104 => (Cons_30 n_96 c0_102 (f_105) c_104))
-            end) pf_97
-       end) v_98) :
-    (A_93 : Type) ->
-      (l_94 : Nat_6) ->
-        (m_95 : Nat_6) ->
-          (n_96 : Nat_6) ->
-            (pf_97 : ((lt_77) m_95) n_96) ->
-              (v_98 : (ArrVec_28 A_93 l_94 n_96)) ->
+                (tpair_15 c_114
+                            fun c_114 => (Cons_30 n_106 c0_112 (f_115) c_114))
+            end) pf_107
+       end) v_108) :
+    (A_103 : Type) ->
+      (l_104 : Nat_6) ->
+        (m_105 : Nat_6) ->
+          (n_106 : Nat_6) ->
+            (pf_107 : ((lt_87) m_105) n_106) ->
+              (v_108 : (ArrVec_28 A_103 l_104 n_106)) ->
                 (Tensor_14
-                  ((PtsTo_49) ((add_29) l_94) m_95) A_93
-                    ((PtsTo_49) ((add_29) l_94) m_95) A_93 >>
-                      (ArrVec_28 A_93 l_94 n_96))).
+                  ((PtsTo_59) ((add_29) l_104) m_105) A_103
+                    ((PtsTo_59) ((add_29) l_104) m_105) A_103 >>
+                      (ArrVec_28 A_103 l_104 n_106))).
 
-Definition index_106 :=
-  ((fun A_107 m_108 n_109 pf_110 a_111 =>
-      let (fpair_17 l_113 v_114) := a_111 in
-      let (tpair_15 c_115 f_116) :=
-        ((((((nth_92) A_107) l_113) m_108) n_109) pf_110) v_114
+Definition index_116 :=
+  ((fun A_117 m_118 n_119 pf_120 a_121 =>
+      let (fpair_17 l_123 v_124) := a_121 in
+      let (tpair_15 c_125 f_126) :=
+        ((((((nth_102) A_117) l_123) m_118) n_119) pf_120) v_124
       in
-      let (fpair_17 x_118 c_115) :=
-        (((Get_59) A_107) ((add_29) l_113) m_108) c_115
-      in (fpair_17 x_118 (fpair_17 l_113 (f_116) c_115))) :
-    (A_107 : Type) ->
-      (m_108 : Nat_6) ->
-        (n_109 : Nat_6) ->
-          (pf_110 : ((lt_77) m_108) n_109) ->
-            (a_111 : ((Array_88) A_107) n_109) ->
-              (FTensor_16 A_107 fun __0 => ((Array_88) A_107) n_109)).
+      let (fpair_17 x_128 c_125) :=
+        (((Get_69) A_117) ((add_29) l_123) m_118) c_125
+      in (fpair_17 x_128 (fpair_17 l_123 (f_126) c_125))) :
+    (A_117 : Type) ->
+      (m_118 : Nat_6) ->
+        (n_119 : Nat_6) ->
+          (pf_120 : ((lt_87) m_118) n_119) ->
+            (a_121 : ((Array_98) A_117) n_119) ->
+              (FTensor_16 A_117 fun __0 => ((Array_98) A_117) n_119)).
 
-Definition Just0_119 :=
-  (((Sigma_12 Nat_6 fun x_120 => (Eq_0 Nat_6 x_120 O_7))) : Type).
+Definition Just0_129 :=
+  (((Sigma_12 Nat_6 fun x_130 => (Eq_0 Nat_6 x_130 O_7))) : Type).
 
-Definition silly_121 :=
-  ((fun m_122 n_123 pf_124 a_125 =>
-      let (fpair_17 x_pf_127 a_125) :=
-        (((((index_106) Just0_119) m_122) n_123) pf_124) a_125
+Definition silly_131 :=
+  ((fun m_132 n_133 pf_134 a_135 =>
+      let (fpair_17 x_pf_137 a_135) :=
+        (((((index_116) Just0_129) m_132) n_133) pf_134) a_135
       in
-      let (fpair_17 y_pf_129 a_125) :=
-        (((((index_106) Just0_119) m_122) n_123) pf_124) a_125
+      let (fpair_17 y_pf_139 a_135) :=
+        (((((index_116) Just0_129) m_132) n_133) pf_134) a_135
       in
-      let (pair_13 x_130 pf1_131) := x_pf_127 in
-      let (pair_13 y_132 pf2_133) := y_pf_129 in
-      let pf2_133 := ((((Eq_sym_10) Nat_6) y_132) O_7) pf2_133 in
-      let pf_124 :=
-        ((((((((Eq_trans_3) Nat_6) x_130) O_7) y_132) pf1_131) pf2_133) :
-          (Eq_0 Nat_6 x_130 y_132))
-      in a_125) :
-    (m_122 : Nat_6) ->
-      (n_123 : Nat_6) ->
-        (pf_124 : ((lt_77) m_122) n_123) ->
-          (a_125 : ((Array_88) Just0_119) n_123) ->
-            ((Array_88) Just0_119) n_123).
+      let (pair_13 x_140 pf1_141) := x_pf_137 in
+      let (pair_13 y_142 pf2_143) := y_pf_139 in
+      let pf2_143 := ((((Eq_sym_10) Nat_6) y_142) O_7) pf2_143 in
+      let pf_134 :=
+        ((((((((Eq_trans_3) Nat_6) x_140) O_7) y_142) pf1_141) pf2_143) :
+          (Eq_0 Nat_6 x_140 y_142))
+      in a_135) :
+    (m_132 : Nat_6) ->
+      (n_133 : Nat_6) ->
+        (pf_134 : ((lt_87) m_132) n_133) ->
+          (a_135 : ((Array_98) Just0_129) n_133) ->
+            ((Array_98) Just0_129) n_133).
 
-Definition main_134 := ((tt_3) : Unit_2).
+Definition main_144 := ((tt_3) : Unit_2).
 
 
 
-Inductive Eq_0 (A_257 : Type) (x_258 : A_257) : (A_257) -> Type :=
-| refl_1 (A_260 : Type) (x_261 : A_260) : (Eq_0 A_260 x_261 x_261).
+Inductive Eq_0 (A_278 : Type) (x_279 : A_278) : (A_278) -> Type :=
+| refl_1 (A_281 : Type) (x_282 : A_281) : (Eq_0 A_281 x_282 x_282).
 
-Definition Eq_trans_262 :=
-  ((fun A_263 x_264 y_265 z_266 e1_267 e2_268 =>
-      match e2_268 in (Eq_0 __270 __271 y_272) return
-        (Eq_0 A_263 x_264 y_272)
+Definition Eq_trans_283 :=
+  ((fun A_284 x_285 y_286 z_287 e1_288 e2_289 =>
+      match e2_289 in (Eq_0 __291 __292 y_293) return
+        (Eq_0 A_284 x_285 y_293)
       with
-      | (refl_1 ) => e1_267
+      | (refl_1 ) => e1_288
       end) :
-    (A_273 : Type) ->
-      (x_274 : A_273) ->
-        (y_275 : A_273) ->
-          (z_276 : A_273) ->
-            (e1_277 : (Eq_0 A_273 x_274 y_275)) ->
-              (e2_278 : (Eq_0 A_273 y_275 z_276)) -> (Eq_0 A_273 x_274 z_276)).
+    (A_294 : Type) ->
+      (x_295 : A_294) ->
+        (y_296 : A_294) ->
+          (z_297 : A_294) ->
+            (e1_298 : (Eq_0 A_294 x_295 y_296)) ->
+              (e2_299 : (Eq_0 A_294 y_296 z_297)) -> (Eq_0 A_294 x_295 z_297)).
 
-Definition Eq_sym_279 :=
-  ((fun A_280 x_281 y_282 e_283 =>
-      match e_283 in (Eq_0 __285 __286 y_287) return (Eq_0 A_280 y_287 x_281)
+Definition Eq_sym_300 :=
+  ((fun A_301 x_302 y_303 e_304 =>
+      match e_304 in (Eq_0 __306 __307 y_308) return (Eq_0 A_301 y_308 x_302)
       with
       | (refl_1 ) => refl_1
       end) :
-    (A_288 : Type) ->
-      (x_289 : A_288) ->
-        (y_290 : A_288) ->
-          (e_291 : (Eq_0 A_288 x_289 y_290)) -> (Eq_0 A_288 y_290 x_289)).
+    (A_309 : Type) ->
+      (x_310 : A_309) ->
+        (y_311 : A_309) ->
+          (e_312 : (Eq_0 A_309 x_310 y_311)) -> (Eq_0 A_309 y_311 x_310)).
 
-Definition TyInd_292 :=
-  ((fun A_293 x_294 y_295 P_296 e_297 f_298 =>
-      match e_297 in (Eq_0 __300 __301 y_302) return (P_296) y_302 with
-      | (refl_1 ) => f_298
+Definition TyInd_313 :=
+  ((fun A_314 x_315 y_316 P_317 e_318 f_319 =>
+      match e_318 in (Eq_0 __321 __322 y_323) return (P_317) y_323 with
+      | (refl_1 ) => f_319
       end) :
-    (A_303 : Type) ->
-      (x_304 : A_303) ->
-        (y_305 : A_303) ->
-          (P_306 : A_303 -> Type) ->
-            (e_308 : (Eq_0 A_303 x_304 y_305)) ->
-              (f_309 : (P_306) x_304) -> (P_306) y_305).
+    (A_324 : Type) ->
+      (x_325 : A_324) ->
+        (y_326 : A_324) ->
+          (P_327 : A_324 -> Type) ->
+            (e_329 : (Eq_0 A_324 x_325 y_326)) ->
+              (f_330 : (P_327) x_325) -> (P_327) y_326).
 
-Definition LnInd_310 :=
-  ((fun A_311 x_312 y_313 P_314 e_315 f_316 =>
-      match e_315 in (Eq_0 __318 __319 y_320) return (P_314) y_320 with
-      | (refl_1 ) => f_316
+Definition LnInd_331 :=
+  ((fun A_332 x_333 y_334 P_335 e_336 f_337 =>
+      match e_336 in (Eq_0 __339 __340 y_341) return (P_335) y_341 with
+      | (refl_1 ) => f_337
       end) :
-    (A_321 : Type) ->
-      (x_322 : A_321) ->
-        (y_323 : A_321) ->
-          (P_324 : A_321 -> Linear) ->
-            (e_326 : (Eq_0 A_321 x_322 y_323)) ->
-              (f_327 : (P_324) x_322) -> (P_324) y_323).
+    (A_342 : Type) ->
+      (x_343 : A_342) ->
+        (y_344 : A_342) ->
+          (P_345 : A_342 -> Linear) ->
+            (e_347 : (Eq_0 A_342 x_343 y_344)) ->
+              (f_348 : (P_345) x_343) -> (P_345) y_344).
 
 Inductive Unit_2 : Type :=
 | tt_3 : Unit_2.
@@ -302,364 +312,381 @@ Inductive Nat_6 : Type :=
 | O_7 : Nat_6
 | S_8 : (Nat_6) -> Nat_6.
 
-Definition add_329 :=
-  ((fix add_330 m_331 n_332 =>
-      match m_331 with
-      | (O_7 ) => n_332
-      | (S_8 m_333) => (S_8 ((add_330) m_333) n_332)
+Definition add_350 :=
+  ((fix add_351 m_352 n_353 =>
+      match m_352 with
+      | (O_7 ) => n_353
+      | (S_8 m_354) => (S_8 ((add_351) m_354) n_353)
       end) :
-    (m_334 : Nat_6) -> (n_335 : Nat_6) -> Nat_6).
+    (m_355 : Nat_6) -> (n_356 : Nat_6) -> Nat_6).
 
 Inductive Bool_9 : Type :=
 | true_10 : Bool_9
 | false_11 : Bool_9.
 
-Inductive Sigma_12 (A_336 : Type) (F_337 : A_336 -> Type) : Type :=
-| pair_13 (A_339 : Type)
-            (F_340 : A_339 -> Type)
-              : (x_342 : A_339) -> ((F_340) x_342) -> (Sigma_12 A_339 F_340).
+Inductive Sigma_12 (A_357 : Type) (F_358 : A_357 -> Type) : Type :=
+| pair_13 (A_360 : Type)
+            (F_361 : A_360 -> Type)
+              : (x_363 : A_360) -> ((F_361) x_363) -> (Sigma_12 A_360 F_361).
 
-Inductive Tensor_14 (A_344 : Linear) (B_345 : Linear) : Linear :=
-| tpair_15 (A_346 : Linear)
-             (B_347 : Linear) : (A_346) -> (B_347) -> (Tensor_14 A_346 B_347).
+Inductive Tensor_14 (A_365 : Linear) (B_366 : Linear) : Linear :=
+| tpair_15 (A_367 : Linear)
+             (B_368 : Linear) : (A_367) -> (B_368) -> (Tensor_14 A_367 B_368).
 
-Inductive FTensor_16 (A_350 : Type) (F_351 : A_350 -> Linear) : Linear :=
-| fpair_17 (A_353 : Type)
-             (F_354 : A_353 -> Linear)
-               : (x_356 : A_353) ->
-                   ((F_354) x_356) -> (FTensor_16 A_353 F_354).
+Definition tpair2_371 :=
+  ((fun A_372 B_373 x_374 y_375 => (tpair_15 x_374 y_375)) :
+    (A_376 : Linear) ->
+      (B_377 : Linear) -> A_376 -> B_377 >> (Tensor_14 A_376 B_377)).
 
-Axiom unsafeC_358 : (A_359 : Linear) -> A_359 -> Unit_2.
+Definition curryU_380 :=
+  ((fun A_381 B_382 f_383 x_384 __385 => (f_383) x_384) :
+    (A_386 : Linear) ->
+      (B_387 : Type) -> A_386 -> B_387 -> A_386 -> Unit_2 >> B_387).
 
-Axiom unsafeP_361 : (A_362 : Linear) -> A_362.
+Inductive FTensor_16 (A_392 : Type) (F_393 : A_392 -> Linear) : Linear :=
+| fpair_17 (A_395 : Type)
+             (F_396 : A_395 -> Linear)
+               : (x_398 : A_395) ->
+                   ((F_396) x_398) -> (FTensor_16 A_395 F_396).
 
-Definition Loc_363 := ((Nat_6) : Type).
+Axiom unsafeC_400 : (A_401 : Linear) -> A_401 -> Unit_2.
 
-Axiom PtsTo_364 : Loc_363 -> Type -> Linear.
+Axiom unsafeP_403 : (A_404 : Linear) -> A_404.
 
-Definition Ptr_367 :=
-  ((fun A_368 => (FTensor_16 Loc_363 fun l_369 => ((PtsTo_364) l_369) A_368)) :
-    (A_370 : Type) -> Linear).
+Definition Loc_405 := ((Nat_6) : Type).
 
-Axiom New_371 : (A_372 : Type) -> A_372 -> (Ptr_367) A_372.
+Axiom PtsTo_406 : Loc_405 -> Type -> Linear.
 
-Axiom Free_374 : (A_375 : Type) -> (Ptr_367) A_375 -> Unit_2.
+Definition Ptr_409 :=
+  ((fun A_410 => (FTensor_16 Loc_405 fun l_411 => ((PtsTo_406) l_411) A_410)) :
+    (A_412 : Type) -> Linear).
 
-Axiom Get_377 :
-  (A_378 : Type) ->
-    (l_379 : Loc_363) ->
-      ((PtsTo_364) l_379) A_378 ->
-        (FTensor_16 A_378 fun __381 => ((PtsTo_364) l_379) A_378).
+Axiom New_413 : (A_414 : Type) -> A_414 -> (Ptr_409) A_414.
 
-Axiom Set_382 :
-  (A_383 : Type) ->
-    (B_384 : Type) ->
-      B_384 ->
-        (l_386 : Loc_363) ->
-          ((PtsTo_364) l_386) A_383 -> ((PtsTo_364) l_386) B_384.
+Axiom Free_416 : (A_417 : Type) -> (Ptr_409) A_417 -> Unit_2.
 
-Inductive le_25 (n_388 : Nat_6) : (Nat_6) -> Type :=
-| le_n_26 (n_390 : Nat_6) : (le_25 n_390 n_390)
-| le_S_27 (n_391 : Nat_6)
-            : (m_392 : Nat_6) ->
-                ((le_25 n_391 m_392)) -> (le_25 n_391 (S_8 m_392)).
+Axiom Get_419 :
+  (A_420 : Type) ->
+    (l_421 : Loc_405) ->
+      ((PtsTo_406) l_421) A_420 ->
+        (FTensor_16 A_420 fun __423 => ((PtsTo_406) l_421) A_420).
 
-Definition lt_394 :=
-  ((fun m_395 n_396 => (le_25 (S_8 m_395) n_396)) :
-    (m_397 : Nat_6) -> (n_398 : Nat_6) -> Type).
+Axiom Set_424 :
+  (A_425 : Type) ->
+    (B_426 : Type) ->
+      B_426 ->
+        (l_428 : Loc_405) ->
+          ((PtsTo_406) l_428) A_425 -> ((PtsTo_406) l_428) B_426.
 
-Inductive ArrVec_28 (A_399 : Type) (l_400 : Loc_363) : (Nat_6) -> Linear :=
-| Nil_29 (A_402 : Type) (l_403 : Loc_363) : (ArrVec_28 A_402 l_403 O_7)
-| Cons_30 (A_404 : Type)
-            (l_405 : Loc_363)
-              : (n_406 : Nat_6) ->
-                  (((PtsTo_364) ((add_329) l_405) n_406) A_404) ->
-                    ((ArrVec_28 A_404 l_405 n_406)) ->
-                      (ArrVec_28 A_404 l_405 (S_8 n_406)).
+Inductive le_25 (n_430 : Nat_6) : (Nat_6) -> Type :=
+| le_n_26 (n_432 : Nat_6) : (le_25 n_432 n_432)
+| le_S_27 (n_433 : Nat_6)
+            : (m_434 : Nat_6) ->
+                ((le_25 n_433 m_434)) -> (le_25 n_433 (S_8 m_434)).
 
-Definition Array_409 :=
-  ((fun A_410 n_411 =>
-      (FTensor_16 Loc_363 fun l_412 => (ArrVec_28 A_410 l_412 n_411))) :
-    (A_413 : Type) -> (n_414 : Nat_6) -> Linear).
+Definition lt_436 :=
+  ((fun m_437 n_438 => (le_25 (S_8 m_437) n_438)) :
+    (m_439 : Nat_6) -> (n_440 : Nat_6) -> Type).
 
-Definition nth_415 :=
-  ((fix nth_416 A_417 l_418 m_419 n_420 pf_421 v_422 =>
-      (match pf_421 in (le_25 __424 n_425) return
-         (ArrVec_28 A_417 l_418 n_425) ->
+Inductive ArrVec_28 (A_441 : Type) (l_442 : Loc_405) : (Nat_6) -> Linear :=
+| Nil_29 (A_444 : Type) (l_445 : Loc_405) : (ArrVec_28 A_444 l_445 O_7)
+| Cons_30 (A_446 : Type)
+            (l_447 : Loc_405)
+              : (n_448 : Nat_6) ->
+                  (((PtsTo_406) ((add_350) l_447) n_448) A_446) ->
+                    ((ArrVec_28 A_446 l_447 n_448)) ->
+                      (ArrVec_28 A_446 l_447 (S_8 n_448)).
+
+Definition Array_451 :=
+  ((fun A_452 n_453 =>
+      (FTensor_16 Loc_405 fun l_454 => (ArrVec_28 A_452 l_454 n_453))) :
+    (A_455 : Type) -> (n_456 : Nat_6) -> Linear).
+
+Definition nth_457 :=
+  ((fix nth_458 A_459 l_460 m_461 n_462 pf_463 v_464 =>
+      (match pf_463 in (le_25 __466 n_467) return
+         (ArrVec_28 A_459 l_460 n_467) ->
            (Tensor_14
-             ((PtsTo_364) ((add_329) l_418) m_419) A_417
-               ((PtsTo_364) ((add_329) l_418) m_419) A_417 >>
-                 (ArrVec_28 A_417 l_418 n_425))
+             ((PtsTo_406) ((add_350) l_460) m_461) A_459
+               ((PtsTo_406) ((add_350) l_460) m_461) A_459 >>
+                 (ArrVec_28 A_459 l_460 n_467))
        with
        | (le_n_26 ) =>
-         fun v_428 =>
-           (match v_428 in (ArrVec_28 __430 __431 n_432) return
-              match n_432 with
+         fun v_470 =>
+           (match v_470 in (ArrVec_28 __472 __473 n_474) return
+              match n_474 with
               | (O_7 ) => Base_4
-              | (S_8 n0_433) =>
-                (Eq_0 Nat_6 m_419 n0_433) >>
+              | (S_8 n0_475) =>
+                (Eq_0 Nat_6 m_461 n0_475) >>
                   (Tensor_14
-                    ((PtsTo_364) ((add_329) l_418) n0_433) A_417
-                      ((PtsTo_364) ((add_329) l_418) n0_433) A_417 >>
-                        (ArrVec_28 A_417 l_418 n_432))
+                    ((PtsTo_406) ((add_350) l_460) n0_475) A_459
+                      ((PtsTo_406) ((add_350) l_460) n0_475) A_459 >>
+                        (ArrVec_28 A_459 l_460 n_474))
               end
             with
             | (Nil_29 ) => ll_5
-            | (Cons_30 n_436 c_437 v_438) =>
-              fun __439 =>
-                (tpair_15 c_437 fun c_440 => (Cons_30 n_436 c_440 v_438))
+            | (Cons_30 n_478 c_479 v_480) =>
+              fun __481 =>
+                (tpair_15 c_479 fun c_482 => (Cons_30 n_478 c_482 v_480))
             end) refl_1
-       | (le_S_27 __441 pf_442) =>
-         fun v_443 =>
-           (match v_443 in (ArrVec_28 __445 __446 n_447) return
-              match n_447 with
+       | (le_S_27 __483 pf_484) =>
+         fun v_485 =>
+           (match v_485 in (ArrVec_28 __487 __488 n_489) return
+              match n_489 with
               | (O_7 ) => Base_4
-              | (S_8 n0_448) =>
-                ((lt_394) m_419) n0_448 >>
+              | (S_8 n0_490) =>
+                ((lt_436) m_461) n0_490 >>
                   (Tensor_14
-                    ((PtsTo_364) ((add_329) l_418) m_419) A_417
-                      ((PtsTo_364) ((add_329) l_418) m_419) A_417 >>
-                        (ArrVec_28 A_417 l_418 n_447))
+                    ((PtsTo_406) ((add_350) l_460) m_461) A_459
+                      ((PtsTo_406) ((add_350) l_460) m_461) A_459 >>
+                        (ArrVec_28 A_459 l_460 n_489))
               end
             with
             | (Nil_29 ) => ll_5
-            | (Cons_30 n_451 c0_452 v0_453) =>
-              fun pf_454 =>
-                let x_455 :=
-                  ((((((nth_416) A_417) l_418) m_419) n_451) pf_454) v0_453
+            | (Cons_30 n_493 c0_494 v0_495) =>
+              fun pf_496 =>
+                let x_497 :=
+                  ((((((nth_458) A_459) l_460) m_461) n_493) pf_496) v0_495
                 in
-                match x_455 with
-                | (tpair_15 c_456 f_457) =>
-                  (tpair_15 c_456
-                              fun c_458 =>
-                                (Cons_30 n_451 c0_452 (f_457) c_458))
+                match x_497 with
+                | (tpair_15 c_498 f_499) =>
+                  (tpair_15 c_498
+                              fun c_500 =>
+                                (Cons_30 n_493 c0_494 (f_499) c_500))
                 end
-            end) pf_442
-       end) v_422) :
-    (A_459 : Type) ->
-      (l_460 : Nat_6) ->
-        (m_461 : Nat_6) ->
-          (n_462 : Nat_6) ->
-            (pf_463 : ((lt_394) m_461) n_462) ->
-              (v_464 : (ArrVec_28 A_459 l_460 n_462)) ->
+            end) pf_484
+       end) v_464) :
+    (A_501 : Type) ->
+      (l_502 : Nat_6) ->
+        (m_503 : Nat_6) ->
+          (n_504 : Nat_6) ->
+            (pf_505 : ((lt_436) m_503) n_504) ->
+              (v_506 : (ArrVec_28 A_501 l_502 n_504)) ->
                 (Tensor_14
-                  ((PtsTo_364) ((add_329) l_460) m_461) A_459
-                    ((PtsTo_364) ((add_329) l_460) m_461) A_459 >>
-                      (ArrVec_28 A_459 l_460 n_462))).
+                  ((PtsTo_406) ((add_350) l_502) m_503) A_501
+                    ((PtsTo_406) ((add_350) l_502) m_503) A_501 >>
+                      (ArrVec_28 A_501 l_502 n_504))).
 
-Definition index_466 :=
-  ((fun A_467 m_468 n_469 pf_470 a_471 =>
-      let x_472 := a_471 in
-      match x_472 with
-      | (fpair_17 l_473 v_474) =>
-        let x_475 := ((((((nth_415) A_467) l_473) m_468) n_469) pf_470) v_474
+Definition index_508 :=
+  ((fun A_509 m_510 n_511 pf_512 a_513 =>
+      let x_514 := a_513 in
+      match x_514 with
+      | (fpair_17 l_515 v_516) =>
+        let x_517 := ((((((nth_457) A_509) l_515) m_510) n_511) pf_512) v_516
         in
-        match x_475 with
-        | (tpair_15 c_476 f_477) =>
-          let x_478 := (((Get_377) A_467) ((add_329) l_473) m_468) c_476 in
-          match x_478 with
-          | (fpair_17 x_479 c_480) =>
-            (fpair_17 x_479 (fpair_17 l_473 (f_477) c_480))
+        match x_517 with
+        | (tpair_15 c_518 f_519) =>
+          let x_520 := (((Get_419) A_509) ((add_350) l_515) m_510) c_518 in
+          match x_520 with
+          | (fpair_17 x_521 c_522) =>
+            (fpair_17 x_521 (fpair_17 l_515 (f_519) c_522))
           end
         end
       end) :
-    (A_481 : Type) ->
-      (m_482 : Nat_6) ->
-        (n_483 : Nat_6) ->
-          (pf_484 : ((lt_394) m_482) n_483) ->
-            (a_485 : ((Array_409) A_481) n_483) ->
-              (FTensor_16 A_481 fun __486 => ((Array_409) A_481) n_483)).
+    (A_523 : Type) ->
+      (m_524 : Nat_6) ->
+        (n_525 : Nat_6) ->
+          (pf_526 : ((lt_436) m_524) n_525) ->
+            (a_527 : ((Array_451) A_523) n_525) ->
+              (FTensor_16 A_523 fun __528 => ((Array_451) A_523) n_525)).
 
-Definition Just0_487 :=
-  (((Sigma_12 Nat_6 fun x_488 => (Eq_0 Nat_6 x_488 O_7))) : Type).
+Definition Just0_529 :=
+  (((Sigma_12 Nat_6 fun x_530 => (Eq_0 Nat_6 x_530 O_7))) : Type).
 
-Definition silly_489 :=
-  ((fun m_490 n_491 pf_492 a_493 =>
-      let x_494 := (((((index_466) Just0_487) m_490) n_491) pf_492) a_493 in
-      match x_494 with
-      | (fpair_17 x_pf_495 a_496) =>
-        let x_497 := (((((index_466) Just0_487) m_490) n_491) pf_492) a_496
+Definition silly_531 :=
+  ((fun m_532 n_533 pf_534 a_535 =>
+      let x_536 := (((((index_508) Just0_529) m_532) n_533) pf_534) a_535 in
+      match x_536 with
+      | (fpair_17 x_pf_537 a_538) =>
+        let x_539 := (((((index_508) Just0_529) m_532) n_533) pf_534) a_538
         in
-        match x_497 with
-        | (fpair_17 y_pf_498 a_499) =>
-          let x_500 := x_pf_495 in
-          match x_500 with
-          | (pair_13 x_501 pf1_502) =>
-            let x0_503 := y_pf_498 in
-            match x0_503 with
-            | (pair_13 y_504 pf2_505) =>
-              let pf2_506 := ((((Eq_sym_279) Nat_6) y_504) O_7) pf2_505 in
-              let pf_507 :=
-                ((((((((Eq_trans_262) Nat_6) x_501) O_7) y_504) pf1_502)
-                    pf2_506) :
-                  (Eq_0 Nat_6 x_501 y_504))
-              in a_499
+        match x_539 with
+        | (fpair_17 y_pf_540 a_541) =>
+          let x_542 := x_pf_537 in
+          match x_542 with
+          | (pair_13 x_543 pf1_544) =>
+            let x0_545 := y_pf_540 in
+            match x0_545 with
+            | (pair_13 y_546 pf2_547) =>
+              let pf2_548 := ((((Eq_sym_300) Nat_6) y_546) O_7) pf2_547 in
+              let pf_549 :=
+                ((((((((Eq_trans_283) Nat_6) x_543) O_7) y_546) pf1_544)
+                    pf2_548) :
+                  (Eq_0 Nat_6 x_543 y_546))
+              in a_541
             end
           end
         end
       end) :
-    (m_508 : Nat_6) ->
-      (n_509 : Nat_6) ->
-        (pf_510 : ((lt_394) m_508) n_509) ->
-          (a_511 : ((Array_409) Just0_487) n_509) ->
-            ((Array_409) Just0_487) n_509).
+    (m_550 : Nat_6) ->
+      (n_551 : Nat_6) ->
+        (pf_552 : ((lt_436) m_550) n_551) ->
+          (a_553 : ((Array_451) Just0_529) n_551) ->
+            ((Array_451) Just0_529) n_551).
 
-Definition main_512 := ((tt_3) : Unit_2).
+Definition main_554 := ((tt_3) : Unit_2).
 
 
 
 v_ctx  := {
   main :0 (Unit_2)::w
   silly :0
-    ((m_76897 : Nat_6) ->
-       (n_76898 : Nat_6) ->
-         (pf_76899 :
-           ((((fun m_76900 n_76901 => (le_25 (S_8 m_76900) n_76901)) :
-               (m_76902 : Nat_6) -> (n_76903 : Nat_6) -> Type))
-              m_76897)
-             n_76898) ->
-           (a_76904 :
-             ((((fun A_76905 n_76906 =>
+    ((m_82849 : Nat_6) ->
+       (n_82850 : Nat_6) ->
+         (pf_82851 :
+           ((((fun m_82852 n_82853 => (le_25 (S_8 m_82852) n_82853)) :
+               (m_82854 : Nat_6) -> (n_82855 : Nat_6) -> Type))
+              m_82849)
+             n_82850) ->
+           (a_82856 :
+             ((((fun A_82857 n_82858 =>
                    (FTensor_16
                      ((Nat_6) : Type)
-                       fun l_76907 => (ArrVec_28 A_76905 l_76907 n_76906))) :
-                 (A_76908 : Type) -> (n_76909 : Nat_6) -> Linear))
-                (((Sigma_12 Nat_6 fun x_76910 => (Eq_0 Nat_6 x_76910 O_7))) :
+                       fun l_82859 => (ArrVec_28 A_82857 l_82859 n_82858))) :
+                 (A_82860 : Type) -> (n_82861 : Nat_6) -> Linear))
+                (((Sigma_12 Nat_6 fun x_82862 => (Eq_0 Nat_6 x_82862 O_7))) :
                   Type))
-               n_76898) ->
-             ((((fun A_76911 n_76912 =>
+               n_82850) ->
+             ((((fun A_82863 n_82864 =>
                    (FTensor_16
                      ((Nat_6) : Type)
-                       fun l_76913 => (ArrVec_28 A_76911 l_76913 n_76912))) :
-                 (A_76914 : Type) -> (n_76915 : Nat_6) -> Linear))
-                (((Sigma_12 Nat_6 fun x_76916 => (Eq_0 Nat_6 x_76916 O_7))) :
+                       fun l_82865 => (ArrVec_28 A_82863 l_82865 n_82864))) :
+                 (A_82866 : Type) -> (n_82867 : Nat_6) -> Linear))
+                (((Sigma_12 Nat_6 fun x_82868 => (Eq_0 Nat_6 x_82868 O_7))) :
                   Type))
-               n_76898)::w
+               n_82850)::w
   Just0 :0 (Type)::w
   index :0
-    ((A_76917 : Type) ->
-       (m_76918 : Nat_6) ->
-         (n_76919 : Nat_6) ->
-           (pf_76920 :
-             ((((fun m_76921 n_76922 => (le_25 (S_8 m_76921) n_76922)) :
-                 (m_76923 : Nat_6) -> (n_76924 : Nat_6) -> Type))
-                m_76918)
-               n_76919) ->
-             (a_76925 :
-               ((((fun A_76926 n_76927 =>
+    ((A_82869 : Type) ->
+       (m_82870 : Nat_6) ->
+         (n_82871 : Nat_6) ->
+           (pf_82872 :
+             ((((fun m_82873 n_82874 => (le_25 (S_8 m_82873) n_82874)) :
+                 (m_82875 : Nat_6) -> (n_82876 : Nat_6) -> Type))
+                m_82870)
+               n_82871) ->
+             (a_82877 :
+               ((((fun A_82878 n_82879 =>
                      (FTensor_16
                        ((Nat_6) : Type)
-                         fun l_76928 => (ArrVec_28 A_76926 l_76928 n_76927))) :
-                   (A_76929 : Type) -> (n_76930 : Nat_6) -> Linear))
-                  A_76917)
-                 n_76919) ->
+                         fun l_82880 => (ArrVec_28 A_82878 l_82880 n_82879))) :
+                   (A_82881 : Type) -> (n_82882 : Nat_6) -> Linear))
+                  A_82869)
+                 n_82871) ->
                (FTensor_16
-                 A_76917
-                   fun __76931 =>
-                     ((((fun A_76932 n_76933 =>
+                 A_82869
+                   fun __82883 =>
+                     ((((fun A_82884 n_82885 =>
                            (FTensor_16
                              ((Nat_6) : Type)
-                               fun l_76934 =>
-                                 (ArrVec_28 A_76932 l_76934 n_76933))) :
-                         (A_76935 : Type) -> (n_76936 : Nat_6) -> Linear))
-                        A_76917)
-                       n_76919))::w
+                               fun l_82886 =>
+                                 (ArrVec_28 A_82884 l_82886 n_82885))) :
+                         (A_82887 : Type) -> (n_82888 : Nat_6) -> Linear))
+                        A_82869)
+                       n_82871))::w
   nth :0
-    ((A_76937 : Type) ->
-       (l_76938 : Nat_6) ->
-         (m_76939 : Nat_6) ->
-           (n_76940 : Nat_6) ->
-             (pf_76941 :
-               ((((fun m_76942 n_76943 => (le_25 (S_8 m_76942) n_76943)) :
-                   (m_76944 : Nat_6) -> (n_76945 : Nat_6) -> Type))
-                  m_76939)
-                 n_76940) ->
-               (v_76946 : (ArrVec_28 A_76937 l_76938 n_76940)) ->
+    ((A_82889 : Type) ->
+       (l_82890 : Nat_6) ->
+         (m_82891 : Nat_6) ->
+           (n_82892 : Nat_6) ->
+             (pf_82893 :
+               ((((fun m_82894 n_82895 => (le_25 (S_8 m_82894) n_82895)) :
+                   (m_82896 : Nat_6) -> (n_82897 : Nat_6) -> Type))
+                  m_82891)
+                 n_82892) ->
+               (v_82898 : (ArrVec_28 A_82889 l_82890 n_82892)) ->
                  (Tensor_14
                    ((PtsTo_20)
-                      ((((fix add_76947 m_76948 n_76949 =>
-                            match m_76948 with
-                            | (O_7 ) => n_76949
-                            | (S_8 m_76950) =>
-                              (S_8 ((add_76947) m_76950) n_76949)
+                      ((((fix add_82899 m_82900 n_82901 =>
+                            match m_82900 with
+                            | (O_7 ) => n_82901
+                            | (S_8 m_82902) =>
+                              (S_8 ((add_82899) m_82902) n_82901)
                             end) :
-                          (m_76951 : Nat_6) -> (n_76952 : Nat_6) -> Nat_6))
-                         l_76938)
-                        m_76939)
-                     A_76937
+                          (m_82903 : Nat_6) -> (n_82904 : Nat_6) -> Nat_6))
+                         l_82890)
+                        m_82891)
+                     A_82889
                      ((PtsTo_20)
-                        ((((fix add_76954 m_76955 n_76956 =>
-                              match m_76955 with
-                              | (O_7 ) => n_76956
-                              | (S_8 m_76957) =>
-                                (S_8 ((add_76954) m_76957) n_76956)
+                        ((((fix add_82906 m_82907 n_82908 =>
+                              match m_82907 with
+                              | (O_7 ) => n_82908
+                              | (S_8 m_82909) =>
+                                (S_8 ((add_82906) m_82909) n_82908)
                               end) :
-                            (m_76958 : Nat_6) -> (n_76959 : Nat_6) -> Nat_6))
-                           l_76938)
-                          m_76939)
-                       A_76937 >> (ArrVec_28 A_76937 l_76938 n_76940)))::w
-  Array :0 ((A_76960 : Type) -> (n_76961 : Nat_6) -> Linear)::w
-  lt :0 ((m_76962 : Nat_6) -> (n_76963 : Nat_6) -> Type)::w
+                            (m_82910 : Nat_6) -> (n_82911 : Nat_6) -> Nat_6))
+                           l_82890)
+                          m_82891)
+                       A_82889 >> (ArrVec_28 A_82889 l_82890 n_82892)))::w
+  Array :0 ((A_82912 : Type) -> (n_82913 : Nat_6) -> Linear)::w
+  lt :0 ((m_82914 : Nat_6) -> (n_82915 : Nat_6) -> Type)::w
   Set :0
-    ((A_76964 : Type) ->
-       (B_76965 : Type) ->
-         B_76965 ->
-           (l_76967 : ((Nat_6) : Type)) ->
-             ((PtsTo_20) l_76967) A_76964 -> ((PtsTo_20) l_76967) B_76965)::w
+    ((A_82916 : Type) ->
+       (B_82917 : Type) ->
+         B_82917 ->
+           (l_82919 : ((Nat_6) : Type)) ->
+             ((PtsTo_20) l_82919) A_82916 -> ((PtsTo_20) l_82919) B_82917)::w
   Get :0
-    ((A_76969 : Type) ->
-       (l_76970 : ((Nat_6) : Type)) ->
-         ((PtsTo_20) l_76970) A_76969 ->
-           (FTensor_16 A_76969 fun __76972 => ((PtsTo_20) l_76970) A_76969))::w
+    ((A_82921 : Type) ->
+       (l_82922 : ((Nat_6) : Type)) ->
+         ((PtsTo_20) l_82922) A_82921 ->
+           (FTensor_16 A_82921 fun __82924 => ((PtsTo_20) l_82922) A_82921))::w
   Free :0
-    ((A_76973 : Type) ->
-       (((fun A_76975 =>
+    ((A_82925 : Type) ->
+       (((fun A_82927 =>
             (FTensor_16
-              ((Nat_6) : Type) fun l_76976 => ((PtsTo_20) l_76976) A_76975)) :
-          (A_76977 : Type) -> Linear))
-         A_76973 -> Unit_2)::w
+              ((Nat_6) : Type) fun l_82928 => ((PtsTo_20) l_82928) A_82927)) :
+          (A_82929 : Type) -> Linear))
+         A_82925 -> Unit_2)::w
   New :0
-    ((A_76978 : Type) ->
-       A_76978 ->
-         (((fun A_76980 =>
+    ((A_82930 : Type) ->
+       A_82930 ->
+         (((fun A_82932 =>
               (FTensor_16
-                ((Nat_6) : Type) fun l_76981 => ((PtsTo_20) l_76981) A_76980)) :
-            (A_76982 : Type) -> Linear))
-           A_76978)::w
-  Ptr :0 ((A_76983 : Type) -> Linear)::w
+                ((Nat_6) : Type) fun l_82933 => ((PtsTo_20) l_82933) A_82932)) :
+            (A_82934 : Type) -> Linear))
+           A_82930)::w
+  Ptr :0 ((A_82935 : Type) -> Linear)::w
   PtsTo :0 (((Nat_6) : Type) -> Type -> Linear)::w
   Loc :0 (Type)::w
-  unsafeP :0 ((A_76986 : Linear) -> A_76986)::w
-  unsafeC :0 ((A_76987 : Linear) -> A_76987 -> Unit_2)::w
-  add :0 ((m_76989 : Nat_6) -> (n_76990 : Nat_6) -> Nat_6)::w
+  unsafeP :0 ((A_82938 : Linear) -> A_82938)::w
+  unsafeC :0 ((A_82939 : Linear) -> A_82939 -> Unit_2)::w
+  curryU :0
+    ((A_82941 : Linear) ->
+       (B_82942 : Type) -> A_82941 -> B_82942 -> A_82941 -> Unit_2 >> B_82942)::w
+  tpair2 :0
+    ((A_82947 : Linear) ->
+       (B_82948 : Linear) ->
+         A_82947 -> B_82948 >> (Tensor_14 A_82947 B_82948))::w
+  add :0 ((m_82951 : Nat_6) -> (n_82952 : Nat_6) -> Nat_6)::w
   LnInd :0
-    ((A_76991 : Type) ->
-       (x_76992 : A_76991) ->
-         (y_76993 : A_76991) ->
-           (P_76994 : A_76991 -> Linear) ->
-             (e_76996 : (Eq_0 A_76991 x_76992 y_76993)) ->
-               (f_76997 : (P_76994) x_76992) -> (P_76994) y_76993)::w
+    ((A_82953 : Type) ->
+       (x_82954 : A_82953) ->
+         (y_82955 : A_82953) ->
+           (P_82956 : A_82953 -> Linear) ->
+             (e_82958 : (Eq_0 A_82953 x_82954 y_82955)) ->
+               (f_82959 : (P_82956) x_82954) -> (P_82956) y_82955)::w
   TyInd :0
-    ((A_76998 : Type) ->
-       (x_76999 : A_76998) ->
-         (y_77000 : A_76998) ->
-           (P_77001 : A_76998 -> Type) ->
-             (e_77003 : (Eq_0 A_76998 x_76999 y_77000)) ->
-               (f_77004 : (P_77001) x_76999) -> (P_77001) y_77000)::w
+    ((A_82960 : Type) ->
+       (x_82961 : A_82960) ->
+         (y_82962 : A_82960) ->
+           (P_82963 : A_82960 -> Type) ->
+             (e_82965 : (Eq_0 A_82960 x_82961 y_82962)) ->
+               (f_82966 : (P_82963) x_82961) -> (P_82963) y_82962)::w
   Eq_sym :0
-    ((A_77005 : Type) ->
-       (x_77006 : A_77005) ->
-         (y_77007 : A_77005) ->
-           (e_77008 : (Eq_0 A_77005 x_77006 y_77007)) ->
-             (Eq_0 A_77005 y_77007 x_77006))::w
+    ((A_82967 : Type) ->
+       (x_82968 : A_82967) ->
+         (y_82969 : A_82967) ->
+           (e_82970 : (Eq_0 A_82967 x_82968 y_82969)) ->
+             (Eq_0 A_82967 y_82969 x_82968))::w
   Eq_trans :0
-    ((A_77009 : Type) ->
-       (x_77010 : A_77009) ->
-         (y_77011 : A_77009) ->
-           (z_77012 : A_77009) ->
-             (e1_77013 : (Eq_0 A_77009 x_77010 y_77011)) ->
-               (e2_77014 : (Eq_0 A_77009 y_77011 z_77012)) ->
-                 (Eq_0 A_77009 x_77010 z_77012))::w
+    ((A_82971 : Type) ->
+       (x_82972 : A_82971) ->
+         (y_82973 : A_82971) ->
+           (z_82974 : A_82971) ->
+             (e1_82975 : (Eq_0 A_82971 x_82972 y_82973)) ->
+               (e2_82976 : (Eq_0 A_82971 y_82973 z_82974)) ->
+                 (Eq_0 A_82971 x_82972 z_82974))::w
 }
 
 tt_3
