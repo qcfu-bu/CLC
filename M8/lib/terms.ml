@@ -10,12 +10,12 @@ type t =
   | Ann of t * t
   | Type 
   | Linear
-  | TyProd of t * tbinder
-  | LnProd of t * tbinder
+  | TyProd of t * rig * tbinder
+  | LnProd of t * rig * tbinder
   | Lambda of tbinder
   | Fix    of tbinder
   | App    of t * t
-  | LetIn  of t * tbinder
+  | LetIn  of t * rig * tbinder
   (* data *)
   | TCons  of Id.t * t list
   | DCons  of Id.t * t list
@@ -23,16 +23,16 @@ type t =
                 * pbinder list
   | Axiom  of Id.t * t
 and p = 
-  | PVar   of rig * (t var)
+  | PVar   of t var
   | PDCons of Id.t * p list
   | PTCons of Id.t * p list
 and p0 =
-  | P0Rel   of rig
+  | P0Rel
   | P0TCons of Id.t * p0 list
   | P0DCons of Id.t * p0 list
 and pbinder = p0  * (t, t) mbinder
-and tbinder = rig * (t, t) binder
-and motive  = rig * (t, pbinder) binder
+and tbinder = (t, t) binder
+and motive  = (t, pbinder) binder
 
 (* data types *)
 type tcons = TConstr of Id.t * pscope * dcons list
@@ -43,18 +43,18 @@ and pscope =
 and tscope =
   | TBase of t
   | TBind of t * tsbinder
-and psbinder = rig * (t, pscope) binder
+and psbinder = (t, pscope) binder
 and tsbinder = rig * (t, tscope) binder
 
 (* top level *)
 type top =
   | Empty
-  | Define of t * tpbinder
+  | Define of t * rig * tpbinder
   | Datype of tcons * top
-and tpbinder = rig * (t, top) binder
+and tpbinder = (t, top) binder
 
 let rec pp_p0 fmt = function
-  | P0Rel r -> fprintf fmt "P0Rel(%a)" Rig.pp r
+  | P0Rel            -> fprintf fmt "P0Rel"
   | P0TCons (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps0 ps
   | P0DCons (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps0 ps
 
@@ -65,7 +65,7 @@ and pp_ps0 fmt = function
 
 let rec equal_p0 p1 p2 =
   match p1, p2 with
-  | P0Rel r1, P0Rel r2 -> r1 = r2
+  | P0Rel, P0Rel -> true
   | P0TCons (id1, ps1), P0TCons (id2, ps2) -> (
     try 
       Id.equal id1 id2 && List.fold_left2
@@ -80,7 +80,7 @@ let rec equal_p0 p1 p2 =
 
 let rec mt_of_pt0 p0 t =
   match p0, t with
-  | P0Rel _, _ -> [| t |]
+  | P0Rel, _ -> [| t |]
   | P0TCons (id1, ps), TCons (id2, ts) ->
     if Id.equal id1 id2 then
       List.fold_left2 
@@ -94,7 +94,7 @@ let rec mt_of_pt0 p0 t =
   | _ -> failwith (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t)
 
 and mvar_of_p = function
-  | PVar (r, x) -> (P0Rel r, [| x |])
+  | PVar x -> (P0Rel, [| x |])
   | PTCons (id, ps) ->
     let ps0, m =
       List.fold_left
@@ -116,10 +116,10 @@ and mvar_of_p = function
 
 and p_of_mvar p0 m =
   match p0 with
-  | P0Rel r ->
+  | P0Rel ->
     let x = m.(0) in
     let m = Array.sub m 1 ((Array.length m) - 1) in
-    (PVar (r, x), m)
+    (PVar x, m)
   | P0TCons (id, ps) ->
     let ps, m =
       List.fold_left
@@ -168,7 +168,7 @@ and pp_r fmt = function
   | _    -> ()
 
 and pp_p fmt = function
-  | PVar (r, x)     -> fprintf fmt "%a%a" pp_v x pp_r r
+  | PVar x          -> fprintf fmt "%a" pp_v x
   | PTCons (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps ps
   | PDCons (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps ps
 
@@ -179,16 +179,16 @@ and pp_ps fmt = function
 
 and spine t = 
   match t with
-  | Lambda (r, b) ->
+  | Lambda b ->
     let x, b = unbind b in
     let xs, t = spine b in
-    ((r, x) :: xs, t)
+    (x :: xs, t)
   | _ -> ([], t)
 
 and pp fmt t = 
   let pp_aux fmt =
-    List.iter (fun (r, x) -> 
-      fprintf fmt "%a%a " pp_v x pp_r r)
+    List.iter (fun x -> 
+      fprintf fmt "%a " pp_v x)
   in
   match t with
   | Var x -> 
@@ -197,31 +197,31 @@ and pp fmt t =
     fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp s pp t
   | Type -> fprintf fmt "Type"
   | Linear -> fprintf fmt "Linear"
-  | TyProd (ty, (r, b)) -> 
+  | TyProd (ty, r, b) -> 
     let x, b = unbind b in
     if (name_of x = "_") 
     then fprintf fmt "@[%a%a ->@;<1 2>%a@]" pp ty pp_r r pp b
     else fprintf fmt "@[@[(%a :@;<1 2>%a) ->@]@;<1 2>%a@]"
       pp_v x pp ty pp b
-  | LnProd (ty, (r, b)) -> 
+  | LnProd (ty, r, b) -> 
     let x, b = unbind b in
     if (name_of x = "_") 
     then fprintf fmt "@[%a%a >>@;<1 2>%a@]" pp ty pp_r r pp b
     else fprintf fmt "@[@[(%a :@;<1 2>%a) >>@]@;<1 2>%a@]"
       pp_v x pp ty pp b
-  | Lambda (r, b) ->
+  | Lambda b ->
     let x, b = unbind b in
     let ps, b = spine b in
-    fprintf fmt "@[fun %a%a %a=>@;<1 2>%a@]"
-      pp_v x pp_r r pp_aux ps pp b
-  | Fix (r, b) ->
+    fprintf fmt "@[fun %a %a=>@;<1 2>%a@]"
+      pp_v x pp_aux ps pp b
+  | Fix b ->
     let x, b = unbind b in
     let ps, b = spine b in
-    fprintf fmt "@[fix %a%a %a=>@;<1 2>%a@]"
-      pp_v x pp_r r pp_aux ps pp b
+    fprintf fmt "@[fix %a %a=>@;<1 2>%a@]"
+      pp_v x pp_aux ps pp b
   | App (s, t) ->
     fprintf fmt "@[(%a)@;<1 2>%a@]" pp s pp t
-  | LetIn (t, (r, b)) -> 
+  | LetIn (t, r, b) -> 
     let x, b = unbind b in
     fprintf fmt "@[@[let %a%a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
       pp_v x pp_r r pp t pp b
@@ -246,13 +246,13 @@ and pp_ts fmt = function
   | _ -> ()
 
 and pp_mt fmt = function
-  | Some (r, mt) ->
+  | Some mt ->
     let x, pb = unbind mt in
     let p, b = unbind_p pb in
     if (name_of x = "_")
     then fprintf fmt " in %a return@;<1 2>%a" pp_p p pp b
-    else fprintf fmt " as %a%a in %a return@;<1 2>%a" 
-      pp_v x pp_r r pp_p p pp b
+    else fprintf fmt " as %a in %a return@;<1 2>%a" 
+      pp_v x pp_p p pp b
   | None -> ()
 
 and pp_cl fmt pb =
@@ -266,7 +266,7 @@ and pp_cls fmt = function
 
 let rec pp_top fmt = function
   | Empty -> ()
-  | Define (t, (r, tp)) -> (
+  | Define (t, r, tp) -> (
     match t with
     | Axiom (_, ty) ->
       let x, tp = unbind tp in
@@ -283,12 +283,12 @@ let rec pp_top fmt = function
 
 and pp_pscope fmt = function
   | PBase t -> fprintf fmt ": %a" pp_tscope t
-  | PBind (ty, (r, b)) ->
+  | PBind (ty, b) ->
     let x, b = unbind b in
     if (name_of x = "_") 
     then fprintf fmt "@[%a@;<1 2>%a@]" pp ty pp_pscope b
-    else fprintf fmt "@[@[(%a%a :@;<1 2>%a)@]@;<1 2>%a@]"
-      pp_v x pp_r r pp ty pp_pscope b
+    else fprintf fmt "@[@[(%a :@;<1 2>%a)@]@;<1 2>%a@]"
+      pp_v x pp ty pp_pscope b
     
 and pp_tscope fmt = function
   | TBase t -> fprintf fmt "%a" pp t
@@ -318,14 +318,14 @@ let _Var = box_var
 let _Ann = box_apply2 (fun t ty -> Ann (t, ty))
 let _Type = box Type
 let _Linear = box Linear
-let _TyProd r = box_apply2 (fun ty b -> TyProd (ty, (r, b)))
-let _LnProd r = box_apply2 (fun ty b -> LnProd (ty, (r, b)))
+let _TyProd r = box_apply2 (fun ty b -> TyProd (ty, r, b))
+let _LnProd r = box_apply2 (fun ty b -> LnProd (ty, r, b))
 let _Arrow r ty1 ty2 = _TyProd r ty1 (bind_var __ ty2)
 let _Lolli r ty1 ty2 = _LnProd r ty1 (bind_var __ ty2)
-let _Lambda r = box_apply (fun b -> Lambda (r, b))
-let _Fix r = box_apply (fun b -> Fix (r, b))
+let _Lambda = box_apply (fun b -> Lambda b)
+let _Fix = box_apply (fun b -> Fix b)
 let _App = box_apply2 (fun t1 t2 -> App (t1, t2))
-let _LetIn r = box_apply2 (fun t b -> LetIn (t, (r, b)))
+let _LetIn r = box_apply2 (fun t b -> LetIn (t, r, b))
 let _TCons id = box_apply (fun ts -> TCons (id, ts))
 let _DCons id = box_apply (fun ts -> DCons (id, ts))
 let _Match = box_apply3 (fun t p ps -> Match (t, p, ps))
@@ -335,8 +335,8 @@ let _TConstr id = box_apply2 (fun ts dc -> TConstr (id, ts, dc))
 let _DConstr id = box_apply (fun ts -> DConstr (id, ts))
 
 let _PBase = box_apply (fun t -> PBase t)
-let _PBind r = box_apply2 (fun t b -> PBind (t, (r, b)))
-let _PBnd r ty1 ty2 = _PBind r ty1 (bind_var __ ty2)
+let _PBind = box_apply2 (fun t b -> PBind (t, b))
+let _PBnd ty1 ty2 = _PBind ty1 (bind_var __ ty2)
 let _TBase = box_apply (fun t -> TBase t)
 let _TBind r = box_apply2 (fun t b -> TBind (t, (r, b)))
 let _TBnd r ty1 ty2 = _TBind r ty1 (bind_var __ ty2)
@@ -344,15 +344,15 @@ let _TBnd r ty1 ty2 = _TBind r ty1 (bind_var __ ty2)
 let _DConstr id = box_apply (fun ts -> DConstr (id, ts))
 
 let _Empty = box Empty
-let _Define = box_apply2 (fun t tp -> Define (t, tp))
+let _Define r = box_apply2 (fun t tp -> Define (t, r, tp))
 let _Datype = box_apply2 (fun tc t -> Datype (tc, t))
 
 let _None = box None
 let _Some x = box_apply (fun x -> Some x) x
 let box_opt f = function
   | None -> box None
-  | Some (r, t) -> 
-    box_apply (fun t -> Some (r, t)) (f t)
+  | Some t -> 
+    box_apply (fun t -> Some t) (f t)
 let _nil = box []
 let _cons t ts = box_apply2 (fun t ts -> t :: ts) t ts
 let box_of_list xs =
@@ -371,12 +371,12 @@ let rec lift = function
   | Ann (t, ty) -> _Ann (lift t) (lift ty)
   | Type -> _Type
   | Linear -> _Linear
-  | TyProd (ty, (r, b)) -> _TyProd r (lift ty) (box_binder lift b)
-  | LnProd (ty, (r, b)) -> _LnProd r (lift ty) (box_binder lift b)
-  | Lambda (r, b) -> _Lambda r (box_binder lift b)
-  | Fix (r, b) -> _Fix r (box_binder lift b)
+  | TyProd (ty, r, b) -> _TyProd r (lift ty) (box_binder lift b)
+  | LnProd (ty, r, b) -> _LnProd r (lift ty) (box_binder lift b)
+  | Lambda b -> _Lambda (box_binder lift b)
+  | Fix b -> _Fix (box_binder lift b)
   | App (t1, t2) -> _App (lift t1) (lift t2)
-  | LetIn (t, (r, b)) -> _LetIn r (lift t) (box_binder lift b)
+  | LetIn (t, r, b) -> _LetIn r (lift t) (box_binder lift b)
   | TCons (id, ts) -> _TCons id (box_map lift ts) 
   | DCons (id, ts) -> _DCons id (box_map lift ts)
   | Match (t, opt, pbs) ->

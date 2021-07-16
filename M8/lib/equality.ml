@@ -9,17 +9,17 @@ let rec aeq t1 t2 =
     aeq t1 t2 && aeq ty1 ty2
   | Type, Type -> true
   | Linear, Linear -> true
-  | TyProd (t1, (r1, b1)), TyProd (t2, (r2, b2)) ->
+  | TyProd (t1, r1, b1), TyProd (t2, r2, b2) ->
     r1 = r2 && aeq t1 t2 && eq_binder aeq b1 b2
-  | LnProd (t1, (r1, b1)), LnProd (t2, (r2, b2)) ->
+  | LnProd (t1, r1, b1), LnProd (t2, r2, b2) ->
     r1 = r2 && aeq t1 t2 && eq_binder aeq b1 b2
-  | Lambda (r1, b1), Lambda (r2, b2) ->
-    r1 = r2 && eq_binder aeq b1 b2
-  | Fix (r1, b1), Fix (r2, b2) ->
-    r1 = r2 && eq_binder aeq b1 b2
+  | Lambda b1, Lambda b2 ->
+    eq_binder aeq b1 b2
+  | Fix b1, Fix b2 ->
+    eq_binder aeq b1 b2
   | App (t11, t12), App (t21, t22) ->
     aeq t11 t21 && aeq t12 t22
-  | LetIn (t1, (r1, b1)), LetIn (t2, (r2, b2)) ->
+  | LetIn (t1, r1, b1), LetIn (t2, r2, b2) ->
     r1 = r2 && aeq t1 t2 && eq_binder aeq b1 b2
   | TCons (id1, ts1), TCons (id2, ts2) ->
     Id.equal id1 id2 && List.equal aeq ts1 ts2
@@ -27,8 +27,8 @@ let rec aeq t1 t2 =
     Id.equal id1 id2 && List.equal aeq ts1 ts2
   | Match (t1, opt1, ps1), Match (t2, opt2, ps2) ->
     aeq t1 t2 &&
-    Option.equal (fun (r1, b1) (r2, b2) -> 
-      r1 = r2 && eq_binder (eq_binder_p aeq) b1 b2) opt1 opt2 &&
+    Option.equal (fun b1 b2 -> 
+      eq_binder (eq_binder_p aeq) b1 b2) opt1 opt2 &&
     List.equal (eq_binder_p aeq) ps1 ps2
   | Axiom (id1, ty1), Axiom (id2, ty2) ->
     Id.equal id1 id2 && aeq ty1 ty2
@@ -48,10 +48,10 @@ let rec whnf t =
     let t1 = whnf t1 in
     let t2 = whnf t2 in
     match t1 with
-    | Lambda (_, b) -> whnf (subst b t2)
-    | Fix (_, b) -> whnf (App (subst b t1, t2))
+    | Lambda b -> whnf (subst b t2)
+    | Fix b -> whnf (App (subst b t1, t2))
     | _ -> App (t1, t2))
-  | LetIn (t, (_, b)) ->
+  | LetIn (t, _, b) ->
     let t = whnf t in
     whnf (subst b t)
   | TCons _ -> t
@@ -79,30 +79,30 @@ let rec nf t =
   | Ann (t, _) -> nf t
   | Type -> t
   | Linear -> t
-  | TyProd (t, (r, b)) ->
+  | TyProd (t, r, b) ->
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
-    TyProd (nf t, (r, b))
-  | LnProd (t, (r, b)) ->
+    TyProd (nf t, r, b)
+  | LnProd (t, r, b) ->
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
-    LnProd (nf t, (r, b))
-  | Lambda (r, b) -> 
+    LnProd (nf t, r, b)
+  | Lambda b -> 
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
-    Lambda (r, b)
-  | Fix (r, b) -> 
+    Lambda b
+  | Fix b -> 
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
-    Fix (r, b)
+    Fix b
   | App (t1, t2) -> (
     let t1 = nf t1 in
     let t2 = nf t2 in
     match t1 with
-    | Lambda (_, b) -> nf (subst b t2)
-    | Fix (_, b) -> nf (App (subst b t1, t2))
+    | Lambda b -> nf (subst b t2)
+    | Fix b -> nf (App (subst b t1, t2))
     | _ -> App (t1, t2))
-  | LetIn (t, (_, b)) ->
+  | LetIn (t, _, b) ->
     let t = nf t in
     nf (subst b t)
   | TCons (id, ts) ->
@@ -137,17 +137,17 @@ let rec equal t1 t2 =
       equal t1 t2 && equal ty1 ty2
     | Type, Type -> true
     | Linear, Linear -> true
-    | TyProd (t1, (r1, b1)), TyProd (t2, (r2, b2)) ->
+    | TyProd (t1, r1, b1), TyProd (t2, r2, b2) ->
       r1 = r2 && equal t1 t2 && eq_binder equal b1 b2
-    | LnProd (t1, (r1, b1)), LnProd (t2, (r2, b2)) ->
+    | LnProd (t1, r1, b1), LnProd (t2, r2, b2) ->
       r1 = r2 && equal t1 t2 && eq_binder equal b1 b2
-    | Lambda (r1, b1), Lambda (r2, b2) ->
-      r1 = r2 && eq_binder equal b1 b2
-    | Fix (r1, b1), Fix (r2, b2) ->
-      r1 = r2 && eq_binder equal b1 b2
+    | Lambda b1, Lambda b2 ->
+      eq_binder equal b1 b2
+    | Fix b1, Fix b2 ->
+      eq_binder equal b1 b2
     | App (t11, t12), App (t21, t22) ->
       equal t11 t21 && equal t12 t22
-    | LetIn (t1, (r1, b1)), LetIn (t2, (r2, b2)) ->
+    | LetIn (t1, r1, b1), LetIn (t2, r2, b2) ->
       r1 = r2 && equal t1 t2 && eq_binder equal b1 b2
     | TCons (id1, ts1), TCons (id2, ts2) ->
       Id.equal id1 id2 && List.equal equal ts1 ts2
@@ -155,8 +155,8 @@ let rec equal t1 t2 =
       Id.equal id1 id2 && List.equal equal ts1 ts2
     | Match (t1, opt1, ps1), Match (t2, opt2, ps2) ->
       equal t1 t2 && 
-      Option.equal (fun (r1, b1) (r2, b2) -> 
-        r1 = r2 && eq_binder (eq_binder_p equal) b1 b2) opt1 opt2 &&
+      Option.equal (fun b1 b2 -> 
+        eq_binder (eq_binder_p equal) b1 b2) opt1 opt2 &&
       List.equal (eq_binder_p equal) ps1 ps2
     | Axiom (id1, ty1), Axiom (id2, ty2) ->
       Id.equal id1 id2 && equal ty1 ty2
