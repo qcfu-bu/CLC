@@ -86,4 +86,18 @@ Axiom Free : (A : Type) -> Ptr A -> Unit.
 Axiom Get  : (A : Type) -> (l : Loc) -> PtsTo l A -> FTensor A (fun _ => PtsTo l A).
 Axiom Set  : (A : Type) -> (B : Type) -> B -> (l : Loc) -> PtsTo l A -> PtsTo l B.
 
+Inductive Ref (A : Type) : Linear :=
+| new : A -> Ref A.
+
+Definition free (r : Ref A) : Unit := 
+  match r with 
+  | new _ => tt
+  end.
+
+Definition get (r : Ref A) : (A * Ref A) :=
+  match r with
+  | new a => (a, new a)
+  end.
+
+
 Definition main : Unit := tt.

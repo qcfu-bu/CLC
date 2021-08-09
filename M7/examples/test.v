@@ -1,34 +1,56 @@
 Require Extraction.
 Extraction Language Haskell.
 
+Set Implicit Arguments.
+
 Inductive le (n : nat) : nat -> Set :=
 | le_n : le n n
 | le_S : forall (m : nat), le n m -> le n (S m).
 
 Definition lt (m n : nat) : Set := le (S m) n.
 
-Inductive PtsTo (A : Set) : nat -> Prop :=.
-Notation "l @ A" := (PtsTo A l) (at level 80, right associativity).
+Inductive PtsTo (A : Set) : nat -> A -> Prop :=.
 
-Axiom get : forall (A : Set) (l : nat) (c : l @ A), (A * {c0 : l @ A | c = c0}).
+Axiom new  : forall (A : Set) (x : A), {l : nat | PtsTo l x}.
+Axiom free : forall (A : Set)   (l : nat) {x : A}, PtsTo l x -> unit.
+Axiom get  : forall (A : Set)   (l : nat) {x : A}, PtsTo l x -> {y : A | x = y} * PtsTo l x.
+Axiom set  : forall (A B : Set) (l : nat) {x : A}, PtsTo l x -> forall (y : B), PtsTo l y.
 
-Definition get_twice (A : Set) (l : nat) (c : l @ A) : unit.
-Proof.
-  refine(
-    let (x, c_pf1) := get A l c in
-    let (c, pf1) := c_pf1 in
-    let (y, c_pf2) := get A l c in
-    let (c, pf2) := c_pf2 in
-    let pf : x = y := _ in
-    _).
-
-Definition get_twice (A : Set) (l : nat) (c : l @ A) :
-  let (x, c_pf1) := get A l c in
-  let (c, pf1) := c_pf1 in
-  let (y, c_pf2) := get A l c in
-  let (c, pf2) := c_pf2 in
+Definition set_get (A B : Set) (l : nat) (x : A) (c : PtsTo l x) (y : B) : 
+  let c := set c y in
+  let (x_eq, c) := get c in
+  let (x, eq) := x_eq in
   x = y.
 Proof.
+  intros.
+  case (get c0).
+  intros.
+  case s.
+  intros.
+  rewrite e.
+  reflexivity.
+Qed.
+
+
+
+Definition get_twice (A : Set) (l : nat) (x : A) (c : PtsTo A l x) :
+  let (x_eq, c) := get A l c in
+  let (x, eq1) := x_eq in
+  let (y_eq, c) := get A l c in
+  let (y, eq2) := y_eq in
+  x = y.
+Proof.
+  case (get A l c).
+  intros.
+  case s.
+  intros.
+  case (get A l p).
+  intros.
+  case s0.
+  intros.
+  intuition.
+Qed.
+
   refine (
     let p := get A l c in
     let H0 : get A l c = p := eq_refl in
