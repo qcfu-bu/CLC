@@ -4,8 +4,9 @@ open Names
 
 type t =
   (* functional *)
-  | Var of t var
-  | Ann of t * t
+  | Var   of t var
+  | Meta  of t Meta.t
+  | Ann   of t * t
   | Type
   | Linear
   | TyProd of t * tbinder
@@ -17,32 +18,32 @@ type t =
   (* data *)
   | TCons  of Id.t * t list
   | DCons  of Id.t * t list
-  | Match  of t * motive option 
+  | Match  of t * motive option
                 * pbinder list
   | Axiom  of Id.t * t
-and p = 
-  | PVar    of t var
-  | PDCons  of Id.t * p list
-  | PTCons  of Id.t * p list
+and p =
+  | PVar   of t var
+  | PDCons of Id.t * p list
+  | PTCons of Id.t * p list
 and p0 =
   | P0Rel
   | P0TCons of Id.t * p0 list
   | P0DCons of Id.t * p0 list
-and pbinder = p0 * (t, t) mbinder
 and tbinder = (t, t) binder
-and motive = (t, pbinder) binder
+and pbinder = p0 * (t, t) mbinder
+and motive  = (t, pbinder) binder
 
-type tcons = 
+type tcons =
   TConstr of Id.t * pscope * dcons list
-and dcons = 
-  DConstr of Id.t * pscope 
-and pscope =
+and dcons =
+  DConstr of Id.t * pscope
+and pscope = 
   | PBase of tscope
   | PBind of t * psbinder
-and psbinder = (t, pscope) binder
-and tscope = 
+and tscope =
   | TBase of t
   | TBind of t * tsbinder
+and psbinder = (t, pscope) binder
 and tsbinder = (t, tscope) binder
 
 type top =
@@ -192,6 +193,8 @@ and pp fmt t =
   match t with
   | Var x -> 
     fprintf fmt "%a" pp_v x
+  | Meta x ->
+    fprintf fmt "%a" (Meta.pp_a pp) x
   | Ann (s, t) -> 
     fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp s pp t
   | Type -> fprintf fmt "Type"
@@ -313,6 +316,7 @@ let mk = new_var (fun x -> Var x)
 let __ = mk "_"
 
 let _Var = box_var
+let _Meta m = box (Meta m)
 let _Ann = box_apply2 (fun t ty -> Ann (t, ty))
 let _Type = box Type
 let _Linear = box Linear
@@ -363,6 +367,7 @@ let rec box_map f = function
 
 let rec lift = function
   | Var x -> _Var x
+  | Meta x -> _Meta x
   | Ann (t, ty) -> _Ann (lift t) (lift ty)
   | Type -> _Type
   | Linear -> _Linear
