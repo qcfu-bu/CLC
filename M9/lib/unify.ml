@@ -8,8 +8,7 @@ let rec aeq t1 t2 =
   | Meta x1, Meta x2 -> Meta.equal x1 x2
   | Ann (t1, ty1), Ann (t2, ty2) ->
     aeq t1 t2 && aeq ty1 ty2
-  | Type, Type -> true
-  | Linear, Linear -> true
+  | Sort t1, Sort t2 -> t1 = t2
   | TyProd (t1, b1), TyProd (t2, b2) ->
     aeq t1 t2 && eq_binder aeq b1 b2
   | LnProd (t1, b1), LnProd (t2, b2) ->
@@ -42,8 +41,7 @@ let rec whnf t =
     | Some x -> whnf x
     | None -> t)
   | Ann (t, _) -> whnf t
-  | Type -> t
-  | Linear -> t
+  | Sort _ -> t
   | TyProd _ -> t
   | LnProd _ -> t
   | Lambda _ -> t
@@ -85,8 +83,7 @@ let rec nf t =
     | Some x -> nf x
     | None -> t)
   | Ann (t, _) -> nf t
-  | Type -> t
-  | Linear -> t
+  | Sort _ -> t
   | TyProd (t, b) ->
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
@@ -143,8 +140,7 @@ let rec occurs x t =
     | None -> Meta.equal x y)
   | Ann (t, ty) ->
     occurs x t || occurs x ty
-  | Type -> false
-  | Linear -> false
+  | Sort _ -> false
   | TyProd (t, b) ->
     let _, ub = unbind b in
     occurs x t || occurs x ub
@@ -194,8 +190,7 @@ let rec unify t1 t2 =
     | _, Meta x ->
       if occurs x t1 then false
       else (Meta.set x t1; true)
-    | Type, Type -> true
-    | Linear, Linear -> true
+    | Sort t1, Sort t2 -> t1 = t2
     | TyProd (t1, b1), TyProd (t2, b2) ->
       unify t1 t2 && eq_binder unify b1 b2
     | LnProd (t1, b1), LnProd (t2, b2) ->

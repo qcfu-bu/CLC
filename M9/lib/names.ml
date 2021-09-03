@@ -22,14 +22,31 @@ end
 
 module Meta : sig
   type 'a t
+  type t0
 
+  val mk  : unit -> 'a t
+  val mk0 : unit -> t0
+  val of_0 : t0 -> 'a t
   val equal : 'a t -> 'a t -> bool
   val get : 'a t -> 'a option
   val set : 'a t -> 'a -> unit
   val pp_a : (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
+  val pp_0 : Format.formatter -> t0 -> unit
 end =
 struct
   type 'a t = int * 'a option ref
+
+  type t0 = int
+
+  let stamp = ref (-1)
+
+  let mk () =
+    incr stamp; (!stamp, ref None)
+
+  let mk0 () = 
+    incr stamp; !stamp
+  
+  let of_0 t = (t, ref None)
 
   let equal m1 m2 =
     let id1, _ = m1 in
@@ -53,6 +70,9 @@ struct
     match !opt with
     | Some t -> Format.fprintf fmt "%a" pp t
     | None -> Format.fprintf fmt "?%d" id
+
+  let pp_0 fmt m =
+    Format.fprintf fmt "?%d" m
 end
 
 module Id : sig
