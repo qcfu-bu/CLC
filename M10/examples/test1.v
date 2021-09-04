@@ -1,3 +1,5 @@
+
+
 Axiom ptsto : (A : Type) -> Nat -> A -> Linear.
 
 Axiom new  : (A : Type) -> (x : A) -> [l : Nat | ptsto _ l x].
