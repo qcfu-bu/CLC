@@ -21,11 +21,9 @@ let min_sort t1 t2 =
   | Linear -> t1
 
 let rec infer_sort v_ctx id_ctx ty =
-  let srt, ctx, eqns = infer v_ctx id_ctx ty in
+  let srt, eqns = infer v_ctx id_ctx ty in
   match whnf srt with
-  | Sort srt ->
-    assert_msg (VarMap.is_empty ctx) "non-clean context for sort";
-    (srt, eqns)
+  | Sort srt -> (srt, eqns)
   | _ ->
     failwith 
       (asprintf "infer_sort(ty := %a; sort := %a)"
@@ -37,14 +35,14 @@ and infer v_ctx id_ctx t =
   | Meta _ ->
     let xs, _ = Util.unzip (VarMap.bindings v_ctx) in
     let ty = _App' (_Meta (Meta.mk ())) (List.map _Var xs) in
-    (unbox ty, VarMap.empty, [])
+    (unbox ty, [])
   | _ -> (
     match t with
     | Var x -> (
       let ty, srt = find x v_ctx in
       match srt with
-      | Type -> (ty, VarMap.empty, [])
-      | Linear -> (ty, VarMap.singleton x ty, []))
+      | Type -> (ty, [])
+      | Linear -> (ty, []))
     | Meta _ -> failwith "infer Meta"
     | Ann (t, ty) -> (
       let _, eqns1 = infer_sort v_ctx id_ctx ty in
@@ -52,51 +50,51 @@ and infer v_ctx id_ctx t =
       | LetIn (t, b) ->
         let x, ub = unbind b in
         let b = unbox (bind_var x (lift (Ann (ub, ty)))) in
-        let ctx, eqns2 = check v_ctx id_ctx (LetIn (t, b)) ty in
-        (ty, ctx, eqns1 @ eqns2)
+        let eqns2 = check v_ctx id_ctx (LetIn (t, b)) ty in
+        (ty, eqns1 @ eqns2)
       | _ -> 
-        let ctx, eqns2 = check v_ctx id_ctx t ty in
-        (ty, ctx, eqns1 @ eqns2))
+        let eqns2 = check v_ctx id_ctx t ty in
+        (ty, eqns1 @ eqns2))
     | Sort srt -> (
       match srt with
-      | Type -> (Sort Type, VarMap.empty, [])
-      | Linear -> (Sort Type, VarMap.empty, []))
+      | Type -> (Sort Type, [])
+      | Linear -> (Sort Type, []))
     | TyProd (ty, b) ->
       let x, ub = unbind b in
       let srt, eqns1 = infer_sort v_ctx id_ctx ty in
       let _, eqns2 = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx ub in
-      (Sort Type, VarMap.empty, eqns1 @ eqns2)
+      (Sort Type, eqns1 @ eqns2)
     | LnProd (ty, b) ->
       let x, ub = unbind b in
       let srt, eqns1 = infer_sort v_ctx id_ctx ty in
       let _, eqns2 = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx ub in
-      (Sort Linear, VarMap.empty, eqns1 @ eqns2)
+      (Sort Linear, eqns1 @ eqns2)
     | Lambda _ -> failwith (asprintf "infer Lambda(%a)" Terms.pp t)
     | Fix _ -> failwith (asprintf "infer Fix(%a)" Terms.pp t)
     | App (t1, t2) -> (
-      let ty1, ctx1, eqns1 = infer v_ctx id_ctx t1 in
+      let ty1, eqns1 = infer v_ctx id_ctx t1 in
       match whnf ty1 with
       | TyProd (ty, b) ->
-        let ctx2, eqns2 = check v_ctx id_ctx t2 ty in
-        (subst b t2, merge ctx1 ctx2, eqns1 @ eqns2)
+        let eqns2 = check v_ctx id_ctx t2 ty in
+        (subst b t2, eqns1 @ eqns2)
       | LnProd (ty, b) ->
-        let ctx2, eqns2 = check v_ctx id_ctx t2 ty in
-        (subst b t2, merge ctx1 ctx2, eqns1 @ eqns2)
+        let eqns2 = check v_ctx id_ctx t2 ty in
+        (subst b t2, eqns1 @ eqns2)
       | _ -> failwith (asprintf "@[infer App(t :=@;<1 2>%a)@]" Terms.pp t))
     | LetIn (t, b) -> (
-      let ty1, ctx1, eqns1 = infer v_ctx id_ctx t in
+      let ty1, eqns1 = infer v_ctx id_ctx t in
       let srt, eqns = infer_sort v_ctx id_ctx ty1 in
-      let ty2, ctx2, eqns2 = 
-        if srt = Type && VarMap.is_empty ctx1  then
+      let ty2, eqns2 = 
+        if srt = Type then
           infer v_ctx id_ctx (subst b t)
         else
           let x, ub = unbind b in
-          let ty2, ctx2, eqns2 =
+          let ty2, eqns2 =
             infer (VarMap.add x (ty1, srt) v_ctx) id_ctx ub 
           in
-          (ty2, remove x ctx2 srt, eqns2)
+          (ty2, eqns2)
       in
-      (ty2, merge ctx1 ctx2, eqns1 @ eqns2 @ eqns))
+      (ty2, eqns1 @ eqns2 @ eqns))
     | TCons (id, ts) -> (
       let TConstr (_, pscope, _) = IdMap.find id id_ctx in
       infer_pscope v_ctx id_ctx ts pscope)
@@ -106,7 +104,7 @@ and infer v_ctx id_ctx t =
         infer_tscope v_ctx id_ctx ts tscope
       | _ -> failwith (asprintf "infer DCons(%a)" Terms.pp t))
     | Match (t, mot, pbs) -> (
-      let ty, ctx1, eqns1 = infer v_ctx id_ctx t in
+      let ty, eqns1 = infer v_ctx id_ctx t in
       let srt, eqns = infer_sort v_ctx id_ctx ty in
       let ty = whnf ty in
       match ty with
@@ -118,71 +116,59 @@ and infer v_ctx id_ctx t =
           let ty' = subst_p (subst mot t) ty in
           let res = check_motive cover id_ctx mot srt in
           match res with
-          | [] -> (ty', ctx1, eqns1 @ eqns)
-          | (ctx2, eqns2) :: res ->
+          | [] -> (ty', eqns1 @ eqns)
+          | (eqns2) :: res ->
             let eqns2 =
               List.fold_left
-                (fun acc (ctx, eqns) -> 
-                  assert_msg (Context.equal ctx ctx2) "infer Match0";
-                  acc @ eqns)
+                (fun acc eqns -> acc @ eqns)
                 eqns2 res
             in
-            (ty', merge ctx1 ctx2, eqns1 @ eqns2 @ eqns))
+            (ty', eqns1 @ eqns2 @ eqns))
         | None -> (
           let res = infer_cover cover id_ctx in
           match res with
           | [] -> failwith "infer Match2"
-          | (t, ctx2, eqns2) :: res ->
+          | (t, eqns2) :: res ->
             let eqns2 =
               List.fold_left
-                (fun acc (t', ctx, eqns) ->
-                  assert_msg (Context.equal ctx2 ctx)  
-                    (asprintf "infer Match4(%a;@;<1 2>%a)"
-                      Context.pp v_ctx Context.pp v_ctx);
-                  (t, t') :: acc @ eqns)
+                (fun acc (t', eqns) -> (t, t') :: acc @ eqns)
                 eqns2 res
             in
-            (t, merge ctx1 ctx2, eqns1 @ eqns2 @ eqns)))
+            (t, eqns1 @ eqns2 @ eqns)))
       | _ -> failwith "infer Match5")
     | Axiom (_, ty) ->
       let _, eqns = infer_sort v_ctx id_ctx ty in 
-      (ty, VarMap.empty, eqns))
+      (ty, eqns))
 
 and check v_ctx id_ctx t ty =
   match t with
-  | Meta _ -> (VarMap.empty, [])
+  | Meta _ -> []
   | Lambda b -> (
     let x, ub1 = unbind b in
     match whnf ty with
     | TyProd (ty, b2) ->
       let ub2 = subst b2 (Var x) in
       let srt, eqns1 = infer_sort v_ctx id_ctx ty in
-      let ctx, eqns2 = check (VarMap.add x (ty, srt) v_ctx) id_ctx ub1 ub2 in
-      let ctx = remove x ctx srt in
-      assert_msg (VarMap.is_empty ctx)
-        (asprintf "@[check Lambda(@;<1 2>t := %a;@;<1 2>ty := %a)@.%a@]" 
-          Terms.pp t Terms.pp ty Context.pp' ctx); 
-      (ctx, eqns1 @ eqns2)
+      let eqns2 = check (VarMap.add x (ty, srt) v_ctx) id_ctx ub1 ub2 in
+      eqns1 @ eqns2
     | LnProd (ty, b2) ->
       let ub2 = subst b2 (Var x) in
       let srt, eqns1 = infer_sort v_ctx id_ctx ty in
-      let ctx, eqns2 = check (VarMap.add x (ty, srt) v_ctx) id_ctx ub1 ub2 in
-      (remove x ctx srt, eqns1 @ eqns2)
-    | _ -> 
-      failwith
-        (asprintf "@[check Lambda(@;<1 2>t := %a;@;<1 2>ty := %a)@]" 
-          Terms.pp t Terms.pp ty))
+      let eqns2 = check (VarMap.add x (ty, srt) v_ctx) id_ctx ub1 ub2 in
+      eqns1 @ eqns2
+    | _ ->
+      let ty', eqns = infer v_ctx id_ctx t in
+      (ty, ty') :: eqns)
   | Fix b ->
     let x, ub = unbind b in
     let srt, eqns1 = infer_sort v_ctx id_ctx ty in
-    let ctx, eqns2 = check (VarMap.add x (ty, srt) v_ctx) id_ctx ub ty in
-    assert_msg (VarMap.is_empty ctx) "check Fix";
-    (ctx, eqns1 @ eqns2)
+    let eqns2 = check (VarMap.add x (ty, srt) v_ctx) id_ctx ub ty in
+    eqns1 @ eqns2
   | LetIn (t, b) ->
     let x, ub = unbind b in
     let b = unbox (bind_var x (lift (Ann (ub, ty)))) in
-    let ty', ctx, eqns = infer v_ctx id_ctx (LetIn (t, b)) in
-    (ctx, (ty, ty') :: eqns)
+    let ty', eqns = infer v_ctx id_ctx (LetIn (t, b)) in
+    (ty, ty') :: eqns
   | DCons (id, ts) -> (
     match whnf ty with
     | TCons (_, ts') ->
@@ -194,18 +180,18 @@ and check v_ctx id_ctx t ty =
             | PBind (ty, pb) -> subst pb (Ann (t, ty))
             | PBase _ -> pscope) pscope ts'
       in
-      let ty', ctx, eqns = infer_pscope v_ctx id_ctx ts pscope in
-      (ctx, (ty, ty') :: eqns)
+      let ty', eqns = infer_pscope v_ctx id_ctx ts pscope in
+      (ty, ty') :: eqns
     | _ ->
-      let ty', ctx, eqns = infer v_ctx id_ctx t in
-      (ctx, (ty, ty') :: eqns))
+      let ty', eqns = infer v_ctx id_ctx t in
+      (ty, ty') :: eqns)
   | Match (t, mot, pbs) -> (
     match mot with
     | Some _ ->
-      let ty', ctx, eqns = infer v_ctx id_ctx (Match (t, mot, pbs)) in
-      (ctx, (ty, ty') :: eqns)
+      let ty', eqns = infer v_ctx id_ctx (Match (t, mot, pbs)) in
+      (ty, ty') :: eqns
     | None ->
-      let ty1, ctx1, eqns1 = infer v_ctx id_ctx t in
+      let ty1, eqns1 = infer v_ctx id_ctx t in
       let ty1 = whnf ty1 in
       match ty1 with
       | TCons (id, ts) -> (
@@ -213,33 +199,27 @@ and check v_ctx id_ctx t ty =
         let cover = coverage v_ctx id_ctx pbs ds ts in
         let res = check_cover cover id_ctx ty in
         match res with
-        | [] -> (ctx1, eqns1)
-        | (ctx2, eqns2) :: res ->
-          let eqns2 =
-            List.fold_left
-              (fun acc (ctx, eqns) ->
-                assert_msg (Context.equal ctx2 ctx)  
-                  (asprintf "infer Match4(%a;@;<1 2>%a)"
-                    Context.pp v_ctx Context.pp v_ctx);
-                acc @ eqns)
-              eqns2 res
+        | [] -> eqns1
+        | eqns2 :: res ->
+          let eqns2 = 
+            List.fold_left (fun acc eqns -> acc @ eqns) eqns2 res 
           in
-          (merge ctx1 ctx2, eqns1 @ eqns2))
+          eqns1 @ eqns2)
       | _ ->
-        let ty', ctx, eqns = infer v_ctx id_ctx t in
-        (ctx, (ty, ty') :: eqns))
+        let ty', eqns = infer v_ctx id_ctx t in
+        (ty, ty') :: eqns)
   | _ ->
-    let ty', ctx, eqns = infer v_ctx id_ctx t in
-    (ctx, (ty, ty') :: eqns)
+    let ty', eqns = infer v_ctx id_ctx t in
+    (ty, ty') :: eqns
 
 and infer_pscope v_ctx id_ctx ts pscope =
   match ts, pscope with
   | t :: ts, PBind (ty, pscope) ->
-    let ctx1, eqns1 = check v_ctx id_ctx t ty in
-    let ty, ctx2, eqns2 =
+    let eqns1 = check v_ctx id_ctx t ty in
+    let ty, eqns2 =
       infer_pscope v_ctx id_ctx ts (subst pscope (Ann (t, ty)))
     in
-    (ty, merge ctx1 ctx2, eqns1 @ eqns2)
+    (ty, eqns1 @ eqns2)
   | ts, PBase tscope -> infer_tscope v_ctx id_ctx ts tscope
   | _ ->
     failwith 
@@ -249,12 +229,12 @@ and infer_pscope v_ctx id_ctx ts pscope =
 and infer_tscope v_ctx id_ctx ts tscope =
   match ts, tscope with
   | t :: ts, TBind (ty, tscope) ->
-    let ctx1, eqns1 = check v_ctx id_ctx t ty in
-    let ty, ctx2, eqns2 = 
+    let eqns1 = check v_ctx id_ctx t ty in
+    let ty, eqns2 = 
       infer_tscope v_ctx id_ctx ts (subst tscope (Ann (t, ty)))
     in
-    (ty, merge ctx1 ctx2, eqns1 @ eqns2)
-  | [], TBase ty -> (ty, VarMap.empty, [])
+    (ty, eqns1 @ eqns2)
+  | [], TBase ty -> (ty, [])
   | _ ->
     failwith 
       (asprintf "infer_tscope(%a; %d)" 
@@ -316,31 +296,21 @@ and coverage v_ctx id_ctx pbs ds ts =
 
 and infer_cover cover id_ctx =
   match cover with
-  | (v_ctx, _, _, b, xsrt, eqns1) :: cover ->
-    let ty, ctx, eqns2 = infer v_ctx id_ctx b in
-    let ctx =
-      List.fold_left
-        (fun ctx (x, srt) -> remove x ctx srt)
-      ctx xsrt
-    in
-    (ty, ctx, eqns1 @ eqns2) :: infer_cover cover id_ctx
+  | (v_ctx, _, _, b, _, eqns1) :: cover ->
+    let ty, eqns2 = infer v_ctx id_ctx b in
+    (ty, eqns1 @ eqns2) :: infer_cover cover id_ctx
   | _ -> []
 
 and check_cover cover id_ctx ty =
   match cover with
-  | (v_ctx, _, _, b, xsrt, eqns1) :: cover ->
-    let ctx, eqns2 = check v_ctx id_ctx b ty in
-    let ctx =
-      List.fold_left
-        (fun ctx (x, srt) -> remove x ctx srt)
-      ctx xsrt
-    in
-    (ctx, eqns1 @ eqns2) :: check_cover cover id_ctx ty
+  | (v_ctx, _, _, b, _, eqns1) :: cover ->
+    let eqns2 = check v_ctx id_ctx b ty in
+    (eqns1 @ eqns2) :: check_cover cover id_ctx ty
   | _ -> []
 
 and check_motive cover id_ctx mot srt =
   match cover with
-  | (v_ctx, t, ty, b, xsrt, eqns1) :: cover ->
+  | (v_ctx, t, ty, b, _, eqns1) :: cover ->
     let mot' =
       if srt = Type then subst mot t
       else (
@@ -348,35 +318,30 @@ and check_motive cover id_ctx mot srt =
         snd (unbind mot))
     in
     let mot' = subst_p mot' ty in
-    let ctx, eqns2 = check v_ctx id_ctx b mot' in
-    let ctx = 
-      List.fold_left
-        (fun ctx (x, srt) -> remove x ctx srt)
-      ctx xsrt
-    in
-    (ctx, eqns1 @ eqns2) :: check_motive cover id_ctx mot srt
+    let eqns2 = check v_ctx id_ctx b mot' in
+    (eqns1 @ eqns2) :: check_motive cover id_ctx mot srt
   | _ -> []
 
 let rec elab_top v_ctx id_ctx mmap top =
   match top with
-  | Empty -> (VarMap.empty, id_ctx, mmap)
+  | Empty -> (id_ctx, mmap)
   | Define (t, top) ->
-    let ty1, ctx1, eqns1 = infer v_ctx id_ctx t in
+    let ty1, eqns1 = infer v_ctx id_ctx t in
     let srt, eqns2 = infer_sort v_ctx id_ctx ty1 in
     let mmap = unify mmap (eqns1 @ eqns2) in
     let t = resolve mmap t in
     let ty1 = resolve mmap ty1 in
-    let ctx2, id_ctx, mmap =
-      if srt = Type && VarMap.is_empty ctx1 then
+    let id_ctx, mmap =
+      if srt = Type then
         elab_top v_ctx id_ctx mmap (subst top t)
       else
         let x, top = unbind top in
-        let ctx, id_ctx, mmap =
+        let id_ctx, mmap =
           elab_top (VarMap.add x (ty1, srt) v_ctx)  id_ctx mmap top
         in
-        (remove x ctx srt, id_ctx, mmap)
+        (id_ctx, mmap)
     in
-    (merge ctx1 ctx2, id_ctx, mmap)
+    (id_ctx, mmap)
   | Datype (tcs, top) -> (
     let TConstr (id, pscope, dcs) = tcs in
     let eqns = check_pscope v_ctx id_ctx pscope Type in
@@ -456,5 +421,5 @@ and param_tscope tscope id xs =
     param_tscope tscope id xs
 
 let elab top =
-  let _, _, mmap = elab_top VarMap.empty IdMap.empty MetaMap.empty top in
+  let _, mmap = elab_top VarMap.empty IdMap.empty MetaMap.empty top in
   mmap

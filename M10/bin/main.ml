@@ -16,12 +16,15 @@ let _ =
     let fname = Sys.argv.(1) in
     let ch = open_in fname in
     let top = parse_ch ch in
-    printf "%a@.@." Raw.pp_top top;
+    let _ = printf "parse ok@." in
     let top = desugar top in
-    printf "%a@.@." Terms.pp_top top;
+    let _ = printf "desugar ok@." in
     let mmap = elab top in
+    let _ = printf "elab ok@." in
     let top = unbox (resolve_top mmap top) in
+    let _ = printf "resolve ok@." in
     let ctx, _, _ = infer MetaMap.empty top in
+    let _ = printf "tcheck ok@." in
     printf "%a@.@." Terms.pp_top top;
     assert_msg (VarMap.is_empty ctx) "non-clean context";
     printf "%a@.@." Terms.pp (eval top);
