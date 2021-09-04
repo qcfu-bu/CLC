@@ -15,4 +15,8 @@ Definition main : Unit :=
   let ( y, pf2 ) := yeq in
   let pf1 := Eq_sym _ _ _ pf1 in
   let pf : Eq _ x y := Eq_trans _ _ _ _ pf1 pf2 in
+  let c := set _ _ _ _ c 2 in
+  let [ zeq, c ] := get _ _ _ c in
+  let ( z, pf3 ) := zeq in
+  let pf : Eq _ 2 z := pf3 in
   free _ _ _ c.

@@ -24,7 +24,7 @@ let union m1 m2 =
       else Some (x, ord1)) 
     m1 m2
 
-type eqn = VarSet.t * t * t
+type eqn = t * t
 let eqns : eqn list ref = ref []
 
 let pp_set fmt s =
@@ -278,14 +278,14 @@ let spine t =
   in
   spine_aux t []
 
-let equal ctx t1 t2 =
+let equal t1 t2 =
   if aeq t1 t2
   then ()
-  else eqns := (ctx, t1, t2) :: !eqns;
+  else eqns := (t1, t2) :: !eqns;
   true
 
 let rec simpl eqn =
-  let ctx, t1, t2 = eqn in
+  let t1, t2 = eqn in
   if aeq t1 t2 then []
   else
     let t1 = whnf t1 in
@@ -297,45 +297,42 @@ let rec simpl eqn =
       if eq_vars x1 x2 
       then 
         List.fold_left (fun acc (t1, t2) ->
-          acc @ simpl (ctx, t1, t2))
+          acc @ simpl (t1, t2))
         [] (Util.zip sp1 sp2)
       else failwith (asprintf "%a != %a" pp_v x1 pp_v x2)
-    | Meta _, Meta _ ->
-      if List.equal aeq sp1 sp2 then []
-      else [ eqn ]
     | Meta _, _ -> [ eqn ]
-    | _, Meta _ -> [ (ctx, t2, t1) ]
+    | _, Meta _ -> [ (t2, t1) ]
     | Sort t1, Sort t2 ->
       if t1 = t2 
       then []
       else failwith (asprintf "%a != %a" pp_s t1 pp_s t2)
     | TyProd (ty1, b1), TyProd (ty2, b2) ->
-      let x, ub1, ub2 = unbind2 b1 b2 in
-      let eqn1 = simpl (ctx, ty1, ty2) in
-      let eqn2 = simpl (VarSet.add x ctx, ub1, ub2) in
+      let _, ub1, ub2 = unbind2 b1 b2 in
+      let eqn1 = simpl (ty1, ty2) in
+      let eqn2 = simpl (ub1, ub2) in
       eqn1 @ eqn2
     | LnProd (ty1, b1), LnProd (ty2, b2) ->
-      let x, ub1, ub2 = unbind2 b1 b2 in
-      let eqn1 = simpl (ctx, ty1, ty2) in
-      let eqn2 = simpl (VarSet.add x ctx, ub1, ub2) in
+      let _, ub1, ub2 = unbind2 b1 b2 in
+      let eqn1 = simpl (ty1, ty2) in
+      let eqn2 = simpl (ub1, ub2) in
       eqn1 @ eqn2
     | Lambda b1, Lambda b2 ->
-      let x, ub1, ub2 = unbind2 b1 b2 in
-      simpl (VarSet.add x ctx, ub1, ub2)
+      let _, ub1, ub2 = unbind2 b1 b2 in
+      simpl (ub1, ub2)
     | Fix b1, Fix b2 ->
-      let x, ub1, ub2 = unbind2 b1 b2 in
-      simpl (VarSet.add x ctx, ub1, ub2)
+      let _, ub1, ub2 = unbind2 b1 b2 in
+      simpl (ub1, ub2)
     | LetIn (t1, b1), LetIn (t2, b2) ->
-      let x, ub1, ub2 = unbind2 b1 b2 in
-      let eqn1 = simpl (ctx, t1, t2) in
-      let eqn2 = simpl (VarSet.add x ctx, ub1, ub2) in
+      let _, ub1, ub2 = unbind2 b1 b2 in
+      let eqn1 = simpl (t1, t2) in
+      let eqn2 = simpl (ub1, ub2) in
       eqn1 @ eqn2
     | TCons (id1, ts1), TCons (id2, ts2) ->
       if Id.equal id1 id2
       then
         List.fold_left
           (fun acc (t1, t2) ->
-            acc @ simpl (ctx, t1, t2))
+            acc @ simpl (t1, t2))
         [] (Util.zip ts1 ts2)
       else 
         failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
@@ -344,48 +341,42 @@ let rec simpl eqn =
       then
         List.fold_left
           (fun acc (t1, t2) ->
-            acc @ simpl (ctx, t1, t2))
+            acc @ simpl (t1, t2))
         [] (Util.zip ts1 ts2)
       else 
         failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
     | Match (t1, mot1, ps1), Match (t2, mot2, ps2) ->
-      let eqn1 = simpl (ctx, t1, t2) in
+      let eqn1 = simpl (t1, t2) in
       let eqn2 = 
         match mot1, mot2 with
         | Some mot1, Some mot2 ->
-          let x, pb1, pb2 = unbind2 mot1 mot2 in
-          let p, ub1, ub2 = unbind_p2 pb1 pb2 in
-          let xs = list_of_p p in
-          let ctx = VarSet.add x ctx in
-          let ctx = VarSet.union ctx (VarSet.of_list xs) in
-          simpl (ctx, ub1, ub2)
+          let _, pb1, pb2 = unbind2 mot1 mot2 in
+          let _, ub1, ub2 = unbind_p2 pb1 pb2 in
+          simpl (ub1, ub2)
         | None, None -> []
         | _ -> failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
       in
       let eqn3 =
         List.fold_left 
           (fun acc (pb1, pb2) ->
-            let p, ub1, ub2 = unbind_p2 pb1 pb2 in 
-            let xs = list_of_p p in
-            let ctx = VarSet.union ctx (VarSet.of_list xs) in
-            acc @ simpl (ctx, ub1, ub2))
+            let _, ub1, ub2 = unbind_p2 pb1 pb2 in 
+            acc @ simpl (ub1, ub2))
           [] (Util.zip ps1 ps2)
       in
       eqn1 @ eqn2 @ eqn3
     | Axiom (id1, ty1), Axiom (id2, ty2) ->
       if Id.equal id1 id2
       then 
-        let eqn1 = simpl (ctx, ty1, ty2) in
+        let eqn1 = simpl (ty1, ty2) in
         let eqn2 =
           List.fold_left (fun acc (t1, t2) ->
-            acc @ simpl (ctx, t1, t2))
+            acc @ simpl (t1, t2))
           [] (Util.zip sp1 sp2)
         in
         eqn1 @ eqn2
       else failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
     | _ -> 
       printf "%a != %a@." Terms.pp t1 Terms.pp t2;
-      printf "ctx := %a@." pp_set ctx;
       failwith "unfication failure"
 
 let solve eqn =
@@ -396,7 +387,7 @@ let solve eqn =
         | Var x -> x
         | _ -> mk "") sp
   in
-  let _, t1, t2 = eqn in
+  let t1, t2 = eqn in
   let t1 = whnf t1 in
   let t2 = whnf t2 in
   let h1, sp1 = spine t1 in
@@ -588,8 +579,8 @@ let unify mmap =
           mmap mmaps
       in
       let eqns =
-        List.map (fun (ctx, t1, t2) -> 
-          (ctx, resolve mmap t1, resolve mmap t2))
+        List.map (fun (t1, t2) -> 
+          (resolve mmap t1, resolve mmap t2))
         eqns
       in
       unify_aux mmap eqns

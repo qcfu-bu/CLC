@@ -136,7 +136,7 @@ and infer v_ctx id_ctx t =
           | (t, ctx2) :: ctxs ->
             List.iter
               (fun (t', ctx) ->
-                assert_msg (equal (of_map v_ctx) t t')  
+                assert_msg (equal t t')  
                   (asprintf "infer Match3(%a;@;<1 2>%a)"
                     Terms.pp t Terms.pp t');
                 assert_msg (Context.equal ctx2 ctx)  
@@ -180,7 +180,7 @@ and check v_ctx id_ctx t ty =
     let x, ub = unbind b in
     let b = unbox (bind_var x (lift (Ann (ub, ty)))) in
     let ty', ctx = infer v_ctx id_ctx (LetIn (t, b)) in
-    assert_msg (equal (of_map v_ctx) ty ty')
+    assert_msg (equal ty ty')
       (asprintf "check LetIn(ty := %a; ty' := %a)" 
         Terms.pp ty Terms.pp ty');
     ctx
@@ -196,20 +196,20 @@ and check v_ctx id_ctx t ty =
             | PBase _ -> pscope) pscope ts'
       in
       let ty', ctx = infer_pscope v_ctx id_ctx ts pscope in
-      assert_msg (equal (of_map v_ctx) ty ty') 
+      assert_msg (equal ty ty') 
         (asprintf "check DCons(@[expected := %a;@;<1 0>actual   := %a@])"
           Terms.pp (whnf ty) Terms.pp (whnf ty'));
       ctx
     | _ -> 
       let ty', ctx = infer v_ctx id_ctx t in
-      assert_msg (equal (of_map v_ctx) ty ty')
+      assert_msg (equal ty ty')
         (asprintf "check DCons(@[expected := %a;@;<1 0>actual   := %a@])" 
           Terms.pp (nf ty) Terms.pp (nf ty')); ctx)
   | Match (t, opt, pbs) -> (
     match opt with
     | Some _ ->
       let ty', ctx = infer v_ctx id_ctx (Match (t, opt, pbs)) in
-      assert_msg (equal (of_map v_ctx) ty ty')
+      assert_msg (equal ty ty')
         (asprintf "check Match(ty := %a; ty' := %a)" 
           Terms.pp ty Terms.pp ty');
       ctx
@@ -232,7 +232,7 @@ and check v_ctx id_ctx t ty =
       | _ -> failwith "check Match2")
   | _ ->
     let ty', ctx = infer v_ctx id_ctx t in
-    assert_msg (equal (of_map v_ctx) ty ty')
+    assert_msg (equal ty ty')
       (asprintf "check (@[expected := %a;@;<1 0>actual   := %a@])" 
         Terms.pp (nf ty) Terms.pp (nf ty')); ctx
 
