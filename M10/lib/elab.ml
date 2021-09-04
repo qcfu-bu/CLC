@@ -404,7 +404,6 @@ and check_pscope v_ctx id_ctx pscope srt =
     let eqns2 = check_pscope v_ctx id_ctx pscope (min_sort srt srt') in
     eqns1 @ eqns2
 
-
 and check_tscope v_ctx id_ctx tscope srt =
   match tscope with
   | TBase t ->
