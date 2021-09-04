@@ -1,0 +1,3 @@
+(library
+ (name M10)
+ (libraries bindlib mparser))
