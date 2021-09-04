@@ -225,7 +225,9 @@ and check v_ctx id_ctx t ty =
               eqns2 res
           in
           (merge ctx1 ctx2, eqns1 @ eqns2))
-      | _ -> failwith "check Match2")
+      | _ ->
+        let ty', ctx, eqns = infer v_ctx id_ctx t in
+        (ctx, (ty, ty') :: eqns))
   | _ ->
     let ty', ctx, eqns = infer v_ctx id_ctx t in
     (ctx, (ty, ty') :: eqns)
