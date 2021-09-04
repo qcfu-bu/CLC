@@ -92,7 +92,7 @@ let var_parser ?pat:(p=false) () =
 
 let meta_parser () =
   let* _ = kw "_" in
-  return (Meta.mk0 ())
+  return (Meta.mk ())
 
 let id_parser ?intro:(p=false) ?tcons:(t=false) ?arity:(n=0) ()  =
   let* s1 = many1_chars (letter <|> char '_') in

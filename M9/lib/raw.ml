@@ -6,7 +6,7 @@ type v = Name.t
 type t =
   (* functional *)
   | Var    of v
-  | Meta   of Meta.t0
+  | Meta   of Meta.t
   | Ann    of t * t
   | Type
   | Linear
@@ -72,7 +72,7 @@ and pp fmt t =
   | Var x -> 
     fprintf fmt "%a" pp_v x
   | Meta x ->
-    fprintf fmt "%a" Meta.pp_0 x
+    fprintf fmt "%a" Meta.pp x
   | Ann (s, t) -> 
     fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp s pp t
   | Type -> fprintf fmt "Type"

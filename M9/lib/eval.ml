@@ -1,6 +1,6 @@
 open Bindlib
 open Terms
-open Unify
+open Equality
 
 let rec eval = function
   | Empty -> failwith "missing main"

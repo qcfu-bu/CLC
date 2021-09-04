@@ -9,7 +9,7 @@ type sort =
 type t =
   (* functional *)
   | Var    of t var
-  | Meta   of t Meta.t
+  | Meta   of Meta.t
   | Ann    of t * t
   | Sort   of sort
   | TyProd of t * tbinder
@@ -116,6 +116,15 @@ and mvar_of_p = function
     in
     (P0DCons (id, List.rev ps0), m)
 
+and list_of_p = function
+  | PVar x -> [ x ]
+  | PTCons (_, ps) ->
+    let xss = List.fold_right (fun p acc -> list_of_p p :: acc) ps [] in
+    List.concat xss
+  | PDCons (_, ps) ->
+    let xss = List.fold_right (fun p acc -> list_of_p p :: acc) ps [] in
+    List.concat xss
+
 and p_of_mvar p0 m =
   match p0 with
   | P0Rel ->
@@ -151,6 +160,14 @@ and unbind_p pb =
   let m, t = unmbind mb in
   let p, _ = p_of_mvar p0 m in
   (p, t)
+
+and unbind_p2 pb1 pb2 =
+  let p1, mb1 = pb1 in
+  let p2, mb2 = pb2 in
+  assert (equal_p0 p1 p2);
+  let m, t1, t2 = unmbind2 mb1 mb2 in
+  let p, _ = p_of_mvar p1 m in
+  (p, t1, t2)
 
 and subst_p pb t =
   let p0, mb = pb in
@@ -202,20 +219,20 @@ and pp fmt t =
   | Var x -> 
     fprintf fmt "%a" pp_v x
   | Meta x ->
-    fprintf fmt "%a" (Meta.pp_a pp) x
+    fprintf fmt "%a" Meta.pp x
   | Ann (s, t) -> 
     fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp s pp t
   | Sort t -> fprintf fmt "%a" pp_s t
   | TyProd (ty, b) -> 
     let x, b = unbind b in
     if (name_of x = "_") 
-    then fprintf fmt "@[%a ->@;<1 2>%a@]" pp ty pp b
+    then fprintf fmt "@[(%a) ->@;<1 2>%a@]" pp ty pp b
     else fprintf fmt "@[@[(%a :@;<1 2>%a) ->@]@;<1 2>%a@]"
       pp_v x pp ty pp b
   | LnProd (ty, b) -> 
     let x, b = unbind b in
     if (name_of x = "_") 
-    then fprintf fmt "@[%a >>@;<1 2>%a@]" pp ty pp b
+    then fprintf fmt "@[(%a) >>@;<1 2>%a@]" pp ty pp b
     else fprintf fmt "@[@[(%a :@;<1 2>%a) >>@]@;<1 2>%a@]"
       pp_v x pp ty pp b
   | Lambda b ->
@@ -331,10 +348,15 @@ let _Linear = box (Sort Linear)
 let _TyProd = box_apply2 (fun ty b -> TyProd (ty, b))
 let _LnProd = box_apply2 (fun ty b -> LnProd (ty, b))
 let _Arrow ty1 ty2 = _TyProd ty1 (bind_var __ ty2)
+let _Arrow' tys ty = 
+  List.fold_right (fun ty acc -> _Arrow ty acc) tys ty
 let _Lolli ty1 ty2 = _LnProd ty1 (bind_var __ ty2)
 let _Lambda = box_apply (fun pb -> Lambda pb)
+let _Lambda' xs ub =
+  List.fold_right (fun x acc -> _Lambda (bind_var x acc)) xs ub
 let _Fix = box_apply (fun b -> Fix b)
 let _App = box_apply2 (fun t1 t2 -> App (t1, t2))
+let _App' h sp = List.fold_left (fun acc x -> _App acc x) h sp
 let _LetIn = box_apply2 (fun t pb -> LetIn (t, pb))
 let _TCons id = box_apply (fun ts -> TCons (id, ts))
 let _DCons id = box_apply (fun ts -> DCons (id, ts))
@@ -363,7 +385,7 @@ let box_opt f = function
   | None -> box None
   | Some t -> 
     box_apply (fun t -> Some t) (f t)
-
+  
 let _nil = box []
 let _cons t ts = box_apply2 (fun t ts -> t :: ts) t ts
 let box_of_list xs =
@@ -373,65 +395,7 @@ let rec box_map f = function
   | x :: xs -> 
     box_apply2 (fun x xs -> x :: xs) (f x) (box_map f xs)
 
-let rec resolve t = 
-  match t with
-  | Var _ -> t
-  | Meta x -> (
-    match Meta.get x with
-    | Some t -> resolve t
-    | None -> t)
-  | Ann (t, ty) ->
-    Ann (resolve t, resolve ty)
-  | Sort _ -> t
-  | TyProd (ty, b) ->
-    let x, ub = unbind b in
-    let b = unbox (bind_var x (lift (resolve ub))) in
-    TyProd (resolve ty, b)
-  | LnProd (ty, b) ->
-    let x, ub = unbind b in
-    let b = unbox (bind_var x (lift (resolve ub))) in
-    LnProd (resolve ty, b)
-  | Lambda b ->
-    let x, ub = unbind b in
-    let b = unbox (bind_var x (lift (resolve ub))) in
-    Lambda b
-  | Fix b ->
-    let x, ub = unbind b in
-    let b = unbox (bind_var x (lift (resolve ub))) in
-    Fix b
-  | App (t1, t2) -> 
-    App (resolve t1, resolve t2)
-  | LetIn (t, b) ->
-    let x, ub = unbind b in
-    let b = unbox (bind_var x (lift (resolve ub))) in
-    LetIn (resolve t, b)
-  | TCons (id, ts) ->
-    TCons (id, List.map resolve ts)
-  | DCons (id, ts) ->
-    DCons (id, List.map resolve ts)
-  | Match (t, opt, pbs) ->
-    let t = resolve t in
-    let opt = 
-      match opt with
-      | Some mot ->
-        let x, pb = unbind mot in
-        let p, ub = unbind_p pb in
-        let mot = unbox (bind_var x (bind_p p (lift (resolve ub)))) in
-        Some mot
-      | None -> None
-    in
-    let pbs =
-      List.map 
-        (fun pb ->
-          let p, ub = unbind_p pb in 
-          unbox (bind_p p (lift (resolve ub))))
-        pbs
-    in
-    Match (t, opt, pbs)
-  | Axiom (id, t) ->
-    Axiom (id, resolve t)
-
-and lift t = 
+let rec lift t = 
   match t with
   | Var x -> _Var x
   | Meta x -> _Meta x

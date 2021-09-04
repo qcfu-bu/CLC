@@ -1,9 +1,11 @@
 open M9
+open Bindlib
 open Rparser
 open Format
 open Desugar
 open Context
 open Tcheck
+open Equality
 open Eval
 
 let _ =
@@ -16,6 +18,9 @@ let _ =
     printf "%a@.@." Raw.pp_top top;
     let top = desugar top in
     printf "%a@.@." Terms.pp_top top;
-    let ctx, _ = infer top in
+    let _, _, mmap = infer MetaMap.empty top in
+    let top = unbox (resolve_top mmap top) in
+    let ctx, _, _ = infer MetaMap.empty top in
+    printf "%a@.@." Terms.pp_top top;
     assert_msg (VarMap.is_empty ctx) "non-clean context";
     printf "%a@.@." Terms.pp (eval top);

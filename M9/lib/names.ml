@@ -21,58 +21,35 @@ struct
 end
 
 module Meta : sig
-  type 'a t
-  type t0
+  type t
 
-  val mk  : unit -> 'a t
-  val mk0 : unit -> t0
-  val of_0 : t0 -> 'a t
-  val equal : 'a t -> 'a t -> bool
-  val get : 'a t -> 'a option
-  val set : 'a t -> 'a -> unit
-  val pp_a : (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
-  val pp_0 : Format.formatter -> t0 -> unit
+  val mk  : unit -> t
+  val id : t -> int
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val pp : Format.formatter -> t -> unit
 end =
 struct
-  type 'a t = int * 'a option ref
-
-  type t0 = int
+  type t = int
 
   let stamp = ref (-1)
 
   let mk () =
-    incr stamp; (!stamp, ref None)
-
-  let mk0 () = 
     incr stamp; !stamp
-  
-  let of_0 t = (t, ref None)
+
+  let id t = t
 
   let equal m1 m2 =
-    let id1, _ = m1 in
-    let id2, _ = m2 in
+    let id1 = m1 in
+    let id2 = m2 in
     id1 = id2
 
-  let get m =
-    let _, opt = m in
-    match !opt with
-    | Some t -> Some t
-    | None -> None
+  let compare m1 m2 =
+    let id1 = m1 in
+    let id2 = m2 in
+    Int.compare id1 id2
 
-  let set m t =
-    let _, opt = m in
-    match !opt with
-    | Some _ -> failwith "cannot reset meta-variable"
-    | None -> opt := Some t
-
-  let pp_a pp fmt m =
-    let id, opt = m in
-    match !opt with
-    | Some t -> Format.fprintf fmt "%a" pp t
-    | None -> Format.fprintf fmt "?%d" id
-
-  let pp_0 fmt m =
-    Format.fprintf fmt "?%d" m
+  let pp fmt m = Format.fprintf fmt "?%d" m
 end
 
 module Id : sig
