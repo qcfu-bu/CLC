@@ -24,5 +24,9 @@ let _ =
     let _ = printf "resolve ok@." in
     let _ = infer top in
     let _ = printf "tcheck ok@." in
-    printf "%a@.@." Terms.pp_top top;
-    printf "%a@.@." Terms.pp (eval top);
+    let _ = printf "----------------------------------------" in
+    let _ = printf "----------------------------------------@." in
+    printf "%a@." Terms.pp_top top;
+    let _ = printf "----------------------------------------" in
+    let _ = printf "----------------------------------------@." in
+    printf "%a@." Terms.pp (eval top);
