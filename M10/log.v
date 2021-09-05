@@ -3,65 +3,65 @@ desugar ok
 elab ok
 resolve ok
 tcheck ok
-Inductive Eq_0 (A_18327 : Type) (x_18328 : A_18327) : (A_18327) -> Type :=
-| refl_1 (A_18330 : Type)
-           (x_18331 : A_18330) : (Eq_0 A_18330 x_18331 x_18331).
+Inductive Eq_0 (A_19262 : Type) (x_19263 : A_19262) : (A_19262) -> Type :=
+| refl_1 (A_19265 : Type)
+           (x_19266 : A_19265) : (Eq_0 A_19265 x_19266 x_19266).
 
-Definition Eq_trans_18332 :=
-  ((fun A_18333 x_18334 y_18335 z_18336 e1_18337 e2_18338 =>
-      match e2_18338 in (Eq_0 __18340 __18341 y_18342) return
-        (Eq_0 A_18333 x_18334 y_18342)
+Definition Eq_trans_19267 :=
+  ((fun A_19268 x_19269 y_19270 z_19271 e1_19272 e2_19273 =>
+      match e2_19273 in (Eq_0 __19275 __19276 y_19277) return
+        (Eq_0 A_19268 x_19269 y_19277)
       with
-      | (refl_1 ) => e1_18337
+      | (refl_1 ) => e1_19272
       end) :
-    (A_18343 : Type) ->
-      (x_18344 : A_18343) ->
-        (y_18345 : A_18343) ->
-          (z_18346 : A_18343) ->
-            (e1_18347 : (Eq_0 A_18343 x_18344 y_18345)) ->
-              (e2_18348 : (Eq_0 A_18343 y_18345 z_18346)) ->
-                (Eq_0 A_18343 x_18344 z_18346)).
+    (A_19278 : Type) ->
+      (x_19279 : A_19278) ->
+        (y_19280 : A_19278) ->
+          (z_19281 : A_19278) ->
+            (e1_19282 : (Eq_0 A_19278 x_19279 y_19280)) ->
+              (e2_19283 : (Eq_0 A_19278 y_19280 z_19281)) ->
+                (Eq_0 A_19278 x_19279 z_19281)).
 
-Definition Eq_sym_18349 :=
-  ((fun A_18350 x_18351 y_18352 e_18353 =>
-      match e_18353 in (Eq_0 __18355 __18356 y_18357) return
-        (Eq_0 A_18350 y_18357 x_18351)
+Definition Eq_sym_19284 :=
+  ((fun A_19285 x_19286 y_19287 e_19288 =>
+      match e_19288 in (Eq_0 __19290 __19291 y_19292) return
+        (Eq_0 A_19285 y_19292 x_19286)
       with
       | (refl_1 ) => refl_1
       end) :
-    (A_18358 : Type) ->
-      (x_18359 : A_18358) ->
-        (y_18360 : A_18358) ->
-          (e_18361 : (Eq_0 A_18358 x_18359 y_18360)) ->
-            (Eq_0 A_18358 y_18360 x_18359)).
+    (A_19293 : Type) ->
+      (x_19294 : A_19293) ->
+        (y_19295 : A_19293) ->
+          (e_19296 : (Eq_0 A_19293 x_19294 y_19295)) ->
+            (Eq_0 A_19293 y_19295 x_19294)).
 
-Definition TyInd_18362 :=
-  ((fun A_18363 x_18364 y_18365 P_18366 e_18367 f_18368 =>
-      match e_18367 in (Eq_0 __18370 __18371 y_18372) return
-        (P_18366) y_18372
+Definition TyInd_19297 :=
+  ((fun A_19298 x_19299 y_19300 P_19301 e_19302 f_19303 =>
+      match e_19302 in (Eq_0 __19305 __19306 y_19307) return
+        (P_19301) y_19307
       with
-      | (refl_1 ) => f_18368
+      | (refl_1 ) => f_19303
       end) :
-    (A_18373 : Type) ->
-      (x_18374 : A_18373) ->
-        (y_18375 : A_18373) ->
-          (P_18376 : (A_18373) -> Type) ->
-            (e_18378 : (Eq_0 A_18373 x_18374 y_18375)) ->
-              (f_18379 : (P_18376) x_18374) -> (P_18376) y_18375).
+    (A_19308 : Type) ->
+      (x_19309 : A_19308) ->
+        (y_19310 : A_19308) ->
+          (P_19311 : (A_19308) -> Type) ->
+            (e_19313 : (Eq_0 A_19308 x_19309 y_19310)) ->
+              (f_19314 : (P_19311) x_19309) -> (P_19311) y_19310).
 
-Definition LnInd_18380 :=
-  ((fun A_18381 x_18382 y_18383 P_18384 e_18385 f_18386 =>
-      match e_18385 in (Eq_0 __18388 __18389 y_18390) return
-        (P_18384) y_18390
+Definition LnInd_19315 :=
+  ((fun A_19316 x_19317 y_19318 P_19319 e_19320 f_19321 =>
+      match e_19320 in (Eq_0 __19323 __19324 y_19325) return
+        (P_19319) y_19325
       with
-      | (refl_1 ) => f_18386
+      | (refl_1 ) => f_19321
       end) :
-    (A_18391 : Type) ->
-      (x_18392 : A_18391) ->
-        (y_18393 : A_18391) ->
-          (P_18394 : (A_18391) -> Linear) ->
-            (e_18396 : (Eq_0 A_18391 x_18392 y_18393)) ->
-              (f_18397 : (P_18394) x_18392) -> (P_18394) y_18393).
+    (A_19326 : Type) ->
+      (x_19327 : A_19326) ->
+        (y_19328 : A_19326) ->
+          (P_19329 : (A_19326) -> Linear) ->
+            (e_19331 : (Eq_0 A_19326 x_19327 y_19328)) ->
+              (f_19332 : (P_19329) x_19327) -> (P_19329) y_19328).
 
 Inductive Unit_2 : Type :=
 | tt_3 : Unit_2.
@@ -73,233 +73,209 @@ Inductive Nat_6 : Type :=
 | O_7 : Nat_6
 | S_8 : (Nat_6) -> Nat_6.
 
-Definition add_18399 :=
-  ((fix add_18400 m_18401 n_18402 =>
-      match m_18401 with
-      | (O_7 ) => n_18402
-      | (S_8 m_18403) => (S_8 ((add_18400) m_18403) n_18402)
+Definition add_19334 :=
+  ((fix add_19335 m_19336 n_19337 =>
+      match m_19336 with
+      | (O_7 ) => n_19337
+      | (S_8 m_19338) => (S_8 ((add_19335) m_19338) n_19337)
       end) :
-    (m_18404 : Nat_6) -> (n_18405 : Nat_6) -> Nat_6).
+    (m_19339 : Nat_6) -> (n_19340 : Nat_6) -> Nat_6).
 
 Inductive Bool_9 : Type :=
 | true_10 : Bool_9
 | false_11 : Bool_9.
 
-Inductive Sigma_12 (A_18406 : Type) (F_18407 : (A_18406) -> Type) : Type :=
-| pair_13 (A_18409 : Type)
-            (F_18410 : (A_18409) -> Type)
-              : (x_18412 : A_18409) ->
-                  ((F_18410) x_18412) -> (Sigma_12 A_18409 F_18410).
+Inductive Sigma_12 (A_19341 : Type) (F_19342 : (A_19341) -> Type) : Type :=
+| pair_13 (A_19344 : Type)
+            (F_19345 : (A_19344) -> Type)
+              : (x_19347 : A_19344) ->
+                  ((F_19345) x_19347) -> (Sigma_12 A_19344 F_19345).
 
-Inductive Tensor_14 (A_18414 : Linear) (B_18415 : Linear) : Linear :=
-| tpair_15 (A_18416 : Linear)
-             (B_18417 : Linear)
-               : (A_18416) -> (B_18417) -> (Tensor_14 A_18416 B_18417).
+Inductive Tensor_14 (A_19349 : Linear) (B_19350 : Linear) : Linear :=
+| tpair_15 (A_19351 : Linear)
+             (B_19352 : Linear)
+               : (A_19351) -> (B_19352) -> (Tensor_14 A_19351 B_19352).
 
-Inductive FTensor_16 (A_18420 : Type)
-                       (F_18421 : (A_18420) -> Linear) : Linear :=
-| fpair_17 (A_18423 : Type)
-             (F_18424 : (A_18423) -> Linear)
-               : (x_18426 : A_18423) ->
-                   ((F_18424) x_18426) -> (FTensor_16 A_18423 F_18424).
+Inductive FTensor_16 (A_19355 : Type)
+                       (F_19356 : (A_19355) -> Linear) : Linear :=
+| fpair_17 (A_19358 : Type)
+             (F_19359 : (A_19358) -> Linear)
+               : (x_19361 : A_19358) ->
+                   ((F_19359) x_19361) -> (FTensor_16 A_19358 F_19359).
 
-Axiom unsafeC_18428 : (A_18429 : Linear) -> (A_18429) -> Unit_2.
+Axiom unsafeC_19363 : (A_19364 : Linear) -> (A_19364) -> Unit_2.
 
-Axiom unsafeP_18431 : (A_18432 : Linear) -> A_18432.
+Axiom unsafeP_19366 : (A_19367 : Linear) -> A_19367.
 
-Definition Loc_18433 := ((Nat_6) : Type).
+Definition Loc_19368 := ((Nat_6) : Type).
 
-Axiom PtsTo_18434 : (Loc_18433) -> (Type) -> Linear.
+Axiom PtsTo_19369 : (Loc_19368) -> (Type) -> Linear.
 
-Definition Ptr_18437 :=
-  ((fun A_18438 =>
-      (FTensor_16 Loc_18433 fun l_18439 => ((PtsTo_18434) l_18439) A_18438)) :
-    (A_18440 : Type) -> Linear).
+Definition Ptr_19372 :=
+  ((fun A_19373 =>
+      (FTensor_16 Loc_19368 fun l_19374 => ((PtsTo_19369) l_19374) A_19373)) :
+    (A_19375 : Type) -> Linear).
 
-Axiom New_18441 : (A_18442 : Type) -> (A_18442) -> (Ptr_18437) A_18442.
+Axiom New_19376 : (A_19377 : Type) -> (A_19377) -> (Ptr_19372) A_19377.
 
-Axiom Free_18444 : (A_18445 : Type) -> ((Ptr_18437) A_18445) -> Unit_2.
+Axiom Free_19379 : (A_19380 : Type) -> ((Ptr_19372) A_19380) -> Unit_2.
 
-Axiom Get_18447 :
-  (A_18448 : Type) ->
-    (l_18449 : Loc_18433) ->
-      (((PtsTo_18434) l_18449) A_18448) ->
-        (FTensor_16 A_18448 fun __18451 => ((PtsTo_18434) l_18449) A_18448).
+Axiom Get_19382 :
+  (A_19383 : Type) ->
+    (l_19384 : Loc_19368) ->
+      (((PtsTo_19369) l_19384) A_19383) ->
+        (FTensor_16 A_19383 fun __19386 => ((PtsTo_19369) l_19384) A_19383).
 
-Axiom Set_18452 :
-  (A_18453 : Type) ->
-    (B_18454 : Type) ->
-      (B_18454) ->
-        (l_18456 : Loc_18433) ->
-          (((PtsTo_18434) l_18456) A_18453) ->
-            ((PtsTo_18434) l_18456) B_18454.
+Axiom Set_19387 :
+  (A_19388 : Type) ->
+    (B_19389 : Type) ->
+      (B_19389) ->
+        (l_19391 : Loc_19368) ->
+          (((PtsTo_19369) l_19391) A_19388) ->
+            ((PtsTo_19369) l_19391) B_19389.
 
-Inductive le_25 (n_18458 : Nat_6) : (Nat_6) -> Type :=
-| le_n_26 (n_18460 : Nat_6) : (le_25 n_18460 n_18460)
-| le_S_27 (n_18461 : Nat_6)
-            : (m_18462 : Nat_6) ->
-                ((le_25 n_18461 m_18462)) -> (le_25 n_18461 (S_8 m_18462)).
+Axiom ptsto_19393 : (A_19394 : Type) -> (Nat_6) -> (A_19394) -> Linear.
 
-Definition lt_18464 :=
-  ((fun m_18465 n_18466 => (le_25 (S_8 m_18465) n_18466)) :
-    (m_18467 : Nat_6) -> (n_18468 : Nat_6) -> Type).
-
-Inductive ArrVec_28 (A_18469 : Type)
-                      (l_18470 : Loc_18433) : (Nat_6) -> Linear :=
-| Nil_29 (A_18472 : Type)
-           (l_18473 : Loc_18433) : (ArrVec_28 A_18472 l_18473 O_7)
-| Cons_30 (A_18474 : Type)
-            (l_18475 : Loc_18433)
-              : (n_18476 : Nat_6) ->
-                  (((PtsTo_18434) ((add_18399) l_18475) n_18476) A_18474) ->
-                    ((ArrVec_28 A_18474 l_18475 n_18476)) ->
-                      (ArrVec_28 A_18474 l_18475 (S_8 n_18476)).
-
-Definition Array_18479 :=
-  ((fun A_18480 n_18481 =>
+Axiom new_19397 :
+  (A_19398 : Type) ->
+    (x_19399 : A_19398) ->
       (FTensor_16
-        Loc_18433 fun l_18482 => (ArrVec_28 A_18480 l_18482 n_18481))) :
-    (A_18483 : Type) -> (n_18484 : Nat_6) -> Linear).
+        Nat_6 fun l_19400 => (((ptsto_19393) A_19398) l_19400) x_19399).
 
-Definition nth_18485 :=
-  ((fix nth_18486 A_18487 l_18488 m_18489 n_18490 pf_18491 v_18492 =>
-      (match pf_18491 in (le_25 __18494 n_18495) return
-         ((ArrVec_28 A_18487 l_18488 n_18495)) ->
-           (Tensor_14
-             ((PtsTo_18434) ((add_18399) l_18488) m_18489) A_18487
-               (((PtsTo_18434) ((add_18399) l_18488) m_18489) A_18487) >>
-                 (ArrVec_28 A_18487 l_18488 n_18495))
-       with
-       | (le_n_26 ) =>
-         fun v_18498 =>
-           (match v_18498 in (ArrVec_28 __18500 __18501 n_18502) return
-              match n_18502 with
-              | (O_7 ) => Base_4
-              | (S_8 n0_18503) =>
-                ((Eq_0 Nat_6 m_18489 n0_18503)) >>
-                  (Tensor_14
-                    ((PtsTo_18434) ((add_18399) l_18488) n0_18503) A_18487
-                      (((PtsTo_18434) ((add_18399) l_18488) n0_18503) A_18487) >>
-                        (ArrVec_28 A_18487 l_18488 n_18502))
-              end
-            with
-            | (Nil_29 ) => ll_5
-            | (Cons_30 n_18506 c_18507 v_18508) =>
-              fun __18509 =>
-                (tpair_15 c_18507
-                            fun c_18510 => (Cons_30 n_18506 c_18510 v_18508))
-            end) refl_1
-       | (le_S_27 __18511 pf_18512) =>
-         fun v_18513 =>
-           (match v_18513 in (ArrVec_28 __18515 __18516 n_18517) return
-              match n_18517 with
-              | (O_7 ) => Base_4
-              | (S_8 n0_18518) =>
-                (((lt_18464) m_18489) n0_18518) >>
-                  (Tensor_14
-                    ((PtsTo_18434) ((add_18399) l_18488) m_18489) A_18487
-                      (((PtsTo_18434) ((add_18399) l_18488) m_18489) A_18487) >>
-                        (ArrVec_28 A_18487 l_18488 n_18517))
-              end
-            with
-            | (Nil_29 ) => ll_5
-            | (Cons_30 n_18521 c0_18522 v0_18523) =>
-              fun pf_18524 =>
-                let x_18525 :=
-                  ((((((nth_18486) A_18487) l_18488) m_18489) n_18521)
-                     pf_18524)
-                    v0_18523
-                in
-                match x_18525 with
-                | (tpair_15 c_18526 f_18527) =>
-                  (tpair_15 c_18526
-                              fun c_18528 =>
-                                (Cons_30 n_18521 c0_18522 (f_18527) c_18528))
-                end
-            end) pf_18512
-       end) v_18492) :
-    (A_18529 : Type) ->
-      (l_18530 : Nat_6) ->
-        (m_18531 : Nat_6) ->
-          (n_18532 : Nat_6) ->
-            (pf_18533 : ((lt_18464) m_18531) n_18532) ->
-              (v_18534 : (ArrVec_28 A_18529 l_18530 n_18532)) ->
-                (Tensor_14
-                  ((PtsTo_18434) ((add_18399) l_18530) m_18531) A_18529
-                    (((PtsTo_18434) ((add_18399) l_18530) m_18531) A_18529) >>
-                      (ArrVec_28 A_18529 l_18530 n_18532))).
+Axiom free_19401 :
+  (A_19402 : Type) ->
+    (l_19403 : Nat_6) ->
+      (x_19404 : A_19402) ->
+        ((((ptsto_19393) A_19402) l_19403) x_19404) -> Unit_2.
 
-Definition index_18536 :=
-  ((fun A_18537 m_18538 n_18539 pf_18540 a_18541 =>
-      let x_18542 := a_18541 in
-      match x_18542 with
-      | (fpair_17 l_18543 v_18544) =>
-        let x_18545 :=
-          ((((((nth_18485) A_18537) l_18543) m_18538) n_18539) pf_18540)
-            v_18544
-        in
-        match x_18545 with
-        | (tpair_15 c_18546 f_18547) =>
-          let x_18548 :=
-            (((Get_18447) A_18537) ((add_18399) l_18543) m_18538) c_18546
-          in
-          match x_18548 with
-          | (fpair_17 x_18549 c_18550) =>
-            (fpair_17 x_18549 (fpair_17 l_18543 (f_18547) c_18550))
-          end
-        end
-      end) :
-    (A_18551 : Type) ->
-      (m_18552 : Nat_6) ->
-        (n_18553 : Nat_6) ->
-          (pf_18554 : ((lt_18464) m_18552) n_18553) ->
-            (a_18555 : ((Array_18479) A_18551) n_18553) ->
-              (FTensor_16
-                A_18551 fun __18556 => ((Array_18479) A_18551) n_18553)).
+Axiom get_19406 :
+  (A_19407 : Type) ->
+    (l_19408 : Nat_6) ->
+      (x_19409 : A_19407) ->
+        ((((ptsto_19393) A_19407) l_19408) x_19409) ->
+          (FTensor_16
+            (Sigma_12 A_19407 fun y_19411 => (Eq_0 A_19407 x_19409 y_19411))
+              fun __19412 => (((ptsto_19393) A_19407) l_19408) x_19409).
 
-Definition Just0_18557 :=
-  (((Sigma_12 Nat_6 fun x_18558 => (Eq_0 Nat_6 x_18558 O_7))) : Type).
+Axiom set_19413 :
+  (A_19414 : Type) ->
+    (B_19415 : Type) ->
+      (l_19416 : Nat_6) ->
+        (x_19417 : A_19414) ->
+          ((((ptsto_19393) A_19414) l_19416) x_19417) ->
+            (y_19419 : B_19415) -> (((ptsto_19393) B_19415) l_19416) y_19419.
 
-Definition silly_18559 :=
-  ((fun m_18560 n_18561 pf_18562 a_18563 =>
-      let x_18564 :=
-        (((((index_18536) Just0_18557) m_18560) n_18561) pf_18562) a_18563
-      in
-      match x_18564 with
-      | (fpair_17 x_pf_18565 a_18566) =>
-        let x_18567 :=
-          (((((index_18536) Just0_18557) m_18560) n_18561) pf_18562) a_18566
-        in
-        match x_18567 with
-        | (fpair_17 y_pf_18568 a_18569) =>
-          let x_18570 := x_pf_18565 in
-          match x_18570 with
-          | (pair_13 x_18571 pf1_18572) =>
-            let x0_18573 := y_pf_18568 in
-            match x0_18573 with
-            | (pair_13 y_18574 pf2_18575) =>
-              let pf2_18576 :=
-                ((((Eq_sym_18349) Nat_6) y_18574) O_7) pf2_18575
+Definition main_19420 :=
+  ((let x_19421 := ((new_19397) Nat_6) (S_8 O_7) in
+    match x_19421 with
+    | (fpair_17 __19422 c_19423) =>
+      let x_19424 := ((((get_19406) Nat_6) __19422) (S_8 O_7)) c_19423 in
+      match x_19424 with
+      | (fpair_17 xeq_19425 c_19426) =>
+        let x_19427 := ((((get_19406) Nat_6) __19422) (S_8 O_7)) c_19426 in
+        match x_19427 with
+        | (fpair_17 yeq_19428 c_19429) =>
+          let x_19430 := xeq_19425 in
+          match x_19430 with
+          | (pair_13 x_19431 pf1_19432) =>
+            let x0_19433 := yeq_19428 in
+            match x0_19433 with
+            | (pair_13 y_19434 pf2_19435) =>
+              let pf1_19436 :=
+                ((((Eq_sym_19284) Nat_6) (S_8 O_7)) x_19431) pf1_19432
               in
-              let pf_18577 :=
-                ((((((((Eq_trans_18332) Nat_6) x_18571) O_7) y_18574)
-                     pf1_18572)
-                    pf2_18576) :
-                  (Eq_0 Nat_6 x_18571 y_18574))
-              in a_18569
+              let pf_19437 :=
+                ((((((((Eq_trans_19267) Nat_6) x_19431) (S_8 O_7)) y_19434)
+                     pf1_19436)
+                    pf2_19435) :
+                  (Eq_0 Nat_6 x_19431 y_19434))
+              in
+              let c_19438 :=
+                ((((((set_19413) Nat_6) Nat_6) __19422) (S_8 O_7)) c_19429)
+                  (S_8 (S_8 O_7))
+              in
+              let x0_19439 :=
+                ((((get_19406) Nat_6) __19422) (S_8 (S_8 O_7))) c_19438
+              in
+              match x0_19439 with
+              | (fpair_17 zeq_19440 c_19441) =>
+                let x0_19442 := zeq_19440 in
+                match x0_19442 with
+                | (pair_13 z_19443 pf3_19444) =>
+                  let pf_19445 :=
+                    ((pf3_19444) : (Eq_0 Nat_6 (S_8 (S_8 O_7)) z_19443))
+                  in ((((free_19401) Nat_6) __19422) (S_8 (S_8 O_7))) c_19441
+                end
+              end
             end
           end
         end
-      end) :
-    (m_18578 : Nat_6) ->
-      (n_18579 : Nat_6) ->
-        (pf_18580 : ((lt_18464) m_18578) n_18579) ->
-          (a_18581 : ((Array_18479) Just0_18557) n_18579) ->
-            ((Array_18479) Just0_18557) n_18579).
-
-Definition main_18582 := ((tt_3) : Unit_2).
+      end
+    end) : Unit_2).
 
 
 
-tt_3
+match ((new_26) Nat_6) (S_8 O_7) with
+| (fpair_17 __19767 c_19768) =>
+  let x_19769 := ((((get_28) Nat_6) __19767) (S_8 O_7)) c_19768 in
+  match x_19769 with
+  | (fpair_17 xeq_19770 c_19771) =>
+    let x_19772 := ((((get_28) Nat_6) __19767) (S_8 O_7)) c_19771 in
+    match x_19772 with
+    | (fpair_17 yeq_19773 c_19774) =>
+      let x_19775 := xeq_19770 in
+      match x_19775 with
+      | (pair_13 x_19776 pf1_19777) =>
+        let x0_19778 := yeq_19773 in
+        match x0_19778 with
+        | (pair_13 y_19779 pf2_19780) =>
+          let pf1_19781 :=
+            ((((fun A_19782 x_19783 y_19784 e_19785 =>
+                  match e_19785 in (Eq_0 __19787 __19788 y_19789) return
+                    (Eq_0 A_19782 y_19789 x_19783)
+                  with
+                  | (refl_1 ) => refl_1
+                  end)
+                 Nat_6)
+                (S_8 O_7))
+               x_19776)
+              pf1_19777
+          in
+          let pf_19790 :=
+            ((((((((fun A_19791 x_19792 y_19793 z_19794 e1_19795 e2_19796 =>
+                      match e2_19796 in (Eq_0 __19798 __19799 y_19800) return
+                        (Eq_0 A_19791 x_19792 y_19800)
+                      with
+                      | (refl_1 ) => e1_19795
+                      end)
+                     Nat_6)
+                    x_19776)
+                   (S_8 O_7))
+                  y_19779)
+                 pf1_19781)
+                pf2_19780) :
+              (Eq_0 Nat_6 x_19776 y_19779))
+          in
+          let c_19801 :=
+            ((((((set_29) Nat_6) Nat_6) __19767) (S_8 O_7)) c_19774)
+              (S_8 (S_8 O_7))
+          in
+          let x0_19802 :=
+            ((((get_28) Nat_6) __19767) (S_8 (S_8 O_7))) c_19801
+          in
+          match x0_19802 with
+          | (fpair_17 zeq_19803 c_19804) =>
+            let x0_19805 := zeq_19803 in
+            match x0_19805 with
+            | (pair_13 z_19806 pf3_19807) =>
+              let pf_19808 :=
+                ((pf3_19807) : (Eq_0 Nat_6 (S_8 (S_8 O_7)) z_19806))
+              in ((((free_27) Nat_6) __19767) (S_8 (S_8 O_7))) c_19804
+            end
+          end
+        end
+      end
+    end
+  end
+end
 

@@ -58,7 +58,7 @@ Definition index
   [A | Array A n]
 := 
   let [ l, v ] := a in
-  let { c, f } := nth _ l m n pf v in
+  let { c, f } := nth _ _ _ _ pf v in
   let [ x, c ] := Get _ (l + m) c in
   [x, [l, f c]].
 
@@ -67,12 +67,12 @@ Definition Just0 : Type := (x : Nat | Eq Nat x 0).
 
 
 Definition silly (m n : Nat) (pf : lt m n) (a : Array Just0 n) : Array Just0 n := 
-  let [x_pf, a] := index Just0 _ _ pf a in
-  let [y_pf, a] := index Just0 _ _ pf a in
+  let [x_pf, a] := index _ _ _ pf a in
+  let [y_pf, a] := index _ _ _ pf a in
   let (x, pf1) := x_pf in
   let (y, pf2) := y_pf in
-  let pf2 := Eq_sym Nat y 0 pf2 in
-  let pf : Eq Nat x y := Eq_trans Nat x 0 y pf1 pf2 in
+  let pf2 := Eq_sym _ _ _ pf2 in
+  let pf : Eq _ x y := Eq_trans _ _ _ _ pf1 pf2 in
   a.
 
 Definition main : Unit := ().

@@ -31,10 +31,11 @@ let pp_mmap fmt m =
       fprintf fmt "%a := %a@." Meta.pp x Terms.pp t) 
     m
 
-let pp_eqn fmt eqns =
-  List.iter (fun (ctx, t1, t2) ->
-    fprintf fmt "(%a)@." pp_set ctx;
-    fprintf fmt "%a ?= %a@.-------------@." Terms.pp t1 Terms.pp t2) eqns
+let pp_eqn n fmt eqns =
+  List.iter (fun (t1, t2) ->
+    fprintf fmt "eqn%d := %a ?= %a@." n Terms.pp (whnf t1) Terms.pp (whnf t2);
+    fprintf fmt "-------------------------------------------------------@.") 
+  eqns
 
 let rec fv ctx t =
   match t with
@@ -279,18 +280,17 @@ let solve eqn =
     let res = MetaMap.add x2 (t2, 0) res in
     res
   | Meta x, _ ->
-    if occurs x t2
-    then failwith (asprintf "%a occurs in %a" Meta.pp x Terms.pp t2)
+    assert_msg (not (occurs x t2))
+      (asprintf "%a occurs in %a" Meta.pp x Terms.pp t2);
+    let xs = strip sp1 in
+    let ctx' = fv VarSet.empty t2 in
+    if VarSet.subset ctx' (VarSet.of_list xs)
+    then 
+      let t = unbox (_Lambda' xs (lift t2)) in
+      MetaMap.singleton x (t, 1)
     else 
-      let xs = strip sp1 in
-      let ctx' = fv VarSet.empty t2 in
-      if VarSet.subset ctx' (VarSet.of_list xs)
-      then 
-        let t = unbox (_Lambda' xs (lift t2)) in
-        MetaMap.singleton x (t, 1)
-      else 
-        failwith 
-          (asprintf "cannot unify %a = %a" Meta.pp x Terms.pp t2)
+      failwith 
+        (asprintf "cannot unify %a = %a" Meta.pp x Terms.pp t2)
   | _ -> 
     failwith (asprintf "non-simpl equation(%a == %a)" 
       Terms.pp t1 Terms.pp t2)
