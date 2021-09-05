@@ -11,3 +11,10 @@ let rec unzip ls =
     let xs, ys = unzip ls in
     (x :: xs, y :: ys)
   | [] -> ([], [])
+
+let assert_msg cond msg = 
+  if cond then ()
+  else (prerr_endline msg; assert false)
+
+let failwith msg =
+  (prerr_endline msg; assert false)

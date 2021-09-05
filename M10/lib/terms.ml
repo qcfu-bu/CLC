@@ -55,6 +55,8 @@ type top =
   | Datype of tcons * top
 and tpbinder = (t, top) binder
 
+exception PBacktrack of string
+
 let rec equal_p0 p1 p2 =
   match p1, p2 with
   | P0Rel, P0Rel -> true
@@ -87,13 +89,13 @@ and mt_of_pt0 p0 t =
     if Id.equal id1 id2 then
       List.fold_left2 
         (fun acc p t -> Array.append acc (mt_of_pt0 p t)) [| |] ps ts
-    else failwith (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t)
+    else raise (PBacktrack (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t))
   | P0DCons (id1, ps), DCons (id2, ts) ->
     if Id.equal id1 id2 then
       List.fold_left2 
         (fun acc p t -> Array.append acc (mt_of_pt0 p t)) [| |] ps ts
-    else failwith (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t)
-  | _ -> failwith (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t)
+    else raise (PBacktrack (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t))
+  | _ -> raise (PBacktrack (asprintf "mt_of_pt0(%a;@;<1 2>%a)@." pp_p0 p0 pp t))
 
 and mvar_of_p = function
   | PVar x -> (P0Rel, [| x |])
@@ -341,6 +343,9 @@ let spine t =
     | _ -> (t, sp)
   in
   spine_aux t []
+
+let respine h sp =
+  List.fold_left (fun acc t -> App (acc, t)) h sp
 
 let mk = new_var (fun x -> Var x)
 let __ = mk "_"

@@ -1,4 +1,5 @@
 open Bindlib
+open Util
 open Format
 open Names
 open Terms

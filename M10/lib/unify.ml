@@ -1,5 +1,6 @@
 open Bindlib
 open Format
+open Util
 open Names
 open Terms
 open Equality

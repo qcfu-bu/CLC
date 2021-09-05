@@ -1,13 +1,10 @@
 open Bindlib
 open Format
+open Util
 open Names
 open Terms
 open Context
 open Equality
-
-let assert_msg cond msg = 
-  if cond then ()
-  else (prerr_endline msg; assert false)
 
 let cmp_sort t1 t2 =
   match t1, t2 with
@@ -350,25 +347,25 @@ and check_motive cover id_ctx mot srt =
     ctx :: check_motive cover id_ctx mot srt
   | _ -> []
 
-let rec infer_top v_ctx id_ctx mmap top =
+let rec infer_top v_ctx id_ctx top =
   match top with
-  | Empty -> (VarMap.empty, id_ctx, mmap)
+  | Empty -> (VarMap.empty, id_ctx)
   | Define (t, top) ->
     let ty1, ctx1 = infer v_ctx id_ctx t in
     let srt = infer_sort v_ctx id_ctx ty1 in
-    let ctx2, id_ctx, mmap =
+    let ctx2, id_ctx =
       if srt = Type && VarMap.is_empty ctx1 then
         let x, _ = unbind top in
         let v_ctx = VarMap.add x (ty1, srt) v_ctx in
-        infer_top v_ctx id_ctx mmap (subst top t)
+        infer_top v_ctx id_ctx (subst top t)
       else
         let x, top = unbind top in
-        let ctx, id_ctx, mmap = 
-          infer_top (VarMap.add x (ty1, srt) v_ctx) id_ctx mmap top
+        let ctx, id_ctx = 
+          infer_top (VarMap.add x (ty1, srt) v_ctx) id_ctx top
         in
-        (remove x ctx srt, id_ctx, mmap)
+        (remove x ctx srt, id_ctx)
     in
-    (merge ctx1 ctx2, id_ctx, mmap)
+    (merge ctx1 ctx2, id_ctx)
   | Datype (tcs, top) -> (
     match tcs with
     | TConstr (id, pscope, dcs) ->
@@ -379,7 +376,7 @@ let rec infer_top v_ctx id_ctx mmap top =
           check_pscope v_ctx id_ctx pscope Type;
           param_pscope pscope id []) dcs;
       let id_ctx = IdMap.add id (TConstr (id, pscope, dcs)) id_ctx in
-      infer_top v_ctx id_ctx mmap top)
+      infer_top v_ctx id_ctx top)
         
 and param_pscope pscope id xs =
   match pscope with
@@ -438,4 +435,5 @@ and check_tscope v_ctx id_ctx tscope srt =
     check_tscope v_ctx id_ctx tscope (min srt srt')
 
 let infer top = 
-  infer_top VarMap.empty IdMap.empty top
+  let ctx, _ = infer_top VarMap.empty IdMap.empty top in
+  assert_msg (VarMap.is_empty ctx) "non-clean context"

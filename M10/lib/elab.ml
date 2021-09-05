@@ -1,14 +1,11 @@
 open Bindlib
 open Format
+open Util
 open Names
 open Terms
 open Context
 open Equality
 open Unify
-
-let assert_msg cond msg = 
-  if cond then ()
-  else (prerr_endline msg; assert false)
 
 let cmp_sort t1 t2 =
   match t1, t2 with

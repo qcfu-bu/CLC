@@ -3,7 +3,6 @@ open Bindlib
 open Rparser
 open Format
 open Desugar
-open Context
 open Elab
 open Unify
 open Tcheck
@@ -23,8 +22,7 @@ let _ =
     let _ = printf "elab ok@." in
     let top = unbox (resolve_top mmap top) in
     let _ = printf "resolve ok@." in
-    let ctx, _, _ = infer MetaMap.empty top in
+    let _ = infer top in
     let _ = printf "tcheck ok@." in
     printf "%a@.@." Terms.pp_top top;
-    assert_msg (VarMap.is_empty ctx) "non-clean context";
     printf "%a@.@." Terms.pp (eval top);

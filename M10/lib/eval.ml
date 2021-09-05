@@ -1,4 +1,5 @@
 open Bindlib
+open Util
 open Terms
 open Equality
 
