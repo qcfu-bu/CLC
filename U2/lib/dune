@@ -1,3 +1,0 @@
-(library
- (name U2)
- (libraries bindlib))
