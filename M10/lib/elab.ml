@@ -64,8 +64,8 @@ and infer v_ctx id_ctx eqns mmap t =
     | LnProd (ty, b) ->
       let x, ub = unbind b in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
-      let _, eqns, mmap = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub in
-      (Sort Linear, eqns, mmap)
+      let srt, eqns, mmap = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub in
+      (Sort Linear, (Sort srt, Sort Linear) :: eqns, mmap)
     | Lambda _ -> failwith (asprintf "infer Lambda(%a)" Terms.pp t)
     | Fix _ -> failwith (asprintf "infer Fix(%a)" Terms.pp t)
     | App (t1, t2) -> (

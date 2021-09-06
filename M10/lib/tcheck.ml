@@ -60,7 +60,8 @@ and infer v_ctx id_ctx t =
   | LnProd (ty, b) ->
     let x, ub = unbind b in
     let srt = infer_sort v_ctx id_ctx ty in
-    let _ = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx ub in
+    let srt = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx ub in
+    assert_msg (srt = Linear) "infer LnProd";
     (Sort Linear, VarMap.empty)
   | Lambda _ -> failwith (asprintf "infer Lambda(%a)" Terms.pp t)
   | Fix _ -> failwith (asprintf "infer Fix(%a)" Terms.pp t)

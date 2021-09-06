@@ -1,0 +1,130 @@
+DIGEST 848cb0d07f7616555f50ebe020a92530
+FSsr.AutosubstSsr
+R56:81 Autosubst.Autosubst_Basics <> <> lib
+R99:122 Autosubst.Autosubst_MMap <> <> lib
+R140:166 Autosubst.Autosubst_Classes <> <> lib
+R184:210 Autosubst.Autosubst_Tactics <> <> lib
+R228:253 Autosubst.Autosubst_Lemmas <> <> lib
+R271:296 Autosubst.Autosubst_Derive <> <> lib
+R328:336 mathcomp.ssreflect.ssreflect <> <> lib
+R338:344 mathcomp.ssreflect.ssrbool <> <> lib
+R346:351 mathcomp.ssreflect.eqtype <> <> lib
+R353:358 mathcomp.ssreflect.ssrnat <> <> lib
+R360:362 mathcomp.ssreflect.seq <> <> lib
+R389:394 Coq.ssr.ssrfun <> <> lib
+sec 489:501 <> MMapInstances
+var 515:515 MMapInstances A
+var 517:517 MMapInstances B
+var 519:519 MMapInstances C
+var 540:547 MMapInstances MMap_A_B
+R551:554 Autosubst.Autosubst_MMap <> MMap class
+R558:558 Ssr.AutosubstSsr <> MMapInstances.B var
+R556:556 Ssr.AutosubstSsr <> MMapInstances.A var
+var 572:579 MMapInstances MMap_A_C
+R583:586 Autosubst.Autosubst_MMap <> MMap class
+R590:590 Ssr.AutosubstSsr <> MMapInstances.C var
+R588:588 Ssr.AutosubstSsr <> MMapInstances.A var
+var 604:617 MMapInstances MMapLemmas_A_B
+R621:630 Autosubst.Autosubst_MMap <> MMapLemmas class
+R634:634 Ssr.AutosubstSsr <> MMapInstances.B var
+R632:632 Ssr.AutosubstSsr <> MMapInstances.A var
+var 648:661 MMapInstances MMapLemmas_A_C
+R665:674 Autosubst.Autosubst_MMap <> MMapLemmas class
+R678:678 Ssr.AutosubstSsr <> MMapInstances.C var
+R676:676 Ssr.AutosubstSsr <> MMapInstances.A var
+var 692:702 MMapInstances MMapExt_A_B
+R706:712 Autosubst.Autosubst_MMap <> MMapExt class
+R716:716 Ssr.AutosubstSsr <> MMapInstances.B var
+R714:714 Ssr.AutosubstSsr <> MMapInstances.A var
+var 730:740 MMapInstances MMapExt_A_C
+R744:750 Autosubst.Autosubst_MMap <> MMapExt class
+R754:754 Ssr.AutosubstSsr <> MMapInstances.C var
+R752:752 Ssr.AutosubstSsr <> MMapInstances.A var
+inst 776:786 <> MMap_option
+R790:793 Autosubst.Autosubst_MMap <> MMap class
+R798:803 Coq.Init.Datatypes <> option ind
+R805:805 Ssr.AutosubstSsr <> MMapInstances.B var
+R795:795 Ssr.AutosubstSsr <> MMapInstances.A var
+binder 815:815 <> f:10
+R820:823 Coq.ssr.ssrfun <> omap syndef
+R826:829 Autosubst.Autosubst_MMap <> mmap def
+R831:831 Ssr.AutosubstSsr <> f:10 var
+inst 851:867 <> MMapLemmas_option
+R871:880 Autosubst.Autosubst_MMap <> MMapLemmas class
+R885:890 Coq.Init.Datatypes <> option ind
+R892:892 Ssr.AutosubstSsr <> MMapInstances.B var
+R882:882 Ssr.AutosubstSsr <> MMapInstances.A var
+inst 925:938 <> MMapExt_option
+R942:948 Autosubst.Autosubst_MMap <> MMapExt class
+R953:958 Coq.Init.Datatypes <> option ind
+R960:960 Ssr.AutosubstSsr <> MMapInstances.B var
+R950:950 Ssr.AutosubstSsr <> MMapInstances.A var
+inst 999:1007 <> MMap_pair
+R1011:1014 Autosubst.Autosubst_MMap <> MMap class
+R1020:1022 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R1019:1019 Ssr.AutosubstSsr <> MMapInstances.B var
+R1023:1023 Ssr.AutosubstSsr <> MMapInstances.C var
+R1016:1016 Ssr.AutosubstSsr <> MMapInstances.A var
+inst 1060:1074 <> MMapLemmas_pair
+R1078:1087 Autosubst.Autosubst_MMap <> MMapLemmas class
+R1093:1095 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R1092:1092 Ssr.AutosubstSsr <> MMapInstances.B var
+R1096:1096 Ssr.AutosubstSsr <> MMapInstances.C var
+R1089:1089 Ssr.AutosubstSsr <> MMapInstances.A var
+inst 1129:1140 <> MMapExt_pair
+R1144:1150 Autosubst.Autosubst_MMap <> MMapExt class
+R1156:1158 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R1155:1155 Ssr.AutosubstSsr <> MMapInstances.B var
+R1159:1159 Ssr.AutosubstSsr <> MMapInstances.C var
+R1152:1152 Ssr.AutosubstSsr <> MMapInstances.A var
+inst 1198:1205 <> mmap_seq
+R1209:1212 Autosubst.Autosubst_MMap <> MMap class
+R1217:1219 mathcomp.ssreflect.seq <> seq syndef
+R1221:1221 Ssr.AutosubstSsr <> MMapInstances.B var
+R1214:1214 Ssr.AutosubstSsr <> MMapInstances.A var
+binder 1231:1231 <> f:11
+R1236:1238 mathcomp.ssreflect.seq <> map def
+R1241:1244 Autosubst.Autosubst_MMap <> mmap def
+R1246:1246 Ssr.AutosubstSsr <> f:11 var
+inst 1266:1279 <> mmapLemmas_seq
+R1283:1292 Autosubst.Autosubst_MMap <> MMapLemmas class
+R1297:1299 mathcomp.ssreflect.seq <> seq syndef
+R1301:1301 Ssr.AutosubstSsr <> MMapInstances.B var
+R1294:1294 Ssr.AutosubstSsr <> MMapInstances.A var
+inst 1334:1344 <> mmapExt_seq
+R1348:1354 Autosubst.Autosubst_MMap <> MMapExt class
+R1359:1361 mathcomp.ssreflect.seq <> seq syndef
+R1363:1363 Ssr.AutosubstSsr <> MMapInstances.B var
+R1356:1356 Ssr.AutosubstSsr <> MMapInstances.A var
+inst 1402:1409 <> MMap_fun
+R1413:1416 Autosubst.Autosubst_MMap <> MMap class
+R1422:1425 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1421:1421 Ssr.AutosubstSsr <> MMapInstances.B var
+R1426:1426 Ssr.AutosubstSsr <> MMapInstances.C var
+R1418:1418 Ssr.AutosubstSsr <> MMapInstances.A var
+binder 1436:1436 <> f:12
+binder 1438:1438 <> g:13
+binder 1440:1440 <> x:14
+R1445:1448 Autosubst.Autosubst_MMap <> mmap def
+R1453:1453 Ssr.AutosubstSsr <> g:13 var
+R1455:1455 Ssr.AutosubstSsr <> x:14 var
+R1450:1450 Ssr.AutosubstSsr <> f:12 var
+inst 1476:1489 <> MMapLemmas_fun
+R1493:1502 Autosubst.Autosubst_MMap <> MMapLemmas class
+R1508:1511 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1507:1507 Ssr.AutosubstSsr <> MMapInstances.B var
+R1512:1512 Ssr.AutosubstSsr <> MMapInstances.C var
+R1504:1504 Ssr.AutosubstSsr <> MMapInstances.A var
+R1568:1574 Autosubst.Autosubst_MMap <> mmap_id meth
+R1582:1590 Autosubst.Autosubst_MMap <> mmap_comp meth
+R1568:1574 Autosubst.Autosubst_MMap <> mmap_id meth
+R1582:1590 Autosubst.Autosubst_MMap <> mmap_comp meth
+inst 1616:1626 <> MMapExt_fun
+R1630:1636 Autosubst.Autosubst_MMap <> MMapExt class
+R1642:1645 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1641:1641 Ssr.AutosubstSsr <> MMapInstances.B var
+R1646:1646 Ssr.AutosubstSsr <> MMapInstances.C var
+R1638:1638 Ssr.AutosubstSsr <> MMapInstances.A var
+R1702:1709 Autosubst.Autosubst_MMap <> mmap_ext def
+R1702:1709 Autosubst.Autosubst_MMap <> mmap_ext def
+R1735:1747 Ssr.AutosubstSsr MMapInstances <> sec
