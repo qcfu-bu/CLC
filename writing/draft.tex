@@ -13,8 +13,14 @@
 \usepackage{mathtools}
 \usepackage{mathpartir}
 \usepackage{listings}
+\usepackage{float}
+\floatstyle{boxed} 
+\restylefloat{figure}
 
 \newcommand{\LNLD}{\text{LNL}_\text{D}}
+\newcommand{\ok}{\textbf{ok}}
+\newcommand{\type}{\textbf{type}}
+\newcommand{\linear}{\textbf{linear}}
 
 % title and author
 \title{Dependent Linear Type Theory for Resource Aware Certified Programming}
@@ -42,6 +48,21 @@
 
   \section{Core Type Theory}
 
+  \begin{figure}[h]
+    \caption{Structural Rules}
+    \begin{mathpar}
+      \inferrule
+      { }
+      { \cdot\ \ok }
 
+      \inferrule
+      { \Gamma\ \ok \\ \Gamma ; \cdot \vdash A : \type }
+      { \Gamma, x : A ; \cdot\ \ok }
+
+      \inferrule
+      { \Gamma ; \Delta\ \ok \\ \Gamma ; \Delta \vdash A : \linear }
+      { \Gamma ; \Delta, x : A \ \ok }
+    \end{mathpar}
+  \end{figure}
 
 \end{document}
