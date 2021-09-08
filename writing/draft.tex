@@ -217,7 +217,15 @@
     \begin{mathpar}
       \inferrule
       { }
-      { n \pstep n }
+      { x \pstep x }
+
+      \inferrule
+      { }
+      { \U \pstep \U }
+
+      \inferrule
+      { }
+      { \L \pstep \L }
 
       \inferrule
       { n \pstep n' }
@@ -230,7 +238,6 @@
       \inferrule
       { n \pstep n' \\ v \pstep v' }
       { (\lambda x.n)\ v \pstep [v'/x]n' }
-      \\
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
@@ -239,7 +246,6 @@
       \inferrule
       { A \pstep A' \\ B \pstep B' }
       { A \rightarrow B \pstep A' \rightarrow B' }
-      \\
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
