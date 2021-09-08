@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  6 SEP 2021 18:08
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  7 SEP 2021 18:12
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -225,21 +225,23 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \@floatcapt=\box35
 )
 \@float@every@figure=\toks34
+\c@theorem=\count116
+\c@corollary=\count117
  (/Users/qianchengfu/ATS/MTS/writing/draft.aux)
 \openout1 = `draft.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 30.
-LaTeX Font Info:    ... okay on input line 30.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 30.
-LaTeX Font Info:    ... okay on input line 30.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 30.
-LaTeX Font Info:    ... okay on input line 30.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 30.
-LaTeX Font Info:    ... okay on input line 30.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 30.
-LaTeX Font Info:    ... okay on input line 30.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 30.
-LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -277,16 +279,16 @@ LaTeX Font Info:    ... okay on input line 30.
 
 (/usr/local/texlive/2019/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count116
+\scratchcounter=\count118
 \scratchdimen=\dimen139
 \scratchbox=\box36
-\nofMPsegments=\count117
-\nofMParguments=\count118
+\nofMPsegments=\count119
+\nofMParguments=\count120
 \everyMPshowfont=\toks35
-\MPscratchCnt=\count119
+\MPscratchCnt=\count121
 \MPscratchDim=\dimen140
-\MPnumerator=\count120
-\makeMPintoPDFobject=\count121
+\MPnumerator=\count122
+\makeMPintoPDFobject=\count123
 \everyMPtoPDFconversion=\toks36
 ) (/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
@@ -321,32 +323,55 @@ Package grfext Info: Graphics extension search list:
  (/usr/local/texlive/2019/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
-\c@lstlisting=\count122
-LaTeX Font Info:    Try loading font information for U+msa on input line 31.
+\c@lstlisting=\count124
+LaTeX Font Info:    Try loading font information for U+msa on input line 45.
  (/usr/local/texlive/2019/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 31.
+LaTeX Font Info:    Try loading font information for U+msb on input line 45.
  (/usr/local/texlive/2019/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Try loading font information for U+stmry on input line 31.
+LaTeX Font Info:    Try loading font information for U+stmry on input line 45.
  (/usr/local/texlive/2019/texmf-dist/tex/latex/stmaryrd/Ustmry.fd) [1
 
-{/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] (/Users/qianchengfu/ATS/MTS/writing/draft.aux) ) 
+{/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 74.
+ (/usr/local/texlive/2019/texmf-dist/tex/latex/base/omscmr.fd
+File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 74.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[2] [3] [4] (/Users/qianchengfu/ATS/MTS/writing/draft.aux) ) 
 Here is how much of TeX's memory you used:
- 5363 strings out of 492616
- 75666 string characters out of 6129482
- 153411 words of memory out of 5000000
- 9185 multiletter control sequences out of 15000+600000
+ 5397 strings out of 492616
+ 76115 string characters out of 6129482
+ 167584 words of memory out of 5000000
+ 9216 multiletter control sequences out of 15000+600000
  13646 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,14n,32p,1180b,321s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on /Users/qianchengfu/ATS/MTS/writing/draft.pdf (2 pages, 119974 bytes).
+ 41i,14n,32p,1186b,287s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
+Output written on /Users/qianchengfu/ATS/MTS/writing/draft.pdf (4 pages, 142444 bytes).
 PDF statistics:
- 55 PDF objects out of 1000 (max. 8388607)
- 39 compressed objects within 1 object stream
+ 69 PDF objects out of 1000 (max. 8388607)
+ 49 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
