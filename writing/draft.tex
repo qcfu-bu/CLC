@@ -8,6 +8,7 @@
 \usepackage{amsthm}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{mdwtab}
 \usepackage{syntax}
 \usepackage{stmaryrd}
 \usepackage{mathtools}
@@ -25,8 +26,9 @@
 \renewcommand{\syntleft}{}
 \renewcommand{\syntright}{}
 \setlength{\grammarparsep}{10pt}
-\setlength{\grammarindent}{16em}
-
+\setlength{\grammarindent}{10em}
+\newcommand{\indalt}[1][2]{\\\hspace*{-1.2em}\textbar\quad}
+\newcommand{\rname}[1]{\textsc{\footnotesize #1}}
 \newcommand{\LNLD}{\text{LNL}_\text{D}}
 \newcommand{\ok}{\textbf{ok}}
 \newcommand{\pure}{\textbf{pure}}
@@ -34,6 +36,8 @@
 \newcommand{\type}{\textbf{type}}
 \newcommand{\U}{\textbf{U}}
 \renewcommand{\L}{\textbf{L}}
+\newcommand{\lambdah}{\hat{\lambda}}
+\newcommand{\betah}{\hat{\beta}}
 \newcommand{\pstep}{\leadsto_p}
 
 % title and author
@@ -52,55 +56,83 @@
   
   Dependent type theory is however, not without its flaws. Due to its origins as a logical foundation for mathematics, dependent type theory lacks facilities to reason about resource, a concept that is largely absent from mathematics but ever present in computer science. Objects in dependent type theory can be freely duplicated or deleted by appealing to the structural contraction and weakening rules, this goes against the conservation principle of resource. Users of dependent type theories are often required to laboriously embed memory models and program logics into type theory to effectively reason about resource. As language designers, we hope to alleviate this shortcoming of dependent type theory.
 
-  In the disparate world of substructural logic, Girard introduces Linear Logic in his seminal work. Linear Logic restricts weakening and contraction rules of classical logic, giving rise to an elegant formal foundation for reasoning about resource. Abramsky and Wadler notice the opportunities presented by Linear Logic for resource aware programming, pioneering the development of simple linear type theory. Linear type theory enforces linearity on variable usage, which conservatively subsumes resource usage. This reduces the problem of resource reasoning to linear type checking. The successful extraction of type theory from Linear Logic offers a tantalizing hint to overcoming the challenges of resource reasoning in dependent type theory: integrate linear types.
+  In the disparate world of substructural logic, Girard introduces Linear Logic in his seminal work. Linear Logic restricts weakening and contraction rules of classical logic, giving rise to an elegant formal foundation for reasoning about resource. Abramsky and Wadler notice the opportunities presented by Linear Logic for resource aware programming, pioneering the development of simple linear type theory. Linear type theory enforces linearity on variable usage, which conservatively subsumes resource usage. This reduces the problem of resource reasoning to linear type checking. Languages based on linear type systems have shown the capacity to safely manipulate imperative data structures. The successful extraction of type theory from Linear Logic offers a tantalizing hint to overcoming the challenges of resource reasoning in dependent type theory: integrate linear types.
 
   The earliest work on integrating dependent type theory and linear type theory was carried out by Cervesato and Pfenning, extending the Edinburgh LF with linearity. Xi extends DML dependent types with linear types in the ATS programming language. Krishnaswami et al. develop $\LNLD$ based on Benton's LNL calculus for simple linear types, allowing term dependency on its non-linear fragment. The authors of $\LNLD$ demonstrate its capacity for certified imperative programming in the style of L3 and Hoare Type Theory.  Luo et al. introduce the notion of essential linearity, developing the first type theory that allows types to depend on linear terms. Atkey's QTT, based on initial ideas of McBride, neatly reduces dependency and linearity checking to checking constraints defined on semi-rings. Idris 2 is a full blown programming language that implements QTT as its core type system.
 
   The lack of weakening and contraction rules for linear types present unique difficulties when integrating full spectrum dependent types, often making dependent linear types challenging or unsatisfactory for practical use. $\LNLD$ requires use of explicit modality maps F and G to alternate between its linear and non-linear fragment, computation requiring back and forth applications of F and G quickly explode in complexity. Terms in Luo's type theory are not intrinsically linear, linearity is solely determined by annotations. The unfortunate side-effect of this design choice is that linear computations never return non-linear values, contradicting the intuition of retrieving a non-linear int from a linear reference. QTT faces the same drawbacks as Luo due to linearity being determined by similar semi-ring annotations.
   
-  We present a full spectrum dependent linear type theory that provides a more direct approach to enforce linearity, eschewing the use of modality operators or annotations. We believe that linearity is an intrinsic property completely determined by the type of a term. To accomplish this, our type system uses two class of type universes in the style of Krishnaswami, $L$ for linear and $U$ for non-linear. Due to the abandonment of modalities, we use two distinct functions types $(x : A) \rightarrow B$ for non-linear functions and $(x : A) \multimap B$ for linear functions in the style of Pfenning. We formalize an operational semantics and prove the type soundness of our system. To further demonstrate the applications of dependent linear types, we extend our type system with imperative programming features, leveraging both dependency and linearity for internalized certified imperative programming. We augment our soundness theorem to account for these extensions, showing that imperative resources are properly managed. We have implemented a prototype of our language extended with other features for practicality and ergonomics.
+  We present a full spectrum dependent linear type theory that provides a more direct approach to enforce linearity, eschewing the use of modality operators or annotations. We believe that linearity is an intrinsic property completely determined by the type of a term. To accomplish this, our type system uses two class of type universes in the style of Krishnaswami, $L$ for linear and $U$ for non-linear. Due to the abandonment of modalities, we use two distinct functions types $(x : A) \rightarrow B$ for non-linear functions and $(x : A) \multimap B$ for linear functions. We formalize a call-by-value operational semantics and prove the type soundness of our system. To further demonstrate the applications of dependent linear types, we extend our type system with imperative programming features, leveraging both dependency and linearity for certified imperative programming. We augment our soundness theorem to account for these extensions, showing that imperative resources are properly managed. We have implemented a prototype of our language extended with other features for practicality and ergonomics.
 
   \section{Core Type Theory}
+  In the efforts of integrating dependency and linearity, there are two predominant schools of thought: \textit{Types can only depended on non-linear terms} and \textit{Types can depend on all terms}. 
+  
+  Advocates of restricted dependency argue that the restriction is both intuitive and a necessity. A natural example of linear types depending on a non-linear terms is that of the length indexed random access array. Term dependency on array length statically prevents out-of-bounds array access whilst linearity ensures proper memory management. In the converse situation of types depending on linear terms, one immediately faces a dilemma: \textit{Do linear terms at the type level possess weakening and contraction?}.
+  
+  If one answers yes, then the linear terms at the type level are defacto non-linear. In this case, a language with restricted dependency can simulate linear dependency by depending on non-linear terms that reflect the shape of linear terms, erasing the advantage of increased type level expressivity. All prior works featuring linear dependency fall into this category, for good reason: \textit{the alternative is worse}.
+  
+  If type level linear terms do not possess weakening and contraction, types with linear dependencies themselves are linear. This breaks the very notion of the typing judgment as even $\alpha$-equivalent terms may not possess the same type. Though the idea of such a type system is deeply interesting, the philosophical burden is prohibitive.
+  
+  Our language firmly falls in the former category. Besides the reasons listed above, restricted dependency gives a clear distinction between linear and non-linear terms, a property we believe will aid in the compilation to high performance code.
+  
+  \subsection{Syntax}
+  The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two universes, $\U$ and $\L$ for denoting the universe of non-linear types and linear types respectively. An important fact to note is that our language possess the "Type-in-Type" axiom in the form of $\Gamma ; \cdot \vdash \U : \U$ which is well known to be logically unsound. We chose this design deliberately as we are willing to sacrifice logical soundness for increased expressivity and convenience. We forsee no issue in extending the core language with a hierarchy of universes to enforce logical soundness.
 
   \begin{figure}[h]
     \caption{Syntax}
+    \centering
+    \begin{minipage}{0.8\linewidth}
     \begin{grammar}
-      <$x, y, z, f, g, h$> $\in$ variables
+      <$m, n, A, B, C$> ::= $\U$ | $\L$ | $x$  \hspace*{8em} expressions
+      \indalt $(x : A) \rightarrow B$ | $A \rightarrow B$
+      \indalt $(x : A) \multimap B$ | $A \multimap B$
+      \indalt $\lambda x. n$ | $\lambdah x.n$ | $m\ n$
 
-      <$m, n, A, B, C$> $\in$ expressions
-
-      <$v$> $\in$ values
-
-      <expressions> ::= $\U$ | $\L$ | $x$
-      \alt $(x : A) \rightarrow B$ | $A \rightarrow B$
-      \alt $(x : A) \multimap B$ | $A \multimap B$
-      \alt $\lambda x. n$ | $m\ n$
-
-      <values> ::= $\U$ | $\L$ | $x$
-      \alt $(x : A) \rightarrow B$ | $A \rightarrow B$
-      \alt $(x : A) \multimap B$ | $A \multimap B$
-      \alt $\lambda x. n$
+      <$v$> ::= $\U$ | $\L$ | $x$ \hspace*{8em} values
+      \indalt $(x : A) \rightarrow B$ | $A \rightarrow B$
+      \indalt $(x : A) \multimap B$ | $A \multimap B$
+      \indalt $\lambda x. n$ | $\lambdah x.n$
     \end{grammar}
+    \end{minipage}
+    \label{syntax}
   \end{figure}
 
+  A clear departure of our language from standard presentations of type theory is the presence of four function types: $(x : A) \rightarrow B$, $A \rightarrow B$, $(x : A) \multimap B$, $A \multimap B$. The reason for these variants is the decoupling of function linearity from the linearity of function domain and co-domain. Instead, the linearity of functions is determined by the linearity of the closure it forms. For example, a function with linear input and output type can itself be non-linear if its free variables have non-linear type, indicating this function can be applied repeatedly without contraction of linear variables. In practice, these function types can be consolidated to just $(x : A) \rightarrow B$ and $(x : A) \multimap B$ by typechecking using Luo's mixed context and $merge$ techniques. For the sake of clarity, we leave them as four.
+
+  \subsection{Context and Structural Judgments}
+  The context of our type theory is divided into two partitions, $\Gamma$ for variables of non-linear type and $\Delta$ for variables of linear type. Weakening and contraction structural rules are permitted on $\Gamma$ but forbidden on $\Delta$. Structural rules for well-founded contexts are shown in Figure \ref{structural}. 
+
+  Types in our language are determined to be linear or non-linear by the universe they belong to. The typing judgment $\Gamma; \Delta \vdash A : \U$ asserts that $A$ is a non-linear type under context $\Gamma; \Delta$, whereas the judgment $\Gamma; \Delta \vdash B : \L$ asserts that $B$ is a linear type under context $\Gamma; \Delta$. In the rules for constructing well-founded contexts, care is taken to prevent $\Delta$ from leaking into typing judgments, restricting type dependency to $\Gamma$.
+  
   \begin{figure}[h]
     \caption{Structural Judgments}
     \begin{mathpar}
       \inferrule
       { }
       { \cdot\ ; \cdot \ok }
+      \rname{Empty-Ok}
 
       \inferrule
-      { \Gamma ; \Delta\ \ok \\ \Gamma ; \Delta \vdash A : \U }
-      { \Gamma, x : A ; \Delta\ \ok }
+      { \Gamma ; \cdot\ \ok \\ \Gamma ; \cdot \vdash A : \U }
+      { \Gamma, x : A ; \cdot\ \ok }
+      \rname{U-Ok}
 
       \inferrule
-      { \Gamma ; \Delta\ \ok \\ \Gamma ; \Delta \vdash A : \L }
+      { \Gamma ; \Delta\ \ok \\ \Gamma ; \cdot \vdash A : \L }
       { \Gamma ; \Delta, x : A\ \ok } 
-
+      \rname{L-Ok}
     \end{mathpar}
+    \label{structural}
   \end{figure}
 
+  \subsection{Type Formation}
+  Type formation rules are presented in Figure \ref{type}. Rules worth detailed discussion are the \rname{L-Axiom} and the rules for constructing various function types.
+
+  For \rname{L-Axiom}, the universe of linear types itself belongs to the universe of non-linear types. This means that a linear type is itself a non-linear term, avoiding the philosophical trappings discussed above.
+
+  The function types $(x : A) \rightarrow B$ and $A \rightarrow B$ represent non-linear functions. Terms of these types contain no linear free variables, thus can be applied repeatedly without duplication of linear variables. The difference between the two is that $(x : A) \rightarrow B$ allows co-domain type $B$ to depended on the input term $x$ of non-linear type $A$. For $A \rightarrow B$, the domain type $A$ is linear so $B$ is not allowed to depend on the function input.
+
+  The variants $(x : A) \multimap B$ and $A \multimap B$ represent linear functions. Terms of these types may contain linear free variables, thus cannot be applied repeated without duplication of linear variables. Similar to the non-linear versions, the difference between $(x : A) \multimap B$ and $A \multimap B$ lies in the allowance of dependency on function input for non-linear domain types.
 
   \begin{figure}[h]
     \caption{Type Formation} 
@@ -108,38 +140,50 @@
       \inferrule
       { }
       { \Gamma ; \cdot \vdash \U : \U } 
+      \rname{U-Axiom}
 
       \inferrule
       { }
       { \Gamma ; \cdot \vdash \L : \U } 
+      \rname{L-Axiom}
 
       \inferrule
       { \Gamma ; \cdot \vdash A : \U }
       { \Gamma ; \cdot \vdash A\ \type }
+      \rname{U-Type}
 
       \inferrule
       { \Gamma ; \cdot \vdash A : \L }
       { \Gamma ; \cdot \vdash A\ \type }
+      \rname{L-Type}
       \\
 
       \inferrule
       { \Gamma ; \cdot \vdash A : \U \\ \Gamma, x : A ; \cdot \vdash B\ \type }
       { \Gamma ; \cdot \vdash (x : A) \rightarrow B : \U } 
+      \rname{U-Prod}
 
       \inferrule
       { \Gamma ; \cdot \vdash A : \L \\ \Gamma ; \cdot \vdash B\ \type }
       { \Gamma ; \cdot \vdash A \rightarrow B : \U } 
+      \rname{Arrow}
       \\
 
       \inferrule
       { \Gamma ; \cdot \vdash A : \U \\ \Gamma, x : A ; \cdot \vdash B\ \type }
       { \Gamma ; \cdot \vdash (x : A) \multimap B : \L } 
+      \rname{L-Prod}
 
       \inferrule
       { \Gamma ; \cdot \vdash A : \L \\ \Gamma ; \cdot \vdash B\ \type }
       { \Gamma ; \cdot \vdash A \multimap B : \L } 
+      \rname{Lolli}
     \end{mathpar}
+    \label{type}
   \end{figure}
+
+  \subsection{Term Formation}
+  Term formation rules are presented in Figure \ref{term}.
 
   \begin{figure}[h]
     \caption{Term Formation}
@@ -147,60 +191,83 @@
       \inferrule
       { }
       { \Gamma, x : A ; \cdot \vdash x : A } 
+      \rname{U-Var}
 
       \inferrule
       { }
       { \Gamma ; x : A \vdash x : A } 
+      \rname{L-Var}
+      \\
 
       \inferrule
-      { \Gamma ; \Delta \vdash m : A \\ \Gamma ; \Delta \vdash A \equiv B }
+      { \Gamma ; \Delta \vdash m : A \\ 
+        \Gamma ; \cdot \vdash A \equiv B : \U }
       { \Gamma ; \Delta \vdash m : B } 
+      \rname{U-Conv}
+
+      \inferrule
+      { \Gamma ; \Delta \vdash m : A \\ 
+        \Gamma ; \cdot \vdash A \equiv B : \L }
+      { \Gamma ; \Delta \vdash m : B } 
+      \rname{L-Conv}
       \\
 
       \inferrule
       { \Gamma ; \cdot \vdash (x : A) \rightarrow B : \U \\ 
         \Gamma, x : A ; \cdot \vdash n : B }
       { \Gamma ; \cdot \vdash \lambda x . n : (x : A) \rightarrow B }
+      \rname{U-$\lambda_1$}
+      \\
 
       \inferrule
       { \Gamma ; \cdot \vdash A \rightarrow B : \U \\
         \Gamma ; x : A \vdash n : B }
       { \Gamma ; \cdot \vdash \lambda x . n : A \rightarrow B }
+      \rname{U-$\lambda_2$}
       \\
 
       \inferrule
       { \Gamma ; \cdot \vdash (x : A) \multimap B : \L \\ 
         \Gamma, x : A ; \Delta \vdash n : B }
-      { \Gamma ; \Delta \vdash \lambda x . n : (x : A) \multimap B }
+      { \Gamma ; \Delta \vdash \lambdah x . n : (x : A) \multimap B }
+      \rname{L-$\lambda_1$}
 
       \inferrule
       { \Gamma ; \cdot \vdash A \multimap B : \L \\ 
         \Gamma ; \Delta, x : A \vdash n : B }
-      { \Gamma ; \Delta \vdash \lambda x . n : A \multimap B }
+      { \Gamma ; \Delta \vdash \lambdah x . n : A \multimap B }
+      \rname{L-$\lambda_2$}
       \\
 
       \inferrule
       { \Gamma ; \Delta_1 \vdash m : (x : A) \rightarrow B \\
         \Gamma ; \Delta_2 \vdash n : A }
-      { \Gamma; \Delta_1, \Delta_2 : m\ n : [n/x]B }
+      { \Gamma; \Delta_1, \Delta_2 : m\ n : (\lambda x.B)\ n }
+      \rname{U-App-1}
 
       \inferrule
       { \Gamma ; \Delta_1 \vdash m : A \rightarrow B \\
         \Gamma ; \Delta_2 \vdash n : A }
       { \Gamma; \Delta_1, \Delta_2 : m\ n : B }
+      \rname{U-App-2}
       \\
 
       \inferrule
       { \Gamma ; \Delta_1 \vdash m : (x : A) \multimap B \\
         \Gamma ; \Delta_2 \vdash n : A }
-      { \Gamma; \Delta_1, \Delta_2 : m\ n : [n/x]B }
+      { \Gamma; \Delta_1, \Delta_2 : m\ n : (\lambda x.B)\ n }
+      \rname{L-App-1}
 
       \inferrule
       { \Gamma ; \Delta_1 \vdash m : A \multimap B \\
         \Gamma ; \Delta_2 \vdash n : A }
       { \Gamma; \Delta_1, \Delta_2 : m\ n : B }
+      \rname{L-App-2}
     \end{mathpar}
+    \label{term}
   \end{figure}
+
+  \subsection{Equality and Reduction}
 
   \begin{figure}[h]
     \caption{Equality}
@@ -208,7 +275,7 @@
       \inferrule
       { \Gamma ; \Delta \vdash m_1 : A \\ \Gamma ; \Delta \vdash m_2 : A \\ 
         m_1 \pstep^* n \\ m_2 \pstep^* n }
-      { \Gamma ; \Delta \vdash m_1 \equiv m_2 }
+      { \Gamma ; \Delta \vdash m_1 \equiv m_2 : A }
     \end{mathpar}
   \end{figure}
 
@@ -218,43 +285,73 @@
       \inferrule
       { }
       { x \pstep x }
+      \rname{PR-Var}
 
       \inferrule
       { }
       { \U \pstep \U }
+      \rname{PR-U}
 
       \inferrule
       { }
       { \L \pstep \L }
+      \rname{PR-L}
 
       \inferrule
       { n \pstep n' }
       { \lambda x.n \pstep \lambda x.n' }
+      \rname{PR-$\lambda$}
+
+      \inferrule
+      { n \pstep n' }
+      { \lambdah x.n \pstep \lambdah x.n' }
+      \rname{PR-$\lambdah$}
 
       \inferrule
       { m \pstep m' \\ n \pstep n' }
       { m\ n \pstep m'\ n' }
+      \rname{PR-App}
 
       \inferrule
       { n \pstep n' \\ v \pstep v' }
       { (\lambda x.n)\ v \pstep [v'/x]n' }
+      \rname{PR-$\beta$}
+
+      \inferrule
+      { n \pstep n' \\ v \pstep v' }
+      { (\lambdah x.n)\ v \pstep [v'/x]n' }
+      \rname{PR-$\betah$}
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
       { (x : A) \rightarrow B \pstep (x : A') \rightarrow B' }
+      \rname{PR-U-Prod}
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
       { A \rightarrow B \pstep A' \rightarrow B' }
+      \rname{PR-Arrow}
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
       { (x : A) \multimap B \pstep (x : A') \multimap B' }
+      \rname{PR-L-Prod}
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
       { A \multimap B \pstep A' \multimap B' }
+      \rname{PR-L-Lolli}
     \end{mathpar}
   \end{figure}
+
+  \subsection{Meta Theory}
+
+  \begin{lemma}
+    Parallel reduction satisfies the diamond property. If $m \pstep m_1$ and $m \pstep m_2$ then there exists $m'$ such that $m_1 \pstep m'$ and $m_2 \pstep m'$.
+  \end{lemma}
+
+  \begin{lemma}
+    The transitive reflexive closure of parallel reduction is confluent. If $m \pstep^* m_1$ and $m \pstep^* m_2$ then there exists $m'$ such that $m_1 \pstep^* m'$ and $m_2 \pstep^* m'$.
+  \end{lemma}
 
 \end{document}

@@ -15,7 +15,8 @@ Inductive term : Type :=
 | LnProd (A : term) (B : {bind term})
 | Arrow  (A B : term)
 | Lolli  (A B : term)
-| Lambda (n : {bind term})
+| TyLam  (n : {bind term})
+| LnLam  (n : {bind term})
 | App    (m n : term).
 
 Instance Ids_term : Ids term. derive. Defined.
@@ -31,7 +32,8 @@ Inductive value : term -> Prop :=
 | value_lnProd A B : value (LnProd A B)
 | value_arrow  A B : value (Arrow A B)
 | value_lolli  A B : value (Lolli A B)
-| value_lambda n   : value (Lambda n).
+| value_tyLam  n   : value (TyLam n)
+| value_lnLam  n   : value (LnLam n).
 
 Definition v_subst (sigma : var -> term) : Prop := 
   forall x, value (sigma x).
@@ -71,18 +73,26 @@ Inductive pstep : term -> term -> Prop :=
   pstep U U
 | pstep_L :
   pstep L L
-| pstep_lambda n n' : 
+| pstep_tyLam n n' : 
   pstep n n' -> 
-  pstep (Lambda n) (Lambda n')
+  pstep (TyLam n) (TyLam n')
+| pstep_lnLam n n' : 
+  pstep n n' -> 
+  pstep (LnLam n) (LnLam n')
 | pstep_app m m' n n' :
   pstep m m' ->
   pstep n n' ->
   pstep (App m n) (App m' n')
-| pstep_beta n n' v v' :
+| pstep_tyBeta n n' v v' :
   pstep n n' ->
   value v ->
   pstep v v' ->
-  pstep (App (Lambda n) v) (n'.[v'/])
+  pstep (App (TyLam n) v) (n'.[v'/])
+| pstep_lnBeta n n' v v' :
+  pstep n n' ->
+  value v ->
+  pstep v v' ->
+  pstep (App (LnLam n) v) (n'.[v'/])
 | pstep_tyProd A A' B B' :
   pstep A A' ->
   pstep B B' ->
@@ -112,6 +122,7 @@ Proof.
   dependent induction H; eauto using value.
   inv H1.
   inv H2.
+  inv H2.
 Qed.
 
 Lemma pstep_subst s t : 
@@ -123,7 +134,11 @@ Proof with eauto using pstep, pstep_refl.
   intros.
   dependent induction H...
   - asimpl. 
-    apply pstep_lambda.
+    apply pstep_tyLam.
+    apply IHpstep.
+    apply v_subst_up...
+  - asimpl. 
+    apply pstep_lnLam.
     apply IHpstep.
     apply v_subst_up...
   - asimpl.
@@ -131,7 +146,14 @@ Proof with eauto using pstep, pstep_refl.
     specialize (IHpstep1 _ H3).
     specialize (IHpstep2 _ H2).
     pose proof (value_subst H0 H2).
-    pose proof (pstep_beta IHpstep1 H4 IHpstep2).
+    pose proof (pstep_tyBeta IHpstep1 H4 IHpstep2).
+    asimpl in H5...
+  - asimpl.
+    pose proof (v_subst_up H2).
+    specialize (IHpstep1 _ H3).
+    specialize (IHpstep2 _ H2).
+    pose proof (value_subst H0 H2).
+    pose proof (pstep_lnBeta IHpstep1 H4 IHpstep2).
     asimpl in H5...
   - asimpl.
     pose proof (v_subst_up H1).
@@ -181,14 +203,22 @@ Lemma pstep_compat s t :
 Proof with eauto 6 using pstep, psstep_up, v_subst_up.
   intros.
   dependent induction H; asimpl...
-  pose proof (v_subst_up H2).
-  pose proof (psstep_up H3).
-  pose proof (IHpstep1 _ _ H4 H5).
-  pose proof (IHpstep2 _ _ H2 H3).
-  pose proof (psstep_v_subst H3 H2).
-  pose proof (value_subst H0 H2).
-  pose proof (pstep_beta H6 H9 H7).
-  asimpl in H10...
+  - pose proof (v_subst_up H2).
+    pose proof (psstep_up H3).
+    pose proof (IHpstep1 _ _ H4 H5).
+    pose proof (IHpstep2 _ _ H2 H3).
+    pose proof (psstep_v_subst H3 H2).
+    pose proof (value_subst H0 H2).
+    pose proof (pstep_tyBeta H6 H9 H7).
+    asimpl in H10...
+  - pose proof (v_subst_up H2).
+    pose proof (psstep_up H3).
+    pose proof (IHpstep1 _ _ H4 H5).
+    pose proof (IHpstep2 _ _ H2 H3).
+    pose proof (psstep_v_subst H3 H2).
+    pose proof (value_subst H0 H2).
+    pose proof (pstep_lnBeta H6 H9 H7).
+    asimpl in H10...
 Qed.
 
 Lemma psstep_compat s1 s2 sigma tau:
@@ -228,19 +258,30 @@ Proof with eauto using pstep.
   - inv H0. exists (Var x)...
   - inv H0. exists (U)...
   - inv H0. exists (L)...
-  - inv H0.  apply (IHpstep) in H2. firstorder. exists (Lambda x)...
+  - inv H0.  apply (IHpstep) in H2. firstorder. exists (TyLam x)...
+  - inv H0.  apply (IHpstep) in H2. firstorder. exists (LnLam x)...
   - inv H1.
     + apply (IHpstep1) in H4. apply (IHpstep2) in H6. firstorder.
       exists (App x0 x)...
     + inv H. 
-      assert (pstep (Lambda n0) (Lambda n'0))...
+      assert (pstep (TyLam n0) (TyLam n'0))...
       pose proof (pstep_value H7 H5). 
       pose proof (pstep_value H0 H5).
       apply (IHpstep1) in H. apply (IHpstep2) in H7. firstorder.
       inv H.
       inv H6.
       exists (n'2.[x0/]). split.
-      apply pstep_beta...
+      apply pstep_tyBeta...
+      apply pstep_compat_beta...
+    + inv H. 
+      assert (pstep (LnLam n0) (LnLam n'0))...
+      pose proof (pstep_value H7 H5). 
+      pose proof (pstep_value H0 H5).
+      apply (IHpstep1) in H. apply (IHpstep2) in H7. firstorder.
+      inv H.
+      inv H6.
+      exists (n'2.[x0/]). split.
+      apply pstep_lnBeta...
       apply pstep_compat_beta...
   - inv H2.
     + inv H5.
@@ -249,7 +290,21 @@ Proof with eauto using pstep.
       exists (x.[x0/]). split.
       * apply pstep_compat_beta...
         eapply pstep_value; eauto.
-      * apply pstep_beta...
+      * apply pstep_tyBeta...
+    + pose proof (pstep_value H8 H0).
+      apply IHpstep1 in H5. apply IHpstep2 in H8. firstorder.
+      exists (x0.[x/]). split.
+      * apply pstep_compat_beta...
+        eapply pstep_value; eauto.
+      * apply pstep_compat_beta...
+  - inv H2.
+    + inv H5.
+      pose proof (pstep_value H7 H0).
+      apply IHpstep2 in H7. apply IHpstep1 in H3. firstorder.
+      exists (x.[x0/]). split.
+      * apply pstep_compat_beta...
+        eapply pstep_value; eauto.
+      * apply pstep_lnBeta...
     + pose proof (pstep_value H8 H0).
       apply IHpstep1 in H5. apply IHpstep2 in H8. firstorder.
       exists (x0.[x/]). split.
