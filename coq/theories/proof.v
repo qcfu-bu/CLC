@@ -364,4 +364,102 @@ Proof with eauto using pstep_refl, star.
     exists x0. split...
 Qed.
 Hint Resolve confluence.
+
+Notation "Gamma `_ i" := (dget Gamma i) (at level 2).
+
+Reserved Notation "[ Gamma ; Delta |- ]".
+Reserved Notation "[ Gamma ; Delta |- s :- A ]".
   
+Inductive has_type : seq term -> seq_opt term -> term -> term -> Prop :=
+| u_axiom Gamma : 
+  [ Gamma ; nil |- U :- U ]
+| l_axiom Gamma :
+  [ Gamma ; nil |- L :- U ]
+| u_prod1 Gamma A B :
+  [ Gamma ; nil |- A :- U ] ->
+  [ A :: Gamma ; nil |- B :- U ] ->
+  [ Gamma ; nil |- TyProd A B :- U ]
+| u_prod2 Gamma A B :
+  [ Gamma ; nil |- A :- U ] ->
+  [ A :: Gamma ; nil |- B :- L ] ->
+  [ Gamma ; nil |- TyProd A B :- U ]
+| l_prod1 Gamma A B :
+  [ Gamma ; nil |- A :- U ] ->
+  [ A :: Gamma ; nil |- B :- U ] ->
+  [ Gamma ; nil |- LnProd A B :- L ]
+| l_prod2 Gamma A B :
+  [ Gamma ; nil |- A :- U ] ->
+  [ A :: Gamma ; nil |- B :- L ] ->
+  [ Gamma ; nil |- LnProd A B :- L ]
+| arrow1 Gamma A B :
+  [ Gamma ; nil |- A :- L ] ->
+  [ Gamma ; nil |- B :- U ] ->
+  [ Gamma ; nil |- Arrow A B :- U ]
+| arrow2 Gamma A B :
+  [ Gamma ; nil |- A :- L ] ->
+  [ Gamma ; nil |- B :- L ] ->
+  [ Gamma ; nil |- Arrow A B :- U ]
+| lolli1 Gamma A B :
+  [ Gamma ; nil |- A :- L ] ->
+  [ Gamma ; nil |- B :- U ] ->
+  [ Gamma ; nil |- Lolli A B :- L ]
+| lolli2 Gamma A B :
+  [ Gamma ; nil |- A :- L ] ->
+  [ Gamma ; nil |- B :- L ] ->
+  [ Gamma ; nil |- Lolli A B :- L ]
+| u_var Gamma x : 
+  x < size Gamma ->
+  [ Gamma ; nil |- Var x :- Gamma`_x ]
+| l_var Gamma Delta x A :
+  only Delta x A ->
+  [ Gamma ; Delta |- Var x :- A ]
+| u_lam1 Gamma n A B :
+  [ Gamma ; nil |- TyProd A B :- U ] ->
+  [ A :: Gamma ; nil |- n :- B ] ->
+  [ Gamma ; nil |- TyLam n :- TyProd A B ]
+| u_lam2 Gamma n A B :
+  [ Gamma ; nil |- Arrow A B :- U ] ->
+  [ A :: Gamma ; nil |- n :- B ] ->
+  [ Gamma ; nil |- TyLam n :- Arrow A B ]
+| l_lam1 Gamma Delta n A B :
+  [ Gamma ; nil |- LnProd A B :- L ] ->
+  [ A :: Gamma ; Delta |- n :- B ] ->
+  [ Gamma ; Delta |- LnLam n :- LnProd A B ]
+| l_lam2 Gamma Delta n A B :
+  [ Gamma ; nil |- Lolli A B :- L ] ->
+  [ Gamma ; A ::: Delta |- n :- B ] ->
+  [ Gamma ; Delta |- LnLam n :- Lolli A B ]
+| u_app1 Gamma Delta1 Delta2 Delta A B m n :
+  [ Gamma ; Delta1 |- m :- TyProd A B ] ->
+  [ Gamma ; Delta2 |- n :- A ] ->
+  merge Delta1 Delta2 Delta ->
+  [ Gamma ; Delta |- App m n :- App (TyLam B) n ]
+| u_app2 Gamma Delta1 Delta2 Delta A B m n :
+  [ Gamma ; Delta1 |- m :- Arrow A B ] ->
+  [ Gamma ; Delta2 |- n :- A ] ->
+  merge Delta1 Delta2 Delta ->
+  [ Gamma ; Delta |- App m n :- B ]
+| l_app1 Gamma Delta1 Delta2 Delta A B m n :
+  [ Gamma ; Delta1 |- m :- LnProd A B ] ->
+  [ Gamma ; Delta2 |- n :- A ] ->
+  merge Delta1 Delta2 Delta ->
+  [ Gamma ; Delta |- App m n :- App (TyLam B) n ]
+| l_app2 Gamma Delta1 Delta2 Delta A B m n :
+  [ Gamma ; Delta1 |- m :- Lolli A B ] ->
+  [ Gamma ; Delta2 |- n :- A ] ->
+  merge Delta1 Delta2 Delta ->
+  [ Gamma ; Delta |- App m n :- B ]
+where "[ Gamma ; Delta |- s :- A ]" := (has_type Gamma Delta s A).
+
+Inductive context_ok : seq term -> seq_opt term -> Prop :=
+| nil_ok :
+  [ nil ; nil |- ]
+| u_ok Gamma A :
+  [ Gamma ; nil |- ] ->
+  [ Gamma ; nil |- A :- U ] ->
+  [ A :: Gamma ; nil |- ]
+| l_ok Gamma Delta A :
+  [ Gamma ; Delta |- ] ->
+  [ Gamma ; nil |- A :- L ] ->
+  [ Gamma ; A ::: Delta |- ]
+where "[ Gamma ; Delta |- ]" := (context_ok Gamma Delta).

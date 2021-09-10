@@ -391,13 +391,13 @@
     The transitive reflexive closure of parallel reduction is confluent. If $m \pstep^* m_1$ and $m \pstep^* m_2$ then there exists $m'$ such that $m_1 \pstep^* m'$ and $m_2 \pstep^* m'$.
   \end{corollary}
 
-  \begin{theorem}
-    Types are non-linear. If $\Gamma; \Delta \vdash n : A$ then either $\Gamma; \cdot \vdash A : \U$ or $\Gamma; \cdot \vdash A : \L$.
-  \end{theorem}
+  \begin{lemma}
+    Value typing. If $\Gamma; \Delta \vdash v : A$ then $\Gamma; \cdot \vdash A : \U$ or $\Gamma; \cdot \vdash A : \L$.
+  \end{lemma}
 
-  \begin{theorem}
-    Value soundness. If $\Gamma; \Delta \vdash v : A$ then $\Delta = \cdot$.
-  \end{theorem}
+  \begin{lemma}
+    Value soundness. If $\Gamma; \Delta \vdash v : A$ and $\Gamma; \cdot \vdash A : \U$ then $\Delta = \cdot$.
+  \end{lemma}
 
 
 \end{document}
