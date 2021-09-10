@@ -66,6 +66,21 @@ Proof with eauto using value.
   unfold v_subst...
 Qed.
 
+Inductive step : term -> term -> Prop :=
+| step_tyBeta n v :
+  value v ->
+  step (App (TyLam n) v) (n.[v/])
+| step_lnBeta n v :
+  value v ->
+  step (App (LnLam n) v) (n.[v/])
+| step_appL m m' n :
+  step m m' ->
+  step (App m n) (App m' n)
+| step_appR v n n' :
+  value v ->
+  step n n' ->
+  step (App v n) (App v n').
+
 Inductive pstep : term -> term -> Prop :=
 | pstep_var x :
   pstep (Var x) (Var x)
@@ -115,6 +130,12 @@ Notation "s === t" := (conv pstep s t) (at level 50).
 
 Lemma pstep_refl s : pstep s s.
 Proof. elim: s; eauto using pstep. Qed.
+
+Lemma step_pstep n n' : step n n' -> pstep n n'.
+Proof with eauto using pstep, pstep_refl.
+  intros.
+  induction H...
+Qed.
 
 Lemma pstep_value v v' : pstep v v' -> value v -> value v'.
 Proof.

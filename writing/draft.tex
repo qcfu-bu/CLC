@@ -38,6 +38,7 @@
 \renewcommand{\L}{\textbf{L}}
 \newcommand{\lambdah}{\hat{\lambda}}
 \newcommand{\betah}{\hat{\beta}}
+\newcommand{\step}{\leadsto}
 \newcommand{\pstep}{\leadsto_p}
 
 % title and author
@@ -125,7 +126,7 @@
     \label{structural}
   \end{figure}
 
-  \subsection{Type Formation}
+  \subsection{Type Formation} \label{tyformation}
   Type formation rules are presented in Figure \ref{type}. Rules worth detailed discussion are the \rname{L-Axiom} and the rules for constructing various function types.
 
   For \rname{L-Axiom}, the universe of linear types itself belongs to the universe of non-linear types. This means that a linear type is itself a non-linear term, avoiding the philosophical trappings discussed above.
@@ -183,7 +184,9 @@
   \end{figure}
 
   \subsection{Term Formation}
-  Term formation rules are presented in Figure \ref{term}.
+  Term formation rules are presented in Figure \ref{term}. As outlined previously, terms constructed by $\lambda$ for non-linear function types $(x : A) \rightarrow B$ and $A \rightarrow B$ are only well type if their function bodies contain only non-linear variables listed in $\Gamma$. Conversely, terms constructed by $\lambdah$ for linear types $(x : A) \multimap B$ and $A \multimap B$ are allowed to contain both linear and non-linear variables listed in $\Gamma; \Delta$.
+
+  In classical dependent type theories such as Martin L\"{o}f Type Theory or Calculus of Constructions, strong normalization and confluence ensure that term normalization is agnostic to reduction strategy. Furthermore, the preservation theorem shows that reduction preserves the typing judgment of well-typed terms. The management of substructural contexts for dependent linear types complicates the direct use of these theorems. In the application rules $\rname{U-App-1}$ and $\rname{L-App-1}$, the argument $n$ is a non-linear term that may contain free variables in linear context $\Delta$. If a call-by-name reduction strategy is used, substitution of $n$ into the function body may cause duplication of its linear free variables. Some existing literature ban non-linear arguments from containing linear free variables. We find this approach to be overly restrictive as it excludes the pattern of freely using retrieved data (non-linear) from references (linear) ubiquitous in imperative programs. Instead, we adjust the operational semantics to favor call-by-value reduction strategy. Our value soundness theorem guarantees non-linear values to contain only non-linear free variables. Thus, substitution will no longer duplicate the linear free variables found in arguments.
 
   \begin{figure}[h]
     \caption{Term Formation}
@@ -267,7 +270,37 @@
     \label{term}
   \end{figure}
 
-  \subsection{Equality and Reduction}
+  \subsection{Reduction and Equality}
+  Figure \ref{single} presents the call-by-value operational semantics that we have eluded to. The rules defining the single step relation $\step$ are completely standard.
+
+  For full spectrum dependently typed languages, terms can appear at the type level. A definitional equality judgment is required to identify types beyond simple $\alpha$-equivalence. This is usually accomplished by normalization and comparing normal forms. Due to the complications brought on by linearity outlined in \ref{tyformation}, standard normalization techniques cannot be directly applied. Unfortunately, the single step relation $\step$ defined previously is not sufficient either as binders block full normalization. Following in the footsteps of the Trellys project, we define a call-by-value parallel step relation $\pstep$. The $\pstep$ relation is essentially the same as $\step$ except that it normalizes under binders. We use the transitive reflexive closure of $\pstep$ to define definitional equality.
+
+  \begin{figure}[h]
+    \caption{Single Step Reduction}
+    \begin{mathpar}
+      \inferrule
+      { }
+      { (\lambda x.n)\ v \step [v/x]n }
+      \rname{S-$\beta$}
+
+      \inferrule
+      { }
+      { (\lambdah x.n)\ v \step [v/x]n }
+      \rname{S-$\betah$}
+
+      \inferrule
+      { m \step m' }
+      { m\ n \step m'\ n }
+      \rname{S-App-L}
+
+      \inferrule
+      { n \step n' }
+      { v\ n \step v\ n' }
+      \rname{S-App-R}
+    \end{mathpar}
+    \label{single}
+  \end{figure}
+
 
   \begin{figure}[h]
     \caption{Equality}
@@ -285,73 +318,86 @@
       \inferrule
       { }
       { x \pstep x }
-      \rname{PR-Var}
+      \rname{P-Var}
 
       \inferrule
       { }
       { \U \pstep \U }
-      \rname{PR-U}
+      \rname{P-U}
 
       \inferrule
       { }
       { \L \pstep \L }
-      \rname{PR-L}
+      \rname{P-L}
 
       \inferrule
       { n \pstep n' }
       { \lambda x.n \pstep \lambda x.n' }
-      \rname{PR-$\lambda$}
+      \rname{P-$\lambda$}
 
       \inferrule
       { n \pstep n' }
       { \lambdah x.n \pstep \lambdah x.n' }
-      \rname{PR-$\lambdah$}
+      \rname{P-$\lambdah$}
 
       \inferrule
       { m \pstep m' \\ n \pstep n' }
       { m\ n \pstep m'\ n' }
-      \rname{PR-App}
+      \rname{P-App}
 
       \inferrule
       { n \pstep n' \\ v \pstep v' }
       { (\lambda x.n)\ v \pstep [v'/x]n' }
-      \rname{PR-$\beta$}
+      \rname{P-$\beta$}
 
       \inferrule
       { n \pstep n' \\ v \pstep v' }
       { (\lambdah x.n)\ v \pstep [v'/x]n' }
-      \rname{PR-$\betah$}
+      \rname{P-$\betah$}
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
       { (x : A) \rightarrow B \pstep (x : A') \rightarrow B' }
-      \rname{PR-U-Prod}
+      \rname{P-U-Prod}
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
       { A \rightarrow B \pstep A' \rightarrow B' }
-      \rname{PR-Arrow}
+      \rname{P-Arrow}
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
       { (x : A) \multimap B \pstep (x : A') \multimap B' }
-      \rname{PR-L-Prod}
+      \rname{P-L-Prod}
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
       { A \multimap B \pstep A' \multimap B' }
-      \rname{PR-L-Lolli}
+      \rname{P-L-Lolli}
     \end{mathpar}
+    \label{parallel}
   \end{figure}
 
   \subsection{Meta Theory}
+  \begin{lemma}
+    Single step reduction implies parallel step reduction. If $m \step m'$, then $m \pstep m'$.
+  \end{lemma}
 
   \begin{lemma}
     Parallel reduction satisfies the diamond property. If $m \pstep m_1$ and $m \pstep m_2$ then there exists $m'$ such that $m_1 \pstep m'$ and $m_2 \pstep m'$.
   \end{lemma}
 
-  \begin{lemma}
+  \begin{corollary}
     The transitive reflexive closure of parallel reduction is confluent. If $m \pstep^* m_1$ and $m \pstep^* m_2$ then there exists $m'$ such that $m_1 \pstep^* m'$ and $m_2 \pstep^* m'$.
-  \end{lemma}
+  \end{corollary}
+
+  \begin{theorem}
+    Types are non-linear. If $\Gamma; \Delta \vdash n : A$ then either $\Gamma; \cdot \vdash A : \U$ or $\Gamma; \cdot \vdash A : \L$.
+  \end{theorem}
+
+  \begin{theorem}
+    Value soundness. If $\Gamma; \Delta \vdash v : A$ then $\Delta = \cdot$.
+  \end{theorem}
+
 
 \end{document}
