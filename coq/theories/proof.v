@@ -407,9 +407,9 @@ Inductive has_type : seq term -> seq_opt term -> term -> term -> Prop :=
   [ Gamma ; nil |- A :- L ] ->
   [ Gamma ; nil |- B :- L ] ->
   [ Gamma ; nil |- Lolli A B :- L ]
-| u_var Gamma x : 
-  x < size Gamma ->
-  [ Gamma ; nil |- Var x :- Gamma`_x ]
+| u_var Gamma x A : 
+  has Gamma x A ->
+  [ Gamma ; nil |- Var x :- A ]
 | l_var Gamma Delta x A :
   only Delta x A ->
   [ Gamma ; Delta |- Var x :- A ]
@@ -449,6 +449,18 @@ Inductive has_type : seq term -> seq_opt term -> term -> term -> Prop :=
   [ Gamma ; Delta2 |- n :- A ] ->
   merge Delta1 Delta2 Delta ->
   [ Gamma ; Delta |- App m n :- B ]
+| u_conv Gamma Delta A B m :
+  [ Gamma ; nil |- A :- U ] ->
+  [ Gamma ; nil |- B :- U ] ->
+  A === B ->
+  [ Gamma ; Delta |- m :- A ] ->
+  [ Gamma ; Delta |- m :- B ]
+| l_conv Gamma Delta A B m :
+  [ Gamma ; nil |- A :- L ] ->
+  [ Gamma ; nil |- B :- L ] ->
+  A === B ->
+  [ Gamma ; Delta |- m :- A ] ->
+  [ Gamma ; Delta |- m :- B ]
 where "[ Gamma ; Delta |- s :- A ]" := (has_type Gamma Delta s A).
 
 Inductive context_ok : seq term -> seq_opt term -> Prop :=
@@ -463,3 +475,134 @@ Inductive context_ok : seq term -> seq_opt term -> Prop :=
   [ Gamma ; nil |- A :- L ] ->
   [ Gamma ; A ::: Delta |- ]
 where "[ Gamma ; Delta |- ]" := (context_ok Gamma Delta).
+
+(* Lemma ty_renaming Gamma1 s A :
+  [ Gamma1 ; nil |- s :- A ] ->
+  forall xi Gamma2,
+  (forall x, x < size Gamma1 -> xi x < size Gamma2) ->
+  (forall x, x < size Gamma1 -> (Gamma1`_x).[ren xi] = Gamma2`_(xi x)) ->
+  [ Gamma2 ; nil |- s.[ren xi] :- A.[ren xi] ].
+Proof with eauto using has_type.
+  intros.
+  dependent induction H.
+  - asimpl...
+  - asimpl...
+  - asimpl.
+    apply u_prod1.
+    replace U with (U.[ren xi]) by autosubst.
+    apply IHhas_type1...
+    replace U with (U.[ren (upren xi)]) by autosubst.
+    apply IHhas_type2...
+    intros; simpl; destruct x...
+    intros; simpl; destruct x; asimpl...
+    assert (x < size Gamma) by eauto.
+    pose proof (H2 _ H4).
+    rewrite <- H5; asimpl...
+  - asimpl.
+    apply u_prod2.
+    replace U with (U.[ren xi]) by autosubst.
+    apply IHhas_type1...
+    replace U with (U.[ren (upren xi)]) by autosubst.
+    apply IHhas_type2...
+    intros; simpl; destruct x...
+    intros; simpl; destruct x; asimpl...
+    assert (x < size Gamma) by eauto.
+    pose proof (H2 _ H4).
+    rewrite <- H5; asimpl...
+  - asimpl.
+    apply l_prod1.
+    replace U with (U.[ren xi]) by autosubst.
+    apply IHhas_type1...
+    replace U with (U.[ren (upren xi)]) by autosubst.
+    apply IHhas_type2...
+    intros; simpl; destruct x...
+    intros; simpl; destruct x; asimpl...
+    assert (x < size Gamma) by eauto.
+    pose proof (H2 _ H4).
+    rewrite <- H5; asimpl...
+  - asimpl.
+    apply l_prod2.
+    replace U with (U.[ren xi]) by autosubst.
+    apply IHhas_type1...
+    replace U with (U.[ren (upren xi)]) by autosubst.
+    apply IHhas_type2...
+    intros; simpl; destruct x...
+    intros; simpl; destruct x; asimpl...
+    assert (x < size Gamma) by eauto.
+    pose proof (H2 _ H4).
+    rewrite <- H5; asimpl...
+  - asimpl.
+    apply arrow1.
+    replace L with (L.[ren xi]) by autosubst.
+    apply IHhas_type1...
+    replace U with (U.[ren xi]) by autosubst.
+    apply IHhas_type2...
+  - asimpl.
+    apply arrow2.
+    replace L with (L.[ren xi]) by autosubst.
+    apply IHhas_type1...
+    replace L with (L.[ren xi]) by autosubst.
+    apply IHhas_type2...
+  - asimpl.
+    apply lolli1.
+    replace L with (L.[ren xi]) by autosubst.
+    apply IHhas_type1...
+    replace U with (U.[ren xi]) by autosubst.
+    apply IHhas_type2...
+  - asimpl.
+    apply lolli2.
+    replace L with (L.[ren xi]) by autosubst.
+    apply IHhas_type1...
+    replace L with (L.[ren xi]) by autosubst.
+    apply IHhas_type2...
+  - specialize (H0 _ H).
+    specialize (H1 _ H). *)
+
+Lemma has_inv Gamma A B x xi :
+  has (A :: Gamma) x B.[ren (upren xi)] ->
+  has Gamma x B.[ren xi].
+Proof.
+  intros.
+  induction x.
+  - inversion H.
+  
+Lemma ren_ok Gamma1 m A :
+  [ Gamma1 ; nil |- m :- A ] ->
+    forall Gamma2 xi,
+      (forall x B, has Gamma1 x B.[ren xi] -> has Gamma2 (xi x) B) ->
+      [ Gamma2 ; nil |- m.[ren xi] :- A.[ren xi] ].
+Proof with eauto using has_type.
+  intros.
+  dependent induction H.
+  - asimpl...
+  - asimpl...
+  - apply u_prod1.
+    replace U with (U.[ren xi]) by autosubst.
+    apply IHhas_type1...
+    asimpl.
+    replace U with (U.[ren (upren xi)]) by autosubst.
+    apply IHhas_type2...
+    intros; simpl.
+    inversion H2; subst; asimpl.
+    admit.
+
+    destruct H2.
+    asimpl.
+    eapply has_O.
+    intros; simpl; destruct x; asimpl...
+    assert (x < size Gamma) by eauto.
+    pose proof (H2 _ H4).
+    rewrite <- H5; asimpl...
+
+
+
+
+Lemma value_typing Gamma Delta v A :
+  [ Gamma ; Delta |- ] ->
+  [ Gamma ; Delta |- v :- A ] -> value v ->
+  [ Gamma ; nil |- A :- U ] \/ [ Gamma ; nil |- A :- L ].
+Proof with eauto using has_type.
+  intros.
+  induction H0...
+  - destruct H. inversion H0.
+  -

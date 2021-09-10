@@ -13,20 +13,27 @@ Definition seq_opt T := seq (option T).
 Definition cons_Some T (n : T) (Delta : seq_opt T) : seq_opt T := 
   Some n :: Delta.
 
-Inductive all_none T : seq_opt T -> Prop :=
+Inductive has {T} `{Ids T} `{Subst T} : seq T -> nat -> T -> Prop :=
+| has_O A Gamma :
+  has (A :: Gamma) O A.[ren (+1)]
+| has_S A B Gamma n : 
+  has Gamma n A ->
+  has (B :: Gamma) (S n) A.[ren (+1)].
+
+Inductive all_none {T} : seq_opt T -> Prop :=
 | nil_none : 
   all_none nil
 | cons_none Delta : 
   all_none Delta ->
   all_none (None :: Delta).
 
-Inductive only T : seq_opt T -> nat -> T -> Prop :=
+Inductive only {T} `{Ids T} `{Subst T} : seq_opt T -> nat -> T -> Prop :=
 | only_O A Delta : 
   all_none Delta ->
-  only (Some A :: Delta) O A
+  only (Some A :: Delta) O A.[ren (+1)]
 | only_S n Delta A : 
   only Delta n A ->
-  only (None :: Delta) (S n) A.
+  only (None :: Delta) (S n) A.[ren (+1)].
 
 Inductive merge T : seq_opt T -> seq_opt T -> seq_opt T -> Prop :=
 | merge_empty :

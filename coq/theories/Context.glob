@@ -1,4 +1,4 @@
-DIGEST e9b28561ea00653c6fdaf2da42ec8d95
+DIGEST fd693f57b941a9b2349880bcc55d6781
 FSsr.Context
 R118:126 mathcomp.ssreflect.ssreflect <> <> lib
 R128:134 mathcomp.ssreflect.ssrbool <> <> lib
@@ -25,239 +25,304 @@ R420:423 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
 R414:417 Coq.Init.Datatypes <> Some constr
 R419:419 Ssr.Context <> n:3 var
 R424:428 Ssr.Context <> Delta:4 var
-ind 442:449 <> all_none
-constr 478:485 <> nil_none
-constr 507:515 <> cons_none
-binder 451:451 <> T:5
-R464:467 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R455:461 Ssr.Context <> seq_opt def
-R492:499 Ssr.Context <> all_none:6 ind
-R501:503 Coq.Init.Datatypes <> nil constr
-binder 517:521 <> Delta:8
-R542:547 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R528:535 Ssr.Context <> all_none:6 ind
-R537:541 Ssr.Context <> Delta:8 var
-R548:555 Ssr.Context <> all_none:6 ind
-R562:565 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R558:561 Coq.Init.Datatypes <> None constr
-R566:570 Ssr.Context <> Delta:8 var
-ind 585:588 <> only
-constr 629:634 <> only_O
-constr 698:703 <> only_S
-binder 590:590 <> T:9
-R603:606 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R594:600 Ssr.Context <> seq_opt def
-R610:613 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R607:609 Coq.Init.Datatypes <> nat ind
-R615:618 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-binder 636:636 <> A:12
-binder 638:642 <> Delta:13
-R663:668 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R649:656 Ssr.Context <> all_none ind
-R658:662 Ssr.Context <> Delta:13 var
-R669:672 Ssr.Context <> only:10 ind
-R694:694 Ssr.Context <> A:12 var
-R692:692 Coq.Init.Datatypes <> O constr
-R681:684 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R675:678 Coq.Init.Datatypes <> Some constr
-R680:680 Ssr.Context <> A:12 var
-R685:689 Ssr.Context <> Delta:13 var
-binder 705:705 <> n:14
-binder 707:711 <> Delta:15
-binder 713:713 <> A:16
-R734:739 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R720:723 Ssr.Context <> only:10 ind
-R733:733 Ssr.Context <> A:16 var
-R731:731 Ssr.Context <> n:14 var
-R725:729 Ssr.Context <> Delta:15 var
-R740:743 Ssr.Context <> only:10 ind
-R767:767 Ssr.Context <> A:16 var
-R762:762 Coq.Init.Datatypes <> S constr
-R764:764 Ssr.Context <> n:14 var
-R750:753 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R746:749 Coq.Init.Datatypes <> None constr
-R754:758 Ssr.Context <> Delta:15 var
-ind 781:785 <> merge
-constr 840:850 <> merge_empty
-constr 876:886 <> merge_consL
-constr 997:1007 <> merge_consR
-binder 787:787 <> T:17
-R800:803 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R791:797 Ssr.Context <> seq_opt def
-R813:816 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R804:810 Ssr.Context <> seq_opt def
-R826:829 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R817:823 Ssr.Context <> seq_opt def
-R856:860 Ssr.Context <> merge:18 ind
-R870:872 Coq.Init.Datatypes <> nil constr
-R866:868 Coq.Init.Datatypes <> nil constr
-R862:864 Coq.Init.Datatypes <> nil constr
-binder 888:888 <> n:20
-binder 890:895 <> Delta1:21
-binder 897:902 <> Delta2:22
-binder 904:908 <> Delta:23
-R939:944 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R914:918 Ssr.Context <> merge:18 ind
-R934:938 Ssr.Context <> Delta:23 var
-R927:932 Ssr.Context <> Delta2:22 var
-R920:925 Ssr.Context <> Delta1:21 var
-R945:949 Ssr.Context <> merge:18 ind
-R984:987 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R983:983 Ssr.Context <> n:20 var
-R988:992 Ssr.Context <> Delta:23 var
-R970:973 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R966:969 Coq.Init.Datatypes <> None constr
-R974:979 Ssr.Context <> Delta2:22 var
-R953:956 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R952:952 Ssr.Context <> n:20 var
-R957:962 Ssr.Context <> Delta1:21 var
-binder 1009:1009 <> n:24
-binder 1011:1016 <> Delta1:25
-binder 1018:1023 <> Delta2:26
-binder 1025:1029 <> Delta:27
-R1060:1065 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1035:1039 Ssr.Context <> merge:18 ind
-R1055:1059 Ssr.Context <> Delta:27 var
-R1048:1053 Ssr.Context <> Delta2:26 var
-R1041:1046 Ssr.Context <> Delta1:25 var
-R1066:1070 Ssr.Context <> merge:18 ind
-R1105:1108 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1104:1104 Ssr.Context <> n:24 var
-R1109:1113 Ssr.Context <> Delta:27 var
-R1091:1094 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1090:1090 Ssr.Context <> n:24 var
-R1095:1100 Ssr.Context <> Delta2:26 var
-R1077:1080 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1073:1076 Coq.Init.Datatypes <> None constr
-R1081:1086 Ssr.Context <> Delta1:25 var
-R1145:1153 Ssr.Context <> cons_Some def
-not 1127:1127 <> :::x_':::'_x
-def 1189:1194 <> merge_
-binder 1196:1196 <> T:28
-R1215:1221 Ssr.Context <> seq_opt def
-R1223:1223 Ssr.Context <> T:28 var
-binder 1199:1204 <> Delta1:29
-binder 1206:1211 <> Delta2:30
-R1228:1234 Ssr.Context <> seq_opt def
-R1236:1236 Ssr.Context <> T:28 var
-R1257:1262 Ssr.Context <> Delta2:30 var
-R1249:1254 Ssr.Context <> Delta1:29 var
-R1273:1275 Coq.Init.Datatypes <> nil constr
-R1278:1280 Coq.Init.Datatypes <> nil constr
-R1285:1287 Coq.Init.Datatypes <> nil constr
-R1294:1297 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1310:1313 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1306:1309 Coq.Init.Datatypes <> None constr
-R1325:1329 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1350:1350 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1330:1335 Ssr.Context <> merge_:31 def
-R1344:1349 Ssr.Context <> Delta2:30 var
-R1337:1342 Ssr.Context <> Delta1:29 var
-R1360:1363 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1356:1359 Coq.Init.Datatypes <> None constr
-R1373:1376 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1388:1392 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1413:1413 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1393:1398 Ssr.Context <> merge_:31 def
-R1407:1412 Ssr.Context <> Delta2:30 var
-R1400:1405 Ssr.Context <> Delta1:29 var
-R1427:1429 Coq.Init.Datatypes <> nil constr
-prf 1445:1452 <> merge_ok
-binder 1454:1454 <> T:34
-R1479:1485 Ssr.Context <> seq_opt def
-R1487:1487 Ssr.Context <> T:34 var
-binder 1457:1462 <> Delta1:35
-binder 1464:1469 <> Delta2:36
-binder 1471:1475 <> Delta:37
-R1519:1526 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1494:1498 Ssr.Context <> merge ind
-R1514:1518 Ssr.Context <> Delta:37 var
-R1507:1512 Ssr.Context <> Delta2:36 var
-R1500:1505 Ssr.Context <> Delta1:35 var
-R1532:1534 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R1527:1531 Ssr.Context <> Delta:37 var
-R1535:1540 Ssr.Context <> merge_ def
-R1549:1554 Ssr.Context <> Delta2:36 var
-R1542:1547 Ssr.Context <> Delta1:35 var
-def 1683:1685 <> get
-binder 1688:1688 <> T:38
-R1693:1695 Autosubst.Autosubst_Classes <> Ids class
-R1697:1697 Ssr.Context <> T:38 var
-binder 1693:1697 <> H:39
-R1709:1711 mathcomp.ssreflect.seq <> seq syndef
-R1713:1713 Ssr.Context <> T:38 var
-binder 1701:1705 <> Gamma:40
-R1721:1723 Autosubst.Autosubst_Basics <> var def
-binder 1717:1717 <> n:41
-R1728:1728 Ssr.Context <> T:38 var
-R1735:1737 mathcomp.ssreflect.seq <> nth def
-R1753:1753 Ssr.Context <> n:41 var
-R1747:1751 Ssr.Context <> Gamma:40 var
-R1740:1742 Autosubst.Autosubst_Classes <> ids def
-R1766:1768 Ssr.Context <> get def
-R1766:1768 Ssr.Context <> get def
-def 1795:1798 <> dget
-binder 1801:1801 <> T:42
-R1806:1808 Autosubst.Autosubst_Classes <> Ids class
-R1810:1810 Ssr.Context <> T:42 var
-binder 1806:1810 <> H:43
-R1815:1819 Autosubst.Autosubst_Classes <> Subst class
-R1821:1821 Ssr.Context <> T:42 var
-binder 1815:1821 <> H0:44
-R1833:1836 Coq.Init.Datatypes <> list ind
-R1838:1838 Ssr.Context <> T:42 var
-binder 1825:1829 <> Gamma:45
-R1846:1848 Autosubst.Autosubst_Basics <> var def
-binder 1842:1842 <> n:46
-R1864:1864 Ssr.Context <> T:42 var
-R1884:1884 Ssr.Context <> n:46 var
-R1877:1881 Ssr.Context <> Gamma:45 var
-R1897:1900 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
-R1908:1910 Autosubst.Autosubst_Classes <> ids def
-R1921:1924 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1934:1935 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
-R1944:1944 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
-R1936:1938 Autosubst.Autosubst_Classes <> ren def
-R1940:1941 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
-R1943:1943 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
-R1953:1956 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1965:1967 mathcomp.ssreflect.ssrnat <> ::nat_scope:x_'.+1' not
-R1972:1972 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
-R1985:1987 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
-R1996:1996 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
-R1988:1990 Autosubst.Autosubst_Classes <> ren def
-R1992:1993 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
-R1995:1995 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
-R1973:1976 Ssr.Context <> dget:47 def
-R1984:1984 Ssr.Context <> n:46 var
-R1978:1982 Ssr.Context <> Gamma:45 var
-R2015:2018 Ssr.Context <> dget def
-R2015:2018 Ssr.Context <> dget def
-prf 2044:2050 <> get_map
-binder 2053:2053 <> T:50
-R2058:2060 Autosubst.Autosubst_Classes <> Ids class
-R2062:2062 Ssr.Context <> T:50 var
-binder 2058:2062 <> H:51
-R2071:2074 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2070:2070 Ssr.Context <> T:50 var
-R2075:2075 Ssr.Context <> T:50 var
-binder 2066:2066 <> f:52
-binder 2078:2082 <> Gamma:53
-binder 2084:2084 <> n:54
-R2104:2107 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2091:2093 mathcomp.ssreflect.ssrnat <> ::nat_scope:x_'<'_x not
-R2090:2090 Ssr.Context <> n:54 var
-R2094:2097 mathcomp.ssreflect.seq <> size def
-R2099:2103 Ssr.Context <> Gamma:53 var
-R2127:2129 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R2108:2110 Ssr.Context <> get def
-R2126:2126 Ssr.Context <> n:54 var
-R2113:2115 mathcomp.ssreflect.seq <> map def
-R2119:2123 Ssr.Context <> Gamma:53 var
-R2117:2117 Ssr.Context <> f:52 var
-R2130:2130 Ssr.Context <> f:52 var
-R2133:2135 Ssr.Context <> get def
-R2143:2143 Ssr.Context <> n:54 var
-R2137:2141 Ssr.Context <> Gamma:53 var
-R2161:2167 mathcomp.ssreflect.seq <> nth_map thm
-R2161:2167 mathcomp.ssreflect.seq <> nth_map thm
+ind 442:444 <> has
+constr 503:507 <> has_O
+constr 555:559 <> has_S
+binder 447:447 <> T:5
+R452:454 Autosubst.Autosubst_Classes <> Ids class
+R456:456 Ssr.Context <> T:5 var
+binder 452:456 <> H:6
+R461:465 Autosubst.Autosubst_Classes <> Subst class
+R467:467 Ssr.Context <> T:5 var
+binder 461:467 <> H0:7
+R477:480 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R472:474 mathcomp.ssreflect.seq <> seq syndef
+R484:487 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R481:483 Coq.Init.Datatypes <> nat ind
+R489:492 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+binder 509:509 <> A:10
+binder 511:515 <> Gamma:11
+R521:523 Ssr.Context <> has:8 ind
+R541:542 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R551:551 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R543:545 Autosubst.Autosubst_Classes <> ren def
+R547:548 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R550:550 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R540:540 Ssr.Context <> A:10 var
+R538:538 Coq.Init.Datatypes <> O constr
+R527:530 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R526:526 Ssr.Context <> A:10 var
+R531:535 Ssr.Context <> Gamma:11 var
+binder 561:561 <> A:12
+binder 563:563 <> B:13
+binder 565:569 <> Gamma:14
+binder 571:571 <> n:15
+R591:596 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R578:580 Ssr.Context <> has:8 ind
+R590:590 Ssr.Context <> A:12 var
+R588:588 Ssr.Context <> n:15 var
+R582:586 Ssr.Context <> Gamma:14 var
+R597:599 Ssr.Context <> has:8 ind
+R621:622 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R631:631 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R623:625 Autosubst.Autosubst_Classes <> ren def
+R627:628 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R630:630 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R620:620 Ssr.Context <> A:12 var
+R615:615 Coq.Init.Datatypes <> S constr
+R617:617 Ssr.Context <> n:15 var
+R603:606 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R602:602 Ssr.Context <> B:13 var
+R607:611 Ssr.Context <> Gamma:14 var
+ind 645:652 <> all_none
+constr 683:690 <> nil_none
+constr 712:720 <> cons_none
+binder 655:655 <> T:16
+R669:672 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R660:666 Ssr.Context <> seq_opt def
+R697:704 Ssr.Context <> all_none:17 ind
+R706:708 Coq.Init.Datatypes <> nil constr
+binder 722:726 <> Delta:19
+R747:752 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R733:740 Ssr.Context <> all_none:17 ind
+R742:746 Ssr.Context <> Delta:19 var
+R753:760 Ssr.Context <> all_none:17 ind
+R767:770 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R763:766 Coq.Init.Datatypes <> None constr
+R771:775 Ssr.Context <> Delta:19 var
+ind 790:793 <> only
+constr 856:861 <> only_O
+constr 936:941 <> only_S
+binder 796:796 <> T:20
+R801:803 Autosubst.Autosubst_Classes <> Ids class
+R805:805 Ssr.Context <> T:20 var
+binder 801:805 <> H:21
+R810:814 Autosubst.Autosubst_Classes <> Subst class
+R816:816 Ssr.Context <> T:20 var
+binder 810:816 <> H0:22
+R830:833 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R821:827 Ssr.Context <> seq_opt def
+R837:840 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R834:836 Coq.Init.Datatypes <> nat ind
+R842:845 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+binder 863:863 <> A:25
+binder 865:869 <> Delta:26
+R890:895 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R876:883 Ssr.Context <> all_none ind
+R885:889 Ssr.Context <> Delta:26 var
+R896:899 Ssr.Context <> only:23 ind
+R922:923 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R932:932 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R924:926 Autosubst.Autosubst_Classes <> ren def
+R928:929 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R931:931 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R921:921 Ssr.Context <> A:25 var
+R919:919 Coq.Init.Datatypes <> O constr
+R908:911 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R902:905 Coq.Init.Datatypes <> Some constr
+R907:907 Ssr.Context <> A:25 var
+R912:916 Ssr.Context <> Delta:26 var
+binder 943:943 <> n:27
+binder 945:949 <> Delta:28
+binder 951:951 <> A:29
+R972:977 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R958:961 Ssr.Context <> only:23 ind
+R971:971 Ssr.Context <> A:29 var
+R969:969 Ssr.Context <> n:27 var
+R963:967 Ssr.Context <> Delta:28 var
+R978:981 Ssr.Context <> only:23 ind
+R1006:1007 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R1016:1016 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R1008:1010 Autosubst.Autosubst_Classes <> ren def
+R1012:1013 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R1015:1015 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R1005:1005 Ssr.Context <> A:29 var
+R1000:1000 Coq.Init.Datatypes <> S constr
+R1002:1002 Ssr.Context <> n:27 var
+R988:991 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R984:987 Coq.Init.Datatypes <> None constr
+R992:996 Ssr.Context <> Delta:28 var
+ind 1030:1034 <> merge
+constr 1089:1099 <> merge_empty
+constr 1125:1135 <> merge_consL
+constr 1246:1256 <> merge_consR
+binder 1036:1036 <> T:30
+R1049:1052 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1040:1046 Ssr.Context <> seq_opt def
+R1062:1065 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1053:1059 Ssr.Context <> seq_opt def
+R1075:1078 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1066:1072 Ssr.Context <> seq_opt def
+R1105:1109 Ssr.Context <> merge:31 ind
+R1119:1121 Coq.Init.Datatypes <> nil constr
+R1115:1117 Coq.Init.Datatypes <> nil constr
+R1111:1113 Coq.Init.Datatypes <> nil constr
+binder 1137:1137 <> n:33
+binder 1139:1144 <> Delta1:34
+binder 1146:1151 <> Delta2:35
+binder 1153:1157 <> Delta:36
+R1188:1193 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1163:1167 Ssr.Context <> merge:31 ind
+R1183:1187 Ssr.Context <> Delta:36 var
+R1176:1181 Ssr.Context <> Delta2:35 var
+R1169:1174 Ssr.Context <> Delta1:34 var
+R1194:1198 Ssr.Context <> merge:31 ind
+R1233:1236 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1232:1232 Ssr.Context <> n:33 var
+R1237:1241 Ssr.Context <> Delta:36 var
+R1219:1222 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1215:1218 Coq.Init.Datatypes <> None constr
+R1223:1228 Ssr.Context <> Delta2:35 var
+R1202:1205 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1201:1201 Ssr.Context <> n:33 var
+R1206:1211 Ssr.Context <> Delta1:34 var
+binder 1258:1258 <> n:37
+binder 1260:1265 <> Delta1:38
+binder 1267:1272 <> Delta2:39
+binder 1274:1278 <> Delta:40
+R1309:1314 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1284:1288 Ssr.Context <> merge:31 ind
+R1304:1308 Ssr.Context <> Delta:40 var
+R1297:1302 Ssr.Context <> Delta2:39 var
+R1290:1295 Ssr.Context <> Delta1:38 var
+R1315:1319 Ssr.Context <> merge:31 ind
+R1354:1357 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1353:1353 Ssr.Context <> n:37 var
+R1358:1362 Ssr.Context <> Delta:40 var
+R1340:1343 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1339:1339 Ssr.Context <> n:37 var
+R1344:1349 Ssr.Context <> Delta2:39 var
+R1326:1329 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1322:1325 Coq.Init.Datatypes <> None constr
+R1330:1335 Ssr.Context <> Delta1:38 var
+R1394:1402 Ssr.Context <> cons_Some def
+not 1376:1376 <> :::x_':::'_x
+def 1438:1443 <> merge_
+binder 1445:1445 <> T:41
+R1464:1470 Ssr.Context <> seq_opt def
+R1472:1472 Ssr.Context <> T:41 var
+binder 1448:1453 <> Delta1:42
+binder 1455:1460 <> Delta2:43
+R1477:1483 Ssr.Context <> seq_opt def
+R1485:1485 Ssr.Context <> T:41 var
+R1506:1511 Ssr.Context <> Delta2:43 var
+R1498:1503 Ssr.Context <> Delta1:42 var
+R1522:1524 Coq.Init.Datatypes <> nil constr
+R1527:1529 Coq.Init.Datatypes <> nil constr
+R1534:1536 Coq.Init.Datatypes <> nil constr
+R1543:1546 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1559:1562 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1555:1558 Coq.Init.Datatypes <> None constr
+R1574:1578 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1599:1599 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1579:1584 Ssr.Context <> merge_:44 def
+R1593:1598 Ssr.Context <> Delta2:43 var
+R1586:1591 Ssr.Context <> Delta1:42 var
+R1609:1612 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1605:1608 Coq.Init.Datatypes <> None constr
+R1622:1625 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1637:1641 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1662:1662 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1642:1647 Ssr.Context <> merge_:44 def
+R1656:1661 Ssr.Context <> Delta2:43 var
+R1649:1654 Ssr.Context <> Delta1:42 var
+R1676:1678 Coq.Init.Datatypes <> nil constr
+prf 1694:1701 <> merge_ok
+binder 1703:1703 <> T:47
+R1728:1734 Ssr.Context <> seq_opt def
+R1736:1736 Ssr.Context <> T:47 var
+binder 1706:1711 <> Delta1:48
+binder 1713:1718 <> Delta2:49
+binder 1720:1724 <> Delta:50
+R1768:1775 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1743:1747 Ssr.Context <> merge ind
+R1763:1767 Ssr.Context <> Delta:50 var
+R1756:1761 Ssr.Context <> Delta2:49 var
+R1749:1754 Ssr.Context <> Delta1:48 var
+R1781:1783 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1776:1780 Ssr.Context <> Delta:50 var
+R1784:1789 Ssr.Context <> merge_ def
+R1798:1803 Ssr.Context <> Delta2:49 var
+R1791:1796 Ssr.Context <> Delta1:48 var
+def 1932:1934 <> get
+binder 1937:1937 <> T:51
+R1942:1944 Autosubst.Autosubst_Classes <> Ids class
+R1946:1946 Ssr.Context <> T:51 var
+binder 1942:1946 <> H:52
+R1958:1960 mathcomp.ssreflect.seq <> seq syndef
+R1962:1962 Ssr.Context <> T:51 var
+binder 1950:1954 <> Gamma:53
+R1970:1972 Autosubst.Autosubst_Basics <> var def
+binder 1966:1966 <> n:54
+R1977:1977 Ssr.Context <> T:51 var
+R1984:1986 mathcomp.ssreflect.seq <> nth def
+R2002:2002 Ssr.Context <> n:54 var
+R1996:2000 Ssr.Context <> Gamma:53 var
+R1989:1991 Autosubst.Autosubst_Classes <> ids def
+R2015:2017 Ssr.Context <> get def
+R2015:2017 Ssr.Context <> get def
+def 2044:2047 <> dget
+binder 2050:2050 <> T:55
+R2055:2057 Autosubst.Autosubst_Classes <> Ids class
+R2059:2059 Ssr.Context <> T:55 var
+binder 2055:2059 <> H:56
+R2064:2068 Autosubst.Autosubst_Classes <> Subst class
+R2070:2070 Ssr.Context <> T:55 var
+binder 2064:2070 <> H0:57
+R2082:2085 Coq.Init.Datatypes <> list ind
+R2087:2087 Ssr.Context <> T:55 var
+binder 2074:2078 <> Gamma:58
+R2095:2097 Autosubst.Autosubst_Basics <> var def
+binder 2091:2091 <> n:59
+R2113:2113 Ssr.Context <> T:55 var
+R2133:2133 Ssr.Context <> n:59 var
+R2126:2130 Ssr.Context <> Gamma:58 var
+R2146:2149 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
+R2157:2159 Autosubst.Autosubst_Classes <> ids def
+R2170:2173 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R2183:2184 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R2193:2193 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R2185:2187 Autosubst.Autosubst_Classes <> ren def
+R2189:2190 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R2192:2192 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R2202:2205 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R2214:2216 mathcomp.ssreflect.ssrnat <> ::nat_scope:x_'.+1' not
+R2221:2221 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R2234:2236 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R2245:2245 Autosubst.Autosubst_Classes <> ::subst_scope:x_'.['_x_']' not
+R2237:2239 Autosubst.Autosubst_Classes <> ren def
+R2241:2242 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R2244:2244 Autosubst.Autosubst_Basics <> :::'('_'+'_x_')' not
+R2222:2225 Ssr.Context <> dget:60 def
+R2233:2233 Ssr.Context <> n:59 var
+R2227:2231 Ssr.Context <> Gamma:58 var
+R2264:2267 Ssr.Context <> dget def
+R2264:2267 Ssr.Context <> dget def
+prf 2293:2299 <> get_map
+binder 2302:2302 <> T:63
+R2307:2309 Autosubst.Autosubst_Classes <> Ids class
+R2311:2311 Ssr.Context <> T:63 var
+binder 2307:2311 <> H:64
+R2320:2323 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2319:2319 Ssr.Context <> T:63 var
+R2324:2324 Ssr.Context <> T:63 var
+binder 2315:2315 <> f:65
+binder 2327:2331 <> Gamma:66
+binder 2333:2333 <> n:67
+R2353:2356 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2340:2342 mathcomp.ssreflect.ssrnat <> ::nat_scope:x_'<'_x not
+R2339:2339 Ssr.Context <> n:67 var
+R2343:2346 mathcomp.ssreflect.seq <> size def
+R2348:2352 Ssr.Context <> Gamma:66 var
+R2376:2378 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2357:2359 Ssr.Context <> get def
+R2375:2375 Ssr.Context <> n:67 var
+R2362:2364 mathcomp.ssreflect.seq <> map def
+R2368:2372 Ssr.Context <> Gamma:66 var
+R2366:2366 Ssr.Context <> f:65 var
+R2379:2379 Ssr.Context <> f:65 var
+R2382:2384 Ssr.Context <> get def
+R2392:2392 Ssr.Context <> n:67 var
+R2386:2390 Ssr.Context <> Gamma:66 var
+R2410:2416 mathcomp.ssreflect.seq <> nth_map thm
+R2410:2416 mathcomp.ssreflect.seq <> nth_map thm
