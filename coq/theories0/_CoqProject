@@ -1,6 +1,0 @@
--R ../autosubst/theories Autosubst
--R . Ssr
-
-AutosubstSsr.v
-ARS.v
-Context.v
