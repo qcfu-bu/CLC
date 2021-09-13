@@ -1,4 +1,4 @@
-DIGEST 34684c6d5899bceabbe050980414062d
+DIGEST 5fcc387ef02154cfd5e67f91b0792392
 FSsr.Context
 R118:126 mathcomp.ssreflect.ssreflect <> <> lib
 R128:134 mathcomp.ssreflect.ssrbool <> <> lib
@@ -359,3 +359,30 @@ R2693:2695 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R2688:2692 Ssr.Context <> Gamma:72 var
 R2696:2697 Ssr.Context <> re def
 R2699:2703 Ssr.Context <> Gamma:72 var
+prf 2856:2862 <> hasL_re
+binder 2865:2865 <> T:73
+R2870:2872 Autosubst.Autosubst_Classes <> Ids class
+R2874:2874 Ssr.Context <> T:73 var
+binder 2870:2874 <> H:74
+R2879:2883 Autosubst.Autosubst_Classes <> Subst class
+R2885:2885 Ssr.Context <> T:73 var
+binder 2879:2885 <> H0:75
+R2897:2903 Ssr.Context <> context def
+R2905:2905 Ssr.Context <> T:73 var
+binder 2889:2893 <> Gamma:76
+binder 2908:2908 <> x:77
+binder 2910:2910 <> A:78
+R2930:2933 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2916:2919 Ssr.Context <> hasL ind
+R2929:2929 Ssr.Context <> A:78 var
+R2927:2927 Ssr.Context <> x:77 var
+R2921:2925 Ssr.Context <> Gamma:76 var
+R2934:2937 Ssr.Context <> hasL ind
+R2952:2952 Ssr.Context <> A:78 var
+R2950:2950 Ssr.Context <> x:77 var
+R2940:2941 Ssr.Context <> re def
+R2943:2947 Ssr.Context <> Gamma:76 var
+R3016:3022 Ssr.Context <> pure_re thm
+R3016:3022 Ssr.Context <> pure_re thm
+R3016:3022 Ssr.Context <> pure_re thm
+R3016:3022 Ssr.Context <> pure_re thm

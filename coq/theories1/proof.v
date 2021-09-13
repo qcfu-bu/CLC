@@ -900,10 +900,27 @@ Qed.
 Lemma value_typing Gamma v A :
   [ Gamma |- ] ->
   [ Gamma |- v :- A ] -> value v ->
-  [ Gamma |- A :- U ] \/ [ Gamma |- A :- L ].
-Proof with eauto using has_type.
+  [ re Gamma |- A :- U ] \/ [ re Gamma |- A :- L ].
+Proof.
   intros.
-  induction H0...
+  induction H0;
+  try solve [left; constructor; rewrite <- pure_re; eauto].
   - left.
-    eapply hasL_ok; eauto.
-  -
+    eapply hasL_ok.
+    apply re_ok; eauto.
+    apply hasL_re; eauto.
+  - right.
+    eapply hasR_ok; eauto.
+  - left.
+    rewrite <- pure_re; eauto.
+  - left.
+    rewrite <- pure_re; eauto.
+  - right; eauto.
+  - right; eauto.
+  - inversion H1.
+  - inversion H1.
+  - inversion H1.
+  - inversion H1.
+  - left; eauto.
+  - right; eauto.
+Qed.

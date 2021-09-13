@@ -107,3 +107,13 @@ Proof.
     rewrite <- IHGamma; eauto.
     rewrite <- IHGamma; eauto.
 Qed.
+
+Lemma hasL_re {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
+  hasL Gamma x A -> hasL (re Gamma) x A.
+Proof.
+  induction 1; simpl.
+  - constructor.
+    rewrite <- pure_re; eauto.
+  - constructor; eauto.
+  - constructor; eauto.
+Qed.
