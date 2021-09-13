@@ -847,7 +847,6 @@ Proof.
   induction 1; intros.
   - inversion H.
   - inversion H1; subst; simpl.
-    asimpl.
     replace U with (U.[ren (+1)]) by autosubst.
     eapply rename_ok.
     apply H0.
@@ -870,6 +869,34 @@ Proof.
     apply agree_refl.
 Qed.
 
+Lemma hasR_ok Gamma :
+  [ Gamma |- ] ->
+  forall x A,
+    hasR Gamma x A ->
+    [ re Gamma |- A :- L ].
+Proof.
+  induction 1; intros.
+  - inversion H.
+  - inversion H1; subst; simpl.
+    replace L with (L.[ren (+1)]) by autosubst.
+    eapply rename_ok.
+    eapply IHcontext_ok; eauto.
+    apply agree_wkL.
+    apply agree_refl.
+  - inversion H1; subst; simpl.
+    replace L with (L.[ren (+1)]) by autosubst.
+    eapply rename_ok.
+    apply H0.
+    apply agree_wkN.
+    apply agree_refl.
+  - inversion H0; subst; simpl.
+    replace L with (L.[ren (+1)]) by autosubst.
+    eapply rename_ok.
+    eapply IHcontext_ok; eauto.
+    apply agree_wkN.
+    apply agree_refl.
+Qed.
+
 Lemma value_typing Gamma v A :
   [ Gamma |- ] ->
   [ Gamma |- v :- A ] -> value v ->
@@ -877,5 +904,6 @@ Lemma value_typing Gamma v A :
 Proof with eauto using has_type.
   intros.
   induction H0...
-  -
+  - left.
+    eapply hasL_ok; eauto.
   -
