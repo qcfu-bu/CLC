@@ -1,7 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
-From Coq Require Import ssrfun.
+From Coq Require Import ssrfun Program.
 Require Import AutosubstSsr ARS Context.
-Require Import Coq.Program.Equality.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -544,7 +543,33 @@ Inductive agree : (var -> var) ->
   agree (upren xi) (m :R Gamma) (m.[ren xi] :R Gamma')
 | agree_N Gamma Gamma' xi :
   agree xi Gamma Gamma' ->
-  agree (upren xi) (:N Gamma) (:N Gamma').
+  agree (upren xi) (:N Gamma) (:N Gamma')
+| agree_wkL Gamma Gamma' xi m :
+  agree xi Gamma Gamma' ->
+  agree ((+1) ∘ xi) (Gamma) (m :L Gamma')
+| agree_wkN Gamma Gamma' xi :
+  agree xi Gamma Gamma' ->
+  agree ((+1) ∘ xi) (Gamma) (:N Gamma').
+
+Lemma agree_refl Gamma :
+  agree id Gamma Gamma.
+Proof.
+  induction Gamma.
+  - constructor.
+  - destruct a. 
+    replace (agree id (Left t :: Gamma) (Left t :: Gamma))
+      with (agree (upren id) (t :L Gamma) (t.[ren id] :L Gamma))
+      by autosubst.
+    constructor; eauto.
+    replace (agree id (Right t :: Gamma) (Right t :: Gamma))
+      with (agree (upren id) (t :R Gamma) (t.[ren id] :R Gamma))
+      by autosubst.
+    constructor; eauto.
+    replace (agree id (Null _ :: Gamma) (Null _ :: Gamma))
+      with (agree (upren id) (:N Gamma) (:N Gamma))
+      by autosubst.
+    constructor; eauto.
+Qed.
 
 Lemma agree_pure Gamma Gamma' xi :
   agree xi Gamma Gamma' ->
@@ -557,6 +582,8 @@ Proof.
   - inversion H0.
   - inversion H0; subst; eauto.
     constructor; eauto.
+  - constructor; eauto.
+  - constructor; eauto.
 Qed.
 
 Lemma agree_re_re Gamma Gamma' xi :
@@ -592,6 +619,14 @@ Proof.
       with (m.[ren xi].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree; eauto.
+  - replace (A.[ren ((+1) ∘ xi)])
+      with (A.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    apply IHagree; eauto.
+  - replace (A.[ren ((+1) ∘ xi)])
+      with (A.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    apply IHagree; eauto.
 Qed.
 
 Lemma agree_hasR Gamma Gamma' xi :
@@ -618,6 +653,14 @@ Proof.
   - inversion H; subst.
     replace (m.[ren (+1)].[ren (upren xi)]) 
       with (m.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    apply IHagree; eauto.
+  - replace (A.[ren ((+1) ∘ xi)])
+      with (A.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    apply IHagree; eauto.
+  - replace (A.[ren ((+1) ∘ xi)])
+      with (A.[ren xi].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree; eauto.
 Qed.
@@ -654,9 +697,24 @@ Proof.
     exists (m.[ren xi] :R x0).
     repeat constructor; eauto.
   - inversion H0; subst.
+    pose proof (IHagree _ _ H4).
+    firstorder.
+    exists (:N x).
+    exists (:N x0).
+    repeat constructor; eauto.
+  - pose proof (IHagree _ _ H0).
+    firstorder.
+    exists (m :L x).
+    exists (m :L x0).
+    repeat constructor; eauto.
+  - pose proof (IHagree _ _ H0).
+    firstorder.
+    exists (:N x).
+    exists (:N x0).
+    repeat constructor; eauto.
 Qed.
 
-Lemma rename Gamma m A :
+Lemma rename_ok Gamma m A :
   [ Gamma |- m :- A ] ->
   forall Gamma' xi,
     agree xi Gamma Gamma' ->
@@ -784,12 +842,33 @@ Lemma hasL_ok Gamma :
   [ Gamma |- ] ->
   forall x A,
     hasL Gamma x A ->
-    [ re Gamma |- A :- U ].
+    [ Gamma |- A :- U ].
 Proof.
-  intro H.
-  induction H; intros.
+  induction 1; intros.
   - inversion H.
   - inversion H1; subst; simpl.
+    asimpl.
+    replace U with (U.[ren (+1)]) by autosubst.
+    eapply rename_ok.
+    apply H0.
+    apply agree_wkL.
+    rewrite <- pure_re; eauto.
+    apply agree_refl.
+    replace U with (U.[ren (+1)]) by autosubst.
+    eapply rename_ok.
+    eapply IHcontext_ok.
+    apply H6.
+    apply agree_wkL.
+    apply agree_refl.
+  - inversion H1.
+  - inversion H0; subst.
+    replace U with (U.[ren (+1)]) by autosubst.
+    eapply rename_ok.
+    eapply IHcontext_ok.
+    apply H2.
+    apply agree_wkN.
+    apply agree_refl.
+Qed.
 
 Lemma value_typing Gamma v A :
   [ Gamma |- ] ->
@@ -798,5 +877,5 @@ Lemma value_typing Gamma v A :
 Proof with eauto using has_type.
   intros.
   induction H0...
-  - inversion H0.
+  -
   -

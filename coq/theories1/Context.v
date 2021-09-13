@@ -37,7 +37,10 @@ Inductive merge T : context T -> context T -> context T -> Prop :=
   merge (m :R Gamma1) (:N Gamma2) (m :R Gamma)
 | merge_right2 Gamma1 Gamma2 Gamma m :
   merge Gamma1 Gamma2 Gamma ->
-  merge (:N Gamma1) (m :R Gamma2) (m :R Gamma).
+  merge (:N Gamma1) (m :R Gamma2) (m :R Gamma)
+| merge_null Gamma1 Gamma2 Gamma :
+  merge Gamma1 Gamma2 Gamma ->
+  merge (:N Gamma1) (:N Gamma2) (:N Gamma).
 
 Inductive pure T : context T -> Prop :=
 | pure_nil :
@@ -93,4 +96,14 @@ Proof.
     reflexivity.
     rewrite <- IHGamma.
     reflexivity.
+Qed.
+
+Lemma pure_re T (Gamma : context T) :
+  pure Gamma -> Gamma = re Gamma.
+Proof.
+  induction Gamma; intros.
+  - eauto.
+  - inversion H; subst; simpl.
+    rewrite <- IHGamma; eauto.
+    rewrite <- IHGamma; eauto.
 Qed.
