@@ -117,3 +117,9 @@ Proof.
   - constructor; eauto.
   - constructor; eauto.
 Qed.
+
+Lemma hasL_pure {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
+  hasL Gamma x A -> pure Gamma.
+Proof.
+  induction 1; simpl; constructor; eauto.
+Qed.

@@ -351,18 +351,29 @@ Proof with eauto using pstep_refl, star.
   exists x0. split...
 Qed.
 
-Lemma confluence m m1 m2 :
-  red m m1 -> red m m2 -> 
-    exists m', red m1 m' /\ red m2 m'.
+Theorem confluence :
+  confluent pstep.
 Proof with eauto using pstep_refl, star.
+  unfold confluent.
+  unfold joinable.
   intros.
   dependent induction H.
-  - exists m2. split...
+  - exists z; eauto.
   - firstorder.
     pose proof (strip H0 H2). firstorder.
-    exists x0. split...
+    exists x1; eauto.
+    eapply star_trans.
+    apply H3.
+    apply star1; eauto.
 Qed.
 Hint Resolve confluence.
+
+Theorem church_rosser :
+  CR pstep.
+Proof.
+  apply confluent_cr; eauto.
+Qed.
+Hint Resolve church_rosser.
 
 Lemma conv_subst sigma s t : 
   v_subst sigma ->
@@ -897,6 +908,30 @@ Proof.
     apply agree_refl.
 Qed.
 
+Lemma conv_U_L : ~(U === L).
+Proof.
+  unfold not.
+  intros.
+  apply confluence in H.
+
+Lemma u_axiom_ok Gamma A :
+  ~([ Gamma |- U :- A ] /\ A === L).
+Proof.
+  unfold not.
+  intros.
+  destruct H.
+  dependent induction H.
+
+Lemma typing_uniq Gamma :
+  [ Gamma |- ] ->
+    forall A, ~ ([ Gamma |- A :- U ] /\ [ Gamma |- A :- L ]).
+Proof.
+  unfold not.
+  intros.
+  destruct H0.
+  dependent induction H0; intros; eauto.
+  - inversion H1.
+
 Lemma value_typing Gamma v A :
   [ Gamma |- ] ->
   [ Gamma |- v :- A ] -> value v ->
@@ -924,3 +959,16 @@ Proof.
   - left; eauto.
   - right; eauto.
 Qed.
+
+Lemma value_soundness Gamma v A :
+  [ Gamma |- ] ->
+  [ Gamma |- v :- A ] -> 
+  [ re Gamma |- A :- U ] -> 
+  value v -> pure Gamma.
+Proof.
+  intros.
+  induction H0; eauto.
+  - eapply hasL_pure; eauto.
+    admit.
+    admit.
+    admit.

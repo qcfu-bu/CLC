@@ -1,4 +1,4 @@
-DIGEST 5fcc387ef02154cfd5e67f91b0792392
+DIGEST 58d644b292d96ef08b64c5b12bcb986d
 FSsr.Context
 R118:126 mathcomp.ssreflect.ssreflect <> <> lib
 R128:134 mathcomp.ssreflect.ssrbool <> <> lib
@@ -386,3 +386,23 @@ R3016:3022 Ssr.Context <> pure_re thm
 R3016:3022 Ssr.Context <> pure_re thm
 R3016:3022 Ssr.Context <> pure_re thm
 R3016:3022 Ssr.Context <> pure_re thm
+prf 3092:3100 <> hasL_pure
+binder 3103:3103 <> T:79
+R3108:3110 Autosubst.Autosubst_Classes <> Ids class
+R3112:3112 Ssr.Context <> T:79 var
+binder 3108:3112 <> H:80
+R3117:3121 Autosubst.Autosubst_Classes <> Subst class
+R3123:3123 Ssr.Context <> T:79 var
+binder 3117:3123 <> H0:81
+R3135:3141 Ssr.Context <> context def
+R3143:3143 Ssr.Context <> T:79 var
+binder 3127:3131 <> Gamma:82
+binder 3146:3146 <> x:83
+binder 3148:3148 <> A:84
+R3168:3171 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3154:3157 Ssr.Context <> hasL ind
+R3167:3167 Ssr.Context <> A:84 var
+R3165:3165 Ssr.Context <> x:83 var
+R3159:3163 Ssr.Context <> Gamma:82 var
+R3172:3175 Ssr.Context <> pure ind
+R3177:3181 Ssr.Context <> Gamma:82 var
