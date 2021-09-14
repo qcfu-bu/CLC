@@ -835,9 +835,9 @@ Proof.
     pose proof (IHhas_type1 _ _ H5). asimpl in H6.
     pose proof (IHhas_type2 _ _ H5). asimpl in H7.
     eapply conversion.
-    apply value_rename; eauto.
     apply H6.
     apply H7.
+    apply value_rename; eauto.
     apply rename_subst; eauto.
     apply IHhas_type3; eauto.
 Qed.
