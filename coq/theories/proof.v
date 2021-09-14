@@ -500,10 +500,9 @@ Inductive has_type : context term -> term -> term -> Prop :=
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma |- App m n :- B ]
 | conversion Gamma srt A B m :
-  value B ->
   [ re Gamma |- A :- Sort srt ] ->
   [ re Gamma |- B :- Sort srt ] ->
-  A === B ->
+  value A -> A === B ->
   [ Gamma |- m :- A ] ->
   [ Gamma |- m :- B ]
 where "[ Gamma |- s :- A ]" := (has_type Gamma s A).
@@ -1282,23 +1281,21 @@ Lemma value_sound Gamma v A :
   [ Gamma |- ] ->
   [ Gamma |- v :- A ] -> 
   [ re Gamma |- A :- Sort U ] ->
-  value v -> pure Gamma.
+  value v -> value A -> pure Gamma.
 Proof.
   intros.
   dependent induction H0; eauto.
   - eapply hasL_pure; eauto.
-  - pose proof (hasR_ok H H0). destruct H3.
+  - pose proof (hasR_ok H H0). destruct H4.
     exfalso.
     eapply value_ty_uniq.
     apply re_ok; eauto.
-    apply H4.
+    apply H3.
     firstorder; eauto.
   - exfalso.
     eapply lnProd_ok; firstorder; eauto.
-    constructor.
   - exfalso.
     eapply lolli_ok; firstorder; eauto.
-    constructor.
   - inv H2.
   - inv H2.
   - inv H2.
@@ -1308,6 +1305,6 @@ Proof.
     exfalso.
     eapply value_ty_uniq.
     apply re_ok; eauto.
-    apply H0.
+    apply H4.
     firstorder; eauto.
 Qed.
