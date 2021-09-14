@@ -108,6 +108,13 @@ Proof.
     rewrite <- IHGamma; eauto.
 Qed.
 
+Lemma re_pure T (Gamma : context T) : pure (re Gamma).
+Proof.
+  induction Gamma; intros.
+  constructor.
+  destruct a; simpl; constructor; eauto.
+Qed.
+
 Lemma hasL_re {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
   hasL Gamma x A -> hasL (re Gamma) x A.
 Proof.
@@ -122,4 +129,43 @@ Lemma hasL_pure {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
   hasL Gamma x A -> pure Gamma.
 Proof.
   induction 1; simpl; constructor; eauto.
+Qed.
+
+Lemma hasL_x {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
+  hasL Gamma x A ->
+  forall B,
+    hasL Gamma x B ->
+    A = B.
+Proof.
+  induction 1; intros.
+  inv H2; eauto.
+  inv H2; eauto.
+  apply IHhasL in H7. rewrite H7; eauto.
+  inv H2; eauto.
+  apply IHhasL in H5. rewrite H5; eauto.
+Qed.
+
+Lemma hasR_x {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
+  hasR Gamma x A ->
+  forall B,
+    hasR Gamma x B ->
+    A = B.
+Proof.
+  induction 1; intros.
+  inv H2; eauto.
+  inv H2; eauto.
+  apply IHhasR in H7. rewrite H7; eauto.
+  inv H2; eauto.
+  apply IHhasR in H5. rewrite H5; eauto.
+Qed.
+
+Lemma hasL_hasR {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
+  hasL Gamma x A ->
+  forall B,
+    ~ hasR Gamma x B.
+Proof.
+  induction 1; unfold not; intros.
+  inv H2.
+  inv H2; apply IHhasL in H7; eauto.
+  inv H2; apply IHhasL in H5; eauto.
 Qed.
