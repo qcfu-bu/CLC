@@ -1300,26 +1300,29 @@ Lemma value_sound Gamma v A :
   [ Gamma |- ] ->
   [ Gamma |- v :- A ] -> 
   [ re Gamma |- A :- Sort U ] ->
-  value v -> value A -> pure Gamma.
+  value v -> pure Gamma.
 Proof.
   intros.
   dependent induction H0; eauto.
   - eapply hasL_pure; eauto.
-  - pose proof (hasR_ok H H0). destruct H4.
+  - pose proof (hasR_ok H H0); first_order.
     exfalso.
     eapply value_ty_uniq.
     apply re_ok; eauto.
-    apply H3.
+    apply H4.
     first_order; eauto.
   - exfalso.
     eapply lnProd_ok; first_order; eauto.
+    constructor.
   - exfalso.
     eapply lolli_ok; first_order; eauto.
+    constructor.
   - inv H2.
   - inv H2.
   - inv H2.
   - inv H2.
   - destruct srt.
+    apply IHhas_type3; eauto.
     apply IHhas_type3; eauto.
     exfalso.
     eapply value_ty_uniq.

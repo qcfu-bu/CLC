@@ -169,3 +169,28 @@ Proof.
   inv H2; apply IHhasL in H7; eauto.
   inv H2; apply IHhasL in H5; eauto.
 Qed.
+
+Lemma merge_re T (Gamma1 Gamma2 Gamma : context T) :
+  merge Gamma1 Gamma2 Gamma ->
+  re Gamma1 = re Gamma /\
+  re Gamma2 = re Gamma.
+Proof.
+  induction 1; simpl.
+  - repeat constructor.
+  - destruct IHmerge.
+    constructor.
+    rewrite H0; eauto.
+    rewrite H1; eauto.
+  - destruct IHmerge.
+    constructor.
+    rewrite H0; eauto.
+    rewrite H1; eauto.
+  - destruct IHmerge.
+    constructor.
+    rewrite H0; eauto.
+    rewrite H1; eauto.
+  - destruct IHmerge.
+    constructor.
+    rewrite H0; eauto.
+    rewrite H1; eauto.
+Qed.
