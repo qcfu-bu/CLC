@@ -590,10 +590,10 @@ Lemma agree_pure Gamma Gamma' xi :
   pure Gamma'.
 Proof.
   induction 1; simpl; intros; eauto.
-  - inversion H0; subst; eauto.
+  - inv H0; eauto.
     constructor; eauto.
-  - inversion H0.
-  - inversion H0; subst; eauto.
+  - inv H0.
+  - inv H0; subst; eauto.
     constructor; eauto.
   - constructor; eauto.
   - constructor; eauto.
@@ -614,20 +614,20 @@ Lemma agree_hasL Gamma Gamma' xi :
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
-  - inversion H.
+  - inv H.
   - destruct x; asimpl.
-    inversion H; subst.
+    inv H.
     replace (m.[ren (+1)].[ren (upren xi)]) 
       with (m.[ren xi].[ren (+1)]) by autosubst.
     constructor.
     eapply agree_pure; eauto.
-    inversion H; subst.
+    inv H; subst.
     replace (m0.[ren (+1)].[ren (upren xi)]) 
       with (m0.[ren xi].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree; eauto.
-  - inversion H.
-  - inversion H; subst.
+  - inv H.
+  - inv H; subst.
     replace (m.[ren (+1)].[ren (upren xi)]) 
       with (m.[ren xi].[ren (+1)]) by autosubst.
     constructor.
@@ -650,20 +650,20 @@ Lemma agree_hasR Gamma Gamma' xi :
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
-  - inversion H.
+  - inv H.
   - destruct x; asimpl.
-    inversion H; subst.
-    inversion H; subst.
+    inv H.
+    inv H; subst.
     replace (m0.[ren (+1)].[ren (upren xi)]) 
       with (m0.[ren xi].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree; eauto.
-  - inversion H; subst.
+  - inv H.
     replace (m.[ren (+1)].[ren (upren xi)]) 
       with (m.[ren xi].[ren (+1)]) by autosubst.
     constructor.
     eapply agree_pure; eauto.
-  - inversion H; subst.
+  - inv H.
     replace (m.[ren (+1)].[ren (upren xi)]) 
       with (m.[ren xi].[ren (+1)]) by autosubst.
     constructor.
@@ -688,17 +688,17 @@ Lemma merge_agree_inv Gamma Gamma' xi :
       agree xi Gamma2 Gamma2'.
 Proof.
   induction 1; intros.
-  - inversion H; subst.
+  - inv H.
     exists nil.
     exists nil.
     repeat constructor.
-  - inversion H0; subst.
+  - inv H0; subst.
     pose proof (IHagree _ _ H4).
     firstorder.
     exists (m.[ren xi] :L x).
     exists (m.[ren xi] :L x0).
     repeat constructor; eauto.
-  - inversion H0; subst.
+  - inv H0; subst.
     pose proof (IHagree _ _ H4).
     firstorder.
     exists (m.[ren xi] :R x).
@@ -709,7 +709,7 @@ Proof.
     exists (:N x).
     exists (m.[ren xi] :R x0).
     repeat constructor; eauto.
-  - inversion H0; subst.
+  - inv H0; subst.
     pose proof (IHagree _ _ H4).
     firstorder.
     exists (:N x).
@@ -850,8 +850,8 @@ Lemma hasL_ok Gamma :
     [ Gamma |- A :- Sort U ] /\ value A.
 Proof.
   induction 1; intros.
-  - inversion H.
-  - inversion H2; subst; simpl.
+  - inv H.
+  - inv H2; simpl.
     replace (Sort U) with ((Sort U).[ren (+1)]) by autosubst.
     split.
     eapply rename_ok.
@@ -870,8 +870,8 @@ Proof.
     apply value_rename.
     pose proof (IHcontext_ok v m H7).
     firstorder; eauto.
-  - inversion H2.
-  - inversion H0; subst.
+  - inv H2.
+  - inv H0.
     replace (Sort U) with ((Sort U).[ren (+1)]) by autosubst.
     split.
     eapply rename_ok.
@@ -891,8 +891,8 @@ Lemma hasR_ok Gamma :
     [ re Gamma |- A :- Sort L ] /\ value A.
 Proof.
   induction 1; intros.
-  - inversion H.
-  - inversion H2; subst; simpl.
+  - inv H.
+  - inv H2; simpl.
     replace (Sort L) with ((Sort L).[ren (+1)]) by autosubst.
     split.
     eapply rename_ok.
@@ -902,7 +902,7 @@ Proof.
     apply value_rename.
     pose proof (IHcontext_ok v m H7).
     firstorder; eauto.
-  - inversion H2; subst; simpl.
+  - inv H2; simpl.
     replace (Sort L) with ((Sort L).[ren (+1)]) by autosubst.
     split.
     eapply rename_ok.
@@ -910,7 +910,7 @@ Proof.
     apply agree_wkN.
     apply agree_refl.
     apply value_rename; eauto.
-  - inversion H0; subst; simpl.
+  - inv H0; simpl.
     split.
     replace (Sort L) with ((Sort L).[ren (+1)]) by autosubst.
     eapply rename_ok.
@@ -927,7 +927,7 @@ Lemma red_sort_inv srt A :
 Proof.
   induction 1; intros; eauto.
   rewrite IHstar in H0.
-  inversion H0; eauto.
+  inv H0; eauto.
 Qed.
 
 Lemma red_tyProd_inv A B x :
@@ -943,7 +943,7 @@ Proof.
     repeat constructor.
   - firstorder.
     rewrite H3 in H0.
-    inversion H0; subst.
+    inv H0.
     exists A'.
     exists B'.
     repeat constructor; eauto using star.
@@ -962,7 +962,7 @@ Proof.
     repeat constructor.
   - firstorder.
     rewrite H3 in H0.
-    inversion H0; subst.
+    inv H0.
     exists A'.
     exists B'.
     repeat constructor; eauto using star.
@@ -982,7 +982,7 @@ Proof.
     repeat constructor.
   - firstorder.
     rewrite H3 in H0.
-    inversion H0; subst.
+    inv H0.
     exists A'.
     exists B'.
     repeat constructor; eauto using star.
@@ -1001,7 +1001,7 @@ Proof.
     repeat constructor.
   - firstorder.
     rewrite H3 in H0.
-    inversion H0; subst.
+    inv H0.
     exists A'.
     exists B'.
     repeat constructor; eauto using star.
@@ -1012,7 +1012,7 @@ Lemma red_var_inv x y :
 Proof.
   induction 1; eauto.
   rewrite IHstar in H0.
-  inversion H0; eauto.
+  inv H0; eauto.
 Qed.
 
 Lemma red_tyLam_inv m n :
@@ -1269,10 +1269,10 @@ Proof.
     rewrite <- pure_re; eauto.
   - right; eauto.
   - right; eauto.
-  - inversion H1.
-  - inversion H1.
-  - inversion H1.
-  - inversion H1.
+  - inv H1.
+  - inv H1.
+  - inv H1.
+  - inv H1.
   - destruct srt.
     left; eauto.
     right; eauto.

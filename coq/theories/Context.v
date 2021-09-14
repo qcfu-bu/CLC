@@ -103,7 +103,7 @@ Lemma pure_re T (Gamma : context T) :
 Proof.
   induction Gamma; intros.
   - eauto.
-  - inversion H; subst; simpl.
+  - inv H; simpl.
     rewrite <- IHGamma; eauto.
     rewrite <- IHGamma; eauto.
 Qed.
