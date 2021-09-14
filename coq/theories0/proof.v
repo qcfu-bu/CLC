@@ -266,6 +266,15 @@ Proof with eauto using psstep_refl, psstep_compat, value_v_subst.
   apply pstep_compat...
 Qed.
 
+Ltac first_order :=
+  repeat match goal with
+  | [ H : exists _, _ |- _ ] => destruct H
+  | [ H : ex2 _ _ |- _ ] => destruct H
+  | [ H1 : ?A -> _, H2 : ?A |- _ ] => specialize (H1 H2)
+  | [ H : _ /\ _ |- _ ] => destruct H
+  | [ |- _ /\ _ ] => split
+  end.
+
 Lemma pstep_diamond m m1 :
   pstep m m1 ->
     forall m2, pstep m m2 ->
@@ -275,18 +284,18 @@ Proof with eauto using pstep.
   dependent induction H.
   - inv H0. exists (Var x)...
   - inv H0. exists (Sort srt)...
-  - inv H0.  apply (IHpstep) in H2. firstorder. exists (TyLam x)...
-  - inv H0.  apply (IHpstep) in H2. firstorder. exists (LnLam x)...
+  - inv H0. apply (IHpstep) in H2. first_order. exists (TyLam x)...
+  - inv H0. apply (IHpstep) in H2. first_order. exists (LnLam x)...
   - inv H1.
-    + apply (IHpstep1) in H4. apply (IHpstep2) in H6. firstorder.
+    + apply (IHpstep1) in H4. apply (IHpstep2) in H6. first_order.
       exists (App x0 x)...
     + inv H. 
       assert (pstep (TyLam n0) (TyLam n'0))...
       pose proof (pstep_value H7 H5). 
       pose proof (pstep_value H0 H5).
-      apply (IHpstep1) in H. apply (IHpstep2) in H7. firstorder.
+      apply (IHpstep1) in H. apply (IHpstep2) in H7. first_order.
       inv H.
-      inv H6.
+      inv H7.
       exists (n'2.[x0/]). split.
       apply pstep_tyBeta...
       apply pstep_compat_beta...
@@ -294,22 +303,22 @@ Proof with eauto using pstep.
       assert (pstep (LnLam n0) (LnLam n'0))...
       pose proof (pstep_value H7 H5). 
       pose proof (pstep_value H0 H5).
-      apply (IHpstep1) in H. apply (IHpstep2) in H7. firstorder.
+      apply (IHpstep1) in H. apply (IHpstep2) in H7. first_order.
       inv H.
-      inv H6.
+      inv H7.
       exists (n'2.[x0/]). split.
       apply pstep_lnBeta...
       apply pstep_compat_beta...
   - inv H2.
     + inv H5.
       pose proof (pstep_value H7 H0).
-      apply IHpstep2 in H7. apply IHpstep1 in H3. firstorder.
+      apply IHpstep2 in H7. apply IHpstep1 in H3. first_order.
       exists (x.[x0/]). split.
       * apply pstep_compat_beta...
         eapply pstep_value; eauto.
       * apply pstep_tyBeta...
     + pose proof (pstep_value H8 H0).
-      apply IHpstep1 in H5. apply IHpstep2 in H8. firstorder.
+      apply IHpstep1 in H5. apply IHpstep2 in H8. first_order.
       exists (x0.[x/]). split.
       * apply pstep_compat_beta...
         eapply pstep_value; eauto.
@@ -317,25 +326,25 @@ Proof with eauto using pstep.
   - inv H2.
     + inv H5.
       pose proof (pstep_value H7 H0).
-      apply IHpstep2 in H7. apply IHpstep1 in H3. firstorder.
+      apply IHpstep2 in H7. apply IHpstep1 in H3. first_order.
       exists (x.[x0/]). split.
       * apply pstep_compat_beta...
         eapply pstep_value; eauto.
       * apply pstep_lnBeta...
     + pose proof (pstep_value H8 H0).
-      apply IHpstep1 in H5. apply IHpstep2 in H8. firstorder.
+      apply IHpstep1 in H5. apply IHpstep2 in H8. first_order.
       exists (x0.[x/]). split.
       * apply pstep_compat_beta...
         eapply pstep_value; eauto.
       * apply pstep_compat_beta...
   - inv H1. apply (IHpstep1) in H4. apply (IHpstep2) in H6.
-    firstorder. exists (TyProd x0 x)...
+    first_order. exists (TyProd x0 x)...
   - inv H1. apply (IHpstep1) in H4. apply (IHpstep2) in H6.
-    firstorder. exists (LnProd x0 x)...
+    first_order. exists (LnProd x0 x)...
   - inv H1. apply (IHpstep1) in H4. apply (IHpstep2) in H6.
-    firstorder. exists (Arrow x0 x)...
+    first_order. exists (Arrow x0 x)...
   - inv H1. apply (IHpstep1) in H4. apply (IHpstep2) in H6.
-    firstorder. exists (Lolli x0 x)...
+    first_order. exists (Lolli x0 x)...
 Qed.
 
 Lemma strip m m1 m2 :
@@ -343,8 +352,8 @@ Lemma strip m m1 m2 :
     exists m', red m1 m' /\ pstep m2 m'.
 Proof with eauto using pstep_refl, star.
   intros.
-  dependent induction H0... firstorder.
-  pose proof (pstep_diamond H1 H3). firstorder.
+  dependent induction H0... first_order.
+  pose proof (pstep_diamond H1 H3). first_order.
   exists x0. split...
 Qed.
 
@@ -356,8 +365,8 @@ Proof with eauto using pstep_refl, star.
   intros.
   dependent induction H.
   - exists z; eauto.
-  - firstorder.
-    pose proof (strip H0 H2). firstorder.
+  - first_order.
+    pose proof (strip H0 H2). first_order.
     exists x1; eauto.
     eapply star_trans.
     apply H3.
@@ -693,34 +702,34 @@ Proof.
     repeat constructor.
   - inv H0; subst.
     pose proof (IHagree _ _ H4).
-    firstorder.
+    first_order.
     exists (m.[ren xi] :L x).
     exists (m.[ren xi] :L x0).
     repeat constructor; eauto.
   - inv H0; subst.
     pose proof (IHagree _ _ H4).
-    firstorder.
+    first_order.
     exists (m.[ren xi] :R x).
     exists (:N x0).
     repeat constructor; eauto.
     pose proof (IHagree _ _ H4).
-    firstorder.
+    first_order.
     exists (:N x).
     exists (m.[ren xi] :R x0).
     repeat constructor; eauto.
   - inv H0; subst.
     pose proof (IHagree _ _ H4).
-    firstorder.
+    first_order.
     exists (:N x).
     exists (:N x0).
     repeat constructor; eauto.
   - pose proof (IHagree _ _ H0).
-    firstorder.
+    first_order.
     exists (m :L x).
     exists (m :L x0).
     repeat constructor; eauto.
   - pose proof (IHagree _ _ H0).
-    firstorder.
+    first_order.
     exists (:N x).
     exists (:N x0).
     repeat constructor; eauto.
@@ -810,25 +819,17 @@ Proof.
     constructor; eauto.
   - asimpl.
     pose proof (merge_agree_inv H2 H1).
-    firstorder.
-    apply IHhas_type1 in H4. asimpl in H4.
-    apply IHhas_type2 in H5.
+    first_order. asimpl in IHhas_type1.
     eapply u_app1; eauto.
   - pose proof (merge_agree_inv H2 H1).
-    firstorder.
-    apply IHhas_type1 in H4.
-    apply IHhas_type2 in H5.
+    first_order. asimpl in IHhas_type1.
     eapply u_app2; eauto.
   - asimpl.
     pose proof (merge_agree_inv H2 H1).
-    firstorder.
-    apply IHhas_type1 in H4. asimpl in H4.
-    apply IHhas_type2 in H5.
+    first_order. asimpl in IHhas_type1.
     eapply l_app1; eauto.
   - pose proof (merge_agree_inv H2 H1).
-    firstorder.
-    apply IHhas_type1 in H4.
-    apply IHhas_type2 in H5.
+    first_order. asimpl in IHhas_type1.
     eapply l_app2; eauto.
   - assert (agree xi (re Gamma) (re Gamma')).
     apply agree_re_re; eauto.
@@ -868,7 +869,7 @@ Proof.
     apply agree_refl.
     apply value_rename.
     pose proof (IHcontext_ok v m H7).
-    firstorder; eauto.
+    first_order; eauto.
   - inv H2.
   - inv H0.
     replace (Sort U) with ((Sort U).[ren (+1)]) by autosubst.
@@ -880,7 +881,7 @@ Proof.
     apply agree_refl.
     apply value_rename; eauto.
     pose proof (IHcontext_ok v m H2).
-    firstorder; eauto.
+    first_order; eauto.
 Qed.
 
 Lemma hasR_ok Gamma :
@@ -900,7 +901,7 @@ Proof.
     apply agree_refl.
     apply value_rename.
     pose proof (IHcontext_ok v m H7).
-    firstorder; eauto.
+    first_order; eauto.
   - inv H2; simpl.
     replace (Sort L) with ((Sort L).[ren (+1)]) by autosubst.
     split.
@@ -918,7 +919,7 @@ Proof.
     apply agree_refl.
     apply value_rename.
     pose proof (IHcontext_ok v m H2).
-    firstorder; eauto.
+    first_order; eauto.
 Qed.
 
 Lemma red_sort_inv srt A :
@@ -940,7 +941,7 @@ Proof.
   - exists A.
     exists B.
     repeat constructor.
-  - firstorder.
+  - first_order.
     rewrite H3 in H0.
     inv H0.
     exists A'.
@@ -959,7 +960,7 @@ Proof.
   - exists A.
     exists B.
     repeat constructor.
-  - firstorder.
+  - first_order.
     rewrite H3 in H0.
     inv H0.
     exists A'.
@@ -979,7 +980,7 @@ Proof.
   - exists A.
     exists B.
     repeat constructor.
-  - firstorder.
+  - first_order.
     rewrite H3 in H0.
     inv H0.
     exists A'.
@@ -998,7 +999,7 @@ Proof.
   - exists A.
     exists B.
     repeat constructor.
-  - firstorder.
+  - first_order.
     rewrite H3 in H0.
     inv H0.
     exists A'.
@@ -1021,7 +1022,7 @@ Lemma red_tyLam_inv m n :
 Proof.
   induction 1.
   - exists m; repeat constructor.
-  - firstorder; subst.
+  - first_order; subst.
     inv H0.
     exists n'.
     repeat constructor; eauto using star.
@@ -1034,7 +1035,7 @@ Lemma red_lnLam_inv m n :
 Proof.
   induction 1.
   - exists m; repeat constructor.
-  - firstorder; subst.
+  - first_order; subst.
     inv H0.
     exists n'.
     repeat constructor; eauto using star.
@@ -1062,7 +1063,7 @@ Ltac solve_conv' :=
   | [ H : red (?m _) _ |- _ ] => red_inv m H
   | [ H : red (?m _ _) _ |- _ ] => red_inv m H
   end;
-  firstorder; subst;
+  first_order; subst;
   match goal with
   | [ H : _ = _ |- _ ] => inv H
   end.
@@ -1078,7 +1079,7 @@ Lemma u_axiom_ok Gamma m A :
   ~([ Gamma |- m :- A ] /\ value m /\ m === Sort U /\ A === Sort L).
 Proof.
   unfold not.
-  intros; firstorder; dependent induction H;
+  intros; first_order; dependent induction H;
   try solve_conv.
   apply IHhas_type3; eauto; eapply conv_trans; eauto.
 Qed.
@@ -1087,7 +1088,7 @@ Lemma l_axiom_ok Gamma m A :
   ~([ Gamma |- m :- A ] /\ value m /\ m === Sort L /\ A === Sort L).
 Proof.
   unfold not.
-  intros; firstorder; dependent induction H;
+  intros; first_order; dependent induction H;
   try solve_conv.
   apply IHhas_type3; eauto; eapply conv_trans; eauto.
 Qed.
@@ -1096,7 +1097,7 @@ Lemma tyProd_ok Gamma m x y A :
   ~([ Gamma |- m :- A ] /\ value m /\ m === TyProd x y /\ A === Sort L).
 Proof.
   unfold not.
-  intros; firstorder; dependent induction H;
+  intros; first_order; dependent induction H;
   try solve_conv.
   apply IHhas_type3; eauto; eapply conv_trans; eauto.
 Qed.
@@ -1105,7 +1106,7 @@ Lemma lnProd_ok Gamma m x y A :
   ~([ Gamma |- m :- A ] /\ value m /\ m === LnProd x y /\ A === Sort U).
 Proof.
   unfold not.
-  intros; firstorder; dependent induction H;
+  intros; first_order; dependent induction H;
   try solve_conv.
   apply IHhas_type3; eauto; eapply conv_trans; eauto.
 Qed.
@@ -1114,7 +1115,7 @@ Lemma arrow_ok Gamma m x y A :
   ~([ Gamma |- m :- A ] /\ value m /\ m === Arrow x y /\ A === Sort L).
 Proof.
   unfold not.
-  intros; firstorder; dependent induction H;
+  intros; first_order; dependent induction H;
   try solve_conv.
   apply IHhas_type3; eauto; eapply conv_trans; eauto.
 Qed.
@@ -1123,7 +1124,7 @@ Lemma lolli_ok Gamma m x y A :
   ~([ Gamma |- m :- A ] /\ value m /\ m === Lolli x y /\ A === Sort U).
 Proof.
   unfold not.
-  intros; firstorder; dependent induction H;
+  intros; first_order; dependent induction H;
   try solve_conv.
   apply IHhas_type3; eauto; eapply conv_trans; eauto.
 Qed.
@@ -1132,7 +1133,7 @@ Lemma tyLam_ok Gamma m n A :
   ~([ Gamma |- m :- A ] /\ value m /\ m === TyLam n /\ A === Sort U).
 Proof.
   unfold not.
-  intros; firstorder; dependent induction H;
+  intros; first_order; dependent induction H;
   try solve_conv.
   apply IHhas_type3; eauto; eapply conv_trans; eauto.
 Qed.
@@ -1141,7 +1142,7 @@ Lemma lnLam_ok Gamma m n A :
   ~([ Gamma |- m :- A ] /\ value m /\ m === LnLam n /\ A === Sort U).
 Proof.
   unfold not.
-  intros; firstorder; dependent induction H;
+  intros; first_order; dependent induction H;
   try solve_conv.
   apply IHhas_type3; eauto; eapply conv_trans; eauto.
 Qed.
@@ -1224,9 +1225,9 @@ Proof.
   destruct H1.
   dependent induction H0; intros; eauto.
   - destruct srt.
-    eapply u_axiom_ok; firstorder; eauto.
+    eapply u_axiom_ok; first_order; eauto.
     constructor.
-    eapply l_axiom_ok; firstorder; eauto.
+    eapply l_axiom_ok; first_order; eauto.
     constructor.
   - eapply var_ty_uniq.
     apply H.
@@ -1234,17 +1235,35 @@ Proof.
     apply H2.
     constructor.
     constructor.
-  - eapply tyProd_ok; firstorder; eauto.
+  - eapply tyProd_ok; first_order.
+    apply H2.
     constructor.
-  - eapply lnProd_ok; firstorder; eauto.
     constructor.
-  - eapply arrow_ok; firstorder; eauto.
     constructor.
-  - eapply lolli_ok; firstorder; eauto.
+  - eapply lnProd_ok; first_order.
+    apply H1.
     constructor.
-  - eapply tyLam_ok; firstorder; eauto.
     constructor.
-  - eapply lnLam_ok; firstorder; eauto.
+    constructor.
+  - eapply arrow_ok; first_order.
+    apply H2.
+    constructor.
+    constructor.
+    constructor.
+  - eapply lolli_ok; first_order.
+    apply H1.
+    constructor.
+    constructor.
+    constructor.
+  - eapply tyLam_ok; first_order.
+    apply H1.
+    constructor.
+    constructor.
+    constructor.
+  - eapply lnLam_ok; first_order.
+    apply H1.
+    constructor.
+    constructor.
     constructor.
 Qed.
 
@@ -1291,11 +1310,11 @@ Proof.
     eapply value_ty_uniq.
     apply re_ok; eauto.
     apply H3.
-    firstorder; eauto.
+    first_order; eauto.
   - exfalso.
-    eapply lnProd_ok; firstorder; eauto.
+    eapply lnProd_ok; first_order; eauto.
   - exfalso.
-    eapply lolli_ok; firstorder; eauto.
+    eapply lolli_ok; first_order; eauto.
   - inv H2.
   - inv H2.
   - inv H2.
@@ -1306,5 +1325,5 @@ Proof.
     eapply value_ty_uniq.
     apply re_ok; eauto.
     apply H4.
-    firstorder; eauto.
+    first_order; eauto.
 Qed.
