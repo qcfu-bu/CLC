@@ -76,22 +76,6 @@ Inductive hasR {T} `{Ids T} `{Subst T} :
   hasR Gamma v m ->
   hasR (:N Gamma) (v.+1) m.[ren (+1)].
 
-Inductive has {T} `{Ids T} `{Subst T} :
-  context T -> var -> T -> Prop :=
-| has_OL m Gamma :
-  has (m :L Gamma) 0 m.[ren (+1)]
-| has_OR m Gamma :
-  has (m :R Gamma) 0 m.[ren (+1)]
-| has_SL m n v Gamma : 
-  has Gamma v m ->
-  has (n :L Gamma) (v.+1) m.[ren (+1)]
-| has_SR m n v Gamma : 
-  has Gamma v m ->
-  has (n :R Gamma) (v.+1) m.[ren (+1)]
-| has_SN m v Gamma : 
-  has Gamma v m ->
-  has (:N Gamma) (v.+1) m.[ren (+1)].
-
 Fixpoint re T (Gamma : context T) : context T :=
   match Gamma with
   | Left m :: Gamma => Left m :: re Gamma
@@ -184,29 +168,4 @@ Proof.
   inv H2.
   inv H2; apply IHhasL in H7; eauto.
   inv H2; apply IHhasL in H5; eauto.
-Qed.
-
-Lemma merge_re T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  re Gamma1 = re Gamma /\
-  re Gamma2 = re Gamma.
-Proof.
-  induction 1; simpl.
-  - repeat constructor.
-  - destruct IHmerge.
-    constructor.
-    rewrite H0; eauto.
-    rewrite H1; eauto.
-  - destruct IHmerge.
-    constructor.
-    rewrite H0; eauto.
-    rewrite H1; eauto.
-  - destruct IHmerge.
-    constructor.
-    rewrite H0; eauto.
-    rewrite H1; eauto.
-  - destruct IHmerge.
-    constructor.
-    rewrite H0; eauto.
-    rewrite H1; eauto.
 Qed.

@@ -1300,7 +1300,7 @@ Lemma value_sound Gamma v A :
   [ Gamma |- ] ->
   [ Gamma |- v :- A ] -> 
   [ re Gamma |- A :- Sort U ] ->
-  value v -> pure Gamma.
+  value v -> value A -> pure Gamma.
 Proof.
   intros.
   dependent induction H0; eauto.
@@ -1309,20 +1309,17 @@ Proof.
     exfalso.
     eapply value_ty_uniq.
     apply re_ok; eauto.
-    apply H4.
+    apply H5.
     first_order; eauto.
   - exfalso.
     eapply lnProd_ok; first_order; eauto.
-    constructor.
   - exfalso.
     eapply lolli_ok; first_order; eauto.
-    constructor.
   - inv H2.
   - inv H2.
   - inv H2.
   - inv H2.
   - destruct srt.
-    apply IHhas_type3; eauto.
     apply IHhas_type3; eauto.
     exfalso.
     eapply value_ty_uniq.
@@ -1330,3 +1327,10 @@ Proof.
     apply H4.
     first_order; eauto.
 Qed.
+
+Lemma substitutionL Gamma1 m A B :
+  [ A :L Gamma1 |- m :- B ] ->
+  forall Gamma2 Gamma n,
+    merge Gamma1 Gamma2 Gamma -> 
+    [ Gamma2 |- n :- A ] -> 
+    [ Gamma |- m.[n/] :- B.[n/] ].
