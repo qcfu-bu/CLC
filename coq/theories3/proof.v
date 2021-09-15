@@ -871,9 +871,58 @@ Proof.
   - inv H1.
 Qed.
 
-Lemma substitutionL Gamma1 m A B :
-  [ A :L Gamma1 |- m :- B ] ->
+Reserved Notation "[ Delta |- sigma :- s -| Gamma ]".
+
+Inductive u_morph Delta sigma s Gamma : Prop :=
+| morph :
+  v_subst sigma ->
+  (forall x A, 
+    hasL Gamma x A -> 
+    [ Delta |- sigma x :- A.[sigma] -: s ]) ->
+  [ Delta |- sigma :- s -| Gamma ]
+where "[ Delta |- sigma :- s -| Gamma ]" := (u_morph Delta sigma s Gamma).
+
+Lemma u_subst sigma Gamma Delta m A s :
+  [ Delta |- sigma :- U -| Gamma ] ->
+  [ Gamma |- m :- A -: s ] ->
+  [ Delta |- m.[sigma] :- A.[sigma] -: s ].
+Proof.
+  intros.
+  dependent induction H0.
+  - asimpl.
+    inv H.
+
+
+
+
+Lemma substitutionL Gamma1 m A B s :
+  [ Gamma1 |- ] ->
+  [ A :L Gamma1 |- m :- B -: s ] ->
   forall Gamma2 Gamma n,
+    value n ->
     merge Gamma1 Gamma2 Gamma -> 
-    [ Gamma2 |- n :- A ] -> 
-    [ Gamma |- m.[n/] :- B.[n/] ].
+    [ Gamma2 |- ] ->
+    [ Gamma2 |- n :- A -: U ] -> 
+    [ Gamma |- m.[n/] :- B.[n/] -: s ].
+Proof.
+  intros H H1.
+  dependent induction H1; intros.
+  - asimpl.
+    inv H0.
+    pose proof (value_sound H3 H4 H1).
+    constructor.
+    eapply merge_pure_pure; eauto.
+  - asimpl.
+    inv H0.
+    assert (pure Gamma2).
+    eapply value_sound; eauto.
+    pose proof (merge_pure_eq H2 H6 H0).
+    apply u_prod1.
+    eapply merge_pure_pure; eauto.
+    eapply IHhas_type1; eauto.
+    rewrite H5; eauto.
+    replace (merge Gamma2 Gamma2 Gamma) 
+      with (merge Gamma1 Gamma2 Gamma); eauto.
+    rewrite H5; eauto.
+    eapply IHhas_type2; eauto.
+    
