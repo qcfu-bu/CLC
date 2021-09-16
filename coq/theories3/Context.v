@@ -83,6 +83,20 @@ Fixpoint re T (Gamma : context T) : context T :=
   | _ => nil
   end.
 
+Lemma merge_pure T (Gamma1 Gamma2 Gamma : context T) :
+  merge Gamma1 Gamma2 Gamma ->
+  pure Gamma2 -> Gamma = Gamma1.
+Proof.
+  induction 1; intros; eauto.
+  - inv H0.
+    rewrite IHmerge; eauto.
+  - inv H0.
+    rewrite IHmerge; eauto.
+  - inv H0.
+  - inv H0.
+    rewrite IHmerge; eauto.
+Qed.
+
 Lemma merge_pure_pure T (Gamma1 Gamma2 Gamma : context T) :
   merge Gamma1 Gamma2 Gamma ->
   pure Gamma1 -> pure Gamma2 -> pure Gamma.
@@ -107,6 +121,21 @@ Proof.
   - inv H1.
   - inv H0; inv H1.
     rewrite IHmerge; eauto.
+Qed.
+
+Lemma merge_re_re T (Gamma1 Gamma2 Gamma : context T) :
+  merge Gamma1 Gamma2 Gamma ->
+  re Gamma1 = re Gamma /\ re Gamma2 = re Gamma.
+Proof.
+  induction 1; simpl; intros; eauto; firstorder.
+  rewrite H0; eauto.
+  rewrite H1; eauto.
+  rewrite H0; eauto.
+  rewrite H1; eauto.
+  rewrite H0; eauto.
+  rewrite H1; eauto.
+  rewrite H0; eauto.
+  rewrite H1; eauto.
 Qed.
 
 Lemma re_re T (Gamma : context T) :
