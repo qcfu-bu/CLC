@@ -1002,6 +1002,11 @@ Inductive agree_subst :
   [ Delta |- sigma -| Gamma ] ->
   [ re Delta |- n :- A.[sigma] -: U ] ->
   [ Delta |- n .: sigma -| A :L Gamma ]
+| agree_subst_wkR Delta1 Delta2 Delta sigma Gamma n A :
+  merge Delta1 Delta2 Delta ->
+  [ Delta1 |- sigma -| Gamma ] ->
+  [ Delta2 |- n :- A.[sigma] -: L ] ->
+  [ Delta |- n .: sigma -| A :R Gamma ]
 where "[ Delta |- sigma -| Gamma ]" := (agree_subst Delta sigma Gamma).
 
 Lemma agree_subst_pure Delta sigma Gamma :
