@@ -1253,4 +1253,18 @@ Proof.
   rewrite <- H8.
   rewrite <- pure_re; eauto.
 Qed.
-    
+
+Lemma substitutionR Gamma1 m A B s :
+  [ Gamma1 |- ] ->
+  [ A :R Gamma1 |- m :- B -: s ] ->
+  forall Gamma2 Gamma n,
+    value n ->
+    merge Gamma1 Gamma2 Gamma -> 
+    [ Gamma2 |- ] ->
+    [ Gamma2 |- n :- A -: L ] -> 
+    [ Gamma |- m.[n/] :- B.[n/] -: s ].
+Proof.
+  intros.
+  eapply substitution.
+  apply H0.
+  apply value_v_subst; eauto.
