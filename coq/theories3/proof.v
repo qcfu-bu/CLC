@@ -1065,10 +1065,8 @@ Lemma agree_subst_re_re Delta sigma Gamma :
   [ Delta |- sigma -| Gamma ] ->
   [ re Delta |- sigma -| re Gamma ].
 Proof.
-  induction 1; simpl; intros.
-  - constructor.
-  - constructor; eauto.
-  - constructor; eauto.
+  induction 1; simpl; intros; constructor; eauto.
+Qed.
 
 Lemma u_subst Gamma m A s :
   [ Gamma |- m :- A -: s ] ->
@@ -1111,7 +1109,17 @@ Proof.
     apply u_lam2; eauto.
     eapply agree_subst_pure; eauto.
     asimpl; eauto.
-  - specialize (IHhas_type1 _ _ H1)
+  - pose proof (agree_subst_re_re H1).
+    specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
+    pose proof (agree_subst_L A H1).
+    specialize (IHhas_type2 _ _ H3).
+    apply l_lam1; eauto.
+  - pose proof (agree_subst_re_re H1).
+    specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
+    pose proof (agree_subst_R A H1).
+    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
+    apply l_lam2; eauto.
+    asimpl; eauto.
 
 
 
