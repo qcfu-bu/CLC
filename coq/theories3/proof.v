@@ -941,7 +941,7 @@ Proof.
   - inv H1.
 Qed.
 
-Lemma weakening Gamma m A s B :
+Lemma weakening_L Gamma m A s B :
   [ Gamma |- m :- A -: s ] ->
   [ B :L Gamma |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
 Proof.
@@ -952,14 +952,35 @@ Proof.
   apply agree_ren_refl.
 Qed.
 
-Lemma eweakening Gamma m m' A A' s B :
+Lemma weakening_N Gamma m A s :
+  [ Gamma |- m :- A -: s ] ->
+  [ :N Gamma |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
+Proof.
+  intros.
+  eapply rename_ok in H.
+  apply H.
+  apply agree_ren_wkN.
+  apply agree_ren_refl.
+Qed.
+
+Lemma eweakening_L Gamma m m' A A' s B :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
   [ Gamma |- m :- A -: s ] -> 
   [ B :L Gamma |- m' :- A' -: s ].
 Proof.  
   intros; subst.
-  apply weakening; eauto.
+  apply weakening_L; eauto.
+Qed.
+
+Lemma eweakening_N Gamma m m' A A' s :
+  m' = m.[ren (+1)] -> 
+  A' = A.[ren (+1)] ->
+  [ Gamma |- m :- A -: s ] -> 
+  [ :N Gamma |- m' :- A' -: s ].
+Proof.  
+  intros; subst.
+  apply weakening_N; eauto.
 Qed.
 
 Reserved Notation "[ Delta |- sigma -| Gamma ]".
@@ -974,6 +995,9 @@ Inductive agree_subst :
 | agree_subst_R Delta sigma Gamma A :
   [ Delta |- sigma -| Gamma ] ->
   [ A.[sigma] :R Delta |- up sigma -| A :R Gamma ]
+| agree_subst_N Delta sigma Gamma :
+  [ Delta |- sigma -| Gamma ] ->
+  [ :N Delta |- up sigma -| :N Gamma ]
 where "[ Delta |- sigma -| Gamma ]" := (agree_subst Delta sigma Gamma).
 
 Lemma agree_subst_pure Delta sigma Gamma :
@@ -983,6 +1007,8 @@ Proof.
   inv H0.
   constructor; eauto.
   inv H0.
+  inv H0.
+  constructor; eauto.
 Qed.
 
 Lemma agree_subst_hasL Delta sigma Gamma :
@@ -1000,10 +1026,14 @@ Proof.
         with (A.[sigma].[ren (+1)]) by autosubst.
       constructor.
       eapply agree_subst_pure; eauto.
-    + eapply eweakening; eauto.
+    + eapply eweakening_L; eauto.
       autosubst.
       autosubst.
   - inv H0.
+  - inv H0.
+    eapply eweakening_N; eauto.
+    autosubst.
+    autosubst.
 Qed.
 
 Lemma agree_subst_hasR Delta sigma Gamma :
@@ -1015,7 +1045,7 @@ Proof.
   induction 1; intros.
   - inv H.
   - inv H0.
-    eapply eweakening; eauto.
+    eapply eweakening_L; eauto.
     autosubst.
     autosubst.
   - inv H0.
@@ -1025,7 +1055,20 @@ Proof.
     constructor.
     constructor.
     eapply agree_subst_pure; eauto.
+  - inv H0.
+    eapply eweakening_N; eauto.
+    autosubst.
+    autosubst.
 Qed.
+
+Lemma agree_subst_re_re Delta sigma Gamma :
+  [ Delta |- sigma -| Gamma ] ->
+  [ re Delta |- sigma -| re Gamma ].
+Proof.
+  induction 1; simpl; intros.
+  - constructor.
+  - constructor; eauto.
+  - constructor; eauto.
 
 Lemma u_subst Gamma m A s :
   [ Gamma |- m :- A -: s ] ->
@@ -1057,6 +1100,18 @@ Proof.
     eapply agree_subst_pure; eauto.
   - eapply agree_subst_hasL; eauto.
   - eapply agree_subst_hasR; eauto.
+  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
+    pose proof (agree_subst_L A H2).
+    specialize (IHhas_type2 _ _ H3).
+    apply u_lam1; eauto.
+    eapply agree_subst_pure; eauto.
+  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
+    pose proof (agree_subst_R A H2).
+    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
+    apply u_lam2; eauto.
+    eapply agree_subst_pure; eauto.
+    asimpl; eauto.
+  - specialize (IHhas_type1 _ _ H1)
 
 
 
