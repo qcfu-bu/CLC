@@ -1002,11 +1002,9 @@ Inductive agree_subst :
   [ Delta |- sigma -| Gamma ] ->
   [ re Delta |- n :- A.[sigma] -: U ] ->
   [ Delta |- n .: sigma -| A :L Gamma ]
-| agree_subst_wkR Delta1 Delta2 Delta sigma Gamma n A :
-  merge Delta1 Delta2 Delta ->
-  [ Delta1 |- sigma -| Gamma ] ->
-  [ Delta2 |- n :- A.[sigma] -: L ] ->
-  [ Delta |- n .: sigma -| A :R Gamma ]
+| agree_subst_wkN Delta sigma Gamma n :
+  [ Delta |- sigma -| Gamma ] ->
+  [ Delta |- n .: sigma -| :N Gamma ]
 where "[ Delta |- sigma -| Gamma ]" := (agree_subst Delta sigma Gamma).
 
 Lemma agree_subst_pure Delta sigma Gamma :
@@ -1019,6 +1017,7 @@ Proof.
   inv H0.
   constructor; eauto.
   inv H1; eauto.
+  inv H0; eauto.
 Qed.
 
 Lemma agree_subst_refl Gamma :
@@ -1066,6 +1065,7 @@ Proof.
     pose proof (agree_subst_pure H H6).
     pose proof (pure_re H1).
     rewrite H2; eauto.
+  - inv H0; asimpl; eauto.
 Qed.
 
 Lemma agree_subst_hasR Delta sigma Gamma :
@@ -1092,14 +1092,22 @@ Proof.
     autosubst.
     autosubst.
   - inv H1; asimpl; eauto.
+  - inv H0; asimpl; eauto.
 Qed.
 
 Lemma agree_subst_re_re Delta sigma Gamma :
   [ Delta |- sigma -| Gamma ] ->
   [ re Delta |- sigma -| re Gamma ].
 Proof.
-  induction 1; simpl; intros; constructor; eauto.
-  rewrite <- re_re; eauto.
+  intro H.
+  dependent induction H; simpl; intros; eauto.
+  - constructor.
+  - constructor; eauto.
+  - constructor; eauto.
+  - constructor; eauto.
+  - constructor; eauto.
+    rewrite <- re_re; eauto.
+  - constructor; eauto.
 Qed.
 
 Lemma merge_agree_subst_inv Delta sigma Gamma :
@@ -1111,7 +1119,8 @@ Lemma merge_agree_subst_inv Delta sigma Gamma :
       [ Delta1 |- sigma -| Gamma1 ] /\
       [ Delta2 |- sigma -| Gamma2 ].
 Proof.
-  induction 1; intros.
+  intros H.
+  dependent induction H; intros.
   - inv H.
     exists nil.
     exists nil.
@@ -1149,6 +1158,12 @@ Proof.
     repeat constructor; eauto.
     rewrite H4; eauto.
     rewrite H6; eauto.
+  - inv H0.
+    pose proof (IHagree_subst _ _ H4).
+    first_order.
+    exists x.
+    exists x0.
+    repeat constructor; eauto.
 Qed.
   
 Lemma substitution Gamma m A s :
@@ -1247,7 +1262,7 @@ Proof.
   apply H0.
   apply value_v_subst; eauto.
   pose proof (value_sound H3 H4 H1).
-  pose proof (merge_pure H2 H5).
+  pose proof (merge_pure2 H2 H5).
   rewrite H6.
   apply agree_subst_wkL.
   apply agree_subst_refl.
