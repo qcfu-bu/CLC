@@ -626,7 +626,7 @@ Proof.
     apply IHagree_ren; eauto.
 Qed.
 
-Lemma merge_agree_inv Gamma Gamma' xi :
+Lemma merge_agree_ren_inv Gamma Gamma' xi :
   agree_ren xi Gamma Gamma' ->
   forall Gamma1 Gamma2,
     merge Gamma1 Gamma2 Gamma ->
@@ -738,17 +738,17 @@ Proof.
     apply IHhas_type2.
     constructor; eauto.
   - asimpl.
-    pose proof (merge_agree_inv H2 H1).
+    pose proof (merge_agree_ren_inv H2 H1).
     first_order. asimpl in IHhas_type1.
     eapply u_app1; eauto.
-  - pose proof (merge_agree_inv H2 H1).
+  - pose proof (merge_agree_ren_inv H2 H1).
     first_order. asimpl in IHhas_type1.
     eapply u_app2; eauto.
   - asimpl.
-    pose proof (merge_agree_inv H2 H1).
+    pose proof (merge_agree_ren_inv H2 H1).
     first_order. asimpl in IHhas_type1.
     eapply l_app1; eauto.
-  - pose proof (merge_agree_inv H2 H1).
+  - pose proof (merge_agree_ren_inv H2 H1).
     first_order. asimpl in IHhas_type1.
     eapply l_app2; eauto.
   - pose proof (agree_ren_re_re H3).
@@ -1068,9 +1068,49 @@ Proof.
   induction 1; simpl; intros; constructor; eauto.
 Qed.
 
-Lemma u_subst Gamma m A s :
+Lemma merge_agree_subst_inv Delta sigma Gamma :
+  [ Delta |- sigma -| Gamma ] ->
+  forall Gamma1 Gamma2,
+    merge Gamma1 Gamma2 Gamma ->
+    exists Delta1 Delta2,
+      merge Delta1 Delta2 Delta /\
+      [ Delta1 |- sigma -| Gamma1 ] /\
+      [ Delta2 |- sigma -| Gamma2 ].
+Proof.
+  induction 1; intros.
+  - inv H.
+    exists nil.
+    exists nil.
+    repeat constructor.
+  - inv H0.
+    pose proof (IHagree_subst _ _ H4).
+    first_order.
+    exists (A.[sigma] :L x).
+    exists (A.[sigma] :L x0).
+    repeat constructor; eauto.
+  - inv H0.
+    pose proof (IHagree_subst _ _ H4).
+    first_order.
+    exists (A.[sigma] :R x).
+    exists (:N x0).
+    repeat constructor; eauto.
+  - pose proof (IHagree_subst _ _ H4).
+    first_order.
+    exists (:N x).
+    exists (A.[sigma] :R x0).
+    repeat constructor; eauto.
+  - inv H0.
+    pose proof (IHagree_subst _ _ H4).
+    first_order.
+    exists (:N x).
+    exists (:N x0).
+    repeat constructor; eauto.
+Qed.
+  
+Lemma substitution Gamma m A s :
   [ Gamma |- m :- A -: s ] ->
   forall Delta sigma,
+    v_subst sigma ->
     [ Delta |- sigma -| Gamma ] ->
     [ Delta |- m.[sigma] :- A.[sigma] -: s ].
 Proof.
@@ -1078,48 +1118,75 @@ Proof.
   dependent induction H; asimpl; intros; eauto.
   - apply axiom.
     eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_L A H2).
-    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
+  - specialize (IHhas_type1 _ _ H2 H3). asimpl in IHhas_type1.
+    pose proof (agree_subst_L A H3).
+    pose proof (v_subst_up H2).
+    specialize (IHhas_type2 _ _ H5 H4). asimpl in IHhas_type2.
     apply u_prod; eauto.
     eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_L A H2).
-    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
+  - specialize (IHhas_type1 _ _ H2 H3). asimpl in IHhas_type1.
+    pose proof (agree_subst_L A H3).
+    pose proof (v_subst_up H2).
+    specialize (IHhas_type2 _ _ H5 H4). asimpl in IHhas_type2.
     apply l_prod; eauto.
     eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    specialize (IHhas_type2 _ _ H2). asimpl in IHhas_type2.
+  - specialize (IHhas_type1 _ _ H2 H3). asimpl in IHhas_type1.
+    specialize (IHhas_type2 _ _ H2 H3). asimpl in IHhas_type2.
     apply arrow; eauto.
     eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    specialize (IHhas_type2 _ _ H2). asimpl in IHhas_type2.
+  - specialize (IHhas_type1 _ _ H2 H3). asimpl in IHhas_type1.
+    specialize (IHhas_type2 _ _ H2 H3). asimpl in IHhas_type2.
     apply lolli; eauto.
     eapply agree_subst_pure; eauto.
   - eapply agree_subst_hasL; eauto.
   - eapply agree_subst_hasR; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_L A H2).
-    specialize (IHhas_type2 _ _ H3).
+  - specialize (IHhas_type1 _ _ H2 H3). asimpl in IHhas_type1.
+    pose proof (agree_subst_L A H3).
+    pose proof (v_subst_up H2).
+    specialize (IHhas_type2 _ _ H5 H4).
     apply u_lam1; eauto.
     eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_R A H2).
-    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
+  - specialize (IHhas_type1 _ _ H2 H3). asimpl in IHhas_type1.
+    pose proof (agree_subst_R A H3).
+    pose proof (v_subst_up H2).
+    specialize (IHhas_type2 _ _ H5 H4). asimpl in IHhas_type2.
     apply u_lam2; eauto.
     eapply agree_subst_pure; eauto.
     asimpl; eauto.
-  - pose proof (agree_subst_re_re H1).
-    specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_L A H1).
-    specialize (IHhas_type2 _ _ H3).
+  - pose proof (agree_subst_re_re H2).
+    specialize (IHhas_type1 _ _ H1 H3). asimpl in IHhas_type1.
+    pose proof (agree_subst_L A H2).
+    pose proof (v_subst_up H1).
+    specialize (IHhas_type2 _ _ H5 H4).
     apply l_lam1; eauto.
-  - pose proof (agree_subst_re_re H1).
-    specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_R A H1).
-    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
+  - pose proof (agree_subst_re_re H2).
+    specialize (IHhas_type1 _ _ H1 H3). asimpl in IHhas_type1.
+    pose proof (agree_subst_R A H2).
+    pose proof (v_subst_up H1).
+    specialize (IHhas_type2 _ _ H5 H4). asimpl in IHhas_type2.
     apply l_lam2; eauto.
     asimpl; eauto.
+  - pose proof (merge_agree_subst_inv H3 H1).
+    first_order.
+    eapply u_app1; eauto.
+  - pose proof (merge_agree_subst_inv H3 H1).
+    first_order.
+    eapply u_app2; eauto.
+  - pose proof (merge_agree_subst_inv H3 H1).
+    first_order.
+    eapply l_app1; eauto.
+  - pose proof (merge_agree_subst_inv H3 H1).
+    first_order.
+    eapply l_app2; eauto.
+  - eapply conversion.
+    apply IHhas_type1.
+    apply H3.
+    apply agree_subst_re_re; eauto.
+    apply IHhas_type2; eauto.
+    apply agree_subst_re_re; eauto.
+    apply conv_subst; eauto.
+    apply IHhas_type3; eauto.
+Qed.
 
 
 
