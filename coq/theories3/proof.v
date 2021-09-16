@@ -11,8 +11,10 @@ Inductive sort : Type := U | L.
 Inductive term : Type :=
 | Var    (x : var)
 | Sort   (srt : sort)
-| TyProd (A : term) (B : {bind term}) (s t : sort)
-| LnProd (A : term) (B : {bind term}) (s t : sort)
+| TyProd (A : term) (B : {bind term}) (s : sort)
+| LnProd (A : term) (B : {bind term}) (s : sort)
+| Arrow  (A B : term) (s : sort)
+| Lolli  (A B : term) (s : sort)
 | Lam    (n : {bind term})
 | App    (m n : term).
 
@@ -22,11 +24,13 @@ Instance Subst_term : Subst term. derive. Defined.
 Instance substLemmas_term : SubstLemmas term. derive. Qed.
 
 Inductive value : term -> Prop :=
-| value_sort srt       : value (Sort srt)
-| value_var x          : value (Var x)
-| value_tyProd A B s t : value (TyProd A B s t)
-| value_lnProd A B s t : value (LnProd A B s t)
-| value_lam n          : value (Lam n).
+| value_sort srt     : value (Sort srt)
+| value_var x        : value (Var x)
+| value_tyProd A B s : value (TyProd A B s)
+| value_lnProd A B s : value (LnProd A B s)
+| value_arrow A B s  : value (Arrow A B s)
+| value_lolli A B s  : value (Lolli A B s)
+| value_lam n        : value (Lam n).
 
 Definition v_subst (sigma : var -> term) : Prop := 
   forall x, value (sigma x).
@@ -88,14 +92,22 @@ Inductive pstep : term -> term -> Prop :=
   value v ->
   pstep v v' ->
   pstep (App (Lam n) v) (n'.[v'/])
-| pstep_tyProd A A' B B' s t :
+| pstep_tyProd A A' B B' s :
   pstep A A' ->
   pstep B B' ->
-  pstep (TyProd A B s t) (TyProd A' B' s t)
-| pstep_lnProd A A' B B' s t :
+  pstep (TyProd A B s) (TyProd A' B' s)
+| pstep_lnProd A A' B B' s :
   pstep A A' ->
   pstep B B' ->
-  pstep (LnProd A B s t) (LnProd A' B' s t).
+  pstep (LnProd A B s) (LnProd A' B' s)
+| pstep_arrow A A' B B' s : 
+  pstep A A' ->
+  pstep B B' ->
+  pstep (Arrow A B s) (Arrow A' B' s)
+| pstep_lolli A A' B B' s : 
+  pstep A A' ->
+  pstep B B' ->
+  pstep (Lolli A B s) (Lolli A' B' s).
 
 Notation red := (star pstep).
 Notation "s === t" := (conv pstep s t) (at level 50).
@@ -289,10 +301,14 @@ Proof with eauto using pstep.
       * apply pstep_compat_beta...
         eapply pstep_value; eauto.
       * apply pstep_compat_beta...
-  - inv H1. apply (IHpstep1) in H7. apply (IHpstep2) in H8.
-    first_order. exists (TyProd x0 x s t)...
-  - inv H1. apply (IHpstep1) in H7. apply (IHpstep2) in H8.
-    first_order. exists (LnProd x0 x s t)...
+  - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
+    first_order. exists (TyProd x0 x s)...
+  - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
+    first_order. exists (LnProd x0 x s)...
+  - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
+    first_order. exists (Arrow x0 x s)...
+  - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
+    first_order. exists (Lolli x0 x s)...
 Qed.
 
 Lemma strip m m1 m2 :
@@ -370,26 +386,26 @@ Inductive has_type : context term -> term -> term -> sort -> Prop :=
 | axiom Gamma s : 
   pure Gamma ->
   [ Gamma |- Sort s :- Sort U -: U ]
-| u_prod1 Gamma A B s :
+| u_prod Gamma A B s :
   pure Gamma ->
   [ Gamma |- A :- Sort U -: U ] ->
   [ A :L Gamma |- B :- Sort s -: U ] ->
-  [ Gamma |- TyProd A B U s :- Sort U -: U ]
-| u_prod2 Gamma A B s :
-  pure Gamma ->
-  [ Gamma |- A :- Sort L -: U ] ->
-  [ :N Gamma |- B :- Sort s -: U ] ->
-  [ Gamma |- TyProd A B L s :- Sort U -: U ]
-| l_prod1 Gamma A B s :
+  [ Gamma |- TyProd A B s :- Sort U -: U ]
+| l_prod Gamma A B s :
   pure Gamma ->
   [ Gamma |- A :- Sort U -: U ] ->
   [ A :L Gamma |- B :- Sort s -: U ] ->
-  [ Gamma |- LnProd A B U s :- Sort L -: U ]
-| l_prod2 Gamma A B s :
+  [ Gamma |- LnProd A B s :- Sort L -: U ]
+| arrow Gamma A B s :
   pure Gamma ->
   [ Gamma |- A :- Sort L -: U ] ->
-  [ :N Gamma |- B :- Sort s -: U ] ->
-  [ Gamma |- LnProd A B L s :- Sort L -: U ]
+  [ Gamma |- B :- Sort s -: U ] ->
+  [ Gamma |- Arrow A B s :- Sort U -: U ]
+| lolli Gamma A B s :
+  pure Gamma ->
+  [ Gamma |- A :- Sort L -: U ] ->
+  [ Gamma |- B :- Sort s -: U ] ->
+  [ Gamma |- Lolli A B s :- Sort L -: U ]
 | u_var Gamma x A : 
   hasL Gamma x A ->
   [ Gamma |- Var x :- A -: U ]
@@ -398,35 +414,45 @@ Inductive has_type : context term -> term -> term -> sort -> Prop :=
   [ Gamma |- Var x :- A -: L ]
 | u_lam1 Gamma n A B s :
   pure Gamma ->
-  [ Gamma |- TyProd A B U s :- Sort U -: U ] ->
+  [ Gamma |- TyProd A B s :- Sort U -: U ] ->
   [ A :L Gamma |- n :- B -: s ] ->
-  [ Gamma |- Lam n :- TyProd A B U s -: U ]
+  [ Gamma |- Lam n :- TyProd A B s -: U ]
 | u_lam2 Gamma n A B s :
   pure Gamma ->
-  [ Gamma |- TyProd A B L s :- Sort U -: U ] ->
-  [ A :R Gamma |- n :- B -: s ] ->
-  [ Gamma |- Lam n :- TyProd A B L s -: U ]
+  [ Gamma |- Arrow A B s :- Sort U -: U ] ->
+  [ A :R Gamma |- n :- B.[ren (+1)] -: s ] ->
+  [ Gamma |- Lam n :- Arrow A B s -: U ]
 | l_lam1 Gamma n A B s :
-  [ re Gamma |- LnProd A B U s :- Sort L -: U ] ->
+  [ re Gamma |- LnProd A B s :- Sort L -: U ] ->
   [ A :L Gamma |- n :- B -: s ] ->
-  [ Gamma |- Lam n :- LnProd A B U s -: L ]
+  [ Gamma |- Lam n :- LnProd A B s -: L ]
 | l_lam2 Gamma n A B s :
-  [ re Gamma |- LnProd A B L s :- Sort L -: U ] ->
-  [ A :R Gamma |- n :- B -: s ] ->
-  [ Gamma |- Lam n :- LnProd A B L s -: L ]
-| u_app Gamma1 Gamma2 Gamma A B m n s t :
-  [ Gamma1 |- m :- TyProd A B s t -: U ] ->
-  [ Gamma2 |- n :- A -: s ] ->
+  [ re Gamma |- Lolli A B s :- Sort L -: U ] ->
+  [ A :R Gamma |- n :- B.[ren (+1)] -: s ] ->
+  [ Gamma |- Lam n :- Lolli A B s -: L ]
+| u_app1 Gamma1 Gamma2 Gamma A B m n s :
+  [ Gamma1 |- m :- TyProd A B s -: U ] ->
+  [ Gamma2 |- n :- A -: U ] ->
   merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- App (Lam B) n -: t ]
-| l_app Gamma1 Gamma2 Gamma A B m n s t :
-  [ Gamma1 |- m :- LnProd A B s t -: L ] ->
-  [ Gamma2 |- n :- A -: s ] ->
+  [ Gamma |- App m n :- App (Lam B) n -: s ]
+| u_app2 Gamma1 Gamma2 Gamma A B m n s :
+  [ Gamma1 |- m :- Arrow A B s -: U ] ->
+  [ Gamma2 |- n :- A -: L ] ->
   merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- App (Lam B) n -: t ]
-| conversion Gamma A B m s t :
-  [ re Gamma |- A :- Sort s -: t ] ->
-  [ re Gamma |- B :- Sort s -: t ] ->
+  [ Gamma |- App m n :- B -: s ]
+| l_app1 Gamma1 Gamma2 Gamma A B m n s :
+  [ Gamma1 |- m :- LnProd A B s -: L ] ->
+  [ Gamma2 |- n :- A -: U ] ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma |- App m n :- App (Lam B) n -: s ]
+| l_app2 Gamma1 Gamma2 Gamma A B m n s :
+  [ Gamma1 |- m :- Lolli A B s -: L ] ->
+  [ Gamma2 |- n :- A -: L ] ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma |- App m n :- B -: s ]
+| conversion Gamma A B m s :
+  [ re Gamma |- A :- Sort s -: U ] ->
+  [ re Gamma |- B :- Sort s -: U ] ->
   A === B ->
   [ Gamma |- m :- A -: s ] ->
   [ Gamma |- m :- B -: s ]
@@ -661,28 +687,22 @@ Proof.
     apply axiom; assumption.
   - asimpl.
     pose proof (agree_pure H2 H).
-    apply u_prod1; eauto.
+    apply u_prod; eauto.
     replace (Sort s) with ((Sort s).[ren (upren xi)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
   - asimpl.
     pose proof (agree_pure H2 H).
-    apply u_prod2; eauto.
+    apply l_prod; eauto.
     replace (Sort s) with ((Sort s).[ren (upren xi)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
   - asimpl.
     pose proof (agree_pure H2 H).
-    apply l_prod1; eauto.
-    replace (Sort s) with ((Sort s).[ren (upren xi)]) by autosubst.
-    apply IHhas_type2.
-    constructor; eauto.
+    apply arrow; eauto.
   - asimpl.
     pose proof (agree_pure H2 H).
-    apply l_prod2; eauto.
-    replace (Sort s) with ((Sort s).[ren (upren xi)]) by autosubst.
-    apply IHhas_type2.
-    constructor; eauto.
+    apply lolli; eauto.
   - replace (ids (xi x)) with (Var (xi x)) by autosubst.
     apply u_var.
     eapply agree_hasL; eauto.
@@ -695,10 +715,12 @@ Proof.
     asimpl.
     apply IHhas_type2; eauto.
     constructor; eauto.
-  - apply u_lam2.
+  - asimpl.
+    apply u_lam2.
     eapply agree_pure; eauto.
     apply IHhas_type1; eauto.
-    asimpl.
+    replace (B.[ren xi].[ren (+1)]) 
+      with (B.[ren (+1)].[ren (upren xi)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
   - apply l_lam1.
@@ -707,20 +729,28 @@ Proof.
     asimpl.
     apply IHhas_type2.
     constructor; eauto.
-  - apply l_lam2.
+  - asimpl.
+    apply l_lam2.
     apply IHhas_type1; eauto.
     apply agree_re_re; eauto.
-    asimpl.
+    replace (B.[ren xi].[ren (+1)]) 
+      with (B.[ren (+1)].[ren (upren xi)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
   - asimpl.
     pose proof (merge_agree_inv H2 H1).
     first_order. asimpl in IHhas_type1.
-    eapply u_app; eauto.
+    eapply u_app1; eauto.
+  - pose proof (merge_agree_inv H2 H1).
+    first_order. asimpl in IHhas_type1.
+    eapply u_app2; eauto.
   - asimpl.
     pose proof (merge_agree_inv H2 H1).
     first_order. asimpl in IHhas_type1.
-    eapply l_app; eauto.
+    eapply l_app1; eauto.
+  - pose proof (merge_agree_inv H2 H1).
+    first_order. asimpl in IHhas_type1.
+    eapply l_app2; eauto.
   - pose proof (agree_re_re H3).
     pose proof (IHhas_type1 _ _ H4). asimpl in H5.
     pose proof (IHhas_type2 _ _ H4). asimpl in H6.
@@ -800,12 +830,12 @@ Proof.
   inv H0; eauto.
 Qed.
 
-Lemma red_tyProd_inv A B x s t :
-  red (TyProd A B s t) x -> 
+Lemma red_tyProd_inv A B x s :
+  red (TyProd A B s) x -> 
   exists A' B',
     red A A' /\
     red B B' /\
-    x = TyProd A' B' s t.
+    x = TyProd A' B' s.
 Proof.
   induction 1.
   - exists A.
@@ -819,12 +849,50 @@ Proof.
     repeat constructor; eauto using star.
 Qed.
 
-Lemma red_lnProd_inv A B x s t :
-  red (LnProd A B s t) x -> 
+Lemma red_lnProd_inv A B x s :
+  red (LnProd A B s) x -> 
   exists A' B',
     red A A' /\
     red B B' /\
-    x = LnProd A' B' s t.
+    x = LnProd A' B' s.
+Proof.
+  induction 1.
+  - exists A.
+    exists B.
+    repeat constructor.
+  - first_order.
+    rewrite H3 in H0.
+    inv H0.
+    exists A'.
+    exists B'.
+    repeat constructor; eauto using star.
+Qed.
+
+Lemma red_arrow_inv A B x s :
+  red (Arrow A B s) x -> 
+  exists A' B',
+    red A A' /\
+    red B B' /\
+    x = Arrow A' B' s.
+Proof.
+  induction 1.
+  - exists A.
+    exists B.
+    repeat constructor.
+  - first_order.
+    rewrite H3 in H0.
+    inv H0.
+    exists A'.
+    exists B'.
+    repeat constructor; eauto using star.
+Qed.
+
+Lemma red_lolli_inv A B x s :
+  red (Lolli A B s) x -> 
+  exists A' B',
+    red A A' /\
+    red B B' /\
+    x = Lolli A' B' s.
 Proof.
   induction 1.
   - exists A.
@@ -867,6 +935,8 @@ Proof.
   intros H H1.
   dependent induction H1; intros; eauto.
   - eapply hasL_pure; eauto.
+  - inv H1.
+  - inv H1.
   - inv H1.
   - inv H1.
 Qed.
