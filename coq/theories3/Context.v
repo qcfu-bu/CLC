@@ -83,6 +83,13 @@ Fixpoint re T (Gamma : context T) : context T :=
   | _ => nil
   end.
 
+Lemma merge_sym T (Gamma1 Gamma2 Gamma : context T) : 
+  merge Gamma1 Gamma2 Gamma ->
+  merge Gamma2 Gamma1 Gamma.
+Proof.
+  induction 1; intros; eauto; constructor; eauto.
+Qed.
+
 Lemma merge_pure1 T (Gamma1 Gamma2 Gamma : context T) :
   merge Gamma1 Gamma2 Gamma ->
   pure Gamma1 -> Gamma = Gamma2.
