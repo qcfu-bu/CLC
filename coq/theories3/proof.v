@@ -1002,11 +1002,6 @@ Inductive agree_subst :
   [ Delta |- sigma -| Gamma ] ->
   [ re Delta |- n :- A.[sigma] -: U ] ->
   [ Delta |- n .: sigma -| A :L Gamma ]
-| agree_subst_wkR Delta1 Delta2 Delta sigma Gamma n A :
-  merge Delta1 Delta2 Delta ->
-  [ Delta1 |- sigma -| Gamma ] ->
-  [ Delta2 |- n :- A.[sigma] -: L ] ->
-  [ Delta |- n .: sigma -| A :R Gamma ]
 | agree_subst_wkN Delta sigma Gamma n :
   [ Delta |- sigma -| Gamma ] ->
   [ Delta |- n .: sigma -| :N Gamma ]
@@ -1022,7 +1017,6 @@ Proof.
   inv H0.
   constructor; eauto.
   inv H1; eauto.
-  inv H2.
   inv H0; eauto.
 Qed.
 
@@ -1071,7 +1065,6 @@ Proof.
     pose proof (agree_subst_pure H H6).
     pose proof (pure_re H1).
     rewrite H2; eauto.
-  - inv H2.
   - inv H0; asimpl; eauto.
 Qed.
 
@@ -1099,10 +1092,6 @@ Proof.
     autosubst.
     autosubst.
   - inv H1; asimpl; eauto.
-  - inv H2; asimpl.
-    pose proof (agree_subst_pure H0 H7).
-    pose proof (merge_pure1 H H2).
-    rewrite H3; eauto.
   - inv H0; asimpl; eauto.
 Qed.
 
@@ -1118,10 +1107,6 @@ Proof.
   - constructor; eauto.
   - constructor; eauto.
     rewrite <- re_re; eauto.
-  - pose proof (merge_re_re H).
-    destruct H2.
-    rewrite <- H2.
-    constructor; eauto.
   - constructor; eauto.
 Qed.
 
@@ -1173,9 +1158,6 @@ Proof.
     repeat constructor; eauto.
     rewrite H4; eauto.
     rewrite H6; eauto.
-  - inv H2.
-    pose proof (IHagree_subst _ _ H6).
-    first_order.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
@@ -1183,7 +1165,7 @@ Proof.
     exists x0.
     repeat constructor; eauto.
 Qed.
-  
+
 Lemma substitution Gamma m A s :
   [ Gamma |- m :- A -: s ] ->
   forall Delta sigma,
@@ -1310,39 +1292,34 @@ Proof.
 Qed.
 
 Lemma substitutionR Gamma1 m A B s :
-  [ Gamma1 |- ] ->
   [ A :R Gamma1 |- m :- B -: s ] ->
   forall Gamma2 Gamma n,
     value n ->
     merge Gamma1 Gamma2 Gamma -> 
-    [ Gamma2 |- ] ->
     [ Gamma2 |- n :- A -: L ] -> 
     [ Gamma |- m.[n/] :- B.[n/] -: s ].
 Proof.
-  intros H H0.
-  dependent induction H0; intros.
-  - inv H0.
-  - inv H0.
-  - inv H0.
-  - inv H0.
-  - inv H0.
-  - inv H0.
-  - inv H0.
+  intros H.
+  dependent induction H; intros.
+  - inv H.
+  - inv H.
+  - inv H.
+  - inv H.
+  - inv H.
+  - inv H.
+  - inv H.
     asimpl.
-    pose proof (merge_pure1 H2 H9).
-    rewrite H0; eauto.
-  - inv H0.
-  - inv H0.
-  - asimpl.
-    eapply l_lam1.
-    replace (LnProd A0.[n0/] B.[ids 0 .: n0.[ren (+1)] .: ren(+1)] s)
-      with ((LnProd A0 B s).[n0/]) by autosubst.
-    replace (Sort L) with ((Sort L).[n0/]) by autosubst.
-    asimpl in H0_.
-    pose proof (merge_re_re H1).
-    destruct H4.
-    eapply substitutionN; eauto.
-    rewrite <- H4.
-    apply re_ok; eauto.
-    rewrite <- H4; eauto.
+    pose proof (merge_pure1 H1 H7).
+    rewrite H; eauto.
+  - inv H.
+  - inv H.
+  - admit.
+  - admit.
+  - inv H1.
+    assert (A :R Gamma4 = A :R Gamma4) by eauto.
+    pose proof (IHhas_type1 Gamma4 A H1 Gamma5 Gamma1 n0 H2 H8).
+    asimpl.
+    eapply u_app1.
+    asimpl in H5.
+    apply H5.
     

@@ -87,7 +87,26 @@ Lemma merge_sym T (Gamma1 Gamma2 Gamma : context T) :
   merge Gamma1 Gamma2 Gamma ->
   merge Gamma2 Gamma1 Gamma.
 Proof.
-  induction 1; intros; eauto; constructor; eauto.
+  induction 1; intros; constructor; eauto.
+Qed.
+
+Lemma merge_pure_inv T (Gamma1 Gamma2 Gamma : context T) :
+  merge Gamma1 Gamma2 Gamma ->
+  pure Gamma -> pure Gamma1 /\ pure Gamma2.
+Proof.
+  induction 1; intros; constructor; eauto.
+  - inv H0.
+    constructor; firstorder.
+  - inv H0.
+    constructor; firstorder.
+  - inv H0.
+  - inv H0.
+  - inv H0.
+  - inv H0.
+  - inv H0.
+    constructor; firstorder.
+  - inv H0.
+    constructor; firstorder.
 Qed.
 
 Lemma merge_pure1 T (Gamma1 Gamma2 Gamma : context T) :
