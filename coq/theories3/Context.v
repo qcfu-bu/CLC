@@ -264,3 +264,79 @@ Proof.
   inv H2; apply IHhasL in H7; eauto.
   inv H2; apply IHhasL in H5; eauto.
 Qed.
+
+Lemma merge_split1 T (Gamma1 Gamma2 Gamma : context T) :
+  merge Gamma1 Gamma2 Gamma ->
+  forall Delta1 Delta2,
+    merge Delta1 Delta2 Gamma1 ->
+    exists Delta,
+      merge Delta1 Gamma2 Delta /\
+      merge Delta Delta2 Gamma.
+Proof.
+  induction 1; intros.
+  - inv H.
+    exists nil.
+    repeat constructor; eauto.
+  - inv H0.
+    specialize (IHmerge _ _ H4).
+    firstorder.
+    exists (m :L x).
+    repeat constructor; eauto.
+  - inv H0.
+    + specialize (IHmerge _ _ H4).
+      firstorder.
+      exists (m :R x).
+      repeat constructor; eauto.
+    + specialize (IHmerge _ _ H4).
+      firstorder.
+      exists (:N x).
+      repeat constructor; eauto.
+  - inv H0.
+    specialize (IHmerge _ _ H4).
+    firstorder.
+    exists (m :R x).
+    repeat constructor; eauto.
+  - inv H0.
+    specialize (IHmerge _ _ H4).
+    firstorder.
+    exists (:N x).
+    repeat constructor; eauto.
+Qed.
+
+Lemma merge_split2 T (Gamma1 Gamma2 Gamma : context T) :
+  merge Gamma1 Gamma2 Gamma ->
+  forall Delta1 Delta2,
+    merge Delta1 Delta2 Gamma1 ->
+    exists Delta,
+      merge Delta2 Gamma2 Delta /\
+      merge Delta1 Delta Gamma.
+Proof.
+  induction 1; intros.
+  - inv H.
+    exists nil.
+    repeat constructor; eauto.
+  - inv H0.
+    specialize (IHmerge _ _ H4).
+    firstorder.
+    exists (m :L x).
+    repeat constructor; eauto.
+  - inv H0.
+    + specialize (IHmerge _ _ H4).
+      firstorder.
+      exists (:N x).
+      repeat constructor; eauto.
+    + specialize (IHmerge _ _ H4).
+      firstorder.
+      exists (m :R x).
+      repeat constructor; eauto.
+  - inv H0.
+    specialize (IHmerge _ _ H4).
+    firstorder.
+    exists (m :R x).
+    repeat constructor; eauto.
+  - inv H0.
+    specialize (IHmerge _ _ H4).
+    firstorder.
+    exists (:N x).
+    repeat constructor; eauto.
+Qed.

@@ -1002,6 +1002,11 @@ Inductive agree_subst :
   [ Delta |- sigma -| Gamma ] ->
   [ re Delta |- n :- A.[sigma] -: U ] ->
   [ Delta |- n .: sigma -| A :L Gamma ]
+| agree_subst_wkR Delta1 Delta2 Delta sigma Gamma n A :
+  merge Delta1 Delta2 Delta ->
+  [ Delta1 |- sigma -| Gamma ] ->
+  [ Delta2 |- n :- A.[sigma] -: L ] ->
+  [ Delta |- n .: sigma -| A :R Gamma ]
 | agree_subst_wkN Delta sigma Gamma n :
   [ Delta |- sigma -| Gamma ] ->
   [ Delta |- n .: sigma -| :N Gamma ]
@@ -1017,6 +1022,7 @@ Proof.
   inv H0.
   constructor; eauto.
   inv H1; eauto.
+  inv H2.
   inv H0; eauto.
 Qed.
 
@@ -1065,6 +1071,7 @@ Proof.
     pose proof (agree_subst_pure H H6).
     pose proof (pure_re H1).
     rewrite H2; eauto.
+  - inv H2.
   - inv H0; asimpl; eauto.
 Qed.
 
@@ -1092,6 +1099,10 @@ Proof.
     autosubst.
     autosubst.
   - inv H1; asimpl; eauto.
+  - inv H2; asimpl.
+    pose proof (agree_subst_pure H0 H7).
+    pose proof (merge_pure1 H H2).
+    rewrite H3; eauto.
   - inv H0; asimpl; eauto.
 Qed.
 
@@ -1107,6 +1118,10 @@ Proof.
   - constructor; eauto.
   - constructor; eauto.
     rewrite <- re_re; eauto.
+  - constructor; eauto.
+    pose proof (merge_re_re H).
+    destruct H2.
+    rewrite <- H2; eauto.
   - constructor; eauto.
 Qed.
 
@@ -1158,6 +1173,34 @@ Proof.
     repeat constructor; eauto.
     rewrite H4; eauto.
     rewrite H6; eauto.
+  - remember H2.
+    inv H2.
+    + pose proof (IHagree_subst _ _ H6).
+      firstorder.
+      pose proof (merge_split1 H H3).
+      firstorder.
+      exists x1.
+      exists x0.
+      firstorder.
+      eapply agree_subst_wkR.
+      apply H7.
+      apply H4.
+      apply H1.
+      eapply agree_subst_wkN.
+      apply H5.
+    + pose proof (IHagree_subst _ _ H6).
+      firstorder.
+      pose proof (merge_split2 H H3).
+      firstorder.
+      exists x.
+      exists x1.
+      firstorder.
+      apply agree_subst_wkN.
+      apply H4.
+      eapply agree_subst_wkR.
+      apply H7.
+      apply H5.
+      apply H1.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
@@ -1299,8 +1342,10 @@ Lemma substitutionR Gamma1 m A B s :
     [ Gamma2 |- n :- A -: L ] -> 
     [ Gamma |- m.[n/] :- B.[n/] -: s ].
 Proof.
-  intros H.
-  dependent induction H; intros.
+  intros.
+  eapply substitution.
+  apply H.
+  apply value_v_subst; eauto.
   - inv H.
   - inv H.
   - inv H.
