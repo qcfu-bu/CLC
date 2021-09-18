@@ -1346,25 +1346,6 @@ Proof.
   eapply substitution.
   apply H.
   apply value_v_subst; eauto.
-  - inv H.
-  - inv H.
-  - inv H.
-  - inv H.
-  - inv H.
-  - inv H.
-  - inv H.
-    asimpl.
-    pose proof (merge_pure1 H1 H7).
-    rewrite H; eauto.
-  - inv H.
-  - inv H.
-  - admit.
-  - admit.
-  - inv H1.
-    assert (A :R Gamma4 = A :R Gamma4) by eauto.
-    pose proof (IHhas_type1 Gamma4 A H1 Gamma5 Gamma1 n0 H2 H8).
-    asimpl.
-    eapply u_app1.
-    asimpl in H5.
-    apply H5.
-    
+  eapply agree_subst_wkR; asimpl; eauto.
+  apply agree_subst_refl.
+Qed.
