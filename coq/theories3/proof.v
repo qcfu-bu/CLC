@@ -1690,7 +1690,7 @@ Proof.
     apply H1.
 Qed.
 
-Lemma preservation Gamma m A s :
+Theorem preservation Gamma m A s :
   [ Gamma |- m :- A -: s ] ->
   forall n, pstep m n -> 
     [ Gamma |- n :- A -: s ].
