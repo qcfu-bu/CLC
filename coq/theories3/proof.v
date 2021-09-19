@@ -1530,3 +1530,37 @@ Proof.
     rewrite <- pure_re; eauto.
     specialize (IHhas_type2 H1 _ H7).
     apply u_prod; eauto.
+    eapply context_convL.
+    rewrite <- pure_re.
+    apply H0_. 
+    apply H0.
+    rewrite <- pure_re; eauto.
+    apply conv_sym; econstructor; eauto.
+    apply IHhas_type2.
+  - inv H1.
+    specialize (IHhas_type1 H _ H6).
+    assert ([A :L Gamma |- ]).
+    constructor; eauto.
+    rewrite <- pure_re; eauto.
+    specialize (IHhas_type2 H1 _ H7).
+    apply l_prod; eauto.
+    eapply context_convL.
+    rewrite <- pure_re.
+    apply H0_. 
+    apply H0.
+    rewrite <- pure_re; eauto.
+    apply conv_sym; econstructor; eauto.
+    apply IHhas_type2.
+  - inv H1.
+    specialize (IHhas_type1 H _ H6).
+    specialize (IHhas_type2 H _ H7).
+    apply arrow; eauto.
+  - inv H1.
+    specialize (IHhas_type1 H _ H6).
+    specialize (IHhas_type2 H _ H7).
+    apply lolli; eauto.
+  - inv H1.
+    apply u_var; eauto.
+  - inv H1.
+    apply l_var; eauto.
+  - inv H1.
