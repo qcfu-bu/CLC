@@ -473,8 +473,6 @@ Inductive has_type : context term -> term -> term -> sort -> Prop :=
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma |- App m n :- B -: s ]
 | conversion Gamma A B m s :
-  (* [ re Gamma |- A :- Sort s -: U ] ->
-  [ re Gamma |- B :- Sort s -: U ] -> *)
   A === B ->
   [ Gamma |- m :- A -: s ] ->
   [ Gamma |- m :- B -: s ]
@@ -1030,14 +1028,10 @@ Inductive agree_subst :
   [ Delta |- sigma -| Gamma ] ->
   [ Delta |- n .: sigma -| :N Gamma ]
 | agree_subst_convL Delta sigma Gamma A B :
-  (* [ re Delta |- A.[ren (+1)].[sigma] :- Sort U -: U ] ->
-  [ re Delta |- B.[ren (+1)].[sigma] :- Sort U -: U ] -> *)
   A === B ->
   [ Delta |- sigma -| A :L Gamma ] ->
   [ Delta |- sigma -| B :L Gamma ]
 | agree_subst_convR Delta sigma Gamma A B :
-  (* [ re Delta |- A.[ren (+1)].[sigma] :- Sort L -: U ] ->
-  [ re Delta |- B.[ren (+1)].[sigma] :- Sort L -: U ] -> *)
   A === B ->
   [ Delta |- sigma -| A :R Gamma ] ->
   [ Delta |- sigma -| B :R Gamma ]
