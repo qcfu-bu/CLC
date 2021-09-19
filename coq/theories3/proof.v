@@ -1513,6 +1513,54 @@ Proof.
   apply agree_subst_refl.
 Qed.
 
+Lemma tyProd_inv Gamma A B s :
+  [ re Gamma |- TyProd A B s :- Sort U -: U ] ->
+  [ re Gamma |- A :- Sort U -: U ] /\ 
+  [ A :L re Gamma |- B :- Sort s -: U ].
+Proof.
+  move e:(TyProd A B s) => n tp. 
+  elim: tp A B s e => //{Gamma n}.
+  move=> Gamma A B s p tp1 _ tp2 _ A0 B0 s0 [->->->] => //.
+Qed.
+
+Lemma arrow_inv Gamma A B s :
+  [ re Gamma |- Arrow A B s :- Sort U -: U ] ->
+  [ re Gamma |- A :- Sort L -: U ] /\ 
+  [ re Gamma |- B :- Sort s -: U ].
+Proof.
+  move e:(Arrow A B s) => n tp. 
+  elim: tp A B s e => //{Gamma n}.
+  move=> Gamma A B s p tp1 _ tp2 _ A0 B0 s0 [->->->] => //.
+Qed.
+
+Lemma lnProd_inv Gamma A B s :
+  [ re Gamma |- LnProd A B s :- Sort L -: U ] ->
+  [ re Gamma |- A :- Sort U -: U ] /\ 
+  [ A :L re Gamma |- B :- Sort s -: U ].
+Proof.
+  move e:(LnProd A B s) => n tp. 
+  elim: tp A B s e => //{Gamma n}.
+  move=> Gamma A B s p tp1 _ tp2 _ A0 B0 s0 [->->->] => //.
+Qed.
+
+Lemma lolli_inv Gamma A B s :
+  [ re Gamma |- Lolli A B s :- Sort L -: U ] ->
+  [ re Gamma |- A :- Sort L -: U ] /\ 
+  [ re Gamma |- B :- Sort s -: U ].
+Proof.
+  move e:(Lolli A B s) => n tp. 
+  elim: tp A B s e => //{Gamma n}.
+  move=> Gamma A B s p tp1 _ tp2 _ A0 B0 s0 [->->->] => //.
+  move=> Gamma A B m s tp1 _ tp2 _ e tp3 ih3 A0 B0 s0 eq.
+  apply ih3 in eq.
+  first_order; eauto.
+  eapply conversion.
+  apply tp1.
+  apply tp2.
+  apply e.
+  apply H.
+Qed.
+
 Lemma preservation Gamma m A s :
   [ Gamma |- ] ->
   [ Gamma |- m :- A -: s ] ->
@@ -1564,3 +1612,31 @@ Proof.
   - inv H1.
     apply l_var; eauto.
   - inv H1.
+    assert ([A :L Gamma |- ]).
+    constructor; eauto.
+    eapply tyProd_inv.
+    rewrite <- pure_re; eauto.
+    specialize (IHhas_type2 H1 _ H3).
+    apply u_lam1; eauto.
+  - inv H1.
+    assert ([A :R Gamma |- ]).
+    constructor; eauto.
+    assert ([ re Gamma |- Arrow A B s :- Sort U -: U ]).
+    rewrite <- pure_re; eauto.
+    pose proof (arrow_inv H1).
+    destruct H2; eauto.
+    specialize (IHhas_type2 H1 _ H3).
+    apply u_lam2; eauto.
+  - inv H1.
+    assert ([A :L Gamma |- ]).
+    constructor; eauto.
+    eapply lnProd_inv; eauto.
+    specialize (IHhas_type2 H0 _ H2).
+    apply l_lam1; eauto.
+  - inv H1.
+    assert ([A :R Gamma |- ]).
+    constructor; eauto.
+    pose proof (lolli_inv H0_).
+    first_order; eauto.
+    specialize (IHhas_type2 H0 _ H2).
+    apply l_lam2; eauto.
