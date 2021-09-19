@@ -1817,3 +1817,218 @@ Proof.
       apply IHhas_type2.
   - eapply conversion; eauto.
 Qed.
+
+Corollary preservation_step m n :
+  step m n ->
+  forall Gamma A s,
+    [ Gamma |- m :- A -: s ] ->
+    [ Gamma |- n :- A -: s ].
+Proof.
+  intros.
+  eapply preservation.
+  apply H0.
+  apply step_pstep; eauto.
+Qed.
+
+Corollary preservation_star_step m n :
+  star step m n ->
+  forall Gamma A s,
+    [ Gamma |- m :- A -: s ] ->
+    [ Gamma |- n :- A -: s ].
+Proof.
+  intro H.
+  dependent induction H; intros; eauto.
+  eapply preservation.
+  apply IHstar; eauto.
+  apply step_pstep; eauto.
+Qed.
+
+Lemma canonical_tyProd m C :
+  [ nil |- m :- C -: U ] -> value m ->
+  forall A B s, 
+    C === TyProd A B s -> exists m', m = Lam m'.
+Proof.
+  intros.
+  dependent induction H.
+  - solve_conv; exfalso; eauto.
+  - solve_conv; exfalso; eauto.
+  - solve_conv; exfalso; eauto.
+  - solve_conv; exfalso; eauto.
+  - solve_conv; exfalso; eauto.
+  - inv H.
+  - exists n; eauto.
+  - solve_conv; exfalso; eauto.
+  - inv H2.
+  - inv H2.
+  - inv H2.
+  - inv H2.
+  - eapply IHhas_type; eauto.
+    eapply conv_trans.
+    apply H.
+    apply H2.
+Qed.
+
+Lemma canonical_lnProd m C :
+  [ nil |- m :- C -: L ] -> value m ->
+  forall A B s, 
+    C === LnProd A B s -> exists m', m = Lam m'.
+Proof.
+  intros.
+  dependent induction H.
+  - inv H.
+  - exists n; eauto.
+  - solve_conv; exfalso; eauto.
+  - inv H2.
+  - inv H2.
+  - inv H2.
+  - inv H2.
+  - eapply IHhas_type; eauto.
+    eapply conv_trans.
+    apply H.
+    apply H2.
+Qed.
+
+
+Lemma canonical_arrow m C :
+  [ nil |- m :- C -: U ] -> value m ->
+  forall A B s, 
+    C === Arrow A B s -> exists m', m = Lam m'.
+Proof.
+  intros.
+  dependent induction H.
+  - solve_conv; exfalso; eauto.
+  - solve_conv; exfalso; eauto.
+  - solve_conv; exfalso; eauto.
+  - solve_conv; exfalso; eauto.
+  - solve_conv; exfalso; eauto.
+  - inv H.
+  - solve_conv; exfalso; eauto.
+  - exists n; eauto.
+  - inv H2.
+  - inv H2.
+  - inv H2.
+  - inv H2.
+  - eapply IHhas_type; eauto.
+    eapply conv_trans.
+    apply H.
+    apply H2.
+Qed.
+
+Lemma canonical_lolli m C :
+  [ nil |- m :- C -: L ] -> value m ->
+  forall A B s, 
+    C === Lolli A B s -> exists m', m = Lam m'.
+Proof.
+  intros.
+  dependent induction H.
+  - inv H.
+  - solve_conv; exfalso; eauto.
+  - exists n; eauto.
+  - inv H2.
+  - inv H2.
+  - inv H2.
+  - inv H2.
+  - eapply IHhas_type; eauto.
+    eapply conv_trans.
+    apply H.
+    apply H2.
+Qed.
+
+Theorem progress m A s :
+  [ nil |- m :- A -: s ] -> value m \/ exists n, step m n.
+Proof.
+  intros.
+  dependent induction H.
+  - left. constructor.
+  - left. constructor.
+  - left. constructor.
+  - left. constructor.
+  - left. constructor.
+  - inv H.
+  - inv H.
+  - left. constructor.
+  - left. constructor.
+  - left. constructor.
+  - left. constructor.
+  - right.
+    inv H1.
+    assert (@nil (elem term) ~= @nil (elem term)) by eauto.
+    specialize (IHhas_type1 H1).
+    specialize (IHhas_type2 H1).
+    destruct IHhas_type1; destruct IHhas_type2.
+    + assert (exists m', m = Lam m').
+      eapply canonical_tyProd; eauto.
+      destruct H4; subst.
+      exists (x.[n/]).
+      apply step_beta; eauto.
+    + destruct H3.
+      exists (App m x).
+      apply step_appR; eauto.
+    + destruct H2.
+      exists (App x n).
+      apply step_appL; eauto.
+    + destruct H2.
+      exists (App x n).
+      apply step_appL; eauto.
+  - right.
+    inv H1.
+    assert (@nil (elem term) ~= @nil (elem term)) by eauto.
+    specialize (IHhas_type1 H1).
+    specialize (IHhas_type2 H1).
+    destruct IHhas_type1; destruct IHhas_type2.
+    + assert (exists m', m = Lam m').
+      eapply canonical_arrow; eauto.
+      destruct H4; subst.
+      exists (x.[n/]).
+      apply step_beta; eauto.
+    + destruct H3.
+      exists (App m x).
+      apply step_appR; eauto.
+    + destruct H2.
+      exists (App x n).
+      apply step_appL; eauto.
+    + destruct H2.
+      exists (App x n).
+      apply step_appL; eauto.
+  - right.
+    inv H1.
+    assert (@nil (elem term) ~= @nil (elem term)) by eauto.
+    specialize (IHhas_type1 H1).
+    specialize (IHhas_type2 H1).
+    destruct IHhas_type1; destruct IHhas_type2.
+    + assert (exists m', m = Lam m').
+      eapply canonical_lnProd; eauto.
+      destruct H4; subst.
+      exists (x.[n/]).
+      apply step_beta; eauto.
+    + destruct H3.
+      exists (App m x).
+      apply step_appR; eauto.
+    + destruct H2.
+      exists (App x n).
+      apply step_appL; eauto.
+    + destruct H2.
+      exists (App x n).
+      apply step_appL; eauto.
+  - right.
+    inv H1.
+    assert (@nil (elem term) ~= @nil (elem term)) by eauto.
+    specialize (IHhas_type1 H1).
+    specialize (IHhas_type2 H1).
+    destruct IHhas_type1; destruct IHhas_type2.
+    + assert (exists m', m = Lam m').
+      eapply canonical_lolli; eauto.
+      destruct H4; subst.
+      exists (x.[n/]).
+      apply step_beta; eauto.
+    + destruct H3.
+      exists (App m x).
+      apply step_appR; eauto.
+    + destruct H2.
+      exists (App x n).
+      apply step_appL; eauto.
+    + destruct H2.
+      exists (App x n).
+      apply step_appL; eauto.
+  - apply IHhas_type; eauto.
+Qed.
