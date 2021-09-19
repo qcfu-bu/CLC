@@ -52,6 +52,20 @@ Inductive pure T : context T -> Prop :=
   pure Gamma ->
   pure (:N Gamma).
 
+Inductive ithR {T} : context T -> nat -> Prop :=
+| ithR_O m Gamma :
+  ithR (m :R Gamma) 0
+| ithR_S Gamma n e :
+  ithR Gamma n ->
+  ithR (e :: Gamma) n.+1.
+
+Inductive ithL {T} : context T -> nat -> Prop :=
+| ithL_O m Gamma :
+  ithL (m :L Gamma) 0
+| ithL_S Gamma n e :
+  ithL Gamma n ->
+  ithL (e :: Gamma) n.+1.
+
 Inductive hasL {T} `{Ids T} `{Subst T} : 
   context T -> var -> T -> Prop :=
 | hasL_O m Gamma :
@@ -82,6 +96,28 @@ Fixpoint re T (Gamma : context T) : context T :=
   | _ :: Gamma => Null _ :: re Gamma
   | _ => nil
   end.
+
+Lemma ithR_pure T (Gamma : context T) n :
+  ithR Gamma n -> ~ pure Gamma.
+Proof.
+  unfold not.
+  intros.
+  induction H.
+  inv H0.
+  inv H0; eauto.
+Qed.
+
+Lemma hasR_ithR {T} `{Ids T} `{Subst T} (Gamma : context T) A n :
+  hasR Gamma n A -> forall m, ithR Gamma m -> m = n.
+Proof.
+  induction 1; intros.
+  - inv H2; eauto.
+    exfalso; eapply ithR_pure; eauto.
+  - inv H2.
+    erewrite <- IHhasR; eauto.
+  - inv H2.
+    erewrite <- IHhasR; eauto.
+Qed.
 
 Lemma merge_sym T (Gamma1 Gamma2 Gamma : context T) : 
   merge Gamma1 Gamma2 Gamma ->
