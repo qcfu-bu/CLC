@@ -37,8 +37,10 @@ Inductive ptrT : nat -> Prop :=
 Definition ptr := ptrT.
 
 Definition C (A : Type) : Type := mem -> option (mem * A).
+
 Definition pure (A : Type) (a : A) : C A :=
   fun mem => Some (mem, a).
+
 Definition bind (A B : Type) (c1 : C A) (c2 : A -> C B) : C B :=
   fun mem => 
     match c1 mem with 
@@ -77,8 +79,7 @@ Definition free (l : nat) (c : ptr l) : C unit := fun mem =>
       end
     | nil, _ => None
     end
-  in 
-  aux mem l.
+  in aux mem l.
 
 Definition get (l : nat) (c : ptr l) : C (nat * ptr l) := fun mem =>
   let fix aux mem l :=
