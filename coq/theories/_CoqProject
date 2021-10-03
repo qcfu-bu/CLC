@@ -3,5 +3,5 @@
 
 AutosubstSsr.v
 ARS.v
-Context.v
-proof.v
+typesoundness.v
+logicalsoundness.v
