@@ -3,5 +3,5 @@
 
 AutosubstSsr.v
 ARS.v
-typesoundness.v
-logicalsoundness.v
+dltt.v
+coc.v

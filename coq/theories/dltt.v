@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Program.
-Require Import AutosubstSsr ARS Context.
+Require Import AutosubstSsr ARS coc.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -2479,6 +2479,291 @@ Proof.
       exists (App x n).
       apply step_appL; eauto.
   - apply IHhas_type; eauto.
+Qed.
+
+Import CoC.
+
+Fixpoint erase (m : DLTT.term) : CoC.term :=
+  match m with
+  | DLTT.Var x => CoC.Var x
+  | DLTT.Sort _ l => CoC.Sort l
+  | DLTT.TyProd A B _ => CoC.Prod (erase A) (erase B)
+  | DLTT.LnProd A B _ => CoC.Prod (erase A) (erase B)
+  | DLTT.Arrow A B _ => CoC.Prod (erase A) (erase B).[ren (+1)]
+  | DLTT.Lolli A B _ => CoC.Prod (erase A) (erase B).[ren (+1)]
+  | DLTT.Lam n => CoC.Lam (erase n)
+  | DLTT.App m n => CoC.App (erase m) (erase n)
+  end.
+
+Fixpoint erase_context 
+  (Gamma : DLTT.context DLTT.term) 
+: CoC.context CoC.term :=
+  match Gamma with
+  | Left t :: Gamma => erase t :s erase_context Gamma
+  | Right t :: Gamma => erase t :s erase_context Gamma
+  | Null :: Gamma => :n erase_context Gamma
+  | nil => nil
+  end.
+
+Notation "[| m |]" := (erase m).
+Notation "[[ Gamma ]]" := (erase_context Gamma).
+
+Definition erase_subst 
+  (sigma : var -> DLTT.term) 
+  (tau : var -> CoC.term)
+: Prop := 
+  forall x, [|sigma x|] = tau x.
+
+Lemma erase_ren_com m :
+  forall xi, [| m |].[ren xi] = [| m.[ren xi] |].
+Proof.
+  induction m; intros; asimpl; eauto.
+  - rewrite IHm IHm0; eauto.
+  - rewrite IHm IHm0; eauto.
+  - rewrite IHm1. 
+    replace ([|m2|].[ren (xi >>> (+1))])
+      with ([|m2|].[ren xi].[ren (+1)]) by autosubst.
+    rewrite IHm2; eauto.
+  - rewrite IHm1. 
+    replace ([|m2|].[ren (xi >>> (+1))])
+      with ([|m2|].[ren xi].[ren (+1)]) by autosubst.
+    rewrite IHm2; eauto.
+  - rewrite IHm; eauto.
+  - rewrite IHm1 IHm2; eauto.
+Qed.
+
+Lemma erase_subst_up sigma tau :
+  erase_subst sigma tau -> erase_subst (up sigma) (up tau).
+Proof.
+  unfold erase_subst.
+  intros.
+  induction x; asimpl; eauto.
+  rewrite <-H.
+  rewrite erase_ren_com; eauto.
+Qed.
+
+Lemma erase_subst_com m :
+  forall sigma tau, 
+    erase_subst sigma tau ->
+    [| m.[sigma] |] = [| m |].[tau].
+Proof.
+  induction m; intros; asimpl; eauto.
+  - rewrite <- (IHm sigma); eauto.
+    rewrite <- (IHm0 (up sigma)); eauto.
+    apply erase_subst_up; eauto.
+  - rewrite <- (IHm sigma); eauto.
+    rewrite <- (IHm0 (up sigma)); eauto.
+    apply erase_subst_up; eauto.
+  - rewrite <- (IHm1 sigma); eauto.
+    rewrite (IHm2 _ tau); autosubst.
+  - rewrite <- (IHm1 sigma); eauto.
+    rewrite (IHm2 _ tau); autosubst.
+  - rewrite <- (IHm (up sigma)); eauto.
+    apply erase_subst_up; eauto.
+  - rewrite <- (IHm1 sigma); eauto.
+    rewrite <- (IHm2 sigma); eauto.
+Qed.
+
+Lemma erase_pstep m n :
+  DLTT.pstep m n -> CoC.pstep [|m|] [|n|].
+Proof with eauto using pstep, pstep_refl.
+  induction 1; simpl; intros...
+  eapply pstep_beta; eauto.
+  apply erase_subst_com.
+  unfold erase_subst; intros.
+  destruct x; asimpl; eauto.
+  constructor; eauto.
+  apply pstep_ren; eauto.
+  constructor; eauto.
+  apply pstep_ren; eauto.
+Qed.
+
+Lemma erase_conv m n :
+  conv DLTT.pstep m n -> conv CoC.pstep [|m|] [|n|].
+Proof.
+  induction 1; eauto.
+  eapply conv_trans.
+  apply IHconv.
+  eapply convSE; eauto.
+  apply erase_pstep; eauto.
+  eapply convSEi; eauto.
+  apply erase_pstep; eauto.
+Qed.
+
+Lemma hasL_erase Gamma x A :
+  hasL Gamma x A -> has [[ Gamma ]] x [| A |].
+Proof.
+  intros.
+  dependent induction H; asimpl; firstorder.
+  rewrite <- erase_ren_com; constructor.
+  rewrite <- erase_ren_com; constructor; eauto.
+  rewrite <- erase_ren_com; constructor; eauto.
+Qed.
+
+Lemma hasR_erase Gamma x A :
+  hasR Gamma x A -> has [[ Gamma ]] x [| A |].
+Proof.
+  intros.
+  dependent induction H; asimpl; firstorder.
+  rewrite <- erase_ren_com; constructor.
+  rewrite <- erase_ren_com; constructor; eauto.
+  rewrite <- erase_ren_com; constructor; eauto.
+Qed.
+
+Inductive agree_wk : 
+  CoC.context CoC.term -> CoC.context CoC.term -> Prop :=
+| agree_wk_nil : agree_wk nil nil
+| agree_wk_s Gamma1 Gamma2 e :
+  agree_wk Gamma1 Gamma2 ->
+  agree_wk (e :: Gamma1) (e :: Gamma2)
+| agree_wk_n Gamma1 Gamma2 A :
+  agree_wk Gamma1 Gamma2 ->
+  agree_wk (:n Gamma1) (A :s Gamma2).
+
+Lemma agree_wk_has Gamma1 Gamma2 :
+  agree_wk Gamma1 Gamma2 ->
+  forall x A,
+    has Gamma1 x A ->
+    has Gamma2 x A.
+Proof.
+  intro H.
+  dependent induction H; simpl; intros; eauto.
+  inv H0; constructor; eauto.
+  inv H0; constructor; eauto.
+Qed.
+
+Lemma agree_wk_re Gamma :
+  agree_wk [[re Gamma]] [[Gamma]].
+Proof.
+  induction Gamma.
+  - simpl; constructor.
+  - destruct a; simpl; constructor; eauto.
+Qed.
+
+Lemma agree_wk_merge_inv Gamma1 Gamma2 Gamma :
+  merge Gamma1 Gamma2 Gamma ->
+  agree_wk [[Gamma1]] [[Gamma]] /\
+  agree_wk [[Gamma2]] [[Gamma]].
+Proof with eauto using agree_wk.
+  intro H.
+  dependent induction H; simpl; firstorder...
+Qed.
+
+Lemma wk_ok Gamma1 m A : 
+  [ Gamma1 |- m :- A ] ->
+  forall Gamma2, agree_wk Gamma1 Gamma2 ->
+    [ Gamma2 |- m :- A ].
+Proof.
+  intro H.
+  dependent induction H; simpl; intros; subst.
+  - pose proof (agree_wk_has H0 H).
+    apply ty_var; eauto.
+  - apply ty_sort.
+  - apply ty_prod.
+    apply IHhas_type1; eauto.
+    apply IHhas_type2; constructor; eauto.
+  - eapply ty_lam.
+    apply IHhas_type1; eauto.
+    apply IHhas_type2; constructor; eauto.
+  - eapply ty_app.
+    apply IHhas_type1; eauto.
+    apply IHhas_type2; eauto.
+  - eapply ty_conv.
+    apply H.
+    apply IHhas_type; eauto.
+Qed.
+
+Lemma erase_re Gamma m A :
+  [ [[re Gamma]] |- m :- A ] ->
+  [ [[Gamma]] |- m :- A ].
+Proof.
+  intro H.
+  eapply wk_ok; eauto.
+  apply agree_wk_re.
+Qed.
+
+Lemma erase_ok Gamma m A s : 
+  [ Gamma |- m :- A -: s ] ->
+  [ [[ Gamma ]] |- [| m |] :- [| A |] ].
+Proof.
+  intro H.
+  dependent induction H; asimpl.
+  - apply ty_sort.  
+  - apply ty_prod.
+    apply IHhas_type1.
+    apply IHhas_type2.
+  - apply ty_prod.
+    apply IHhas_type1.
+    apply IHhas_type2.
+  - apply ty_prod.
+    apply IHhas_type1.
+    replace (Sort l) with ((Sort l).[ren (+1)]) by autosubst.
+    apply weakening.
+    apply IHhas_type2.
+  - apply ty_prod.
+    apply IHhas_type1.
+    replace (Sort l) with ((Sort l).[ren (+1)]) by autosubst.
+    apply weakening.
+    apply IHhas_type2.
+  - apply hasL_erase in H.
+    apply ty_var; eauto.
+  - apply hasR_erase in H.
+    apply ty_var; eauto.
+  - simpl in IHhas_type1.
+    simpl in IHhas_type2.
+    eapply ty_lam; eauto.
+  - simpl in IHhas_type1.
+    simpl in IHhas_type2.
+    eapply ty_lam; eauto.
+    rewrite erase_ren_com; eauto.
+  - simpl in IHhas_type1.
+    simpl in IHhas_type2.
+    eapply ty_lam; eauto.
+    apply erase_re; eauto.
+  - simpl in IHhas_type1.
+    simpl in IHhas_type2.
+    eapply ty_lam; eauto.
+    apply erase_re; eauto.
+    rewrite erase_ren_com; eauto.
+  - simpl in IHhas_type1.
+    assert ([|B|].[[|n|]/] === App (Lam [|B|]) [|n|]).
+    eapply convSEi; eauto.
+    econstructor; eauto using pstep_refl.
+    eapply ty_conv.
+    apply H2.
+    apply agree_wk_merge_inv in H1; destruct H1.
+    eapply ty_app; eauto.
+    eapply wk_ok; eauto.
+    eapply wk_ok; eauto.
+  - simpl in IHhas_type1.
+    assert ([|B|].[ren (+1)].[[|n|]/] = [|B|]) by autosubst.
+    eapply ty_conv.
+    rewrite <- H2; eauto.
+    apply agree_wk_merge_inv in H1; destruct H1.
+    eapply ty_app; eauto.
+    eapply wk_ok; eauto.
+    eapply wk_ok; eauto.
+  - simpl in IHhas_type1.
+    assert ([|B|].[[|n|]/] === App (Lam [|B|]) [|n|]).
+    eapply convSEi; eauto.
+    econstructor; eauto using pstep_refl.
+    eapply ty_conv.
+    apply H2.
+    apply agree_wk_merge_inv in H1; destruct H1.
+    eapply ty_app; eauto.
+    eapply wk_ok; eauto.
+    eapply wk_ok; eauto.
+  - simpl in IHhas_type1.
+    assert ([|B|].[ren (+1)].[[|n|]/] = [|B|]) by autosubst.
+    eapply ty_conv.
+    rewrite <- H2; eauto.
+    apply agree_wk_merge_inv in H1; destruct H1.
+    eapply ty_app; eauto.
+    eapply wk_ok; eauto.
+    eapply wk_ok; eauto.
+  - eapply ty_conv.
+    apply erase_conv; eauto.
+    apply IHhas_type.
 Qed.
 
 End DLTT.
