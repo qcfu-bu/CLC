@@ -61,8 +61,7 @@ Inductive value : term -> Prop :=
 | value_lam n    : value (Lam n).
 
 Inductive step : term -> term -> Prop :=
-| step_beta s t u :
-  u = s.[t/] -> step (App (Lam s) t) u
+| step_beta s t : step (App (Lam s) t) s.[t/]
 | step_appL s1 s2 t :
   step s1 s2 -> step (App s1 t) (App s2 t)
 | step_appR s t1 t2 :
@@ -75,9 +74,8 @@ Inductive step : term -> term -> Prop :=
   step B1 B2 -> step (Prod A B1) (Prod A B2).
 
 Inductive pstep : term -> term -> Prop :=
-| pstep_beta s1 s2 t1 t2 u :
-  u = s2.[t2/] ->
-  pstep s1 s2 -> pstep t1 t2 -> pstep (App (Lam s1) t1) u
+| pstep_beta s1 s2 t1 t2 :
+  pstep s1 s2 -> pstep t1 t2 -> pstep (App (Lam s1) t1) s2.[t2/]
 | pstep_var x : pstep (Var x) (Var x)
 | pstep_sort n : pstep (Sort n) (Sort n)
 | pstep_app s1 s2 t1 t2 :

@@ -666,8 +666,8 @@ Ltac first_order :=
 
 Lemma pstep_diamond m m1 :
   pstep m m1 ->
-    forall m2, pstep m m2 ->
-      exists m', pstep m1 m' /\ pstep m2 m'.
+  forall m2, pstep m m2 ->
+    exists m', pstep m1 m' /\ pstep m2 m'.
 Proof with eauto using pstep.
   intros.
   dependent induction H.
@@ -2508,6 +2508,12 @@ Fixpoint erase_context
 Notation "[| m |]" := (erase m).
 Notation "[[ Gamma ]]" := (erase_context Gamma).
 
+Lemma erase_value v : 
+  DLTT.value v -> CoC.value [|v|].
+Proof.
+  induction 1; simpl; constructor.
+Qed.
+
 Definition erase_subst 
   (sigma : var -> DLTT.term) 
   (tau : var -> CoC.term)
@@ -2568,8 +2574,8 @@ Lemma erase_pstep m n :
   DLTT.pstep m n -> CoC.pstep [|m|] [|n|].
 Proof with eauto using pstep, pstep_refl.
   induction 1; simpl; intros...
+  erewrite erase_subst_com.
   eapply pstep_beta; eauto.
-  apply erase_subst_com.
   unfold erase_subst; intros.
   destruct x; asimpl; eauto.
   constructor; eauto.
@@ -2765,5 +2771,18 @@ Proof.
     apply erase_conv; eauto.
     apply IHhas_type.
 Qed.
+
+(* Lemma erase_red_diamond m m1 :
+dltt.v
+  DLTT.red m m1 ->
+  forall m2, CoC.red [|m|] m2 -> 
+    exists m', DLTT.pstep m1 m' /\ CoC.pstep m2 [|m'|].
+Proof with eauto using DLTT.pstep, CoC.pstep.
+  intros.
+  dependent induction H.
+  - inv H0. exists (DLTT.Var x)...
+  - inv H0. exists (DLTT.Sort srt l)...
+  - inv H0. apply IHpstep in H2. first_order. exists (DLTT.Lam x)...
+  - inv H1. *)
 
 End DLTT.
