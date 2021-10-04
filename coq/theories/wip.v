@@ -2582,7 +2582,7 @@ Proof.
   intros.
   eapply u_lam1_invX; eauto.
   split.
-  constructor.
+  apply sub_refl.
   apply tyProd_inv in H; inv H.
   apply H2.
 Qed.
@@ -2590,18 +2590,16 @@ Qed.
 Lemma u_lam2_invX Gamma n C :
   [ Gamma |= Lam n :- C -: U ] -> 
   forall A B s l, 
-    (C === Arrow A B s /\ [re Gamma |= B :- Sort s l -: U]) ->
+    (C <: Arrow A B s /\ [re Gamma |= B :- Sort s l -: U]) ->
     [ A :R Gamma |= n :- B.[ren (+1)] -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
-  - solve_conv; exfalso; eauto.
-  - apply arrow_inj in H2.
+  - exfalso; solve_sub.
+  - apply sub_arrow_inv in H2.
     first_order; subst.
     eapply conversion.
-    apply conv_subst.
-    apply ren_v_subst.
-    apply H4.
+    apply sub_ren; eauto.
     simpl.
     pose proof (weakening_N H3).
     apply H5.
@@ -2614,9 +2612,7 @@ Proof.
     apply H1.
   + eapply IHhas_type2; eauto.
     split.
-    eapply conv_trans.
-    apply H.
-    apply H2.
+    eapply sub_trans; eauto.
     apply H3.
 Qed.
 
@@ -2628,7 +2624,7 @@ Proof.
   intros.
   eapply u_lam2_invX; eauto.
   split.
-  constructor.
+  apply sub_refl.
   apply arrow_inv in H; inv H.
   apply H2.
 Qed.
@@ -2636,12 +2632,12 @@ Qed.
 Lemma l_lam1_invX Gamma n C :
   [ Gamma |= Lam n :- C -: L ] -> 
   forall A B s l, 
-    (C === LnProd A B s /\ [A :L re Gamma |= B :- Sort s l -: U]) ->
+    (C <: LnProd A B s /\ [A :L re Gamma |= B :- Sort s l -: U]) ->
     [ A :L Gamma |= n :- B -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
-  + apply lnProd_inj in H1.
+  + apply sub_lnProd_inv in H1.
     first_order; subst.
     eapply conversion.
     apply H3.
@@ -2651,12 +2647,10 @@ Proof.
     apply lnProd_inv in H. inv H.
     apply H4.
     apply H0.
-  + solve_conv; exfalso; eauto.
+  + exfalso; solve_sub.
   + eapply IHhas_type2; eauto.
     split.
-    eapply conv_trans.
-    apply H.
-    apply H2.
+    eapply sub_trans; eauto.
     apply H3.
 Qed.
 
@@ -2668,7 +2662,7 @@ Proof.
   intros.
   eapply l_lam1_invX; eauto.
   split.
-  constructor.
+  apply sub_refl.
   apply lnProd_inv in H; inv H.
   apply H2.
 Qed.
@@ -2676,18 +2670,16 @@ Qed.
 Lemma l_lam2_invX Gamma n C :
   [ Gamma |= Lam n :- C -: L ] -> 
   forall A B s l, 
-    (C === Lolli A B s /\ [re Gamma |= B :- Sort s l -: U]) ->
+    (C <: Lolli A B s /\ [re Gamma |= B :- Sort s l -: U]) ->
     [ A :R Gamma |= n :- B.[ren (+1)] -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
-  - solve_conv; exfalso; eauto.
-  - apply lolli_inj in H1.
+  - exfalso; solve_sub.
+  - apply sub_lolli_inv in H1.
     first_order; subst.
     eapply conversion.
-    apply conv_subst.
-    apply ren_v_subst.
-    apply H3.
+    apply sub_ren; eauto.
     simpl.
     pose proof (weakening_N H2).
     apply H4.
@@ -2698,9 +2690,7 @@ Proof.
     apply H0.
   + eapply IHhas_type2; eauto.
     split.
-    eapply conv_trans.
-    apply H.
-    apply H2.
+    eapply sub_trans; eauto.
     apply H3.
 Qed.
 
@@ -2712,7 +2702,7 @@ Proof.
   intros.
   eapply l_lam2_invX; eauto.
   split.
-  constructor.
+  apply sub_refl.
   apply lolli_inv in H; inv H.
   apply H2.
 Qed.
