@@ -1,5 +1,5 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
-From Coq Require Import ssrfun Program.
+From Coq Require Import ssrfun Program Logic.Classical_Prop.
 Require Import AutosubstSsr ARS.
 
 Set Implicit Arguments.
@@ -61,31 +61,60 @@ Inductive value : term -> Prop :=
 | value_lam n    : value (Lam n).
 
 Inductive step : term -> term -> Prop :=
-| step_beta s t : step (App (Lam s) t) s.[t/]
+| step_beta s t :
+  step (App (Lam s) t) s.[t/]
 | step_appL s1 s2 t :
-  step s1 s2 -> step (App s1 t) (App s2 t)
+  step s1 s2 ->
+  step (App s1 t) (App s2 t)
 | step_appR s t1 t2 :
-  step t1 t2 -> step (App s t1) (App s t2)
-| step_lam s1 s2 :
-  step s1 s2 -> step (Lam s1) (Lam s2)
-| step_prodL A1 A2 B :
-  step A1 A2 -> step (Prod A1 B) (Prod A2 B)
-| step_prodR A B1 B2 :
-  step B1 B2 -> step (Prod A B1) (Prod A B2).
+  step t1 t2 ->
+  step (App s t1) (App s t2).
 
 Inductive pstep : term -> term -> Prop :=
-| pstep_beta s1 s2 t1 t2 :
-  pstep s1 s2 -> pstep t1 t2 -> pstep (App (Lam s1) t1) s2.[t2/]
-| pstep_var x : pstep (Var x) (Var x)
-| pstep_sort n : pstep (Sort n) (Sort n)
-| pstep_app s1 s2 t1 t2 :
-  pstep s1 s2 -> pstep t1 t2 -> pstep (App s1 t1) (App s2 t2)
+| pstep_var x :
+  pstep (Var x) (Var x)
+| pstep_sort n :
+  pstep (Sort n) (Sort n)
 | pstep_lam s1 s2 :
-  pstep s1 s2 -> pstep (Lam s1) (Lam s2)
+  pstep s1 s2 ->
+  pstep (Lam s1) (Lam s2)
+| pstep_beta s1 s2 t1 t2 :
+  pstep s1 s2 ->
+  pstep t1 t2 ->
+  pstep (App (Lam s1) t1) s2.[t2/]
+| pstep_app s1 s2 t1 t2 :
+  pstep s1 s2 ->
+  pstep t1 t2 ->
+  pstep (App s1 t1) (App s2 t2)
 | pstep_prod s1 s2 t1 t2 :
-  pstep s1 s2 -> pstep t1 t2 -> pstep (Prod s1 t1) (Prod s2 t2).
+  pstep s1 s2 ->
+  pstep t1 t2 ->
+  pstep (Prod s1 t1) (Prod s2 t2).
+
+Inductive pstep_cbv : term -> term -> Prop :=
+| pstep_cbv_var x :
+  pstep_cbv (Var x) (Var x)
+| pstep_cbv_sort n :
+  pstep_cbv (Sort n) (Sort n)
+| pstep_cbv_lam s1 s2 :
+  pstep_cbv s1 s2 ->
+  pstep_cbv (Lam s1) (Lam s2)
+| pstep_cbv_beta s1 s2 t1 t2 :
+  pstep_cbv s1 s2 ->
+  value t1 ->
+  pstep_cbv t1 t2 ->
+  pstep_cbv (App (Lam s1) t1) s2.[t2/]
+| pstep_cbv_app s1 s2 t1 t2 :
+  pstep_cbv s1 s2 ->
+  pstep_cbv t1 t2 ->
+  pstep_cbv (App s1 t1) (App s2 t2)
+| pstep_cbv_prod s1 s2 t1 t2 :
+  pstep_cbv s1 s2 ->
+  pstep_cbv t1 t2 ->
+  pstep_cbv (Prod s1 t1) (Prod s2 t2).
 
 Notation red := (star pstep).
+Notation red_cbv := (star pstep_cbv).
 Notation "s === t" := (conv pstep s t) (at level 50).
 
 Lemma pstep_refl s : pstep s s.
@@ -93,9 +122,175 @@ Proof.
   induction s; constructor; eauto.
 Qed.
 
+Lemma pstep_cbv_refl s : pstep_cbv s s.
+Proof.
+  induction s; constructor; eauto.
+Qed.
+
+Lemma pstep_value v v' : 
+  pstep v v' -> value v ->  value v'.
+Proof.
+  induction 1; eauto; try constructor; intros; inv H1.
+Qed.
+
+Lemma pstep_cbv_value v v' : 
+  pstep_cbv v v' -> value v ->  value v'.
+Proof.
+  induction 1; eauto; try constructor; intros.
+  inv H2.
+  inv H1.
+Qed.
+
+Lemma pstep_compat_beta s1 s2 t1 t2 :
+  pstep s1 s2 -> pstep t1 t2 -> pstep s1.[t1/] s2.[t2/].
+Proof.
+Admitted.
+
+Lemma pstep_cbv_compat_beta s1 s2 t1 t2 :
+  pstep_cbv s1 s2 -> pstep_cbv t1 t2 -> pstep_cbv s1.[t1/] s2.[t2/].
+Proof.
+Admitted.
+
+Lemma pstep_cbv_ok s s' : pstep_cbv s s' -> pstep s s'.
+Proof.
+  induction 1; constructor; eauto.
+Qed.
+
 Axiom pstep_ren : forall s s' xi, 
   pstep s s' -> pstep s.[ren xi] s'.[ren xi].
+
+Axiom pstep_cbv_ren : forall s s' xi, 
+  pstep_cbv s s' -> pstep_cbv s.[ren xi] s'.[ren xi].
+
 Axiom church_rosser : CR pstep.
+
+Definition left_invertible (f : nat -> nat) := 
+  exists g, g ∘ f = id.
+
+Lemma left_invertible_upren xi :
+  left_invertible xi -> left_invertible (upren xi).
+Proof.
+  unfold left_invertible.
+  intros.
+  inv H.
+  exists (upren x).
+  assert (upren x ∘ upren xi = upren xi >>> upren x) by autosubst.
+  rewrite H; asimpl.
+  replace (xi >>> x) with (x ∘ xi) by autosubst.
+  rewrite H0; autosubst.
+Qed.
+
+Lemma sort_ren_inv l v xi :
+  Sort l = v.[ren xi] -> v = Sort l.
+Proof.
+  induction v; asimpl; try discriminate; eauto.
+Qed.
+
+Lemma var_ren_inv x v xi :
+  Var x = v.[ren xi] -> exists n, v = Var n.
+Proof.
+  induction v; asimpl; try discriminate; eauto.
+Qed.
+
+Lemma prod_ren_inv A B v xi :
+  Prod A B = v.[ren xi] -> exists A' B', v = Prod A' B'.
+Proof.
+  induction v; asimpl; try discriminate; eauto.
+Qed.
+
+Lemma lam_ren_inv m v xi :
+  Lam m = v.[ren xi] -> exists n, v = Lam n.
+Proof.
+  induction v; asimpl; try discriminate; eauto.
+Qed.
+
+Lemma value_rename v xi :
+  value v <-> value v.[ren xi].
+Proof.
+  split.
+  induction 1; asimpl; constructor.
+  intros.
+  dependent induction H.
+  apply sort_ren_inv in x; subst.
+  constructor.
+  apply var_ren_inv in x.
+  inv x.
+  constructor.
+  apply prod_ren_inv in x.
+  inv x. inv H.
+  constructor.
+  apply lam_ren_inv in x.
+  inv x.
+  constructor.
+Qed.
+
+Lemma pstep_cbv_ren_inv m n xi :
+  pstep_cbv m.[ren xi] n ->
+  left_invertible xi ->
+    exists x, pstep_cbv m x /\ x.[ren xi] = n.
+Proof.
+  intro H.
+  dependent induction H; intros.
+  - inv H.
+    exists ((Var x0).[ren x1]).
+    rewrite x; asimpl.
+    replace (xi >>> x1) with (x1 ∘ xi) by autosubst.
+    rewrite H0; asimpl; firstorder.
+    apply pstep_cbv_refl.
+  - exists m; firstorder.
+    apply pstep_cbv_refl.
+  - destruct m; asimpl; try discriminate.
+    inversion H0.
+    inv x.
+    assert (s.[up (ren xi)] = s.[ren (upren xi)]) by autosubst.
+    apply left_invertible_upren in H0.
+    pose proof (IHpstep_cbv s (upren xi) H2 H0).
+    inv H3. inv H4.
+    exists (Lam x); asimpl; firstorder.
+    constructor; eauto.
+  - destruct m; asimpl; try discriminate. inv x.
+    destruct m1; asimpl; try discriminate. inv H4.
+    assert (s.[up (ren xi)] = s.[ren (upren xi)]) by autosubst.
+    pose proof (left_invertible_upren H2).
+    pose proof (IHpstep_cbv1 s (upren xi) H3 H4).
+    assert (m2.[ren xi] = m2.[ren xi]) by eauto.
+    pose proof (IHpstep_cbv2 m2 xi H6 H2).
+    firstorder; subst; asimpl.
+    exists (x1.[x .: ids]); asimpl.
+    firstorder.
+    constructor; eauto.
+    apply <- value_rename; eauto.
+  - destruct m; asimpl; try discriminate. inv x.
+    assert (m1.[ren xi] = m1.[ren xi]) by eauto.
+    assert (m2.[ren xi] = m2.[ren xi]) by eauto.
+    apply IHpstep_cbv1 in H2; eauto.
+    apply IHpstep_cbv2 in H3; eauto.
+    firstorder; subst; asimpl.
+    exists (App x1 x).
+    firstorder.
+    constructor; eauto.
+  - destruct m; asimpl; try discriminate. inv x.
+    assert (m.[ren xi] = m.[ren xi]) by eauto.
+    assert (t.[up (ren xi)] = t.[ren (upren xi)]) by autosubst.
+    assert (left_invertible (upren xi)).
+    apply left_invertible_upren; eauto.
+    apply IHpstep_cbv1 in H2; eauto.
+    apply IHpstep_cbv2 in H3; eauto.
+    firstorder; subst; asimpl.
+    exists (Prod x0 x1); asimpl; firstorder.
+    constructor; eauto.
+Qed.
+
+Lemma pstep_cbv_ren1_inv m n :
+  pstep_cbv m.[ren (+1)] n ->
+    exists x, pstep_cbv m x /\ x.[ren (+1)] = n.
+Proof.
+  intros.
+  apply pstep_cbv_ren_inv; eauto.
+  unfold left_invertible.
+  exists (predn).
+  autosubst.
+Qed.
 
 Reserved Notation "[ Gamma |- ]".
 Reserved Notation "[ Gamma |- s :- A ]".
@@ -125,34 +320,40 @@ Inductive has_type : context term -> term -> term -> Prop :=
 where "[ Gamma |- s :- A ]" := (has_type Gamma s A).
 
 Inductive context_ok : context term -> Prop :=
-| ctx_nil :
+| nil_ok :
   [ nil |- ]
-| ctx_ncons Gamma A n :
+| s_ok Gamma A n :
   [ Gamma |- A :- Sort n ] ->
   [ Gamma |- ] ->
   [ A :s Gamma |- ]
+| n_ok Gamma :
+  [ Gamma |- ] ->
+  [ :n Gamma |- ]
 where "[ Gamma |- ]" := (context_ok Gamma).
 
 Notation "[ Gamma |- s ]" := (exists n, [ Gamma |- s :- Sort n ]).
 
-Axiom weakening : 
-  forall Gamma s A B,
-  [ Gamma |- s :- A ] -> [ B :: Gamma |- s.[ren (+1)] :- A.[ren (+1)] ].
+Theorem weakening Gamma s A B :
+  [ Gamma |- s :- A ] -> 
+  [ B :: Gamma |- s.[ren (+1)] :- A.[ren (+1)] ].
+Proof.
+Admitted.
 
-Axiom preservation :
-  forall Gamma s A,
+Theorem preservation Gamma s A :
   [ Gamma |- ] -> 
   [ Gamma |- s :- A ] ->
   forall t, pstep s t -> [ Gamma |- t :- A ].
+Proof.
+Admitted.
 
-Axiom progress :
-  forall s A,
+Theorem progress s A :
   [ nil |- s :- A ] -> value s \/ exists s', step s s'.
+Proof.
+Admitted.
 
-Axiom strong_norm :
-  forall Gamma s A,
+Axiom strong_cbv_norm : forall Gamma s A,
   [ Gamma |- ] ->
   [ Gamma |- s :- A ] ->
-  exists v, value v /\ s === v.
+  exists v, value v /\ red_cbv s v.
 
 End CoC.
