@@ -1313,71 +1313,71 @@ Proof.
   - move=> *. exfalso; solve_conv.
 Qed.
 
-Lemma sub_tyProd_inv A1 A2 B1 B2 s :
-  TyProd A1 B1 s <: TyProd A2 B2 s -> A1 === A2 /\ B1 <: B2.
+Lemma sub_tyProd_inv A1 A2 B1 B2 s1 s2 :
+  TyProd A1 B1 s1 <: TyProd A2 B2 s2 -> A1 === A2 /\ B1 <: B2 /\ s1 = s2.
 Proof.
   move=> [A' B' []].
   - move=> C c1 c2. 
-    have{c1 c2}/tyProd_inj[c1 [c2 _]]: TyProd A1 B1 s === TyProd A2 B2 s.
+    have{c1 c2}/tyProd_inj[c1 [c2 ->]]: TyProd A1 B1 s1 === TyProd A2 B2 s2.
      exact: conv_trans c2.
-    split=>//. exact: conv_sub.
+    firstorder=>//. exact: conv_sub.
   - move=> *. exfalso; solve_conv.
-  - move=> A C1 C2 s0 sb /tyProd_inj[c1 [c2 e1]] /tyProd_inj[c3 [c4 e2]]. 
-    subst; split.
+  - move=> A C1 C2 s0 sb /tyProd_inj[c1 [c2 <-]] /tyProd_inj[c3 [c4 ->]]. 
+    firstorder.
     exact: conv_trans c3. exact: SubI sb c2 c4.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
 Qed.
 
-Lemma sub_lnProd_inv A1 A2 B1 B2 s :
-  LnProd A1 B1 s <: LnProd A2 B2 s -> A1 === A2 /\ B1 <: B2.
+Lemma sub_lnProd_inv A1 A2 B1 B2 s1 s2 :
+  LnProd A1 B1 s1 <: LnProd A2 B2 s2 -> A1 === A2 /\ B1 <: B2 /\ s1 = s2.
 Proof.
   move=> [A' B' []].
   - move=> C c1 c2. 
-    have{c1 c2}/lnProd_inj[c1 [c2 _]]: LnProd A1 B1 s === LnProd A2 B2 s.
+    have{c1 c2}/lnProd_inj[c1 [c2 ->]]: LnProd A1 B1 s1 === LnProd A2 B2 s2.
      exact: conv_trans c2.
-    split=>//. exact: conv_sub.
+    firstorder=>//. exact: conv_sub.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
-  - move=> A C1 C2 s0 sb /lnProd_inj[c1 [c2 e1]] /lnProd_inj[c3 [c4 e2]]. 
-    subst; split.
+  - move=> A C1 C2 s0 sb /lnProd_inj[c1 [c2 <-]] /lnProd_inj[c3 [c4 ->]]. 
+    firstorder.
     exact: conv_trans c3. exact: SubI sb c2 c4.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
 Qed.
 
-Lemma sub_arrow_inv A1 A2 B1 B2 s :
-  Arrow A1 B1 s <: Arrow A2 B2 s -> A1 === A2 /\ B1 <: B2.
+Lemma sub_arrow_inv A1 A2 B1 B2 s1 s2 :
+  Arrow A1 B1 s1 <: Arrow A2 B2 s2 -> A1 === A2 /\ B1 <: B2 /\ s1 = s2.
 Proof.
   move=> [A' B' []].
   - move=> C c1 c2. 
-    have{c1 c2}/arrow_inj[c1 [c2 _]]: Arrow A1 B1 s === Arrow A2 B2 s.
+    have{c1 c2}/arrow_inj[c1 [c2 ->]]: Arrow A1 B1 s1 === Arrow A2 B2 s2.
      exact: conv_trans c2.
-    split=>//. exact: conv_sub.
+    firstorder=>//. exact: conv_sub.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
-  - move=> A C1 C2 s0 sb /arrow_inj[c1 [c2 e1]] /arrow_inj[c3 [c4 e2]]. 
-    subst; split.
+  - move=> A C1 C2 s0 sb /arrow_inj[c1 [c2 <-]] /arrow_inj[c3 [c4 ->]]. 
+    firstorder.
     exact: conv_trans c3. exact: SubI sb c2 c4.
   - move=> *. exfalso; solve_conv.
 Qed.
 
-Lemma sub_lolli_inv A1 A2 B1 B2 s :
-  Lolli A1 B1 s <: Lolli A2 B2 s -> A1 === A2 /\ B1 <: B2.
+Lemma sub_lolli_inv A1 A2 B1 B2 s1 s2 :
+  Lolli A1 B1 s1 <: Lolli A2 B2 s2 -> A1 === A2 /\ B1 <: B2 /\ s1 = s2.
 Proof.
   move=> [A' B' []].
   - move=> C c1 c2. 
-    have{c1 c2}/lolli_inj[c1 [c2 _]]: Lolli A1 B1 s === Lolli A2 B2 s.
+    have{c1 c2}/lolli_inj[c1 [c2 ->]]: Lolli A1 B1 s1 === Lolli A2 B2 s2.
      exact: conv_trans c2.
-    split=>//. exact: conv_sub.
+    firstorder=>//. exact: conv_sub.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
-  - move=> A C1 C2 s0 sb /lolli_inj[c1 [c2 e1]] /lolli_inj[c3 [c4 e2]]. 
-    subst; split.
+  - move=> A C1 C2 s0 sb /lolli_inj[c1 [c2 <-]] /lolli_inj[c3 [c4 ->]]. 
+    firstorder.
     exact: conv_trans c3. exact: SubI sb c2 c4.
 Qed.
 
@@ -2529,32 +2529,48 @@ Proof.
   eapply lolli_invX; eauto.
 Qed.
 
+Ltac solve_sub :=
+  match goal with
+  | [ H : _ <: _ |- _ ] =>
+    let A := fresh "A" in
+    let B := fresh "B" in
+    let sb := fresh "sb" in
+    let c1 := fresh "c1" in
+    let c2 := fresh "c2" in
+    destruct H as [A B sb c1 c2]; destruct sb
+  end;
+  match goal with
+  | [ c1 : ?A === ?x, c2 : ?x === ?B |- _ ] => 
+    assert (A === B) by 
+      (eapply conv_trans; try solve [apply c1| apply c2]);
+    clear c1 c2;
+    solve_conv
+  | _ => solve_conv
+  end.
+
 Lemma u_lam1_invX Gamma n C :
   [ Gamma |= Lam n :- C -: U ] -> 
   forall A B s l, 
-    (C === TyProd A B s /\ [A :L re Gamma |= B :- Sort s l -: U]) ->
+    (C <: TyProd A B s /\ [A :L re Gamma |= B :- Sort s l -: U]) ->
     [ A :L Gamma |= n :- B -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
-  + apply tyProd_inj in H2.
+  + pose proof (sub_tyProd_inv H2).
+    apply sub_tyProd_inv in H2.
     first_order; subst.
-    eapply conversion.
-    apply H4.
-    apply H3. 
+    eapply conversion; eauto.
     eapply context_convL.
     apply conv_sym; apply H2.
     pose proof (pure_re H).
-    rewrite H5 in H0.
+    rewrite H8 in H0.
     apply tyProd_inv in H0. inv H0.
-    apply H6.
+    apply H9.
     apply H1.
-  + solve_conv; exfalso; eauto.
+  + exfalso; solve_sub.
   + eapply IHhas_type2; eauto.
     split.
-    eapply conv_trans.
-    apply H.
-    apply H2.
+    eapply sub_trans; eauto.
     apply H3.
 Qed.
 
