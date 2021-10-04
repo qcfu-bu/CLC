@@ -294,6 +294,31 @@ Qed.
 
 Reserved Notation "[ Gamma |- ]".
 Reserved Notation "[ Gamma |- s :- A ]".
+Reserved Notation "`[ Gamma |- s :- A ]".
+
+Inductive raw_type : context term -> term -> term -> Prop :=
+| raw_var Gamma x A :
+  has Gamma x A ->
+  `[ Gamma |- Var x :- A ]
+| raw_sort Gamma n  :
+  `[ Gamma |- Sort n :- Sort n.+1 ]
+| raw_prod Gamma A B n :
+  `[ Gamma |- A :- Sort n ] ->
+  `[ A :s Gamma |- B :- Sort n ] ->
+  `[ Gamma |- Prod A B :- Sort n ]
+| raw_lam Gamma A B s n :
+  `[ Gamma |- Prod A B :- Sort n ] ->
+  `[ A :s Gamma |- s :- B ] ->
+  `[ Gamma |- Lam s :- Prod A B ]
+| raw_app Gamma A B s t :
+  `[ Gamma |- s :- Prod A B ] ->
+  `[ Gamma |- t :- A ] ->
+  `[ Gamma |- App s t :- B.[t/] ]
+| raw_conv Gamma A B s :
+  A === B ->
+  `[ Gamma |- s :- A ] ->
+  `[ Gamma |- s :- B ]
+where "`[ Gamma |- s :- A ]" := (raw_type Gamma s A).
 
 Inductive has_type : context term -> term -> term -> Prop :=
 | ty_var Gamma x A :
@@ -313,8 +338,9 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Gamma |- s :- Prod A B ] ->
   [ Gamma |- t :- A ] ->
   [ Gamma |- App s t :- B.[t/] ]
-| ty_conv Gamma A B s :
+| ty_conv Gamma A B s n :
   A === B ->
+  [ Gamma |- B :- Sort n ] ->
   [ Gamma |- s :- A ] ->
   [ Gamma |- s :- B ]
 where "[ Gamma |- s :- A ]" := (has_type Gamma s A).
@@ -355,5 +381,15 @@ Axiom strong_cbv_norm : forall Gamma s A,
   [ Gamma |- ] ->
   [ Gamma |- s :- A ] ->
   exists v, value v /\ red_cbv s v.
+
+Lemma raw_cbv_norm : forall Gamma s A,
+  [ Gamma |- ] ->
+  `[ Gamma |- s :- A ] ->
+  exists v, value v /\ red_cbv s v.
+Proof.
+  intros.
+  induction s.
+  - eapply strong_cbv_norm; eauto.
+    inv H0; constructor; eauto.
 
 End CoC.
