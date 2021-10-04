@@ -2340,7 +2340,7 @@ Proof.
   eapply substitution.
   apply tp2.
   eapply agree_subst_convL; simpl.
-  apply conv.
+  eapply conv_sub; eauto.
   pose proof (weakening_L B tp1).
   asimpl.
   asimpl in H.
@@ -2359,7 +2359,7 @@ Proof.
   eapply substitution.
   apply tp2.
   eapply agree_subst_convR; simpl.
-  apply conv.
+  eapply conv_sub; eauto.
   pose proof (weakening_N tp1).
   asimpl.
   asimpl in H.
