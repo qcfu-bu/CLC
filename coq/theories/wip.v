@@ -2269,7 +2269,7 @@ Proof.
     first_order.
     eapply l_app2; eauto.
   - eapply conversion.
-    apply conv_subst; eauto.
+    apply sub_subst; eauto.
     eapply agree_subst_v_subst; eauto.
     apply IHhas_type1; eauto.
     apply agree_subst_re_re; eauto.
