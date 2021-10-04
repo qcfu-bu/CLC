@@ -1910,12 +1910,12 @@ Inductive agree_subst :
   [ Delta |= sigma =| Gamma ] ->
   [ Delta |= n .: sigma =| :N Gamma ]
 | agree_subst_convL Delta sigma Gamma A B l :
-  A === B ->
+  A <: B ->
   [ re Delta |= B.[ren (+1)].[sigma] :- Sort U l -: U ] ->
   [ Delta |= sigma =| A :L Gamma ] ->
   [ Delta |= sigma =| B :L Gamma ]
 | agree_subst_convR Delta sigma Gamma A B l :
-  A === B ->
+  A <: B ->
   [ re Delta |= B.[ren (+1)].[sigma] :- Sort L l -: U ] ->
   [ re Gamma |= B :- Sort L l -: U ] ->
   [ Delta |= sigma =| A :R Gamma ] ->
@@ -2004,11 +2004,9 @@ Proof.
     + assert (hasL (A :L Gamma) 0 A.[ren (+1)]).
       constructor; eauto.
       eapply conversion.
-      eapply conv_subst.
+      eapply sub_subst.
+      eapply sub_ren; eauto.
       eapply agree_subst_v_subst; eauto.
-      eapply conv_subst.  
-      eapply ren_v_subst.
-      apply H.
       apply H0.
       apply IHagree_subst; eauto.
     + eapply IHagree_subst.
@@ -2052,11 +2050,9 @@ Proof.
     assert (hasR (A :R Gamma) 0 A.[ren (+1)]).
     constructor; eauto.
     eapply conversion.
-    apply conv_subst.
+    apply sub_subst.
+    apply sub_ren; eauto.
     eapply agree_subst_v_subst; eauto.
-    apply conv_subst.
-    apply ren_v_subst.
-    apply H.
     apply H0.
     apply IHagree_subst; eauto.
 Qed.
