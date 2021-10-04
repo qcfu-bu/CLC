@@ -1298,6 +1298,21 @@ Proof.
   exact: conv_trans c5. exact: conv_trans c4.
 Qed.
 
+Lemma sub_sort_inv s1 s2 l1 l2 :
+  Sort s1 l1 <: Sort s2 l2 -> s1 = s2 /\ l1 <= l2.
+Proof.
+  move=> [s1' s2' []].
+  - move=> A c1 c2.
+    have{c1 c2}/sort_inj[s l]: Sort s1 l1 === Sort s2 l2.
+     exact: conv_trans c2.
+    subst=> //.
+  - move=> s l0 l3 leq /sort_inj[->->] /sort_inj[<-<-] => //.
+  - move=> *. exfalso; solve_conv.
+  - move=> *. exfalso; solve_conv.
+  - move=> *. exfalso; solve_conv.
+  - move=> *. exfalso; solve_conv.
+Qed.
+
 Lemma sub_tyProd_inv A1 A2 B1 B2 s :
   TyProd A1 B1 s <: TyProd A2 B2 s -> A1 === A2 /\ B1 <: B2.
 Proof.
@@ -2370,18 +2385,27 @@ Qed.
 
 Lemma tyProd_invX Gamma A B s srt :
   [ re Gamma |= TyProd A B s :- srt -: U ] -> 
-  forall l, srt === Sort U l ->
+  forall l, srt <: Sort U l ->
     [ re Gamma |= A :- Sort U l -: U ] /\ 
     [ A :L re Gamma |= B :- Sort s l -: U ].
 Proof.
   move e:(TyProd A B s) => n tp. 
   elim: tp A B s e => //{Gamma n}.
-  move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->] l0 /sort_inj[_<-] => //.
-  move=> Gamma A B m s l e1 tp1 ih1 tp2 ih2 A0 B0 s0 h l0 e2.
-  eapply ih2; eauto.
-  eapply conv_trans.
-  apply e1.
-  apply e2.
+  - move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->] l0 sb.
+    split.
+    eapply conversion; eauto.
+    constructor; apply re_pure.
+    apply sub_sort_inv in sb; inv sb.
+    assert (Sort s l <: Sort s l0).
+    econstructor; eauto.
+    econstructor; eauto.
+    eapply conversion; eauto.
+    constructor; apply re_pure.
+  - move=> Gamma A B m s l sb1 tp1 ih1 tp2 ih2 A0 B0 s0 h l0 sb2.
+    eapply ih2; eauto.
+    eapply sub_trans.
+    apply sb1.
+    apply sb2.
 Qed.
 
 Lemma tyProd_inv Gamma A B s l :
@@ -2395,18 +2419,32 @@ Qed.
 
 Lemma arrow_invX Gamma A B s srt :
   [ re Gamma |= Arrow A B s :- srt -: U ] ->
-  forall l, srt === Sort U l ->
+  forall l, srt <: Sort U l ->
     [ re Gamma |= A :- Sort L l -: U ] /\ 
     [ re Gamma |= B :- Sort s l -: U ].
 Proof.
   move e:(Arrow A B s) => n tp. 
   elim: tp A B s e => //{Gamma n}.
-  move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->] l0 /sort_inj[_<-] => //.
-  move=> Gamma A B m l s e1 tp1 ih1 tp2 ih2 A0 B0 s0 h l0 e2.
-  eapply ih2; eauto.
-  eapply conv_trans.
-  apply e1.
-  apply e2.
+  - move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->] l0 sb.
+    apply sub_sort_inv in sb; inv sb.
+    split.
+    assert (Sort L l <: Sort L l0).
+    econstructor; eauto.
+    econstructor; eauto.
+    eapply conversion; eauto.
+    constructor; apply re_pure.
+    eapply conversion; eauto.
+    constructor; apply re_pure.
+    assert (Sort s l <: Sort s l0).
+    econstructor; eauto.
+    econstructor; eauto.
+    eapply conversion; eauto.
+    constructor; apply re_pure.
+  - move=> Gamma A B m s l sb1 tp1 ih1 tp2 ih2 A0 B0 s0 h l0 sb2.
+    eapply ih2; eauto.
+    eapply sub_trans.
+    apply sb1.
+    apply sb2.
 Qed.
 
 Lemma arrow_inv Gamma A B s l :
