@@ -2497,18 +2497,27 @@ Qed.
 
 Lemma lolli_invX Gamma A B s srt :
   [ re Gamma |= Lolli A B s :- srt -: U ] ->
-  forall l, srt === Sort L l ->
+  forall l, srt <: Sort L l ->
     [ re Gamma |= A :- Sort L l -: U ] /\ 
     [ re Gamma |= B :- Sort s l -: U ].
 Proof.
   move e:(Lolli A B s) => n tp. 
   elim: tp A B s e => //{Gamma n}.
-  move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->] l0 /sort_inj[_<-] => //.
-  move=> Gamma A B m l s e1 tp1 ih1 tp2 ih2 A0 B0 s0 h l0 e2.
-  eapply ih2; eauto.
-  eapply conv_trans.
-  apply e1.
-  apply e2.
+  - move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->] l0 sb.
+    split.
+    eapply conversion; eauto.
+    constructor; apply re_pure.
+    apply sub_sort_inv in sb; inv sb.
+    assert (Sort s l <: Sort s l0).
+    econstructor; eauto.
+    econstructor; eauto.
+    eapply conversion; eauto.
+    constructor; apply re_pure.
+  - move=> Gamma A B m s l sb1 tp1 ih1 tp2 ih2 A0 B0 s0 h l0 sb2.
+    eapply ih2; eauto.
+    eapply sub_trans.
+    apply sb1.
+    apply sb2.
 Qed.
 
 Lemma lolli_inv Gamma A B s l :
