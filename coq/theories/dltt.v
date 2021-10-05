@@ -1170,6 +1170,7 @@ Proof.
   - asimpl.
     pose proof (merge_agree_ren_inv H2 H1).
     first_order. asimpl in IHhas_type1.
+    eapply u_app1.
     eapply u_app1; eauto.
   - pose proof (merge_agree_ren_inv H2 H1).
     first_order. asimpl in IHhas_type1.
