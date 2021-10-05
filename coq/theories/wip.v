@@ -1643,7 +1643,7 @@ Qed.
 Lemma hasL_ok Gamma :
   [ Gamma |= ] ->
   forall x A,
-    hasL Gamma x A ->
+    hasU Gamma x A ->
     exists l, [ re Gamma |= A :- Sort U l -: U ].
 Proof.
   induction 1; intros.
@@ -1653,7 +1653,7 @@ Proof.
     replace (Sort U l) with ((Sort U l).[ren (+1)]) by autosubst.
     eapply rename_ok.
     apply H0.
-    apply agree_ren_wkL.
+    apply agree_ren_wkU.
     rewrite <- pure_re; eauto.
     apply agree_ren_refl.
     specialize (IHcontext_ok _ _ H6).
@@ -1661,7 +1661,7 @@ Proof.
     exists x.
     replace (Sort U x) with ((Sort U x).[ren (+1)]) by autosubst.
     eapply rename_ok; eauto.
-    apply agree_ren_wkL.
+    apply agree_ren_wkU.
     apply agree_ren_refl.
   - inv H1.
   - inv H0.
@@ -1677,7 +1677,7 @@ Qed.
 Lemma hasR_ok Gamma :
   [ Gamma |= ] ->
   forall x A,
-    hasR Gamma x A ->
+    hasL Gamma x A ->
     exists l, [ re Gamma |= A :- Sort L l -: U ].
 Proof.
   induction 1; intros.
@@ -1688,7 +1688,7 @@ Proof.
     exists x.
     replace (Sort L x) with ((Sort L x).[ren (+1)]) by autosubst.
     eapply rename_ok; eauto.
-    apply agree_ren_wkL.
+    apply agree_ren_wkU.
     apply agree_ren_refl.
   - inv H1; simpl.
     exists l.
@@ -1706,32 +1706,20 @@ Proof.
     apply agree_ren_refl.
 Qed.
 
-Lemma value_sound Gamma m A :
-  [ Gamma |= m :- A -: U ] -> value m -> pure Gamma.
-Proof.
-  intros H.
-  dependent induction H; intros; eauto.
-  - eapply hasL_pure; eauto.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-Qed.
-
-Lemma weakening_L Gamma m A s B :
+Lemma weakeningU Gamma m A s B :
   [ Gamma |= m :- A -: s ] ->
-  [ B :L Gamma |= m.[ren (+1)] :- A.[ren (+1)] -: s ].
+  [ B :u Gamma |= m.[ren (+1)] :- A.[ren (+1)] -: s ].
 Proof.
   intros.
   eapply rename_ok in H.
   apply H.
-  apply agree_ren_wkL.
+  apply agree_ren_wkU.
   apply agree_ren_refl.
 Qed.
 
-Lemma weakening_N Gamma m A s :
+Lemma weakeningN Gamma m A s :
   [ Gamma |= m :- A -: s ] ->
-  [ :N Gamma |= m.[ren (+1)] :- A.[ren (+1)] -: s ].
+  [ :n Gamma |= m.[ren (+1)] :- A.[ren (+1)] -: s ].
 Proof.
   intros.
   eapply rename_ok in H.
@@ -1740,24 +1728,24 @@ Proof.
   apply agree_ren_refl.
 Qed.
 
-Lemma eweakening_L Gamma m m' A A' s B :
+Lemma eweakeningU Gamma m m' A A' s B :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
   [ Gamma |= m :- A -: s ] -> 
-  [ B :L Gamma |= m' :- A' -: s ].
+  [ B :u Gamma |= m' :- A' -: s ].
 Proof.  
   intros; subst.
-  apply weakening_L; eauto.
+  apply weakeningU; eauto.
 Qed.
 
-Lemma eweakening_N Gamma m m' A A' s :
+Lemma eweakeningN Gamma m m' A A' s :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
   [ Gamma |= m :- A -: s ] -> 
-  [ :N Gamma |= m' :- A' -: s ].
+  [ :n Gamma |= m' :- A' -: s ].
 Proof.  
   intros; subst.
-  apply weakening_N; eauto.
+  apply weakeningN; eauto.
 Qed.
 
 Reserved Notation "[ Delta |= sigma =| Gamma ]".
@@ -1765,56 +1753,43 @@ Reserved Notation "[ Delta |= sigma =| Gamma ]".
 Inductive agree_subst :
   context term -> (var -> term) -> context term -> Prop :=
 | agree_subst_nil sigma :
-  v_subst sigma ->
   [ nil |= sigma =| nil ]
-| agree_subst_L Delta sigma Gamma A :
+| agree_subst_u Delta sigma Gamma A :
   [ Delta |= sigma =| Gamma ] ->
-  [ A.[sigma] :L Delta |= up sigma =| A :L Gamma ]
-| agree_subst_R Delta sigma Gamma A :
+  [ A.[sigma] :u Delta |= up sigma =| A :u Gamma ]
+| agree_subst_l Delta sigma Gamma A :
   [ Delta |= sigma =| Gamma ] ->
-  [ A.[sigma] :R Delta |= up sigma =| A :R Gamma ]
-| agree_subst_N Delta sigma Gamma :
+  [ A.[sigma] :l Delta |= up sigma =| A :l Gamma ]
+| agree_subst_n Delta sigma Gamma :
   [ Delta |= sigma =| Gamma ] ->
-  [ :N Delta |= up sigma =| :N Gamma ]
-| agree_subst_wkL Delta sigma Gamma n A :
+  [ :n Delta |= up sigma =| :n Gamma ]
+| agree_subst_wkU Delta sigma Gamma n A :
   value n ->
   [ Delta |= sigma =| Gamma ] ->
   [ re Delta |= n :- A.[sigma] -: U ] ->
-  [ Delta |= n .: sigma =| A :L Gamma ]
-| agree_subst_wkR Delta1 Delta2 Delta sigma Gamma n A :
+  [ Delta |= n .: sigma =| A :u Gamma ]
+| agree_subst_wkL Delta1 Delta2 Delta sigma Gamma n A :
   value n ->
   merge Delta1 Delta2 Delta ->
   [ Delta1 |= sigma =| Gamma ] ->
   [ Delta2 |= n :- A.[sigma] -: L ] ->
-  [ Delta |= n .: sigma =| A :R Gamma ]
+  [ Delta |= n .: sigma =| A :l Gamma ]
 | agree_subst_wkN Delta sigma Gamma n :
   value n ->
   [ Delta |= sigma =| Gamma ] ->
-  [ Delta |= n .: sigma =| :N Gamma ]
-| agree_subst_convL Delta sigma Gamma A B l :
+  [ Delta |= n .: sigma =| :n Gamma ]
+| agree_subst_convU Delta sigma Gamma A B l :
   A <: B ->
   [ re Delta |= B.[ren (+1)].[sigma] :- Sort U l -: U ] ->
-  [ Delta |= sigma =| A :L Gamma ] ->
-  [ Delta |= sigma =| B :L Gamma ]
-| agree_subst_convR Delta sigma Gamma A B l :
+  [ Delta |= sigma =| A :u Gamma ] ->
+  [ Delta |= sigma =| B :u Gamma ]
+| agree_subst_convL Delta sigma Gamma A B l :
   A <: B ->
   [ re Delta |= B.[ren (+1)].[sigma] :- Sort L l -: U ] ->
   [ re Gamma |= B :- Sort L l -: U ] ->
-  [ Delta |= sigma =| A :R Gamma ] ->
-  [ Delta |= sigma =| B :R Gamma ]
+  [ Delta |= sigma =| A :l Gamma ] ->
+  [ Delta |= sigma =| B :l Gamma ]
 where "[ Delta |= sigma =| Gamma ]" := (agree_subst Delta sigma Gamma).
-
-Lemma agree_subst_v_subst Delta sigma Gamma :
-  [ Delta |= sigma =| Gamma ] -> v_subst sigma.
-Proof.
-  induction 1; intros; eauto.
-  - apply v_subst_up; eauto.
-  - apply v_subst_up; eauto.
-  - apply v_subst_up; eauto.
-  - apply v_subst_cons; eauto.
-  - apply v_subst_cons; eauto.
-  - apply v_subst_cons; eauto.
-Qed.
 
 Lemma agree_subst_pure Delta sigma Gamma :
   [ Delta |= sigma =| Gamma ] -> pure Gamma -> pure Delta.
@@ -1839,28 +1814,29 @@ Lemma agree_subst_refl Gamma :
 Proof.
   induction Gamma.
   - constructor.
-    apply ids_v_subst.
   - destruct a.
-    replace ([Left t :: Gamma |= ids =| Left t :: Gamma])
-      with ([Left t.[ids] :: Gamma |= up ids =| Left t :: Gamma])
+    destruct p.
+    destruct s.
+    replace ([t :u Gamma |= ids =| t :u Gamma])
+      with ([t.[ids] :u Gamma |= up ids =| t :u Gamma])
       by autosubst.
-    apply agree_subst_L; eauto.
-    replace ([Right t :: Gamma |= ids =| Right t :: Gamma])
-      with ([Right t.[ids] :: Gamma |= up ids =| Right t :: Gamma])
+    apply agree_subst_u; eauto.
+    replace ([t :l Gamma |= ids =| t :l Gamma])
+      with ([t.[ids] :l Gamma |= up ids =| t :l Gamma])
       by autosubst.
-    apply agree_subst_R; eauto.
+    apply agree_subst_l; eauto.
     replace (ids) with (up ids) by autosubst.
-    apply agree_subst_N; eauto.
+    apply agree_subst_n; eauto.
 Qed.
 
-Lemma agree_subst_hasL Delta sigma Gamma :
+Lemma agree_subst_hasU Delta sigma Gamma :
   [ Delta |= sigma =| Gamma ] ->
   forall x A,
-    hasL Gamma x A -> 
+    hasU Gamma x A -> 
     [ Delta |= sigma x :- A.[sigma] -: U ].
 Proof.
   induction 1; intros.
-  - inv H0.
+  - inv H.
   - inv H0.
     + asimpl.
       apply u_var.
@@ -1868,12 +1844,12 @@ Proof.
         with (A.[sigma].[ren (+1)]) by autosubst.
       constructor.
       eapply agree_subst_pure; eauto.
-    + eapply eweakening_L; eauto.
+    + eapply eweakeningU; eauto.
       autosubst.
       autosubst.
   - inv H0.
   - inv H0.
-    eapply eweakening_N; eauto.
+    eapply eweakeningN; eauto.
     autosubst.
     autosubst.
   - inv H2; asimpl; eauto.
@@ -1883,12 +1859,11 @@ Proof.
   - inv H3.
   - inv H1; asimpl; eauto.
   - inv H2.
-    + assert (hasL (A :L Gamma) 0 A.[ren (+1)]).
+    + assert (hasU (A :u Gamma) 0 A.[ren (+1)]).
       constructor; eauto.
       eapply conversion.
       eapply sub_subst.
       eapply sub_ren; eauto.
-      eapply agree_subst_v_subst; eauto.
       apply H0.
       apply IHagree_subst; eauto.
     + eapply IHagree_subst.
@@ -1896,16 +1871,16 @@ Proof.
   - inv H3.
 Qed.
 
-Lemma agree_subst_hasR Delta sigma Gamma :
+Lemma agree_subst_hasL Delta sigma Gamma :
   [ Delta |= sigma =| Gamma ] ->
   forall x A,
-    hasR Gamma x A -> 
+    hasL Gamma x A -> 
     [ Delta |= sigma x :- A.[sigma] -: L ].
 Proof.
   induction 1; intros.
+  - inv H.
   - inv H0.
-  - inv H0.
-    eapply eweakening_L; eauto.
+    eapply eweakeningU; eauto.
     autosubst.
     autosubst.
   - inv H0.
@@ -1916,7 +1891,7 @@ Proof.
     constructor.
     eapply agree_subst_pure; eauto.
   - inv H0.
-    eapply eweakening_N; eauto.
+    eapply eweakeningN; eauto.
     autosubst.
     autosubst.
   - inv H2; asimpl; eauto.
@@ -1929,12 +1904,11 @@ Proof.
     apply IHagree_subst.
     constructor; eauto.
   - inv H3.
-    assert (hasR (A :R Gamma) 0 A.[ren (+1)]).
+    assert (hasL (A :l Gamma) 0 A.[ren (+1)]).
     constructor; eauto.
     eapply conversion.
     apply sub_subst.
     apply sub_ren; eauto.
-    eapply agree_subst_v_subst; eauto.
     apply H0.
     apply IHagree_subst; eauto.
 Qed.
@@ -1957,7 +1931,7 @@ Proof.
     rewrite <- H3; eauto.
   - constructor; eauto.
   - simpl in IHagree_subst.
-    eapply agree_subst_convL.
+    eapply agree_subst_convU.
     apply H.
     rewrite <- re_re.
     apply H0.
@@ -1975,32 +1949,32 @@ Lemma merge_agree_subst_inv Delta sigma Gamma :
 Proof.
   intros H.
   dependent induction H; intros.
-  - inv H0.
+  - inv H.
     exists nil.
     exists nil.
     repeat constructor; eauto.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (A.[sigma] :L x).
-    exists (A.[sigma] :L x0).
+    exists (A.[sigma] :u x).
+    exists (A.[sigma] :u x0).
     repeat constructor; eauto.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (A.[sigma] :R x).
-    exists (:N x0).
+    exists (A.[sigma] :l x).
+    exists (:n x0).
     repeat constructor; eauto.
   - pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (:N x).
-    exists (A.[sigma] :R x0).
+    exists (:n x).
+    exists (A.[sigma] :l x0).
     repeat constructor; eauto.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (:N x).
-    exists (:N x0).
+    exists (:n x).
+    exists (:n x0).
     repeat constructor; eauto.
   - inv H2.
     pose proof (IHagree_subst _ _ H6).
@@ -2020,7 +1994,7 @@ Proof.
       exists x1.
       exists x0.
       firstorder.
-      eapply agree_subst_wkR.
+      eapply agree_subst_wkL.
       apply H.
       apply H6.
       apply H4.
@@ -2034,7 +2008,7 @@ Proof.
       exists x1.
       firstorder.
       apply agree_subst_wkN; eauto.
-      eapply agree_subst_wkR.
+      eapply agree_subst_wkL.
       apply H.
       apply H6.
       apply H5.
@@ -2046,7 +2020,7 @@ Proof.
     exists x0.
     repeat constructor; eauto.
   - inv H2.
-    assert (merge (A :L Gamma0) (A :L Gamma3) (A :L Gamma)).
+    assert (merge (A :u Gamma0) (A :u Gamma3) (A :u Gamma)).
     apply merge_left; eauto.
     specialize (IHagree_subst _ _ H2).
     first_order.
@@ -2055,12 +2029,12 @@ Proof.
     pose proof (merge_re_re H3).
     inv H7.
     repeat constructor; eauto.
-    eapply agree_subst_convL; eauto.
+    eapply agree_subst_convU; eauto.
     rewrite H8; eauto.
-    eapply agree_subst_convL; eauto.
+    eapply agree_subst_convU; eauto.
     rewrite H9; eauto.
   - inv H3.
-    + assert (merge (A :R Gamma0) (:N Gamma3) (A :R Gamma)).
+    + assert (merge (A :l Gamma0) (:n Gamma3) (A :l Gamma)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -2069,10 +2043,10 @@ Proof.
       pose proof (merge_re_re H4). inv H8.
       pose proof (merge_re_re H7). inv H8.
       repeat constructor; eauto.
-      eapply agree_subst_convR; eauto.
+      eapply agree_subst_convL; eauto.
       rewrite H9; eauto.
       rewrite H11; eauto.
-    + assert (merge (:N Gamma0) (A :R Gamma3) (A :R Gamma)).
+    + assert (merge (:n Gamma0) (A :l Gamma3) (A :l Gamma)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -2081,7 +2055,7 @@ Proof.
       pose proof (merge_re_re H4). inv H8.
       pose proof (merge_re_re H7). inv H8.
       repeat constructor; eauto.
-      eapply agree_subst_convR; eauto.
+      eapply agree_subst_convL; eauto.
       rewrite H10; eauto.
       rewrite H12; eauto.
 Qed.
