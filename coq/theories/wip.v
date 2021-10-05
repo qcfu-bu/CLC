@@ -2071,12 +2071,12 @@ Proof.
   - apply axiom.
     eapply agree_subst_pure; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_L A H2).
+    pose proof (agree_subst_u A H2).
     specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
     apply u_prod; eauto.
     eapply agree_subst_pure; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_L A H2).
+    pose proof (agree_subst_u A H2).
     specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
     apply l_prod; eauto.
     eapply agree_subst_pure; eauto.
@@ -2088,45 +2088,52 @@ Proof.
     specialize (IHhas_type2 _ _ H2). asimpl in IHhas_type2.
     apply lolli; eauto.
     eapply agree_subst_pure; eauto.
+  - eapply agree_subst_hasU; eauto.
   - eapply agree_subst_hasL; eauto.
-  - eapply agree_subst_hasR; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_L A H2).
+    pose proof (agree_subst_u A H2).
     specialize (IHhas_type2 _ _ H3).
     eapply u_lam1; eauto.
     eapply agree_subst_pure; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_R A H2).
+    pose proof (agree_subst_l A H2).
     specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
     eapply u_lam2; eauto.
     eapply agree_subst_pure; eauto.
     asimpl; eauto.
   - pose proof (agree_subst_re_re H1).
     specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_L A H1).
+    pose proof (agree_subst_u A H1).
     specialize (IHhas_type2 _ _ H3).
     eapply l_lam1; eauto.
   - pose proof (agree_subst_re_re H1).
     specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_R A H1).
+    pose proof (agree_subst_l A H1).
     specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
     eapply l_lam2; eauto.
     asimpl; eauto.
-  - pose proof (merge_agree_subst_inv H2 H1).
+  - asimpl.
+    pose proof (merge_agree_subst_inv H3 H2).
     first_order.
-    eapply u_app1; eauto.
+    pose proof (agree_subst_pure H6 H).
+    pose proof (u_app1 H7 IHhas_type1 IHhas_type2 H4).
+    asimpl in H8.
+    apply H8.
   - pose proof (merge_agree_subst_inv H2 H1).
     first_order.
     eapply u_app2; eauto.
-  - pose proof (merge_agree_subst_inv H2 H1).
+  - asimpl.
+    pose proof (merge_agree_subst_inv H3 H2).
     first_order.
-    eapply l_app1; eauto.
+    pose proof (agree_subst_pure H6 H).
+    pose proof (l_app1 H7 IHhas_type1 IHhas_type2 H4).
+    asimpl in H8.
+    apply H8.
   - pose proof (merge_agree_subst_inv H2 H1).
     first_order.
     eapply l_app2; eauto.
   - eapply conversion.
     apply sub_subst; eauto.
-    eapply agree_subst_v_subst; eauto.
     apply IHhas_type1; eauto.
     apply agree_subst_re_re; eauto.
     apply IHhas_type2; eauto.
