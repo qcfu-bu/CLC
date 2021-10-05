@@ -6,8 +6,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Module DLTT.
-
 Inductive sort : Type := U | L.
 
 Definition elem T := option (T * sort).
@@ -2438,5 +2436,3 @@ Proof.
       apply step_appL; eauto.
   - apply IHhas_type; eauto.
 Qed.
-
-End DLTT.
