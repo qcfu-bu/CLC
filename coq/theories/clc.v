@@ -3031,6 +3031,267 @@ Proof.
   - apply IHhas_type2; eauto.
 Qed.
 
+Inductive isL : context term -> nat -> Prop :=
+| isL_O Gamma A :
+  isL (A :l Gamma) 0
+| isL_S Gamma i A s :
+  isL Gamma i ->
+  isL (A :[s] Gamma) (i.+1)
+| isL_N Gamma i :
+  isL Gamma i ->
+  isL (:n Gamma) (i.+1).
+
+Inductive isN : context term -> nat -> Prop :=
+| isN_O Gamma :
+  isN (:n Gamma) 0
+| isN_S Gamma i A s :
+  isN Gamma i ->
+  isN (A :[s] Gamma) (i.+1)
+| isN_N Gamma i :
+  isN Gamma i ->
+  isN (:n Gamma) (i.+1).
+
+Fixpoint occurs (i : nat) (m : term) : nat :=
+  match m with
+  | Var x => if x == i then 1 else 0
+  | Sort _ _ => 0
+  | TyProd A B _ => occurs i A + occurs (i.+1) B
+  | LnProd A B _ => occurs i A + occurs (i.+1) B
+  | Arrow A B _ => occurs i A + occurs i B
+  | Lolli A B _ => occurs i A + occurs i B
+  | Lam m => occurs (i.+1) m
+  | App m n => occurs i m + occurs i n
+  end.
+
+Lemma eqn_refl (n : nat) : n == n.
+Proof.
+  induction n; simpl; eauto.
+Qed.
+
+Lemma isL_pure Gamma i : isL Gamma i -> ~pure Gamma.
+Proof.
+  induction 1; unfold not; intros.
+  inv H.
+  destruct s.
+  inv H0. firstorder.
+  inv H0.
+  inv H0. firstorder.
+Qed.
+
+Lemma isL_hasU Gamma i : 
+  isL Gamma i -> forall x A, ~hasU Gamma x A.
+Proof.
+  induction 1; intros; unfold not; intros.
+  inv H.
+  destruct s.
+  inv H0. exfalso. eapply isL_pure; eauto.
+  firstorder.
+  inv H0.
+  inv H0.
+  firstorder.
+Qed.
+
+Lemma isL_hasL Gamma i :
+  isL Gamma i -> forall x A, hasL Gamma x A -> x = i.
+Proof.
+  induction 1; intros.
+  inv H; eauto.
+  destruct s.
+  inv H0.
+  pose proof (IHisL _ _ H5); eauto.
+  inv H0; eauto.
+  exfalso. eapply isL_pure; eauto.
+  inv H0.
+  pose proof (IHisL _ _ H2); eauto.
+Qed.
+
+Lemma isN_hasU Gamma i :
+  isN Gamma i -> forall x A, hasU Gamma x A -> x == i = false.
+Proof.
+  induction 1; intros; eauto.
+  inv H; eauto.
+  inv H0; eauto.
+  pose proof (IHisN _ _ H6); eauto.
+  inv H0; eauto.
+  pose proof (IHisN _ _ H2); eauto.
+Qed.
+
+Lemma isN_hasL Gamma i :
+  isN Gamma i -> forall x A, hasL Gamma x A -> x == i = false.
+Proof.
+  induction 1; intros; eauto.
+  inv H; eauto.
+  inv H0; eauto.
+  pose proof (IHisN _ _ H6); eauto.
+  inv H0; eauto.
+  pose proof (IHisN _ _ H2); eauto.
+Qed.
+
+Lemma isL_merge_inv Gamma1 Gamma2 Gamma :
+  merge Gamma1 Gamma2 Gamma -> 
+    forall i, isL Gamma i -> 
+      (isL Gamma1 i /\ isN Gamma2 i) \/
+      (isL Gamma2 i /\ isN Gamma1 i).
+Proof.
+  intro H.
+  dependent induction H; intros.
+  - inv H.
+  - inv H0.
+    apply IHmerge in H5.
+    firstorder.
+    + left; repeat constructor; eauto.
+    + right; repeat constructor; eauto.
+  - inv H0.
+    + left; repeat constructor; eauto.
+    + apply IHmerge in H5.
+      inv H5.
+      * left; inv H0; repeat constructor; eauto.
+      * right; inv H0; repeat constructor; eauto.
+  - inv H0.
+    + right; repeat constructor; eauto.
+    + apply IHmerge in H5.
+      firstorder.
+      * left; repeat constructor; eauto.
+      * right; repeat constructor; eauto.
+  - inv H0.
+    apply IHmerge in H2.
+    firstorder.
+    + left; repeat constructor; eauto.
+    + right; repeat constructor; eauto.
+Qed.
+
+Lemma isN_merge_inv Gamma1 Gamma2 Gamma :
+  merge Gamma1 Gamma2 Gamma -> 
+    forall i, isN Gamma i -> 
+      isN Gamma1 i /\ isN Gamma2 i.
+Proof.
+  intro H.
+  dependent induction H; intros.
+  - inv H.
+  - inv H0.
+    apply IHmerge in H5.
+    firstorder; constructor; eauto.
+  - inv H0.
+    apply IHmerge in H5.
+    firstorder; constructor; eauto.
+  - inv H0.
+    apply IHmerge in H5.
+    firstorder; constructor; eauto.
+  - inv H0; firstorder; constructor; firstorder.
+Qed.
+
+Lemma narity Gamma m A s :
+  [ Gamma |= m :- A -: s ] -> 
+    forall i, isN Gamma i -> occurs i m = 0.
+Proof.
+  intro H.
+  dependent induction H; simpl; intros.
+  - eauto.
+  - rewrite IHhas_type1; eauto.
+    rewrite IHhas_type2; eauto.
+    constructor; eauto.
+  - rewrite IHhas_type1; eauto.
+    rewrite IHhas_type2; eauto.
+    constructor; eauto.
+  - rewrite IHhas_type1; eauto.
+  - rewrite IHhas_type1; eauto.
+  - pose proof (isN_hasU H0 H).
+    rewrite H1; eauto.
+  - pose proof (isN_hasL H0 H).
+    rewrite H1; eauto.
+  - apply IHhas_type2.
+    constructor; eauto.
+  - apply IHhas_type2.
+    constructor; eauto.
+  - apply IHhas_type2.
+    constructor; eauto.
+  - apply IHhas_type2.
+    constructor; eauto.
+  - pose proof (isN_merge_inv H2 H3). inv H4.
+    rewrite IHhas_type1; eauto.
+  - pose proof (isN_merge_inv H1 H2). inv H3.
+    rewrite IHhas_type1; eauto.
+  - pose proof (isN_merge_inv H2 H3). inv H4.
+    rewrite IHhas_type1; eauto.
+  - pose proof (isN_merge_inv H1 H2). inv H3.
+    rewrite IHhas_type1; eauto.
+  - apply IHhas_type2; eauto.
+Qed.
+
+Theorem linearity Gamma m A s :
+  [ Gamma |= m :- A -: s ] -> 
+    forall i, isL Gamma i -> occurs i m = 1.
+Proof.
+  intro H.
+  dependent induction H; intros.
+  - exfalso. eapply isL_pure; eauto.
+  - exfalso. eapply isL_pure; eauto.
+  - exfalso. eapply isL_pure; eauto.
+  - exfalso. eapply isL_pure; eauto.
+  - exfalso. eapply isL_pure; eauto.
+  - exfalso. eapply isL_hasU; eauto.
+  - pose proof (isL_hasL H0 H).
+    rewrite H1; simpl.
+    rewrite eqn_refl; eauto.
+  - exfalso. eapply isL_pure; eauto.
+  - exfalso. eapply isL_pure; eauto.
+  - simpl.
+    apply IHhas_type2.
+    constructor; eauto.
+  - simpl.
+    apply IHhas_type2.
+    constructor; eauto.
+  - pose proof (isL_merge_inv H2 H3).
+    firstorder; simpl.
+    + apply IHhas_type1 in H4.
+      eapply narity in H5; eauto.
+      rewrite H4.
+      rewrite H5.
+      eauto.
+    + apply IHhas_type2 in H4.
+      eapply narity in H5; eauto.
+      rewrite H4.
+      rewrite H5.
+      eauto.
+  - pose proof (isL_merge_inv H1 H2).
+    firstorder; simpl.
+    + apply IHhas_type1 in H3.
+      eapply narity in H4; eauto.
+      rewrite H3.
+      rewrite H4.
+      eauto.
+    + apply IHhas_type2 in H3.
+      eapply narity in H4; eauto.
+      rewrite H3.
+      rewrite H4.
+      eauto.
+  - pose proof (isL_merge_inv H2 H3).
+    firstorder; simpl.
+    + apply IHhas_type1 in H4.
+      eapply narity in H5; eauto.
+      rewrite H4.
+      rewrite H5.
+      eauto.
+    + apply IHhas_type2 in H4.
+      eapply narity in H5; eauto.
+      rewrite H4.
+      rewrite H5.
+      eauto.
+  - pose proof (isL_merge_inv H1 H2).
+    firstorder; simpl.
+    + apply IHhas_type1 in H3.
+      eapply narity in H4; eauto.
+      rewrite H3.
+      rewrite H4.
+      eauto.
+    + apply IHhas_type2 in H3.
+      eapply narity in H4; eauto.
+      rewrite H3.
+      rewrite H4.
+      eauto.
+  - apply IHhas_type2; eauto.
+Qed.
+
 Close Scope clc_scope.
 
 Import ECC.
@@ -3422,7 +3683,5 @@ Proof.
   econstructor; eauto.
   constructor; eauto.
 Qed.
-
-Print Assumptions embedding.
 
 End CLC.
