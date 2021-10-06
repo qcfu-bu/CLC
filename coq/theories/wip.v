@@ -1764,18 +1764,15 @@ Inductive agree_subst :
   [ Delta |= sigma =| Gamma ] ->
   [ :n Delta |= up sigma =| :n Gamma ]
 | agree_subst_wkU Delta sigma Gamma n A :
-  value n ->
   [ Delta |= sigma =| Gamma ] ->
   [ re Delta |= n :- A.[sigma] -: U ] ->
   [ Delta |= n .: sigma =| A :u Gamma ]
 | agree_subst_wkL Delta1 Delta2 Delta sigma Gamma n A :
-  value n ->
   merge Delta1 Delta2 Delta ->
   [ Delta1 |= sigma =| Gamma ] ->
   [ Delta2 |= n :- A.[sigma] -: L ] ->
   [ Delta |= n .: sigma =| A :l Gamma ]
 | agree_subst_wkN Delta sigma Gamma n :
-  value n ->
   [ Delta |= sigma =| Gamma ] ->
   [ Delta |= n .: sigma =| :n Gamma ]
 | agree_subst_convU Delta sigma Gamma A B l :
@@ -1800,9 +1797,9 @@ Proof.
   inv H0.
   inv H0.
   constructor; eauto.
-  inv H2; eauto.
-  inv H3.
   inv H1; eauto.
+  inv H2.
+  inv H0; eauto.
   inv H2.
   apply IHagree_subst.
   constructor; eauto.
@@ -1852,12 +1849,12 @@ Proof.
     eapply eweakeningN; eauto.
     autosubst.
     autosubst.
-  - inv H2; asimpl; eauto.
-    pose proof (agree_subst_pure H0 H7).
-    pose proof (pure_re H2).
-    rewrite H3; eauto.
-  - inv H3.
   - inv H1; asimpl; eauto.
+    pose proof (agree_subst_pure H H6).
+    pose proof (pure_re H1).
+    rewrite H2; eauto.
+  - inv H2.
+  - inv H0; asimpl; eauto.
   - inv H2.
     + assert (hasU (A :u Gamma) 0 A.[ren (+1)]).
       constructor; eauto.
@@ -1894,12 +1891,12 @@ Proof.
     eapply eweakeningN; eauto.
     autosubst.
     autosubst.
-  - inv H2; asimpl; eauto.
-  - inv H3; asimpl.
-    pose proof (agree_subst_pure H1 H8).
-    pose proof (merge_pure1 H0 H3).
-    rewrite H4; eauto.
   - inv H1; asimpl; eauto.
+  - inv H2; asimpl.
+    pose proof (agree_subst_pure H0 H7).
+    pose proof (merge_pure1 H H2).
+    rewrite H3; eauto.
+  - inv H0; asimpl; eauto.
   - inv H2.
     apply IHagree_subst.
     constructor; eauto.
@@ -1926,9 +1923,9 @@ Proof.
   - constructor; eauto.
     rewrite <- re_re; eauto.
   - constructor; eauto.
-    pose proof (merge_re_re H0).
-    destruct H3.
-    rewrite <- H3; eauto.
+    pose proof (merge_re_re H).
+    destruct H2.
+    rewrite <- H2; eauto.
   - constructor; eauto.
   - simpl in IHagree_subst.
     eapply agree_subst_convU.
@@ -1976,45 +1973,37 @@ Proof.
     exists (:n x).
     exists (:n x0).
     repeat constructor; eauto.
-  - inv H2.
-    pose proof (IHagree_subst _ _ H6).
+  - inv H1.
+    pose proof (IHagree_subst _ _ H5).
     first_order.
     exists x.
     exists x0.
-    pose proof (merge_re_re H2).
-    destruct H5.
+    pose proof (merge_re_re H1).
+    destruct H4.
     repeat constructor; eauto.
-    rewrite H5; eauto.
-    rewrite H7; eauto.
-  - inv H3.
-    + pose proof (IHagree_subst _ _ H7).
+    rewrite H4; eauto.
+    rewrite H6; eauto.
+  - inv H2.
+    + pose proof (IHagree_subst _ _ H6).
       firstorder.
-      pose proof (merge_split1 H0 H3).
+      pose proof (merge_split1 H H2).
       firstorder.
       exists x1.
       exists x0.
       firstorder.
-      eapply agree_subst_wkL.
-      apply H.
-      apply H6.
-      apply H4.
-      apply H2.
+      eapply agree_subst_wkL; eauto.
       eapply agree_subst_wkN; eauto.
-    + pose proof (IHagree_subst _ _ H7).
+    + pose proof (IHagree_subst _ _ H6).
       firstorder.
-      pose proof (merge_split2 H0 H3).
+      pose proof (merge_split2 H H2).
       firstorder.
       exists x.
       exists x1.
       firstorder.
       apply agree_subst_wkN; eauto.
-      eapply agree_subst_wkL.
-      apply H.
-      apply H6.
-      apply H5.
-      apply H2.
-  - inv H1.
-    pose proof (IHagree_subst _ _ H5).
+      eapply agree_subst_wkL; eauto.
+  - inv H0.
+    pose proof (IHagree_subst _ _ H4).
     first_order.
     exists x.
     exists x0.
@@ -2139,10 +2128,10 @@ Proof.
     apply IHhas_type2; eauto.
 Qed.
 
-Lemma substitutionL Gamma1 m A B s :
-  [ A :L Gamma1 |= m :- B -: s ] ->
+Lemma substitutionU Gamma1 m A B s :
+  [ A :u Gamma1 |= m :- B -: s ] ->
   forall Gamma2 Gamma n,
-    value n ->
+    pure Gamma2 ->
     merge Gamma1 Gamma2 Gamma -> 
     [ Gamma2 |= n :- A -: U ] -> 
     [ Gamma |= m.[n/] :- B.[n/] -: s ].
@@ -2150,23 +2139,22 @@ Proof.
   intros.
   eapply substitution.
   apply H.
-  pose proof (value_sound H2 H0).
-  pose proof (merge_pure2 H1 H3).
-  rewrite H4.
-  apply agree_subst_wkL; eauto.
+  pose proof (merge_pure2 H1 H0).
+  rewrite H3.
+  apply agree_subst_wkU; eauto.
   apply agree_subst_refl.
   pose proof (merge_re_re H1).
-  destruct H5.
+  destruct H4.
   asimpl.
-  rewrite H5.
-  rewrite <- H6.
+  rewrite H4.
+  rewrite <- H5.
   rewrite <- pure_re; eauto.
 Qed.
 
 Lemma substitutionN Gamma1 m A B s :
-  [ :N Gamma1 |= m :- B -: s ] ->
+  [ :n Gamma1 |= m :- B -: s ] ->
   forall Gamma2 n t,
-    value n ->
+    pure Gamma2 ->
     [ Gamma2 |= n :- A -: t ] -> 
     [ Gamma1 |= m.[n/] :- B.[n/] -: s ].
 Proof.
@@ -2177,10 +2165,9 @@ Proof.
   apply agree_subst_refl.
 Qed.
 
-Lemma substitutionR Gamma1 m A B s :
-  [ A :R Gamma1 |= m :- B -: s ] ->
+Lemma substitutionL Gamma1 m A B s :
+  [ A :l Gamma1 |= m :- B -: s ] ->
   forall Gamma2 Gamma n,
-    value n ->
     merge Gamma1 Gamma2 Gamma -> 
     [ Gamma2 |= n :- A -: L ] -> 
     [ Gamma |= m.[n/] :- B.[n/] -: s ].
@@ -2188,7 +2175,7 @@ Proof.
   intros.
   eapply substitution.
   apply H.
-  eapply agree_subst_wkR; asimpl; eauto.
+  eapply agree_subst_wkL; asimpl; eauto.
   apply agree_subst_refl.
 Qed.
 
