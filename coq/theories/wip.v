@@ -2853,24 +2853,26 @@ Qed.
 Corollary preservation_step m n :
   step m n ->
   forall Gamma A s,
+    [ Gamma |= ] ->
     [ Gamma |= m :- A -: s ] ->
     [ Gamma |= n :- A -: s ].
 Proof.
   intros.
-  eapply preservation.
-  apply H0.
+  eapply preservation; eauto.
   apply step_pstep; eauto.
 Qed.
 
 Corollary preservation_star_step m n :
   star step m n ->
   forall Gamma A s,
+    [ Gamma |= ] ->
     [ Gamma |= m :- A -: s ] ->
     [ Gamma |= n :- A -: s ].
 Proof.
   intro H.
   dependent induction H; intros; eauto.
   eapply preservation.
+  apply H1.
   apply IHstar; eauto.
   apply step_pstep; eauto.
 Qed.
@@ -2878,92 +2880,53 @@ Qed.
 Lemma canonical_tyProd m C :
   [ nil |= m :- C -: U ] -> value m ->
   forall A B s, 
-    C === TyProd A B s -> exists m', m = Lam m'.
+    C <: TyProd A B s -> exists m', m = Lam m'.
 Proof.
   intros.
-  dependent induction H.
-  - solve_conv; exfalso; eauto.
-  - solve_conv; exfalso; eauto.
-  - solve_conv; exfalso; eauto.
-  - solve_conv; exfalso; eauto.
-  - solve_conv; exfalso; eauto.
+  dependent induction H; try (exfalso; solve_sub).
   - inv H.
   - exists n; eauto.
-  - solve_conv; exfalso; eauto.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-  - eapply IHhas_type; eauto.
-    eapply conv_trans.
-    apply H.
-    apply H2.
+  - eapply IHhas_type2; eauto.
+    eapply sub_trans; eauto.
 Qed.
 
 Lemma canonical_lnProd m C :
   [ nil |= m :- C -: L ] -> value m ->
   forall A B s, 
-    C === LnProd A B s -> exists m', m = Lam m'.
+    C <: LnProd A B s -> exists m', m = Lam m'.
 Proof.
   intros.
-  dependent induction H.
+  dependent induction H; try (exfalso; solve_sub).
   - inv H.
   - exists n; eauto.
-  - solve_conv; exfalso; eauto.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-  - eapply IHhas_type; eauto.
-    eapply conv_trans.
-    apply H.
-    apply H2.
+  - eapply IHhas_type2; eauto.
+    eapply sub_trans; eauto.
 Qed.
-
 
 Lemma canonical_arrow m C :
   [ nil |= m :- C -: U ] -> value m ->
   forall A B s, 
-    C === Arrow A B s -> exists m', m = Lam m'.
+    C <: Arrow A B s -> exists m', m = Lam m'.
 Proof.
   intros.
-  dependent induction H.
-  - solve_conv; exfalso; eauto.
-  - solve_conv; exfalso; eauto.
-  - solve_conv; exfalso; eauto.
-  - solve_conv; exfalso; eauto.
-  - solve_conv; exfalso; eauto.
+  dependent induction H; try (exfalso; solve_sub).
   - inv H.
-  - solve_conv; exfalso; eauto.
   - exists n; eauto.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-  - eapply IHhas_type; eauto.
-    eapply conv_trans.
-    apply H.
-    apply H2.
+  - eapply IHhas_type2; eauto.
+    eapply sub_trans; eauto.
 Qed.
 
 Lemma canonical_lolli m C :
   [ nil |= m :- C -: L ] -> value m ->
   forall A B s, 
-    C === Lolli A B s -> exists m', m = Lam m'.
+    C <: Lolli A B s -> exists m', m = Lam m'.
 Proof.
   intros.
-  dependent induction H.
+  dependent induction H; try (exfalso; solve_sub).
   - inv H.
-  - solve_conv; exfalso; eauto.
   - exists n; eauto.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-  - inv H2.
-  - eapply IHhas_type; eauto.
-    eapply conv_trans.
-    apply H.
-    apply H2.
+  - eapply IHhas_type2; eauto.
+    eapply sub_trans; eauto.
 Qed.
 
 Theorem progress m A s :
@@ -2983,23 +2946,23 @@ Proof.
   - left; constructor.
   - left; constructor.
   - right.
-    inv H1.
+    inv H2.
     assert (@nil (elem term) ~= @nil (elem term)) by eauto.
-    specialize (IHhas_type1 H1).
-    specialize (IHhas_type2 H1).
+    specialize (IHhas_type1 H2).
+    specialize (IHhas_type2 H2).
     destruct IHhas_type1; destruct IHhas_type2.
     + assert (exists m', m = Lam m').
       eapply canonical_tyProd; eauto.
-      destruct H4; subst.
+      destruct H5; subst.
       exists (x.[n/]).
       apply step_beta; eauto.
-    + destruct H3.
+    + destruct H4.
       exists (App m x).
       apply step_appR; eauto.
-    + destruct H2.
+    + destruct H3.
       exists (App x n).
       apply step_appL; eauto.
-    + destruct H2.
+    + destruct H3.
       exists (App x n).
       apply step_appL; eauto.
   - right.
@@ -3023,23 +2986,23 @@ Proof.
       exists (App x n).
       apply step_appL; eauto.
   - right.
-    inv H1.
+    inv H2.
     assert (@nil (elem term) ~= @nil (elem term)) by eauto.
-    specialize (IHhas_type1 H1).
-    specialize (IHhas_type2 H1).
+    specialize (IHhas_type1 H2).
+    specialize (IHhas_type2 H2).
     destruct IHhas_type1; destruct IHhas_type2.
     + assert (exists m', m = Lam m').
       eapply canonical_lnProd; eauto.
-      destruct H4; subst.
+      destruct H5; subst.
       exists (x.[n/]).
       apply step_beta; eauto.
-    + destruct H3.
+    + destruct H4.
       exists (App m x).
       apply step_appR; eauto.
-    + destruct H2.
+    + destruct H3.
       exists (App x n).
       apply step_appL; eauto.
-    + destruct H2.
+    + destruct H3.
       exists (App x n).
       apply step_appL; eauto.
   - right.
@@ -3062,7 +3025,7 @@ Proof.
     + destruct H2.
       exists (App x n).
       apply step_appL; eauto.
-  - apply IHhas_type; eauto.
+  - apply IHhas_type2; eauto.
 Qed.
 
 Import CoC.
