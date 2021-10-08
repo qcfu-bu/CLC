@@ -1121,46 +1121,26 @@ Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
     | A B1 B2 s sb1 ih C D conv sb2
     | A B1 B2 s sb1 ih C D conv sb2
     | A B1 B2 s sb1 ih C D conv sb2 ]...
-  - inv sb...
-    + move: conv => /sort_inj [->eq].
-      apply: sub_sort. subst.
-      exact: leq_trans leq _.
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-  - inv sb2...
-    + exfalso; solve_conv.
-    + move: conv => /tyProd_inj[conv1 [conv2 ->] ].
-      move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-      eapply SubI. eapply sub1_tyProd... eapply conv_tyProd... exact: conv_tyProd.
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-  - inv sb2...
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-    + move: conv => /lnProd_inj[conv1 [conv2 ->] ].
-      move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-      eapply SubI. eapply sub1_lnProd... eapply conv_lnProd... exact: conv_lnProd.
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-  - inv sb2...
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-    + move: conv => /arrow_inj[conv1 [conv2 ->] ].
-      move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-      eapply SubI. eapply sub1_arrow... eapply conv_arrow... exact: conv_arrow.
-    + exfalso; solve_conv.
-  - inv sb2...
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-    + exfalso; solve_conv.
-    + move: conv => /lolli_inj[conv1 [conv2 ->] ].
-      move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-      eapply SubI. eapply sub1_lolli... eapply conv_lolli... exact: conv_lolli.
+  - inv sb; try (exfalso; solve_conv)...
+    move: conv => /sort_inj [->eq].
+    apply: sub_sort. subst.
+    exact: leq_trans leq _.
+  - inv sb2; try (exfalso; solve_conv)...
+    move: conv => /tyProd_inj[conv1 [conv2 ->] ].
+    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
+    eapply SubI. eapply sub1_tyProd... eapply conv_tyProd... exact: conv_tyProd.
+  - inv sb2; try (exfalso; solve_conv)...
+    move: conv => /lnProd_inj[conv1 [conv2 ->] ].
+    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
+    eapply SubI. eapply sub1_lnProd... eapply conv_lnProd... exact: conv_lnProd.
+  - inv sb2; try (exfalso; solve_conv)...
+    move: conv => /arrow_inj[conv1 [conv2 ->] ].
+    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
+    eapply SubI. eapply sub1_arrow... eapply conv_arrow... exact: conv_arrow.
+  - inv sb2; try (exfalso; solve_conv)...
+    move: conv => /lolli_inj[conv1 [conv2 ->] ].
+    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
+    eapply SubI. eapply sub1_lolli... eapply conv_lolli... exact: conv_lolli.
 Qed.
 
 Lemma sub_trans B A C :
