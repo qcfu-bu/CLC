@@ -1128,19 +1128,30 @@ Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
   - inv sb2; try (exfalso; solve_conv)...
     move: conv => /tyProd_inj[conv1 [conv2 ->] ].
     move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-    eapply SubI. eapply sub1_tyProd... eapply conv_tyProd... exact: conv_tyProd.
+    eapply SubI. 
+    eapply sub1_tyProd... 
+    eapply conv_tyProd... 
+    exact: conv_tyProd.
   - inv sb2; try (exfalso; solve_conv)...
     move: conv => /lnProd_inj[conv1 [conv2 ->] ].
     move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-    eapply SubI. eapply sub1_lnProd... eapply conv_lnProd... exact: conv_lnProd.
+    eapply SubI. 
+    eapply sub1_lnProd... 
+    eapply conv_lnProd... 
+    exact: conv_lnProd.
   - inv sb2; try (exfalso; solve_conv)...
     move: conv => /arrow_inj[conv1 [conv2 ->] ].
     move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-    eapply SubI. eapply sub1_arrow... eapply conv_arrow... exact: conv_arrow.
+    eapply SubI. 
+    eapply sub1_arrow... 
+    eapply conv_arrow... exact: conv_arrow.
   - inv sb2; try (exfalso; solve_conv)...
     move: conv => /lolli_inj[conv1 [conv2 ->] ].
     move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-    eapply SubI. eapply sub1_lolli... eapply conv_lolli... exact: conv_lolli.
+    eapply SubI. 
+    eapply sub1_lolli... 
+    eapply conv_lolli...
+    exact: conv_lolli.
 Qed.
 
 Lemma sub_trans B A C :
@@ -1246,105 +1257,105 @@ Proof.
   apply sub_subst; eauto.
 Qed.
 
-Reserved Notation "[ Gamma |= ]".
-Reserved Notation "[ Gamma |= m :- A -: s ]".
+Reserved Notation "[ Gamma |- ]".
+Reserved Notation "[ Gamma |- m :- A -: s ]".
   
 Inductive has_type : context term -> term -> term -> sort -> Prop :=
 | axiom Gamma s l : 
   pure Gamma ->
-  [ Gamma |= Sort s l :- Sort U l.+1 -: U ]
+  [ Gamma |- Sort s l :- Sort U l.+1 -: U ]
 | u_prod Gamma A B s l :
   pure Gamma ->
-  [ Gamma |= A :- Sort U l -: U ] ->
-  [ A :u Gamma |= B :- Sort s l -: U ] ->
-  [ Gamma |= TyProd A B s :- Sort U l -: U ]
+  [ Gamma |- A :- Sort U l -: U ] ->
+  [ A :u Gamma |- B :- Sort s l -: U ] ->
+  [ Gamma |- TyProd A B s :- Sort U l -: U ]
 | l_prod Gamma A B s l :
   pure Gamma ->
-  [ Gamma |= A :- Sort U l -: U ] ->
-  [ A :u Gamma |= B :- Sort s l -: U ] ->
-  [ Gamma |= LnProd A B s :- Sort L l -: U ]
+  [ Gamma |- A :- Sort U l -: U ] ->
+  [ A :u Gamma |- B :- Sort s l -: U ] ->
+  [ Gamma |- LnProd A B s :- Sort L l -: U ]
 | arrow Gamma A B s l :
   pure Gamma ->
-  [ Gamma |= A :- Sort L l -: U ] ->
-  [ Gamma |= B :- Sort s l -: U ] ->
-  [ Gamma |= Arrow A B s :- Sort U l -: U ]
+  [ Gamma |- A :- Sort L l -: U ] ->
+  [ Gamma |- B :- Sort s l -: U ] ->
+  [ Gamma |- Arrow A B s :- Sort U l -: U ]
 | lolli Gamma A B s l :
   pure Gamma ->
-  [ Gamma |= A :- Sort L l -: U ] ->
-  [ Gamma |= B :- Sort s l -: U ] ->
-  [ Gamma |= Lolli A B s :- Sort L l -: U ]
+  [ Gamma |- A :- Sort L l -: U ] ->
+  [ Gamma |- B :- Sort s l -: U ] ->
+  [ Gamma |- Lolli A B s :- Sort L l -: U ]
 | u_var Gamma x A : 
   hasU Gamma x A ->
-  [ Gamma |= Var x :- A -: U ]
+  [ Gamma |- Var x :- A -: U ]
 | l_var Gamma x A :
   hasL Gamma x A ->
-  [ Gamma |= Var x :- A -: L ]
+  [ Gamma |- Var x :- A -: L ]
 | u_lam1 Gamma n A B s l :
   pure Gamma ->
-  [ Gamma |= TyProd A B s :- Sort U l -: U ] ->
-  [ A :u Gamma |= n :- B -: s ] ->
-  [ Gamma |= Lam n :- TyProd A B s -: U ]
+  [ Gamma |- TyProd A B s :- Sort U l -: U ] ->
+  [ A :u Gamma |- n :- B -: s ] ->
+  [ Gamma |- Lam n :- TyProd A B s -: U ]
 | u_lam2 Gamma n A B s l :
   pure Gamma ->
-  [ Gamma |= Arrow A B s :- Sort U l -: U ] ->
-  [ A :l Gamma |= n :- B.[ren (+1)] -: s ] ->
-  [ Gamma |= Lam n :- Arrow A B s -: U ]
+  [ Gamma |- Arrow A B s :- Sort U l -: U ] ->
+  [ A :l Gamma |- n :- B.[ren (+1)] -: s ] ->
+  [ Gamma |- Lam n :- Arrow A B s -: U ]
 | l_lam1 Gamma n A B s l :
-  [ re Gamma |= LnProd A B s :- Sort L l -: U ] ->
-  [ A :u Gamma |= n :- B -: s ] ->
-  [ Gamma |= Lam n :- LnProd A B s -: L ]
+  [ re Gamma |- LnProd A B s :- Sort L l -: U ] ->
+  [ A :u Gamma |- n :- B -: s ] ->
+  [ Gamma |- Lam n :- LnProd A B s -: L ]
 | l_lam2 Gamma n A B s l :
-  [ re Gamma |= Lolli A B s :- Sort L l -: U ] ->
-  [ A :l Gamma |= n :- B.[ren (+1)] -: s ] ->
-  [ Gamma |= Lam n :- Lolli A B s -: L ]
+  [ re Gamma |- Lolli A B s :- Sort L l -: U ] ->
+  [ A :l Gamma |- n :- B.[ren (+1)] -: s ] ->
+  [ Gamma |- Lam n :- Lolli A B s -: L ]
 | u_app1 Gamma1 Gamma2 Gamma A B m n s :
   pure Gamma2 ->
-  [ Gamma1 |= m :- TyProd A B s -: U ] ->
-  [ Gamma2 |= n :- A -: U ] ->
+  [ Gamma1 |- m :- TyProd A B s -: U ] ->
+  [ Gamma2 |- n :- A -: U ] ->
   merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |= App m n :- B.[n/] -: s ]
+  [ Gamma |- App m n :- B.[n/] -: s ]
 | u_app2 Gamma1 Gamma2 Gamma A B m n s :
-  [ Gamma1 |= m :- Arrow A B s -: U ] ->
-  [ Gamma2 |= n :- A -: L ] ->
+  [ Gamma1 |- m :- Arrow A B s -: U ] ->
+  [ Gamma2 |- n :- A -: L ] ->
   merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |= App m n :- B -: s ]
+  [ Gamma |- App m n :- B -: s ]
 | l_app1 Gamma1 Gamma2 Gamma A B m n s :
   pure Gamma2 ->
-  [ Gamma1 |= m :- LnProd A B s -: L ] ->
-  [ Gamma2 |= n :- A -: U ] ->
+  [ Gamma1 |- m :- LnProd A B s -: L ] ->
+  [ Gamma2 |- n :- A -: U ] ->
   merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |= App m n :- B.[n/] -: s ]
+  [ Gamma |- App m n :- B.[n/] -: s ]
 | l_app2 Gamma1 Gamma2 Gamma A B m n s :
-  [ Gamma1 |= m :- Lolli A B s -: L ] ->
-  [ Gamma2 |= n :- A -: L ] ->
+  [ Gamma1 |- m :- Lolli A B s -: L ] ->
+  [ Gamma2 |- n :- A -: L ] ->
   merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |= App m n :- B -: s ]
+  [ Gamma |- App m n :- B -: s ]
 | conversion Gamma A B m s l :
   A <: B ->
-  [ re Gamma |= B :- Sort s l -: U ] ->
-  [ Gamma |= m :- A -: s ] ->
-  [ Gamma |= m :- B -: s ]
-where "[ Gamma |= m :- A -: s ]" := (has_type Gamma m A s).
+  [ re Gamma |- B :- Sort s l -: U ] ->
+  [ Gamma |- m :- A -: s ] ->
+  [ Gamma |- m :- B -: s ]
+where "[ Gamma |- m :- A -: s ]" := (has_type Gamma m A s).
 
 Inductive context_ok : context term -> Prop :=
 | nil_ok :
-  [ nil |= ]
+  [ nil |- ]
 | u_ok Gamma A l :
-  [ Gamma |= ] ->
-  [ re Gamma |= A :- Sort U l -: U ] ->
-  [ A :u Gamma |= ]
+  [ Gamma |- ] ->
+  [ re Gamma |- A :- Sort U l -: U ] ->
+  [ A :u Gamma |- ]
 | l_ok Gamma A l :
-  [ Gamma |= ] ->
-  [ re Gamma |= A :- Sort L l -: U ] ->
-  [ A :l Gamma |= ]
+  [ Gamma |- ] ->
+  [ re Gamma |- A :- Sort L l -: U ] ->
+  [ A :l Gamma |- ]
 | n_ok Gamma :
-  [ Gamma |= ] ->
-  [ :n Gamma |= ]
-where "[ Gamma |= ]" := (context_ok Gamma).
+  [ Gamma |- ] ->
+  [ :n Gamma |- ]
+where "[ Gamma |- ]" := (context_ok Gamma).
 
 Lemma re_ok Gamma :
-  [ Gamma |= ] ->
-  [ re Gamma |= ].
+  [ Gamma |- ] ->
+  [ re Gamma |- ].
 Proof with eauto using context_ok.
   intros.
   induction H...
@@ -1548,10 +1559,10 @@ Proof.
 Qed.
 
 Lemma rename_ok Gamma m A s :
-  [ Gamma |= m :- A -: s ] ->
+  [ Gamma |- m :- A -: s ] ->
   forall Gamma' xi,
     agree_ren xi Gamma Gamma' ->
-    [ Gamma' |= m.[ren xi] :- A.[ren xi] -: s ].
+    [ Gamma' |- m.[ren xi] :- A.[ren xi] -: s ].
 Proof.
   intros H.
   induction H; simpl; intros.
@@ -1637,10 +1648,10 @@ Proof.
 Qed.
 
 Lemma hasL_ok Gamma :
-  [ Gamma |= ] ->
+  [ Gamma |- ] ->
   forall x A,
     hasU Gamma x A ->
-    exists l, [ re Gamma |= A :- Sort U l -: U ].
+    exists l, [ re Gamma |- A :- Sort U l -: U ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -1671,10 +1682,10 @@ Proof.
 Qed.
 
 Lemma hasR_ok Gamma :
-  [ Gamma |= ] ->
+  [ Gamma |- ] ->
   forall x A,
     hasL Gamma x A ->
-    exists l, [ re Gamma |= A :- Sort L l -: U ].
+    exists l, [ re Gamma |- A :- Sort L l -: U ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -1703,8 +1714,8 @@ Proof.
 Qed.
 
 Lemma weakeningU Gamma m A s B :
-  [ Gamma |= m :- A -: s ] ->
-  [ B :u Gamma |= m.[ren (+1)] :- A.[ren (+1)] -: s ].
+  [ Gamma |- m :- A -: s ] ->
+  [ B :u Gamma |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
 Proof.
   intros.
   eapply rename_ok in H.
@@ -1714,8 +1725,8 @@ Proof.
 Qed.
 
 Lemma weakeningN Gamma m A s :
-  [ Gamma |= m :- A -: s ] ->
-  [ :n Gamma |= m.[ren (+1)] :- A.[ren (+1)] -: s ].
+  [ Gamma |- m :- A -: s ] ->
+  [ :n Gamma |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
 Proof.
   intros.
   eapply rename_ok in H.
@@ -1727,8 +1738,8 @@ Qed.
 Lemma eweakeningU Gamma m m' A A' s B :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  [ Gamma |= m :- A -: s ] -> 
-  [ B :u Gamma |= m' :- A' -: s ].
+  [ Gamma |- m :- A -: s ] -> 
+  [ B :u Gamma |- m' :- A' -: s ].
 Proof.  
   intros; subst.
   apply weakeningU; eauto.
@@ -1737,55 +1748,55 @@ Qed.
 Lemma eweakeningN Gamma m m' A A' s :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  [ Gamma |= m :- A -: s ] -> 
-  [ :n Gamma |= m' :- A' -: s ].
+  [ Gamma |- m :- A -: s ] -> 
+  [ :n Gamma |- m' :- A' -: s ].
 Proof.  
   intros; subst.
   apply weakeningN; eauto.
 Qed.
 
-Reserved Notation "[ Delta |= sigma =| Gamma ]".
+Reserved Notation "[ Delta |- sigma -| Gamma ]".
 
 Inductive agree_subst :
   context term -> (var -> term) -> context term -> Prop :=
 | agree_subst_nil sigma :
-  [ nil |= sigma =| nil ]
+  [ nil |- sigma -| nil ]
 | agree_subst_u Delta sigma Gamma A :
-  [ Delta |= sigma =| Gamma ] ->
-  [ A.[sigma] :u Delta |= up sigma =| A :u Gamma ]
+  [ Delta |- sigma -| Gamma ] ->
+  [ A.[sigma] :u Delta |- up sigma -| A :u Gamma ]
 | agree_subst_l Delta sigma Gamma A :
-  [ Delta |= sigma =| Gamma ] ->
-  [ A.[sigma] :l Delta |= up sigma =| A :l Gamma ]
+  [ Delta |- sigma -| Gamma ] ->
+  [ A.[sigma] :l Delta |- up sigma -| A :l Gamma ]
 | agree_subst_n Delta sigma Gamma :
-  [ Delta |= sigma =| Gamma ] ->
-  [ :n Delta |= up sigma =| :n Gamma ]
+  [ Delta |- sigma -| Gamma ] ->
+  [ :n Delta |- up sigma -| :n Gamma ]
 | agree_subst_wkU Delta sigma Gamma n A :
-  [ Delta |= sigma =| Gamma ] ->
-  [ re Delta |= n :- A.[sigma] -: U ] ->
-  [ Delta |= n .: sigma =| A :u Gamma ]
+  [ Delta |- sigma -| Gamma ] ->
+  [ re Delta |- n :- A.[sigma] -: U ] ->
+  [ Delta |- n .: sigma -| A :u Gamma ]
 | agree_subst_wkL Delta1 Delta2 Delta sigma Gamma n A :
   merge Delta1 Delta2 Delta ->
-  [ Delta1 |= sigma =| Gamma ] ->
-  [ Delta2 |= n :- A.[sigma] -: L ] ->
-  [ Delta |= n .: sigma =| A :l Gamma ]
+  [ Delta1 |- sigma -| Gamma ] ->
+  [ Delta2 |- n :- A.[sigma] -: L ] ->
+  [ Delta |- n .: sigma -| A :l Gamma ]
 | agree_subst_wkN Delta sigma Gamma n :
-  [ Delta |= sigma =| Gamma ] ->
-  [ Delta |= n .: sigma =| :n Gamma ]
+  [ Delta |- sigma -| Gamma ] ->
+  [ Delta |- n .: sigma -| :n Gamma ]
 | agree_subst_convU Delta sigma Gamma A B l :
   A <: B ->
-  [ re Delta |= B.[ren (+1)].[sigma] :- Sort U l -: U ] ->
-  [ Delta |= sigma =| A :u Gamma ] ->
-  [ Delta |= sigma =| B :u Gamma ]
+  [ re Delta |- B.[ren (+1)].[sigma] :- Sort U l -: U ] ->
+  [ Delta |- sigma -| A :u Gamma ] ->
+  [ Delta |- sigma -| B :u Gamma ]
 | agree_subst_convL Delta sigma Gamma A B l :
   A <: B ->
-  [ re Delta |= B.[ren (+1)].[sigma] :- Sort L l -: U ] ->
-  [ re Gamma |= B :- Sort L l -: U ] ->
-  [ Delta |= sigma =| A :l Gamma ] ->
-  [ Delta |= sigma =| B :l Gamma ]
-where "[ Delta |= sigma =| Gamma ]" := (agree_subst Delta sigma Gamma).
+  [ re Delta |- B.[ren (+1)].[sigma] :- Sort L l -: U ] ->
+  [ re Gamma |- B :- Sort L l -: U ] ->
+  [ Delta |- sigma -| A :l Gamma ] ->
+  [ Delta |- sigma -| B :l Gamma ]
+where "[ Delta |- sigma -| Gamma ]" := (agree_subst Delta sigma Gamma).
 
 Lemma agree_subst_pure Delta sigma Gamma :
-  [ Delta |= sigma =| Gamma ] -> pure Gamma -> pure Delta.
+  [ Delta |- sigma -| Gamma ] -> pure Gamma -> pure Delta.
 Proof.
   induction 1; intros; eauto.
   inv H0.
@@ -1803,19 +1814,19 @@ Proof.
 Qed.
 
 Lemma agree_subst_refl Gamma :
-  [ Gamma |= ids =| Gamma ].
+  [ Gamma |- ids -| Gamma ].
 Proof.
   induction Gamma.
   - constructor.
   - destruct a.
     destruct p.
     destruct s.
-    replace ([t :u Gamma |= ids =| t :u Gamma])
-      with ([t.[ids] :u Gamma |= up ids =| t :u Gamma])
+    replace ([t :u Gamma |- ids -| t :u Gamma])
+      with ([t.[ids] :u Gamma |- up ids -| t :u Gamma])
       by autosubst.
     apply agree_subst_u; eauto.
-    replace ([t :l Gamma |= ids =| t :l Gamma])
-      with ([t.[ids] :l Gamma |= up ids =| t :l Gamma])
+    replace ([t :l Gamma |- ids -| t :l Gamma])
+      with ([t.[ids] :l Gamma |- up ids -| t :l Gamma])
       by autosubst.
     apply agree_subst_l; eauto.
     replace (ids) with (up ids) by autosubst.
@@ -1823,10 +1834,10 @@ Proof.
 Qed.
 
 Lemma agree_subst_hasU Delta sigma Gamma :
-  [ Delta |= sigma =| Gamma ] ->
+  [ Delta |- sigma -| Gamma ] ->
   forall x A,
     hasU Gamma x A -> 
-    [ Delta |= sigma x :- A.[sigma] -: U ].
+    [ Delta |- sigma x :- A.[sigma] -: U ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -1865,10 +1876,10 @@ Proof.
 Qed.
 
 Lemma agree_subst_hasL Delta sigma Gamma :
-  [ Delta |= sigma =| Gamma ] ->
+  [ Delta |- sigma -| Gamma ] ->
   forall x A,
     hasL Gamma x A -> 
-    [ Delta |= sigma x :- A.[sigma] -: L ].
+    [ Delta |- sigma x :- A.[sigma] -: L ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -1907,8 +1918,8 @@ Proof.
 Qed.
 
 Lemma agree_subst_re_re Delta sigma Gamma :
-  [ Delta |= sigma =| Gamma ] ->
-  [ re Delta |= sigma =| re Gamma ].
+  [ Delta |- sigma -| Gamma ] ->
+  [ re Delta |- sigma -| re Gamma ].
 Proof.
   intro H.
   dependent induction H; simpl; intros; eauto.
@@ -1932,13 +1943,13 @@ Proof.
 Qed.
 
 Lemma merge_agree_subst_inv Delta sigma Gamma :
-  [ Delta |= sigma =| Gamma ] ->
+  [ Delta |- sigma -| Gamma ] ->
   forall Gamma1 Gamma2,
     merge Gamma1 Gamma2 Gamma ->
     exists Delta1 Delta2,
       merge Delta1 Delta2 Delta /\
-      [ Delta1 |= sigma =| Gamma1 ] /\
-      [ Delta2 |= sigma =| Gamma2 ].
+      [ Delta1 |- sigma -| Gamma1 ] /\
+      [ Delta2 |- sigma -| Gamma2 ].
 Proof.
   intros H.
   dependent induction H; intros.
@@ -2046,10 +2057,10 @@ Proof.
 Qed.
 
 Lemma substitution Gamma m A s :
-  [ Gamma |= m :- A -: s ] ->
+  [ Gamma |- m :- A -: s ] ->
   forall Delta sigma,
-    [ Delta |= sigma =| Gamma ] ->
-    [ Delta |= m.[sigma] :- A.[sigma] -: s ].
+    [ Delta |- sigma -| Gamma ] ->
+    [ Delta |- m.[sigma] :- A.[sigma] -: s ].
 Proof.
   intros H.
   dependent induction H; asimpl; intros; eauto.
@@ -2125,12 +2136,12 @@ Proof.
 Qed.
 
 Lemma substitutionU Gamma1 m A B s :
-  [ A :u Gamma1 |= m :- B -: s ] ->
+  [ A :u Gamma1 |- m :- B -: s ] ->
   forall Gamma2 Gamma n,
     pure Gamma2 ->
     merge Gamma1 Gamma2 Gamma -> 
-    [ Gamma2 |= n :- A -: U ] -> 
-    [ Gamma |= m.[n/] :- B.[n/] -: s ].
+    [ Gamma2 |- n :- A -: U ] -> 
+    [ Gamma |- m.[n/] :- B.[n/] -: s ].
 Proof.
   intros.
   eapply substitution.
@@ -2148,11 +2159,11 @@ Proof.
 Qed.
 
 Lemma substitutionN Gamma1 m A B s :
-  [ :n Gamma1 |= m :- B -: s ] ->
+  [ :n Gamma1 |- m :- B -: s ] ->
   forall Gamma2 n t,
     pure Gamma2 ->
-    [ Gamma2 |= n :- A -: t ] -> 
-    [ Gamma1 |= m.[n/] :- B.[n/] -: s ].
+    [ Gamma2 |- n :- A -: t ] -> 
+    [ Gamma1 |- m.[n/] :- B.[n/] -: s ].
 Proof.
   intros.
   eapply substitution.
@@ -2162,11 +2173,11 @@ Proof.
 Qed.
 
 Lemma substitutionL Gamma1 m A B s :
-  [ A :l Gamma1 |= m :- B -: s ] ->
+  [ A :l Gamma1 |- m :- B -: s ] ->
   forall Gamma2 Gamma n,
     merge Gamma1 Gamma2 Gamma -> 
-    [ Gamma2 |= n :- A -: L ] -> 
-    [ Gamma |= m.[n/] :- B.[n/] -: s ].
+    [ Gamma2 |- n :- A -: L ] -> 
+    [ Gamma |- m.[n/] :- B.[n/] -: s ].
 Proof.
   intros.
   eapply substitution.
@@ -2177,12 +2188,12 @@ Qed.
 
 Lemma context_convU Gamma m A B C s l :
   B === A -> 
-  [ re Gamma |= A :- Sort U l -: U ] ->
-  [ A :u Gamma |= m :- C -: s ] -> 
-  [ B :u Gamma |= m :- C -: s ].
+  [ re Gamma |- A :- Sort U l -: U ] ->
+  [ A :u Gamma |- m :- C -: s ] -> 
+  [ B :u Gamma |- m :- C -: s ].
 Proof.
   move=> conv tp1 tp2. 
-  cut ([ B :u Gamma |= m.[ids] :- C.[ids] -: s ]). autosubst.
+  cut ([ B :u Gamma |- m.[ids] :- C.[ids] -: s ]). autosubst.
   eapply substitution.
   apply tp2.
   eapply agree_subst_convU; simpl.
@@ -2196,12 +2207,12 @@ Qed.
 
 Lemma context_convL Gamma m A B C s l :
   B === A -> 
-  [ re Gamma |= A :- Sort L l -: U ] ->
-  [ A :l Gamma |= m :- C -: s ] -> 
-  [ B :l Gamma |= m :- C -: s ].
+  [ re Gamma |- A :- Sort L l -: U ] ->
+  [ A :l Gamma |- m :- C -: s ] -> 
+  [ B :l Gamma |- m :- C -: s ].
 Proof.
   move=> conv tp1 tp2. 
-  cut ([ B :l Gamma |= m.[ids] :- C.[ids] -: s ]). autosubst.
+  cut ([ B :l Gamma |- m.[ids] :- C.[ids] -: s ]). autosubst.
   eapply substitution.
   apply tp2.
   eapply agree_subst_convL; simpl.
@@ -2215,10 +2226,10 @@ Proof.
 Qed.
 
 Lemma tyProd_invX Gamma A B s srt :
-  [ re Gamma |= TyProd A B s :- srt -: U ] -> 
+  [ re Gamma |- TyProd A B s :- srt -: U ] -> 
   forall l, srt <: Sort U l ->
-    [ re Gamma |= A :- Sort U l -: U ] /\ 
-    [ A :u re Gamma |= B :- Sort s l -: U ].
+    [ re Gamma |- A :- Sort U l -: U ] /\ 
+    [ A :u re Gamma |- B :- Sort s l -: U ].
 Proof.
   move e:(TyProd A B s) => n tp. 
   elim: tp A B s e => //{Gamma n}.
@@ -2240,19 +2251,19 @@ Proof.
 Qed.
 
 Lemma tyProd_inv Gamma A B s l :
-  [ re Gamma |= TyProd A B s :- Sort U l -: U ] -> 
-  [ re Gamma |= A :- Sort U l -: U ] /\ 
-  [ A :u re Gamma |= B :- Sort s l -: U ].
+  [ re Gamma |- TyProd A B s :- Sort U l -: U ] -> 
+  [ re Gamma |- A :- Sort U l -: U ] /\ 
+  [ A :u re Gamma |- B :- Sort s l -: U ].
 Proof.
   intros.
   eapply tyProd_invX; eauto.
 Qed.
 
 Lemma arrow_invX Gamma A B s srt :
-  [ re Gamma |= Arrow A B s :- srt -: U ] ->
+  [ re Gamma |- Arrow A B s :- srt -: U ] ->
   forall l, srt <: Sort U l ->
-    [ re Gamma |= A :- Sort L l -: U ] /\ 
-    [ re Gamma |= B :- Sort s l -: U ].
+    [ re Gamma |- A :- Sort L l -: U ] /\ 
+    [ re Gamma |- B :- Sort s l -: U ].
 Proof.
   move e:(Arrow A B s) => n tp. 
   elim: tp A B s e => //{Gamma n}.
@@ -2279,19 +2290,19 @@ Proof.
 Qed.
 
 Lemma arrow_inv Gamma A B s l :
-  [ re Gamma |= Arrow A B s :- Sort U l -: U ] ->
-  [ re Gamma |= A :- Sort L l -: U ] /\ 
-  [ re Gamma |= B :- Sort s l -: U ].
+  [ re Gamma |- Arrow A B s :- Sort U l -: U ] ->
+  [ re Gamma |- A :- Sort L l -: U ] /\ 
+  [ re Gamma |- B :- Sort s l -: U ].
 Proof.
   intros.
   eapply arrow_invX; eauto.
 Qed.
 
 Lemma lnProd_invX Gamma A B s srt :
-  [ re Gamma |= LnProd A B s :- srt -: U ] ->
+  [ re Gamma |- LnProd A B s :- srt -: U ] ->
   forall l, srt <: Sort L l ->
-    [ re Gamma |= A :- Sort U l -: U ] /\ 
-    [ A :u re Gamma |= B :- Sort s l -: U ].
+    [ re Gamma |- A :- Sort U l -: U ] /\ 
+    [ A :u re Gamma |- B :- Sort s l -: U ].
 Proof.
   move e:(LnProd A B s) => n tp. 
   elim: tp A B s e => //{Gamma n}.
@@ -2318,19 +2329,19 @@ Proof.
 Qed.
 
 Lemma lnProd_inv Gamma A B s l :
-  [ re Gamma |= LnProd A B s :- Sort L l -: U ] ->
-  [ re Gamma |= A :- Sort U l -: U ] /\ 
-  [ A :u re Gamma |= B :- Sort s l -: U ].
+  [ re Gamma |- LnProd A B s :- Sort L l -: U ] ->
+  [ re Gamma |- A :- Sort U l -: U ] /\ 
+  [ A :u re Gamma |- B :- Sort s l -: U ].
 Proof.
   intros.
   eapply lnProd_invX; eauto.
 Qed.
 
 Lemma lolli_invX Gamma A B s srt :
-  [ re Gamma |= Lolli A B s :- srt -: U ] ->
+  [ re Gamma |- Lolli A B s :- srt -: U ] ->
   forall l, srt <: Sort L l ->
-    [ re Gamma |= A :- Sort L l -: U ] /\ 
-    [ re Gamma |= B :- Sort s l -: U ].
+    [ re Gamma |- A :- Sort L l -: U ] /\ 
+    [ re Gamma |- B :- Sort s l -: U ].
 Proof.
   move e:(Lolli A B s) => n tp. 
   elim: tp A B s e => //{Gamma n}.
@@ -2352,9 +2363,9 @@ Proof.
 Qed.
 
 Lemma lolli_inv Gamma A B s l :
-  [ re Gamma |= Lolli A B s :- Sort L l -: U ] ->
-  [ re Gamma |= A :- Sort L l -: U ] /\ 
-  [ re Gamma |= B :- Sort s l -: U ].
+  [ re Gamma |- Lolli A B s :- Sort L l -: U ] ->
+  [ re Gamma |- A :- Sort L l -: U ] /\ 
+  [ re Gamma |- B :- Sort s l -: U ].
 Proof.
   intros.
   eapply lolli_invX; eauto.
@@ -2380,10 +2391,10 @@ Ltac solve_sub :=
   end.
 
 Lemma u_lam1_invX Gamma n C :
-  [ Gamma |= Lam n :- C -: U ] -> 
+  [ Gamma |- Lam n :- C -: U ] -> 
   forall A B s l, 
-    (C <: TyProd A B s /\ [A :u re Gamma |= B :- Sort s l -: U]) ->
-    [ A :u Gamma |= n :- B -: s ].
+    (C <: TyProd A B s /\ [A :u re Gamma |- B :- Sort s l -: U]) ->
+    [ A :u Gamma |- n :- B -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
@@ -2406,9 +2417,9 @@ Proof.
 Qed.
 
 Lemma u_lam1_inv Gamma n A B s l :
-  [ re Gamma |= TyProd A B s :- Sort U l -: U ] ->
-  [ Gamma |= Lam n :- TyProd A B s -: U ] -> 
-  [ A :u Gamma |= n :- B -: s ].
+  [ re Gamma |- TyProd A B s :- Sort U l -: U ] ->
+  [ Gamma |- Lam n :- TyProd A B s -: U ] -> 
+  [ A :u Gamma |- n :- B -: s ].
 Proof.
   intros.
   eapply u_lam1_invX; eauto.
@@ -2419,10 +2430,10 @@ Proof.
 Qed.
 
 Lemma u_lam2_invX Gamma n C :
-  [ Gamma |= Lam n :- C -: U ] -> 
+  [ Gamma |- Lam n :- C -: U ] -> 
   forall A B s l, 
-    (C <: Arrow A B s /\ [re Gamma |= B :- Sort s l -: U]) ->
-    [ A :l Gamma |= n :- B.[ren (+1)] -: s ].
+    (C <: Arrow A B s /\ [re Gamma |- B :- Sort s l -: U]) ->
+    [ A :l Gamma |- n :- B.[ren (+1)] -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
@@ -2448,9 +2459,9 @@ Proof.
 Qed.
 
 Lemma u_lam2_inv Gamma n A B s l :
-  [ re Gamma |= Arrow A B s :- Sort U l -: U ] ->
-  [ Gamma |= Lam n :- Arrow A B s -: U ] -> 
-  [ A :l Gamma |= n :- B.[ren (+1)] -: s ].
+  [ re Gamma |- Arrow A B s :- Sort U l -: U ] ->
+  [ Gamma |- Lam n :- Arrow A B s -: U ] -> 
+  [ A :l Gamma |- n :- B.[ren (+1)] -: s ].
 Proof.
   intros.
   eapply u_lam2_invX; eauto.
@@ -2461,10 +2472,10 @@ Proof.
 Qed.
 
 Lemma l_lam1_invX Gamma n C :
-  [ Gamma |= Lam n :- C -: L ] -> 
+  [ Gamma |- Lam n :- C -: L ] -> 
   forall A B s l, 
-    (C <: LnProd A B s /\ [A :u re Gamma |= B :- Sort s l -: U]) ->
-    [ A :u Gamma |= n :- B -: s ].
+    (C <: LnProd A B s /\ [A :u re Gamma |- B :- Sort s l -: U]) ->
+    [ A :u Gamma |- n :- B -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
@@ -2486,9 +2497,9 @@ Proof.
 Qed.
 
 Lemma l_lam1_inv Gamma n A B s l :
-  [ re Gamma |= LnProd A B s :- Sort L l -: U ] ->
-  [ Gamma |= Lam n :- LnProd A B s -: L ] -> 
-  [ A :u Gamma |= n :- B -: s ].
+  [ re Gamma |- LnProd A B s :- Sort L l -: U ] ->
+  [ Gamma |- Lam n :- LnProd A B s -: L ] -> 
+  [ A :u Gamma |- n :- B -: s ].
 Proof.
   intros.
   eapply l_lam1_invX; eauto.
@@ -2499,10 +2510,10 @@ Proof.
 Qed.
 
 Lemma l_lam2_invX Gamma n C :
-  [ Gamma |= Lam n :- C -: L ] -> 
+  [ Gamma |- Lam n :- C -: L ] -> 
   forall A B s l, 
-    (C <: Lolli A B s /\ [re Gamma |= B :- Sort s l -: U]) ->
-    [ A :l Gamma |= n :- B.[ren (+1)] -: s ].
+    (C <: Lolli A B s /\ [re Gamma |- B :- Sort s l -: U]) ->
+    [ A :l Gamma |- n :- B.[ren (+1)] -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
@@ -2526,9 +2537,9 @@ Proof.
 Qed.
 
 Lemma l_lam2_inv Gamma n A B s l :
-  [ re Gamma |= Lolli A B s :- Sort L l -: U ] ->
-  [ Gamma |= Lam n :- Lolli A B s -: L ] -> 
-  [ A :l Gamma |= n :- B.[ren (+1)] -: s ].
+  [ re Gamma |- Lolli A B s :- Sort L l -: U ] ->
+  [ Gamma |- Lam n :- Lolli A B s -: L ] -> 
+  [ A :l Gamma |- n :- B.[ren (+1)] -: s ].
 Proof.
   intros.
   eapply l_lam2_invX; eauto.
@@ -2540,8 +2551,8 @@ Qed.
 
 Lemma merge_context_ok_inv Gamma Gamma1 Gamma2 :
   merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |= ] ->
-  [ Gamma1 |= ] /\ [ Gamma2 |= ].
+  [ Gamma |- ] ->
+  [ Gamma1 |- ] /\ [ Gamma2 |- ].
 Proof.
   induction 1; intros.
   - repeat constructor.
@@ -2574,9 +2585,9 @@ Proof.
 Qed.
 
 Theorem propagation Gamma m A s : 
-  [ Gamma |= ] ->
-  [ Gamma |= m :- A -: s ] ->
-  exists l, [ re Gamma |= A :- Sort s l -: U ].
+  [ Gamma |- ] ->
+  [ Gamma |- m :- A -: s ] ->
+  exists l, [ re Gamma |- A :- Sort s l -: U ].
 Proof.
   intros.
   dependent induction H0.
@@ -2645,17 +2656,17 @@ Proof.
 Qed.
 
 Theorem preservation Gamma m A s :
-  [ Gamma |= ] ->
-  [ Gamma |= m :- A -: s ] ->
+  [ Gamma |- ] ->
+  [ Gamma |- m :- A -: s ] ->
   forall n, pstep m n -> 
-    [ Gamma |= n :- A -: s ].
+    [ Gamma |- n :- A -: s ].
 Proof.
   intros.
   dependent induction H0.
   - inv H1.
     apply axiom; eauto.
   - inv H1.
-    assert ([A :u Gamma |=]).
+    assert ([A :u Gamma |-]).
     eapply u_ok; eauto.
     rewrite <-pure_re; eauto.
     specialize (IHhas_type1 H _ H6).
@@ -2666,7 +2677,7 @@ Proof.
     rewrite <- pure_re; eauto.
     apply IHhas_type2.
   - inv H1.
-    assert ([A :u Gamma |=]).
+    assert ([A :u Gamma |-]).
     eapply u_ok; eauto.
     rewrite <-pure_re; eauto.
     specialize (IHhas_type1 H _ H6).
@@ -2693,7 +2704,7 @@ Proof.
     pose proof H0_.
     rewrite H1 in H0_.
     apply tyProd_inv in H0_. inv H0_.
-    assert ([A :u Gamma |=]).
+    assert ([A :u Gamma |-]).
     eapply u_ok; eauto.
     specialize (IHhas_type2 H6 _ H3).
     eapply u_lam1; eauto.
@@ -2702,21 +2713,21 @@ Proof.
     pose proof H0_.
     rewrite H1 in H0_.
     apply arrow_inv in H0_. inv H0_.
-    assert ([A :l Gamma |=]).
+    assert ([A :l Gamma |-]).
     eapply l_ok; eauto.
     specialize (IHhas_type2 H6 _ H3).
     eapply u_lam2; eauto.
   - inv H1.
     pose proof H0_.
     apply lnProd_inv in H0_. inv H0_.
-    assert ([A :u Gamma |=]).
+    assert ([A :u Gamma |-]).
     eapply u_ok; eauto.
     specialize (IHhas_type2 H4 _ H2).
     eapply l_lam1; eauto.
   - inv H1.
     pose proof H0_.
     apply lolli_inv in H0_. inv H0_.
-    assert ([A :l Gamma |=]).
+    assert ([A :l Gamma |-]).
     eapply l_ok; eauto.
     specialize (IHhas_type2 H4 _ H2).
     eapply l_lam2; eauto.
@@ -2732,7 +2743,7 @@ Proof.
       assert (B.[n'/] === B.[n/]).
       apply conv1i; eauto.
       apply conv_sub in H11.
-      assert ([re Gamma |= B.[n/] :- (Sort s x).[n/] -: U ]).
+      assert ([re Gamma |- B.[n/] :- (Sort s x).[n/] -: U ]).
       eapply substitutionU; eauto.
       pose proof (pure_re H0).
       rewrite H12. rewrite H8. rewrite H10.
@@ -2753,7 +2764,7 @@ Proof.
       assert (B.[n'/] === B.[n/]).
       apply conv1i; eauto.
       apply conv_sub in H13.
-      assert ([re Gamma |= B.[n/] :- (Sort s x).[n/] -: U ]).
+      assert ([re Gamma |- B.[n/] :- (Sort s x).[n/] -: U ]).
       eapply substitutionU; eauto.
       pose proof (pure_re H0); eauto.
       rewrite H14. rewrite H11. rewrite H12.
@@ -2787,7 +2798,7 @@ Proof.
       assert (B.[n'/] === B.[n/]).
       apply conv1i; eauto.
       apply conv_sub in H11.
-      assert ([re Gamma |= B.[n/] :- (Sort s x).[n/] -: U ]).
+      assert ([re Gamma |- B.[n/] :- (Sort s x).[n/] -: U ]).
       eapply substitutionU; eauto.
       pose proof (pure_re H0).
       rewrite H12. rewrite H8. rewrite H10.
@@ -2808,7 +2819,7 @@ Proof.
       assert (B.[n'/] === B.[n/]).
       apply conv1i; eauto.
       apply conv_sub in H13.
-      assert ([re Gamma |= B.[n/] :- (Sort s x).[n/] -: U ]).
+      assert ([re Gamma |- B.[n/] :- (Sort s x).[n/] -: U ]).
       eapply substitutionU; eauto.
       pose proof (pure_re H0); eauto.
       rewrite H14. rewrite H11. rewrite H12.
@@ -2836,9 +2847,9 @@ Qed.
 Corollary preservation_step m n :
   step m n ->
   forall Gamma A s,
-    [ Gamma |= ] ->
-    [ Gamma |= m :- A -: s ] ->
-    [ Gamma |= n :- A -: s ].
+    [ Gamma |- ] ->
+    [ Gamma |- m :- A -: s ] ->
+    [ Gamma |- n :- A -: s ].
 Proof.
   intros.
   eapply preservation; eauto.
@@ -2848,9 +2859,9 @@ Qed.
 Corollary preservation_star_step m n :
   star step m n ->
   forall Gamma A s,
-    [ Gamma |= ] ->
-    [ Gamma |= m :- A -: s ] ->
-    [ Gamma |= n :- A -: s ].
+    [ Gamma |- ] ->
+    [ Gamma |- m :- A -: s ] ->
+    [ Gamma |- n :- A -: s ].
 Proof.
   intro H.
   dependent induction H; intros; eauto.
@@ -2861,7 +2872,7 @@ Proof.
 Qed.
 
 Lemma canonical_tyProd m C :
-  [ nil |= m :- C -: U ] -> value m ->
+  [ nil |- m :- C -: U ] -> value m ->
   forall A B s, 
     C <: TyProd A B s -> exists m', m = Lam m'.
 Proof.
@@ -2874,7 +2885,7 @@ Proof.
 Qed.
 
 Lemma canonical_lnProd m C :
-  [ nil |= m :- C -: L ] -> value m ->
+  [ nil |- m :- C -: L ] -> value m ->
   forall A B s, 
     C <: LnProd A B s -> exists m', m = Lam m'.
 Proof.
@@ -2887,7 +2898,7 @@ Proof.
 Qed.
 
 Lemma canonical_arrow m C :
-  [ nil |= m :- C -: U ] -> value m ->
+  [ nil |- m :- C -: U ] -> value m ->
   forall A B s, 
     C <: Arrow A B s -> exists m', m = Lam m'.
 Proof.
@@ -2900,7 +2911,7 @@ Proof.
 Qed.
 
 Lemma canonical_lolli m C :
-  [ nil |= m :- C -: L ] -> value m ->
+  [ nil |- m :- C -: L ] -> value m ->
   forall A B s, 
     C <: Lolli A B s -> exists m', m = Lam m'.
 Proof.
@@ -2913,21 +2924,10 @@ Proof.
 Qed.
 
 Theorem progress m A s :
-  [ nil |= m :- A -: s ] -> value m \/ exists n, step m n.
+  [ nil |- m :- A -: s ] -> value m \/ exists n, step m n.
 Proof.
   intros.
-  dependent induction H.
-  - left; constructor.
-  - left; constructor.
-  - left; constructor.
-  - left; constructor.
-  - left; constructor.
-  - inv H.
-  - inv H.
-  - left; constructor.
-  - left; constructor.
-  - left; constructor.
-  - left; constructor.
+  dependent induction H; try solve [left; constructor].
   - right.
     inv H2.
     assert (@nil (elem term) ~= @nil (elem term)) by eauto.
@@ -3161,7 +3161,7 @@ Proof.
 Qed.
 
 Lemma narity Gamma m A s :
-  [ Gamma |= m :- A -: s ] -> 
+  [ Gamma |- m :- A -: s ] -> 
     forall i, isN Gamma i -> occurs i m = 0.
 Proof.
   intro H.
@@ -3199,7 +3199,7 @@ Proof.
 Qed.
 
 Theorem linearity Gamma m A s :
-  [ Gamma |= m :- A -: s ] -> 
+  [ Gamma |- m :- A -: s ] -> 
     forall i, isL Gamma i -> occurs i m = 1.
 Proof.
   intro H.
@@ -3574,7 +3574,7 @@ Proof.
 Qed.
 
 Theorem embedding Gamma m A s : 
-  [ Gamma |= m :- A -: s ] ->
+  [ Gamma |- m :- A -: s ] ->
   [ [[ Gamma ]] |- [| m |] :- [| A |] ].
 Proof.
   intro H.
@@ -3651,7 +3651,7 @@ Proof.
 Qed.
 
 Corollary embedding_context Gamma :
-  [ Gamma |= ] -> [ [[Gamma]] |- ].
+  CLC.context_ok Gamma -> [ [[Gamma]] |- ].
 Proof.
   induction 1; simpl. 
   constructor.
