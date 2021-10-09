@@ -1,6 +1,6 @@
 % document layout
 \documentclass{article}
-\usepackage[margin=1.3in]{geometry}
+\usepackage[margin=1.2in]{geometry}
 \usepackage[utf8]{inputenc}
 
 % packages
@@ -46,9 +46,9 @@
 \newcommand{\subst}{\text{subst}}
 \newcommand{\utype}{:_U}
 \newcommand{\ltype}{:_L}
-\newcommand{\stype}[1]{\overset{#1}{:}}
+\newcommand{\stype}[1]{:_#1}
 \newcommand{\step}{\leadsto}
-\newcommand{\pstep}{\leadsto_p}
+\newcommand{\pstep}{\leadsto}
 \newcommand{\mrg}[3]{#1\ddagger#2\ddagger#3}
 
 % title and author
@@ -83,7 +83,7 @@
   \end{equation*}
   This new specification for transaction states that it requires a payment of 5 units of money, the customer is relieved of their ownership after the transaction finishes, effectively preventing the contradiction of having your cake and eating it too.
 
-  Compared to preexisting approaches for integrating linear types and dependent types, CLC offers a ``minimally invasive'' approach to extending CC with linear types, akin to Mazurak et al.'s work on System F \cite{mazurak}. This allows for a straightforward embedding of CLC into CC, and lifting of CC into CLC, endowing CLC with the fruits of decades of CC research. We further extend CLC with inductive types, showing that as a programming language it can manipulate mutable data structures in a principled way. We have formalized all major results in Coq, and implemented a prototype in OCaml. 
+  Compared to preexisting approaches for integrating linear types and dependent types, CLC offers a ``lightweight'' approach to extending CC$\omega$ with linear types, akin to Mazurak et al.'s work on System F \cite{mazurak}. This allows for a straightforward embedding of CLC into CC, and lifting of CC into CLC, endowing CLC with the fruits of decades of CC research. We further extend CLC with inductive types, showing that as a programming language it can manipulate mutable data structures in a principled way. We have formalized all major results in Coq, and implemented a prototype in OCaml. 
 
   \medskip
 
@@ -101,16 +101,20 @@
   \section{The Language of CLC}
 
   \subsection{Syntax}
-  The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two sorts of predicative universes $U$ and $L$, being the types of non-linear types and linear types respectively. An additional impredicative universe $Prop$ is the type of propositions in the style of CC.
+  The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two sorts of predicative universes $U$ and $L$, being the types of non-linear types and linear types respectively. An additional impredicative universe $U_*$ is the type of propositions, in the same spirit as CC$\omega$'s $Prop$ universe.
 
   \begin{figure}[H]
     \caption{Syntax}
     \centering
     \begin{minipage}{0.8\linewidth}
     \begin{grammar}
+      <$k$> := 0 | 1 | 3 $\cdots$ \hspace*{6.8em} predicative levels
+
+      <$i$> := * | 0 | 1 | 3 $\cdots$ \hspace*{5.3em} (im)predicative levels
+
       <$s, t$> ::= $U$ | $L$ \phantom{| $x$} \hspace*{8em} sorts
 
-      <$m, n, A, B, C$> ::= $U_i$ | $L_i$ | $Prop$ | $x$  \hspace*{4.3em} expressions
+      <$m, n, A, B, C$> ::= $U_i$ | $L_k$ | $x$ \hspace*{7.3em} expressions
       \indalt $(x : A) \rightarrow_s B$ | $A \rightarrow_s B$
       \indalt $(x : A) \multimap_s B$ | $A \multimap_s B$
       \indalt $\lambda x. n$ | $m\ n$
@@ -118,8 +122,7 @@
     \end{minipage}
     \label{syntax}
   \end{figure}
-
-  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory is the presence of four function types: $(x : A) \rightarrow_s B$, $A \rightarrow_s B$, $(x : A) \multimap_s B$, $A \multimap_s B$. The reason for these variants is that we have built the ! exponential of linear logic directly into the syntax of function types. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into function syntax, we give canonicity to ways that ! can be used. This allows us to derive substitution, and a direct embedding into CC$\omega$ without needing extra machinery for manipulating exponential.
+  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory is the presence of four function types: $(x : A) \rightarrow_s B$, $A \rightarrow_s B$, $(x : A) \multimap_s B$, $A \multimap_s B$. The reason for these variants is that we have built the ! exponential of linear logic directly into the syntax of function types. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into function syntax, we give implicitly limit ! to only be used canonically. This allows us to derive substitution, and a direct embedding of CLC into CC$\omega$ without needing extra machinery for manipulating exponential.
   \begin{figure}[H]
     \caption{Correspondence of CLC types and MELL implications}
     \begin{align}
@@ -264,117 +267,107 @@
   \end{definition}
 
   \subsection{Type Formation} \label{tyformation}
-  Typing judgments in our language take on the form $\Gamma \vdash m \stype{s} A$ where $s$ is an indexing sort that is either $U$ or $L$. Intuitively, this judgment states that expression $m$ has type $A$ and sort $s$ under context $\Gamma$. An expression of sort $L$ is linear, and sort $U$ is non-linear. Surprisingly, duplication of non-linear expression is not immediately allowed, only non-linear \textit{values} can be safely duplicated. We will discuss this subtlety later in Section \ref{subst}.
-  
-  Type formation rules are presented in Figure \ref{type}. Rules worth discussing in detail are the \rname{L-Axiom} and the rules for constructing various function types. For \rname{L-Axiom}, the sort of all linear types $L$ itself is of non-linear sort $U$. This means that a linear type can be freely used, avoiding the philosophical trappings discussed earlier.
-
-  The function types $(x : A) \rightarrow_s B$ and $A \rightarrow_s B$ represent non-linear functions, where the subscript $s$ is the sort of co-domain $B$. Functions of these types contain no linear free variables, thus can be applied repeatedly without duplication of linear resources. The difference between the two is that $(x : A) \rightarrow_s B$ allows co-domain $B$ to depended on input $x$ of non-linear domain $A$. For $A \rightarrow_s B$, the domain $A$ is linear so $B$ is not allowed to depend on the function input.
-
-  The variants $(x : A) \multimap_s B$ and $A \multimap_s B$ represent linear functions. Functions of these types may contain linear free variables, thus cannot be applied repeated without duplication of linear variables. Similar to the non-linear versions, the difference between $(x : A) \multimap_s B$ and $A \multimap_s B$ lies in the allowance of dependency on function input for non-linear domain types.
 
   \begin{figure}[H]
     \caption{Type Formation} 
     \begin{mathpar}
       \inferrule
-      { \Gamma }
-      { \Gamma \vdash U \utype U } 
+      { \pure{\Gamma} }
+      { \Gamma \vdash U_* \utype U_0 } 
+      \rname{Prop-Axiom}
+
+      \inferrule
+      { \pure{\Gamma} }
+      { \Gamma \vdash U_k \utype U_{k+1} } 
       \rname{U-Axiom}
 
       \inferrule
-      { \Gamma }
-      { \Gamma \vdash L \utype U } 
+      { \pure{\Gamma} }
+      { \Gamma \vdash L_k \utype U_{k+1} } 
       \rname{L-Axiom}
       \\
 
       \inferrule
-      { \Gamma \\
-        \Gamma \vdash A \utype U \\ 
-        \Gamma, x \utype A \vdash B \utype s }
-      { \Gamma \vdash (x : A) \rightarrow_s B \utype U } 
+      { \pure{\Gamma} \\
+        \Gamma \vdash A \utype U_i \\ 
+        \Gamma, x \utype A \vdash B \utype U_* }
+      { \Gamma \vdash (x : A) \rightarrow_U B \utype U_* } 
+      \rname{U-Prop}
+      \\
+
+      \inferrule
+      { \pure{\Gamma} \\
+        \Gamma \vdash A \utype U_k \\ 
+        \Gamma, x \utype A \vdash B \utype s_k }
+      { \Gamma \vdash (x : A) \rightarrow_s B \utype U_k } 
       \rname{U-Prod}
 
       \inferrule
-      { \Gamma \\
-        \Gamma \vdash A \utype L \\ 
-        \Gamma \vdash B \utype s }
-      { \Gamma \vdash A \rightarrow_s B \utype U } 
+      { \pure{\Gamma} \\
+        \Gamma \vdash A \utype L_k \\ 
+        \Gamma \vdash B \utype s_k }
+      { \Gamma \vdash A \rightarrow_s B \utype U_k } 
       \rname{Arrow}
       \\
 
       \inferrule
-      { \Gamma \\
-        \Gamma \vdash A \utype U \\ 
-        \Gamma, x \utype A \vdash B\ \utype s }
-      { \Gamma \vdash (x : A) \multimap_s B \utype L } 
+      { \pure{\Gamma} \\
+        \Gamma \vdash A \utype U_k \\ 
+        \Gamma, x \utype A \vdash B \utype s_k }
+      { \Gamma \vdash (x : A) \multimap_s B \utype L_k } 
       \rname{L-Prod}
 
       \inferrule
-      { \Gamma \\
-        \Gamma \vdash A \utype L \\ 
-        \Gamma \vdash B \utype s }
-      { \Gamma \vdash A \multimap_s B \utype L } 
+      { \pure{\Gamma} \\
+        \Gamma \vdash A \utype L_k \\ 
+        \Gamma \vdash B \utype s_k }
+      { \Gamma \vdash A \multimap_s B \utype L_k } 
       \rname{Lolli}
     \end{mathpar}
     \label{type}
   \end{figure}
 
   \subsection{Term Formation} \label{teformation}
-  The term formations rules are presented in Figure \ref{term}. 
-
-  The rules \rname{U-Var} and \rname{L-Var} state that a variable's type is determined by its context. In the case of \rname{L-Var}, the linear variable $x$ must be the only linear variable within its context. This enforcement of uniqueness eliminates the weakening rule for linear variables as redundant linear variables in the context will prevent the usage of \rname{L-Var}.
-
-  The \rname{Conv} rule is standard with regards to prior dependent type theory literature. Two types $A$ and $B$ are treated equivalently if they are $\beta\eta$-convertible. Our treatment of the convertibility relation $A \equiv B$ differs from standard due to our call-by-value semantics. We give a detailed account of this in the next section.
-
-  For the non-linear function formation rules \rname{U-$\lambda_1$} and \rname{U-$\lambda_2$}, the context $\Gamma$ is asserted to be pure. The purity of $\Gamma$ ensures that no linear variables occur within function body $n$, allowing the function to be freely used without duplication of linear variables. For the linear function formation rules \rname{L-$\lambda_1$} and \rname{L-$\lambda_2$}, the restriction on $\Gamma$'s purity is lifted. Linear variables within $\Gamma$ are allowed to occur freely within function body $n$. However, the tradeoff is that these linear functions may only be applied once, as multiple uses may result in duplication of its linear free variables.
-
-  In the application rules $\rname{U-App-1}$ and $\rname{L-App-1}$, the argument $n$ is a non-linear expression that may contain linear free variables. If reduction is performed naively, substitution of $n$ into the function body may cause duplication of these variables. Our operational semantics and value soundness lemma guarantee that substitution will not duplicate linear variables.
-
-  Furthermore, in the \rname{U-App-1} and \rname{L-App-1} rules, the input expression $n$ is not directly substituted into the dependent co-domain $B$ as this may introduce linear variables into types. Instead, a $\lambda$-abstraction is formed around $B$ and applied to $n$. This delays $\beta$-reduction until $n$ can be evaluated into a value.
 
   \begin{figure}[H]
     \caption{Term Formation}
     \begin{mathpar}
       \inferrule
-      { \Gamma }
+      { \pure{\Gamma} }
       { \Gamma, x \utype A \vdash x \utype A } 
       \rname{U-Var}
 
       \inferrule
-      { \Gamma }
+      { \pure{\Gamma} }
       { \Gamma, x \ltype A \vdash x \ltype A } 
       \rname{L-Var}
-
-      \inferrule
-      { \Gamma \vdash m \stype{s} A \\ A \equiv B }
-      { \Gamma \vdash m \stype{s} B } 
-      \rname{Conv}
       \\
 
       \inferrule
-      { \Gamma \\
-        \Gamma \vdash (x : A) \rightarrow_s B \utype U \\ 
+      { \pure{\Gamma} \\
+        \Gamma \vdash (x : A) \rightarrow_s B \utype U_i \\ 
         \Gamma, x \utype A \vdash n \stype{s} B }
       { \Gamma \vdash \lambda x . n \utype (x : A) \rightarrow_s B }
       \rname{U-$\lambda_1$}
       \\
 
       \inferrule
-      { \Gamma \\
-        \Gamma \vdash A \rightarrow_s B \utype U \\
+      { \pure{\Gamma} \\
+        \Gamma \vdash A \rightarrow_s B \utype U_k \\
         \Gamma, x \ltype A \vdash n \stype{s} B }
       { \Gamma \vdash \lambda x . n \utype A \rightarrow_s B }
       \rname{U-$\lambda_2$}
       \\
 
       \inferrule
-      { \overline{\Gamma} \vdash (x : A) \multimap_s B \utype L \\ 
+      { \overline{\Gamma} \vdash (x : A) \multimap_s B \utype L_k \\ 
         \Gamma, x \utype A \vdash n \stype{s} B }
       { \Gamma \vdash \lambda x . n \ltype (x : A) \multimap_s B }
       \rname{L-$\lambda_1$}
       \\
 
       \inferrule
-      { \overline{\Gamma} \vdash A \multimap_s B \utype L \\ 
+      { \overline{\Gamma} \vdash A \multimap_s B \utype L_k \\ 
         \Gamma, x \ltype A \vdash n \stype{s} B }
       { \Gamma \vdash \lambda x . n \ltype A \multimap_s B }
       \rname{L-$\lambda_2$}
@@ -382,67 +375,45 @@
 
       \inferrule
       { \Gamma_1 \vdash m \utype (x : A) \rightarrow_s B \\
-        \Gamma_2 \vdash n \utype A \\
-        merge\ \Gamma_1\ \Gamma_2\ \Gamma }
-      { \Gamma \vdash m\ n \stype{s} (\lambda x.B)\ n }
+        \overline{\Gamma_2} \vdash n \utype A \\
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+      { \Gamma \vdash m\ n \stype{s} B[n/x] }
       \rname{U-App-1}
       \\
 
       \inferrule
       { \Gamma_1 \vdash m \utype A \rightarrow_s B \\
         \Gamma_2 \vdash n \ltype A \\
-        merge\ \Gamma_1\ \Gamma_2\ \Gamma }
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
       { \Gamma \vdash m\ n \stype{s} B }
       \rname{U-App-2}
       \\
 
       \inferrule
       { \Gamma_1 \vdash m \ltype (x : A) \multimap_s B \\
-        \Gamma_2 \vdash n \utype A \\
-        merge\ \Gamma_1\ \Gamma_2\ \Gamma }
-      { \Gamma \vdash m\ n \stype{s} (\lambda x.B)\ n }
+        \overline{\Gamma_2} \vdash n \utype A \\
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+      { \Gamma \vdash m\ n \stype{s} B[n/x] }
       \rname{L-App-1}
 
       \inferrule
       { \Gamma_1 \vdash m \ltype A \multimap_s B \\
         \Gamma_2 \vdash n \ltype A \\
-        merge\ \Gamma_1\ \Gamma_2\ \Gamma }
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
       { \Gamma \vdash m\ n \stype{s} B }
-      \rname{L-App-2}
+      \rname{L-App-2} 
+      \\
+
+      \inferrule
+      { \Gamma \vdash m \stype{s} A \\
+        \overline{\Gamma} \vdash B \utype s_i \\ A \preceq B }
+      { \Gamma \vdash m \stype{s} B } 
+      \rname{Conv}
     \end{mathpar}
     \label{term}
   \end{figure}
 
   \subsection{Reduction and Equality} \label{reduction}
-  Figure \ref{single} presents the call-by-value operational semantics that we have eluded to. The rules defining the single step relation $\step$ are completely standard.
-
-  For dependently typed languages, terms can appear at the type level. A definitional equality judgment is required to identify types beyond simple $\alpha$-equivalence. This is usually accomplished by normalization and comparing normal forms. Due to the complications brought on by linearity and substitution hinted at in \ref{teformation}, standard normalization techniques cannot be directly applied. Unfortunately, the single step relation $\step$ defined previously is not sufficient either as binders block evaluation. Following the footsteps of the Trellys project\cite{trellys}, we define a call-by-value parallel step relation $\pstep$ that evaluates under binders. We use the transitive reflexive closure of $\pstep$ to define definitional equality.
-
-  \begin{figure}[H]
-    \caption{Single Step Reduction}
-    \begin{mathpar}
-      \inferrule
-      { }
-      { (\lambda x.n)\ v \step [v/x]n }
-      \rname{S-U-$\beta$}
-
-      \inferrule
-      { }
-      { (\lambda x.n)\ v \step [v/x]n }
-      \rname{S-L-$\beta$}
-
-      \inferrule
-      { m \step m' }
-      { m\ n \step m'\ n }
-      \rname{S-App-L}
-
-      \inferrule
-      { n \step n' }
-      { v\ n \step v\ n' }
-      \rname{S-App-R}
-    \end{mathpar}
-    \label{single}
-  \end{figure}
 
   \begin{figure}[H]
     \caption{Equality and Parallel Reduction}
@@ -483,14 +454,9 @@
       \rname{P-App}
 
       \inferrule
-      { n \pstep n' \\ v \pstep v' }
-      { (\lambda x.n)\ v \pstep [v'/x]n' }
-      \rname{P-U-$\beta$}
-
-      \inferrule
-      { n \pstep n' \\ v \pstep v' }
-      { (\lambda x.n)\ v \pstep [v'/x]n' }
-      \rname{P-L-$\beta$}
+      { m \pstep m' \\ n \pstep n' }
+      { (\lambda x.m)\ n \pstep m'[n'/x] }
+      \rname{P-$\beta$}
 
       \inferrule
       { A \pstep A' \\ B \pstep B' }
