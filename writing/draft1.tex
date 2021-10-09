@@ -15,13 +15,16 @@
 \usepackage{mathpartir}
 \usepackage{listings}
 \usepackage{float}
+\usepackage{tikz-cd}
 
-\floatstyle{boxed} 
+\floatstyle{plain} 
 \restylefloat{figure}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
 
 \renewcommand{\syntleft}{}
 \renewcommand{\syntright}{}
@@ -31,7 +34,7 @@
 \newcommand{\rname}[1]{\textsc{\footnotesize #1}}
 \newcommand{\LNLD}{\text{LNL}_\text{D}}
 \newcommand{\ok}{\textbf{ok}}
-\newcommand{\pure}{\textbf{pure}}
+\newcommand{\pure}[1]{|#1|}
 \newcommand{\sort}{\textbf{sort}}
 \newcommand{\type}{\textbf{type}}
 \newcommand{\refl}{\text{refl}}
@@ -41,11 +44,12 @@
 \newcommand{\get}{\text{get}}
 \newcommand{\set}{\text{set}}
 \newcommand{\subst}{\text{subst}}
-\newcommand{\utype}{\overset{U}{:}}
-\newcommand{\ltype}{\overset{L}{:}}
+\newcommand{\utype}{:_U}
+\newcommand{\ltype}{:_L}
 \newcommand{\stype}[1]{\overset{#1}{:}}
 \newcommand{\step}{\leadsto}
 \newcommand{\pstep}{\leadsto_p}
+\newcommand{\mrg}[3]{#1\ddagger#2\ddagger#3}
 
 % title and author
 \title{The Calculus of Linear Constructions}
@@ -55,7 +59,7 @@
 \begin{document}
   \maketitle 
   \begin{abstract}
-    The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends CC with a hierarchy of linear universes that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, proving that it is a sound logical framework for reasoning about resource. CLC is highly backwards compatible with CC, allowing CLC to enjoy the decades of CC research. We have formalized and proven correct all major results of the core calculus in the Coq Proof Assistant. We extend CLC with linear inductive types and show that CLC as a programming language enables the manipulation of mutable data structures in a principled way.
+    The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends CC with a hierarchy of linear universes that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, proving that it is a sound logical framework for reasoning about resource. CLC is backwards compatible with CC, allowing CLC to enjoy the decades of CC research. We have formalized and proven correct all major results of the core calculus in the Coq Proof Assistant. We extend CLC with linear inductive types and show that CLC as a programming language enables the manipulation of mutable data structures in a principled way.
   \end{abstract}
 
   \section{Introduction}
@@ -87,26 +91,17 @@
   Our contributions can be summarized as follows.
   \begin{itemize}
     \item Fist, we describe the Calculus of Linear Constructions, an extension to the Calculus of Constructions with linear types. The integration of linear types and dependent types allows CLC to directly and precisely reason about resource.
-    \item Next, we study the meta-theory of CLC directly, showing that it satisfies the standard properties of confluence, progress, regularity, and preservation. 
+    \item Next, we study the meta-theory of CLC directly, showing that it satisfies the standard properties of confluence, regularity, and subject reduction. 
     \item We observe that CLC is highly backwards compatible with CC. We construct a reduction preserving embedding of CLC into CC, showing that CLC is consistent. 
     \item All major results have been formalized and proven correct in the Coq Proof Assistant with help from the Autosubst \cite{autosubst} library. To the best of our knowledge, our development is the first machine checked formalization of a linear dependent type theory.
     \item Furthermore, we extend CLC with linear inductive data, demonstrating that as a programming language, CLC can safely manipulate mutable data structures.
-    \item Finally, we give a implementation extended with user definable linear and non-linear data types. Algorithmic type checking employed by the implementation streamlines the process of writing CLC.
+    \item Finally, we give an implementation extended with user definable linear and non-linear inductive types. Algorithmic type checking employed by the implementation streamlines the process of writing CLC.
   \end{itemize}
 
-  \section{Core Type Theory}
-  In the efforts of integrating dependency and linearity, there are two predominant schools of thought: \textit{Types can only depended on non-linear terms} and \textit{Types can depend on all terms}. 
-  
-  Advocates of restricted dependency argue that the restriction is both intuitive and a necessity. A natural example of linear types depending on a non-linear terms is that of the length indexed random access array. Term dependency on array length statically prevents out-of-bounds array access whilst linearity ensures proper memory management. In the converse situation of types depending on linear terms, one immediately faces a dilemma: \textit{Do linear terms at the type level possess weakening and contraction?}.
-  
-  If one answers yes, then the linear terms at the type level are defacto non-linear. In this case, a language with restricted dependency can simulate linear dependency by depending on non-linear terms that reflect the shape of linear terms\cite{ldqt}, erasing the advantage of increased type level expressivity. All prior works featuring linear dependency fall into this category, for good reason: \textit{the alternative is worse}.
-  
-  If type level linear terms do not possess weakening and contraction, types with linear dependencies themselves are linear. This breaks the very notion of the typing judgment as even $\alpha$-equivalent terms are not allowed to possess the same type. Though the idea of such a type system is deeply interesting, the philosophical burden is prohibitive.
-  
-  Our language falls firmly in the former category. Besides the reasons listed above, restricted dependency gives a clear distinction between linear and non-linear terms, a property we believe will aid in the compilation to high performance code.
-  
+  \section{The Language of CLC}
+
   \subsection{Syntax}
-  The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two sorts, $U$ and $L$ for denoting the sort of non-linear types and linear types respectively. An important fact to note is that our language possess the ``Type-in-Type" axiom in the form of $\Gamma \vdash U \utype U$ which is well known to be logically unsound. We chose this design deliberately as we are willing to sacrifice logical soundness for increased expressivity and convenience. We forsee no issue in extending the core language with a hierarchy of sorts to enforce logical soundness.
+  The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two sorts of predicative universes $U$ and $L$, being the types of non-linear types and linear types respectively. An additional impredicative universe $Prop$ is the type of propositions in the style of CC.
 
   \begin{figure}[H]
     \caption{Syntax}
@@ -115,90 +110,150 @@
     \begin{grammar}
       <$s, t$> ::= $U$ | $L$ \phantom{| $x$} \hspace*{8em} sorts
 
-      <$m, n, A, B, C$> ::= $U$ | $L$ | $x$  \hspace*{8em} expressions
+      <$m, n, A, B, C$> ::= $U_i$ | $L_i$ | $Prop$ | $x$  \hspace*{4.3em} expressions
       \indalt $(x : A) \rightarrow_s B$ | $A \rightarrow_s B$
       \indalt $(x : A) \multimap_s B$ | $A \multimap_s B$
       \indalt $\lambda x. n$ | $m\ n$
-
-      <$v$> ::= $U$ | $L$ | $x$ \hspace*{8em} values
-      \indalt $(x : A) \rightarrow_s B$ | $A \rightarrow_s B$
-      \indalt $(x : A) \multimap_s B$ | $A \multimap_s B$
-      \indalt $\lambda x. n$
     \end{grammar}
     \end{minipage}
     \label{syntax}
   \end{figure}
 
-  A clear departure of our language from standard presentations of type theory is the presence of four function types: $(x : A) \rightarrow_s B$, $A \rightarrow_s B$, $(x : A) \multimap_s B$, $A \multimap_s B$. The reason for these variants is the decoupling of function linearity from the linearity of function domain and co-domain. Instead, the linearity of functions is determined by the linearity of the closure it forms. For example, a function with linear input and output type can itself be non-linear if its free variables have non-linear type, indicating this function can be applied repeatedly without duplication of linear variables. In practice, these function types can be consolidated to just $(x : A) \rightarrow_s B$ and $(x : A) \multimap_s B$ by treating $A \rightarrow_s B$ and $A \multimap_s B$ as non-binding special cases. For the sake of clarity, we leave them as four.
+  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory is the presence of four function types: $(x : A) \rightarrow_s B$, $A \rightarrow_s B$, $(x : A) \multimap_s B$, $A \multimap_s B$. The reason for these variants is that we have built the ! exponential of linear logic directly into the syntax of function types. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into function syntax, we give canonicity to ways that ! can be used. This allows us to derive substitution, and a direct embedding into CC$\omega$ without needing extra machinery for manipulating exponential.
+  \begin{figure}[H]
+    \caption{Correspondence of CLC types and MELL implications}
+    \begin{align}
+      (\_ : A) \rightarrow_U B \quad &\equiv \quad !(!A \multimap !B) \\
+      (\_ : A) \rightarrow_L B \quad &\equiv \quad !(!A \multimap B) \\
+      A \rightarrow_U B \quad &\equiv \quad !(A \multimap !B) \\
+      A \rightarrow_L B \quad &\equiv \quad !(A \multimap B) \\
+      (\_ : A) \multimap_U B \quad &\equiv \quad !A \multimap !B \\
+      (\_ : A) \multimap_L B \quad &\equiv \quad !A \multimap B \\
+      A \multimap_U B \quad &\equiv \quad A \multimap !B \\
+      A \multimap_L B \quad &\equiv \quad A \multimap B
+    \end{align}
+    \label{correspondence}
+  \end{figure}
+  Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2), (5), (6) if the co-domain $B$ is dependent on arguments of the domain $A$. 
+
+  \subsection{Universes and Cumulativity}
+  CLC features three sorts of universes, $Prop$, $U$, and $L$. $Prop$ is the impredicative universe propositions. $U$, and $L$ are the predicative universe of non-linear types, and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by the universe which they belong. Intuitively, terms with types that occur within $Prop$, and $U$ are unrestricted in their usage. Terms with types that occur within $L$ are restricted to being used exactly once.
+
+  In order to lift terms from lower universes to higher ones, there exists cumulativity between universe levels of the same sort. We define cumulativity as follows.
+
+  \begin{definition}
+    The cumulativity relation ($\preceq$) is the smallest binary relation over terms such that
+    \begin{enumerate}
+      \item $\preceq$ is a partial order with respect to definitional equality.
+        \begin{enumerate}
+          \item If $A \equiv B$, then $A \preceq B$.
+          \item If $A \preceq B$ and $B \preceq A$, then $A \equiv B$.
+          \item If $A \preceq B$ and $B \preceq C$, then $A \preceq B$.
+        \end{enumerate}
+      \item $Prop \preceq U_0 \preceq U_1 \preceq U_2 \preceq \cdots$
+      \item $L_0 \preceq L_1 \preceq L_2 \preceq \cdots$
+      \item If $A_1 \equiv A_2$ and $B_1 \preceq B_2$, then
+        \begin{enumerate}
+          \item $(x : A_1) \rightarrow B_1 \preceq (x : A_2) \rightarrow B_2$
+          \item $(x : A_1) \multimap B_1 \preceq (x : A_2) \multimap B_2$
+          \item $A_1 \rightarrow B_1 \preceq A_2 \rightarrow B_2$
+          \item $A_1 \multimap B_1 \preceq A_2 \multimap B_2$
+        \end{enumerate}
+    \end{enumerate}
+  \end{definition}
+
+  Figure \ref{universe} illustrates the structure of our universe hierarchy. Each linear universes $L_i$ has $U_{i+1}$ as its type, allowing functions to dependently quantify over linear \textit{types}. However, $L_i$ cumulates to $L_{i+1}$. These two parallel threads of cumulativity prevent linear types from being transported to the non-linear universe, and subsequently losing track of linearity.
+
+  \begin{figure}[H]
+    \caption{The Universe Hierarchy}
+    \centering
+    \begin{tikzcd}
+      Prop \arrow[r, ":"', "\preceq", dash] 
+      & U_0 \arrow[r, ":"', "\preceq", dash] 
+      & U_1 \arrow[r, ":"', "\preceq", dash] 
+      & U_2 \arrow[r, ":"', "\preceq", dash] 
+      & \cdots \\
+      & L_0 \arrow[r, "\preceq" description, dash] \arrow[ru, ":" description, dash] 
+      & L_1 \arrow[r, "\preceq" description, dash] \arrow[ru, ":" description, dash] 
+      & L_2 \arrow[r, "\preceq" description, dash] \arrow[ru, ":" description, dash] 
+      & \cdots
+    \end{tikzcd}
+    \label{universe}
+  \end{figure}
 
   \subsection{Context and Structural Judgments}
   The context of our language employs a mixed linear/non-linear representation in the style of Luo\cite{luo}. Variables in the context are annotated to indicate whether they are linear or non-linear. A non-linear variable is annotated as $\Gamma, x \utype A$, whereas a linear variable is annotated as $\Gamma, x \ltype A$. 
   
-  We define a $merge$ relation to combine two mixed contexts $\Gamma_1$ and $\Gamma_2$ by performing contraction on shared non-linear variables. For linear variables, the $merge$ relation is defined if and only if each variable occurs uniquely in one context and not the other. The definition of $merge$ allows contraction for non-linear variables whilst forbidding it for linear ones.
+  Next, we define a $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ relation that merges two mixed contexts $\Gamma_1$, and $\Gamma_2$ into $\Gamma$, by performing contraction on shared non-linear variables. For linear variables, the $\mrg{\_}{\_}{\_}$ relation is defined if and only if each variable occurs uniquely in one context and not the other. This definition of $\mrg{\_}{\_}{\_}$ is what allows contraction for non-linear variables whilst forbidding it for linear ones.
 
-  An auxiliary judgment $\pure$ is defined to assert that a context $\Gamma$ does not contain linear variables. In other words, all variables found in a pure context are of the form $\Gamma, x \utype A$. A restriction function $\overline{\Gamma}$ is defined that removes all linear variables from context $\Gamma$. The result of restriction is a pure subset of the original context.
+  An auxiliary judgment $\pure{\Gamma}$ is defined to assert that a context $\Gamma$ does not contain linear variables. In other words, all variables found in $\pure{\Gamma}$ are annotated of the form $x \utype A$. The full rules for structural judgments are presented in Figure \ref{structural}.
   
   \begin{figure}[H]
     \caption{Structural Judgments}
     \begin{mathpar}
       \inferrule
       { }
-      { \epsilon \ \ok }
-      \rname{Ok-$\epsilon$}
+      { \epsilon \vdash }
+      \rname{Wf-$\epsilon$}
 
       \inferrule
-      { \Gamma\ \ok \\ 
+      { \Gamma\ \vdash \\ 
         \overline{\Gamma} \vdash A \utype U }
-      { \Gamma, x \utype A\ \ok }
-      \rname{Ok-U}
+      { \Gamma, x \utype A \vdash }
+      \rname{Wf-U}
 
       \inferrule
-      { \Gamma\ \ok \\ 
+      { \Gamma\ \vdash \\ 
         \overline{\Gamma} \vdash A \utype L }
-      { \Gamma, x \ltype A\ \ok } 
-      \rname{Ok-L}
+      { \Gamma, x \ltype A\ \vdash } 
+      \rname{Wf-L}
       \\
 
       \inferrule
       { }
-      { \epsilon\ \pure }
+      { \pure{\epsilon} }
       \rname{Pure-$\epsilon$}
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \pure{\Gamma} \\
         \Gamma \vdash A \utype U }
-      { \Gamma, x \utype A\ \pure }
+      { \pure{\Gamma, x \utype A} }
       \rname{Pure-U}
       \\
 
       \inferrule
       { }
-      { merge\ \epsilon\ \epsilon\ \epsilon }
+      { \mrg{\epsilon}{\epsilon}{\epsilon} }
       \rname{Merge-$\epsilon$}
 
       \inferrule
-      { merge\ \Gamma_1\ \Gamma_2\ \Gamma }
-      { merge\ (\Gamma_1, x \utype A)
-             \ (\Gamma_2, x \utype A)
-             \ (\Gamma, x \utype A) }
+      { \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+      { \mrg{\Gamma_1, x \utype A}
+            {\Gamma_2, x \utype A}
+            {\Gamma, x \utype A} }
       \rname{Merge-U}
 
       \inferrule
-      { merge\ \Gamma_1\ \Gamma_2\ \Gamma \\
+      { \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\
         x \notin \Gamma_2 }
-      { merge\ (\Gamma_1, x \ltype A)
-             \ \Gamma_2
-             \ (\Gamma, x \ltype A) }
+      { \mrg{\Gamma_1, x \ltype A}
+            {\Gamma_2}
+            {\Gamma, x \ltype A} }
       \rname{Merge-L1}
 
       \inferrule
-      { merge\ \Gamma_1\ \Gamma_2\ \Gamma \\
+      { \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\
         x \notin \Gamma_1 }
-      { merge\ \Gamma_1
-             \ (\Gamma_2, x \ltype A)
-             \ (\Gamma, x \ltype A) }
+      { \mrg{\Gamma_1}
+            {\Gamma_2, x \ltype A}
+            {\Gamma, x \ltype A} }
       \rname{Merge-L2} 
     \end{mathpar}
+    \label{structural}
+  \end{figure}
+
+  \begin{definition}
+    The context restriction function $\overline{\Gamma}$ is defined as a recursive filter over $\Gamma$ as follows. All linear variables are removed from context $\Gamma$. The result of context restriction is the non-linear subset of the original context.
     \begin{align*}
       \overline{\epsilon} = \epsilon
       \hspace*{4em}
@@ -206,8 +261,7 @@
       \hspace*{4em}
       \overline{\Gamma, x \ltype A} = \overline{\Gamma}
     \end{align*}
-    \label{structural}
-  \end{figure}
+  \end{definition}
 
   \subsection{Type Formation} \label{tyformation}
   Typing judgments in our language take on the form $\Gamma \vdash m \stype{s} A$ where $s$ is an indexing sort that is either $U$ or $L$. Intuitively, this judgment states that expression $m$ has type $A$ and sort $s$ under context $\Gamma$. An expression of sort $L$ is linear, and sort $U$ is non-linear. Surprisingly, duplication of non-linear expression is not immediately allowed, only non-linear \textit{values} can be safely duplicated. We will discuss this subtlety later in Section \ref{subst}.
@@ -222,25 +276,25 @@
     \caption{Type Formation} 
     \begin{mathpar}
       \inferrule
-      { \Gamma\ \pure }
+      { \Gamma }
       { \Gamma \vdash U \utype U } 
       \rname{U-Axiom}
 
       \inferrule
-      { \Gamma\ \pure }
+      { \Gamma }
       { \Gamma \vdash L \utype U } 
       \rname{L-Axiom}
       \\
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash A \utype U \\ 
         \Gamma, x \utype A \vdash B \utype s }
       { \Gamma \vdash (x : A) \rightarrow_s B \utype U } 
       \rname{U-Prod}
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash A \utype L \\ 
         \Gamma \vdash B \utype s }
       { \Gamma \vdash A \rightarrow_s B \utype U } 
@@ -248,14 +302,14 @@
       \\
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash A \utype U \\ 
         \Gamma, x \utype A \vdash B\ \utype s }
       { \Gamma \vdash (x : A) \multimap_s B \utype L } 
       \rname{L-Prod}
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash A \utype L \\ 
         \Gamma \vdash B \utype s }
       { \Gamma \vdash A \multimap_s B \utype L } 
@@ -281,12 +335,12 @@
     \caption{Term Formation}
     \begin{mathpar}
       \inferrule
-      { \Gamma\ \pure}
+      { \Gamma }
       { \Gamma, x \utype A \vdash x \utype A } 
       \rname{U-Var}
 
       \inferrule
-      { \Gamma\ \pure }
+      { \Gamma }
       { \Gamma, x \ltype A \vdash x \ltype A } 
       \rname{L-Var}
 
@@ -297,7 +351,7 @@
       \\
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash (x : A) \rightarrow_s B \utype U \\ 
         \Gamma, x \utype A \vdash n \stype{s} B }
       { \Gamma \vdash \lambda x . n \utype (x : A) \rightarrow_s B }
@@ -305,7 +359,7 @@
       \\
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash A \rightarrow_s B \utype U \\
         \Gamma, x \ltype A \vdash n \stype{s} B }
       { \Gamma \vdash \lambda x . n \utype A \rightarrow_s B }
@@ -500,7 +554,7 @@
   Our call-by-value semantics resolves the substitution problem without imposing any of the modifications mentioned previously to the typing of application. The crucial realization is the following \textit{value soundness} lemma: non-linear \textit{values} contain no linear variables.
 
   \begin{lemma}
-    Value soundness. If $\Gamma \vdash v \utype A$ then $\Gamma\ \pure$.
+    Value soundness. If $\Gamma \vdash v \utype A$ then $\Gamma$.
   \end{lemma}
 
   From the \textit{value soundness} lemma, the standard rule for application is admissible. Intuitively, a single copy of each linear resource is used to create a single non-linear value. This value can then be freely duplicated without needing the original resources to generate fresh copies. This is consistent with the common practice of retrieving non-linear values from linear references.
@@ -531,28 +585,28 @@
     \caption{Data Formation}
     \begin{mathpar}
       \inferrule
-      { \Gamma\ \pure \\ 
+      { \Gamma \\ 
         \Gamma \vdash A \utype U \\ 
         \Gamma, x \utype A \vdash B \utype U }
       { \Gamma \vdash \Sigma x:A.B \utype U }
       \rname{$\Sigma$}
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash A \utype U \\ 
         \Gamma, x \utype A \vdash B \utype L }
       { \Gamma \vdash F x:A.B \utype L }
       \rname{$F$}
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash A \utype L \\ 
         \Gamma \vdash B \utype L }
       { \Gamma \vdash A \otimes B \utype L }
       \rname{$\otimes$}
 
       \inferrule
-      { \Gamma\ \pure \\ 
+      { \Gamma \\ 
         \Gamma \vdash m \utype A \\
         \Gamma \vdash n \utype A }
       { \Gamma \vdash m =_A n \utype U }
@@ -585,7 +639,7 @@
       \rname{$\otimes$-intro}
 
       \inferrule
-      { \Gamma\ \pure \\ \Gamma \vdash n \utype A }
+      { \Gamma \\ \Gamma \vdash n \utype A }
       { \Gamma \vdash \refl\ n \utype n =_A n }
     \end{mathpar}
     \label{dataintro}
@@ -633,7 +687,7 @@
     \caption{State Programs}
     \begin{mathpar}
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash A \utype U \\ 
         \Gamma \vdash m \utype A \\
         \Gamma \vdash l \utype \mathbb{N} }
@@ -641,14 +695,14 @@
       \rname{Capability}
 
       \inferrule
-      { \Gamma\ \pure \\ 
+      { \Gamma \\ 
         \Gamma \vdash A \utype U \\ 
         \Gamma \vdash m \utype A }
       { \Gamma \vdash \new(m) \ltype F l:\mathbb{N}. l \mapsto_A m }
       \rname{New}
 
       \inferrule
-      { \Gamma\ \pure \\
+      { \Gamma \\
         \Gamma \vdash c \ltype l \mapsto_A m }
       { \Gamma \vdash \free(c) \utype \top }
       \rname{Free}
