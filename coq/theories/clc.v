@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Program.
-Require Import AutosubstSsr ARS ecc.
+Require Import AutosubstSsr ARS cc.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -3403,23 +3403,23 @@ Qed.
 
 Close Scope clc_scope.
 
-Import ECC.
+Import CC.
 
-Fixpoint erase (m : CLC.term) : ECC.term :=
+Fixpoint erase (m : CLC.term) : CC.term :=
   match m with
-  | CLC.Var x => ECC.Var x
-  | CLC.Sort _ l => ECC.Sort l
-  | CLC.TyProd A B _ => ECC.Prod (erase A) (erase B)
-  | CLC.LnProd A B _ => ECC.Prod (erase A) (erase B)
-  | CLC.Arrow A B _ => ECC.Prod (erase A) (erase B).[ren (+1)]
-  | CLC.Lolli A B _ => ECC.Prod (erase A) (erase B).[ren (+1)]
-  | CLC.Lam n => ECC.Lam (erase n)
-  | CLC.App m n => ECC.App (erase m) (erase n)
+  | CLC.Var x => CC.Var x
+  | CLC.Sort _ l => CC.Sort l
+  | CLC.TyProd A B _ => CC.Prod (erase A) (erase B)
+  | CLC.LnProd A B _ => CC.Prod (erase A) (erase B)
+  | CLC.Arrow A B _ => CC.Prod (erase A) (erase B).[ren (+1)]
+  | CLC.Lolli A B _ => CC.Prod (erase A) (erase B).[ren (+1)]
+  | CLC.Lam n => CC.Lam (erase n)
+  | CLC.App m n => CC.App (erase m) (erase n)
   end.
 
 Fixpoint erase_context 
   (Gamma : CLC.context CLC.term) 
-: ECC.context ECC.term :=
+: CC.context CC.term :=
   match Gamma with
   | Some (t, U) :: Gamma => erase t :s erase_context Gamma
   | Some (t, L) :: Gamma => erase t :s erase_context Gamma
@@ -3431,7 +3431,7 @@ Notation "[| m |]" := (erase m).
 Notation "[[ Gamma ]]" := (erase_context Gamma).
 
 Lemma erase_value v : 
-  CLC.value v <-> ECC.value [|v|].
+  CLC.value v <-> CC.value [|v|].
 Proof.
   split.
   induction 1; simpl; constructor.
@@ -3442,7 +3442,7 @@ Qed.
 
 Definition erase_subst 
   (sigma : var -> CLC.term) 
-  (tau : var -> ECC.term)
+  (tau : var -> CC.term)
 : Prop := 
   forall x, [|sigma x|] = tau x.
 
@@ -3497,7 +3497,7 @@ Proof.
 Qed.
 
 Lemma erase_pstep m n :
-  CLC.pstep m n -> ECC.pstep [|m|] [|n|].
+  CLC.pstep m n -> CC.pstep [|m|] [|n|].
 Proof with eauto using pstep, pstep_refl.
   induction 1; simpl; intros...
   erewrite erase_subst_com.
@@ -3510,7 +3510,7 @@ Proof with eauto using pstep, pstep_refl.
 Qed.
 
 Lemma erase_conv m n :
-  conv CLC.pstep m n -> conv ECC.pstep [|m|] [|n|].
+  conv CLC.pstep m n -> conv CC.pstep [|m|] [|n|].
 Proof.
   induction 1; eauto.
   eapply conv_trans.
@@ -3522,7 +3522,7 @@ Proof.
 Qed.
 
 Lemma erase_sub1 m n :
-  CLC.sub1 m n -> ECC.sub1 [|m|] [|n|].
+  CLC.sub1 m n -> CC.sub1 [|m|] [|n|].
 Proof.
   induction 1; asimpl; eauto using sub1.
   constructor.
@@ -3532,7 +3532,7 @@ Proof.
 Qed.
 
 Lemma erase_sub m n :
-  CLC.sub m n -> ECC.sub [|m|] [|n|].
+  CLC.sub m n -> CC.sub [|m|] [|n|].
 Proof.
   move=> [A B sb] c1 c2.
   inv sb.
@@ -3629,7 +3629,7 @@ Proof.
 Qed.
 
 Inductive agree_wk : 
-  ECC.context ECC.term -> ECC.context ECC.term -> Prop :=
+  CC.context CC.term -> CC.context CC.term -> Prop :=
 | agree_wk_nil : agree_wk nil nil
 | agree_wk_s Gamma1 Gamma2 e :
   agree_wk Gamma1 Gamma2 ->

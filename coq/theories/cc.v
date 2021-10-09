@@ -6,7 +6,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Module ECC.
+Module CC.
 
 Declare Scope coc_scope.
 Open Scope coc_scope.
@@ -562,4 +562,4 @@ Qed.
 
 Close Scope coc_scope.
 
-End ECC.
+End CC.
