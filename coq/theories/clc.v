@@ -1697,7 +1697,7 @@ Proof.
     apply IHhas_type2; eauto.
 Qed.
 
-Lemma hasL_ok Gamma :
+Lemma hasU_ok Gamma :
   [ Gamma |- ] ->
   forall x A,
     hasU Gamma x A ->
@@ -1731,7 +1731,7 @@ Proof.
     apply agree_ren_refl.
 Qed.
 
-Lemma hasR_ok Gamma :
+Lemma hasL_ok Gamma :
   [ Gamma |- ] ->
   forall x A,
     hasL Gamma x A ->
@@ -2705,8 +2705,8 @@ Proof.
   - exists (Some l.+1).
     constructor.
     rewrite <- pure_re; eauto.
+  - eapply hasU_ok; eauto.
   - eapply hasL_ok; eauto.
-  - eapply hasR_ok; eauto.
   - exists l.
     rewrite <- pure_re; eauto.
   - exists (Some l).
