@@ -47,7 +47,7 @@ Qed.
   
 Inductive term : Type :=
 | Var (x : var)
-| Sort (n : nat)
+| Sort (n : option nat)
 | App  (s t : term)
 | Lam  (s : {bind term})
 | Prod (s : term) (t : {bind term}).
@@ -334,9 +334,13 @@ Proof.
   inv H4; eauto using join_conv.
 Qed.
 
+Notation "@ l" := (Sort (Some l)) (at level 30).
+Notation prop := (Sort None).
+
 Inductive sub1 : term ->term -> Prop :=
 | sub1_refl A : sub1 A A
-| sub1_sort n m : n <= m -> sub1 (Sort n) (Sort m)
+| sub1_prop n : sub1 prop (@n)
+| sub1_sort n m : n <= m -> sub1 (@n) (@m)
 | sub1_prod A B1 B2 : sub1 B1 B2 -> sub1 (Prod A B1) (Prod A B2).
 
 CoInductive sub (A B : term) : Prop :=
@@ -354,19 +358,27 @@ Lemma sub_refl A : A <: A.
 Proof. apply: sub1_sub. exact: sub1_refl. Qed.
 Hint Resolve sub_refl.
 
-Lemma sub_sort n m : n <= m -> Sort n <: Sort m.
+Lemma sub_prop n : prop <: @n.
+Proof. exact/sub1_sub/sub1_prop. Qed.
+
+Lemma sub_sort n m : n <= m -> @n <: @m.
 Proof. move=> leq. exact/sub1_sub/sub1_sort. Qed.
 
 Lemma sub1_trans A B C D :
   sub1 A B -> B === C -> sub1 C D -> A <: D.
 Proof with eauto using sub1, sub1_sub, sub1_conv, conv_sub1.
   move=> sb. elim: sb C D => {A B}
-    [A C D|n m leq C D conv sb|A B1 B2 sb1 ih C D conv sb2]...
+  [A C D |n C D conv sb
+  |n m leq C D conv sb
+  |A B1 B2 sb1 ih C D conv sb2]...
+  - inv sb... exfalso; solve_conv.
   - inv sb...
-    + apply: sub_sort. move: conv => /sort_inv eqn. subst.
+    + exfalso; solve_conv.
+    + apply: sub_sort. move: conv => /sort_inv [eqn]. subst.
       exact: leq_trans leq _.
     + exfalso; solve_conv.
   - inv sb2...
+    + exfalso; solve_conv.
     + exfalso; solve_conv.
     + move: conv => /prod_inv[conv1 conv2].
       move: (ih _ _ conv2 H) => {ih} sub. inv sub.
@@ -391,12 +403,18 @@ Reserved Notation "[ Gamma |- ]".
 Reserved Notation "[ Gamma |- s :- A ]".
 
 Inductive has_type : context term -> term -> term -> Prop :=
-| ty_sort Gamma n  :
-  [ Gamma |- Sort n :- Sort n.+1 ]
-| ty_prod Gamma A B n :
+| p_axiom Gamma :
+  [ Gamma |- prop :- @0 ]
+| t_axiom Gamma n :
+  [ Gamma |- @n :- @n.+1 ]
+| ty_prop Gamma A B n :
   [ Gamma |- A :- Sort n ] ->
-  [ A :s Gamma |- B :- Sort n ] ->
-  [ Gamma |- Prod A B :- Sort n ]
+  [ A :s Gamma |- B :- prop ] ->
+  [ Gamma |- Prod A B :- prop ]
+| ty_prod Gamma A B n :
+  [ Gamma |- A :- @n ] ->
+  [ A :s Gamma |- B :- @n ] ->
+  [ Gamma |- Prod A B :- @n ]
 | ty_var Gamma x A :
   has Gamma x A ->
   [ Gamma |- Var x :- A ]
@@ -498,10 +516,16 @@ Lemma rename_ok Gamma m A :
 Proof.
   intros H.
   induction H; simpl; intros.
-  - apply ty_sort; assumption.
+  - apply p_axiom; assumption.
+  - apply t_axiom; assumption.
+  - asimpl.
+    eapply ty_prop; eauto.
+    replace prop with (prop.[ren (upren xi)]) by autosubst.
+    apply IHhas_type2.
+    constructor; eauto.
   - asimpl.
     apply ty_prod; eauto.
-    replace (Sort n) with ((Sort n).[ren (upren xi)]) by autosubst.
+    replace (@n) with ((@n).[ren (upren xi)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
   - replace (ids (xi x)) with (Var (xi x)) by autosubst.
