@@ -2113,25 +2113,16 @@ Proof.
   - exists (Some l.+1).
     constructor.
     rewrite <- pure_re; eauto.
-  - exists (Some l.+1).
-    constructor.
-    rewrite <- pure_re; eauto.
-  - exists (Some l.+1).
-    constructor.
-    rewrite <- pure_re; eauto.
   - eapply hasU_ok; eauto.
   - eapply hasL_ok; eauto.
   - exists l.
     rewrite <- pure_re; eauto.
-  - exists (Some l).
-    rewrite <- pure_re; eauto.
-  - exists (Some l); eauto.
   - exists (Some l); eauto.
   - pose proof (merge_pure2 H1 H0).
     pose proof (merge_re_re H1). inv H3.
     apply merge_context_ok_inv in H1; eauto. inv H1.
     apply IHhas_type1 in H2. inv H2.
-    apply tyProd_inv in H1. first_order.
+    apply u_prod_inv in H1. first_order.
     exists x0.
     replace (Sort s x0) with ((Sort s x0).[n/]) by autosubst.
     eapply substitutionU; eauto.
@@ -2142,35 +2133,13 @@ Proof.
     rewrite H5; eauto.
   - pose proof (merge_re_re H0). inv H1.
     apply merge_context_ok_inv in H0; eauto. inv H0.
-    apply IHhas_type1 in H1; inv H1.
-    destruct x.
-    eapply arrow_invX in H0; eauto.
-    exists (Some n0).
-    rewrite <- H2; firstorder.
-    exfalso; eapply arrow_false; eauto.
-  - pose proof (merge_pure2 H1 H0).
-    pose proof (merge_re_re H1). inv H3.
-    apply merge_context_ok_inv in H1; eauto. inv H1.
-    apply IHhas_type1 in H2. inv H2.
-    destruct x.
-    eapply lnProd_invX in H1; eauto.
-    exists (Some n0); inv H1.
-    replace (s @ n0) with ((s @ n0).[n/]) by autosubst.
-    eapply substitutionU; eauto.
-    replace (Gamma2) with (re Gamma1).
-    apply merge_re_re_re.
-    apply pure_re in H0.
-    rewrite H0.
-    rewrite H5; eauto.
-    exfalso; eapply lnProd_false; eauto.
-  - pose proof (merge_re_re H0). inv H1.
-    apply merge_context_ok_inv in H0; eauto. inv H0.
     apply IHhas_type1 in H1. inv H1.
-    destruct x.
-    eapply lolli_invX in H0; eauto; inv H0.
-    exists (Some n0).
-    rewrite <- H2; eauto.
-    exfalso; eapply lolli_false; eauto.
+    eapply l_prod_inv in H0; eauto; inv H0.
+    exists x0.
+    replace (Sort s x0) with ((Sort s x0).[n/]) by autosubst.
+    eapply substitutionN; eauto.
+    rewrite <- H2.
+    apply H1.
   - exists l; eauto.
 Qed.
 
@@ -2190,8 +2159,8 @@ Proof.
     assert ([A :u Gamma |-]).
     eapply u_ok; eauto.
     rewrite <-pure_re; eauto.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H1 _ H7).
+    specialize (IHhas_type1 H _ H7).
+    specialize (IHhas_type2 H1 _ H8).
     eapply u_prop; eauto.
     eapply context_convU.
     eapply conv1i; eauto.
@@ -2201,32 +2170,19 @@ Proof.
     assert ([A :u Gamma |-]).
     eapply u_ok; eauto.
     rewrite <-pure_re; eauto.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H1 _ H7).
+    specialize (IHhas_type1 H _ H7).
+    specialize (IHhas_type2 H1 _ H8).
     apply u_prod; eauto.
     eapply context_convU.
     eapply conv1i; eauto.
     rewrite <- pure_re; eauto.
     apply IHhas_type2.
   - inv H1.
-    assert ([A :u Gamma |-]).
-    eapply u_ok; eauto.
-    rewrite <-pure_re; eauto.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H1 _ H7).
+    assert ([:n Gamma |-]).
+    eapply n_ok; eauto.
+    specialize (IHhas_type1 H _ H7).
+    specialize (IHhas_type2 H1 _ H8).
     apply l_prod; eauto.
-    eapply context_convU.
-    eapply conv1i; eauto.
-    rewrite <- pure_re; eauto.
-    apply IHhas_type2.
-  - inv H1.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H _ H7).
-    apply arrow; eauto.
-  - inv H1.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H _ H7).
-    apply lolli; eauto.
   - inv H1.
     apply u_var; eauto.
   - inv H1.
@@ -2235,40 +2191,36 @@ Proof.
     pose proof (pure_re H0).
     pose proof H0_.
     rewrite H1 in H0_.
-    apply tyProd_inv in H0_. first_order.
-    assert ([A :u Gamma |-]).
-    eapply u_ok; eauto.
-    specialize (IHhas_type2 H6 _ H3).
-    eapply u_lam1; eauto.
-  - inv H1.
-    pose proof (pure_re H0).
-    pose proof H0_.
-    rewrite H1 in H0_.
-    apply arrow_inv in H0_. inv H0_.
-    assert ([A :l Gamma |-]).
-    eapply l_ok; eauto.
-    specialize (IHhas_type2 H6 _ H3).
-    eapply u_lam2; eauto.
+    destruct s.
+    + apply u_prod_inv in H0_. first_order.
+      assert ([A :u Gamma |-]).
+      eapply u_ok; eauto.
+      specialize (IHhas_type2 H6 _ H3).
+      eapply u_lam; eauto.
+    + apply l_prod_inv in H0_. first_order.
+      assert ([A :l Gamma |-]).
+      eapply l_ok; eauto.
+      specialize (IHhas_type2 H6 _ H3).
+      eapply u_lam; eauto.
   - inv H1.
     pose proof H0_.
-    apply lnProd_inv in H0_. inv H0_.
-    assert ([A :u Gamma |-]).
-    eapply u_ok; eauto.
-    specialize (IHhas_type2 H4 _ H2).
-    eapply l_lam1; eauto.
-  - inv H1.
-    pose proof H0_.
-    apply lolli_inv in H0_. inv H0_.
-    assert ([A :l Gamma |-]).
-    eapply l_ok; eauto.
-    specialize (IHhas_type2 H4 _ H2).
-    eapply l_lam2; eauto.
+    destruct s.
+    + apply u_prod_inv in H0_. first_order.
+      assert ([A :u Gamma |-]).
+      eapply u_ok; eauto.
+      specialize (IHhas_type2 H4 _ H2).
+      eapply l_lam; eauto.
+    + apply l_prod_inv in H0_. first_order.
+      assert ([A :l Gamma |-]).
+      eapply l_ok; eauto.
+      specialize (IHhas_type2 H4 _ H2).
+      eapply l_lam; eauto.
   - pose proof (merge_context_ok_inv H1 H). inv H3.
     inv H2.
     + specialize (IHhas_type1 H4 _ H7).
       specialize (IHhas_type2 H5 _ H9).
       pose proof (propagation H4 IHhas_type1). inv H2.
-      apply tyProd_inv in H3. inv H3.
+      apply u_prod_inv in H3. inv H3.
       pose proof (merge_re_re H1). first_order.
       assert (pstep B.[n/] B.[n'/]).
       apply pstep_compat_beta; eauto using pstep_refl.
@@ -2281,13 +2233,13 @@ Proof.
       rewrite H12. rewrite H3. rewrite H6.
       apply merge_re_re_re.
       eapply conversion; eauto.
-      eapply u_app1; eauto.
+      eapply u_app; eauto.
     + assert (pstep (Lam m0) (Lam m')). 
       constructor; eauto.
       specialize (IHhas_type1 H4 _ H2).
       specialize (IHhas_type2 H5 _ H9).
       pose proof (propagation H4 IHhas_type1). inv H3.
-      pose proof (tyProd_inv H6). first_order.
+      pose proof (u_prod_inv H6). first_order.
       pose proof (merge_re_re H1). inv H10.
       assert (pstep B.[n/] B.[n'/]).
       apply pstep_compat_beta; eauto using pstep_refl.
@@ -2299,85 +2251,46 @@ Proof.
       pose proof (pure_re H0); eauto.
       rewrite H14. rewrite H11. rewrite H12.
       apply merge_re_re_re.
-      eapply u_lam1_inv in IHhas_type1; eauto.
+      eapply u_lam_inv in IHhas_type1; eauto.
       eapply conversion; eauto.
       eapply substitutionU; eauto.
   - pose proof (merge_context_ok_inv H0 H). inv H2.
     inv H1.
     + specialize (IHhas_type1 H3 _ H6).
       specialize (IHhas_type2 H4 _ H8).
-      eapply u_app2; eauto.
-    + assert (pstep (Lam m0) (Lam m')).
+      pose proof (propagation H3 IHhas_type1). inv H1.
+      apply l_prod_inv in H2. inv H2.
+      pose proof (merge_re_re H0). inv H2.
+      assert (pstep B.[n/] B.[n'/]).
+      apply pstep_compat_beta; eauto using pstep_refl.
+      assert (B.[n'/] === B.[n/]).
+      apply conv1i; eauto.
+      apply conv_sub in H9.
+      assert ([re Gamma |- B.[n/] :- (Sort s x0).[n/] -: U ]).
+      eapply substitutionN; eauto.
+      rewrite <-H5.
+      apply H1.
+      eapply conversion; eauto.
+      eapply l_app; eauto.
+    + assert (pstep (Lam m0) (Lam m')). 
       constructor; eauto.
       specialize (IHhas_type1 H3 _ H1).
       specialize (IHhas_type2 H4 _ H8).
       pose proof (propagation H3 IHhas_type1). inv H2.
-      destruct x.
-      assert (U @ n0 <: U @ n0); eauto.
-      pose proof (arrow_invX H5 H2). inv H7.
-      eapply u_lam2_inv in IHhas_type1; eauto.
-      replace B with (B.[ren (+1)].[n'/]) by autosubst.
-      eapply substitutionL; eauto.
-      exfalso; eapply arrow_false; eauto.
-  - pose proof (merge_context_ok_inv H1 H). inv H3.
-    inv H2.
-    + specialize (IHhas_type1 H4 _ H7).
-      specialize (IHhas_type2 H5 _ H9).
-      pose proof (propagation H4 IHhas_type1). inv H2.
-      destruct x.
-      apply lnProd_inv in H3. inv H3.
-      pose proof (merge_re_re H1). inv H3.
+      pose proof (l_prod_inv H5). inv H2.
+      pose proof (merge_re_re H0). inv H2.
       assert (pstep B.[n/] B.[n'/]).
       apply pstep_compat_beta; eauto using pstep_refl.
       assert (B.[n'/] === B.[n/]).
       apply conv1i; eauto.
       apply conv_sub in H11.
-      assert ([re Gamma |- B.[n/] :- (s @ n0).[n/] -: U ]).
-      eapply substitutionU; eauto.
-      pose proof (pure_re H0).
-      rewrite H12. rewrite H8. rewrite H10.
-      apply merge_re_re_re.
+      assert ([re Gamma |- B.[n/] :- (Sort s x0).[n/] -: U ]).
+      eapply substitutionN; eauto.
+      rewrite <- H9.
+      apply H7.
+      eapply l_lam_inv in IHhas_type1; eauto.
       eapply conversion; eauto.
-      eapply l_app1; eauto.
-      exfalso; eapply lnProd_false; eauto.
-    + assert (pstep (Lam m0) (Lam m')). 
-      constructor; eauto.
-      specialize (IHhas_type1 H4 _ H2).
-      specialize (IHhas_type2 H5 _ H9).
-      pose proof (propagation H4 IHhas_type1). inv H3.
-      destruct x.
-      pose proof (lnProd_inv H6). inv H3.
-      pose proof (merge_re_re H1). inv H3.
-      assert (pstep B.[n/] B.[n'/]).
-      apply pstep_compat_beta; eauto using pstep_refl.
-      assert (B.[n'/] === B.[n/]).
-      apply conv1i; eauto.
-      apply conv_sub in H13.
-      assert ([re Gamma |- B.[n/] :- (s @ n0).[n/] -: U ]).
-      eapply substitutionU; eauto.
-      pose proof (pure_re H0); eauto.
-      rewrite H14. rewrite H11. rewrite H12.
-      apply merge_re_re_re.
-      eapply l_lam1_inv in IHhas_type1; eauto.
-      eapply conversion; eauto.
-      eapply substitutionU; eauto.
-      exfalso; eapply lnProd_false; eauto.
-  - pose proof (merge_context_ok_inv H0 H). inv H2.
-    inv H1.
-    + specialize (IHhas_type1 H3 _ H6).
-      specialize (IHhas_type2 H4 _ H8).
-      eapply l_app2; eauto.
-    + assert (pstep (Lam m0) (Lam m')).
-      constructor; eauto.
-      specialize (IHhas_type1 H3 _ H1).
-      specialize (IHhas_type2 H4 _ H8).
-      pose proof (propagation H3 IHhas_type1). inv H2.
-      destruct x.
-      pose proof (lolli_inv H5). inv H2.
-      eapply l_lam2_inv in IHhas_type1; eauto.
-      replace B with (B.[ren (+1)].[n'/]) by autosubst.
       eapply substitutionL; eauto.
-      exfalso; eapply lolli_false; eauto.
   - eapply conversion; eauto.
 Qed.
 
