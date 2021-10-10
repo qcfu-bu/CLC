@@ -59,7 +59,7 @@
 \begin{document}
   \maketitle 
   \begin{abstract}
-    The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends CC with a hierarchy of linear universes that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, proving that it is a sound logical framework for reasoning about resource. CLC is backwards compatible with CC, allowing CLC to enjoy the decades of CC research. We have formalized and proven correct all major results of the core calculus in the Coq Proof Assistant. We extend CLC with linear inductive types and show that CLC as a programming language enables the manipulation of mutable data structures in a principled way.
+    The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends CC with a hierarchy of linear universes, and an indexed typing judgment that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, showing that it is a sound logical framework for reasoning about resource. CLC is backwards compatible with CC, allowing CLC to enjoy the fruits of decades of CC research. We have formalized and proven correct all major results of the core calculus in the Coq Proof Assistant. We extend CLC with linear inductive types and show that CLC as a programming language enables the manipulation of mutable data structures in a principled way.
   \end{abstract}
 
   \section{Introduction}
@@ -83,7 +83,7 @@
   \end{equation*}
   This new specification for transaction states that it requires a payment of 5 units of money, the customer is relieved of their ownership after the transaction finishes, effectively preventing the contradiction of having your cake and eating it too.
 
-  Compared to preexisting approaches for integrating linear types and dependent types, CLC offers a ``lightweight'' approach to extending CC$\omega$ with linear types, akin to Mazurak et al.'s work on System F \cite{mazurak}. This allows for a straightforward embedding of CLC into CC, and lifting of CC into CLC, endowing CLC with the fruits of decades of CC research. We further extend CLC with inductive types, showing that as a programming language it can manipulate mutable data structures in a principled way. We have formalized all major results in Coq, and implemented a prototype in OCaml. 
+  Compared to preexisting approaches for integrating linear types and dependent types, CLC offers a ``lightweight'' approach to extending CC$\omega$ with linear types, akin to Mazurak et al.'s work on System F \cite{mazurak}. This allows for a straightforward modeling of CLC in CC$\omega$, and lifting of CC$\omega$ into CLC, endowing CLC with the fruits of decades of CC research. We further extend CLC with inductive types, showing that as a programming language it can manipulate mutable data structures in a principled way. We have formalized all major results in Coq, and implemented a prototype in OCaml. 
 
   \medskip
 
@@ -92,7 +92,7 @@
   \begin{itemize}
     \item Fist, we describe the Calculus of Linear Constructions, an extension to the Calculus of Constructions with linear types. The integration of linear types and dependent types allows CLC to directly and precisely reason about resource.
     \item Next, we study the meta-theory of CLC directly, showing that it satisfies the standard properties of confluence, regularity, and subject reduction. 
-    \item We observe that CLC is highly backwards compatible with CC. We construct a reduction preserving embedding of CLC into CC, showing that CLC is consistent. 
+    \item We observe that CLC is highly backwards compatible with CC$\omega$. We construct a reduction preserving model of CLC in CC$\omega$, showing that CLC is consistent. 
     \item All major results have been formalized and proven correct in the Coq Proof Assistant with help from the Autosubst \cite{autosubst} library. To the best of our knowledge, our development is the first machine checked formalization of a linear dependent type theory.
     \item Furthermore, we extend CLC with linear inductive data, demonstrating that as a programming language, CLC can safely manipulate mutable data structures.
     \item Finally, we give an implementation extended with user definable linear and non-linear inductive types. Algorithmic type checking employed by the implementation streamlines the process of writing CLC.
@@ -101,16 +101,16 @@
   \section{The Language of CLC}
 
   \subsection{Syntax}
-  The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two sorts of predicative universes $U$ and $L$, being the types of non-linear types and linear types respectively. An additional impredicative universe $U_*$ is the type of propositions, in the same spirit as CC$\omega$'s $Prop$ universe.
+  The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two sorts of predicative universes $U$ and $L$, being the types of non-linear types and linear types respectively. An additional impredicative universe $U_*$ is the type of propositions, in the same spirit as CC$\omega$'s $Prop$ universe. We use the meta variable $k$ to specifically quantify over levels $0, 1, 2, ...$ that correspond to the predicative universes. We use the meta variable $i$ to quantify over all levels $*, 0, 1, 2, ...$.
 
   \begin{figure}[H]
     \caption{Syntax}
     \centering
     \begin{minipage}{0.8\linewidth}
     \begin{grammar}
-      <$k$> := 0 | 1 | 3 $\cdots$ \hspace*{6.8em} predicative levels
+      <$k$> := 0 | 1 | 2 ... | \phantom{*} \hspace*{5.8em} predicative levels
 
-      <$i$> := * | 0 | 1 | 3 $\cdots$ \hspace*{5.3em} (im)predicative levels
+      <$i$> := * | 0 | 1 | 2 ... \hspace*{5.8em} all levels
 
       <$s, t$> ::= $U$ | $L$ \phantom{| $x$} \hspace*{8em} sorts
 
@@ -122,7 +122,7 @@
     \end{minipage}
     \label{syntax}
   \end{figure}
-  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory is the presence of four function types: $(x : A) \rightarrow_s B$, $A \rightarrow_s B$, $(x : A) \multimap_s B$, $A \multimap_s B$. The reason for these variants is that we have built the ! exponential of linear logic directly into the syntax of function types. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into function syntax, we give implicitly limit ! to only be used canonically. This allows us to derive substitution, and a direct embedding of CLC into CC$\omega$ without needing extra machinery for manipulating exponential.
+  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory is the presence of four function types: $(x : A) \rightarrow_s B$, $A \rightarrow_s B$, $(x : A) \multimap_s B$, $A \multimap_s B$. The reason for these variants is that we have built the ! exponential of linear logic directly into the syntax of function types. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into function syntax, we implicitly limit ! to only be used canonically. This allows us to derive the substitution lemma, and construct a direct modeling of CLC in CC$\omega$ without needing extra machinery for manipulating exponential.
   \begin{figure}[H]
     \caption{Correspondence of CLC types and MELL implications}
     \begin{align}
@@ -140,7 +140,7 @@
   Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2), (5), (6) if the co-domain $B$ is dependent on arguments of the domain $A$. 
 
   \subsection{Universes and Cumulativity}
-  CLC features three sorts of universes, $Prop$, $U$, and $L$. $Prop$ is the impredicative universe propositions. $U$, and $L$ are the predicative universe of non-linear types, and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by the universe which they belong. Intuitively, terms with types that occur within $Prop$, and $U$ are unrestricted in their usage. Terms with types that occur within $L$ are restricted to being used exactly once.
+  CLC features two sorts of universes $U$, and $L$ with level indices $*, 0, 1, 2, \cdots$. $U_*$ is the impredicative universe of propositions. $U_k$, and $L_k$ are the predicative universe of non-linear types, and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by checking the universe to which they belong. Basically, terms with types that occur within $U_i$ are unrestricted in their usage. Terms with types that occur within $L_k$ are restricted to being used exactly once.
 
   In order to lift terms from lower universes to higher ones, there exists cumulativity between universe levels of the same sort. We define cumulativity as follows.
 
@@ -153,7 +153,7 @@
           \item If $A \preceq B$ and $B \preceq A$, then $A \equiv B$.
           \item If $A \preceq B$ and $B \preceq C$, then $A \preceq B$.
         \end{enumerate}
-      \item $Prop \preceq U_0 \preceq U_1 \preceq U_2 \preceq \cdots$
+      \item $U_* \preceq U_0 \preceq U_1 \preceq U_2 \preceq \cdots$
       \item $L_0 \preceq L_1 \preceq L_2 \preceq \cdots$
       \item If $A_1 \equiv A_2$ and $B_1 \preceq B_2$, then
         \begin{enumerate}
@@ -165,13 +165,13 @@
     \end{enumerate}
   \end{definition}
 
-  Figure \ref{universe} illustrates the structure of our universe hierarchy. Each linear universes $L_i$ has $U_{i+1}$ as its type, allowing functions to dependently quantify over linear \textit{types}. However, $L_i$ cumulates to $L_{i+1}$. These two parallel threads of cumulativity prevent linear types from being transported to the non-linear universe, and subsequently losing track of linearity.
+  Figure \ref{universe} illustrates the structure of our universe hierarchy. Each linear universe $L_k$ has $U_{k+1}$ as its type, allowing functions to dependently quantify over linear \textit{types}. However, $L_k$ cumulates to $L_{k+1}$. These two parallel threads of cumulativity prevent linear types from being transported to the non-linear universe, and subsequently losing track of its occupants' linearity.
 
   \begin{figure}[H]
     \caption{The Universe Hierarchy}
     \centering
     \begin{tikzcd}
-      Prop \arrow[r, ":"', "\preceq", dash] 
+      U_* \arrow[r, ":"', "\preceq", dash] 
       & U_0 \arrow[r, ":"', "\preceq", dash] 
       & U_1 \arrow[r, ":"', "\preceq", dash] 
       & U_2 \arrow[r, ":"', "\preceq", dash] 
@@ -201,13 +201,13 @@
 
       \inferrule
       { \Gamma\ \vdash \\ 
-        \overline{\Gamma} \vdash A \utype U }
+        \overline{\Gamma} \vdash A \utype U_i }
       { \Gamma, x \utype A \vdash }
       \rname{Wf-U}
 
       \inferrule
       { \Gamma\ \vdash \\ 
-        \overline{\Gamma} \vdash A \utype L }
+        \overline{\Gamma} \vdash A \utype L_k }
       { \Gamma, x \ltype A\ \vdash } 
       \rname{Wf-L}
       \\
@@ -266,7 +266,11 @@
     \end{align*}
   \end{definition}
 
+  \subsection{Typing Judgment}
+  Typing judgments in CLC take on the form of $\Gamma \vdash m \stype{s} A$. Intuitively, this judgment states that the term $m$ is an inhabitant of type $A$. The sort index $s$ tells us the linearity of $m$. Specifically, if $s = U$, then $m$ has unrestricted usage. Conversely, if $s = L$, then $m$ must be used exactly once. In Section \ref{meta}, we show through the regularity theorem that $s$ corresponds exactly to the sort of type $A$'s universe.
+
   \subsection{Type Formation} \label{tyformation}
+  The rules for forming types are presented in Figure \ref{type}.
 
   \begin{figure}[H]
     \caption{Type Formation} 
@@ -326,6 +330,12 @@
     \end{mathpar}
     \label{type}
   \end{figure}
+
+  The axiom rules \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom} are almost standard, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the admissibility of weakening. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom}.
+
+  Recall from Figure \ref{correspondence} where we presented the correspondence between CLC function types and MELL implications. There exists 8 canonical combinations of ! and $\multimap$ that we must encode.
+
+  The rules \rname{U-Prop} and \rname{U-Prod} are dependent function types for $\lambda$-abstractions that could be applied an unrestricted number of times.
 
   \subsection{Term Formation} \label{teformation}
 
@@ -481,7 +491,7 @@
     \label{parallel}
   \end{figure}
 
-  \subsection{Meta Theory}
+  \subsection{Meta Theory} \label{meta}
   We have proven the type soundness of our language in the form of \textit{progress} and \textit{preservation} theorems. The proofs have been formalized in Coq with help from the Autosubst\cite{autosubst} library.
 
   \subsubsection{Step and Parallel Step}
