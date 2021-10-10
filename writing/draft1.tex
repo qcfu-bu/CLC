@@ -50,6 +50,10 @@
 \newcommand{\step}{\leadsto}
 \newcommand{\pstep}{\leadsto}
 \newcommand{\mrg}[3]{#1\ddagger#2\ddagger#3}
+\newcommand{\arw}[2]
+{\hspace*{0.2em}{\scriptstyle #1}\hspace*{-0.2em}
+\rightarrow
+\hspace*{-0.2em}{\scriptstyle #2}\hspace*{0.2em}}
 
 % title and author
 \title{The Calculus of Linear Constructions}
@@ -77,9 +81,9 @@
 
   We propose a new linear dependent type system - The Calculus of Linear Constructions (CLC). CLC extends CC$\omega$ with linear types. CC$\omega$ itself is an extension of CC with a cumulative hierarchy of type universes. We add extra universes $L$ of linear types with cumulativity parallel to the universes $U$ of non-linear types. Universe information is propagated by an indexed typing judgment down to the term level, controlling the usage of weakening and contraction rules. This ultimately results in the \textit{linearity} theorem, stating that all resources are used exactly once.
 
-  The presence of both linear and dependent types enables CLC to write specifications that faithfully encodes the usage of resource. The previous example of monetary transaction can be refined using an indexed linear type family $Money : \mathbb{N} \rightarrow L$, and a linear arrow $\multimap_L$ as follows.
+  The presence of both linear and dependent types enables CLC to write specifications that faithfully encodes the usage of resource. The previous example of monetary transaction can be refined using an indexed linear type family $Money : \mathbb{N} \rightarrow L$ as follows.
   \begin{equation*}
-    Money\ 5 \multimap_L Camels + Marlboro
+    (Money\ 5) \arw{L}{L} (Camels + Marlboro)
   \end{equation*}
   This new specification for transaction states that it requires a payment of 5 units of money, the customer is relieved of their ownership after the transaction finishes, effectively preventing the contradiction of having your cake and eating it too.
 
@@ -114,29 +118,24 @@
       <$s, t$> ::= $U$ | $L$ \phantom{| $x$} \hspace*{8em} sorts
 
       <$m, n, A, B, C$> ::= $U_i$ | $L_k$ | $x$ \hspace*{7.3em} expressions
-      \indalt $(x : A) \rightarrow_s B$ | $A \rightarrow_s B$
-      \indalt $(x : A) \multimap_s B$ | $A \multimap_s B$
+      \indalt $(x : A) \arw{s}{t} B$
       \indalt $\lambda x. n$ | $m\ n$
     \end{grammar}
     \end{minipage}
     \label{syntax}
   \end{figure}
-  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory is the presence of four function types: $(x : A) \rightarrow_s B$, $A \rightarrow_s B$, $(x : A) \multimap_s B$, $A \multimap_s B$. The reason for these variants is that we have built the ! exponential of linear logic directly into the syntax of function types. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into function syntax, we implicitly limit ! to only be used canonically. This allows us to derive the substitution lemma, and construct a direct modeling of CLC in CC$\omega$ without needing extra machinery for manipulating exponential.
+  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory is the indexed function type: $(x : A) \arw{s}{t} B$. The reason for these indices is that we have built the ! exponential of linear logic directly into universe sorts. The indices $s$, and $t$ annotate the domain, and co-domain's respective universe sort, hence annotating linearity. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into type formation rules, we implicitly limit ! to only be used canonically. This allows us to derive the substitution lemma, and construct a direct modeling of CLC in CC$\omega$ without needing extra machinery for manipulating exponential.
   \begin{figure}[H]
     \caption{Correspondence of CLC types and MELL implications}
     \begin{align}
-      (\_ : A) \rightarrow_U B \quad &\equiv \quad !(!A \multimap !B) \\
-      (\_ : A) \rightarrow_L B \quad &\equiv \quad !(!A \multimap B) \\
-      A \rightarrow_U B \quad &\equiv \quad !(A \multimap !B) \\
-      A \rightarrow_L B \quad &\equiv \quad !(A \multimap B) \\
-      (\_ : A) \multimap_U B \quad &\equiv \quad !A \multimap !B \\
-      (\_ : A) \multimap_L B \quad &\equiv \quad !A \multimap B \\
-      A \multimap_U B \quad &\equiv \quad A \multimap !B \\
-      A \multimap_L B \quad &\equiv \quad A \multimap B
+      (\_ : A) \arw{U}{U} B \quad &\equiv \quad !A \multimap !B \\
+      (\_ : A) \arw{U}{L} B \quad &\equiv \quad !A \multimap B \\
+      (\_ : A) \arw{L}{U} B \quad &\equiv \quad A \multimap !B \\
+      (\_ : A) \arw{L}{L} B \quad &\equiv \quad A \multimap B
     \end{align}
     \label{correspondence}
   \end{figure}
-  Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2), (5), (6) if the co-domain $B$ is dependent on arguments of the domain $A$. We will discuss the detail of these function types in Section \ref{tyformation}.
+  Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2) if the co-domain $B$ is dependent on arguments of the domain $A$. We will discuss the detail of these function types in Section \ref{tyformation}.
 
   \subsection{Universes and Cumulativity}
   CLC features two sorts of universes $U$, and $L$ with level indices $*, 0, 1, 2, \cdots$. $U_*$ is the impredicative universe of propositions. $U_k$, and $L_k$ are the predicative universe of non-linear types, and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by checking the universe to which they belong. Basically, terms with types that occur within $U_i$ are unrestricted in their usage. Terms with types that occur within $L_k$ are restricted to being used exactly once.
@@ -155,16 +154,11 @@
       \item $U_* \preceq U_0 \preceq U_1 \preceq U_2 \preceq \cdots$
       \item $L_0 \preceq L_1 \preceq L_2 \preceq \cdots$
       \item If $A_1 \equiv A_2$ and $B_1 \preceq B_2$, then
-        \begin{enumerate}
-          \item $(x : A_1) \rightarrow B_1 \preceq (x : A_2) \rightarrow B_2$
-          \item $(x : A_1) \multimap B_1 \preceq (x : A_2) \multimap B_2$
-          \item $A_1 \rightarrow B_1 \preceq A_2 \rightarrow B_2$
-          \item $A_1 \multimap B_1 \preceq A_2 \multimap B_2$
-        \end{enumerate}
+        $(x : A_1) \arw{s}{t} B_1 \preceq (x : A_2) \arw{s}{t} B_2$
     \end{enumerate}
   \end{definition}
 
-  Figure \ref{universe} illustrates the structure of our universe hierarchy. Each linear universe $L_k$ has $U_{k+1}$ as its type, allowing functions to dependently quantify over linear \textit{types}. However, $L_k$ cumulates to $L_{k+1}$. These two parallel threads of cumulativity prevent linear types from being transported to the non-linear universe, and subsequently losing track of its occupants' linearity.
+  Figure \ref{universe} illustrates the structure of our universe hierarchy. Each linear universe $L_k$ has $U_{k+1}$ as its type, allowing functions to freely quantify over linear \textit{types}. However, $L_k$ cumulates to $L_{k+1}$. These two parallel threads of cumulativity prevent linear types from being transported to the non-linear universe, and subsequently losing track of its occupants' linearity.
 
   \begin{figure}[H]
     \caption{The Universe Hierarchy}
@@ -294,7 +288,7 @@
       { \pure{\Gamma} \\
         \Gamma \vdash A \utype U_i \\ 
         \Gamma, x \utype A \vdash B \utype U_* }
-      { \Gamma \vdash (x : A) \rightarrow_U B \utype U_* } 
+      { \Gamma \vdash (x : A) \arw{U}{U} B \utype U_* } 
       \rname{U-Prop}
       \\
 
@@ -302,30 +296,15 @@
       { \pure{\Gamma} \\
         \Gamma \vdash A \utype U_k \\ 
         \Gamma, x \utype A \vdash B \utype s_k }
-      { \Gamma \vdash (x : A) \rightarrow_s B \utype U_k } 
+      { \Gamma \vdash (x : A) \arw{U}{s} B \utype t_k } 
       \rname{U-Prod}
 
       \inferrule
       { \pure{\Gamma} \\
         \Gamma \vdash A \utype L_k \\ 
         \Gamma \vdash B \utype s_k }
-      { \Gamma \vdash A \rightarrow_s B \utype U_k } 
-      \rname{Arrow}
-      \\
-
-      \inferrule
-      { \pure{\Gamma} \\
-        \Gamma \vdash A \utype U_k \\ 
-        \Gamma, x \utype A \vdash B \utype s_k }
-      { \Gamma \vdash (x : A) \multimap_s B \utype L_k } 
+      { \Gamma \vdash (\_ : A) \arw{L}{s} B \utype t_k } 
       \rname{L-Prod}
-
-      \inferrule
-      { \pure{\Gamma} \\
-        \Gamma \vdash A \utype L_k \\ 
-        \Gamma \vdash B \utype s_k }
-      { \Gamma \vdash A \multimap_s B \utype L_k } 
-      \rname{Lolli}
     \end{mathpar}
     \label{type}
   \end{figure}
