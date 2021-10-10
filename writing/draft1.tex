@@ -63,13 +63,13 @@
   \end{abstract}
 
   \section{Introduction}
-  The Calculus of Constructions (CC) is a dependent type theory introduced by Coquand and Huet in their landmark work \cite{cc}. In CC types can depend on terms, allowing one to write fine-grain propositions as types. Today, CC and its variations CIC \cite{cic} and ECC \cite{ecc} lie at the core of popular proof assistants such as Coq \cite{coq}, Agda \cite{agda}, Lean \cite{lean}, and others. These theorem provers have found great success in the fields of software verification \cite{compcert,deepspec}, and constructive mathematics \cite{four-color,schemes}. 
+  The Calculus of Constructions (CC) is a dependent type theory introduced by Coquand, and Huet in their landmark work \cite{cc}. In CC types can depend on terms, allowing one to write precise specifications as types. Today, CC and its variations CIC \cite{cic} and ECC \cite{ecc} lie at the core of popular proof assistants such as Coq \cite{coq}, Agda \cite{agda}, Lean \cite{lean}, and others. These theorem provers have found great success in the fields of software verification \cite{compcert,deepspec}, and constructive mathematics \cite{four-color,schemes}. 
   
   However, due to its origins as a logical framework for constructive mathematics, it is quite difficult for CC to encode and reason about resources. Intuitively, a mathematical theorem can be applied an unrestricted number of times. Comparatively, the usage of resources is more limited. For example, if we encode Girard's classical example \cite{girard95} of purchasing cigarettes literally into CC as a function of type:
   \begin{equation*}
     Money \rightarrow Camels + Marlboro
   \end{equation*}
-  The customer will still maintain full ownership of their money after paying the vendor. Unless the vendor is exceedingly generous, we are faced with the crime of counterfeiting. Users of proof assistants based on CC often need to embed external logics into CC \cite{bedrock} to provide additional reasoning principles for dealing with resource. The design and embedding of these logics is a difficult problem in its own right, requiring additional proofs to justify its soundness. We propose an alternative solution: extend CC with linear types.
+  If viewed as an propositional implication, the customer will still maintain full ownership of their money after paying the vendor, because implication does not diminish the validity of its antecedent. Unless the vendor is exceedingly generous, we are faced with the crime of counterfeiting. Users of proof assistants based on CC often need to embed external logics \cite{bedrock} to provide additional reasoning principles for dealing with resource. The design and embedding of these logics is a difficult problem in its own right, requiring additional proofs to justify its soundness. We propose an alternative solution: extend CC with linear types.
 
   Linear Logic is a substructural logic introduced by Girard in his seminal work \cite{girard}. Girard notice that the weakening and contraction rules of Classical Logic when restricted carefully, gives rise to a new logical foundation for reasoning about resource. Wadler \cite{wadler1990,wadler1991} first notice that an analogous restriction to variable usage in simple type theory leads to a linear type theory, where terms respect resources. A term calculus for linear type theory was later realized by Abramsky \cite{abramsky1993}. Benton \cite{benton1994} investigates the ramifications of the ! exponential in linear term calculi, decomposing it to adjoint connectives $F$ and $G$ that map between linear and non-linear judgments. Programming languages \cite{l3,ats,linear-haskell} featuring linear types have also been implemented, allowing programmers to write resource safe software in practical applications. The success of integrating Linear Logic with simple type theory exposes a tantalizing new frontier of integrating linearity with richer type theories.
 
@@ -99,7 +99,6 @@
   \end{itemize}
 
   \section{The Language of CLC}
-
   \subsection{Syntax}
   The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two sorts of predicative universes $U$ and $L$, being the types of non-linear types and linear types respectively. An additional impredicative universe $U_*$ is the type of propositions, in the same spirit as CC$\omega$'s $Prop$ universe. We use the meta variable $k$ to specifically quantify over levels $0, 1, 2, ...$ that correspond to the predicative universes. We use the meta variable $i$ to quantify over all levels $*, 0, 1, 2, ...$.
 
@@ -137,7 +136,7 @@
     \end{align}
     \label{correspondence}
   \end{figure}
-  Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2), (5), (6) if the co-domain $B$ is dependent on arguments of the domain $A$. 
+  Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2), (5), (6) if the co-domain $B$ is dependent on arguments of the domain $A$. We will discuss the detail of these function types in Section \ref{tyformation}.
 
   \subsection{Universes and Cumulativity}
   CLC features two sorts of universes $U$, and $L$ with level indices $*, 0, 1, 2, \cdots$. $U_*$ is the impredicative universe of propositions. $U_k$, and $L_k$ are the predicative universe of non-linear types, and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by checking the universe to which they belong. Basically, terms with types that occur within $U_i$ are unrestricted in their usage. Terms with types that occur within $L_k$ are restricted to being used exactly once.
@@ -267,10 +266,10 @@
   \end{definition}
 
   \subsection{Typing Judgment}
-  Typing judgments in CLC take on the form of $\Gamma \vdash m \stype{s} A$. Intuitively, this judgment states that the term $m$ is an inhabitant of type $A$. The sort index $s$ tells us the linearity of $m$. Specifically, if $s = U$, then $m$ has unrestricted usage. Conversely, if $s = L$, then $m$ must be used exactly once. In Section \ref{meta}, we show through the regularity theorem that $s$ corresponds exactly to the sort of type $A$'s universe.
+  Typing judgments in CLC take on the form of $\Gamma \vdash m \stype{s} A$. Intuitively, this judgment states that the term $m$ is an inhabitant of type $A$, with free variables typed in $\Gamma$. The sort index $s$ tells us the linearity of $m$. Specifically, if $s = U$, then $m$ has unrestricted usage. Conversely, if $s = L$, then $m$ must be used exactly once. In Section \ref{meta}, we show through the regularity theorem that $s$ corresponds exactly to the sort of type $A$'s universe.
 
   \subsection{Type Formation} \label{tyformation}
-  The rules for forming types are presented in Figure \ref{type}.
+  The rules for forming types are presented in Figure \ref{type}. In CLC, we forbid types from depending on linear terms similar to \cite{llf,neel15} for the same reason of avoiding philosophical pitfalls.
 
   \begin{figure}[H]
     \caption{Type Formation} 
@@ -331,11 +330,16 @@
     \label{type}
   \end{figure}
 
-  The axiom rules \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom} are almost standard, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the admissibility of weakening. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom}.
+  The axiom rules \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom} are almost standard, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the admissibility of weakening. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom}. From \rname{L-Axiom} we can see that the universe of linear types $L_k$ is an inhabitant of $U_{k+1}$. This is reminiscent of Krishnaswami et al.'s treatment of linear universes \cite{neel15}, where linear \textit{types} themselves can be used unrestrictedly.
 
-  Recall from Figure \ref{correspondence} where we presented the correspondence between CLC function types and MELL implications. There exists 8 canonical combinations of ! and $\multimap$ that we must encode.
+  Recall from Figure \ref{correspondence} where we presented the correspondence between CLC function types and MELL implications. There exists 8 canonical combinations of ! and $\multimap$ that we must encode. Note that the function types $(x : A) \rightarrow_s B$, and $A \rightarrow_s B$ are intrinsically different entities, even if the variable $x$ is unbinding in the former. So $A \rightarrow_s B$ should not be viewed as a shorthand for $(\_ : A) \rightarrow_s B$. Likewise for the linear variants, $A \multimap_s B$ is not a shorthand for $(\_ : A) \multimap_s B$.
 
-  The rules \rname{U-Prop} and \rname{U-Prod} are dependent function types for $\lambda$-abstractions that could be applied an unrestricted number of times.
+  The \rname{U-Prod} rule is used for forming non-linear dependent function types. $\lambda$-abstractions of this type could be applied an unrestricted number of times, with the argument being allowed unrestricted usage within the function body as well. Notice that the domain $A$ must be of type $U_k$, this entails that the co-domain $B$ may depend on an unrestricted term of type $A$. However, $B$ itself may chose to be of any universe sort with an appropriate predicative level. The sort of $B$'s universe is used to annotate the function arrow. The side-condition $\pure{\Gamma}$ ensures that all components used to form $(x : A)\rightarrow_s B$ do not dependent on linear variables, thus allowing the \textit{type} itself to used as an unrestricted \textit{term}.
+
+  The \rname{Arrow} rule is also used for forming non-linear function types. However, as we have alluded to previously, the formation rule \rname{Arrow} differs from \rname{U-Prod}. Namely, the domain $A$ must be of type $L_k$. This means that if the co-domain $B$ is dependent on a term of type $A$, $B$ will depend on a linear term. To prevent this situation from ever occurring, we explicitly forbid the binding of a dependent variable $x$ within $B$. This leaves us with a type of the shape $A \rightarrow_s B$, where $s$ is the sort of $B$'s universe. $\lambda$-abstractions of this type could be applied an unrestricted number of times, but the argument must be used within the body of the function once.
+
+  The \rname{L-Prod} rule is used for forming linear function types. $\lambda$-abstractions of this type must be applied exactly once, with the argument being allowed unrestricted usage within the function. \rname{L-Prod} shares the same 
+
 
   \subsection{Term Formation} \label{teformation}
 
