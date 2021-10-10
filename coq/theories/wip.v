@@ -394,7 +394,7 @@ Instance substLemmas_term : SubstLemmas term. derive. Qed.
 Inductive value : term -> Prop :=
 | value_sort srt l   : value (Sort srt l)
 | value_var x        : value (Var x)
-| value_prod A s B t : value (Prod A s B t)
+| value_prod A B s t : value (Prod A B s t)
 | value_lam n        : value (Lam n).
 
 Inductive step : term -> term -> Prop :=
