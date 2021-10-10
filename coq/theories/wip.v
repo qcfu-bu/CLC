@@ -264,6 +264,15 @@ Proof.
   induction 1; simpl; constructor; eauto.
 Qed.
 
+Lemma hasL_pure {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
+  hasL Gamma x A -> ~pure Gamma.
+Proof.
+  induction 1; simpl; intro h. 
+  inv h.
+  inv h; eauto.
+  inv h; eauto.
+Qed.
+
 Lemma hasU_x {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
   hasU Gamma x A ->
   forall B,
