@@ -2615,10 +2615,7 @@ Fixpoint erase (m : CLC.term) : CC.term :=
   match m with
   | CLC.Var x => CC.Var x
   | CLC.Sort _ l => CC.Sort l
-  | CLC.TyProd A B _ => CC.Prod (erase A) (erase B)
-  | CLC.LnProd A B _ => CC.Prod (erase A) (erase B)
-  | CLC.Arrow A B _ => CC.Prod (erase A) (erase B).[ren (+1)]
-  | CLC.Lolli A B _ => CC.Prod (erase A) (erase B).[ren (+1)]
+  | CLC.Prod A B _ _ => CC.Prod (erase A) (erase B)
   | CLC.Lam n => CC.Lam (erase n)
   | CLC.App m n => CC.App (erase m) (erase n)
   end.
@@ -2657,15 +2654,6 @@ Lemma erase_ren_com m :
 Proof.
   induction m; intros; asimpl; eauto.
   - rewrite IHm IHm0; eauto.
-  - rewrite IHm IHm0; eauto.
-  - rewrite IHm1. 
-    replace ([|m2|].[ren (xi >>> (+1))])
-      with ([|m2|].[ren xi].[ren (+1)]) by autosubst.
-    rewrite IHm2; eauto.
-  - rewrite IHm1. 
-    replace ([|m2|].[ren (xi >>> (+1))])
-      with ([|m2|].[ren xi].[ren (+1)]) by autosubst.
-    rewrite IHm2; eauto.
   - rewrite IHm; eauto.
   - rewrite IHm1 IHm2; eauto.
 Qed.
@@ -2689,13 +2677,6 @@ Proof.
   - rewrite <- (IHm sigma); eauto.
     rewrite <- (IHm0 (up sigma)); eauto.
     apply erase_subst_up; eauto.
-  - rewrite <- (IHm sigma); eauto.
-    rewrite <- (IHm0 (up sigma)); eauto.
-    apply erase_subst_up; eauto.
-  - rewrite <- (IHm1 sigma); eauto.
-    rewrite (IHm2 _ tau); autosubst.
-  - rewrite <- (IHm1 sigma); eauto.
-    rewrite (IHm2 _ tau); autosubst.
   - rewrite <- (IHm (up sigma)); eauto.
     apply erase_subst_up; eauto.
   - rewrite <- (IHm1 sigma); eauto.
@@ -2709,10 +2690,6 @@ Proof with eauto using pstep, pstep_refl.
   erewrite erase_subst_com.
   eapply pstep_beta; eauto.
   unfold erase_subst; intros; destruct x; asimpl; eauto.
-  constructor; eauto.
-  apply pstep_ren; eauto.
-  constructor; eauto.
-  apply pstep_ren; eauto.
 Qed.
 
 Lemma erase_conv m n :
@@ -2731,10 +2708,6 @@ Lemma erase_sub1 m n :
   CLC.sub1 m n -> CC.sub1 [|m|] [|n|].
 Proof.
   induction 1; asimpl; eauto using sub1.
-  constructor.
-  apply sub1_subst; eauto.
-  constructor.
-  apply sub1_subst; eauto.
 Qed.
 
 Lemma erase_sub m n :
@@ -2776,42 +2749,6 @@ Proof.
     apply sub1_sub in H0.
     eapply sub_trans; eauto.
     eapply sub_trans; eauto.
-  - apply erase_conv in c1. simpl in c1.
-    apply erase_conv in c2. simpl in c2.
-    apply conv_sub in c1.
-    apply conv_sub in c2.
-    apply erase_sub1 in H.
-    assert (sub1 (Prod [|A0|] [|B1|]) (Prod [|A0|] [|B2|])).
-    constructor; eauto.
-    apply sub1_sub in H0.
-    eapply sub_trans; eauto.
-    eapply sub_trans; eauto.
-  - apply erase_conv in c1. simpl in c1.
-    apply erase_conv in c2. simpl in c2.
-    apply conv_sub in c1.
-    apply conv_sub in c2.
-    apply erase_sub1 in H.
-    assert 
-      (sub1 (Prod [|A0|] [|B1|].[ren (+1)]) 
-            (Prod [|A0|] [|B2|].[ren (+1)])).
-    constructor; eauto.
-    apply sub1_subst; eauto.
-    apply sub1_sub in H0.
-    eapply sub_trans; eauto.
-    eapply sub_trans; eauto.
-  - apply erase_conv in c1. simpl in c1.
-    apply erase_conv in c2. simpl in c2.
-    apply conv_sub in c1.
-    apply conv_sub in c2.
-    apply erase_sub1 in H.
-    assert 
-      (sub1 (Prod [|A0|] [|B1|].[ren (+1)]) 
-            (Prod [|A0|] [|B2|].[ren (+1)])).
-    constructor; eauto.
-    apply sub1_subst; eauto.
-    apply sub1_sub in H0.
-    eapply sub_trans; eauto.
-    eapply sub_trans; eauto.
 Qed.
 
 Lemma hasU_erase Gamma x A :
@@ -2843,6 +2780,13 @@ Inductive agree_wk :
 | agree_wk_n Gamma1 Gamma2 A :
   agree_wk Gamma1 Gamma2 ->
   agree_wk (:n Gamma1) (A :s Gamma2).
+
+Lemma agree_wk_refl Gamma : agree_wk Gamma Gamma.
+Proof.
+  induction Gamma.
+  - constructor.
+  - constructor; eauto.
+Qed.
 
 Lemma agree_wk_has Gamma1 Gamma2 :
   agree_wk Gamma1 Gamma2 ->
@@ -2931,32 +2875,22 @@ Proof.
   - eapply ty_prop; eauto.
   - apply ty_prod; eauto.
   - apply ty_prod; eauto.
-  - apply ty_prod; eauto.
-    replace (@l) with ((@l).[ren (+1)]) by autosubst.
-    apply weakening; eauto.
-  - apply ty_prod; eauto.
-    replace (@l) with ((@l).[ren (+1)]) by autosubst.
-    apply weakening; eauto.
+    simpl in IHhas_type2.
+    eapply wk_ok; eauto.
+    constructor.
+    apply agree_wk_refl.
   - apply hasU_erase in H.
     apply ty_var; eauto.
   - apply hasL_erase in H.
     apply ty_var; eauto.
   - simpl in IHhas_type1.
-    simpl in IHhas_type2.
-    eapply ty_lam; eauto.
+    destruct s; simpl in IHhas_type2; eapply ty_lam; eauto.
   - simpl in IHhas_type1.
-    simpl in IHhas_type2.
-    eapply ty_lam; eauto.
-    rewrite erase_ren_com; eauto.
-  - simpl in IHhas_type1.
-    simpl in IHhas_type2.
-    eapply ty_lam; eauto.
-    apply erase_re; eauto.
-  - simpl in IHhas_type1.
-    simpl in IHhas_type2.
-    eapply ty_lam; eauto.
-    apply erase_re; eauto.
-    rewrite erase_ren_com; eauto.
+    destruct s; simpl in IHhas_type2. 
+    + eapply ty_lam; eauto.
+      apply erase_re; eauto.
+    + eapply ty_lam; eauto.
+      apply erase_re; eauto.
   - simpl in IHhas_type1.
     apply agree_wk_merge_inv in H2; destruct H2.
     erewrite (erase_subst_com); eauto.
@@ -2966,23 +2900,11 @@ Proof.
     apply erase_subst_trivial.
   - simpl in IHhas_type1.
     apply agree_wk_merge_inv in H1; destruct H1.
-    replace [|B|] with ([|B|].[ren (+1)].[[|n|]/]) by autosubst.
-    eapply ty_app; eauto.
-    eapply wk_ok; eauto.
-    eapply wk_ok; eauto.
-  - simpl in IHhas_type1.
-    apply agree_wk_merge_inv in H2; destruct H2.
     erewrite (erase_subst_com); eauto.
     eapply ty_app; eauto.
     eapply wk_ok; eauto.
     eapply wk_ok; eauto.
     apply erase_subst_trivial.
-  - simpl in IHhas_type1.
-    apply agree_wk_merge_inv in H1; destruct H1.
-    replace [|B|] with ([|B|].[ren (+1)].[[|n|]/]) by autosubst.
-    eapply ty_app; eauto.
-    eapply wk_ok; eauto.
-    eapply wk_ok; eauto.
   - eapply ty_conv.
     apply erase_sub; eauto.
     simpl in IHhas_type1.
