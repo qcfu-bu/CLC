@@ -44,8 +44,8 @@
 \newcommand{\get}{\text{get}}
 \newcommand{\set}{\text{set}}
 \newcommand{\subst}{\text{subst}}
-\newcommand{\utype}{:_U}
-\newcommand{\ltype}{:_L}
+\newcommand{\utype}{:_{\scriptscriptstyle U}}
+\newcommand{\ltype}{:_{\scriptscriptstyle L}}
 \newcommand{\stype}[1]{:_#1}
 \newcommand{\step}{\leadsto}
 \newcommand{\pstep}{\leadsto}
@@ -135,7 +135,7 @@
     \end{align}
     \label{correspondence}
   \end{figure}
-  Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2) if the co-domain $B$ is dependent on arguments of the domain $A$. We will discuss the detail of these function types in Section \ref{tyformation}.
+  Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2) if the co-domain $B$ is dependent on arguments of the domain $A$. Though it may seem as if implications of the $!(A \multimap B)$ form are left out, CLC encodes these by endowing each function type with a universe sort in their formation judgment. The encoding for this example would be $\Gamma \vdash A \arw{L}{L} B \utype U_i $. We will discuss function type formation in Section \ref{tyformation} in more detail.
 
   \subsection{Universes and Cumulativity}
   CLC features two sorts of universes $U$, and $L$ with level indices $*, 0, 1, 2, \cdots$. $U_*$ is the impredicative universe of propositions. $U_k$, and $L_k$ are the predicative universe of non-linear types, and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by checking the universe to which they belong. Basically, terms with types that occur within $U_i$ are unrestricted in their usage. Terms with types that occur within $L_k$ are restricted to being used exactly once.
@@ -260,10 +260,19 @@
   \end{definition}
 
   \subsection{Typing Judgment}
-  Typing judgments in CLC take on the form of $\Gamma \vdash m \stype{s} A$. Intuitively, this judgment states that the term $m$ is an inhabitant of type $A$, with free variables typed in $\Gamma$. The sort index $s$ tells us the linearity of $m$. Specifically, if $s = U$, then $m$ has unrestricted usage. Conversely, if $s = L$, then $m$ must be used exactly once. In Section \ref{meta}, we show through the regularity theorem that $s$ corresponds exactly to the sort of type $A$'s universe.
+  Typing judgments in CLC take on the form of $\Gamma \vdash m \stype{s} A$. Intuitively, this judgment states that the term $m$ is an inhabitant of type $A$, with free variables typed in $\Gamma$. The sort index $s$ tells us the linearity of $m$. Specifically, if $s = U$, then $m$ has unrestricted usage. Conversely, if $s = L$, then $m$ must be used exactly once. In Section \ref{meta}, we show through the regularity theorem that $s$ corresponds exactly to the sort of $A$'s universe.
+
+  \begin{definition} We formally define the terms \textit{non-linear}, \textit{linear}, \textit{unrestricted}, and \textit{restricted}.
+    \begin{enumerate}
+      \item A \textit{type} $A$ is \textit{non-linear} under context $\Gamma$ if $\Gamma \vdash A \utype U_i$.
+      \item A \textit{type} $A$ is \textit{linear} under context $\Gamma$ if $\Gamma \vdash A \utype L_k$.
+      \item A \textit{term} $m$ is \textit{unrestricted} under context $\Gamma$ if it has type $A$, and $\Gamma \vdash m \utype A$.
+      \item A \textit{term} $m$ is \textit{restricted} under context $\Gamma$ if it has type $A$, and $\Gamma \vdash m \ltype A$
+    \end{enumerate}
+  \end{definition}
 
   \subsection{Type Formation} \label{tyformation}
-  The rules for forming types are presented in Figure \ref{type}. In CLC, we forbid types from depending on linear terms similar to \cite{llf,neel15} for the same reason of avoiding philosophical pitfalls.
+  The rules for forming types are presented in Figure \ref{type}. In CLC, we forbid types from depending on linear terms similar to \cite{llf,neel15} for the same reason of avoiding philosophical troubles.
 
   \begin{figure}[H]
     \caption{Type Formation} 
@@ -311,15 +320,12 @@
 
   The axiom rules \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom} are almost standard, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the admissibility of weakening. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom}. From \rname{L-Axiom} we can see that the universe of linear types $L_k$ is an inhabitant of $U_{k+1}$. This is reminiscent of Krishnaswami et al.'s treatment of linear universes \cite{neel15}, where linear \textit{types} themselves can be used unrestrictedly.
 
-  Recall from Figure \ref{correspondence} where we presented the correspondence between CLC function types and MELL implications. There exists 8 canonical combinations of ! and $\multimap$ that we must encode. Note that the function types $(x : A) \rightarrow_s B$, and $A \rightarrow_s B$ are intrinsically different entities, even if the variable $x$ is unbinding in the former. So $A \rightarrow_s B$ should not be viewed as a shorthand for $(\_ : A) \rightarrow_s B$. Likewise for the linear variants, $A \multimap_s B$ is not a shorthand for $(\_ : A) \multimap_s B$.
+  The \rname{U-Prop} rule is used for forming propositions. From the judgment $\Gamma \vdash A \utype U_i$ we can see that \rname{U-Prop} allows for quantification over non-linear types of arbitrary level, hence impredicative. The judgment $\Gamma, x \utype A \vdash B \utype U_*$ asserts that the co-domain must be in the impredicative universe $U_*$. The final resulting judgment $\Gamma \vdash (x : A) \arw{U}{U} B \utype U_*$ is indexed by $U$, indicating that the \textit{type} $(x : A) \arw{U}{U} B$ can be use unrestrictedly as a \textit{term}. Since $(x : A) \arw{U}{U} B$ belongs to universe $U_*$, its \textit{terms} also enjoys unrestricted usage.
 
-  The \rname{U-Prod} rule is used for forming non-linear dependent function types. $\lambda$-abstractions of this type could be applied an unrestricted number of times, with the argument being allowed unrestricted usage within the function body as well. Notice that the domain $A$ must be of type $U_k$, this entails that the co-domain $B$ may depend on an unrestricted term of type $A$. However, $B$ itself may chose to be of any universe sort with an appropriate predicative level. The sort of $B$'s universe is used to annotate the function arrow. The side-condition $\pure{\Gamma}$ ensures that all components used to form $(x : A)\rightarrow_s B$ do not dependent on linear variables, thus allowing the \textit{type} itself to used as an unrestricted \textit{term}.
+  The \rname{U-Prod} rule is used for forming function types with non-linear domains. This is evident from the judgment $\Gamma \vdash A \utype U_k$. Since $A$ is in the predicative non-linear universe $U_k$, terms of type $A$ have unrestricted usage. The non-linearity of domain $A$ allows $B$ to depend on terms of type $A$, as seen in judgment $\Gamma, x \utype A \vdash B \utype s_k$. The domain $B$ itself may be non-linear or linear, since $B$'s universe $s_k$ can vary between $U_k$ and $L_k$. From the resulting judgment $\Gamma \vdash (x : A) \arw{U}{s} B \utype t_k$, we see that $A$, and $B$'s universe sorts are used as indices to the arrow. Interestingly, $(x : A) \arw{U}{s} B$ is assigned to a universe $t_k$ of level $k$ and arbitrary sort $t$. If $t$ is chosen to be $U$, then $\Gamma \vdash (x : A) \arw{U}{s} B \utype U_k$ tells us $\lambda$-abstractions of this type have unrestricted usage. Conversely, if $t$ is chose to be $L$, then $\Gamma \vdash (x : A) \arw{U}{s} B \utype L_k$ tells us $\lambda$-abstractions of this type have restricted usage. This is how we encode the missing $!(A \multimap B)$ forms from MELL shown in Figure \ref{correspondence}.
 
-  The \rname{Arrow} rule is also used for forming non-linear function types. However, as we have alluded to previously, the formation rule \rname{Arrow} differs from \rname{U-Prod}. Namely, the domain $A$ must be of type $L_k$. This means that if the co-domain $B$ is dependent on a term of type $A$, $B$ will depend on a linear term. To prevent this situation from ever occurring, we explicitly forbid the binding of a dependent variable $x$ within $B$. This leaves us with a type of the shape $A \rightarrow_s B$, where $s$ is the sort of $B$'s universe. $\lambda$-abstractions of this type could be applied an unrestricted number of times, but the argument must be used within the body of the function once.
-
-  The \rname{L-Prod} rule is used for forming linear function types. $\lambda$-abstractions of this type must be applied exactly once, with the argument being allowed unrestricted usage within the function. \rname{L-Prod} shares the same 
-
-
+  The \rname{L-Prod} rule is used for forming function types with linear domains. From the judgment $\Gamma \vdash A \utype L_k$,
+  
   \subsection{Term Formation} \label{teformation}
 
   \begin{figure}[H]

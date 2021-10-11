@@ -2151,6 +2151,23 @@ Proof.
   - exists l; eauto.
 Qed.
 
+Lemma propL_false Gamma A :
+  ~[ Gamma |- prop L :- A -: U ].
+Proof.
+  intro H.
+  dependent induction H.
+  apply IHhas_type2; eauto.
+Qed.
+
+Lemma has_propL_false Gamma m s :
+  [ Gamma |- ] -> [ Gamma |- m :- prop L -: s ] -> False.
+Proof.
+  intros.
+  apply propagation in H0; eauto.
+  inv H0.
+  apply propL_false in H1; eauto.
+Qed.
+
 Theorem preservation Gamma m A s :
   [ Gamma |- ] ->
   [ Gamma |- m :- A -: s ] ->
