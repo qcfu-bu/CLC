@@ -2168,7 +2168,7 @@ Proof.
   apply propL_false in H1; eauto.
 Qed.
 
-Theorem preservation Gamma m A s :
+Theorem subject_reduction Gamma m A s :
   [ Gamma |- ] ->
   [ Gamma |- m :- A -: s ] ->
   forall n, pstep m n -> 
