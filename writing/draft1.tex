@@ -558,7 +558,7 @@
     For any CLC context $\Gamma$, terms $m$, $A$, and sort $s$, if $\Gamma \vdash m \stype{s} A$ is a valid typing judgment in CLC, then $\erase{\Gamma} \vdash \erase{m} : \erase{A}$ is a valid a typing judgment in CC$\omega$.
   \end{theorem}
 
-  If there exists some well typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions. This is contradictory to the strong normalization property of CC$\omega$ proven through the Girard-Tait method \cite{ecc}, so this hypothetical term does not exist in CLC.
+  If there exists some well typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions by virtue of theorems \ref{preserve}, and \ref{embedding}. This is contradictory to the strong normalization property of CC$\omega$ proven through the Girard-Tait method \cite{ecc}, so this hypothetical term does not exist in CLC.
 
   \begin{theorem}
     Well-typed CLC terms are strongly normalizing.
