@@ -463,12 +463,12 @@
 
   The following lemmas and proofs are entirely standard. The presence of linear types do not pose any complications as reductions are untyped.
 
-  \begin{lemma}
-    Parallel reduction satisfies the diamond property. If $m \pstep m_1$ and $m \pstep m_2$ then there exists $m'$ such that $m_1 \pstep m'$ and $m_2 \pstep m'$.
+  \begin{lemma} Parallel reduction satisfies the diamond property. \\
+    If $m \pstep m_1$ and $m \pstep m_2$ then there exists $m'$ such that $m_1 \pstep m'$ and $m_2 \pstep m'$.
   \end{lemma}
 
-  \begin{corollary}
-    The transitive reflexive closure of parallel reduction is confluent. If $m \pstep^* m_1$ and $m \pstep^* m_2$ then there exists $m'$ such that $m_1 \pstep^* m'$ and $m_2 \pstep^* m'$.
+  \begin{corollary} The transitive reflexive closure of parallel reduction is confluent. \\ 
+    If $m \pstep^* m_1$ and $m \pstep^* m_2$ then there exists $m'$ such that $m_1 \pstep^* m'$ and $m_2 \pstep^* m'$.
   \end{corollary}
 
   \begin{corollary}
@@ -478,31 +478,31 @@
   \subsubsection{Weakening} \label{subst}
   CLC restricts the weakening rule for variables of linear types. However, weakening variables of non-linear types remain admissible.
 
-  \begin{theorem}
-    Weakening. If $\Gamma \vdash m \stype{s} A$ is a valid, then for any $x \notin \Gamma$, judgment $\Gamma, x \utype B \vdash m \stype{s} A$ is derivable.
-  \end{theorem}
+  \begin{lemma} Weakening. \\
+    If $\Gamma \vdash m \stype{s} A$ is a valid, then for any $x \notin \Gamma$, judgment $\Gamma, x \utype B \vdash m \stype{s} A$ is derivable.
+  \end{lemma}
 
   \subsubsection{Substitution} \label{subst}
   Though the substitution lemma is widely considered a boring and bureaucratic theorem, it is surprisingly hard to design linear typed languages where the substitution lemma is admissible. Much of this difficulty arise during the substitution of arguments containing ! exponential. Perhaps the most famous work detailing the issues of substitution is due to Wadler \cite{substitute}. He defines additional syntax, and semantics for the intricate unboxing of ! terms, solving the lack of substitute in Abramsky's term calculus \cite{abramsky1993}.
 
   Our design of integrating ! into universe sorts removes the need for ! manipulating syntax, and semantics. The substitution lemma is directly proved by induction on typing derivations.
 
-  \begin{lemma}
-    Substitution. For $\Gamma_1, x \stype{s} A \vdash m \stype{t} B$ and $\Gamma_2 \vdash v \stype{s} A$, if $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ is defined for some $\Gamma$, then $\Gamma \vdash [v/x]m \stype{t} [v/x]B$.
+  \begin{lemma} Substitution. \\
+    For $\Gamma_1, x \stype{s} A \vdash m \stype{t} B$ and $\Gamma_2 \vdash v \stype{s} A$, if $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ is defined for some $\Gamma$, then $\Gamma \vdash [v/x]m \stype{t} [v/x]B$.
   \end{lemma}
 
   \subsubsection{Type Soundness}
   In order to prove subject reduction, we first prove the regularity theorem. The main purpose of regularity is to lower types down to the term level, enabling the application of various inversion lemmas. Regularity also serves a second purpose, it tells us the judgment index $s$ of a term $\Gamma \vdash m \stype{s} A$ is exactly the same sort as its type's universe $\overline{\Gamma} \vdash A \utype s_i$.
 
-  \begin{theorem}
-    Regularity. For any context $\Gamma$, term $m$, type $A$, and sort $s$, if $\Gamma \vdash m \stype{s} A$ is a valid judgment, then there exists some level $i$ such that $\overline{\Gamma} \vdash A \utype s_i$.
+  \begin{theorem} Regularity. \\
+     For any context $\Gamma$, term $m$, type $A$, and sort $s$, if $\Gamma \vdash m \stype{s} A$ is a valid judgment, then there exists some level $i$ such that $\overline{\Gamma} \vdash A \utype s_i$.
     \label{regularity}
   \end{theorem}
 
   With weakening, substitution, regularity, and various inversion lemmas proven, subject reduction is proved by induction on typing derivation.
 
-  \begin{theorem}
-    Subject reduction. For $\Gamma \vdash m \stype{s} A$, if $m \pstep n$ then $\Gamma \vdash n \stype{s} A$.
+  \begin{theorem} Subject reduction. \\
+    For $\Gamma \vdash m \stype{s} A$, if $m \pstep n$ then $\Gamma \vdash n \stype{s} A$.
   \end{theorem}
 
   \subsubsection{Linearity}
@@ -510,14 +510,14 @@
 
   Before we proceed, we first prove the seemingly obvious narity lemma. 
 
-  \begin{lemma}
-    Narity. If $\Gamma \vdash m \stype{s} A$ is a valid judgment, for any $x \notin \Gamma$, there is $occurs(x, m) = 0$.
+  \begin{lemma} Narity. \\
+    If $\Gamma \vdash m \stype{s} A$ is a valid judgment, for any $x \notin \Gamma$, there is $occurs(x, m) = 0$.
   \end{lemma}
 
   For cases with branched syntax in the linearity theorem, such as application $(m\ n)$, the $occurs$ function sums up the occurrences of variable $x$ in branches $m$, and $n$. The narity lemma is used to prove that either $occurs(x, m) = 1 \wedge occurs(x, n) = 0$ or $occurs(x, m) = 0 \wedge occurs(x, n) = 1$ is true.
 
-  \begin{theorem}
-    Linearity. If $\Gamma \vdash m \stype{s} A$ is a valid judgment, for any $(x \ltype B) \in \Gamma$, there is $occurs(x, m) = 1$.
+  \begin{theorem} Linearity. \\
+    If $\Gamma \vdash m \stype{s} A$ is a valid judgment, for any $(x \ltype B) \in \Gamma$, there is $occurs(x, m) = 1$.
   \end{theorem}
 
   \subsubsection{Strong Normalization}
@@ -534,6 +534,26 @@
       \erase{m\ n} &= \erase{m}\ \erase{n}
     \end{align*}
   \end{definition}
+
+  We prove the following lemma to commute erasure and substitution when needed.
+  \begin{lemma} Erasure commutes with substitution. \\ 
+    For any CLC terms $m$, $n$, and some variable $x$, $\erase{m[n/x]} = \erase{m}[\erase{n}/x]$. 
+  \end{lemma}
+
+  For the following theorem, we refer to the reductions of CLC as $\pstep_{\scriptscriptstyle \text{CLC}}$, and the reductions of CC$\omega$ as $\pstep_{\scriptscriptstyle \text{CC$\omega$}}$.
+  \begin{theorem} \label{preserve} Erasure preserves reduction. \\
+    For any CLC terms $m$, and $n$, if there is $m \pstep_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \pstep_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+  \end{theorem}
+
+  \begin{theorem} \label{embedding} Embedding. \\
+    For any CLC context $\Gamma$, terms $m$, $A$, and sort $s$, if $\Gamma \vdash m \stype{s} A$ is a valid typing judgment in CLC, then $\erase{\Gamma} \vdash \erase{m} : \erase{A}$ is a valid a typing judgment in CC$\omega$.
+  \end{theorem}
+
+  If there exists some well typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions. This is contradictory to the strong normalization property of CC$\omega$, thus this hypothetical term does not exist in CLC.
+
+  \begin{theorem}
+    Well-typed CLC terms are strongly normalizing.
+  \end{theorem}
 
   \section{Future Work}
   All of the theorems we have developed so far are purely syntactic in nature. But the natural correspondence between linear types and call-by-value semantics seem to hint at a deeper connection. Indeed, past works\cite{cbvsemantics} have provided insight for the simply typed case. We would like to extend these results our dependent linear type theory. 
