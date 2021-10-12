@@ -535,12 +535,21 @@
     \end{align*}
   \end{definition}
 
-  We prove the following lemma to commute erasure and substitution when needed.
+  With slight overloading of notation, we define erasure for CLC contexts recursively.
+
+  \begin{definition}
+    \begin{align*}
+      \erase{\epsilon} &= \epsilon \\
+      \erase{\Gamma, x \stype{s} A} &= \erase{\Gamma}, x : \erase{A}
+    \end{align*}
+  \end{definition}
+
+  We prove the following lemma to commute erasure and substitution whenever needed.
   \begin{lemma} Erasure commutes with substitution. \\ 
     For any CLC terms $m$, $n$, and some variable $x$, $\erase{m[n/x]} = \erase{m}[\erase{n}/x]$. 
   \end{lemma}
 
-  For the following theorem, we refer to the reductions of CLC as $\pstep_{\scriptscriptstyle \text{CLC}}$, and the reductions of CC$\omega$ as $\pstep_{\scriptscriptstyle \text{CC$\omega$}}$.
+  For the following theorem, we refer to the reductions in CLC as $\pstep_{\scriptscriptstyle \text{CLC}}$, and the reductions in CC$\omega$ as $\pstep_{\scriptscriptstyle \text{CC$\omega$}}$.
   \begin{theorem} \label{preserve} Erasure preserves reduction. \\
     For any CLC terms $m$, and $n$, if there is $m \pstep_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \pstep_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
   \end{theorem}
@@ -556,7 +565,6 @@
   \end{theorem}
 
   \section{Future Work}
-  All of the theorems we have developed so far are purely syntactic in nature. But the natural correspondence between linear types and call-by-value semantics seem to hint at a deeper connection. Indeed, past works\cite{cbvsemantics} have provided insight for the simply typed case. We would like to extend these results our dependent linear type theory. 
   \section{Conclusion}
 
 \bibliographystyle{acm}
