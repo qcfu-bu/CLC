@@ -183,7 +183,7 @@
   \subsection{Context and Structural Judgments}
   The context of our language employs a mixed linear/non-linear representation in the style of Luo\cite{luo}. Variables in the context are annotated to indicate whether they are linear or non-linear. A non-linear variable is annotated as $\Gamma, x \utype A$, whereas a linear variable is annotated as $\Gamma, x \ltype A$. 
   
-  Next, we define a $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ relation that merges two mixed contexts $\Gamma_1$, and $\Gamma_2$ into $\Gamma$, by performing contraction on shared non-linear variables. For linear variables, the $\mrg{\_}{\_}{\_}$ relation is defined if and only if each variable occurs uniquely in one context and not the other. This definition of $\mrg{\_}{\_}{\_}$ is what allows contraction for non-linear variables whilst forbidding it for linear ones.
+  Next, we define a $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ relation that merges two mixed contexts $\Gamma_1$, and $\Gamma_2$ into $\Gamma$, by performing contraction on shared non-linear variables. For linear variables, the $\mrg{\_}{\_}{\_}$ relation is defined if and only if each variable occurs uniquely in one context and not the other. This definition of $\mrg{\_}{\_}{\_}$ is what allows contraction for unrestricted variables whilst forbidding it for restricted.
 
   An auxiliary judgment $\pure{\Gamma}$ is defined to assert that a context $\Gamma$ does not contain linear variables. In other words, all variables found in $\pure{\Gamma}$ are annotated of the form $x \utype A$. The full rules for structural judgments are presented in Figure \ref{structural}.
   
