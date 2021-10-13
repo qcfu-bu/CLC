@@ -19,8 +19,8 @@ Definition elem T := option (T * sort).
 
 Definition context T := seq (elem T).
 
-Notation "m ̂+ Γ" := (Some (m, !) :: Γ) (at level 30).
-Notation "m ̇+ Γ" := (Some (m, ⋅) :: Γ) (at level 30).
+Notation "m +! Γ" := (Some (m, !) :: Γ) (at level 30).
+Notation "m +⋅ Γ" := (Some (m, ⋅) :: Γ) (at level 30).
 Notation "m +{ s } Γ" := (Some (m, s) :: Γ) (at level 30).
 Notation "□ Γ" := (None :: Γ) (at level 30).
 
@@ -30,13 +30,13 @@ Inductive merge T : context T -> context T -> context T -> Prop :=
   [ nil ‡ nil ‡ nil ]
 | merge_left Γ₁ Γ₂ Γ m : 
   [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-  [ m ̂+ Γ₁ ‡ m ̂+ Γ₂ ‡ m ̂+ Γ ] 
+  [ m +! Γ₁ ‡ m +! Γ₂ ‡ m +! Γ ] 
 | merge_right1 Γ₁ Γ₂ Γ m :
   [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-  [ m ̇+ Γ₁ ‡ □ Γ₂ ‡ m ̇+ Γ ]
+  [ m +⋅ Γ₁ ‡ □ Γ₂ ‡ m +⋅ Γ ]
 | merge_right2 Γ₁ Γ₂ Γ m :
   [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-  [ □ Γ₁ ‡ m ̇+ Γ₂ ‡ m ̇+ Γ ]
+  [ □ Γ₁ ‡ m +⋅ Γ₂ ‡ m +⋅ Γ ]
 | merge_null Γ₁ Γ₂ Γ :
   [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
   [ □ Γ₁ ‡ □ Γ₂ ‡ □ Γ ]
@@ -49,39 +49,39 @@ Inductive pure T : context T -> Prop :=
   [ nil ]
 | pure_u Γ m : 
   [ Γ ] ->
-  [ m ̂+ Γ ]
+  [ m +! Γ ]
 | pure_n Γ : 
   [ Γ ] ->
   [ □ Γ ]
 where "[ Γ ]" := (pure Γ).
 
-Reserved Notation "[ x :- A ̂∈ Γ ]".
+Reserved Notation "[ x :- A !∈ Γ ]".
 Inductive hasBang {T} `{Ids T} `{Subst T} : 
   context T -> var -> T -> Prop :=
 | hasBang_O m Γ :
   [ Γ ] ->
-  [ 0 :- m.[ren (+1)] ̂∈ m ̂+ Γ ]
+  [ 0 :- m.[ren (+1)] !∈ m +! Γ ]
 | hasBang_S Γ v m n : 
-  [ v :- m ̂∈ Γ ] ->
-  [ v.+1 :- m.[ren (+1)] ̂∈ n ̂+ Γ ]
+  [ v :- m !∈ Γ ] ->
+  [ v.+1 :- m.[ren (+1)] !∈ n +! Γ ]
 | hasBang_N Γ v m : 
-  [ v :- m ̂∈ Γ ] ->
-  [ v.+1 :- m.[ren (+1)] ̂∈ □ Γ ]
-where "[ x :- A ̂∈ Γ ]" := (hasBang Γ x A).
+  [ v :- m !∈ Γ ] ->
+  [ v.+1 :- m.[ren (+1)] !∈ □ Γ ]
+where "[ x :- A !∈ Γ ]" := (hasBang Γ x A).
 
-Reserved Notation "[ x :- A ̇∈ Γ ]".
+Reserved Notation "[ x :- A ⋅∈ Γ ]".
 Inductive hasDot {T} `{Ids T} `{Subst T} :
   context T -> var -> T -> Prop :=
 | hasDot_O m Γ :
   [ Γ ] ->
-  [ 0 :- m.[ren (+1)] ̇∈ m ̇+ Γ ]
+  [ 0 :- m.[ren (+1)] ⋅∈ m +⋅ Γ ]
 | hasDot_S Γ v m n :
-  [ v :- m ̇∈ Γ ] ->
-  [ v.+1 :- m.[ren (+1)] ̇∈ n ̂+ Γ ]
+  [ v :- m ⋅∈ Γ ] ->
+  [ v.+1 :- m.[ren (+1)] ⋅∈ n +! Γ ]
 | hasDot_N Γ v m :
-  [ v :- m ̇∈ Γ ] ->
-  [ v.+1 :- m.[ren (+1)] ̇∈ □ Γ ]
-where "[ x :- A ̇∈ Γ ]" := (hasDot Γ x A).
+  [ v :- m ⋅∈ Γ ] ->
+  [ v.+1 :- m.[ren (+1)] ⋅∈ □ Γ ]
+where "[ x :- A ⋅∈ Γ ]" := (hasDot Γ x A).
 
 Fixpoint re T (Γ : context T) : context T :=
   match Γ with
@@ -230,7 +230,7 @@ Proof.
 Qed.
 
 Lemma hasBang_re {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :- A ̂∈ Γ ] -> [ x :- A ̂∈ re Γ ].
+  [ x :- A !∈ Γ ] -> [ x :- A !∈ %Γ ].
 Proof.
   induction 1; simpl.
   - constructor.
@@ -240,7 +240,7 @@ Proof.
 Qed.
 
 Lemma hasDot_re {T} `{Ids T} `{Subst T} (Γ : context T) :
-  forall x A, ~[ x :- A ̇∈ %Γ ].
+  forall x A, ~[ x :- A ⋅∈ %Γ ].
 Proof.
   induction Γ; unfold not; intros.
   - simpl in H1. inv H1.
@@ -257,13 +257,13 @@ Proof.
 Qed.
 
 Lemma hasBang_pure {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :- A ̂∈ Γ ] -> [ Γ ].
+  [ x :- A !∈ Γ ] -> [ Γ ].
 Proof.
   induction 1; simpl; constructor; eauto.
 Qed.
 
 Lemma hasDot_pure {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :- A ̇∈ Γ ] -> ~[ Γ ].
+  [ x :- A ⋅∈ Γ ] -> ~[ Γ ].
 Proof.
   induction 1; simpl; intro h. 
   inv h.
@@ -272,9 +272,9 @@ Proof.
 Qed.
 
 Lemma hasBang_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :- A ̂∈ Γ ] ->
+  [ x :- A !∈ Γ ] ->
   forall B,
-    [ x :- B ̂∈ Γ ] ->
+    [ x :- B !∈ Γ ] ->
     A = B.
 Proof.
   induction 1; intros.
@@ -286,9 +286,9 @@ Proof.
 Qed.
 
 Lemma hasDot_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :- A ̇∈ Γ ] ->
+  [ x :- A ⋅∈ Γ ] ->
   forall B,
-    [ x :- B ̇∈ Γ ] ->
+    [ x :- B ⋅∈ Γ ] ->
     A = B.
 Proof.
   induction 1; intros.
@@ -300,9 +300,9 @@ Proof.
 Qed.
 
 Lemma hasBang_hasDot {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :- A ̂∈ Γ ] ->
+  [ x :- A !∈ Γ ] ->
   forall B,
-    ~ [ x :- B ̇∈ Γ ].
+    ~ [ x :- B ⋅∈ Γ ].
 Proof.
   induction 1; unfold not; intros.
   inv H2.
@@ -324,12 +324,12 @@ Proof.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (m ̂+ x).
+    exists (m +! x).
     repeat constructor; eauto.
   - inv H0.
     + specialize (IHmerge _ _ H4).
       firstorder.
-      exists (m ̇+ x).
+      exists (m +⋅ x).
       repeat constructor; eauto.
     + specialize (IHmerge _ _ H4).
       firstorder.
@@ -338,7 +338,7 @@ Proof.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (m ̇+ x).
+    exists (m +⋅ x).
     repeat constructor; eauto.
   - inv H0.
     specialize (IHmerge _ _ H4).
@@ -361,7 +361,7 @@ Proof.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (m ̂+ x).
+    exists (m +! x).
     repeat constructor; eauto.
   - inv H0.
     + specialize (IHmerge _ _ H4).
@@ -370,12 +370,12 @@ Proof.
       repeat constructor; eauto.
     + specialize (IHmerge _ _ H4).
       firstorder.
-      exists (m ̇+ x).
+      exists (m +⋅ x).
       repeat constructor; eauto.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (m ̇+ x).
+    exists (m +⋅ x).
     repeat constructor; eauto.
   - inv H0.
     specialize (IHmerge _ _ H4).
@@ -1002,7 +1002,7 @@ Inductive has_type : context term -> term -> term -> sort -> Prop :=
 | prop Γ A B l :
   [ Γ ] ->
   [ Γ |- A :- Sort ! l -: ! ] ->
-  [ A ̂+ Γ |- B :- 𝐏 ! -: ! ] ->
+  [ A +! Γ |- B :- 𝐏 ! -: ! ] ->
   [ Γ |- Lolli A B ! ! :- 𝐏 ! -: ! ]
 | lolli Γ A B r s t l :
   [ Γ ] ->
@@ -1010,10 +1010,10 @@ Inductive has_type : context term -> term -> term -> sort -> Prop :=
   [ %(A +{r} Γ) |- B :- 𝐔 s l -: ! ] ->
   [ Γ |- Lolli A B r s :- 𝐔 t l -: ! ]
 | bang_var Γ x A : 
-  [ x :- A ̂∈ Γ ] ->
+  [ x :- A !∈ Γ ] ->
   [ Γ |- Var x :- A -: ! ]
 | dot_var Γ x A :
-  [ x :- A ̇∈ Γ ] ->
+  [ x :- A ⋅∈ Γ ] ->
   [ Γ |- Var x :- A -: ⋅ ]
 | bang_lam Γ n A s B t l :
   [ Γ ] ->
@@ -1048,11 +1048,11 @@ Inductive context_ok : context term -> Prop :=
 | bang_ok Γ A l :
   [ Γ |- ] ->
   [ %Γ |- A :- Sort ! l -: ! ] ->
-  [ A ̂+ Γ |- ]
+  [ A +! Γ |- ]
 | dot_ok Γ A l :
   [ Γ |- ] ->
   [ %Γ |- A :- Sort ⋅ l -: ! ] ->
-  [ A ̇+ Γ |- ]
+  [ A +⋅ Γ |- ]
 | n_ok Γ :
   [ Γ |- ] ->
   [ □ Γ |- ]
@@ -1075,16 +1075,16 @@ Inductive agree_ren : (var -> var) ->
   agree_ren ξ nil nil
 | agree_ren_bang Γ Γ' ξ m :
   agree_ren ξ Γ Γ' ->
-  agree_ren (upren ξ) (m ̂+ Γ) (m.[ren ξ] ̂+ Γ')
+  agree_ren (upren ξ) (m +! Γ) (m.[ren ξ] +! Γ')
 | agree_ren_dot Γ Γ' ξ m :
   agree_ren ξ Γ Γ' ->
-  agree_ren (upren ξ) (m ̇+ Γ) (m.[ren ξ] ̇+ Γ')
+  agree_ren (upren ξ) (m +⋅ Γ) (m.[ren ξ] +⋅ Γ')
 | agree_ren_n Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   agree_ren (upren ξ) (□ Γ) (□ Γ')
 | agree_ren_wkBang Γ Γ' ξ m :
   agree_ren ξ Γ Γ' ->
-  agree_ren ((+1) ∘ ξ) (Γ) (m ̂+ Γ')
+  agree_ren ((+1) ∘ ξ) (Γ) (m +! Γ')
 | agree_ren_wkN Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   agree_ren ((+1) ∘ ξ) (Γ) (□ Γ').
@@ -1097,13 +1097,13 @@ Proof.
   - destruct a. 
     destruct p.
     destruct s.
-    assert (agree_ren id (t ̂+ Γ) (t ̂+ Γ)
-      = agree_ren (upren id) (t ̂+ Γ) (t.[ren id] ̂+ Γ))
+    assert (agree_ren id (t +! Γ) (t +! Γ)
+      = agree_ren (upren id) (t +! Γ) (t.[ren id] +! Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.
-    assert (agree_ren id (t ̇+ Γ) (t ̇+ Γ)
-      = agree_ren (upren id) (t ̇+ Γ) (t.[ren id] ̇+ Γ))
+    assert (agree_ren id (t +⋅ Γ) (t +⋅ Γ)
+      = agree_ren (upren id) (t +⋅ Γ) (t.[ren id] +⋅ Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.
@@ -1136,8 +1136,8 @@ Qed.
 Lemma agree_ren_hasBang Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   forall x A,
-    [ x :- A ̂∈ Γ ]  ->
-    [ ξ x :- A.[ren ξ] ̂∈ Γ' ].
+    [ x :- A !∈ Γ ]  ->
+    [ ξ x :- A.[ren ξ] !∈ Γ' ].
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
@@ -1172,8 +1172,8 @@ Qed.
 Lemma agree_ren_hasDot Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   forall x A,
-    [ x :- A ̇∈ Γ ] ->
-    [ ξ x :- A.[ren ξ] ̇∈ Γ' ].
+    [ x :- A ⋅∈ Γ ] ->
+    [ ξ x :- A.[ren ξ] ⋅∈ Γ' ].
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
@@ -1222,19 +1222,19 @@ Proof.
   - inv H0; subst.
     pose proof (IHagree_ren _ _ H4).
     first_order.
-    exists (m.[ren ξ] ̂+ x).
-    exists (m.[ren ξ] ̂+ x0).
+    exists (m.[ren ξ] +! x).
+    exists (m.[ren ξ] +! x0).
     repeat constructor; eauto.
   - inv H0; subst.
     pose proof (IHagree_ren _ _ H4).
     first_order.
-    exists (m.[ren ξ] ̇+ x).
+    exists (m.[ren ξ] +⋅ x).
     exists (□ x0).
     repeat constructor; eauto.
     pose proof (IHagree_ren _ _ H4).
     first_order.
     exists (□ x).
-    exists (m.[ren ξ] ̇+ x0).
+    exists (m.[ren ξ] +⋅ x0).
     repeat constructor; eauto.
   - inv H0; subst.
     pose proof (IHagree_ren _ _ H4).
@@ -1244,8 +1244,8 @@ Proof.
     repeat constructor; eauto.
   - pose proof (IHagree_ren _ _ H0).
     first_order.
-    exists (m ̂+ x).
-    exists (m ̂+ x0).
+    exists (m +! x).
+    exists (m +! x0).
     repeat constructor; eauto.
   - pose proof (IHagree_ren _ _ H0).
     first_order.
@@ -1320,7 +1320,7 @@ Qed.
 Lemma hasBang_ok Γ :
   [ Γ |- ] ->
   forall x A,
-    [ x :- A ̂∈ Γ ] ->
+    [ x :- A !∈ Γ ] ->
     exists l, [ %Γ |- A :- Sort ! l -: ! ].
 Proof.
   induction 1; intros.
@@ -1354,7 +1354,7 @@ Qed.
 Lemma hasDot_ok Γ :
   [ Γ |- ] ->
   forall x A,
-    [ x :- A ̇∈ Γ ] ->
+    [ x :- A ⋅∈ Γ ] ->
     exists l, [ %Γ |- A :- Sort ⋅ l -: ! ].
 Proof.
   induction 1; intros.
@@ -1385,7 +1385,7 @@ Qed.
 
 Lemma weakeningBang Γ m A s B :
   [ Γ |- m :- A -: s ] ->
-  [ B ̂+ Γ |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
+  [ B +! Γ |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
 Proof.
   intros.
   eapply rename_ok in H.
@@ -1409,7 +1409,7 @@ Lemma eweakeningBang Γ m m' A A' s B :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
   [ Γ |- m :- A -: s ] -> 
-  [ B ̂+ Γ |- m' :- A' -: s ].
+  [ B +! Γ |- m' :- A' -: s ].
 Proof.  
   intros; subst.
   apply weakeningBang; eauto.
@@ -1433,36 +1433,36 @@ Inductive agree_subst :
   [ nil |- σ -| nil ]
 | agree_subst_bang Δ σ Γ A :
   [ Δ |- σ -| Γ ] ->
-  [ A.[σ] ̂+ Δ |- up σ -| A ̂+ Γ ]
+  [ A.[σ] +! Δ |- up σ -| A +! Γ ]
 | agree_subst_dot Δ σ Γ A :
   [ Δ |- σ -| Γ ] ->
-  [ A.[σ] ̇+ Δ |- up σ -| A ̇+ Γ ]
+  [ A.[σ] +⋅ Δ |- up σ -| A +⋅ Γ ]
 | agree_subst_n Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
   [ □ Δ |- up σ -| □ Γ ]
 | agree_subst_wkBang Δ σ Γ n A :
   [ Δ |- σ -| Γ ] ->
   [ %Δ |- n :- A.[σ] -: ! ] ->
-  [ Δ |- n .: σ -| A ̂+ Γ ]
+  [ Δ |- n .: σ -| A +! Γ ]
 | agree_subst_wkDot Δ₁ Δ₂ Δ σ Γ n A :
   merge Δ₁ Δ₂ Δ ->
   [ Δ₁ |- σ -| Γ ] ->
   [ Δ₂ |- n :- A.[σ] -: ⋅ ] ->
-  [ Δ |- n .: σ -| A ̇+ Γ ]
+  [ Δ |- n .: σ -| A +⋅ Γ ]
 | agree_subst_wkN Δ σ Γ n :
   [ Δ |- σ -| Γ ] ->
   [ Δ |- n .: σ -| □ Γ ]
 | agree_subst_convBang Δ σ Γ A B l :
   A <: B ->
   [ %Δ |- B.[ren (+1)].[σ] :- Sort ! l -: ! ] ->
-  [ Δ |- σ -| A ̂+ Γ ] ->
-  [ Δ |- σ -| B ̂+ Γ ]
+  [ Δ |- σ -| A +! Γ ] ->
+  [ Δ |- σ -| B +! Γ ]
 | agree_subst_convDot Δ σ Γ A B l :
   A <: B ->
   [ %Δ |- B.[ren (+1)].[σ] :- Sort ⋅ l -: ! ] ->
   [ %Γ |- B :- Sort ⋅ l -: ! ] ->
-  [ Δ |- σ -| A ̇+ Γ ] ->
-  [ Δ |- σ -| B ̇+ Γ ]
+  [ Δ |- σ -| A +⋅ Γ ] ->
+  [ Δ |- σ -| B +⋅ Γ ]
 where "[ Δ |- σ -| Γ ]" := (agree_subst Δ σ Γ).
 
 Lemma agree_subst_pure Δ σ Γ :
@@ -1491,12 +1491,12 @@ Proof.
   - destruct a.
     destruct p.
     destruct s.
-    replace [t ̂+ Γ |- ids -| t ̂+ Γ]
-      with [t.[ids] ̂+ Γ |- up ids -| t ̂+ Γ]
+    replace [t +! Γ |- ids -| t +! Γ]
+      with [t.[ids] +! Γ |- up ids -| t +! Γ]
       by autosubst.
     apply agree_subst_bang; eauto.
-    replace [t ̇+ Γ |- ids -| t ̇+ Γ]
-      with [t.[ids] ̇+ Γ |- up ids -| t ̇+ Γ]
+    replace [t +⋅ Γ |- ids -| t +⋅ Γ]
+      with [t.[ids] +⋅ Γ |- up ids -| t +⋅ Γ]
       by autosubst.
     apply agree_subst_dot; eauto.
     replace (ids) with (up ids) by autosubst.
@@ -1506,7 +1506,7 @@ Qed.
 Lemma agree_subst_hasBang Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
   forall x A,
-    [ x :- A ̂∈ Γ ] -> 
+    [ x :- A !∈ Γ ] -> 
     [ Δ |- σ x :- A.[σ] -: ! ].
 Proof.
   induction 1; intros.
@@ -1529,7 +1529,7 @@ Proof.
   - inv H2.
   - inv H0; asimpl; eauto.
   - inv H2.
-    + assert [ 0 :- A.[ren (+1)] ̂∈ A ̂+ Γ].
+    + assert [ 0 :- A.[ren (+1)] !∈ A +! Γ].
       constructor; eauto.
       eapply conversion.
       eapply sub_subst.
@@ -1544,7 +1544,7 @@ Qed.
 Lemma agree_subst_hasDot Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
   forall x A,
-    [ x :- A ̇∈ Γ ] -> 
+    [ x :- A ⋅∈ Γ ] -> 
     [ Δ |- σ x :- A.[σ] -: ⋅ ].
 Proof.
   induction 1; intros.
@@ -1572,7 +1572,7 @@ Proof.
     apply IHagree_subst.
     constructor; eauto.
   - inv H3.
-    assert [ 0 :- A.[ren (+1)] ̇∈ A ̇+ Γ ].
+    assert [ 0 :- A.[ren (+1)] ⋅∈ A +⋅ Γ ].
     constructor; eauto.
     eapply conversion.
     apply sub_subst.
@@ -1622,19 +1622,19 @@ Proof.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (A.[σ] ̂+ x).
-    exists (A.[σ] ̂+ x0).
+    exists (A.[σ] +! x).
+    exists (A.[σ] +! x0).
     repeat constructor; eauto.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (A.[σ] ̇+ x).
+    exists (A.[σ] +⋅ x).
     exists (□ x0).
     repeat constructor; eauto.
   - pose proof (IHagree_subst _ _ H4).
     first_order.
     exists (□ x).
-    exists (A.[σ] ̇+ x0).
+    exists (A.[σ] +⋅ x0).
     repeat constructor; eauto.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
@@ -1678,7 +1678,7 @@ Proof.
     exists x0.
     repeat constructor; eauto.
   - inv H2.
-    assert (merge (A ̂+ Γ₁0) (A ̂+ Γ₂0) (A ̂+ Γ)).
+    assert (merge (A +! Γ₁0) (A +! Γ₂0) (A +! Γ)).
     apply merge_left; eauto.
     specialize (IHagree_subst _ _ H2).
     first_order.
@@ -1692,7 +1692,7 @@ Proof.
     eapply agree_subst_convBang; eauto.
     rewrite H9; eauto.
   - inv H3.
-    + assert (merge (A ̇+ Γ₁0) (□ Γ₂0) (A ̇+ Γ)).
+    + assert (merge (A +⋅ Γ₁0) (□ Γ₂0) (A +⋅ Γ)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -1704,7 +1704,7 @@ Proof.
       eapply agree_subst_convDot; eauto.
       rewrite H9; eauto.
       rewrite H11; eauto.
-    + assert (merge (□ Γ₁0) (A ̇+ Γ₂0) (A ̇+ Γ)).
+    + assert (merge (□ Γ₁0) (A +⋅ Γ₂0) (A +⋅ Γ)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -1792,7 +1792,7 @@ Proof.
 Qed.
 
 Lemma substitutionBang Γ₁ m A B s :
-  [ A ̂+ Γ₁ |- m :- B -: s ] ->
+  [ A +! Γ₁ |- m :- B -: s ] ->
   forall Γ₂ Γ n,
     [ Γ₂ ] ->
     [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
@@ -1828,7 +1828,7 @@ Proof.
 Qed.
 
 Lemma substitutionDot Γ₁ m A B s :
-  [ A ̇+ Γ₁ |- m :- B -: s ] ->
+  [ A +⋅ Γ₁ |- m :- B -: s ] ->
   forall Γ₂ Γ n,
     [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
     [ Γ₂ |- n :- A -: ⋅ ] -> 
@@ -1844,11 +1844,11 @@ Qed.
 Lemma context_convBang Γ m A B C s l :
   B === A -> 
   [ %Γ |- A :- Sort ! l -: ! ] ->
-  [ A ̂+ Γ |- m :- C -: s ] -> 
-  [ B ̂+ Γ |- m :- C -: s ].
+  [ A +! Γ |- m :- C -: s ] -> 
+  [ B +! Γ |- m :- C -: s ].
 Proof.
   move=> conv tp1 tp2. 
-  cut ([ B ̂+ Γ |- m.[ids] :- C.[ids] -: s ]). autosubst.
+  cut ([ B +! Γ |- m.[ids] :- C.[ids] -: s ]). autosubst.
   eapply substitution.
   apply tp2.
   eapply agree_subst_convBang; simpl.
@@ -1863,11 +1863,11 @@ Qed.
 Lemma context_convDot Γ m A B C s l :
   B === A -> 
   [ %Γ |- A :- Sort ⋅ l -: ! ] ->
-  [ A ̇+ Γ |- m :- C -: s ] -> 
-  [ B ̇+ Γ |- m :- C -: s ].
+  [ A +⋅ Γ |- m :- C -: s ] -> 
+  [ B +⋅ Γ |- m :- C -: s ].
 Proof.
   move=> conv tp1 tp2. 
-  cut ([ B ̇+ Γ |- m.[ids] :- C.[ids] -: s ]). autosubst.
+  cut ([ B +⋅ Γ |- m.[ids] :- C.[ids] -: s ]). autosubst.
   eapply substitution.
   apply tp2.
   eapply agree_subst_convDot; simpl.
@@ -1921,8 +1921,8 @@ Qed.
 Lemma bang_lam_invX Γ n C srt :
   [ Γ |- Lam n :- C -: srt ] -> 
   forall A B s l, 
-    (C <: Lolli A B ! s /\ [A ̂+ %Γ |- B :- Sort s l -: !]) ->
-    [ A ̂+ Γ |- n :- B -: s ].
+    (C <: Lolli A B ! s /\ [A +! %Γ |- B :- Sort s l -: !]) ->
+    [ A +! Γ |- n :- B -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
@@ -1953,7 +1953,7 @@ Qed.
 Lemma bang_lam_inv Γ n A B s t l :
   [ %Γ |- Lolli A B ! s :- Sort t l -: ! ] ->
   [ Γ |- Lam n :- Lolli A B ! s -: t ] -> 
-  [ A ̂+ Γ |- n :- B -: s ].
+  [ A +! Γ |- n :- B -: s ].
 Proof.
   intros.
   apply lolli_inv in H; inv H; firstorder.
@@ -1964,7 +1964,7 @@ Lemma dot_lam_invX Γ n C srt :
   [ Γ |- Lam n :- C -: srt ] -> 
   forall A B s l, 
     (C <: Lolli A B ⋅ s /\ [□ re Γ |- B :- Sort s l -: !]) ->
-    [ A ̇+ Γ |- n :- B -: s ].
+    [ A +⋅ Γ |- n :- B -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
@@ -1995,7 +1995,7 @@ Qed.
 Lemma dot_lam_inv Γ n A B s t l :
   [ %Γ |- Lolli A B ⋅ s :- Sort t l -: ! ] ->
   [ Γ |- Lam n :- Lolli A B ⋅ s -: t ] -> 
-  [ A ̇+ Γ |- n :- B -: s ].
+  [ A +⋅ Γ |- n :- B -: s ].
 Proof.
   intros.
   apply lolli_inv in H; inv H; firstorder.
@@ -2120,7 +2120,7 @@ Proof.
       eapply conv1i; eauto.
       rewrite <- pure_re; eauto.
       eauto.
-    + assert ([A ̂+ Γ |-]).
+    + assert ([A +! Γ |-]).
       eapply bang_ok; eauto.
       rewrite <-pure_re; eauto.
       specialize (IHhas_type2 H1 _ H7).
@@ -2134,7 +2134,7 @@ Proof.
       repeat rewrite <- pure_re; eauto.
       eauto.
     + destruct r; simpl in IHhas_type2.
-      assert ([A ̂+ %Γ |-]).
+      assert ([A +! %Γ |-]).
       eapply bang_ok; eauto; repeat rewrite <-pure_re; eauto.
       specialize (IHhas_type2 H1 _ H7).
       eapply lolli; eauto.
@@ -2150,12 +2150,12 @@ Proof.
     rewrite H1 in H0_.
     destruct s.
     + apply lolli_inv in H0_. first_order.
-      assert ([A ̂+ Γ |-]).
+      assert ([A +! Γ |-]).
       eapply bang_ok; eauto.
       specialize (IHhas_type2 H6 _ H3).
       eapply bang_lam; eauto.
     + apply lolli_inv in H0_. first_order.
-      assert ([A ̇+ Γ |-]).
+      assert ([A +⋅ Γ |-]).
       eapply dot_ok; eauto.
       specialize (IHhas_type2 H6 _ H3).
       eapply bang_lam; eauto.
@@ -2163,12 +2163,12 @@ Proof.
     pose proof H0_.
     destruct s.
     + apply lolli_inv in H0_. first_order.
-      assert ([A ̂+ Γ |-]).
+      assert ([A +! Γ |-]).
       eapply bang_ok; eauto.
       specialize (IHhas_type2 H4 _ H2).
       eapply dot_lam; eauto.
     + apply lolli_inv in H0_. first_order.
-      assert ([A ̇+ Γ |-]).
+      assert ([A +⋅ Γ |-]).
       eapply dot_ok; eauto.
       specialize (IHhas_type2 H4 _ H2).
       eapply dot_lam; eauto.
@@ -2295,17 +2295,17 @@ Proof.
   - apply IHhas_type2; eauto.
 Qed.
 
-Reserved Notation "[ x ̇∈ Γ ]".
+Reserved Notation "[ x ⋅∈ Γ ]".
 Inductive isDot : context term -> nat -> Prop :=
 | isDot_O Γ A :
-  [ 0 ̇∈ A ̇+ Γ ]
+  [ 0 ⋅∈ A +⋅ Γ ]
 | isDot_S Γ i A s :
-  [ i ̇∈ Γ ] ->
-  [ i.+1 ̇∈ A +{s} Γ ]
+  [ i ⋅∈ Γ ] ->
+  [ i.+1 ⋅∈ A +{s} Γ ]
 | isDot_N Γ i :
-  [ i ̇∈ Γ ] ->
-  [ i.+1 ̇∈ □ Γ ]
-where "[ x ̇∈ Γ ]" := (isDot Γ x).
+  [ i ⋅∈ Γ ] ->
+  [ i.+1 ⋅∈ □ Γ ]
+where "[ x ⋅∈ Γ ]" := (isDot Γ x).
 
 Reserved Notation "[ x ∉ Γ ]".
 Inductive isN : context term -> nat -> Prop :=
@@ -2333,7 +2333,7 @@ Proof.
   induction n; simpl; eauto.
 Qed.
 
-Lemma isDot_pure Γ i : [ i ̇∈ Γ ] -> ~[ Γ ].
+Lemma isDot_pure Γ i : [ i ⋅∈ Γ ] -> ~[ Γ ].
 Proof.
   induction 1; unfold not; intros.
   inv H.
@@ -2344,7 +2344,7 @@ Proof.
 Qed.
 
 Lemma isDot_hasBang Γ i : 
-  [ i ̇∈ Γ ] -> forall x A, ~[ x :- A ̂∈ Γ ].
+  [ i ⋅∈ Γ ] -> forall x A, ~[ x :- A !∈ Γ ].
 Proof.
   induction 1; intros; unfold not; intros.
   inv H.
@@ -2357,7 +2357,7 @@ Proof.
 Qed.
 
 Lemma isDot_hasDot Γ i :
-  [ i ̇∈ Γ ] -> forall x A, [ x :- A ̇∈ Γ ]  -> x = i.
+  [ i ⋅∈ Γ ] -> forall x A, [ x :- A ⋅∈ Γ ]  -> x = i.
 Proof.
   induction 1; intros.
   inv H; eauto.
@@ -2371,7 +2371,7 @@ Proof.
 Qed.
 
 Lemma isN_hasBang Γ i :
-  [ i ∉ Γ ] -> forall x A, [ x :- A ̂∈ Γ ] -> x == i = false.
+  [ i ∉ Γ ] -> forall x A, [ x :- A !∈ Γ ] -> x == i = false.
 Proof.
   induction 1; intros; eauto.
   inv H; eauto.
@@ -2382,7 +2382,7 @@ Proof.
 Qed.
 
 Lemma isN_hasDot Γ i :
-  [ i ∉ Γ ] -> forall x A, [ x :- A ̇∈ Γ ] -> x == i = false.
+  [ i ∉ Γ ] -> forall x A, [ x :- A ⋅∈ Γ ] -> x == i = false.
 Proof.
   induction 1; intros; eauto.
   inv H; eauto.
@@ -2394,9 +2394,9 @@ Qed.
 
 Lemma isDot_merge_inv Γ₁ Γ₂ Γ :
   [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
-    forall i, [ i ̇∈ Γ ] -> 
-      ([ i ̇∈ Γ₁ ] /\ [ i ∉ Γ₂ ]) \/
-      ([ i ̇∈ Γ₂ ] /\ [ i ∉ Γ₁ ]).
+    forall i, [ i ⋅∈ Γ ] -> 
+      ([ i ⋅∈ Γ₁ ] /\ [ i ∉ Γ₂ ]) \/
+      ([ i ⋅∈ Γ₂ ] /\ [ i ∉ Γ₁ ]).
 Proof.
   intro H.
   dependent induction H; intros.
@@ -2477,7 +2477,7 @@ Qed.
 
 Theorem linearity Γ m A s :
   [ Γ |- m :- A -: s ] -> 
-    forall i, [ i ̇∈ Γ ] -> occurs i m = 1.
+    forall i, [ i ⋅∈ Γ ] -> occurs i m = 1.
 Proof.
   intro H.
   dependent induction H; intros.
@@ -2538,8 +2538,8 @@ Fixpoint erase_context
   (Γ : CLC.context CLC.term) 
 : CC.context CC.term :=
   match Γ with
-  | Some (t, !) :: Γ => erase t ̇+ erase_context Γ
-  | Some (t, ⋅) :: Γ => erase t ̇+ erase_context Γ
+  | Some (t, !) :: Γ => erase t +⋅ erase_context Γ
+  | Some (t, ⋅) :: Γ => erase t +⋅ erase_context Γ
   | None :: Γ => □ erase_context Γ
   | nil => nil
   end.
@@ -2675,7 +2675,7 @@ Proof.
 Qed.
 
 Lemma hasBang_erase Γ x A :
-  [ x :- A ̂∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
+  [ x :- A !∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
 Proof.
   intros.
   dependent induction H; asimpl; firstorder;
@@ -2683,7 +2683,7 @@ Proof.
 Qed.
 
 Lemma hasDot_erase Γ x A :
-  [ x :- A ̇∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
+  [ x :- A ⋅∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
 Proof.
   intros.
   dependent induction H; asimpl; firstorder;
@@ -2698,7 +2698,7 @@ Inductive agree_wk :
   agree_wk (e :: Γ₁) (e :: Γ₂)
 | agree_wk_n Γ₁ Γ₂ A :
   agree_wk Γ₁ Γ₂ ->
-  agree_wk (□ Γ₁) (A ̇+ Γ₂).
+  agree_wk (□ Γ₁) (A +⋅ Γ₂).
 
 Lemma agree_wk_refl Γ : agree_wk Γ Γ.
 Proof.
