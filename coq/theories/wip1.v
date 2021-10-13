@@ -1,5 +1,5 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
-From Coq Require Import ssrfun Program Utf8.
+From Coq Require Import ssrfun Program Utf8 Classical.
 Require Import AutosubstSsr ARS cc.
 
 Set Implicit Arguments.
@@ -2845,6 +2845,69 @@ Proof.
   apply erase_re in H0.
   econstructor; eauto.
   constructor; eauto.
+Qed.
+
+CoInductive nn T (Rel : T -> T -> Prop) : T -> Prop :=
+| nnI m m' : Rel m m' -> nn Rel m' -> nn Rel m.
+
+CoFixpoint erase_nn m : (nn CLC.step m) -> nn CC.step [|m|].
+Proof.
+  intros.
+  inv H.
+  apply erase_step in H0.
+  apply erase_nn in H1.
+  econstructor; eauto.
+Qed.
+
+Lemma nn_sn T (Rel : T -> T -> Prop) m : nn Rel m -> ~sn Rel m.
+Proof.
+  move=> h1 h2. 
+  induction h2.
+  inv h1.
+  eauto.
+Qed.
+
+Lemma not_sn T (Rel : T -> T -> Prop) m : 
+  ~sn Rel m -> exists m', Rel m m' /\ ~sn Rel m'.
+Proof.
+  intros.
+  pose proof (classic (exists m', Rel m m' /\ ~sn Rel m')).
+  inv H0; eauto.
+  - firstorder.
+    simpl in H0.
+    assert (forall n, Rel m n -> sn Rel n).
+    intros.
+    specialize (H0 n).
+    apply not_and_or in H0.
+    firstorder.
+    apply NNPP; eauto.
+    exfalso.
+    eapply H.
+    constructor; eauto.
+Qed.
+
+CoFixpoint sn_nn T (Rel : T -> T -> Prop) m : 
+  ~sn Rel m -> nn Rel m.
+Proof.
+  move=> h. 
+  apply not_sn in h.
+  first_order.
+  econstructor; eauto.
+Qed.
+
+Theorem strong_normalization Γ m A s :
+  [ Γ |- m :- A -: s ] -> (sn CLC.step m).
+Proof.
+  intros.
+  pose proof (embedding H).
+  pose proof (CC.strong_normalization H0).
+  pose proof (classic (nn CLC.step m)).
+  inv H2.
+  apply erase_nn in H3.
+  exfalso; eapply nn_sn; eauto.
+  pose proof (classic (sn CLC.step m)).
+  inv H2; eauto.
+  apply sn_nn in H4; exfalso; eauto.
 Qed.
 
 End CLC.

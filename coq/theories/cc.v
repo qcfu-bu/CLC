@@ -208,11 +208,11 @@ Definition psstep (sigma tau : var -> term) :=
 
 Fixpoint rho (s : term) : term :=
   match s with
-    | App (Lam s) t => (rho s).[rho t/]
-    | App s t => App (rho s) (rho t)
-    | Lam s => Lam (rho s)
-    | Prod A B => Prod (rho A) (rho B)
-    | x => x
+  | App (Lam s) t => (rho s).[rho t/]
+  | App s t => App (rho s) (rho t)
+  | Lam s => Lam (rho s)
+  | Prod A B => Prod (rho A) (rho B)
+  | x => x
   end.
 
 Lemma pstep_refl s : pstep s s.
@@ -637,6 +637,9 @@ Proof.
   apply agree_ren_wk.
   apply agree_ren_refl.
 Qed.
+
+Axiom strong_normalization : forall Γ m A,
+  [ Γ |- m :- A ] -> sn step m.
 
 Close Scope coc_scope.
 
