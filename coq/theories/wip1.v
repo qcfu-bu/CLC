@@ -2529,7 +2529,7 @@ Fixpoint erase (m : CLC.term) : CC.term :=
   match m with
   | CLC.Var x => CC.Var x
   | CLC.Sort _ l => CC.Sort l
-  | CLC.Prod A B _ _ => CC.Prod (erase A) (erase B)
+  | CLC.Lolli A B _ _ => CC.Prod (erase A) (erase B)
   | CLC.Lam n => CC.Lam (erase n)
   | CLC.App m n => CC.App (erase m) (erase n)
   end.
@@ -2538,9 +2538,9 @@ Fixpoint erase_context
   (Γ : CLC.context CLC.term) 
 : CC.context CC.term :=
   match Γ with
-  | Some (t, U) :: Γ => erase t :s erase_context Γ
-  | Some (t, L) :: Γ => erase t :s erase_context Γ
-  | None :: Γ => :n erase_context Γ
+  | Some (t, !) :: Γ => erase t ̇+ erase_context Γ
+  | Some (t, ⋅) :: Γ => erase t ̇+ erase_context Γ
+  | None :: Γ => □ erase_context Γ
   | nil => nil
   end.
 
@@ -2564,7 +2564,7 @@ Definition erase_subst
   forall x, [|σ x|] = τ x.
 
 Lemma erase_ren_com m :
-  forall xi, [| m |].[ren xi] = [| m.[ren xi] |].
+  forall ξ, [| m |].[ren ξ] = [| m.[ren ξ] |].
 Proof.
   induction m; intros; asimpl; eauto.
   - rewrite IHm IHm0; eauto.
@@ -2597,25 +2597,34 @@ Proof.
     rewrite <- (IHm2 σ); eauto.
 Qed.
 
-Lemma erase_pstep m n :
-  CLC.pstep m n -> CC.pstep [|m|] [|n|].
-Proof with eauto using pstep, pstep_refl.
+Lemma erase_step m n :
+  CLC.step m n -> CC.step [|m|] [|n|].
+Proof with eauto using step.
   induction 1; simpl; intros...
   erewrite erase_subst_com.
-  eapply pstep_beta; eauto.
+  eapply step_beta; eauto.
   unfold erase_subst; intros; destruct x; asimpl; eauto.
 Qed.
 
+Lemma erase_red m n :
+  CLC.red m n -> CC.red [|m|] [|n|].
+Proof with eauto using step, star.
+  induction 1; simpl; intros...
+  apply erase_step in H0.
+  apply star1 in H0.
+  eapply star_trans; eauto.
+Qed.
+
 Lemma erase_conv m n :
-  conv CLC.pstep m n -> conv CC.pstep [|m|] [|n|].
+  conv CLC.step m n -> conv CC.step [|m|] [|n|].
 Proof.
   induction 1; eauto.
   eapply conv_trans.
   apply IHconv.
   eapply convSE; eauto.
-  apply erase_pstep; eauto.
+  apply erase_step; eauto.
   eapply convSEi; eauto.
-  apply erase_pstep; eauto.
+  apply erase_step; eauto.
 Qed.
 
 Lemma erase_sub1 m n :
@@ -2629,7 +2638,7 @@ Lemma erase_sub m n :
 Proof.
   move=> [A B sb] c1 c2.
   inv sb.
-  - assert (conv CLC.pstep m n).
+  - assert (conv CLC.step m n).
     eapply conv_trans.
     apply c1.
     apply c2.
@@ -2639,7 +2648,7 @@ Proof.
     apply erase_conv in c2. simpl in c2.
     apply conv_sub in c1.
     apply conv_sub in c2.
-    assert (sub1 (prop) (@l)).
+    assert (sub1 𝐏 (𝐔 l)).
     constructor; eauto.
     apply sub1_sub in H.
     eapply sub_trans. eauto.
@@ -2648,7 +2657,7 @@ Proof.
     apply erase_conv in c2. simpl in c2.
     apply conv_sub in c1.
     apply conv_sub in c2.
-    assert (sub1 (@l1) (@l2)).
+    assert (sub1 (𝐔 l1) (𝐔 l2)).
     constructor; eauto.
     apply sub1_sub in H0.
     eapply sub_trans; eauto.
@@ -2665,35 +2674,31 @@ Proof.
     eapply sub_trans; eauto.
 Qed.
 
-Lemma hasU_erase Γ x A :
-  hasU Γ x A -> has [[ Γ ]] x [| A |].
+Lemma hasBang_erase Γ x A :
+  [ x :- A ̂∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
 Proof.
   intros.
-  dependent induction H; asimpl; firstorder.
-  rewrite <- erase_ren_com; constructor.
-  rewrite <- erase_ren_com; constructor; eauto.
+  dependent induction H; asimpl; firstorder;
   rewrite <- erase_ren_com; constructor; eauto.
 Qed.
 
-Lemma hasL_erase Γ x A :
-  hasL Γ x A -> has [[ Γ ]] x [| A |].
+Lemma hasDot_erase Γ x A :
+  [ x :- A ̇∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
 Proof.
   intros.
-  dependent induction H; asimpl; firstorder.
-  rewrite <- erase_ren_com; constructor.
-  rewrite <- erase_ren_com; constructor; eauto.
+  dependent induction H; asimpl; firstorder;
   rewrite <- erase_ren_com; constructor; eauto.
 Qed.
 
 Inductive agree_wk : 
   CC.context CC.term -> CC.context CC.term -> Prop :=
 | agree_wk_nil : agree_wk nil nil
-| agree_wk_s Γ1 Γ2 e :
-  agree_wk Γ1 Γ2 ->
-  agree_wk (e :: Γ1) (e :: Γ2)
-| agree_wk_n Γ1 Γ2 A :
-  agree_wk Γ1 Γ2 ->
-  agree_wk (:n Γ1) (A :s Γ2).
+| agree_wk_s Γ₁ Γ₂ e :
+  agree_wk Γ₁ Γ₂ ->
+  agree_wk (e :: Γ₁) (e :: Γ₂)
+| agree_wk_n Γ₁ Γ₂ A :
+  agree_wk Γ₁ Γ₂ ->
+  agree_wk (□ Γ₁) (A ̇+ Γ₂).
 
 Lemma agree_wk_refl Γ : agree_wk Γ Γ.
 Proof.
@@ -2702,11 +2707,11 @@ Proof.
   - constructor; eauto.
 Qed.
 
-Lemma agree_wk_has Γ1 Γ2 :
-  agree_wk Γ1 Γ2 ->
+Lemma agree_wk_has Γ₁ Γ₂ :
+  agree_wk Γ₁ Γ₂ ->
   forall x A,
-    has Γ1 x A ->
-    has Γ2 x A.
+    [ x :- A ∈ Γ₁ ] -> 
+    [ x :- A ∈ Γ₂ ].
 Proof.
   intro H.
   dependent induction H; simpl; intros; eauto.
@@ -2715,7 +2720,7 @@ Proof.
 Qed.
 
 Lemma agree_wk_re Γ :
-  agree_wk [[re Γ]] [[Γ]].
+  agree_wk [[ %Γ ]] [[ Γ ]].
 Proof.
   induction Γ.
   - simpl; constructor.
@@ -2725,19 +2730,19 @@ Proof.
     constructor; eauto.
 Qed.
 
-Lemma agree_wk_merge_inv Γ1 Γ2 Γ :
-  merge Γ1 Γ2 Γ ->
-  agree_wk [[Γ1]] [[Γ]] /\
-  agree_wk [[Γ2]] [[Γ]].
+Lemma agree_wk_merge_inv Γ₁ Γ₂ Γ :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  agree_wk [[ Γ₁ ]] [[ Γ ]] /\
+  agree_wk [[ Γ₂ ]] [[ Γ ]].
 Proof with eauto using agree_wk.
   intro H.
   dependent induction H; simpl; firstorder...
 Qed.
 
-Lemma wk_ok Γ1 m A : 
-  [ Γ1 |- m :- A ] ->
-  forall Γ2, agree_wk Γ1 Γ2 ->
-    [ Γ2 |- m :- A ].
+Lemma wk_ok Γ₁ m A : 
+  [ Γ₁ |- m :- A ] ->
+  forall Γ₂, agree_wk Γ₁ Γ₂ ->
+    [ Γ₂ |- m :- A ].
 Proof.
   intro H.
   dependent induction H; simpl; intros; subst.
@@ -2763,8 +2768,8 @@ Proof.
 Qed.
 
 Lemma erase_re Γ m A :
-  [ [[re Γ]] |- m :- A ] ->
-  [ [[Γ]] |- m :- A ].
+  [ [[ %Γ ]] |- m :- A ] ->
+  [ [[ Γ ]] |- m :- A ].
 Proof.
   intro H.
   eapply wk_ok; eauto.
@@ -2772,7 +2777,7 @@ Proof.
 Qed.
 
 Lemma erase_subst_trivial n :
-  erase_subst (n .: ids) ([|n|] .: ids).
+  erase_subst (n .: ids) ([| n |] .: ids).
 Proof.
   unfold erase_subst; intros.
   destruct x; simpl; eauto.
@@ -2788,14 +2793,15 @@ Proof.
   - apply t_axiom.  
   - eapply ty_prop; eauto.
   - apply ty_prod; eauto.
-  - apply ty_prod; eauto.
-    simpl in IHhas_type2.
-    eapply wk_ok; eauto.
-    constructor.
-    apply agree_wk_refl.
-  - apply hasU_erase in H.
+    destruct r; simpl in IHhas_type2.
+    + rewrite <- pure_re in IHhas_type2; eauto.
+    + rewrite <- pure_re in IHhas_type2; eauto.
+      eapply wk_ok; eauto.
+      constructor.
+      apply agree_wk_refl.
+  - apply hasBang_erase in H.
     apply ty_var; eauto.
-  - apply hasL_erase in H.
+  - apply hasDot_erase in H.
     apply ty_var; eauto.
   - simpl in IHhas_type1.
     destruct s; simpl in IHhas_type2; eapply ty_lam; eauto.

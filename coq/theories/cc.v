@@ -12,30 +12,27 @@ Declare Scope coc_scope.
 Open Scope coc_scope.
 
 Definition context T := seq (option T).
-Definition cons_Some T (n : T) (Gamma : context T) : context T := 
-  Some n :: Gamma.
-Definition cons_None T (Gamma : context T) : context T := 
-  None :: Gamma.
 
-Notation "m :s Gamma" := (cons_Some m Gamma) (at level 30).
-Notation ":n Gamma" := (cons_None Gamma) (at level 30).
+Notation "m ̇+ Γ" := (Some m :: Γ) (at level 30).
+Notation "□ Γ" := (None :: Γ) (at level 30).
 
+Reserved Notation "[ x :- A ∈ Γ ]".
 Inductive has {T} `{Ids T} `{Subst T} : 
   context T -> var -> T -> Prop :=
-| has_O m Gamma :
-  has (m :s Gamma) 0 m.[ren (+1)]
-| has_S Gamma v m n : 
-  has Gamma v m ->
-  has (n :s Gamma) (v.+1) m.[ren (+1)]
-| has_N Gamma v m : 
-  has Gamma v m ->
-  has (:n Gamma) (v.+1) m.[ren (+1)].
+| has_O m Γ :
+  [ 0 :- m.[ren (+1)] ∈ m ̇+ Γ ]
+| has_S Γ v m n : 
+  [ v :- m ∈ Γ ] ->
+  [ v.+1 :- m.[ren (+1)] ∈ n ̇+ Γ ]
+| has_N Γ v m : 
+  [ v :- m ∈ Γ ] ->
+  [ v.+1 :- m.[ren (+1)] ∈ □ Γ ]
+where "[ x :- A ∈ Γ ]" := (has Γ x A).
 
-Lemma has_x {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  has Gamma x A ->
+Lemma has_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  [ x :- A ∈ Γ ] ->
   forall B,
-    has Gamma x B ->
-    A = B.
+    [ x :- B ∈ Γ ] -> A = B.
 Proof.
   induction 1; intros.
   inv H1; eauto.
@@ -63,15 +60,26 @@ Inductive value : term -> Prop :=
 | value_prod A B : value (Prod A B)
 | value_lam n    : value (Lam n).
 
+Reserved Notation "m ~> n" (at level 30).
 Inductive step : term -> term -> Prop :=
-| step_beta s t :
-  step (App (Lam s) t) s.[t/]
-| step_appL s1 s2 t :
-  step s1 s2 ->
-  step (App s1 t) (App s2 t)
-| step_appR s t1 t2 :
-  step t1 t2 ->
-  step (App s t1) (App s t2).
+| step_beta m n :
+  (App (Lam m) n) ~> m.[n/]
+| step_lam m m' :
+  m ~> m' ->
+  Lam m ~> Lam m'
+| step_prodL A A' B :
+  A ~> A' ->
+  Prod A B ~> Prod A' B
+| step_prodR A B B' :
+  B ~> B' ->
+  Prod A B ~> Prod A B'
+| step_appL m m' n :
+  m ~> m' ->
+  App m n ~> App m' n
+| step_appR m n n' :
+  n ~> n' ->
+  App m n ~> App m n'
+where "m ~> n" := (step m n).
 
 Inductive pstep : term -> term -> Prop :=
 | pstep_var x :
@@ -94,8 +102,106 @@ Inductive pstep : term -> term -> Prop :=
   pstep t1 t2 ->
   pstep (Prod s1 t1) (Prod s2 t2).
 
-Notation red := (star pstep).
-Notation "s === t" := (conv pstep s t) (at level 50).
+Notation red := (star step).
+Notation "m ~>* n" := (red m n) (at level 30).
+Notation "m === n" := (conv step m n) (at level 50).
+
+Definition sred σ τ :=
+  forall x : var, (σ x) ~>* (τ x).
+
+Lemma step_subst σ m n : m ~> n -> m.[σ] ~> n.[σ].
+Proof.
+  move=> st. elim: st σ => /={m n}; eauto using step.
+  move=> m n σ. 
+  replace (m.[n/].[σ]) with (m.[up σ].[n.[σ]/]).
+  apply step_beta. autosubst.
+Qed.
+
+Lemma red_app m1 m2 n1 n2 :
+  m1 ~>* m2 -> n1 ~>* n2 -> (App m1 n1) ~>* (App m2 n2).
+Proof.
+  move=> A B. apply: (star_trans (App m2 n1)).
+  - apply: (star_hom (App^~ n1)) A => x y. exact: step_appL.
+  - apply: star_hom B => x y. exact: step_appR.
+Qed.
+
+Lemma red_lam s1 s2 : s1 ~>* s2 -> Lam s1 ~>* Lam s2.
+Proof. apply: star_hom => x y. exact: step_lam. Qed.
+
+Lemma red_prod A1 A2 B1 B2 :
+  A1 ~>* A2 -> B1 ~>* B2 -> Prod A1 B1 ~>* Prod A2 B2.
+Proof.
+  move=> A B. apply: (star_trans (Prod A2 B1)).
+  - apply: (star_hom (Prod^~ B1)) A => x y. exact: step_prodL.
+  - apply: (star_hom (Prod A2)) B => x y. exact: step_prodR.
+Qed.
+
+Lemma red_subst m n : 
+  m ~>* n -> forall σ, m.[σ] ~>* n.[σ].
+Proof.
+  induction 1; intros.
+  eauto.
+  eapply star_trans.
+  apply IHstar; eauto.
+  econstructor; eauto.
+  apply step_subst; eauto.
+Qed.
+
+Lemma sred_up σ τ : sred σ τ -> sred (up σ) (up τ).
+Proof. move=> A [|n] //=. asimpl. apply: red_subst. exact: A. Qed.
+
+Hint Resolve red_app red_lam red_prod sred_up : red_congr.
+
+Lemma red_compat σ τ s : sred σ τ -> red s.[σ] s.[τ].
+Proof. elim: s σ τ => *; asimpl; eauto with red_congr. Qed.
+
+Definition sconv (σ τ : var -> term) :=
+  forall x, σ x === τ x.
+
+Lemma conv_lam s1 s2 : s1 === s2 -> Lam s1 === Lam s2.
+Proof. apply: conv_hom => x y. exact: step_lam. Qed.
+
+Lemma conv_prod A A' B B' :
+  A === A' -> B === B' -> Prod A B === Prod A' B'.
+Proof.
+  move=> conv1 conv2. apply: (conv_trans (Prod A' B)).
+  - apply: (conv_hom (Prod^~ B)) conv1 => x y ps.
+    constructor; eauto.
+  - apply: (conv_hom (Prod A')) conv2 => x y ps.
+    constructor; eauto.
+Qed.
+
+Lemma conv_app m m' n n' :
+  m === m' -> n === n' -> App m n === App m' n'.
+Proof.
+  move=> A B. apply: (conv_trans (App m' n)).
+  - apply: (conv_hom (App^~ n)) A => x y ps. 
+    constructor; eauto.
+  - apply: conv_hom B => x y ps.
+    constructor; eauto.
+Qed.
+
+Lemma conv_subst σ s t : 
+  s === t -> s.[σ] === t.[σ].
+Proof. 
+  intro H.
+  eapply conv_hom; eauto.
+  intros.
+  apply step_subst; eauto.
+Qed.
+
+Lemma sconv_up σ τ : sconv σ τ -> sconv (up σ) (up τ).
+Proof. move=> A [|x] //=. asimpl. exact: conv_subst. Qed.
+
+Lemma conv_compat σ τ s :
+  sconv σ τ -> s.[σ] === s.[τ].
+Proof.
+  elim: s σ τ => *; asimpl; eauto using
+    conv_app, conv_lam, conv_prod, sconv_up.
+Qed.
+
+Lemma conv_beta s t1 t2 : t1 === t2 -> s.[t1/] === s.[t2/].
+Proof. move=> c. by apply: conv_compat => -[]. Qed.
 
 Definition psstep (sigma tau : var -> term) :=
   forall x, pstep (sigma x) (tau x).
@@ -115,6 +221,14 @@ Hint Resolve pstep_refl.
 
 Lemma step_pstep s t : step s t -> pstep s t.
 Proof. elim; eauto using pstep. Qed.
+
+Lemma pstep_red s t : pstep s t -> s ~>* t.
+Proof.
+  elim=> {s t} //=; eauto with red_congr.
+  move=> m m' n n' p1 r1 p2 r2. eapply starES. by econstructor.
+  apply: (star_trans (m'.[n.:Var])). exact: red_subst.
+  by apply: red_compat => -[|].
+Qed.
 
 Lemma pstep_subst sigma s t :
   pstep s t -> pstep s.[sigma] t.[sigma].
@@ -163,53 +277,14 @@ Proof with eauto using pstep.
 Qed.
 
 Theorem church_rosser :
-  CR pstep.
+  CR step.
 Proof with eauto using star.
   apply: (cr_method (e2 := pstep) (rho := rho))...
+  exact: step_pstep.
+  exact: pstep_red.
   exact: rho_triangle.
 Qed.
 Hint Resolve church_rosser.
-
-Definition sconv (sigma tau : var -> term) :=
-  forall x, sigma x === tau x.
-
-Lemma conv_app s1 s2 t1 t2 :
-  s1 === s2 -> t1 === t2 -> App s1 t1 === App s2 t2.
-Proof.
-  move=> A B. apply: (conv_trans (App s2 t1)).
-  - apply: (conv_hom (App^~ t1)) A => x y p. by apply: pstep_app.
-  - apply: conv_hom B => x y p. by apply: pstep_app.
-Qed.
-
-Lemma conv_lam s1 s2 : s1 === s2 -> Lam s1 === Lam s2.
-Proof. apply: conv_hom => x y. exact: pstep_lam. Qed.
-
-Lemma conv_prod s1 s2 t1 t2 :
-  s1 === s2 -> t1 === t2 -> Prod s1 t1 === Prod s2 t2.
-Proof.
-  move=> A B. apply: (conv_trans (Prod s2 t1)).
-  - apply: (conv_hom (Prod^~ t1)) A => x y p. by apply: pstep_prod.
-  - apply: conv_hom B => x y p. by apply: pstep_prod.
-Qed.
-
-Lemma conv_subst sigma s t : s === t -> s.[sigma] === t.[sigma].
-Proof. apply: conv_hom. intros. apply: pstep_subst. eauto. Qed.
-
-Definition left_invertible (f : nat -> nat) := 
-  exists g, g ∘ f = id.
-
-Lemma left_invertible_upren xi :
-  left_invertible xi -> left_invertible (upren xi).
-Proof.
-  unfold left_invertible.
-  intros.
-  inv H.
-  exists (upren x).
-  assert (upren x ∘ upren xi = upren xi >>> upren x) by autosubst.
-  rewrite H; asimpl.
-  replace (xi >>> x) with (x ∘ xi) by autosubst.
-  rewrite H0; autosubst.
-Qed.
 
 Lemma sort_ren_inv l v xi :
   Sort l = v.[ren xi] -> v = Sort l.
@@ -256,7 +331,7 @@ Proof.
 Qed.
 
 Lemma red_sort_inv s A :
-  red (Sort s) A -> A = (Sort s).
+  Sort s ~>* A -> A = Sort s.
 Proof.
   induction 1; intros; eauto.
   rewrite IHstar in H0.
@@ -264,10 +339,10 @@ Proof.
 Qed.
 
 Lemma red_prod_inv A B x :
-  red (Prod A B) x -> 
+  Prod A B ~>* x -> 
   exists A' B',
-    red A A' /\
-    red B B' /\
+    A ~>* A' /\
+    B ~>* B' /\
     x = Prod A' B'.
 Proof.
   induction 1.
@@ -277,9 +352,12 @@ Proof.
   - firstorder.
     rewrite H3 in H0.
     inv H0.
-    exists s2.
-    exists t2.
-    repeat constructor; eauto using star.
+    + exists A'.
+      exists x0.
+      repeat constructor; eauto using star.
+    + exists x.
+      exists B'.
+      repeat constructor; eauto using star.
 Qed.
 
 Ltac red_inv m H :=
@@ -334,13 +412,13 @@ Proof.
   inv H4; eauto using join_conv.
 Qed.
 
-Notation "@ l" := (Sort (Some l)) (at level 30).
-Notation prop := (Sort None).
+Notation 𝐔 l := (Sort (Some l)).
+Notation 𝐏 := (Sort None).
 
 Inductive sub1 : term ->term -> Prop :=
 | sub1_refl A : sub1 A A
-| sub1_prop n : sub1 prop (@n)
-| sub1_sort n m : n <= m -> sub1 (@n) (@m)
+| sub1_prop l : sub1 𝐏 (𝐔 l)
+| sub1_sort l1 l2 : l1 <= l2 -> sub1 (𝐔 l1) (𝐔 l2)
 | sub1_prod A B1 B2 : sub1 B1 B2 -> sub1 (Prod A B1) (Prod A B2).
 
 CoInductive sub (A B : term) : Prop :=
@@ -358,10 +436,10 @@ Lemma sub_refl A : A <: A.
 Proof. apply: sub1_sub. exact: sub1_refl. Qed.
 Hint Resolve sub_refl.
 
-Lemma sub_prop n : prop <: @n.
+Lemma sub_prop l : 𝐏 <: 𝐔 l.
 Proof. exact/sub1_sub/sub1_prop. Qed.
 
-Lemma sub_sort n m : n <= m -> @n <: @m.
+Lemma sub_sort l1 l2 : l1 <= l2 -> 𝐔 l1 <: 𝐔 l2.
 Proof. move=> leq. exact/sub1_sub/sub1_sort. Qed.
 
 Lemma sub1_trans A B C D :
@@ -399,120 +477,120 @@ Proof. move=> s. elim: s sigma => /=; eauto using sub1. Qed.
 Lemma sub_subst sigma A B : A <: B -> A.[sigma] <: B.[sigma].
 Proof. move=> [A' B' /sub1_subst]; eauto using sub, conv_subst. Qed.
 
-Reserved Notation "[ Gamma |- ]".
-Reserved Notation "[ Gamma |- s :- A ]".
+Reserved Notation "[ Γ |- ]".
+Reserved Notation "[ Γ |- s :- A ]".
 
 Inductive has_type : context term -> term -> term -> Prop :=
-| p_axiom Gamma :
-  [ Gamma |- prop :- @0 ]
-| t_axiom Gamma n :
-  [ Gamma |- @n :- @n.+1 ]
-| ty_prop Gamma A B n :
-  [ Gamma |- A :- Sort n ] ->
-  [ A :s Gamma |- B :- prop ] ->
-  [ Gamma |- Prod A B :- prop ]
-| ty_prod Gamma A B n :
-  [ Gamma |- A :- @n ] ->
-  [ A :s Gamma |- B :- @n ] ->
-  [ Gamma |- Prod A B :- @n ]
-| ty_var Gamma x A :
-  has Gamma x A ->
-  [ Gamma |- Var x :- A ]
-| ty_lam Gamma A B s n :
-  [ Gamma |- Prod A B :- Sort n ] ->
-  [ A :s Gamma |- s :- B ] ->
-  [ Gamma |- Lam s :- Prod A B ]
-| ty_app Gamma A B s t :
-  [ Gamma |- s :- Prod A B ] ->
-  [ Gamma |- t :- A ] ->
-  [ Gamma |- App s t :- B.[t/] ]
-| ty_conv Gamma A B s n :
+| p_axiom Γ :
+  [ Γ |- 𝐏 :- 𝐔 0 ]
+| t_axiom Γ l :
+  [ Γ |- 𝐔 l :- 𝐔 l.+1 ]
+| ty_prop Γ A B n :
+  [ Γ |- A :- Sort n ] ->
+  [ A ̇+ Γ |- B :- 𝐏 ] ->
+  [ Γ |- Prod A B :- 𝐏 ]
+| ty_prod Γ A B l :
+  [ Γ |- A :- 𝐔 l ] ->
+  [ A ̇+ Γ |- B :- 𝐔 l ] ->
+  [ Γ |- Prod A B :- 𝐔 l ]
+| ty_var Γ x A :
+  [ x :- A ∈ Γ ] ->
+  [ Γ |- Var x :- A ]
+| ty_lam Γ A B s n :
+  [ Γ |- Prod A B :- Sort n ] ->
+  [ A ̇+ Γ |- s :- B ] ->
+  [ Γ |- Lam s :- Prod A B ]
+| ty_app Γ A B s t :
+  [ Γ |- s :- Prod A B ] ->
+  [ Γ |- t :- A ] ->
+  [ Γ |- App s t :- B.[t/] ]
+| ty_conv Γ A B s n :
   A <: B ->
-  [ Gamma |- B :- Sort n ] ->
-  [ Gamma |- s :- A ] ->
-  [ Gamma |- s :- B ]
-where "[ Gamma |- s :- A ]" := (has_type Gamma s A).
+  [ Γ |- B :- Sort n ] ->
+  [ Γ |- s :- A ] ->
+  [ Γ |- s :- B ]
+where "[ Γ |- s :- A ]" := (has_type Γ s A).
 
 Inductive context_ok : context term -> Prop :=
 | nil_ok :
   [ nil |- ]
-| s_ok Gamma A n :
-  [ Gamma |- A :- Sort n ] ->
-  [ Gamma |- ] ->
-  [ A :s Gamma |- ]
-| n_ok Gamma :
-  [ Gamma |- ] ->
-  [ :n Gamma |- ]
-where "[ Gamma |- ]" := (context_ok Gamma).
+| s_ok Γ A n :
+  [ Γ |- A :- Sort n ] ->
+  [ Γ |- ] ->
+  [ A ̇+ Γ |- ]
+| n_ok Γ :
+  [ Γ |- ] ->
+  [ □ Γ |- ]
+where "[ Γ |- ]" := (context_ok Γ).
 
-Notation "[ Gamma |- s ]" := (exists n, [ Gamma |- s :- Sort n ]).
+Notation "[ Γ |- s ]" := (exists n, [ Γ |- s :- Sort n ]).
 
 Inductive agree_ren : (var -> var) ->
   context term -> context term -> Prop :=
-| agree_ren_nil xi :
-  agree_ren xi nil nil
-| agree_ren_s Gamma Gamma' xi m :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren (upren xi) (m :s Gamma) (m.[ren xi] :s Gamma')
-| agree_ren_n Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren (upren xi) (:n Gamma) (:n Gamma')
-| agree_ren_wk Gamma Gamma' xi m :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren ((+1) ∘ xi) (Gamma) (m :: Gamma').
+| agree_ren_nil ξ :
+  agree_ren ξ nil nil
+| agree_ren_s Γ Γ' ξ m :
+  agree_ren ξ Γ Γ' ->
+  agree_ren (upren ξ) (m ̇+ Γ) (m.[ren ξ] ̇+ Γ')
+| agree_ren_n Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
+  agree_ren (upren ξ) (□ Γ) (□ Γ')
+| agree_ren_wk Γ Γ' ξ m :
+  agree_ren ξ Γ Γ' ->
+  agree_ren ((+1) ∘ ξ) (Γ) (m :: Γ').
 
-Lemma agree_ren_refl Gamma :
-  agree_ren id Gamma Gamma.
+Lemma agree_ren_refl Γ :
+  agree_ren id Γ Γ.
 Proof.
-  induction Gamma.
+  induction Γ.
   - constructor.
   - destruct a. 
-    assert (agree_ren id (t :s Gamma) (t :s Gamma)
-      = agree_ren (upren id) (t :s Gamma) (t.[ren id] :s Gamma))
+    assert (agree_ren id (t ̇+ Γ) (t ̇+ Γ)
+      = agree_ren (upren id) (t ̇+ Γ) (t.[ren id] ̇+ Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.
-    assert (agree_ren id (:n Gamma) (:n Gamma)
-      = agree_ren (upren id) (:n Gamma) (:n Gamma))
+    assert (agree_ren id (□ Γ) (□ Γ)
+      = agree_ren (upren id) (□ Γ) (□ Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.
 Qed.
 
-Lemma agree_ren_has Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
+Lemma agree_ren_has Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
   forall x A,
-    has Gamma x A ->
-    has Gamma' (xi x) A.[ren xi].
+    [ x :- A ∈ Γ ] ->
+    [ ξ x :- A.[ren ξ] ∈ Γ' ].
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
   - inv H.
   - destruct x; asimpl.
     inv H.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     inv H; subst.
-    replace (m0.[ren (+1)].[ren (upren xi)]) 
-      with (m0.[ren xi].[ren (+1)]) by autosubst.
+    replace (m0.[ren (+1)].[ren (upren ξ)]) 
+      with (m0.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
   - inv H; subst.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
-  - replace (A.[ren ((+1) ∘ xi)])
-      with (A.[ren xi].[ren (+1)]) by autosubst.
+  - replace (A.[ren ((+1) ∘ ξ)])
+      with (A.[ren ξ].[ren (+1)]) by autosubst.
     destruct m; constructor; apply IHagree_ren; eauto.
 Qed.
 
-Lemma rename_ok Gamma m A :
-  [ Gamma |- m :- A ] ->
-  forall Gamma' xi,
-    agree_ren xi Gamma Gamma' ->
-    [ Gamma' |- m.[ren xi] :- A.[ren xi] ].
+Lemma rename_ok Γ m A :
+  [ Γ |- m :- A ] ->
+  forall Γ' ξ,
+    agree_ren ξ Γ Γ' ->
+    [ Γ' |- m.[ren ξ] :- A.[ren ξ] ].
 Proof.
   intros H.
   induction H; simpl; intros.
@@ -520,15 +598,15 @@ Proof.
   - apply t_axiom; assumption.
   - asimpl.
     eapply ty_prop; eauto.
-    replace prop with (prop.[ren (upren xi)]) by autosubst.
+    replace 𝐏 with (𝐏.[ren (upren ξ)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
   - asimpl.
     apply ty_prod; eauto.
-    replace (@n) with ((@n).[ren (upren xi)]) by autosubst.
+    replace (𝐔 l) with ((𝐔 l).[ren (upren ξ)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
-  - replace (ids (xi x)) with (Var (xi x)) by autosubst.
+  - replace (ids (ξ x)) with (Var (ξ x)) by autosubst.
     apply ty_var.
     eapply agree_ren_has; eauto.
   - eapply ty_lam.
@@ -540,8 +618,8 @@ Proof.
     specialize (IHhas_type1 _ _ H1).
     specialize (IHhas_type2 _ _ H1).
     asimpl in IHhas_type1.
-    replace (B.[t.[ren xi] .: ren xi]) 
-      with (B.[ren (upren xi)].[t.[ren xi]/]) by autosubst.
+    replace (B.[t.[ren ξ] .: ren ξ]) 
+      with (B.[ren (upren ξ)].[t.[ren ξ]/]) by autosubst.
     eapply ty_app; eauto.
   - eapply ty_conv.
     apply sub_subst; eauto.
@@ -549,9 +627,9 @@ Proof.
     apply IHhas_type2; eauto.
 Qed.
 
-Theorem weakening Gamma s A B :
-  [ Gamma |- s :- A ] -> 
-  [ B :: Gamma |- s.[ren (+1)] :- A.[ren (+1)] ].
+Theorem weakening Γ s A B :
+  [ Γ |- s :- A ] -> 
+  [ B :: Γ |- s.[ren (+1)] :- A.[ren (+1)] ].
 Proof.
   intros.
   eapply rename_ok in H.
