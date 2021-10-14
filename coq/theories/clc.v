@@ -20,7 +20,7 @@ Definition context T := seq (elem T).
 Notation "m +u Γ" := (Some (m, U) :: Γ) (at level 30).
 Notation "m +l Γ" := (Some (m, L) :: Γ) (at level 30).
 Notation "m +{ s } Γ" := (Some (m, s) :: Γ) (at level 30).
-Notation "◻ Γ" := (None :: Γ) (at level 30).
+Notation "□ Γ" := (None :: Γ) (at level 30).
 
 Reserved Notation "[ Γ₁ ‡ Γ₂ ‡ Γ ]".
 Inductive merge T : context T -> context T -> context T -> Prop :=
