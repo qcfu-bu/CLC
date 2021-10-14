@@ -124,23 +124,28 @@
 
       <$m, n, A, B, C$> ::= $U_i$ | $L_k$ | $x$ \hspace*{7.3em} expressions
       \indalt $(x : A) \arw{s}{t} B$
+      \indalt $(x : A) \lrw{s}{t} B$
       \indalt $\lambda x. n$ | $m\ n$
     \end{grammar}
     \end{minipage}
     \label{syntax}
   \end{figure}
-  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory is the indexed function type: $(x : A) \arw{s}{t} B$. The reason for these indices is that we have built the ! exponential of linear logic directly into universe sorts. The indices $s$, and $t$ annotate the domain, and co-domain's respective universe sort, hence annotating linearity. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into universe sorts, we implicitly limit ! to only be used canonically. This allows us to derive the substitution lemma, and construct a direct modeling of CLC in CC$\omega$ without needing any machinery for manipulating exponential.
+  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory are the indexed function types: $(x : A) \arw{s}{t} B$, $(x : A) \lrw{s}{t} B$. The reason for these indices is that we have built the ! exponential of linear logic directly into universe sorts. The indices $s$, and $t$ annotate the domain, and co-domain's respective universe sort, hence annotating linearity. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into universe sorts, we implicitly limit ! to only be used canonically. This allows us to derive the substitution lemma, and construct a direct modeling of CLC in CC$\omega$ without needing any machinery for manipulating exponential.
   \begin{figure}[H]
     \caption{Correspondence of CLC types and MELL implications}
     \begin{align}
-      (\_ : A) \arw{U}{U} B \quad &\Leftrightarrow \quad !A \multimap\ !B \\
-      (\_ : A) \arw{U}{L} B \quad &\Leftrightarrow \quad !A \multimap B \\
-      (\_ : A) \arw{L}{U} B \quad &\Leftrightarrow \quad A \multimap\ !B \\
-      (\_ : A) \arw{L}{L} B \quad &\Leftrightarrow \quad A \multimap B
+      (\_ : A) \arw{U}{U} B \quad &\Leftrightarrow \quad !(!A \multimap\ !B) \\
+      (\_ : A) \arw{U}{L} B \quad &\Leftrightarrow \quad !(!A \multimap B) \\
+      (\_ : A) \arw{L}{U} B \quad &\Leftrightarrow \quad !(A \multimap\ !B) \\
+      (\_ : A) \arw{L}{L} B \quad &\Leftrightarrow \quad !(A \multimap B) \\
+      (\_ : A) \lrw{U}{U} B \quad &\Leftrightarrow \quad !A \multimap\ !B \\
+      (\_ : A) \lrw{U}{L} B \quad &\Leftrightarrow \quad !A \multimap B \\
+      (\_ : A) \lrw{L}{U} B \quad &\Leftrightarrow \quad A \multimap\ !B \\
+      (\_ : A) \lrw{L}{L} B \quad &\Leftrightarrow \quad A \multimap B
     \end{align}
     \label{correspondence}
   \end{figure}
-  Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2) if the co-domain $B$ is dependent on arguments of domain $A$. Though it may seem as if implications of the $!(A \multimap B)$ form are left out, CLC encodes these by endowing each function type with a universe sort through their formation judgment. The encoding for this example would be $\Gamma \vdash A \arw{L}{L} B \utype U_i $. We will discuss function type formation in Section \ref{tyformation} in greater detail.
+  Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2), (5), (6) if the co-domain $B$ is dependent on arguments of domain $A$. We will discuss function type formation in Section \ref{tyformation} in greater detail.
 
   In practice, algorithmic type checking techniques such as bi-directional typing allow users to omit writing most of these sort indices.
 
