@@ -124,7 +124,6 @@
 
       <$m, n, A, B, C$> ::= $U_i$ | $L_k$ | $x$ \hspace*{7.3em} expressions
       \indalt $(x : A) \arw{s}{t} B$
-      \indalt $(x : A) \lrw{s}{t} B$
       \indalt $\lambda x. n$ | $m\ n$
     \end{grammar}
     \end{minipage}
@@ -134,14 +133,10 @@
   \begin{figure}[H]
     \caption{Correspondence of CLC types and MELL implications}
     \begin{align}
-      (\_ : A) \arw{U}{U} B \quad &\Leftrightarrow \quad !(!A \multimap !B) \\
-      (\_ : A) \arw{U}{L} B \quad &\Leftrightarrow \quad !(!A \multimap B) \\
-      (\_ : A) \arw{L}{U} B \quad &\Leftrightarrow \quad !(A \multimap !B) \\
-      (\_ : A) \arw{L}{L} B \quad &\Leftrightarrow \quad !(A \multimap B) \\
-      (\_ : A) \lrw{U}{U} B \quad &\Leftrightarrow \quad !A \multimap !B \\
-      (\_ : A) \lrw{U}{L} B \quad &\Leftrightarrow \quad !A \multimap B \\
-      (\_ : A) \lrw{L}{U} B \quad &\Leftrightarrow \quad A \multimap !B \\
-      (\_ : A) \lrw{L}{L} B \quad &\Leftrightarrow \quad A \multimap B
+      (\_ : A) \arw{U}{U} B \quad &\Leftrightarrow \quad !A \multimap !B \\
+      (\_ : A) \arw{U}{L} B \quad &\Leftrightarrow \quad !A \multimap B \\
+      (\_ : A) \arw{L}{U} B \quad &\Leftrightarrow \quad A \multimap !B \\
+      (\_ : A) \arw{L}{L} B \quad &\Leftrightarrow \quad A \multimap B
     \end{align}
     \label{correspondence}
   \end{figure}
@@ -414,50 +409,45 @@
   Finally, the \rname{Conv} rule allows judgment $\Gamma \vdash m \stype{s} A$ to convert to judgment $\Gamma \vdash m \stype{s} B$, if $B$ is a valid type in context $\overline{\Gamma}$, and of the same sort $s$ as $A$. Futhermore, $A$ must be a subtype of $B$ satisfying the cumulativity relation $A \preceq B$. This rule gives rise to large eliminations, as computations embedded at the type level can convert to canonical types.
 
 
-  \subsection{Equality and Parallel Reduction} \label{reduction}
-  The operational semantics, and definitional equality of CLC is defined by parallel reductions \cite{takahashi} as presented in Figure \ref{parallel}, all of which are entirely standard.
+  \subsection{Equality and Reduction} \label{reduction}
+  The operational semantics, and definitional $\beta$-equality of CLC is defined reductions as presented in Figure \ref{parallel}, all of which are entirely standard.
   \begin{figure}[H]
     \caption{Equality and Parallel Reduction}
     \begin{mathpar}
       \inferrule
-      { m_1 \pstep^* n \\ m_2 \pstep^* n }
+      { m_1 \step^* n \\ m_2 \step^* n }
       { m_1 \equiv m_2 : A }
       \rname{Join}
 
       \inferrule
-      { }
-      { x \pstep x }
-      \rname{P-Var}
-
-      \inferrule
-      { }
-      { U \pstep U }
-      \rname{P-U}
-
-      \inferrule
-      { }
-      { L \pstep L }
-      \rname{P-L}
-
-      \inferrule
-      { n \pstep n' }
-      { \lambda x.n \pstep \lambda x.n' }
-      \rname{P-$\lambda$}
-
-      \inferrule
-      { m \pstep m' \\ n \pstep n' }
-      { m\ n \pstep m'\ n' }
-      \rname{P-App}
-
-      \inferrule
-      { m \pstep m' \\ n \pstep n' }
-      { (\lambda x.m)\ n \pstep m'[n'/x] }
+      {  }
+      { (\lambda x.m)\ n \pstep m[n/x] }
       \rname{P-$\beta$}
 
       \inferrule
-      { A \pstep A' \\ B \pstep B' }
-      { (x : A) \arw{s}{t} B \pstep (x : A') \arw{s}{t} B' }
-      \rname{P-Prod}
+      { m \step m' }
+      { \lambda x.m \step \lambda x.m' }
+      \rname{Step-$\lambda$}
+
+      \inferrule
+      { A \pstep A' }
+      { (x : A) \arw{s}{t} B \pstep (x : A') \arw{s}{t} B }
+      \rname{Step-ProdL}
+
+      \inferrule
+      { B \pstep B' }
+      { (x : A) \arw{s}{t} B \pstep (x : A) \arw{s}{t} B' }
+      \rname{Step-ProdR}
+
+      \inferrule
+      { m \step m' }
+      { m\ n \step m'\ n }
+      \rname{Step-AppL}
+
+      \inferrule
+      { n \step n' }
+      { m\ n \step m\ n' }
+      \rname{Step-AppR}
     \end{mathpar}
     \label{parallel}
   \end{figure}
@@ -473,11 +463,11 @@
   The following lemmas and proofs are entirely standard. The presence of linear types do not pose any complications as reductions are untyped.
 
   \begin{lemma} Parallel reduction satisfies the diamond property. \\
-    If $m \pstep m_1$ and $m \pstep m_2$ then there exists $m'$ such that $m_1 \pstep m'$ and $m_2 \pstep m'$.
+    If $m \pstep_p m_1$ and $m \pstep_p m_2$ then there exists $m'$ such that $m_1 \pstep_p m'$ and $m_2 \pstep_p m'$.
   \end{lemma}
 
-  \begin{corollary} The transitive reflexive closure of parallel reduction is confluent. \\ 
-    If $m \pstep^* m_1$ and $m \pstep^* m_2$ then there exists $m'$ such that $m_1 \pstep^* m'$ and $m_2 \pstep^* m'$.
+  \begin{corollary} The transitive reflexive closure of  reduction is confluent. \\ 
+    If $m \step^* m_1$ and $m \step^* m_2$ then there exists $m'$ such that $m_1 \pstep^* m'$ and $m_2 \pstep^* m'$.
   \end{corollary}
 
   \begin{corollary}
@@ -488,7 +478,7 @@
   CLC restricts the weakening rule for variables of linear types. However, weakening variables of non-linear types remain admissible.
 
   \begin{lemma} Weakening. \\
-    If $\Gamma \vdash m \stype{s} A$ is a valid, then for any $x \notin \Gamma$, judgment $\Gamma, x \utype B \vdash m \stype{s} A$ is derivable.
+    If $\Gamma \vdash m \stype{s} A$ is a valid judgment, then for any $x \notin \Gamma$, judgment $\Gamma, x \utype B \vdash m \stype{s} A$ is derivable.
   \end{lemma}
 
   \subsubsection{Substitution} \label{subst}
