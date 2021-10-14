@@ -13,17 +13,17 @@ Open Scope coc_scope.
 
 Definition context T := seq (option T).
 
-Notation "m +⋅ Γ" := (Some m :: Γ) (at level 30).
+Notation "m +: Γ" := (Some m :: Γ) (at level 30).
 Notation "□ Γ" := (None :: Γ) (at level 30).
 
 Reserved Notation "[ x :- A ∈ Γ ]".
 Inductive has {T} `{Ids T} `{Subst T} : 
   context T -> var -> T -> Prop :=
 | has_O m Γ :
-  [ 0 :- m.[ren (+1)] ∈ m +⋅ Γ ]
+  [ 0 :- m.[ren (+1)] ∈ m +: Γ ]
 | has_S Γ v m n : 
   [ v :- m ∈ Γ ] ->
-  [ v.+1 :- m.[ren (+1)] ∈ n +⋅ Γ ]
+  [ v.+1 :- m.[ren (+1)] ∈ n +: Γ ]
 | has_N Γ v m : 
   [ v :- m ∈ Γ ] ->
   [ v.+1 :- m.[ren (+1)] ∈ □ Γ ]
@@ -43,7 +43,7 @@ Proof.
 Qed.
   
 Inductive term : Type :=
-| Var (x : var)
+| Var  (x : var)
 | Sort (n : option nat)
 | App  (s t : term)
 | Lam  (s : {bind term})
@@ -487,18 +487,18 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Γ |- 𝐔 l :- 𝐔 l.+1 ]
 | ty_prop Γ A B n :
   [ Γ |- A :- Sort n ] ->
-  [ A +⋅ Γ |- B :- 𝐏 ] ->
+  [ A +: Γ |- B :- 𝐏 ] ->
   [ Γ |- Prod A B :- 𝐏 ]
 | ty_prod Γ A B l :
   [ Γ |- A :- 𝐔 l ] ->
-  [ A +⋅ Γ |- B :- 𝐔 l ] ->
+  [ A +: Γ |- B :- 𝐔 l ] ->
   [ Γ |- Prod A B :- 𝐔 l ]
 | ty_var Γ x A :
   [ x :- A ∈ Γ ] ->
   [ Γ |- Var x :- A ]
 | ty_lam Γ A B s n :
   [ Γ |- Prod A B :- Sort n ] ->
-  [ A +⋅ Γ |- s :- B ] ->
+  [ A +: Γ |- s :- B ] ->
   [ Γ |- Lam s :- Prod A B ]
 | ty_app Γ A B s t :
   [ Γ |- s :- Prod A B ] ->
@@ -517,7 +517,7 @@ Inductive context_ok : context term -> Prop :=
 | s_ok Γ A n :
   [ Γ |- A :- Sort n ] ->
   [ Γ |- ] ->
-  [ A +⋅ Γ |- ]
+  [ A +: Γ |- ]
 | n_ok Γ :
   [ Γ |- ] ->
   [ □ Γ |- ]
@@ -531,7 +531,7 @@ Inductive agree_ren : (var -> var) ->
   agree_ren ξ nil nil
 | agree_ren_s Γ Γ' ξ m :
   agree_ren ξ Γ Γ' ->
-  agree_ren (upren ξ) (m +⋅ Γ) (m.[ren ξ] +⋅ Γ')
+  agree_ren (upren ξ) (m +: Γ) (m.[ren ξ] +: Γ')
 | agree_ren_n Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   agree_ren (upren ξ) (□ Γ) (□ Γ')
@@ -545,8 +545,8 @@ Proof.
   induction Γ.
   - constructor.
   - destruct a. 
-    assert (agree_ren id (t +⋅ Γ) (t +⋅ Γ)
-      = agree_ren (upren id) (t +⋅ Γ) (t.[ren id] +⋅ Γ))
+    assert (agree_ren id (t +: Γ) (t +: Γ)
+      = agree_ren (upren id) (t +: Γ) (t.[ren id] +: Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.

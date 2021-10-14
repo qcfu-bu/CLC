@@ -1,5 +1,5 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
-From Coq Require Import ssrfun Program.
+From Coq Require Import ssrfun Program Utf8 Classical.
 Require Import AutosubstSsr ARS cc.
 
 Set Implicit Arguments.
@@ -16,87 +16,88 @@ Inductive sort : Type := U | L.
 Definition elem T := option (T * sort).
 
 Definition context T := seq (elem T).
-Definition cons_u T (n : T) (Gamma : context T) : context T := 
-  Some (n, U) :: Gamma.
-Definition cons_l T (n : T) (Gamma : context T) : context T := 
-  Some (n, L) :: Gamma.
-Definition cons_s T (n : T) (s : sort) (Gamma : context T) : context T := 
-  Some (n, s) :: Gamma.
-Definition cons_n T (Gamma : context T) : context T := 
-  None :: Gamma.
 
-Notation "m :u Gamma" := (cons_u m Gamma) (at level 30).
-Notation "m :l Gamma" := (cons_l m Gamma) (at level 30).
-Notation "m :[ s ] Gamma" := (cons_s m s Gamma) (at level 30).
-Notation ":n Gamma" := (cons_n Gamma) (at level 30).
+Notation "m +u Γ" := (Some (m, U) :: Γ) (at level 30).
+Notation "m +l Γ" := (Some (m, L) :: Γ) (at level 30).
+Notation "m +{ s } Γ" := (Some (m, s) :: Γ) (at level 30).
+Notation "□ Γ" := (None :: Γ) (at level 30).
 
+Reserved Notation "[ Γ₁ ‡ Γ₂ ‡ Γ ]".
 Inductive merge T : context T -> context T -> context T -> Prop :=
 | merge_nil :
-  merge nil nil nil
-| merge_left Gamma1 Gamma2 Gamma m : 
-  merge Gamma1 Gamma2 Gamma ->
-  merge (m :u Gamma1) (m :u Gamma2) (m :u Gamma)
-| merge_right1 Gamma1 Gamma2 Gamma m :
-  merge Gamma1 Gamma2 Gamma ->
-  merge (m :l Gamma1) (:n Gamma2) (m :l Gamma)
-| merge_right2 Gamma1 Gamma2 Gamma m :
-  merge Gamma1 Gamma2 Gamma ->
-  merge (:n Gamma1) (m :l Gamma2) (m :l Gamma)
-| merge_null Gamma1 Gamma2 Gamma :
-  merge Gamma1 Gamma2 Gamma ->
-  merge (:n Gamma1) (:n Gamma2) (:n Gamma).
+  [ nil ‡ nil ‡ nil ]
+| merge_left Γ₁ Γ₂ Γ m : 
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  [ m +u Γ₁ ‡ m +u Γ₂ ‡ m +u Γ ] 
+| merge_right1 Γ₁ Γ₂ Γ m :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  [ m +l Γ₁ ‡ □ Γ₂ ‡ m +l Γ ]
+| merge_right2 Γ₁ Γ₂ Γ m :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  [ □ Γ₁ ‡ m +l Γ₂ ‡ m +l Γ ]
+| merge_null Γ₁ Γ₂ Γ :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  [ □ Γ₁ ‡ □ Γ₂ ‡ □ Γ ]
+where "[ Γ₁ ‡ Γ₂ ‡ Γ ]" := (merge Γ₁ Γ₂ Γ).
+
+Reserved Notation "[ Γ ]".
 
 Inductive pure T : context T -> Prop :=
 | pure_nil :
-  pure nil
-| pure_u Gamma m : 
-  pure Gamma ->
-  pure (m :u Gamma)
-| pure_n Gamma : 
-  pure Gamma ->
-  pure (:n Gamma).
+  [ nil ]
+| pure_u Γ m : 
+  [ Γ ] ->
+  [ m +u Γ ]
+| pure_n Γ : 
+  [ Γ ] ->
+  [ □ Γ ]
+where "[ Γ ]" := (pure Γ).
 
+Reserved Notation "[ x :u A ∈ Γ ]".
 Inductive hasU {T} `{Ids T} `{Subst T} : 
   context T -> var -> T -> Prop :=
-| hasU_O m Gamma :
-  pure Gamma ->
-  hasU (m :u Gamma) 0 m.[ren (+1)]
-| hasU_S Gamma v m n : 
-  hasU Gamma v m ->
-  hasU (n :u Gamma) (v.+1) m.[ren (+1)]
-| hasU_N Gamma v m : 
-  hasU Gamma v m ->
-  hasU (:n Gamma) (v.+1) m.[ren (+1)].
+| hasU_O m Γ :
+  [ Γ ] ->
+  [ 0 :u m.[ren (+1)] ∈ m +u Γ ]
+| hasU_S Γ v m n : 
+  [ v :u m ∈ Γ ] ->
+  [ v.+1 :u m.[ren (+1)] ∈ n +u Γ ]
+| hasU_N Γ v m : 
+  [ v :u m ∈ Γ ] ->
+  [ v.+1 :u m.[ren (+1)] ∈ □ Γ ]
+where "[ x :u A ∈ Γ ]" := (hasU Γ x A).
 
+Reserved Notation "[ x :l A ∈ Γ ]".
 Inductive hasL {T} `{Ids T} `{Subst T} :
   context T -> var -> T -> Prop :=
-| hasL_O m Gamma :
-  pure Gamma ->
-  hasL (m :l Gamma) 0 m.[ren (+1)]
-| hasL_S Gamma v m n :
-  hasL Gamma v m ->
-  hasL (n :u Gamma) (v.+1) m.[ren (+1)]
-| hasL_N Gamma v m :
-  hasL Gamma v m ->
-  hasL (:n Gamma) (v.+1) m.[ren (+1)].
+| hasL_O m Γ :
+  [ Γ ] ->
+  [ 0 :l m.[ren (+1)] ∈ m +l Γ ]
+| hasL_S Γ v m n :
+  [ v :l m ∈ Γ ] ->
+  [ v.+1 :l m.[ren (+1)] ∈ n +u Γ ]
+| hasL_N Γ v m :
+  [ v :l m ∈ Γ ] ->
+  [ v.+1 :l m.[ren (+1)] ∈ □ Γ ]
+where "[ x :l A ∈ Γ ]" := (hasL Γ x A).
 
-Fixpoint re T (Gamma : context T) : context T :=
-  match Gamma with
-  | Some (m, U) :: Gamma => Some (m, U) :: re Gamma
-  | _ :: Gamma => None :: re Gamma
+Fixpoint re T (Γ : context T) : context T :=
+  match Γ with
+  | Some (m, U) :: Γ => Some (m, U) :: re Γ
+  | _ :: Γ => None :: re Γ
   | _ => nil
   end.
 
-Lemma merge_sym T (Gamma1 Gamma2 Gamma : context T) : 
-  merge Gamma1 Gamma2 Gamma ->
-  merge Gamma2 Gamma1 Gamma.
+Notation "% Γ" := (re Γ) (at level 30).
+
+Lemma merge_sym T (Γ₁ Γ₂ Γ : context T) : 
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₂ ‡ Γ₁ ‡ Γ ].
 Proof.
   induction 1; intros; constructor; eauto.
 Qed.
 
-Lemma merge_pure_inv T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  pure Gamma -> pure Gamma1 /\ pure Gamma2.
+Lemma merge_pure_inv T (Γ₁ Γ₂ Γ : context T) :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ ] -> [ Γ₁ ] /\ [ Γ₂ ].
 Proof.
   induction 1; intros; constructor; eauto.
   - inv H0.
@@ -113,9 +114,8 @@ Proof.
     constructor; firstorder.
 Qed.
 
-Lemma merge_pure1 T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  pure Gamma1 -> Gamma = Gamma2.
+Lemma merge_pure1 T (Γ₁ Γ₂ Γ : context T) :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₁ ] -> Γ = Γ₂.
 Proof.
   induction 1; intros; eauto.
   - inv H0.
@@ -127,9 +127,8 @@ Proof.
     rewrite IHmerge; eauto.
 Qed.
 
-Lemma merge_pure2 T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  pure Gamma2 -> Gamma = Gamma1.
+Lemma merge_pure2 T (Γ₁ Γ₂ Γ : context T) :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₂ ] -> Γ = Γ₁.
 Proof.
   induction 1; intros; eauto.
   - inv H0.
@@ -141,9 +140,8 @@ Proof.
     rewrite IHmerge; eauto.
 Qed.
 
-Lemma merge_pure_pure T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  pure Gamma1 -> pure Gamma2 -> pure Gamma.
+Lemma merge_pure_pure T (Γ₁ Γ₂ Γ : context T) :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₁ ] -> [ Γ₂ ] -> [ Γ ].
 Proof.
   induction 1; intros; eauto.
   - inv H0; inv H1.
@@ -154,9 +152,8 @@ Proof.
     constructor; eauto.
 Qed.
 
-Lemma merge_pure_eq T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  pure Gamma1 -> pure Gamma2 -> Gamma1 = Gamma2.
+Lemma merge_pure_eq T (Γ₁ Γ₂ Γ : context T) :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₁ ] -> [ Γ₂ ] -> Γ₁ = Γ₂.
 Proof.
   induction 1; intros; eauto.
   - inv H0; inv H1.
@@ -167,9 +164,8 @@ Proof.
     rewrite IHmerge; eauto.
 Qed.
 
-Lemma merge_re_re T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  re Gamma1 = re Gamma /\ re Gamma2 = re Gamma.
+Lemma merge_re_re T (Γ₁ Γ₂ Γ : context T) :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> %Γ₁ = %Γ /\ %Γ₂ = %Γ.
 Proof.
   induction 1; simpl; intros; eauto; firstorder.
   rewrite H0; eauto.
@@ -182,10 +178,10 @@ Proof.
   rewrite H1; eauto.
 Qed.
 
-Lemma merge_re_re_re T (Gamma : context T) :
-  merge (re Gamma) (re Gamma) (re Gamma).
+Lemma merge_re_re_re T (Γ : context T) : 
+  [ %Γ ‡ %Γ ‡ %Γ ].
 Proof.
-  induction Gamma; intros.
+  induction Γ; intros.
   constructor.
   destruct a.
   destruct p.
@@ -195,33 +191,33 @@ Proof.
   constructor; eauto.
 Qed.
 
-Lemma re_re T (Gamma : context T) :
-  re Gamma = re (re Gamma).
+Lemma re_re T (Γ : context T) :
+  %Γ = %(%Γ).
 Proof.
-  induction Gamma.
+  induction Γ.
   - simpl.
     reflexivity.
   - case a; intros; simpl.
     case p; intros; simpl.
     case s; intros; simpl.
-    rewrite <- IHGamma; eauto.
-    rewrite <- IHGamma; eauto.
-    rewrite <- IHGamma; eauto.
+    rewrite <- IHΓ; eauto.
+    rewrite <- IHΓ; eauto.
+    rewrite <- IHΓ; eauto.
 Qed.
 
-Lemma pure_re T (Gamma : context T) :
-  pure Gamma -> Gamma = re Gamma.
+Lemma pure_re T (Γ : context T) :
+  [ Γ ] -> Γ = %Γ.
 Proof.
-  induction Gamma; intros.
+  induction Γ; intros.
   - eauto.
   - inv H; simpl.
-    rewrite <- IHGamma; eauto.
-    rewrite <- IHGamma; eauto.
+    rewrite <- IHΓ; eauto.
+    rewrite <- IHΓ; eauto.
 Qed.
 
-Lemma re_pure T (Gamma : context T) : pure (re Gamma).
+Lemma re_pure T (Γ : context T) : [ %Γ ].
 Proof.
-  induction Gamma; intros.
+  induction Γ; intros.
   constructor.
   destruct a; simpl. 
   destruct p; simpl. 
@@ -231,8 +227,8 @@ Proof.
   constructor; eauto.
 Qed.
 
-Lemma hasU_re {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasU Gamma x A -> hasU (re Gamma) x A.
+Lemma hasU_re {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  [ x :u A ∈ Γ ] -> [ x :u A ∈ %Γ ].
 Proof.
   induction 1; simpl.
   - constructor.
@@ -241,33 +237,42 @@ Proof.
   - constructor; eauto.
 Qed.
 
-Lemma hasL_re {T} `{Ids T} `{Subst T} (Gamma : context T) :
-  forall x A, ~hasL (re Gamma) x A.
+Lemma hasL_re {T} `{Ids T} `{Subst T} (Γ : context T) :
+  forall x A, ~[ x :l A ∈ %Γ ].
 Proof.
-  induction Gamma; unfold not; intros.
+  induction Γ; unfold not; intros.
   - simpl in H1. inv H1.
   - destruct a; inv H1. 
     destruct p; inv H2. 
     destruct s; inv H4. 
     destruct p; inv H2. 
     destruct s; inv H4. 
-    eapply IHGamma; eauto.
+    eapply IHΓ; eauto.
     destruct p; inv H2. 
     destruct s; inv H4. 
-    eapply IHGamma; eauto.
-    eapply IHGamma; eauto.
+    eapply IHΓ; eauto.
+    eapply IHΓ; eauto.
 Qed.
 
-Lemma hasU_pure {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasU Gamma x A -> pure Gamma.
+Lemma hasU_pure {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  [ x :u A ∈ Γ ] -> [ Γ ].
 Proof.
   induction 1; simpl; constructor; eauto.
 Qed.
 
-Lemma hasU_x {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasU Gamma x A ->
+Lemma hasL_pure {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  [ x :l A ∈ Γ ] -> ~[ Γ ].
+Proof.
+  induction 1; simpl; intro h. 
+  inv h.
+  inv h; eauto.
+  inv h; eauto.
+Qed.
+
+Lemma hasU_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  [ x :u A ∈ Γ ] ->
   forall B,
-    hasU Gamma x B ->
+    [ x :u B ∈ Γ ] ->
     A = B.
 Proof.
   induction 1; intros.
@@ -278,10 +283,10 @@ Proof.
   apply IHhasU in H5. rewrite H5; eauto.
 Qed.
 
-Lemma hasL_x {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasL Gamma x A ->
+Lemma hasL_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  [ x :l A ∈ Γ ] ->
   forall B,
-    hasL Gamma x B ->
+    [ x :l B ∈ Γ ] ->
     A = B.
 Proof.
   induction 1; intros.
@@ -292,10 +297,10 @@ Proof.
   apply IHhasL in H5. rewrite H5; eauto.
 Qed.
 
-Lemma hasU_hasL {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasU Gamma x A ->
+Lemma hasU_hasL {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  [ x :u A ∈ Γ ] ->
   forall B,
-    ~ hasL Gamma x B.
+    ~ [ x :l B ∈ Γ ].
 Proof.
   induction 1; unfold not; intros.
   inv H2.
@@ -303,13 +308,12 @@ Proof.
   inv H2; apply IHhasU in H5; eauto.
 Qed.
 
-Lemma merge_split1 T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  forall Delta1 Delta2,
-    merge Delta1 Delta2 Gamma1 ->
-    exists Delta,
-      merge Delta1 Gamma2 Delta /\
-      merge Delta Delta2 Gamma.
+Lemma merge_split1 T (Γ₁ Γ₂ Γ : context T) :
+  [ Γ₁ ‡ Γ₂ ‡ Γ] ->
+  forall Δ₁ Δ₂,
+    [ Δ₁ ‡ Δ₂ ‡ Γ₁ ] ->
+    exists Δ,
+      [ Δ₁ ‡ Γ₂ ‡ Δ ] /\ [ Δ ‡ Δ₂ ‡ Γ ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -318,36 +322,35 @@ Proof.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (m :u x).
+    exists (m +u x).
     repeat constructor; eauto.
   - inv H0.
     + specialize (IHmerge _ _ H4).
       firstorder.
-      exists (m :l x).
+      exists (m +l x).
       repeat constructor; eauto.
     + specialize (IHmerge _ _ H4).
       firstorder.
-      exists (:n x).
+      exists (□ x).
       repeat constructor; eauto.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (m :l x).
+    exists (m +l x).
     repeat constructor; eauto.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (:n x).
+    exists (□ x).
     repeat constructor; eauto.
 Qed.
 
-Lemma merge_split2 T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  forall Delta1 Delta2,
-    merge Delta1 Delta2 Gamma1 ->
-    exists Delta,
-      merge Delta2 Gamma2 Delta /\
-      merge Delta1 Delta Gamma.
+Lemma merge_split2 T (Γ₁ Γ₂ Γ : context T) :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  forall Δ₁ Δ₂,
+    [ Δ₁ ‡ Δ₂ ‡ Γ₁ ] ->
+    exists Δ,
+      [ Δ₂ ‡ Γ₂ ‡ Δ ] /\ [ Δ₁ ‡ Δ ‡ Γ ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -356,38 +359,35 @@ Proof.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (m :u x).
+    exists (m +u x).
     repeat constructor; eauto.
   - inv H0.
     + specialize (IHmerge _ _ H4).
       firstorder.
-      exists (:n x).
+      exists (□ x).
       repeat constructor; eauto.
     + specialize (IHmerge _ _ H4).
       firstorder.
-      exists (m :l x).
+      exists (m +l x).
       repeat constructor; eauto.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (m :l x).
+    exists (m +l x).
     repeat constructor; eauto.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (:n x).
+    exists (□ x).
     repeat constructor; eauto.
 Qed.
 
 Inductive term : Type :=
-| Var    (x : var)
-| Sort   (srt : sort) (l : option nat)
-| TyProd (A : term) (B : {bind term}) (s : sort)
-| LnProd (A : term) (B : {bind term}) (s : sort)
-| Arrow  (A B : term) (s : sort)
-| Lolli  (A B : term) (s : sort)
-| Lam    (n : {bind term})
-| App    (m n : term).
+| Var   (x : var)
+| Sort  (s : sort) (l : option nat)
+| Prod (A : term) (B : {bind term}) (s t : sort)
+| Lam   (n : {bind term})
+| App   (m n : term).
 
 Instance Ids_term : Ids term. derive. Defined.
 Instance Rename_term : Rename term. derive. Defined.
@@ -395,25 +395,31 @@ Instance Subst_term : Subst term. derive. Defined.
 Instance substLemmas_term : SubstLemmas term. derive. Qed.
 
 Inductive value : term -> Prop :=
-| value_sort srt l   : value (Sort srt l)
-| value_var x        : value (Var x)
-| value_tyProd A B s : value (TyProd A B s)
-| value_lnProd A B s : value (LnProd A B s)
-| value_arrow A B s  : value (Arrow A B s)
-| value_lolli A B s  : value (Lolli A B s)
-| value_lam n        : value (Lam n).
+| value_sort srt l    : value (Sort srt l)
+| value_var x         : value (Var x)
+| value_prod A B s t  : value (Prod A B s t)
+| value_lam n         : value (Lam n).
 
+Reserved Notation "m ~> n" (at level 30).
 Inductive step : term -> term -> Prop :=
-| step_beta n v :
-  value v ->
-  step (App (Lam n) v) (n.[v/])
+| step_beta m n :
+  (App (Lam m) n) ~> m.[n/]
+| step_lam m m' :
+  m ~> m' ->
+  Lam m ~> Lam m'
+| step_prodL A A' B s t :
+  A ~> A' ->
+  Prod A B s t ~> Prod A' B s t
+| step_prodR A B B' s t :
+  B ~> B' ->
+  Prod A B s t ~> Prod A B' s t
 | step_appL m m' n :
-  step m m' ->
-  step (App m n) (App m' n)
-| step_appR v n n' :
-  value v ->
-  step n n' ->
-  step (App v n) (App v n').
+  m ~> m' ->
+  App m n ~> App m' n
+| step_appR m n n' :
+  n ~> n' ->
+  App m n ~> App m n'
+where "m ~> n" := (step m n).
 
 Inductive pstep : term -> term -> Prop :=
 | pstep_var x :
@@ -431,28 +437,116 @@ Inductive pstep : term -> term -> Prop :=
   pstep m m' ->
   pstep n n' ->
   pstep (App (Lam m) n) (m'.[n'/])
-| pstep_tyProd A A' B B' s :
+| pstep_prod A A' s B B' t :
   pstep A A' ->
   pstep B B' ->
-  pstep (TyProd A B s) (TyProd A' B' s)
-| pstep_lnProd A A' B B' s :
-  pstep A A' ->
-  pstep B B' ->
-  pstep (LnProd A B s) (LnProd A' B' s)
-| pstep_arrow A A' B B' s : 
-  pstep A A' ->
-  pstep B B' ->
-  pstep (Arrow A B s) (Arrow A' B' s)
-| pstep_lolli A A' B B' s : 
-  pstep A A' ->
-  pstep B B' ->
-  pstep (Lolli A B s) (Lolli A' B' s).
+  pstep (Prod A B s t) 
+        (Prod A' B' s t).
 
-Notation red := (star pstep).
-Notation "s === t" := (conv pstep s t) (at level 50).
+Notation red := (star step).
+Notation "m ~>* n" := (red m n) (at level 30).
+Notation "m === n" := (conv step m n) (at level 50).
+
+Definition sred σ τ :=
+  forall x : var, (σ x) ~>* (τ x).
+
+Lemma step_subst σ m n : m ~> n -> m.[σ] ~> n.[σ].
+Proof.
+  move=> st. elim: st σ => /={m n}; eauto using step.
+  move=> m n σ. 
+  replace (m.[n/].[σ]) with (m.[up σ].[n.[σ]/]).
+  apply step_beta. autosubst.
+Qed.
+
+Lemma red_app m1 m2 n1 n2 :
+  m1 ~>* m2 -> n1 ~>* n2 -> (App m1 n1) ~>* (App m2 n2).
+Proof.
+  move=> A B. apply: (star_trans (App m2 n1)).
+  - apply: (star_hom (App^~ n1)) A => x y. exact: step_appL.
+  - apply: star_hom B => x y. exact: step_appR.
+Qed.
+
+Lemma red_lam s1 s2 : s1 ~>* s2 -> Lam s1 ~>* Lam s2.
+Proof. apply: star_hom => x y. exact: step_lam. Qed.
+
+Lemma red_prod A1 A2 B1 B2 s t :
+  A1 ~>* A2 -> B1 ~>* B2 -> Prod A1 B1 s t ~>* Prod A2 B2 s t.
+Proof.
+  move=> A B. apply: (star_trans (Prod A2 B1 s t)).
+  - apply: (star_hom (((Prod^~ B1)^~ s)^~ t)) A => x y. exact: step_prodL.
+  - apply: (star_hom (((Prod A2)^~ s)^~ t)) B => x y. exact: step_prodR.
+Qed.
+
+Lemma red_subst m n : 
+  m ~>* n -> forall σ, m.[σ] ~>* n.[σ].
+Proof.
+  induction 1; intros.
+  eauto.
+  eapply star_trans.
+  apply IHstar; eauto.
+  econstructor; eauto.
+  apply step_subst; eauto.
+Qed.
+
+Lemma sred_up σ τ : sred σ τ -> sred (up σ) (up τ).
+Proof. move=> A [|n] //=. asimpl. apply: red_subst. exact: A. Qed.
+
+Hint Resolve red_app red_lam red_prod sred_up : red_congr.
+
+Lemma red_compat σ τ s : sred σ τ -> red s.[σ] s.[τ].
+Proof. elim: s σ τ => *; asimpl; eauto with red_congr. Qed.
+
+Definition sconv (σ τ : var -> term) :=
+  forall x, σ x === τ x.
+
+Lemma conv_lam s1 s2 : s1 === s2 -> Lam s1 === Lam s2.
+Proof. apply: conv_hom => x y. exact: step_lam. Qed.
+
+Lemma conv_prod A A' s B B' t :
+  A === A' -> B === B' -> Prod A B s t === Prod A' B' s t.
+Proof.
+  move=> conv1 conv2. apply: (conv_trans (Prod A' B s t)).
+  - apply: (conv_hom (((Prod^~ B)^~ s)^~ t)) conv1 => x y ps.
+    constructor; eauto.
+  - apply: (conv_hom (((Prod A')^~ s)^~ t)) conv2 => x y ps.
+    constructor; eauto.
+Qed.
+
+Lemma conv_app m m' n n' :
+  m === m' -> n === n' -> App m n === App m' n'.
+Proof.
+  move=> A B. apply: (conv_trans (App m' n)).
+  - apply: (conv_hom (App^~ n)) A => x y ps. 
+    constructor; eauto.
+  - apply: conv_hom B => x y ps.
+    constructor; eauto.
+Qed.
+
+Lemma conv_subst σ s t : 
+  s === t -> s.[σ] === t.[σ].
+Proof. 
+  intro H.
+  eapply conv_hom; eauto.
+  intros.
+  apply step_subst; eauto.
+Qed.
+
+Lemma sconv_up σ τ : sconv σ τ -> sconv (up σ) (up τ).
+Proof. move=> A [|x] //=. asimpl. exact: conv_subst. Qed.
+
+Lemma conv_compat σ τ s :
+  sconv σ τ -> s.[σ] === s.[τ].
+Proof.
+  elim: s σ τ => *; asimpl; eauto using
+    conv_app, conv_lam, conv_prod, sconv_up.
+Qed.
+
+Lemma conv_beta s t1 t2 : t1 === t2 -> s.[t1/] === s.[t2/].
+Proof. move=> c. by apply: conv_compat => -[]. Qed.
 
 Lemma pstep_refl s : pstep s s.
 Proof. elim: s; eauto using pstep. Qed.
+Hint Resolve pstep_refl.
 
 Lemma step_pstep n n' : step n n' -> pstep n n'.
 Proof with eauto using pstep, pstep_refl.
@@ -460,50 +554,46 @@ Proof with eauto using pstep, pstep_refl.
   induction H...
 Qed.
 
+Lemma pstep_red s t : pstep s t -> s ~>* t.
+Proof.
+  elim=> {s t} //=; eauto with red_congr.
+  move=> m m' n n' p1 r1 p2 r2. eapply starES. by econstructor.
+  apply: (star_trans (m'.[n.:Var])). exact: red_subst.
+  by apply: red_compat => -[|].
+Qed.
+
 Lemma pstep_subst s t : 
   pstep s t -> 
-    forall sigma, pstep s.[sigma] t.[sigma].
+    forall σ, pstep s.[σ] t.[σ].
 Proof with eauto using pstep, pstep_refl.
   intros.
   dependent induction H...
   - asimpl.
-    specialize (IHpstep1 (up sigma)).
-    specialize (IHpstep2 (sigma)).
+    specialize (IHpstep1 (up σ)).
+    specialize (IHpstep2 σ).
     pose proof (pstep_beta IHpstep1 IHpstep2).
     asimpl in H1; eauto.
 Qed.
 
-Lemma red_subst s t : 
-  red s t -> 
-    forall sigma, red s.[sigma] t.[sigma].
-Proof.
-  induction 1; intros.
-  eauto.
-  eapply star_trans.
-  apply IHstar; eauto.
-  econstructor; eauto.
-  apply pstep_subst; eauto.
-Qed.
+Definition psstep (σ τ : var -> term) := 
+  forall x, pstep (σ x) (τ x).
 
-Definition psstep (sigma tau : var -> term) := 
-  forall x, pstep (sigma x) (tau x).
-
-Lemma psstep_refl sigma : psstep sigma sigma.
+Lemma psstep_refl σ : psstep σ σ.
 Proof with eauto using pstep_refl.
   unfold psstep.
   induction x...
 Qed.
 
-Lemma psstep_up sigma tau :
-  psstep sigma tau -> psstep (up sigma) (up tau).
+Lemma psstep_up σ τ :
+  psstep σ τ -> psstep (up σ) (up τ).
 Proof with eauto using pstep, pstep_refl.
   move=> A [|n] //=. asimpl... asimpl; apply: pstep_subst. exact: A.
 Qed.
 
 Lemma pstep_compat s t :
   pstep s t ->
-    forall sigma tau, 
-      psstep sigma tau -> pstep s.[sigma] t.[tau].
+    forall σ τ, 
+      psstep σ τ -> pstep s.[σ] t.[τ].
 Proof with eauto 6 using pstep, psstep_up.
   intros.
   dependent induction H; asimpl...
@@ -514,8 +604,8 @@ Proof with eauto 6 using pstep, psstep_up.
     asimpl in H5; eauto.
 Qed.
 
-Lemma psstep_compat s1 s2 sigma tau:
-  psstep sigma tau -> pstep s1 s2 -> psstep (s1 .: sigma) (s2 .: tau).
+Lemma psstep_compat s1 s2 σ τ:
+  psstep σ τ -> pstep s1 s2 -> psstep (s1 .: σ) (s2 .: τ).
 Proof. move=> A B [|n] //=. Qed.
 
 Lemma pstep_subst_term m n n' :
@@ -576,14 +666,8 @@ Proof with eauto using pstep.
       exists (x0.[x/]). split.
       * apply pstep_compat_beta...
       * apply pstep_compat_beta...
-  - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
-    first_order. exists (TyProd x0 x s)...
-  - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
-    first_order. exists (LnProd x0 x s)...
-  - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
-    first_order. exists (Arrow x0 x s)...
-  - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
-    first_order. exists (Lolli x0 x s)...
+  - inv H1. apply (IHpstep1) in H7. apply (IHpstep2) in H8.
+    first_order. exists (Prod x0 x s t)...
 Qed.
 
 Lemma strip m m1 m2 :
@@ -592,106 +676,38 @@ Lemma strip m m1 m2 :
 Proof with eauto using pstep_refl, star.
   intros.
   dependent induction H0... first_order.
-  pose proof (pstep_diamond H1 H3). first_order.
+  pose proof (step_pstep H1).
+  pose proof (pstep_diamond H4 H3). first_order.
   exists x0. split...
+  eapply star_trans; eauto.
+  apply pstep_red; eauto.
 Qed.
 
 Theorem confluence :
-  confluent pstep.
-Proof with eauto using pstep_refl, star.
+  confluent step.
+Proof with eauto using step, star.
   unfold confluent.
   unfold joinable.
   intros.
   dependent induction H.
   - exists z; eauto.
   - first_order.
+    apply step_pstep in H0.
     pose proof (strip H0 H2). first_order.
     exists x1; eauto.
     eapply star_trans.
     apply H3.
-    apply star1; eauto.
+    apply pstep_red; eauto.
 Qed.
 Hint Resolve confluence.
 
 Theorem church_rosser :
-  CR pstep.
+  CR step.
 Proof.
   apply confluent_cr.
   apply confluence.
 Qed.
 Hint Resolve church_rosser.
-
-Lemma conv_app m m' n n' :
-  m === m' -> n === n' -> App m n === App m' n'.
-Proof.
-  move=> A B. apply: (conv_trans (App m' n)).
-  - apply: (conv_hom (App^~ n)) A => x y ps. 
-    constructor; eauto.
-    apply pstep_refl.
-  - apply: conv_hom B => x y ps.
-    constructor; eauto.
-    apply pstep_refl.
-Qed.
-
-Lemma conv_lam s1 s2 : s1 === s2 -> Lam s1 === Lam s2.
-Proof. apply: conv_hom => x y. exact: pstep_lam. Qed.
-
-Lemma conv_tyProd s A A' B B' :
-  A === A' -> B === B' -> TyProd A B s === TyProd A' B' s.
-Proof.
-  move=> conv1 conv2. apply: (conv_trans (TyProd A' B s)).
-  - apply: (conv_hom ((TyProd^~ B)^~ s)) conv1 => x y ps.
-    constructor; eauto.
-    apply pstep_refl.
-  - apply: (conv_hom ((TyProd A')^~ s)) conv2 => x y ps.
-    constructor; eauto.
-    apply pstep_refl.
-Qed.
-
-Lemma conv_lnProd s A A' B B' :
-  A === A' -> B === B' -> LnProd A B s === LnProd A' B' s.
-Proof.
-  move=> conv1 conv2. apply: (conv_trans (LnProd A' B s)).
-  - apply: (conv_hom ((LnProd^~ B)^~ s)) conv1 => x y ps.
-    constructor; eauto.
-    apply pstep_refl.
-  - apply: (conv_hom ((LnProd A')^~ s)) conv2 => x y ps.
-    constructor; eauto.
-    apply pstep_refl.
-Qed.
-
-Lemma conv_arrow s A A' B B' :
-  A === A' -> B === B' -> Arrow A B s === Arrow A' B' s.
-Proof.
-  move=> conv1 conv2. apply: (conv_trans (Arrow A' B s)).
-  - apply: (conv_hom ((Arrow^~ B)^~ s)) conv1 => x y ps.
-    constructor; eauto.
-    apply pstep_refl.
-  - apply: (conv_hom ((Arrow A')^~ s)) conv2 => x y ps.
-    constructor; eauto.
-    apply pstep_refl.
-Qed.
-
-Lemma conv_lolli s A A' B B' :
-  A === A' -> B === B' -> Lolli A B s === Lolli A' B' s.
-Proof.
-  move=> conv1 conv2. apply: (conv_trans (Lolli A' B s)).
-  - apply: (conv_hom ((Lolli^~ B)^~ s)) conv1 => x y ps.
-    constructor; eauto.
-    apply pstep_refl.
-  - apply: (conv_hom ((Lolli A')^~ s)) conv2 => x y ps.
-    constructor; eauto.
-    apply pstep_refl.
-Qed.
-
-Lemma conv_subst sigma s t : 
-  s === t -> s.[sigma] === t.[sigma].
-Proof. 
-  intro H.
-  eapply conv_hom; eauto.
-  intros.
-  apply pstep_subst; eauto.
-Qed.
 
 Lemma sort_ren_inv s l v xi :
   Sort s l = v.[ren xi] -> v = Sort s l.
@@ -705,28 +721,11 @@ Proof.
   induction v; asimpl; try discriminate; eauto.
 Qed.
 
-Lemma tyProd_ren_inv A B s v xi :
-  TyProd A B s = v.[ren xi] -> exists A' B' s', v = TyProd A' B' s'.
+Lemma prod_ren_inv A B s t v xi :
+  Prod A B s t = v.[ren xi] -> 
+  exists A B s t, v = Prod A B s t.
 Proof.
-  induction v; asimpl; try discriminate; eauto.
-Qed.
-
-Lemma lnProd_ren_inv A B s v xi :
-  LnProd A B s = v.[ren xi] -> exists A' B' s', v = LnProd A' B' s'.
-Proof.
-  induction v; asimpl; try discriminate; eauto.
-Qed.
-
-Lemma arrow_ren_inv A B s v xi :
-  Arrow A B s = v.[ren xi] -> exists A' B' s', v = Arrow A' B' s'.
-Proof.
-  induction v; asimpl; try discriminate; eauto.
-Qed.
-
-Lemma lolli_ren_inv A B s v xi :
-  Lolli A B s = v.[ren xi] -> exists A' B' s', v = Lolli A' B' s'.
-Proof.
-  induction v; asimpl; try discriminate; eauto.
+  induction v; asimpl; try discriminate; eauto 6.
 Qed.
 
 Lemma lam_ren_inv m v xi :
@@ -747,120 +746,8 @@ Proof.
   apply var_ren_inv in x.
   inv x.
   constructor.
-  apply tyProd_ren_inv in x; first_order; subst; constructor.
-  apply lnProd_ren_inv in x; first_order; subst; constructor.
-  apply arrow_ren_inv in x; first_order; subst; constructor.
-  apply lolli_ren_inv in x; first_order; subst; constructor.
+  apply prod_ren_inv in x; first_order; subst; constructor.
   apply lam_ren_inv in x; inv x; constructor.
-Qed.
-
-Definition left_invertible (f : nat -> nat) := 
-  exists g, g ∘ f = id.
-
-Lemma left_invertible_upren xi :
-  left_invertible xi -> left_invertible (upren xi).
-Proof.
-  unfold left_invertible.
-  intros.
-  inv H.
-  exists (upren x).
-  assert (upren x ∘ upren xi = upren xi >>> upren x) by autosubst.
-  rewrite H; asimpl.
-  replace (xi >>> x) with (x ∘ xi) by autosubst.
-  rewrite H0; autosubst.
-Qed.
-
-Lemma pstep_ren_inv m n xi :
-  pstep m.[ren xi] n ->
-  left_invertible xi ->
-    exists x, pstep m x /\ x.[ren xi] = n.
-Proof.
-  intro H.
-  dependent induction H; intros.
-  - inv H.
-    exists ((Var x0).[ren x1]).
-    rewrite x; asimpl.
-    replace (xi >>> x1) with (x1 ∘ xi) by autosubst.
-    rewrite H0; asimpl; firstorder.
-    apply pstep_refl.
-  - exists m; firstorder.
-    apply pstep_refl.
-  - destruct m; asimpl; try discriminate.
-    inversion H0.
-    inv x.
-    assert (n0.[up (ren xi)] = n0.[ren (upren xi)]) by autosubst.
-    apply left_invertible_upren in H0.
-    pose proof (IHpstep n0 (upren xi) H2 H0).
-    inv H3. inv H4.
-    exists (Lam x); asimpl; firstorder.
-    constructor; eauto.
-  - destruct m; asimpl; try discriminate. inv x.
-    assert (m1.[ren xi] = m1.[ren xi]) by eauto.
-    assert (m2.[ren xi] = m2.[ren xi]) by eauto.
-    apply IHpstep1 in H2; eauto.
-    apply IHpstep2 in H3; eauto.
-    firstorder; subst; asimpl.
-    exists (App x1 x).
-    firstorder.
-    constructor; eauto.
-  - destruct m; asimpl; try discriminate. inv x.
-    destruct m1; asimpl; try discriminate. inv H3.
-    assert (n.[up (ren xi)] = n.[ren (upren xi)]) by autosubst.
-    pose proof (left_invertible_upren H1).
-    pose proof (IHpstep1 n (upren xi) H2 H3).
-    assert (m2.[ren xi] = m2.[ren xi]) by eauto.
-    pose proof (IHpstep2 m2 xi H5 H1).
-    firstorder; subst; asimpl.
-    exists (x1.[x .: ids]); asimpl.
-    firstorder.
-    constructor; eauto.
-  - destruct m; asimpl; try discriminate. inv x.
-    assert (m.[ren xi] = m.[ren xi]) by eauto.
-    assert (B0.[up (ren xi)] = B0.[ren (upren xi)]) by autosubst.
-    assert (left_invertible (upren xi)).
-    apply left_invertible_upren; eauto.
-    apply IHpstep1 in H2; eauto.
-    apply IHpstep2 in H3; eauto.
-    firstorder; subst; asimpl.
-    exists (TyProd x0 x1 s0); asimpl; firstorder.
-    constructor; eauto.
-  - destruct m; asimpl; try discriminate. inv x.
-    assert (m.[ren xi] = m.[ren xi]) by eauto.
-    assert (B0.[up (ren xi)] = B0.[ren (upren xi)]) by autosubst.
-    assert (left_invertible (upren xi)).
-    apply left_invertible_upren; eauto.
-    apply IHpstep1 in H2; eauto.
-    apply IHpstep2 in H3; eauto.
-    firstorder; subst; asimpl.
-    exists (LnProd x0 x1 s0); asimpl; firstorder.
-    constructor; eauto.
-  - destruct m; asimpl; try discriminate. inv x.
-    assert (m1.[ren xi] = m1.[ren xi]) by eauto.
-    assert (m2.[ren xi] = m2.[ren xi]) by eauto.
-    apply IHpstep1 in H2; eauto.
-    apply IHpstep2 in H3; eauto.
-    firstorder; subst; asimpl.
-    exists (Arrow x1 x s0); asimpl; firstorder.
-    constructor; eauto.
-  - destruct m; asimpl; try discriminate. inv x.
-    assert (m1.[ren xi] = m1.[ren xi]) by eauto.
-    assert (m2.[ren xi] = m2.[ren xi]) by eauto.
-    apply IHpstep1 in H2; eauto.
-    apply IHpstep2 in H3; eauto.
-    firstorder; subst; asimpl.
-    exists (Lolli x1 x s0); asimpl; firstorder.
-    constructor; eauto.
-Qed.
-
-Lemma pstep_ren1_inv m n :
-  pstep m.[ren (+1)] n ->
-    exists x, pstep m x /\ x.[ren (+1)] = n.
-Proof.
-  intros.
-  apply pstep_ren_inv; eauto.
-  unfold left_invertible.
-  exists (predn).
-  autosubst.
 Qed.
 
 Lemma red_sort_inv s l A :
@@ -871,80 +758,29 @@ Proof.
   inv H0; eauto.
 Qed.
 
-Lemma red_tyProd_inv A B x s :
-  red (TyProd A B s) x -> 
+Lemma red_prod_inv A B s t x :
+  red (Prod A B s t) x -> 
   exists A' B',
     red A A' /\
     red B B' /\
-    x = TyProd A' B' s.
+    x = Prod A' B' s t.
 Proof.
   induction 1.
   - exists A.
     exists B.
     repeat constructor.
-  - first_order.
-    rewrite H3 in H0.
+  - first_order; subst.
     inv H0.
-    exists A'.
-    exists B'.
-    repeat constructor; eauto using star.
-Qed.
-
-Lemma red_lnProd_inv A B x s :
-  red (LnProd A B s) x -> 
-  exists A' B',
-    red A A' /\
-    red B B' /\
-    x = LnProd A' B' s.
-Proof.
-  induction 1.
-  - exists A.
-    exists B.
-    repeat constructor.
-  - first_order.
-    rewrite H3 in H0.
-    inv H0.
-    exists A'.
-    exists B'.
-    repeat constructor; eauto using star.
-Qed.
-
-Lemma red_arrow_inv A B x s :
-  red (Arrow A B s) x -> 
-  exists A' B',
-    red A A' /\
-    red B B' /\
-    x = Arrow A' B' s.
-Proof.
-  induction 1.
-  - exists A.
-    exists B.
-    repeat constructor.
-  - first_order.
-    rewrite H3 in H0.
-    inv H0.
-    exists A'.
-    exists B'.
-    repeat constructor; eauto using star.
-Qed.
-
-Lemma red_lolli_inv A B x s :
-  red (Lolli A B s) x -> 
-  exists A' B',
-    red A A' /\
-    red B B' /\
-    x = Lolli A' B' s.
-Proof.
-  induction 1.
-  - exists A.
-    exists B.
-    repeat constructor.
-  - first_order.
-    rewrite H3 in H0.
-    inv H0.
-    exists A'.
-    exists B'.
-    repeat constructor; eauto using star.
+    + exists A'.
+      exists x0.
+      first_order; eauto.
+      eapply star_trans; eauto.
+      econstructor; eauto.
+    + exists x.
+      exists B'.
+      first_order; eauto.
+      eapply star_trans; eauto.
+      econstructor; eauto.
 Qed.
 
 Lemma red_var_inv x y :
@@ -964,7 +800,7 @@ Proof.
   - exists m; repeat constructor.
   - first_order; subst.
     inv H0.
-    exists n'.
+    exists m'.
     repeat constructor; eauto using star.
 Qed.
 
@@ -980,75 +816,28 @@ Proof.
   first_order; subst; inv H1; eauto.
 Qed.
 
-Lemma tyProd_inj A1 A2 B1 B2 s1 s2 :
-  TyProd A1 B1 s1 === TyProd A2 B2 s2 ->
-  A1 === A2 /\ B1 === B2 /\ s1 = s2.
+Lemma prod_inj A A' B B' s s' t t' :
+  Prod A B s t === Prod A' B' s' t' ->
+  A === A' /\ B === B' /\ s = s' /\ t = t'.
 Proof.
   intros.
   apply church_rosser in H.
   inv H.
-  apply red_tyProd_inv in H0.
-  apply red_tyProd_inv in H1.
+  apply red_prod_inv in H0.
+  apply red_prod_inv in H1.
   first_order; subst.
   inv H2; eauto using join_conv.
   inv H2; eauto using join_conv.
   inv H2; eauto.
-Qed.
-
-Lemma lnProd_inj A1 A2 B1 B2 s1 s2 :
-  LnProd A1 B1 s1 === LnProd A2 B2 s2 ->
-  A1 === A2 /\ B1 === B2 /\ s1 = s2.
-Proof.
-  intros.
-  apply church_rosser in H.
-  inv H.
-  apply red_lnProd_inv in H0.
-  apply red_lnProd_inv in H1.
-  first_order; subst.
-  inv H2; eauto using join_conv.
-  inv H2; eauto using join_conv.
-  inv H2; eauto.
-Qed.
-
-Lemma arrow_inj A1 A2 B1 B2 s1 s2 :
-  Arrow A1 B1 s1 === Arrow A2 B2 s2 ->
-  A1 === A2 /\ B1 === B2 /\ s1 = s2.
-Proof.
-  intros.
-  apply church_rosser in H.
-  inv H.
-  apply red_arrow_inv in H0.
-  apply red_arrow_inv in H1.
-  first_order; subst.
-  inv H2; eauto using join_conv.
-  inv H2; eauto using join_conv.
-  inv H2; eauto.
-Qed.
-
-Lemma lolli_inj A1 A2 B1 B2 s1 s2 :
-  Lolli A1 B1 s1 === Lolli A2 B2 s2 ->
-  A1 === A2 /\ B1 === B2 /\ s1 = s2.
-Proof.
-  intros.
-  apply church_rosser in H.
-  inv H.
-  apply red_lolli_inv in H0.
-  apply red_lolli_inv in H1.
-  first_order; subst.
-  inv H2; eauto using join_conv.
-  inv H2; eauto using join_conv.
   inv H2; eauto.
 Qed.
 
 Ltac red_inv m H :=
   match m with
-  | Var    => apply red_var_inv in H
-  | Sort   => apply red_sort_inv in H
-  | TyProd => apply red_tyProd_inv in H
-  | LnProd => apply red_lnProd_inv in H
-  | Arrow  => apply red_arrow_inv in H
-  | Lolli  => apply red_lolli_inv in H
-  | Lam    => apply red_lam_inv in H
+  | Var   => apply red_var_inv in H
+  | Sort  => apply red_sort_inv in H
+  | Prod => apply red_prod_inv in H
+  | Lam   => apply red_lam_inv in H
   end.
 
 Ltac solve_conv' :=
@@ -1061,6 +850,8 @@ Ltac solve_conv' :=
   | [ H : red (?m _) _ |- _ ] => red_inv m H
   | [ H : red (?m _ _) _ |- _ ] => red_inv m H
   | [ H : red (?m _ _ _) _ |- _ ] => red_inv m H
+  | [ H : red (?m _ _ _ _) _ |- _ ] => red_inv m H
+  | [ H : red (?m _ _ _ _ _) _ |- _ ] => red_inv m H
   end;
   first_order; subst;
   match goal with
@@ -1075,28 +866,18 @@ Ltac solve_conv :=
   end; eauto.
 
 Notation "s @ l" := (Sort s (Some l)) (at level 30).
-Notation prop s := (Sort s None).
 
 Inductive sub1 : term -> term -> Prop :=
 | sub1_refl A : 
   sub1 A A
 | sub1_prop s l : 
-  sub1 (prop s) (s @ l)
+  sub1 (Sort s None) (s @ l)
 | sub1_sort s l1 l2 : 
   l1 <= l2 -> 
   sub1 (s @ l1) (s @ l2)
-| sub1_tyProd A B1 B2 s : 
+| sub1_prod A B1 B2 s t : 
   sub1 B1 B2 -> 
-  sub1 (TyProd A B1 s) (TyProd A B2 s)
-| sub1_lnProd A B1 B2 s : 
-  sub1 B1 B2 -> 
-  sub1 (LnProd A B1 s) (LnProd A B2 s)
-| sub1_arrow A B1 B2 s : 
-  sub1 B1 B2 -> 
-  sub1 (Arrow A B1 s) (Arrow A B2 s)
-| sub1_lolli A B1 B2 s : 
-  sub1 B1 B2 -> 
-  sub1 (Lolli A B1 s) (Lolli A B2 s).
+  sub1 (Prod A B1 s t) (Prod A B2 s t).
 
 CoInductive sub (A B : term) : Prop :=
 | SubI A' B' : 
@@ -1114,7 +895,7 @@ Lemma sub_refl A : A <: A.
 Proof. apply: sub1_sub. exact: sub1_refl. Qed.
 Hint Resolve sub_refl.
 
-Lemma sub_prop s n : prop s <: s @ n.
+Lemma sub_prop s n : Sort s None <: s @ n.
 Proof. exact/sub1_sub/sub1_prop. Qed.
 
 Lemma sub_sort s n m : n <= m -> s @ n <: s @ m.
@@ -1127,10 +908,7 @@ Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
     [ A C D 
     | s l C D conv sb
     | s l1 l2 leq C D conv sb
-    | A B1 B2 s sb1 ih C D conv sb2
-    | A B1 B2 s sb1 ih C D conv sb2
-    | A B1 B2 s sb1 ih C D conv sb2
-    | A B1 B2 s sb1 ih C D conv sb2 ]...
+    | A B1 B2 s t sb1 ih C D conv sb2]...
   - inv sb; try (exfalso; solve_conv)...
     move: conv => /sort_inj [->[eq]].
     apply: sub_prop.
@@ -1139,32 +917,12 @@ Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
     apply: sub_sort. subst.
     exact: leq_trans leq _.
   - inv sb2; try (exfalso; solve_conv)...
-    move: conv => /tyProd_inj[conv1 [conv2 ->] ].
+    move: conv => /prod_inj[conv1 [conv2 [->->]]].
     move: (ih _ _ conv2 H) => {ih} sub. inv sub.
     eapply SubI. 
-    eapply sub1_tyProd... 
-    eapply conv_tyProd... 
-    exact: conv_tyProd.
-  - inv sb2; try (exfalso; solve_conv)...
-    move: conv => /lnProd_inj[conv1 [conv2 ->] ].
-    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-    eapply SubI. 
-    eapply sub1_lnProd... 
-    eapply conv_lnProd... 
-    exact: conv_lnProd.
-  - inv sb2; try (exfalso; solve_conv)...
-    move: conv => /arrow_inj[conv1 [conv2 ->] ].
-    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-    eapply SubI. 
-    eapply sub1_arrow... 
-    eapply conv_arrow... exact: conv_arrow.
-  - inv sb2; try (exfalso; solve_conv)...
-    move: conv => /lolli_inj[conv1 [conv2 ->] ].
-    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-    eapply SubI. 
-    eapply sub1_lolli... 
-    eapply conv_lolli...
-    exact: conv_lolli.
+    eapply sub1_prod... 
+    eapply conv_prod... 
+    exact: conv_prod.
 Qed.
 
 Lemma sub_trans B A C :
@@ -1176,17 +934,14 @@ Proof.
 Qed.
 
 Lemma sub_prop_inv s1 s2 :
-  prop s1 <: prop s2 -> s1 = s2.
+  Sort s1 None <: Sort s2 None -> s1 = s2.
 Proof.
   move=> [s1' s2' []].
   - move=> A c1 c2.
-    have{c1 c2}/sort_inj[s l]: prop s1 === prop s2.
+    have{c1 c2}/sort_inj[s l]: Sort s1 None === Sort s2 None.
      exact: conv_trans c2.
      exact: s.
   - move=> s l /sort_inj[-> _] /sort_inj[-> _] => //.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
 Qed.
@@ -1202,265 +957,163 @@ Proof.
   - move=> s l0 /sort_inj[_ h] => //.
   - move=> s l0 l3 leq /sort_inj[->[->]] /sort_inj[<-[<-]] => //.
   - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
 Qed.
 
-Lemma sub_tyProd_inv A1 A2 B1 B2 s1 s2 :
-  TyProd A1 B1 s1 <: TyProd A2 B2 s2 -> A1 === A2 /\ B1 <: B2 /\ s1 = s2.
+Lemma sub_prod_inv A1 A2 s1 s2 B1 B2 t1 t2 :
+  Prod A1 B1 s1 t1 <: Prod A2 B2 s2 t2 -> 
+  A1 === A2 /\ B1 <: B2 /\ s1 = s2 /\ t1 = t2.
 Proof.
   move=> [A' B' []].
   - move=> C c1 c2. 
-    have{c1 c2}/tyProd_inj[c1 [c2 ->]]: TyProd A1 B1 s1 === TyProd A2 B2 s2.
+    have{c1 c2}/prod_inj[c1 [c2 [->->]]]: 
+      Prod A1 B1 s1 t1 === Prod A2 B2 s2 t2.
      exact: conv_trans c2.
     firstorder=>//. exact: conv_sub.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
-  - move=> A C1 C2 s0 sb /tyProd_inj[c1 [c2 <-]] /tyProd_inj[c3 [c4 ->]]. 
-    firstorder.
-    exact: conv_trans c3. exact: SubI sb c2 c4.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-Qed.
-
-Lemma sub_lnProd_inv A1 A2 B1 B2 s1 s2 :
-  LnProd A1 B1 s1 <: LnProd A2 B2 s2 -> A1 === A2 /\ B1 <: B2 /\ s1 = s2.
-Proof.
-  move=> [A' B' []].
-  - move=> C c1 c2. 
-    have{c1 c2}/lnProd_inj[c1 [c2 ->]]: LnProd A1 B1 s1 === LnProd A2 B2 s2.
-     exact: conv_trans c2.
-    firstorder=>//. exact: conv_sub.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> A C1 C2 s0 sb /lnProd_inj[c1 [c2 <-]] /lnProd_inj[c3 [c4 ->]]. 
-    firstorder.
-    exact: conv_trans c3. exact: SubI sb c2 c4.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-Qed.
-
-Lemma sub_arrow_inv A1 A2 B1 B2 s1 s2 :
-  Arrow A1 B1 s1 <: Arrow A2 B2 s2 -> A1 === A2 /\ B1 <: B2 /\ s1 = s2.
-Proof.
-  move=> [A' B' []].
-  - move=> C c1 c2. 
-    have{c1 c2}/arrow_inj[c1 [c2 ->]]: Arrow A1 B1 s1 === Arrow A2 B2 s2.
-     exact: conv_trans c2.
-    firstorder=>//. exact: conv_sub.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> A C1 C2 s0 sb /arrow_inj[c1 [c2 <-]] /arrow_inj[c3 [c4 ->]]. 
-    firstorder.
-    exact: conv_trans c3. exact: SubI sb c2 c4.
-  - move=> *. exfalso; solve_conv.
-Qed.
-
-Lemma sub_lolli_inv A1 A2 B1 B2 s1 s2 :
-  Lolli A1 B1 s1 <: Lolli A2 B2 s2 -> A1 === A2 /\ B1 <: B2 /\ s1 = s2.
-Proof.
-  move=> [A' B' []].
-  - move=> C c1 c2. 
-    have{c1 c2}/lolli_inj[c1 [c2 ->]]: Lolli A1 B1 s1 === Lolli A2 B2 s2.
-     exact: conv_trans c2.
-    firstorder=>//. exact: conv_sub.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> A C1 C2 s0 sb /lolli_inj[c1 [c2 <-]] /lolli_inj[c3 [c4 ->]]. 
+  - move=> A B0 B3 s t sb /prod_inj[c1 [c2 [<-<-]]]. 
+    move=> /prod_inj[c3 [c4 [->->]]]. 
     firstorder.
     exact: conv_trans c3. exact: SubI sb c2 c4.
 Qed.
 
-Lemma sub1_subst sigma A B : sub1 A B -> sub1 A.[sigma] B.[sigma].
-Proof. move=> s. elim: s sigma => /=; eauto using sub1. Qed.
+Lemma sub1_subst σ A B : sub1 A B -> sub1 A.[σ] B.[σ].
+Proof. move=> s. elim: s σ => /=; eauto using sub1. Qed.
 
-Lemma sub_subst sigma A B : A <: B -> A.[sigma] <: B.[sigma].
+Lemma sub_subst σ A B : A <: B -> A.[σ] <: B.[σ].
 Proof. move=> [A' B' /sub1_subst]; eauto using sub, conv_subst. Qed.
 
-Lemma sub_ren A B xi : A <: B -> A.[ren xi] <: B.[ren xi].
-Proof.
-  intros.
-  apply sub_subst; eauto.
-Qed.
+Lemma sub_ren A B ξ : A <: B -> A.[ren ξ] <: B.[ren ξ].
+Proof. move=> *; by apply: sub_subst. Qed.
 
-Reserved Notation "[ Gamma |- ]".
-Reserved Notation "[ Gamma |- m :- A -: s ]".
+Notation 𝐏 := (Sort U None).
+Reserved Notation "[ Γ |- ]".
+Reserved Notation "[ Γ |- m :- A -: s ]".
   
 Inductive has_type : context term -> term -> term -> sort -> Prop :=
-| p_axiom Gamma : 
-  pure Gamma ->
-  [ Gamma |- prop U :- U @ 0 -: U ]
-| s_axiom Gamma s l : 
-  pure Gamma ->
-  [ Gamma |- s @ l :- U @ l.+1 -: U ]
-| u_prop Gamma A B l :
-  pure Gamma ->
-  [ Gamma |- A :- Sort U l -: U ] ->
-  [ A :u Gamma |- B :- prop U -: U ] ->
-  [ Gamma |- TyProd A B U :- prop U -: U ]
-| u_prod Gamma A B s l :
-  pure Gamma ->
-  [ Gamma |- A :- U @ l -: U ] ->
-  [ A :u Gamma |- B :- s @ l -: U ] ->
-  [ Gamma |- TyProd A B s :- U @ l -: U ]
-| l_prod Gamma A B s l :
-  pure Gamma ->
-  [ Gamma |- A :- U @ l -: U ] ->
-  [ A :u Gamma |- B :- s @ l -: U ] ->
-  [ Gamma |- LnProd A B s :- L @ l -: U ]
-| arrow Gamma A B s l :
-  pure Gamma ->
-  [ Gamma |- A :- L @ l -: U ] ->
-  [ Gamma |- B :- s @ l -: U ] ->
-  [ Gamma |- Arrow A B s :- U @ l -: U ]
-| lolli Gamma A B s l :
-  pure Gamma ->
-  [ Gamma |- A :- L @ l -: U ] ->
-  [ Gamma |- B :- s @ l -: U ] ->
-  [ Gamma |- Lolli A B s :- L @ l -: U ]
-| u_var Gamma x A : 
-  hasU Gamma x A ->
-  [ Gamma |- Var x :- A -: U ]
-| l_var Gamma x A :
-  hasL Gamma x A ->
-  [ Gamma |- Var x :- A -: L ]
-| u_lam1 Gamma n A B s l :
-  pure Gamma ->
-  [ Gamma |- TyProd A B s :- Sort U l -: U ] ->
-  [ A :u Gamma |- n :- B -: s ] ->
-  [ Gamma |- Lam n :- TyProd A B s -: U ]
-| u_lam2 Gamma n A B s l :
-  pure Gamma ->
-  [ Gamma |- Arrow A B s :- U @ l -: U ] ->
-  [ A :l Gamma |- n :- B.[ren (+1)] -: s ] ->
-  [ Gamma |- Lam n :- Arrow A B s -: U ]
-| l_lam1 Gamma n A B s l :
-  [ re Gamma |- LnProd A B s :- L @ l -: U ] ->
-  [ A :u Gamma |- n :- B -: s ] ->
-  [ Gamma |- Lam n :- LnProd A B s -: L ]
-| l_lam2 Gamma n A B s l :
-  [ re Gamma |- Lolli A B s :- L @ l -: U ] ->
-  [ A :l Gamma |- n :- B.[ren (+1)] -: s ] ->
-  [ Gamma |- Lam n :- Lolli A B s -: L ]
-| u_app1 Gamma1 Gamma2 Gamma A B m n s :
-  pure Gamma2 ->
-  [ Gamma1 |- m :- TyProd A B s -: U ] ->
-  [ Gamma2 |- n :- A -: U ] ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- B.[n/] -: s ]
-| u_app2 Gamma1 Gamma2 Gamma A B m n s :
-  [ Gamma1 |- m :- Arrow A B s -: U ] ->
-  [ Gamma2 |- n :- A -: L ] ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- B -: s ]
-| l_app1 Gamma1 Gamma2 Gamma A B m n s :
-  pure Gamma2 ->
-  [ Gamma1 |- m :- LnProd A B s -: L ] ->
-  [ Gamma2 |- n :- A -: U ] ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- B.[n/] -: s ]
-| l_app2 Gamma1 Gamma2 Gamma A B m n s :
-  [ Gamma1 |- m :- Lolli A B s -: L ] ->
-  [ Gamma2 |- n :- A -: L ] ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- B -: s ]
-| conversion Gamma A B m s l :
+| p_axiom Γ : 
+  [ Γ ] ->
+  [ Γ |- 𝐏 :- U @ 0 -: U ]
+| s_axiom Γ s l : 
+  [ Γ ] ->
+  [ Γ |- s @ l :- U @ l.+1 -: U ]
+| prop Γ A B l :
+  [ Γ ] ->
+  [ Γ |- A :- Sort U l -: U ] ->
+  [ A +u Γ |- B :- 𝐏 -: U ] ->
+  [ Γ |- Prod A B U U :- 𝐏 -: U ]
+| prod Γ A B r s t l :
+  [ Γ ] ->
+  [ Γ |- A :- r @ l -: U ] ->
+  [ %(A +{r} Γ) |- B :- s @ l -: U ] ->
+  [ Γ |- Prod A B r s :- t @ l -: U ]
+| u_var Γ x A : 
+  [ x :u A ∈ Γ ] ->
+  [ Γ |- Var x :- A -: U ]
+| l_var Γ x A :
+  [ x :l A ∈ Γ ] ->
+  [ Γ |- Var x :- A -: L ]
+| u_lam Γ n A s B t l :
+  [ Γ ] ->
+  [ Γ |- Prod A B s t :- Sort U l -: U ] ->
+  [ A +{s} Γ |- n :- B -: t ] ->
+  [ Γ |- Lam n :- Prod A B s t -: U ]
+| l_lam Γ n A s B t l :
+  [ %Γ |- Prod A B s t :- L @ l -: U ] ->
+  [ A +{s} Γ |- n :- B -: t ] ->
+  [ Γ |- Lam n :- Prod A B s t -: L ]
+| u_app Γ₁ Γ₂ Γ A B s t m n :
+  [ Γ₂ ] ->
+  [ Γ₁ |- m :- Prod A B U s -: t ] ->
+  [ Γ₂ |- n :- A -: U ] ->
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  [ Γ |- App m n :- B.[n/] -: s ]
+| l_app Γ₁ Γ₂ Γ  A B s t m n :
+  [ Γ₁ |- m :- Prod A B L s -: t ] ->
+  [ Γ₂ |- n :- A -: L ] ->
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  [ Γ |- App m n :- B.[n/] -: s ]
+| conversion Γ A B m s l :
   A <: B ->
-  [ re Gamma |- B :- Sort s l -: U ] ->
-  [ Gamma |- m :- A -: s ] ->
-  [ Gamma |- m :- B -: s ]
-where "[ Gamma |- m :- A -: s ]" := (has_type Gamma m A s).
+  [ %Γ |- B :- Sort s l -: U ] ->
+  [ Γ |- m :- A -: s ] ->
+  [ Γ |- m :- B -: s ]
+where "[ Γ |- m :- A -: s ]" := (has_type Γ m A s).
 
 Inductive context_ok : context term -> Prop :=
 | nil_ok :
   [ nil |- ]
-| u_ok Gamma A l :
-  [ Gamma |- ] ->
-  [ re Gamma |- A :- Sort U l -: U ] ->
-  [ A :u Gamma |- ]
-| l_ok Gamma A l :
-  [ Gamma |- ] ->
-  [ re Gamma |- A :- Sort L l -: U ] ->
-  [ A :l Gamma |- ]
-| n_ok Gamma :
-  [ Gamma |- ] ->
-  [ :n Gamma |- ]
-where "[ Gamma |- ]" := (context_ok Gamma).
+| u_ok Γ A l :
+  [ Γ |- ] ->
+  [ %Γ |- A :- Sort U l -: U ] ->
+  [ A +u Γ |- ]
+| l_ok Γ A l :
+  [ Γ |- ] ->
+  [ %Γ |- A :- Sort L l -: U ] ->
+  [ A +l Γ |- ]
+| n_ok Γ :
+  [ Γ |- ] ->
+  [ □ Γ |- ]
+where "[ Γ |- ]" := (context_ok Γ).
 
-Lemma re_ok Gamma :
-  [ Gamma |- ] ->
-  [ re Gamma |- ].
+Lemma re_ok Γ :
+  [ Γ |- ] ->
+  [ %Γ |- ].
 Proof with eauto using context_ok.
   intros.
   induction H...
-  - simpl.
-    eapply u_ok...
-    rewrite <- re_re; eauto.
-  - simpl.
-    apply n_ok.
-    assumption.
-  - simpl.
-    apply n_ok.
-    assumption.
+  simpl.
+  eapply u_ok...
+  rewrite <- re_re; eauto.
 Qed.
 
 Inductive agree_ren : (var -> var) ->
   context term -> context term -> Prop :=
-| agree_ren_nil xi :
-  agree_ren xi nil nil
-| agree_ren_u Gamma Gamma' xi m :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren (upren xi) (m :u Gamma) (m.[ren xi] :u Gamma')
-| agree_ren_l Gamma Gamma' xi m :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren (upren xi) (m :l Gamma) (m.[ren xi] :l Gamma')
-| agree_ren_n Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren (upren xi) (:n Gamma) (:n Gamma')
-| agree_ren_wkU Gamma Gamma' xi m :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren ((+1) ∘ xi) (Gamma) (m :u Gamma')
-| agree_ren_wkN Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren ((+1) ∘ xi) (Gamma) (:n Gamma').
+| agree_ren_nil ξ :
+  agree_ren ξ nil nil
+| agree_ren_u Γ Γ' ξ m :
+  agree_ren ξ Γ Γ' ->
+  agree_ren (upren ξ) (m +u Γ) (m.[ren ξ] +u Γ')
+| agree_ren_l Γ Γ' ξ m :
+  agree_ren ξ Γ Γ' ->
+  agree_ren (upren ξ) (m +l Γ) (m.[ren ξ] +l Γ')
+| agree_ren_n Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
+  agree_ren (upren ξ) (□ Γ) (□ Γ')
+| agree_ren_wkU Γ Γ' ξ m :
+  agree_ren ξ Γ Γ' ->
+  agree_ren ((+1) ∘ ξ) (Γ) (m +u Γ')
+| agree_ren_wkN Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
+  agree_ren ((+1) ∘ ξ) (Γ) (□ Γ').
 
-Lemma agree_ren_refl Gamma :
-  agree_ren id Gamma Gamma.
+Lemma agree_ren_refl Γ :
+  agree_ren id Γ Γ.
 Proof.
-  induction Gamma.
+  induction Γ.
   - constructor.
   - destruct a. 
     destruct p.
     destruct s.
-    assert (agree_ren id (t :u Gamma) (t :u Gamma)
-      = agree_ren (upren id) (t :u Gamma) (t.[ren id] :u Gamma))
+    assert (agree_ren id (t +u Γ) (t +u Γ)
+      = agree_ren (upren id) (t +u Γ) (t.[ren id] +u Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.
-    assert (agree_ren id (t :l Gamma) (t :l Gamma)
-      = agree_ren (upren id) (t :l Gamma) (t.[ren id] :l Gamma))
+    assert (agree_ren id (t +l Γ) (t +l Γ)
+      = agree_ren (upren id) (t +l Γ) (t.[ren id] +l Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.
-    assert (agree_ren id (:n Gamma) (:n Gamma)
-      = agree_ren (upren id) (:n Gamma) (:n Gamma))
+    assert (agree_ren id (□ Γ) (□ Γ)
+      = agree_ren (upren id) (□ Γ) (□ Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.
 Qed.
 
-Lemma agree_ren_pure Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
-  pure Gamma ->
-  pure Gamma'.
+Lemma agree_ren_pure Γ Γ' ξ :
+  agree_ren ξ Γ Γ' -> [ Γ ] -> [ Γ' ].
 Proof.
   induction 1; simpl; intros; eauto.
   - inv H0; eauto.
@@ -1472,54 +1125,53 @@ Proof.
   - constructor; eauto.
 Qed.
 
-Lemma agree_ren_re_re Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren xi (re Gamma) (re Gamma').
+Lemma agree_ren_re_re Γ Γ' ξ :
+  agree_ren ξ Γ Γ' -> agree_ren ξ (%Γ) (%Γ').
 Proof.
   induction 1; simpl; constructor; eauto.
 Qed.
 
-Lemma agree_ren_hasU Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
+Lemma agree_ren_hasU Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
   forall x A,
-    hasU Gamma x A ->
-    hasU Gamma' (xi x) A.[ren xi].
+    [ x :u A ∈ Γ ]  ->
+    [ ξ x :u A.[ren ξ] ∈ Γ' ].
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
   - inv H.
   - destruct x; asimpl.
     inv H.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     eapply agree_ren_pure; eauto.
     inv H; subst.
-    replace (m0.[ren (+1)].[ren (upren xi)]) 
-      with (m0.[ren xi].[ren (+1)]) by autosubst.
+    replace (m0.[ren (+1)].[ren (upren ξ)]) 
+      with (m0.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
   - inv H.
   - inv H; subst.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
-  - replace (A.[ren ((+1) ∘ xi)])
-      with (A.[ren xi].[ren (+1)]) by autosubst.
+  - replace (A.[ren ((+1) ∘ ξ)])
+      with (A.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
-  - replace (A.[ren ((+1) ∘ xi)])
-      with (A.[ren xi].[ren (+1)]) by autosubst.
+  - replace (A.[ren ((+1) ∘ ξ)])
+      with (A.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
 Qed.
 
-Lemma agree_ren_hasL Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
+Lemma agree_ren_hasL Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
   forall x A,
-    hasL Gamma x A ->
-    hasL Gamma' (xi x) A.[ren xi].
+    [ x :l A ∈ Γ ] ->
+    [ ξ x :l A.[ren ξ] ∈ Γ' ].
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
@@ -1527,38 +1179,38 @@ Proof.
   - destruct x; asimpl.
     inv H.
     inv H; subst.
-    replace (m0.[ren (+1)].[ren (upren xi)]) 
-      with (m0.[ren xi].[ren (+1)]) by autosubst.
+    replace (m0.[ren (+1)].[ren (upren ξ)]) 
+      with (m0.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
   - inv H.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     eapply agree_ren_pure; eauto.
   - inv H.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
-  - replace (A.[ren ((+1) ∘ xi)])
-      with (A.[ren xi].[ren (+1)]) by autosubst.
+  - replace (A.[ren ((+1) ∘ ξ)])
+      with (A.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
-  - replace (A.[ren ((+1) ∘ xi)])
-      with (A.[ren xi].[ren (+1)]) by autosubst.
+  - replace (A.[ren ((+1) ∘ ξ)])
+      with (A.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply IHagree_ren; eauto.
 Qed.
 
-Lemma merge_agree_ren_inv Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
-  forall Gamma1 Gamma2,
-    merge Gamma1 Gamma2 Gamma ->
-    exists Gamma1' Gamma2',
-      merge Gamma1' Gamma2' Gamma' /\
-      agree_ren xi Gamma1 Gamma1' /\
-      agree_ren xi Gamma2 Gamma2'.
+Lemma merge_agree_ren_inv Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
+  forall Γ1 Γ2,
+    [ Γ1 ‡ Γ2 ‡ Γ ] ->
+    exists Γ1' Γ2',
+      [ Γ1' ‡ Γ2' ‡ Γ' ] /\
+      agree_ren ξ Γ1 Γ1' /\
+      agree_ren ξ Γ2 Γ2'.
 Proof.
   induction 1; intros.
   - inv H.
@@ -1568,43 +1220,43 @@ Proof.
   - inv H0; subst.
     pose proof (IHagree_ren _ _ H4).
     first_order.
-    exists (m.[ren xi] :u x).
-    exists (m.[ren xi] :u x0).
+    exists (m.[ren ξ] +u x).
+    exists (m.[ren ξ] +u x0).
     repeat constructor; eauto.
   - inv H0; subst.
     pose proof (IHagree_ren _ _ H4).
     first_order.
-    exists (m.[ren xi] :l x).
-    exists (:n x0).
+    exists (m.[ren ξ] +l x).
+    exists (□ x0).
     repeat constructor; eauto.
     pose proof (IHagree_ren _ _ H4).
     first_order.
-    exists (:n x).
-    exists (m.[ren xi] :l x0).
+    exists (□ x).
+    exists (m.[ren ξ] +l x0).
     repeat constructor; eauto.
   - inv H0; subst.
     pose proof (IHagree_ren _ _ H4).
     first_order.
-    exists (:n x).
-    exists (:n x0).
+    exists (□ x).
+    exists (□ x0).
     repeat constructor; eauto.
   - pose proof (IHagree_ren _ _ H0).
     first_order.
-    exists (m :u x).
-    exists (m :u x0).
+    exists (m +u x).
+    exists (m +u x0).
     repeat constructor; eauto.
   - pose proof (IHagree_ren _ _ H0).
     first_order.
-    exists (:n x).
-    exists (:n x0).
+    exists (□ x).
+    exists (□ x0).
     repeat constructor; eauto.
 Qed.
 
-Lemma rename_ok Gamma m A s :
-  [ Gamma |- m :- A -: s ] ->
-  forall Gamma' xi,
-    agree_ren xi Gamma Gamma' ->
-    [ Gamma' |- m.[ren xi] :- A.[ren xi] -: s ].
+Lemma rename_ok Γ m A s :
+  [ Γ |- m :- A -: s ] ->
+  forall Γ' ξ,
+    agree_ren ξ Γ Γ' ->
+    [ Γ' |- m.[ren ξ] :- A.[ren ξ] -: s ].
 Proof.
   intros H.
   induction H; simpl; intros.
@@ -1614,94 +1266,60 @@ Proof.
     apply s_axiom; assumption.
   - asimpl.
     pose proof (agree_ren_pure H2 H).
-    eapply u_prop; eauto.
-    replace (prop U) with ((prop U).[ren (upren xi)]) by autosubst.
+    eapply prop; eauto.
+    replace 𝐏 with (𝐏.[ren (upren ξ)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
   - asimpl.
     pose proof (agree_ren_pure H2 H).
-    apply u_prod; eauto.
-    replace (s @ l) with ((s @ l).[ren (upren xi)]) by autosubst.
+    apply prod; eauto.
+    replace (s @ l) with ((s @ l).[ren (upren ξ)]) by autosubst.
     apply IHhas_type2.
-    constructor; eauto.
-  - asimpl.
-    pose proof (agree_ren_pure H2 H).
-    apply l_prod; eauto.
-    replace (s @ l) with ((s @ l).[ren (upren xi)]) by autosubst.
-    apply IHhas_type2.
-    constructor; eauto.
-  - asimpl.
-    pose proof (agree_ren_pure H2 H).
-    apply arrow; eauto.
-  - asimpl.
-    pose proof (agree_ren_pure H2 H).
-    apply lolli; eauto.
-  - replace (ids (xi x)) with (Var (xi x)) by autosubst.
+    destruct r; simpl; constructor; eauto;
+    apply agree_ren_re_re; eauto.
+  - replace (ids (ξ x)) with (Var (ξ x)) by autosubst.
     apply u_var.
     eapply agree_ren_hasU; eauto.
-  - replace (ids (xi x)) with (Var (xi x)) by autosubst.
+  - replace (ids (ξ x)) with (Var (ξ x)) by autosubst.
     apply l_var.
     eapply agree_ren_hasL; eauto.
-  - eapply u_lam1.
+  - eapply u_lam.
     eapply agree_ren_pure; eauto.
     apply IHhas_type1; eauto.
     asimpl.
     apply IHhas_type2; eauto.
-    constructor; eauto.
-  - asimpl.
-    eapply u_lam2.
-    eapply agree_ren_pure; eauto.
-    apply IHhas_type1; eauto.
-    replace (B.[ren xi].[ren (+1)]) 
-      with (B.[ren (+1)].[ren (upren xi)]) by autosubst.
-    apply IHhas_type2.
-    constructor; eauto.
-  - eapply l_lam1.
+    destruct s; constructor; eauto.
+  - eapply l_lam.
     apply IHhas_type1; eauto.
     apply agree_ren_re_re; eauto.
     asimpl.
     apply IHhas_type2.
-    constructor; eauto.
-  - asimpl.
-    eapply l_lam2.
-    apply IHhas_type1; eauto.
-    apply agree_ren_re_re; eauto.
-    replace (B.[ren xi].[ren (+1)]) 
-      with (B.[ren (+1)].[ren (upren xi)]) by autosubst.
-    apply IHhas_type2.
-    constructor; eauto.
+    destruct s; constructor; eauto.
   - asimpl.
     pose proof (merge_agree_ren_inv H3 H2).
     first_order. asimpl in IHhas_type1.
-    replace (B.[n.[ren xi] .: ren xi]) 
-      with (B.[ren (upren xi)].[n.[ren xi]/]) by autosubst.
+    replace (B.[n.[ren ξ] .: ren ξ]) 
+      with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
     pose proof (agree_ren_pure H6 H).
-    eapply u_app1; eauto.
-  - pose proof (merge_agree_ren_inv H2 H1).
-    first_order. asimpl in IHhas_type1.
-    eapply u_app2; eauto.
+    eapply u_app; eauto.
   - asimpl.
-    pose proof (merge_agree_ren_inv H3 H2).
+    pose proof (merge_agree_ren_inv H2 H1).
     first_order. asimpl in IHhas_type1.
-    replace (B.[n.[ren xi] .: ren xi]) 
-      with (B.[ren (upren xi)].[n.[ren xi]/]) by autosubst.
-    pose proof (agree_ren_pure H6 H).
-    eapply l_app1; eauto.
-  - pose proof (merge_agree_ren_inv H2 H1).
-    first_order. asimpl in IHhas_type1.
-    eapply l_app2; eauto.
+    replace (B.[n.[ren ξ] .: ren ξ]) 
+      with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
+    eapply l_app; eauto.
   - eapply conversion.
     apply sub_ren; eauto.
-    apply IHhas_type1.
+    apply IHhas_type1; eauto.
     apply agree_ren_re_re; eauto.
     apply IHhas_type2; eauto.
 Qed.
 
-Lemma hasU_ok Gamma :
-  [ Gamma |- ] ->
+Lemma hasU_ok Γ :
+  [ Γ |- ] ->
   forall x A,
-    hasU Gamma x A ->
-    exists l, [ re Gamma |- A :- Sort U l -: U ].
+    [ x :u A ∈ Γ ] ->
+    exists l, [ %Γ |- A :- Sort U l -: U ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -1731,11 +1349,11 @@ Proof.
     apply agree_ren_refl.
 Qed.
 
-Lemma hasL_ok Gamma :
-  [ Gamma |- ] ->
+Lemma hasL_ok Γ :
+  [ Γ |- ] ->
   forall x A,
-    hasL Gamma x A ->
-    exists l, [ re Gamma |- A :- Sort L l -: U ].
+    [ x :l A ∈ Γ ] ->
+    exists l, [ %Γ |- A :- Sort L l -: U ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -1763,9 +1381,9 @@ Proof.
     apply agree_ren_refl.
 Qed.
 
-Lemma weakeningU Gamma m A s B :
-  [ Gamma |- m :- A -: s ] ->
-  [ B :u Gamma |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
+Lemma weakeningU Γ m A s B :
+  [ Γ |- m :- A -: s ] ->
+  [ B +u Γ |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
 Proof.
   intros.
   eapply rename_ok in H.
@@ -1774,9 +1392,9 @@ Proof.
   apply agree_ren_refl.
 Qed.
 
-Lemma weakeningN Gamma m A s :
-  [ Gamma |- m :- A -: s ] ->
-  [ :n Gamma |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
+Lemma weakeningN Γ m A s :
+  [ Γ |- m :- A -: s ] ->
+  [ □ Γ |- m.[ren (+1)] :- A.[ren (+1)] -: s ].
 Proof.
   intros.
   eapply rename_ok in H.
@@ -1785,68 +1403,68 @@ Proof.
   apply agree_ren_refl.
 Qed.
 
-Lemma eweakeningU Gamma m m' A A' s B :
+Lemma eweakeningU Γ m m' A A' s B :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  [ Gamma |- m :- A -: s ] -> 
-  [ B :u Gamma |- m' :- A' -: s ].
+  [ Γ |- m :- A -: s ] -> 
+  [ B +u Γ |- m' :- A' -: s ].
 Proof.  
   intros; subst.
   apply weakeningU; eauto.
 Qed.
 
-Lemma eweakeningN Gamma m m' A A' s :
+Lemma eweakeningN Γ m m' A A' s :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  [ Gamma |- m :- A -: s ] -> 
-  [ :n Gamma |- m' :- A' -: s ].
+  [ Γ |- m :- A -: s ] -> 
+  [ □ Γ |-m' :- A' -: s ].
 Proof.  
   intros; subst.
   apply weakeningN; eauto.
 Qed.
 
-Reserved Notation "[ Delta |- sigma -| Gamma ]".
+Reserved Notation "[ Δ |- σ -| Γ ]".
 
 Inductive agree_subst :
   context term -> (var -> term) -> context term -> Prop :=
-| agree_subst_nil sigma :
-  [ nil |- sigma -| nil ]
-| agree_subst_u Delta sigma Gamma A :
-  [ Delta |- sigma -| Gamma ] ->
-  [ A.[sigma] :u Delta |- up sigma -| A :u Gamma ]
-| agree_subst_l Delta sigma Gamma A :
-  [ Delta |- sigma -| Gamma ] ->
-  [ A.[sigma] :l Delta |- up sigma -| A :l Gamma ]
-| agree_subst_n Delta sigma Gamma :
-  [ Delta |- sigma -| Gamma ] ->
-  [ :n Delta |- up sigma -| :n Gamma ]
-| agree_subst_wkU Delta sigma Gamma n A :
-  [ Delta |- sigma -| Gamma ] ->
-  [ re Delta |- n :- A.[sigma] -: U ] ->
-  [ Delta |- n .: sigma -| A :u Gamma ]
-| agree_subst_wkL Delta1 Delta2 Delta sigma Gamma n A :
-  merge Delta1 Delta2 Delta ->
-  [ Delta1 |- sigma -| Gamma ] ->
-  [ Delta2 |- n :- A.[sigma] -: L ] ->
-  [ Delta |- n .: sigma -| A :l Gamma ]
-| agree_subst_wkN Delta sigma Gamma n :
-  [ Delta |- sigma -| Gamma ] ->
-  [ Delta |- n .: sigma -| :n Gamma ]
-| agree_subst_convU Delta sigma Gamma A B l :
+| agree_subst_nil σ :
+  [ nil |- σ -| nil ]
+| agree_subst_u Δ σ Γ A :
+  [ Δ |- σ -| Γ ] ->
+  [ A.[σ] +u Δ |- up σ -| A +u Γ ]
+| agree_subst_l Δ σ Γ A :
+  [ Δ |- σ -| Γ ] ->
+  [ A.[σ] +l Δ |- up σ -| A +l Γ ]
+| agree_subst_n Δ σ Γ :
+  [ Δ |- σ -| Γ ] ->
+  [ □ Δ |- up σ -| □ Γ ]
+| agree_subst_wkU Δ σ Γ n A :
+  [ Δ |- σ -| Γ ] ->
+  [ %Δ |- n :- A.[σ] -: U ] ->
+  [ Δ |- n .: σ -| A +u Γ ]
+| agree_subst_wkL Δ₁ Δ₂ Δ σ Γ n A :
+  merge Δ₁ Δ₂ Δ ->
+  [ Δ₁ |- σ -| Γ ] ->
+  [ Δ₂ |- n :- A.[σ] -: L ] ->
+  [ Δ |- n .: σ -| A +l Γ ]
+| agree_subst_wkN Δ σ Γ n :
+  [ Δ |- σ -| Γ ] ->
+  [ Δ |- n .: σ -| □ Γ ]
+| agree_subst_convU Δ σ Γ A B l :
   A <: B ->
-  [ re Delta |- B.[ren (+1)].[sigma] :- Sort U l -: U ] ->
-  [ Delta |- sigma -| A :u Gamma ] ->
-  [ Delta |- sigma -| B :u Gamma ]
-| agree_subst_convL Delta sigma Gamma A B l :
+  [ %Δ |- B.[ren (+1)].[σ] :- Sort U l -: U ] ->
+  [ Δ |- σ -| A +u Γ ] ->
+  [ Δ |- σ -| B +u Γ ]
+| agree_subst_convL Δ σ Γ A B l :
   A <: B ->
-  [ re Delta |- B.[ren (+1)].[sigma] :- Sort L l -: U ] ->
-  [ re Gamma |- B :- Sort L l -: U ] ->
-  [ Delta |- sigma -| A :l Gamma ] ->
-  [ Delta |- sigma -| B :l Gamma ]
-where "[ Delta |- sigma -| Gamma ]" := (agree_subst Delta sigma Gamma).
+  [ %Δ |- B.[ren (+1)].[σ] :- Sort L l -: U ] ->
+  [ %Γ |- B :- Sort L l -: U ] ->
+  [ Δ |- σ -| A +l Γ ] ->
+  [ Δ |- σ -| B +l Γ ]
+where "[ Δ |- σ -| Γ ]" := (agree_subst Δ σ Γ).
 
-Lemma agree_subst_pure Delta sigma Gamma :
-  [ Delta |- sigma -| Gamma ] -> pure Gamma -> pure Delta.
+Lemma agree_subst_pure Δ σ Γ :
+  [ Δ |- σ -| Γ ] -> pure Γ -> pure Δ.
 Proof.
   induction 1; intros; eauto.
   inv H0.
@@ -1863,49 +1481,45 @@ Proof.
   inv H3.
 Qed.
 
-Lemma agree_subst_refl Gamma :
-  [ Gamma |- ids -| Gamma ].
+Lemma agree_subst_refl Γ :
+  [ Γ |- ids -| Γ ].
 Proof.
-  induction Gamma.
+  induction Γ.
   - constructor.
   - destruct a.
     destruct p.
     destruct s.
-    replace ([t :u Gamma |- ids -| t :u Gamma])
-      with ([t.[ids] :u Gamma |- up ids -| t :u Gamma])
+    replace [t +u Γ |- ids -| t +u Γ]
+      with [t.[ids] +u Γ |- up ids -| t +u Γ]
       by autosubst.
     apply agree_subst_u; eauto.
-    replace ([t :l Gamma |- ids -| t :l Gamma])
-      with ([t.[ids] :l Gamma |- up ids -| t :l Gamma])
+    replace [t +l Γ |- ids -| t +l Γ]
+      with [t.[ids] +l Γ |- up ids -| t +l Γ]
       by autosubst.
     apply agree_subst_l; eauto.
     replace (ids) with (up ids) by autosubst.
     apply agree_subst_n; eauto.
 Qed.
 
-Lemma agree_subst_hasU Delta sigma Gamma :
-  [ Delta |- sigma -| Gamma ] ->
+Lemma agree_subst_hasU Δ σ Γ :
+  [ Δ |- σ -| Γ ] ->
   forall x A,
-    hasU Gamma x A -> 
-    [ Delta |- sigma x :- A.[sigma] -: U ].
+    [ x :u A ∈ Γ ] -> 
+    [ Δ |- σ x :- A.[σ] -: U ].
 Proof.
   induction 1; intros.
   - inv H.
   - inv H0.
     + asimpl.
       apply u_var.
-      replace (A.[sigma >> ren (+1)]) 
-        with (A.[sigma].[ren (+1)]) by autosubst.
+      replace (A.[σ >> ren (+1)]) 
+        with (A.[σ].[ren (+1)]) by autosubst.
       constructor.
       eapply agree_subst_pure; eauto.
-    + eapply eweakeningU; eauto.
-      autosubst.
-      autosubst.
+    + eapply eweakeningU; eauto; autosubst.
   - inv H0.
   - inv H0.
-    eapply eweakeningN; eauto.
-    autosubst.
-    autosubst.
+    eapply eweakeningN; eauto; autosubst.
   - inv H1; asimpl; eauto.
     pose proof (agree_subst_pure H H6).
     pose proof (pure_re H1).
@@ -1913,7 +1527,7 @@ Proof.
   - inv H2.
   - inv H0; asimpl; eauto.
   - inv H2.
-    + assert (hasU (A :u Gamma) 0 A.[ren (+1)]).
+    + assert [ 0 :u A.[ren (+1)] ∈ A +u Γ].
       constructor; eauto.
       eapply conversion.
       eapply sub_subst.
@@ -1925,22 +1539,20 @@ Proof.
   - inv H3.
 Qed.
 
-Lemma agree_subst_hasL Delta sigma Gamma :
-  [ Delta |- sigma -| Gamma ] ->
+Lemma agree_subst_hasL Δ σ Γ :
+  [ Δ |- σ -| Γ ] ->
   forall x A,
-    hasL Gamma x A -> 
-    [ Delta |- sigma x :- A.[sigma] -: L ].
+    [ x :l A ∈ Γ ] -> 
+    [ Δ |- σ x :- A.[σ] -: L ].
 Proof.
   induction 1; intros.
   - inv H.
   - inv H0.
-    eapply eweakeningU; eauto.
-    autosubst.
-    autosubst.
+    eapply eweakeningU; eauto; autosubst.
   - inv H0.
     asimpl.
-    replace (A.[sigma >> ren (+1)]) 
-      with (A.[sigma].[ren (+1)]) by autosubst.
+    replace (A.[σ >> ren (+1)]) 
+      with (A.[σ].[ren (+1)]) by autosubst.
     constructor.
     constructor.
     eapply agree_subst_pure; eauto.
@@ -1958,7 +1570,7 @@ Proof.
     apply IHagree_subst.
     constructor; eauto.
   - inv H3.
-    assert (hasL (A :l Gamma) 0 A.[ren (+1)]).
+    assert [ 0 :l A.[ren (+1)] ∈ A +l Γ ].
     constructor; eauto.
     eapply conversion.
     apply sub_subst.
@@ -1967,9 +1579,9 @@ Proof.
     apply IHagree_subst; eauto.
 Qed.
 
-Lemma agree_subst_re_re Delta sigma Gamma :
-  [ Delta |- sigma -| Gamma ] ->
-  [ re Delta |- sigma -| re Gamma ].
+Lemma agree_subst_re_re Δ σ Γ :
+  [ Δ |- σ -| Γ ] ->
+  [ %Δ |- σ -| %Γ ].
 Proof.
   intro H.
   dependent induction H; simpl; intros; eauto.
@@ -1992,14 +1604,12 @@ Proof.
     apply IHagree_subst.
 Qed.
 
-Lemma merge_agree_subst_inv Delta sigma Gamma :
-  [ Delta |- sigma -| Gamma ] ->
-  forall Gamma1 Gamma2,
-    merge Gamma1 Gamma2 Gamma ->
-    exists Delta1 Delta2,
-      merge Delta1 Delta2 Delta /\
-      [ Delta1 |- sigma -| Gamma1 ] /\
-      [ Delta2 |- sigma -| Gamma2 ].
+Lemma merge_agree_subst_inv Δ σ Γ :
+  [ Δ |- σ -| Γ ] ->
+  forall Γ₁ Γ₂,
+    [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+    exists Δ₁ Δ₂,
+      [ Δ₁ ‡ Δ₂ ‡ Δ ] /\ [ Δ₁ |- σ -| Γ₁ ] /\ [ Δ₂ |- σ -| Γ₂ ].
 Proof.
   intros H.
   dependent induction H; intros.
@@ -2010,25 +1620,25 @@ Proof.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (A.[sigma] :u x).
-    exists (A.[sigma] :u x0).
+    exists (A.[σ] +u x).
+    exists (A.[σ] +u x0).
     repeat constructor; eauto.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (A.[sigma] :l x).
-    exists (:n x0).
+    exists (A.[σ] +l x).
+    exists (□ x0).
     repeat constructor; eauto.
   - pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (:n x).
-    exists (A.[sigma] :l x0).
+    exists (□ x).
+    exists (A.[σ] +l x0).
     repeat constructor; eauto.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (:n x).
-    exists (:n x0).
+    exists (□ x).
+    exists (□ x0).
     repeat constructor; eauto.
   - inv H1.
     pose proof (IHagree_subst _ _ H5).
@@ -2066,7 +1676,7 @@ Proof.
     exists x0.
     repeat constructor; eauto.
   - inv H2.
-    assert (merge (A :u Gamma0) (A :u Gamma3) (A :u Gamma)).
+    assert (merge (A +u Γ₁0) (A +u Γ₂0) (A +u Γ)).
     apply merge_left; eauto.
     specialize (IHagree_subst _ _ H2).
     first_order.
@@ -2080,7 +1690,7 @@ Proof.
     eapply agree_subst_convU; eauto.
     rewrite H9; eauto.
   - inv H3.
-    + assert (merge (A :l Gamma0) (:n Gamma3) (A :l Gamma)).
+    + assert (merge (A +l Γ₁0) (□ Γ₂0) (A +l Γ)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -2092,7 +1702,7 @@ Proof.
       eapply agree_subst_convL; eauto.
       rewrite H9; eauto.
       rewrite H11; eauto.
-    + assert (merge (:n Gamma0) (A :l Gamma3) (A :l Gamma)).
+    + assert (merge (□ Γ₁0) (A +l Γ₂0) (A +l Γ)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -2106,11 +1716,11 @@ Proof.
       rewrite H12; eauto.
 Qed.
 
-Lemma substitution Gamma m A s :
-  [ Gamma |- m :- A -: s ] ->
-  forall Delta sigma,
-    [ Delta |- sigma -| Gamma ] ->
-    [ Delta |- m.[sigma] :- A.[sigma] -: s ].
+Lemma substitution Γ m A s :
+  [ Γ |- m :- A -: s ] ->
+  forall Δ σ,
+    [ Δ |- σ -| Γ ] ->
+    [ Δ |- m.[σ] :- A.[σ] -: s ].
 Proof.
   intros H.
   dependent induction H; asimpl; intros; eauto.
@@ -2121,70 +1731,57 @@ Proof.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
     pose proof (agree_subst_u A H2).
     specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
-    eapply u_prop; eauto.
+    eapply prop; eauto.
     eapply agree_subst_pure; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
     pose proof (agree_subst_u A H2).
-    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
-    apply u_prod; eauto.
-    eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_u A H2).
-    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
-    apply l_prod; eauto.
-    eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    specialize (IHhas_type2 _ _ H2). asimpl in IHhas_type2.
-    apply arrow; eauto.
-    eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    specialize (IHhas_type2 _ _ H2). asimpl in IHhas_type2.
-    apply lolli; eauto.
-    eapply agree_subst_pure; eauto.
+    pose proof (pure_re H).
+    destruct r; simpl in IHhas_type2.
+    + rewrite <- H4 in IHhas_type2.
+      specialize (IHhas_type2 _ _ H3).
+      apply prod; simpl; eauto.
+      eapply agree_subst_pure; eauto.
+      rewrite <- pure_re; eauto.
+      eapply agree_subst_pure; eauto.
+    + rewrite <- H4 in IHhas_type2.
+      pose proof (agree_subst_n H2).
+      specialize (IHhas_type2 _ _ H5).
+      apply prod; simpl; eauto.
+      eapply agree_subst_pure; eauto.
+      rewrite <- pure_re; eauto.
+      eapply agree_subst_pure; eauto.
   - eapply agree_subst_hasU; eauto.
   - eapply agree_subst_hasL; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_u A H2).
-    specialize (IHhas_type2 _ _ H3).
-    eapply u_lam1; eauto.
-    eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_l A H2).
-    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
-    eapply u_lam2; eauto.
-    eapply agree_subst_pure; eauto.
-    asimpl; eauto.
+    destruct s.
+    + pose proof (agree_subst_u A H2).
+      specialize (IHhas_type2 _ _ H3).
+      eapply u_lam; eauto.
+      eapply agree_subst_pure; eauto.
+    + pose proof (agree_subst_l A H2).
+      specialize (IHhas_type2 _ _ H3).
+      eapply u_lam; eauto.
+      eapply agree_subst_pure; eauto.
   - pose proof (agree_subst_re_re H1).
     specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_u A H1).
-    specialize (IHhas_type2 _ _ H3).
-    eapply l_lam1; eauto.
-  - pose proof (agree_subst_re_re H1).
-    specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_l A H1).
-    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
-    eapply l_lam2; eauto.
-    asimpl; eauto.
+    destruct s.
+    + pose proof (agree_subst_u A H1).
+      specialize (IHhas_type2 _ _ H3).
+      eapply l_lam; eauto.
+    + pose proof (agree_subst_l A H1).
+      specialize (IHhas_type2 _ _ H3).
+      eapply l_lam; eauto.
   - asimpl.
     pose proof (merge_agree_subst_inv H3 H2).
     first_order.
     pose proof (agree_subst_pure H6 H).
-    pose proof (u_app1 H7 IHhas_type1 IHhas_type2 H4).
-    asimpl in H8.
-    apply H8.
-  - pose proof (merge_agree_subst_inv H2 H1).
-    first_order.
-    eapply u_app2; eauto.
+    pose proof (u_app H7 IHhas_type1 IHhas_type2 H4).
+    asimpl in H8; eauto.
   - asimpl.
-    pose proof (merge_agree_subst_inv H3 H2).
+    pose proof (merge_agree_subst_inv H2 H1).
     first_order.
-    pose proof (agree_subst_pure H6 H).
-    pose proof (l_app1 H7 IHhas_type1 IHhas_type2 H4).
-    asimpl in H8.
-    apply H8.
-  - pose proof (merge_agree_subst_inv H2 H1).
-    first_order.
-    eapply l_app2; eauto.
+    pose proof (l_app IHhas_type1 IHhas_type2 H3).
+    asimpl in H6; eauto.
   - eapply conversion.
     apply sub_subst; eauto.
     apply IHhas_type1; eauto.
@@ -2192,13 +1789,13 @@ Proof.
     apply IHhas_type2; eauto.
 Qed.
 
-Lemma substitutionU Gamma1 m A B s :
-  [ A :u Gamma1 |- m :- B -: s ] ->
-  forall Gamma2 Gamma n,
-    pure Gamma2 ->
-    merge Gamma1 Gamma2 Gamma -> 
-    [ Gamma2 |- n :- A -: U ] -> 
-    [ Gamma |- m.[n/] :- B.[n/] -: s ].
+Lemma substitutionU Γ₁ m A B s :
+  [ A +u Γ₁ |- m :- B -: s ] ->
+  forall Γ₂ Γ n,
+    [ Γ₂ ] ->
+    [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
+    [ Γ₂ |- n :- A -: U ] -> 
+    [ Γ |- m.[n/] :- B.[n/] -: s ].
 Proof.
   intros.
   eapply substitution.
@@ -2215,12 +1812,11 @@ Proof.
   rewrite <- pure_re; eauto.
 Qed.
 
-Lemma substitutionN Gamma1 m A B s :
-  [ :n Gamma1 |- m :- B -: s ] ->
-  forall Gamma2 n t,
-    pure Gamma2 ->
-    [ Gamma2 |- n :- A -: t ] -> 
-    [ Gamma1 |- m.[n/] :- B.[n/] -: s ].
+Lemma substitutionN Γ₁ m A B s :
+  [ □ Γ₁ |- m :- B -: s ] ->
+  forall Γ₂ n t,
+    [ Γ₂ |- n :- A -: t ] -> 
+    [ Γ₁ |- m.[n/] :- B.[n/] -: s ].
 Proof.
   intros.
   eapply substitution.
@@ -2229,12 +1825,12 @@ Proof.
   apply agree_subst_refl.
 Qed.
 
-Lemma substitutionL Gamma1 m A B s :
-  [ A :l Gamma1 |- m :- B -: s ] ->
-  forall Gamma2 Gamma n,
-    merge Gamma1 Gamma2 Gamma -> 
-    [ Gamma2 |- n :- A -: L ] -> 
-    [ Gamma |- m.[n/] :- B.[n/] -: s ].
+Lemma substitutionL Γ₁ m A B s :
+  [ A +l Γ₁ |- m :- B -: s ] ->
+  forall Γ₂ Γ n,
+    [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
+    [ Γ₂ |- n :- A -: L ] -> 
+    [ Γ |- m.[n/] :- B.[n/] -: s ].
 Proof.
   intros.
   eapply substitution.
@@ -2243,14 +1839,14 @@ Proof.
   apply agree_subst_refl.
 Qed.
 
-Lemma context_convU Gamma m A B C s l :
+Lemma context_convU Γ m A B C s l :
   B === A -> 
-  [ re Gamma |- A :- Sort U l -: U ] ->
-  [ A :u Gamma |- m :- C -: s ] -> 
-  [ B :u Gamma |- m :- C -: s ].
+  [ %Γ |- A :- Sort U l -: U ] ->
+  [ A +u Γ |- m :- C -: s ] -> 
+  [ B +u Γ |- m :- C -: s ].
 Proof.
   move=> conv tp1 tp2. 
-  cut ([ B :u Gamma |- m.[ids] :- C.[ids] -: s ]). autosubst.
+  cut ([ B +u Γ |- m.[ids] :- C.[ids] -: s ]). autosubst.
   eapply substitution.
   apply tp2.
   eapply agree_subst_convU; simpl.
@@ -2262,14 +1858,14 @@ Proof.
   apply agree_subst_refl.
 Qed.
 
-Lemma context_convL Gamma m A B C s l :
+Lemma context_convL Γ m A B C s l :
   B === A -> 
-  [ re Gamma |- A :- Sort L l -: U ] ->
-  [ A :l Gamma |- m :- C -: s ] -> 
-  [ B :l Gamma |- m :- C -: s ].
+  [ %Γ |- A :- Sort L l -: U ] ->
+  [ A +l Γ |- m :- C -: s ] -> 
+  [ B +l Γ |- m :- C -: s ].
 Proof.
   move=> conv tp1 tp2. 
-  cut ([ B :l Gamma |- m.[ids] :- C.[ids] -: s ]). autosubst.
+  cut ([ B +l Γ |- m.[ids] :- C.[ids] -: s ]). autosubst.
   eapply substitution.
   apply tp2.
   eapply agree_subst_convL; simpl.
@@ -2301,327 +1897,92 @@ Ltac solve_sub :=
   | _ => solve_conv
   end.
 
-Lemma tyProd_inv Gamma A B s srt :
-  [ re Gamma |- TyProd A B s :- srt -: U ] -> 
+Lemma prod_inv Γ A B r s t :
+  [ %Γ |- Prod A B r s :- t -: U ] -> 
   exists l,
-    [ re Gamma |- A :- Sort U l -: U ] /\ 
-    [ A :u re Gamma |- B :- Sort s l -: U ].
+    [ %Γ |- A :- Sort r l -: U ] /\ 
+    [ %(A +{r} Γ) |- B :- Sort s l -: U ].
 Proof.
-  move e:(TyProd A B s) => n tp. 
-  elim: tp A B s e => //{Gamma n}.
-  - move=> Gamma A B l p tp1 _ tp2 _ A0 B0 s0 [->->->].
-    exists l; firstorder.
+  intros.
+  dependent induction H.
+  - exists l; firstorder.
     destruct l; eauto.
-    assert (prop U <: U @ n).
+    assert (𝐏 <: U @ n).
     apply sub_prop.
     eapply conversion; eauto.
     constructor; apply re_pure.
-  - move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->].
-    exists (Some l); eauto.
+  - exists (Some l); first_order; eauto.
+    destruct r; simpl; simpl in H1; rewrite <- re_re in H1; eauto.
+  - apply IHhas_type2; eauto.
 Qed.
 
-Lemma arrow_invX Gamma A B s srt :
-  [ re Gamma |- Arrow A B s :- srt -: U ] ->
-  forall l, srt <: U @ l ->
-    [ re Gamma |- A :- L @ l -: U ] /\ 
-    [ re Gamma |- B :- s @ l -: U ].
-Proof.
-  move e:(Arrow A B s) => n tp. 
-  elim: tp A B s e => //{Gamma n}.
-  - move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->] l0 sb.
-    apply sub_sort_inv in sb; inv sb.
-    split.
-    assert (L @ l <: L @ l0).
-    econstructor; eauto.
-    econstructor; eauto.
-    eapply conversion; eauto.
-    constructor; apply re_pure.
-    eapply conversion; eauto.
-    constructor; apply re_pure.
-    assert (s @ l <: s @ l0).
-    econstructor; eauto.
-    econstructor; eauto.
-    eapply conversion; eauto.
-    constructor; apply re_pure.
-  - move=> Gamma A B m s l sb1 tp1 ih1 tp2 ih2 A0 B0 s0 h l0 sb2.
-    eapply ih2; eauto.
-    eapply sub_trans.
-    apply sb1.
-    apply sb2.
-Qed.
-
-Lemma arrow_inv Gamma A B s l :
-  [ re Gamma |- Arrow A B s :- U @ l -: U ] ->
-  [ re Gamma |- A :- L @ l -: U ] /\ 
-  [ re Gamma |- B :- s @ l -: U ].
-Proof.
-  intros.
-  eapply arrow_invX; eauto.
-Qed.
-
-Lemma arrow_falseX Gamma A B s srt :
-  [ re Gamma |- Arrow A B s :- srt -: U ] ->
-  srt <: prop U -> False.
-Proof.
-  intro h.
-  dependent induction h; intros.
-  - exfalso; solve_sub.
-  - eapply IHh2; eauto.
-    eapply sub_trans; eauto.
-Qed.
-
-Lemma arrow_false Gamma A B s :
-  ~[ re Gamma |- Arrow A B s :- prop U -: U ].
-Proof.
-  intro h.
-  eapply arrow_falseX; eauto.
-Qed.
-
-Lemma lnProd_invX Gamma A B s srt :
-  [ re Gamma |- LnProd A B s :- srt -: U ] ->
-  forall l, srt <: L @ l ->
-    [ re Gamma |- A :- U @ l -: U ] /\ 
-    [ A :u re Gamma |- B :- s @ l -: U ].
-Proof.
-  move e:(LnProd A B s) => n tp. 
-  elim: tp A B s e => //{Gamma n}.
-  - move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->] l0 sb.
-    apply sub_sort_inv in sb; inv sb.
-    split.
-    eapply conversion; eauto.
-    constructor; apply re_pure.
-    assert (U @ l <: U @ l0).
-    econstructor; eauto.
-    econstructor; eauto.
-    eapply conversion; eauto.
-    constructor; apply re_pure.
-    assert (s @ l <: s @ l0).
-    econstructor; eauto.
-    econstructor; eauto.
-    eapply conversion; eauto.
-    constructor; apply re_pure.
-  - move=> Gamma A B m s l sb1 tp1 ih1 tp2 ih2 A0 B0 s0 h l0 sb2.
-    eapply ih2; eauto.
-    eapply sub_trans.
-    apply sb1.
-    apply sb2.
-Qed.
-
-Lemma lnProd_inv Gamma A B s l :
-  [ re Gamma |- LnProd A B s :- L @ l -: U ] ->
-  [ re Gamma |- A :- U @ l -: U ] /\ 
-  [ A :u re Gamma |- B :- s @ l -: U ].
-Proof.
-  intros.
-  eapply lnProd_invX; eauto.
-Qed.
-
-Lemma lnProd_falseX Gamma A B s srt :
-  [ re Gamma |- LnProd A B s :- srt -: U ] ->
-  srt <: prop L -> False. 
-Proof.
-  intro h.
-  dependent induction h; intros.
-  - solve_sub.
-  - eapply IHh2; eauto.
-    eapply sub_trans; eauto.
-Qed.
-
-Lemma lnProd_false Gamma A B s :
-  ~[ re Gamma |- LnProd A B s :- prop L -: U ].
-Proof.
-  intro h.
-  eapply lnProd_falseX; eauto.
-Qed.
-
-Lemma lolli_invX Gamma A B s srt :
-  [ re Gamma |- Lolli A B s :- srt -: U ] ->
-  forall l, srt <: L @ l ->
-    [ re Gamma |- A :- L @ l -: U ] /\ 
-    [ re Gamma |- B :- s @ l -: U ].
-Proof.
-  move e:(Lolli A B s) => n tp. 
-  elim: tp A B s e => //{Gamma n}.
-  - move=> Gamma A B s l p tp1 _ tp2 _ A0 B0 s0 [->->->] l0 sb.
-    split.
-    eapply conversion; eauto.
-    constructor; apply re_pure.
-    apply sub_sort_inv in sb; inv sb.
-    assert (s @ l <: s @ l0).
-    econstructor; eauto.
-    econstructor; eauto.
-    eapply conversion; eauto.
-    constructor; apply re_pure.
-  - move=> Gamma A B m s l sb1 tp1 ih1 tp2 ih2 A0 B0 s0 h l0 sb2.
-    eapply ih2; eauto.
-    eapply sub_trans.
-    apply sb1.
-    apply sb2.
-Qed.
-
-Lemma lolli_inv Gamma A B s l :
-  [ re Gamma |- Lolli A B s :- L @ l -: U ] ->
-  [ re Gamma |- A :- L @ l -: U ] /\ 
-  [ re Gamma |- B :- s @ l -: U ].
-Proof.
-  intros.
-  eapply lolli_invX; eauto.
-Qed.
-
-Lemma lolli_falseX Gamma A B s srt :
-  [ re Gamma |- Lolli A B s :- srt -: U ] ->
-  srt <: prop L -> False.
-Proof.
-  intro h.
-  dependent induction h; intros.
-  - solve_sub.
-  - eapply IHh2; eauto.
-    eapply sub_trans; eauto.
-Qed.
-
-Lemma lolli_false Gamma A B s :
-  ~[ re Gamma |- Lolli A B s :- prop L -: U ].
-Proof.
-  intro h.
-  eapply lolli_falseX; eauto.
-Qed.
-
-Lemma u_lam1_invX Gamma n C :
-  [ Gamma |- Lam n :- C -: U ] -> 
+Lemma u_lam_invX Γ n C srt :
+  [ Γ |- Lam n :- C -: srt ] -> 
   forall A B s l, 
-    (C <: TyProd A B s /\ [A :u re Gamma |- B :- Sort s l -: U]) ->
-    [ A :u Gamma |- n :- B -: s ].
+    (C <: Prod A B U s /\ [A +u %Γ |- B :- Sort s l -: U]) ->
+    [ A +u Γ |- n :- B -: s ].
 Proof.
   intros.
   dependent induction H; firstorder.
-  + pose proof (sub_tyProd_inv H2).
-    apply sub_tyProd_inv in H2.
+  + pose proof (sub_prod_inv H2).
     first_order; subst.
     pose proof (pure_re H).
-    rewrite H8 in H0.
-    apply tyProd_inv in H0. inv H0.
+    rewrite H6 in H0.
+    apply prod_inv in H0. inv H0.
     eapply conversion; eauto.
     eapply context_convU.
-    apply conv_sym; apply H2.
-    apply H9.
+    apply conv_sym; apply H4.
+    apply H7.
     apply H1.
-  + exfalso; solve_sub.
-  + eapply IHhas_type2; eauto.
-    split.
-    eapply sub_trans; eauto.
-    apply H3.
-Qed.
-
-Lemma u_lam1_inv Gamma n A B s l :
-  [ re Gamma |- TyProd A B s :- Sort U l -: U ] ->
-  [ Gamma |- Lam n :- TyProd A B s -: U ] -> 
-  [ A :u Gamma |- n :- B -: s ].
-Proof.
-  intros.
-  apply tyProd_inv in H; inv H; firstorder.
-  eapply u_lam1_invX; eauto.
-Qed.
-
-Lemma u_lam2_invX Gamma n C :
-  [ Gamma |- Lam n :- C -: U ] -> 
-  forall A B s l, 
-    (C <: Arrow A B s /\ [re Gamma |- B :- s @ l -: U]) ->
-    [ A :l Gamma |- n :- B.[ren (+1)] -: s ].
-Proof.
-  intros.
-  dependent induction H; firstorder.
-  - exfalso; solve_sub.
-  - apply sub_arrow_inv in H2.
+  + pose proof (sub_prod_inv H1).
     first_order; subst.
-    eapply conversion.
-    apply sub_ren; eauto.
-    simpl.
-    pose proof (weakeningN H3).
+    apply prod_inv in H. inv H.
+    eapply conversion; eauto.
+    eapply context_convU.
+    apply conv_sym; apply H3.
     apply H5.
-    eapply context_convL.
-    apply conv_sym; apply H2.
+    apply H0.
+  + eapply IHhas_type2; eauto.
+    split.
+    eapply sub_trans; eauto.
+    apply H3.
+Qed.
+
+Lemma u_lam_inv Γ n A B s t l :
+  [ %Γ |- Prod A B U s :- Sort t l -: U ] ->
+  [ Γ |- Lam n :- Prod A B U s -: t ] -> 
+  [ A +u Γ |- n :- B -: s ].
+Proof.
+  intros.
+  apply prod_inv in H; inv H; firstorder.
+  eapply u_lam_invX; eauto.
+Qed.
+
+Lemma l_lam_invX Γ n C srt :
+  [ Γ |- Lam n :- C -: srt ] -> 
+  forall A B s l, 
+    (C <: Prod A B L s /\ [□ re Γ |- B :- Sort s l -: U]) ->
+    [ A +l Γ |- n :- B -: s ].
+Proof.
+  intros.
+  dependent induction H; firstorder.
+  + pose proof (sub_prod_inv H2).
+    first_order; subst.
     pose proof (pure_re H).
-    rewrite H5 in H0.
-    apply arrow_inv in H0. inv H0.
-    apply H6.
-    apply H1.
-  + eapply IHhas_type2; eauto.
-    split.
-    eapply sub_trans; eauto.
-    apply H3.
-Qed.
-
-Lemma u_lam2_inv Gamma n A B s l :
-  [ re Gamma |- Arrow A B s :- U @ l -: U ] ->
-  [ Gamma |- Lam n :- Arrow A B s -: U ] -> 
-  [ A :l Gamma |- n :- B.[ren (+1)] -: s ].
-Proof.
-  intros.
-  eapply u_lam2_invX; eauto.
-  split.
-  apply sub_refl.
-  apply arrow_inv in H; inv H.
-  apply H2.
-Qed.
-
-Lemma l_lam1_invX Gamma n C :
-  [ Gamma |- Lam n :- C -: L ] -> 
-  forall A B s l, 
-    (C <: LnProd A B s /\ [A :u re Gamma |- B :- s @ l -: U]) ->
-    [ A :u Gamma |- n :- B -: s ].
-Proof.
-  intros.
-  dependent induction H; firstorder.
-  + apply sub_lnProd_inv in H1.
-    first_order; subst.
-    eapply conversion.
-    apply H3.
-    apply H2. 
-    eapply context_convU.
-    apply conv_sym; apply H1.
-    apply lnProd_inv in H. inv H.
-    apply H4.
-    apply H0.
-  + exfalso; solve_sub.
-  + eapply IHhas_type2; eauto.
-    split.
-    eapply sub_trans; eauto.
-    apply H3.
-Qed.
-
-Lemma l_lam1_inv Gamma n A B s l :
-  [ re Gamma |- LnProd A B s :- L @ l -: U ] ->
-  [ Gamma |- Lam n :- LnProd A B s -: L ] -> 
-  [ A :u Gamma |- n :- B -: s ].
-Proof.
-  intros.
-  eapply l_lam1_invX; eauto.
-  split.
-  apply sub_refl.
-  apply lnProd_inv in H; inv H.
-  apply H2.
-Qed.
-
-Lemma l_lam2_invX Gamma n C :
-  [ Gamma |- Lam n :- C -: L ] -> 
-  forall A B s l, 
-    (C <: Lolli A B s /\ [re Gamma |- B :- s @ l -: U]) ->
-    [ A :l Gamma |- n :- B.[ren (+1)] -: s ].
-Proof.
-  intros.
-  dependent induction H; firstorder.
-  - exfalso; solve_sub.
-  - apply sub_lolli_inv in H1.
-    first_order; subst.
-    eapply conversion.
-    apply sub_ren; eauto.
-    simpl.
-    pose proof (weakeningN H2).
-    apply H4.
+    rewrite H6 in H0.
+    apply prod_inv in H0. inv H0.
+    eapply conversion; eauto.
     eapply context_convL.
-    apply conv_sym; apply H1.
-    apply lolli_inv in H. inv H.
-    apply H4.
+    apply conv_sym; apply H4.
+    apply H7.
+    apply H1.
+  + pose proof (sub_prod_inv H1).
+    first_order; subst.
+    apply prod_inv in H. inv H.
+    eapply conversion; eauto.
+    eapply context_convL.
+    apply conv_sym; apply H3.
+    apply H5.
     apply H0.
   + eapply IHhas_type2; eauto.
     split.
@@ -2629,23 +1990,20 @@ Proof.
     apply H3.
 Qed.
 
-Lemma l_lam2_inv Gamma n A B s l :
-  [ re Gamma |- Lolli A B s :- L @ l -: U ] ->
-  [ Gamma |- Lam n :- Lolli A B s -: L ] -> 
-  [ A :l Gamma |- n :- B.[ren (+1)] -: s ].
+Lemma l_lam_inv Γ n A B s t l :
+  [ %Γ |- Prod A B L s :- Sort t l -: U ] ->
+  [ Γ |- Lam n :- Prod A B L s -: t ] -> 
+  [ A +l Γ |- n :- B -: s ].
 Proof.
   intros.
-  eapply l_lam2_invX; eauto.
-  split.
-  apply sub_refl.
-  apply lolli_inv in H; inv H.
-  apply H2.
+  apply prod_inv in H; inv H; firstorder.
+  eapply l_lam_invX; eauto.
 Qed.
 
-Lemma merge_context_ok_inv Gamma Gamma1 Gamma2 :
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- ] ->
-  [ Gamma1 |- ] /\ [ Gamma2 |- ].
+Lemma merge_context_ok_inv Γ Γ₁ Γ₂ :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  [ Γ |- ] ->
+  [ Γ₁ |- ] /\ [ Γ₂ |- ].
 Proof.
   induction 1; intros.
   - repeat constructor.
@@ -2677,10 +2035,10 @@ Proof.
     inv H2; split; constructor; eauto.
 Qed.
 
-Theorem propagation Gamma m A s : 
-  [ Gamma |- ] ->
-  [ Gamma |- m :- A -: s ] ->
-  exists l, [ re Gamma |- A :- Sort s l -: U ].
+Theorem propagation Γ m A s : 
+  [ Γ |- ] ->
+  [ Γ |- m :- A -: s ] ->
+  exists l, [ %Γ |- A :- Sort s l -: U ].
 Proof.
   intros.
   dependent induction H0.
@@ -2696,351 +2054,192 @@ Proof.
   - exists (Some l.+1).
     constructor.
     rewrite <- pure_re; eauto.
-  - exists (Some l.+1).
-    constructor.
-    rewrite <- pure_re; eauto.
-  - exists (Some l.+1).
-    constructor.
-    rewrite <- pure_re; eauto.
-  - exists (Some l.+1).
-    constructor.
-    rewrite <- pure_re; eauto.
   - eapply hasU_ok; eauto.
   - eapply hasL_ok; eauto.
   - exists l.
     rewrite <- pure_re; eauto.
-  - exists (Some l).
-    rewrite <- pure_re; eauto.
-  - exists (Some l); eauto.
   - exists (Some l); eauto.
   - pose proof (merge_pure2 H1 H0).
     pose proof (merge_re_re H1). inv H3.
     apply merge_context_ok_inv in H1; eauto. inv H1.
     apply IHhas_type1 in H2. inv H2.
-    apply tyProd_inv in H1. first_order.
+    apply prod_inv in H1. first_order.
     exists x0.
     replace (Sort s x0) with ((Sort s x0).[n/]) by autosubst.
+    simpl in H7.
     eapply substitutionU; eauto.
-    replace (Gamma2) with (re Gamma1).
+    replace (Γ₂) with (re Γ₁).
     apply merge_re_re_re.
     apply pure_re in H0.
     rewrite H0.
     rewrite H5; eauto.
-  - pose proof (merge_re_re H0). inv H1.
-    apply merge_context_ok_inv in H0; eauto. inv H0.
-    apply IHhas_type1 in H1; inv H1.
-    destruct x.
-    eapply arrow_invX in H0; eauto.
-    exists (Some n0).
-    rewrite <- H2; firstorder.
-    exfalso; eapply arrow_false; eauto.
-  - pose proof (merge_pure2 H1 H0).
-    pose proof (merge_re_re H1). inv H3.
-    apply merge_context_ok_inv in H1; eauto. inv H1.
-    apply IHhas_type1 in H2. inv H2.
-    destruct x.
-    eapply lnProd_invX in H1; eauto.
-    exists (Some n0); inv H1.
-    replace (s @ n0) with ((s @ n0).[n/]) by autosubst.
-    eapply substitutionU; eauto.
-    replace (Gamma2) with (re Gamma1).
-    apply merge_re_re_re.
-    apply pure_re in H0.
-    rewrite H0.
-    rewrite H5; eauto.
-    exfalso; eapply lnProd_false; eauto.
   - pose proof (merge_re_re H0). inv H1.
     apply merge_context_ok_inv in H0; eauto. inv H0.
     apply IHhas_type1 in H1. inv H1.
-    destruct x.
-    eapply lolli_invX in H0; eauto; inv H0.
-    exists (Some n0).
-    rewrite <- H2; eauto.
-    exfalso; eapply lolli_false; eauto.
+    eapply prod_inv in H0; eauto; inv H0.
+    exists x0.
+    replace (Sort s x0) with ((Sort s x0).[n/]) by autosubst.
+    eapply substitutionN; eauto.
+    rewrite <- H2.
+    apply H1.
   - exists l; eauto.
 Qed.
 
-Theorem preservation Gamma m A s :
-  [ Gamma |- ] ->
-  [ Gamma |- m :- A -: s ] ->
-  forall n, pstep m n -> 
-    [ Gamma |- n :- A -: s ].
+Lemma propL_false Γ A :
+  ~[ Γ |- Sort L None :- A -: U ].
+Proof.
+  intro H.
+  dependent induction H.
+  apply IHhas_type2; eauto.
+Qed.
+
+Lemma has_propL_false Γ m s :
+  [ Γ |- ] -> [ Γ |- m :- Sort L None -: s ] -> False.
+Proof.
+  intros.
+  apply propagation in H0; eauto.
+  inv H0.
+  apply propL_false in H1; eauto.
+Qed.
+
+Theorem subject_reduction Γ m A s :
+  [ Γ |- ] ->
+  [ Γ |- m :- A -: s ] ->
+  forall n, m ~> n -> [ Γ |- n :- A -: s ].
 Proof.
   intros.
   dependent induction H0.
   - inv H1.
-    apply p_axiom; eauto.
   - inv H1.
-    apply s_axiom; eauto.
   - inv H1.
-    assert ([A :u Gamma |-]).
-    eapply u_ok; eauto.
-    rewrite <-pure_re; eauto.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H1 _ H7).
-    eapply u_prop; eauto.
-    eapply context_convU.
-    eapply conv1i; eauto.
-    rewrite <- pure_re; eauto.
-    apply IHhas_type2.
+    + specialize (IHhas_type1 H _ H7).
+      eapply prop; eauto.
+      eapply context_convU.
+      eapply conv1i; eauto.
+      rewrite <- pure_re; eauto.
+      eauto.
+    + assert ([A +u Γ |-]).
+      eapply u_ok; eauto.
+      rewrite <-pure_re; eauto.
+      specialize (IHhas_type2 H1 _ H7).
+      eapply prop; eauto.
   - inv H1.
-    assert ([A :u Gamma |-]).
-    eapply u_ok; eauto.
-    rewrite <-pure_re; eauto.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H1 _ H7).
-    apply u_prod; eauto.
-    eapply context_convU.
-    eapply conv1i; eauto.
-    rewrite <- pure_re; eauto.
-    apply IHhas_type2.
+    + specialize (IHhas_type1 H _ H7).
+      eapply prod; eauto.
+      destruct r; simpl; eauto.
+      eapply context_convU.
+      eapply conv1i; eauto.
+      repeat rewrite <- pure_re; eauto.
+      eauto.
+    + destruct r; simpl in IHhas_type2.
+      assert ([A +u %Γ |-]).
+      eapply u_ok; eauto; repeat rewrite <-pure_re; eauto.
+      specialize (IHhas_type2 H1 _ H7).
+      eapply prod; eauto.
+      assert ([□ %Γ |-]).
+      eapply n_ok; eauto; repeat rewrite <-pure_re; eauto.
+      specialize (IHhas_type2 H1 _ H7).
+      eapply prod; eauto.
   - inv H1.
-    assert ([A :u Gamma |-]).
-    eapply u_ok; eauto.
-    rewrite <-pure_re; eauto.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H1 _ H7).
-    apply l_prod; eauto.
-    eapply context_convU.
-    eapply conv1i; eauto.
-    rewrite <- pure_re; eauto.
-    apply IHhas_type2.
   - inv H1.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H _ H7).
-    apply arrow; eauto.
-  - inv H1.
-    specialize (IHhas_type1 H _ H6).
-    specialize (IHhas_type2 H _ H7).
-    apply lolli; eauto.
-  - inv H1.
-    apply u_var; eauto.
-  - inv H1.
-    apply l_var; eauto.
   - inv H1.
     pose proof (pure_re H0).
     pose proof H0_.
     rewrite H1 in H0_.
-    apply tyProd_inv in H0_. first_order.
-    assert ([A :u Gamma |-]).
-    eapply u_ok; eauto.
-    specialize (IHhas_type2 H6 _ H3).
-    eapply u_lam1; eauto.
-  - inv H1.
-    pose proof (pure_re H0).
-    pose proof H0_.
-    rewrite H1 in H0_.
-    apply arrow_inv in H0_. inv H0_.
-    assert ([A :l Gamma |-]).
-    eapply l_ok; eauto.
-    specialize (IHhas_type2 H6 _ H3).
-    eapply u_lam2; eauto.
+    destruct s.
+    + apply prod_inv in H0_. first_order.
+      assert ([A +u Γ |-]).
+      eapply u_ok; eauto.
+      specialize (IHhas_type2 H6 _ H3).
+      eapply u_lam; eauto.
+    + apply prod_inv in H0_. first_order.
+      assert ([A +l Γ |-]).
+      eapply l_ok; eauto.
+      specialize (IHhas_type2 H6 _ H3).
+      eapply u_lam; eauto.
   - inv H1.
     pose proof H0_.
-    apply lnProd_inv in H0_. inv H0_.
-    assert ([A :u Gamma |-]).
-    eapply u_ok; eauto.
-    specialize (IHhas_type2 H4 _ H2).
-    eapply l_lam1; eauto.
-  - inv H1.
-    pose proof H0_.
-    apply lolli_inv in H0_. inv H0_.
-    assert ([A :l Gamma |-]).
-    eapply l_ok; eauto.
-    specialize (IHhas_type2 H4 _ H2).
-    eapply l_lam2; eauto.
+    destruct s.
+    + apply prod_inv in H0_. first_order.
+      assert ([A +u Γ |-]).
+      eapply u_ok; eauto.
+      specialize (IHhas_type2 H4 _ H2).
+      eapply l_lam; eauto.
+    + apply prod_inv in H0_. first_order.
+      assert ([A +l Γ |-]).
+      eapply l_ok; eauto.
+      specialize (IHhas_type2 H4 _ H2).
+      eapply l_lam; eauto.
   - pose proof (merge_context_ok_inv H1 H). inv H3.
     inv H2.
-    + specialize (IHhas_type1 H4 _ H7).
-      specialize (IHhas_type2 H5 _ H9).
-      pose proof (propagation H4 IHhas_type1). inv H2.
-      apply tyProd_inv in H3. inv H3.
-      pose proof (merge_re_re H1). first_order.
-      assert (pstep B.[n/] B.[n'/]).
-      apply pstep_compat_beta; eauto using pstep_refl.
+    + pose proof (propagation H4 H0_). inv H2.
+      eapply substitutionU; eauto.
+      eapply u_lam_inv in H0_; eauto.
+    + specialize (IHhas_type1 H4 _ H8).
+      eapply u_app; eauto.
+    + specialize (IHhas_type2 H5 _ H8).
       assert (B.[n'/] === B.[n/]).
+      apply conv_beta.
       apply conv1i; eauto.
-      apply conv_sub in H11.
-      assert ([re Gamma |- B.[n/] :- (Sort s x0).[n/] -: U ]).
+      apply conv_sub in H2.
+      pose proof (propagation H4 H0_). inv H3.
+      apply prod_inv in H6; simpl in H6. first_order.
+      assert ([%Γ |- B.[n/] :- (Sort s x0).[n/] -: U ]).
       eapply substitutionU; eauto.
       pose proof (pure_re H0).
-      rewrite H12. rewrite H3. rewrite H6.
+      pose proof (merge_re_re H1). inv H9.
+      rewrite H7. rewrite H10. rewrite H11.
       apply merge_re_re_re.
       eapply conversion; eauto.
-      eapply u_app1; eauto.
-    + assert (pstep (Lam m0) (Lam m')). 
-      constructor; eauto.
-      specialize (IHhas_type1 H4 _ H2).
-      specialize (IHhas_type2 H5 _ H9).
-      pose proof (propagation H4 IHhas_type1). inv H3.
-      pose proof (tyProd_inv H6). first_order.
-      pose proof (merge_re_re H1). inv H10.
-      assert (pstep B.[n/] B.[n'/]).
-      apply pstep_compat_beta; eauto using pstep_refl.
-      assert (B.[n'/] === B.[n/]).
-      apply conv1i; eauto.
-      apply conv_sub in H13.
-      assert ([re Gamma |- B.[n/] :- (Sort s x0).[n/] -: U ]).
-      eapply substitutionU; eauto.
-      pose proof (pure_re H0); eauto.
-      rewrite H14. rewrite H11. rewrite H12.
-      apply merge_re_re_re.
-      eapply u_lam1_inv in IHhas_type1; eauto.
-      eapply conversion; eauto.
-      eapply substitutionU; eauto.
+      eapply u_app; eauto.
   - pose proof (merge_context_ok_inv H0 H). inv H2.
     inv H1.
-    + specialize (IHhas_type1 H3 _ H6).
-      specialize (IHhas_type2 H4 _ H8).
-      eapply u_app2; eauto.
-    + assert (pstep (Lam m0) (Lam m')).
-      constructor; eauto.
-      specialize (IHhas_type1 H3 _ H1).
-      specialize (IHhas_type2 H4 _ H8).
-      pose proof (propagation H3 IHhas_type1). inv H2.
-      destruct x.
-      assert (U @ n0 <: U @ n0); eauto.
-      pose proof (arrow_invX H5 H2). inv H7.
-      eapply u_lam2_inv in IHhas_type1; eauto.
-      replace B with (B.[ren (+1)].[n'/]) by autosubst.
+    + pose proof (propagation H3 H0_). inv H1.
       eapply substitutionL; eauto.
-      exfalso; eapply arrow_false; eauto.
-  - pose proof (merge_context_ok_inv H1 H). inv H3.
-    inv H2.
-    + specialize (IHhas_type1 H4 _ H7).
-      specialize (IHhas_type2 H5 _ H9).
-      pose proof (propagation H4 IHhas_type1). inv H2.
-      destruct x.
-      apply lnProd_inv in H3. inv H3.
-      pose proof (merge_re_re H1). inv H3.
-      assert (pstep B.[n/] B.[n'/]).
-      apply pstep_compat_beta; eauto using pstep_refl.
+      eapply l_lam_inv in H0_; eauto.
+    + specialize (IHhas_type1 H3 _ H7).
+      eapply l_app; eauto.
+    + specialize (IHhas_type2 H4 _ H7).
       assert (B.[n'/] === B.[n/]).
+      apply conv_beta.
       apply conv1i; eauto.
-      apply conv_sub in H11.
-      assert ([re Gamma |- B.[n/] :- (s @ n0).[n/] -: U ]).
-      eapply substitutionU; eauto.
-      pose proof (pure_re H0).
-      rewrite H12. rewrite H8. rewrite H10.
-      apply merge_re_re_re.
+      apply conv_sub in H1.
+      pose proof (propagation H3 H0_). inv H2.
+      apply prod_inv in H5; simpl in H5. first_order.
+      assert ([%Γ |- B.[n/] :- (Sort s x0).[n/] -: U ]).
+      eapply substitutionN; eauto.
+      pose proof (merge_re_re H0). inv H6.
+      rewrite <-H8; eauto.
       eapply conversion; eauto.
-      eapply l_app1; eauto.
-      exfalso; eapply lnProd_false; eauto.
-    + assert (pstep (Lam m0) (Lam m')). 
-      constructor; eauto.
-      specialize (IHhas_type1 H4 _ H2).
-      specialize (IHhas_type2 H5 _ H9).
-      pose proof (propagation H4 IHhas_type1). inv H3.
-      destruct x.
-      pose proof (lnProd_inv H6). inv H3.
-      pose proof (merge_re_re H1). inv H3.
-      assert (pstep B.[n/] B.[n'/]).
-      apply pstep_compat_beta; eauto using pstep_refl.
-      assert (B.[n'/] === B.[n/]).
-      apply conv1i; eauto.
-      apply conv_sub in H13.
-      assert ([re Gamma |- B.[n/] :- (s @ n0).[n/] -: U ]).
-      eapply substitutionU; eauto.
-      pose proof (pure_re H0); eauto.
-      rewrite H14. rewrite H11. rewrite H12.
-      apply merge_re_re_re.
-      eapply l_lam1_inv in IHhas_type1; eauto.
-      eapply conversion; eauto.
-      eapply substitutionU; eauto.
-      exfalso; eapply lnProd_false; eauto.
-  - pose proof (merge_context_ok_inv H0 H). inv H2.
-    inv H1.
-    + specialize (IHhas_type1 H3 _ H6).
-      specialize (IHhas_type2 H4 _ H8).
-      eapply l_app2; eauto.
-    + assert (pstep (Lam m0) (Lam m')).
-      constructor; eauto.
-      specialize (IHhas_type1 H3 _ H1).
-      specialize (IHhas_type2 H4 _ H8).
-      pose proof (propagation H3 IHhas_type1). inv H2.
-      destruct x.
-      pose proof (lolli_inv H5). inv H2.
-      eapply l_lam2_inv in IHhas_type1; eauto.
-      replace B with (B.[ren (+1)].[n'/]) by autosubst.
-      eapply substitutionL; eauto.
-      exfalso; eapply lolli_false; eauto.
+      eapply l_app; eauto.
   - eapply conversion; eauto.
 Qed.
 
-Corollary preservation_step m n :
-  step m n ->
-  forall Gamma A s,
-    [ Gamma |- ] ->
-    [ Gamma |- m :- A -: s ] ->
-    [ Gamma |- n :- A -: s ].
-Proof.
-  intros.
-  eapply preservation; eauto.
-  apply step_pstep; eauto.
-Qed.
-
-Corollary preservation_star_step m n :
-  star step m n ->
-  forall Gamma A s,
-    [ Gamma |- ] ->
-    [ Gamma |- m :- A -: s ] ->
-    [ Gamma |- n :- A -: s ].
+Theorem subject_reduction_red m n :
+  m ~>* n ->
+  forall Γ A s,
+    [ Γ |- ] ->
+    [ Γ |- m :- A -: s ] ->
+    [ Γ |- n :- A -: s ].
 Proof.
   intro H.
   dependent induction H; intros; eauto.
-  eapply preservation.
+  eapply subject_reduction.
   apply H1.
   apply IHstar; eauto.
-  apply step_pstep; eauto.
+  apply H0.
 Qed.
 
-Lemma canonical_tyProd m C :
-  [ nil |- m :- C -: U ] -> value m ->
-  forall A B s, 
-    C <: TyProd A B s -> exists m', m = Lam m'.
+Lemma canonical_prod m C srt :
+  [ nil |- m :- C -: srt ] -> value m ->
+  forall A B s t, 
+    C <: Prod A B s t -> exists m', m = Lam m'.
 Proof.
   intros.
   dependent induction H; try (exfalso; solve_sub).
+  - inv H.
   - inv H.
   - exists n; eauto.
-  - eapply IHhas_type2; eauto.
-    eapply sub_trans; eauto.
-Qed.
-
-Lemma canonical_lnProd m C :
-  [ nil |- m :- C -: L ] -> value m ->
-  forall A B s, 
-    C <: LnProd A B s -> exists m', m = Lam m'.
-Proof.
-  intros.
-  dependent induction H; try (exfalso; solve_sub).
-  - inv H.
-  - exists n; eauto.
-  - eapply IHhas_type2; eauto.
-    eapply sub_trans; eauto.
-Qed.
-
-Lemma canonical_arrow m C :
-  [ nil |- m :- C -: U ] -> value m ->
-  forall A B s, 
-    C <: Arrow A B s -> exists m', m = Lam m'.
-Proof.
-  intros.
-  dependent induction H; try (exfalso; solve_sub).
-  - inv H.
-  - exists n; eauto.
-  - eapply IHhas_type2; eauto.
-    eapply sub_trans; eauto.
-Qed.
-
-Lemma canonical_lolli m C :
-  [ nil |- m :- C -: L ] -> value m ->
-  forall A B s, 
-    C <: Lolli A B s -> exists m', m = Lam m'.
-Proof.
-  intros.
-  dependent induction H; try (exfalso; solve_sub).
-  - inv H.
   - exists n; eauto.
   - eapply IHhas_type2; eauto.
     eapply sub_trans; eauto.
@@ -3058,7 +2257,7 @@ Proof.
     specialize (IHhas_type2 H2).
     destruct IHhas_type1; destruct IHhas_type2.
     + assert (exists m', m = Lam m').
-      eapply canonical_tyProd; eauto.
+      eapply canonical_prod; eauto.
       destruct H5; subst.
       exists (x.[n/]).
       apply step_beta; eauto.
@@ -3078,47 +2277,7 @@ Proof.
     specialize (IHhas_type2 H1).
     destruct IHhas_type1; destruct IHhas_type2.
     + assert (exists m', m = Lam m').
-      eapply canonical_arrow; eauto.
-      destruct H4; subst.
-      exists (x.[n/]).
-      apply step_beta; eauto.
-    + destruct H3.
-      exists (App m x).
-      apply step_appR; eauto.
-    + destruct H2.
-      exists (App x n).
-      apply step_appL; eauto.
-    + destruct H2.
-      exists (App x n).
-      apply step_appL; eauto.
-  - right.
-    inv H2.
-    assert (@nil (elem term) ~= @nil (elem term)) by eauto.
-    specialize (IHhas_type1 H2).
-    specialize (IHhas_type2 H2).
-    destruct IHhas_type1; destruct IHhas_type2.
-    + assert (exists m', m = Lam m').
-      eapply canonical_lnProd; eauto.
-      destruct H5; subst.
-      exists (x.[n/]).
-      apply step_beta; eauto.
-    + destruct H4.
-      exists (App m x).
-      apply step_appR; eauto.
-    + destruct H3.
-      exists (App x n).
-      apply step_appL; eauto.
-    + destruct H3.
-      exists (App x n).
-      apply step_appL; eauto.
-  - right.
-    inv H1.
-    assert (@nil (elem term) ~= @nil (elem term)) by eauto.
-    specialize (IHhas_type1 H1).
-    specialize (IHhas_type2 H1).
-    destruct IHhas_type1; destruct IHhas_type2.
-    + assert (exists m', m = Lam m').
-      eapply canonical_lolli; eauto.
+      eapply canonical_prod; eauto.
       destruct H4; subst.
       exists (x.[n/]).
       apply step_beta; eauto.
@@ -3134,34 +2293,35 @@ Proof.
   - apply IHhas_type2; eauto.
 Qed.
 
+Reserved Notation "[ x ∈ Γ ]".
 Inductive isL : context term -> nat -> Prop :=
-| isL_O Gamma A :
-  isL (A :l Gamma) 0
-| isL_S Gamma i A s :
-  isL Gamma i ->
-  isL (A :[s] Gamma) (i.+1)
-| isL_N Gamma i :
-  isL Gamma i ->
-  isL (:n Gamma) (i.+1).
+| isL_O Γ A :
+  [ 0 ∈ A +l Γ ]
+| isL_S Γ i A s :
+  [ i ∈ Γ ] ->
+  [ i.+1 ∈ A +{s} Γ ]
+| isL_N Γ i :
+  [ i ∈ Γ ] ->
+  [ i.+1 ∈ □ Γ ]
+where "[ x ∈ Γ ]" := (isL Γ x).
 
+Reserved Notation "[ x ∉ Γ ]".
 Inductive isN : context term -> nat -> Prop :=
-| isN_O Gamma :
-  isN (:n Gamma) 0
-| isN_S Gamma i A s :
-  isN Gamma i ->
-  isN (A :[s] Gamma) (i.+1)
-| isN_N Gamma i :
-  isN Gamma i ->
-  isN (:n Gamma) (i.+1).
+| isN_O Γ :
+  [ 0 ∉ □ Γ ]
+| isN_S Γ i A s :
+  [ i ∉ Γ ] ->
+  [ i.+1 ∉ A +{s} Γ ]
+| isN_N Γ i :
+  [ i ∉ Γ ] ->
+  [ i.+1 ∉ □ Γ ]
+where "[ x ∉ Γ ]" := (isN Γ x).
 
 Fixpoint occurs (i : nat) (m : term) : nat :=
   match m with
   | Var x => if x == i then 1 else 0
   | Sort _ _ => 0
-  | TyProd A B _ => occurs i A + occurs (i.+1) B
-  | LnProd A B _ => occurs i A + occurs (i.+1) B
-  | Arrow A B _ => occurs i A + occurs i B
-  | Lolli A B _ => occurs i A + occurs i B
+  | Prod A B _ _ => occurs i A + occurs (i.+1) B
   | Lam m => occurs (i.+1) m
   | App m n => occurs i m + occurs i n
   end.
@@ -3171,7 +2331,7 @@ Proof.
   induction n; simpl; eauto.
 Qed.
 
-Lemma isL_pure Gamma i : isL Gamma i -> ~pure Gamma.
+Lemma isL_pure Γ i : [ i ∈ Γ ] -> ~[ Γ ].
 Proof.
   induction 1; unfold not; intros.
   inv H.
@@ -3181,8 +2341,8 @@ Proof.
   inv H0. firstorder.
 Qed.
 
-Lemma isL_hasU Gamma i : 
-  isL Gamma i -> forall x A, ~hasU Gamma x A.
+Lemma isL_hasU Γ i : 
+  [ i ∈ Γ ] -> forall x A, ~[ x :u A ∈ Γ ].
 Proof.
   induction 1; intros; unfold not; intros.
   inv H.
@@ -3194,8 +2354,8 @@ Proof.
   firstorder.
 Qed.
 
-Lemma isL_hasL Gamma i :
-  isL Gamma i -> forall x A, hasL Gamma x A -> x = i.
+Lemma isL_hasL Γ i :
+  [ i ∈ Γ ] -> forall x A, [ x :l A ∈ Γ ]  -> x = i.
 Proof.
   induction 1; intros.
   inv H; eauto.
@@ -3208,8 +2368,8 @@ Proof.
   pose proof (IHisL _ _ H2); eauto.
 Qed.
 
-Lemma isN_hasU Gamma i :
-  isN Gamma i -> forall x A, hasU Gamma x A -> x == i = false.
+Lemma isN_hasU Γ i :
+  [ i ∉ Γ ] -> forall x A, [ x :u A ∈ Γ ] -> x == i = false.
 Proof.
   induction 1; intros; eauto.
   inv H; eauto.
@@ -3219,8 +2379,8 @@ Proof.
   pose proof (IHisN _ _ H2); eauto.
 Qed.
 
-Lemma isN_hasL Gamma i :
-  isN Gamma i -> forall x A, hasL Gamma x A -> x == i = false.
+Lemma isN_hasL Γ i :
+  [ i ∉ Γ ] -> forall x A, [ x :l A ∈ Γ ] -> x == i = false.
 Proof.
   induction 1; intros; eauto.
   inv H; eauto.
@@ -3230,11 +2390,11 @@ Proof.
   pose proof (IHisN _ _ H2); eauto.
 Qed.
 
-Lemma isL_merge_inv Gamma1 Gamma2 Gamma :
-  merge Gamma1 Gamma2 Gamma -> 
-    forall i, isL Gamma i -> 
-      (isL Gamma1 i /\ isN Gamma2 i) \/
-      (isL Gamma2 i /\ isN Gamma1 i).
+Lemma isL_merge_inv Γ₁ Γ₂ Γ :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
+    forall i, [ i ∈ Γ ] -> 
+      ([ i ∈ Γ₁ ] /\ [ i ∉ Γ₂ ]) \/
+      ([ i ∈ Γ₂ ] /\ [ i ∉ Γ₁ ]).
 Proof.
   intro H.
   dependent induction H; intros.
@@ -3263,10 +2423,10 @@ Proof.
     + right; repeat constructor; eauto.
 Qed.
 
-Lemma isN_merge_inv Gamma1 Gamma2 Gamma :
-  merge Gamma1 Gamma2 Gamma -> 
-    forall i, isN Gamma i -> 
-      isN Gamma1 i /\ isN Gamma2 i.
+Lemma isN_merge_inv Γ₁ Γ₂ Γ :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
+    forall i, [ i ∉ Γ ] -> 
+      [ i ∉ Γ₁ ] /\ [ i ∉ Γ₂ ].
 Proof.
   intro H.
   dependent induction H; intros.
@@ -3283,9 +2443,9 @@ Proof.
   - inv H0; firstorder; constructor; firstorder.
 Qed.
 
-Lemma narity Gamma m A s :
-  [ Gamma |- m :- A -: s ] -> 
-    forall i, isN Gamma i -> occurs i m = 0.
+Lemma narity Γ m A s :
+  [ Γ |- m :- A -: s ] -> 
+    forall i, [ i ∉ Γ ] -> occurs i m = 0.
 Proof.
   intro H.
   dependent induction H; simpl; intros.
@@ -3296,12 +2456,8 @@ Proof.
     constructor; eauto.
   - rewrite IHhas_type1; eauto.
     rewrite IHhas_type2; eauto.
-    constructor; eauto.
-  - rewrite IHhas_type1; eauto.
-    rewrite IHhas_type2; eauto.
-    constructor; eauto.
-  - rewrite IHhas_type1; eauto.
-  - rewrite IHhas_type1; eauto.
+    destruct r; simpl; constructor; eauto; 
+    rewrite <- pure_re; eauto.
   - pose proof (isN_hasU H0 H).
     rewrite H1; eauto.
   - pose proof (isN_hasL H0 H).
@@ -3310,14 +2466,6 @@ Proof.
     constructor; eauto.
   - apply IHhas_type2.
     constructor; eauto.
-  - apply IHhas_type2.
-    constructor; eauto.
-  - apply IHhas_type2.
-    constructor; eauto.
-  - pose proof (isN_merge_inv H2 H3). inv H4.
-    rewrite IHhas_type1; eauto.
-  - pose proof (isN_merge_inv H1 H2). inv H3.
-    rewrite IHhas_type1; eauto.
   - pose proof (isN_merge_inv H2 H3). inv H4.
     rewrite IHhas_type1; eauto.
   - pose proof (isN_merge_inv H1 H2). inv H3.
@@ -3325,14 +2473,12 @@ Proof.
   - apply IHhas_type2; eauto.
 Qed.
 
-Theorem linearity Gamma m A s :
-  [ Gamma |- m :- A -: s ] -> 
-    forall i, isL Gamma i -> occurs i m = 1.
+Theorem linearity Γ m A s :
+  [ Γ |- m :- A -: s ] -> 
+    forall i, [ i ∈ Γ ] -> occurs i m = 1.
 Proof.
   intro H.
   dependent induction H; intros.
-  - exfalso. eapply isL_pure; eauto.
-  - exfalso. eapply isL_pure; eauto.
   - exfalso. eapply isL_pure; eauto.
   - exfalso. eapply isL_pure; eauto.
   - exfalso. eapply isL_pure; eauto.
@@ -3343,37 +2489,9 @@ Proof.
     rewrite H1; simpl.
     rewrite eqn_refl; eauto.
   - exfalso. eapply isL_pure; eauto.
-  - exfalso. eapply isL_pure; eauto.
   - simpl.
     apply IHhas_type2.
     constructor; eauto.
-  - simpl.
-    apply IHhas_type2.
-    constructor; eauto.
-  - pose proof (isL_merge_inv H2 H3).
-    firstorder; simpl.
-    + apply IHhas_type1 in H4.
-      eapply narity in H5; eauto.
-      rewrite H4.
-      rewrite H5.
-      eauto.
-    + apply IHhas_type2 in H4.
-      eapply narity in H5; eauto.
-      rewrite H4.
-      rewrite H5.
-      eauto.
-  - pose proof (isL_merge_inv H1 H2).
-    firstorder; simpl.
-    + apply IHhas_type1 in H3.
-      eapply narity in H4; eauto.
-      rewrite H3.
-      rewrite H4.
-      eauto.
-    + apply IHhas_type2 in H3.
-      eapply narity in H4; eauto.
-      rewrite H3.
-      rewrite H4.
-      eauto.
   - pose proof (isL_merge_inv H2 H3).
     firstorder; simpl.
     + apply IHhas_type1 in H4.
@@ -3409,26 +2527,23 @@ Fixpoint erase (m : CLC.term) : CC.term :=
   match m with
   | CLC.Var x => CC.Var x
   | CLC.Sort _ l => CC.Sort l
-  | CLC.TyProd A B _ => CC.Prod (erase A) (erase B)
-  | CLC.LnProd A B _ => CC.Prod (erase A) (erase B)
-  | CLC.Arrow A B _ => CC.Prod (erase A) (erase B).[ren (+1)]
-  | CLC.Lolli A B _ => CC.Prod (erase A) (erase B).[ren (+1)]
+  | CLC.Prod A B _ _ => CC.Prod (erase A) (erase B)
   | CLC.Lam n => CC.Lam (erase n)
   | CLC.App m n => CC.App (erase m) (erase n)
   end.
 
 Fixpoint erase_context 
-  (Gamma : CLC.context CLC.term) 
+  (Γ : CLC.context CLC.term) 
 : CC.context CC.term :=
-  match Gamma with
-  | Some (t, U) :: Gamma => erase t :s erase_context Gamma
-  | Some (t, L) :: Gamma => erase t :s erase_context Gamma
-  | None :: Gamma => :n erase_context Gamma
+  match Γ with
+  | Some (t, U) :: Γ => erase t +: erase_context Γ
+  | Some (t, L) :: Γ => erase t +: erase_context Γ
+  | None :: Γ => □ erase_context Γ
   | nil => nil
   end.
 
 Notation "[| m |]" := (erase m).
-Notation "[[ Gamma ]]" := (erase_context Gamma).
+Notation "[[ Γ ]]" := (erase_context Γ).
 
 Lemma erase_value v : 
   CLC.value v <-> CC.value [|v|].
@@ -3441,31 +2556,22 @@ Proof.
 Qed.
 
 Definition erase_subst 
-  (sigma : var -> CLC.term) 
-  (tau : var -> CC.term)
+  (σ : var -> CLC.term) 
+  (τ : var -> CC.term)
 : Prop := 
-  forall x, [|sigma x|] = tau x.
+  forall x, [|σ x|] = τ x.
 
 Lemma erase_ren_com m :
-  forall xi, [| m |].[ren xi] = [| m.[ren xi] |].
+  forall ξ, [| m |].[ren ξ] = [| m.[ren ξ] |].
 Proof.
   induction m; intros; asimpl; eauto.
   - rewrite IHm IHm0; eauto.
-  - rewrite IHm IHm0; eauto.
-  - rewrite IHm1. 
-    replace ([|m2|].[ren (xi >>> (+1))])
-      with ([|m2|].[ren xi].[ren (+1)]) by autosubst.
-    rewrite IHm2; eauto.
-  - rewrite IHm1. 
-    replace ([|m2|].[ren (xi >>> (+1))])
-      with ([|m2|].[ren xi].[ren (+1)]) by autosubst.
-    rewrite IHm2; eauto.
   - rewrite IHm; eauto.
   - rewrite IHm1 IHm2; eauto.
 Qed.
 
-Lemma erase_subst_up sigma tau :
-  erase_subst sigma tau -> erase_subst (up sigma) (up tau).
+Lemma erase_subst_up σ τ :
+  erase_subst σ τ -> erase_subst (up σ) (up τ).
 Proof.
   unfold erase_subst.
   intros.
@@ -3475,60 +2581,54 @@ Proof.
 Qed.
 
 Lemma erase_subst_com m :
-  forall sigma tau, 
-    erase_subst sigma tau ->
-    [| m.[sigma] |] = [| m |].[tau].
+  forall σ τ, 
+    erase_subst σ τ ->
+    [| m.[σ] |] = [| m |].[τ].
 Proof.
   induction m; intros; asimpl; eauto.
-  - rewrite <- (IHm sigma); eauto.
-    rewrite <- (IHm0 (up sigma)); eauto.
+  - rewrite <- (IHm σ); eauto.
+    rewrite <- (IHm0 (up σ)); eauto.
     apply erase_subst_up; eauto.
-  - rewrite <- (IHm sigma); eauto.
-    rewrite <- (IHm0 (up sigma)); eauto.
+  - rewrite <- (IHm (up σ)); eauto.
     apply erase_subst_up; eauto.
-  - rewrite <- (IHm1 sigma); eauto.
-    rewrite (IHm2 _ tau); autosubst.
-  - rewrite <- (IHm1 sigma); eauto.
-    rewrite (IHm2 _ tau); autosubst.
-  - rewrite <- (IHm (up sigma)); eauto.
-    apply erase_subst_up; eauto.
-  - rewrite <- (IHm1 sigma); eauto.
-    rewrite <- (IHm2 sigma); eauto.
+  - rewrite <- (IHm1 σ); eauto.
+    rewrite <- (IHm2 σ); eauto.
 Qed.
 
-Lemma erase_pstep m n :
-  CLC.pstep m n -> CC.pstep [|m|] [|n|].
-Proof with eauto using pstep, pstep_refl.
+Lemma erase_step m n :
+  CLC.step m n -> CC.step [|m|] [|n|].
+Proof with eauto using step.
   induction 1; simpl; intros...
   erewrite erase_subst_com.
-  eapply pstep_beta; eauto.
+  eapply step_beta; eauto.
   unfold erase_subst; intros; destruct x; asimpl; eauto.
-  constructor; eauto.
-  apply pstep_ren; eauto.
-  constructor; eauto.
-  apply pstep_ren; eauto.
+Qed.
+
+Lemma erase_red m n :
+  CLC.red m n -> CC.red [|m|] [|n|].
+Proof with eauto using step, star.
+  induction 1; simpl; intros...
+  apply erase_step in H0.
+  apply star1 in H0.
+  eapply star_trans; eauto.
 Qed.
 
 Lemma erase_conv m n :
-  conv CLC.pstep m n -> conv CC.pstep [|m|] [|n|].
+  conv CLC.step m n -> conv CC.step [|m|] [|n|].
 Proof.
   induction 1; eauto.
   eapply conv_trans.
   apply IHconv.
   eapply convSE; eauto.
-  apply erase_pstep; eauto.
+  apply erase_step; eauto.
   eapply convSEi; eauto.
-  apply erase_pstep; eauto.
+  apply erase_step; eauto.
 Qed.
 
 Lemma erase_sub1 m n :
   CLC.sub1 m n -> CC.sub1 [|m|] [|n|].
 Proof.
   induction 1; asimpl; eauto using sub1.
-  constructor.
-  apply sub1_subst; eauto.
-  constructor.
-  apply sub1_subst; eauto.
 Qed.
 
 Lemma erase_sub m n :
@@ -3536,7 +2636,7 @@ Lemma erase_sub m n :
 Proof.
   move=> [A B sb] c1 c2.
   inv sb.
-  - assert (conv CLC.pstep m n).
+  - assert (conv CLC.step m n).
     eapply conv_trans.
     apply c1.
     apply c2.
@@ -3546,7 +2646,7 @@ Proof.
     apply erase_conv in c2. simpl in c2.
     apply conv_sub in c1.
     apply conv_sub in c2.
-    assert (sub1 (prop) (@l)).
+    assert (sub1 𝐏 (𝐔 l)).
     constructor; eauto.
     apply sub1_sub in H.
     eapply sub_trans. eauto.
@@ -3555,7 +2655,7 @@ Proof.
     apply erase_conv in c2. simpl in c2.
     apply conv_sub in c1.
     apply conv_sub in c2.
-    assert (sub1 (@l1) (@l2)).
+    assert (sub1 (𝐔 l1) (𝐔 l2)).
     constructor; eauto.
     apply sub1_sub in H0.
     eapply sub_trans; eauto.
@@ -3570,79 +2670,46 @@ Proof.
     apply sub1_sub in H0.
     eapply sub_trans; eauto.
     eapply sub_trans; eauto.
-  - apply erase_conv in c1. simpl in c1.
-    apply erase_conv in c2. simpl in c2.
-    apply conv_sub in c1.
-    apply conv_sub in c2.
-    apply erase_sub1 in H.
-    assert (sub1 (Prod [|A0|] [|B1|]) (Prod [|A0|] [|B2|])).
-    constructor; eauto.
-    apply sub1_sub in H0.
-    eapply sub_trans; eauto.
-    eapply sub_trans; eauto.
-  - apply erase_conv in c1. simpl in c1.
-    apply erase_conv in c2. simpl in c2.
-    apply conv_sub in c1.
-    apply conv_sub in c2.
-    apply erase_sub1 in H.
-    assert 
-      (sub1 (Prod [|A0|] [|B1|].[ren (+1)]) 
-            (Prod [|A0|] [|B2|].[ren (+1)])).
-    constructor; eauto.
-    apply sub1_subst; eauto.
-    apply sub1_sub in H0.
-    eapply sub_trans; eauto.
-    eapply sub_trans; eauto.
-  - apply erase_conv in c1. simpl in c1.
-    apply erase_conv in c2. simpl in c2.
-    apply conv_sub in c1.
-    apply conv_sub in c2.
-    apply erase_sub1 in H.
-    assert 
-      (sub1 (Prod [|A0|] [|B1|].[ren (+1)]) 
-            (Prod [|A0|] [|B2|].[ren (+1)])).
-    constructor; eauto.
-    apply sub1_subst; eauto.
-    apply sub1_sub in H0.
-    eapply sub_trans; eauto.
-    eapply sub_trans; eauto.
 Qed.
 
-Lemma hasU_erase Gamma x A :
-  hasU Gamma x A -> has [[ Gamma ]] x [| A |].
+Lemma hasU_erase Γ x A :
+  [ x :u A ∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
 Proof.
   intros.
-  dependent induction H; asimpl; firstorder.
-  rewrite <- erase_ren_com; constructor.
-  rewrite <- erase_ren_com; constructor; eauto.
+  dependent induction H; asimpl; firstorder;
   rewrite <- erase_ren_com; constructor; eauto.
 Qed.
 
-Lemma hasL_erase Gamma x A :
-  hasL Gamma x A -> has [[ Gamma ]] x [| A |].
+Lemma hasL_erase Γ x A :
+  [ x :l A ∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
 Proof.
   intros.
-  dependent induction H; asimpl; firstorder.
-  rewrite <- erase_ren_com; constructor.
-  rewrite <- erase_ren_com; constructor; eauto.
+  dependent induction H; asimpl; firstorder;
   rewrite <- erase_ren_com; constructor; eauto.
 Qed.
 
 Inductive agree_wk : 
   CC.context CC.term -> CC.context CC.term -> Prop :=
 | agree_wk_nil : agree_wk nil nil
-| agree_wk_s Gamma1 Gamma2 e :
-  agree_wk Gamma1 Gamma2 ->
-  agree_wk (e :: Gamma1) (e :: Gamma2)
-| agree_wk_n Gamma1 Gamma2 A :
-  agree_wk Gamma1 Gamma2 ->
-  agree_wk (:n Gamma1) (A :s Gamma2).
+| agree_wk_s Γ₁ Γ₂ e :
+  agree_wk Γ₁ Γ₂ ->
+  agree_wk (e :: Γ₁) (e :: Γ₂)
+| agree_wk_n Γ₁ Γ₂ A :
+  agree_wk Γ₁ Γ₂ ->
+  agree_wk (□ Γ₁) (A +: Γ₂).
 
-Lemma agree_wk_has Gamma1 Gamma2 :
-  agree_wk Gamma1 Gamma2 ->
+Lemma agree_wk_refl Γ : agree_wk Γ Γ.
+Proof.
+  induction Γ.
+  - constructor.
+  - constructor; eauto.
+Qed.
+
+Lemma agree_wk_has Γ₁ Γ₂ :
+  agree_wk Γ₁ Γ₂ ->
   forall x A,
-    has Gamma1 x A ->
-    has Gamma2 x A.
+    [ x :- A ∈ Γ₁ ] -> 
+    [ x :- A ∈ Γ₂ ].
 Proof.
   intro H.
   dependent induction H; simpl; intros; eauto.
@@ -3650,10 +2717,10 @@ Proof.
   inv H0; constructor; eauto.
 Qed.
 
-Lemma agree_wk_re Gamma :
-  agree_wk [[re Gamma]] [[Gamma]].
+Lemma agree_wk_re Γ :
+  agree_wk [[ %Γ ]] [[ Γ ]].
 Proof.
-  induction Gamma.
+  induction Γ.
   - simpl; constructor.
   - destruct a. 
     destruct p.
@@ -3661,19 +2728,19 @@ Proof.
     constructor; eauto.
 Qed.
 
-Lemma agree_wk_merge_inv Gamma1 Gamma2 Gamma :
-  merge Gamma1 Gamma2 Gamma ->
-  agree_wk [[Gamma1]] [[Gamma]] /\
-  agree_wk [[Gamma2]] [[Gamma]].
+Lemma agree_wk_merge_inv Γ₁ Γ₂ Γ :
+  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+  agree_wk [[ Γ₁ ]] [[ Γ ]] /\
+  agree_wk [[ Γ₂ ]] [[ Γ ]].
 Proof with eauto using agree_wk.
   intro H.
   dependent induction H; simpl; firstorder...
 Qed.
 
-Lemma wk_ok Gamma1 m A : 
-  [ Gamma1 |- m :- A ] ->
-  forall Gamma2, agree_wk Gamma1 Gamma2 ->
-    [ Gamma2 |- m :- A ].
+Lemma wk_ok Γ₁ m A : 
+  [ Γ₁ |- m :- A ] ->
+  forall Γ₂, agree_wk Γ₁ Γ₂ ->
+    [ Γ₂ |- m :- A ].
 Proof.
   intro H.
   dependent induction H; simpl; intros; subst.
@@ -3698,9 +2765,9 @@ Proof.
     apply IHhas_type2; eauto.
 Qed.
 
-Lemma erase_re Gamma m A :
-  [ [[re Gamma]] |- m :- A ] ->
-  [ [[Gamma]] |- m :- A ].
+Lemma erase_re Γ m A :
+  [ [[ %Γ ]] |- m :- A ] ->
+  [ [[ Γ ]] |- m :- A ].
 Proof.
   intro H.
   eapply wk_ok; eauto.
@@ -3708,15 +2775,15 @@ Proof.
 Qed.
 
 Lemma erase_subst_trivial n :
-  erase_subst (n .: ids) ([|n|] .: ids).
+  erase_subst (n .: ids) ([| n |] .: ids).
 Proof.
   unfold erase_subst; intros.
   destruct x; simpl; eauto.
 Qed.
 
-Theorem embedding Gamma m A s : 
-  [ Gamma |- m :- A -: s ] ->
-  [ [[ Gamma ]] |- [| m |] :- [| A |] ].
+Theorem embedding Γ m A s : 
+  [ Γ |- m :- A -: s ] ->
+  [ [[ Γ ]] |- [| m |] :- [| A |] ].
 Proof.
   intro H.
   dependent induction H; asimpl.
@@ -3724,33 +2791,24 @@ Proof.
   - apply t_axiom.  
   - eapply ty_prop; eauto.
   - apply ty_prod; eauto.
-  - apply ty_prod; eauto.
-  - apply ty_prod; eauto.
-    replace (@l) with ((@l).[ren (+1)]) by autosubst.
-    apply weakening; eauto.
-  - apply ty_prod; eauto.
-    replace (@l) with ((@l).[ren (+1)]) by autosubst.
-    apply weakening; eauto.
+    destruct r; simpl in IHhas_type2.
+    + rewrite <- pure_re in IHhas_type2; eauto.
+    + rewrite <- pure_re in IHhas_type2; eauto.
+      eapply wk_ok; eauto.
+      constructor.
+      apply agree_wk_refl.
   - apply hasU_erase in H.
     apply ty_var; eauto.
   - apply hasL_erase in H.
     apply ty_var; eauto.
   - simpl in IHhas_type1.
-    simpl in IHhas_type2.
-    eapply ty_lam; eauto.
+    destruct s; simpl in IHhas_type2; eapply ty_lam; eauto.
   - simpl in IHhas_type1.
-    simpl in IHhas_type2.
-    eapply ty_lam; eauto.
-    rewrite erase_ren_com; eauto.
-  - simpl in IHhas_type1.
-    simpl in IHhas_type2.
-    eapply ty_lam; eauto.
-    apply erase_re; eauto.
-  - simpl in IHhas_type1.
-    simpl in IHhas_type2.
-    eapply ty_lam; eauto.
-    apply erase_re; eauto.
-    rewrite erase_ren_com; eauto.
+    destruct s; simpl in IHhas_type2. 
+    + eapply ty_lam; eauto.
+      apply erase_re; eauto.
+    + eapply ty_lam; eauto.
+      apply erase_re; eauto.
   - simpl in IHhas_type1.
     apply agree_wk_merge_inv in H2; destruct H2.
     erewrite (erase_subst_com); eauto.
@@ -3760,23 +2818,11 @@ Proof.
     apply erase_subst_trivial.
   - simpl in IHhas_type1.
     apply agree_wk_merge_inv in H1; destruct H1.
-    replace [|B|] with ([|B|].[ren (+1)].[[|n|]/]) by autosubst.
-    eapply ty_app; eauto.
-    eapply wk_ok; eauto.
-    eapply wk_ok; eauto.
-  - simpl in IHhas_type1.
-    apply agree_wk_merge_inv in H2; destruct H2.
     erewrite (erase_subst_com); eauto.
     eapply ty_app; eauto.
     eapply wk_ok; eauto.
     eapply wk_ok; eauto.
     apply erase_subst_trivial.
-  - simpl in IHhas_type1.
-    apply agree_wk_merge_inv in H1; destruct H1.
-    replace [|B|] with ([|B|].[ren (+1)].[[|n|]/]) by autosubst.
-    eapply ty_app; eauto.
-    eapply wk_ok; eauto.
-    eapply wk_ok; eauto.
   - eapply ty_conv.
     apply erase_sub; eauto.
     simpl in IHhas_type1.
@@ -3785,8 +2831,8 @@ Proof.
     apply IHhas_type2.
 Qed.
 
-Corollary embedding_context Gamma :
-  CLC.context_ok Gamma -> [ [[Gamma]] |- ].
+Corollary embedding_context Γ :
+  CLC.context_ok Γ -> [ [[Γ]] |- ].
 Proof.
   induction 1; simpl. 
   constructor.
@@ -3797,6 +2843,69 @@ Proof.
   apply erase_re in H0.
   econstructor; eauto.
   constructor; eauto.
+Qed.
+
+CoInductive nn T (Rel : T -> T -> Prop) : T -> Prop :=
+| nnI m m' : Rel m m' -> nn Rel m' -> nn Rel m.
+
+CoFixpoint erase_nn m : (nn CLC.step m) -> nn CC.step [|m|].
+Proof.
+  intros.
+  inv H.
+  apply erase_step in H0.
+  apply erase_nn in H1.
+  econstructor; eauto.
+Qed.
+
+Lemma nn_sn T (Rel : T -> T -> Prop) m : nn Rel m -> ~sn Rel m.
+Proof.
+  move=> h1 h2. 
+  induction h2.
+  inv h1.
+  eauto.
+Qed.
+
+Lemma not_sn T (Rel : T -> T -> Prop) m : 
+  ~sn Rel m -> exists m', Rel m m' /\ ~sn Rel m'.
+Proof.
+  intros.
+  pose proof (classic (exists m', Rel m m' /\ ~sn Rel m')).
+  inv H0; eauto.
+  - firstorder.
+    simpl in H0.
+    assert (forall n, Rel m n -> sn Rel n).
+    intros.
+    specialize (H0 n).
+    apply not_and_or in H0.
+    firstorder.
+    apply NNPP; eauto.
+    exfalso.
+    eapply H.
+    constructor; eauto.
+Qed.
+
+CoFixpoint sn_nn T (Rel : T -> T -> Prop) m : 
+  ~sn Rel m -> nn Rel m.
+Proof.
+  move=> h. 
+  apply not_sn in h.
+  first_order.
+  econstructor; eauto.
+Qed.
+
+Theorem strong_normalization Γ m A s :
+  [ Γ |- m :- A -: s ] -> (sn CLC.step m).
+Proof.
+  intros.
+  pose proof (embedding H).
+  pose proof (CC.strong_normalization H0).
+  pose proof (classic (nn CLC.step m)).
+  inv H2.
+  apply erase_nn in H3.
+  exfalso; eapply nn_sn; eauto.
+  pose proof (classic (sn CLC.step m)).
+  inv H2; eauto.
+  apply sn_nn in H4; exfalso; eauto.
 Qed.
 
 End CLC.
