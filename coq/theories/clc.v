@@ -1002,11 +1002,16 @@ Inductive has_type : context term -> term -> term -> sort -> Prop :=
   [ Γ |- A :- Sort U l -: U ] ->
   [ A +u Γ |- B :- 𝐏 -: U ] ->
   [ Γ |- Prod A B U U :- 𝐏 -: U ]
-| prod Γ A B r s t l :
+| u_prod Γ A B s t l :
   [ Γ ] ->
-  [ Γ |- A :- r @ l -: U ] ->
-  [ %(A +{r} Γ) |- B :- s @ l -: U ] ->
-  [ Γ |- Prod A B r s :- t @ l -: U ]
+  [ Γ |- A :- U @ l -: U ] ->
+  [ A +u Γ |- B :- s @ l -: U ] ->
+  [ Γ |- Prod A B U s :- t @ l -: U ]
+| l_prod Γ A B s t l :
+  [ Γ ] ->
+  [ Γ |- A :- L @ l -: U ] ->
+  [ □ Γ |- B :- s @ l -: U ] ->
+  [ Γ |- Prod A B L s :- t @ l -: U ]
 | u_var Γ x A : 
   [ x :u A ∈ Γ ] ->
   [ Γ |- Var x :- A -: U ]
@@ -1272,11 +1277,16 @@ Proof.
     constructor; eauto.
   - asimpl.
     pose proof (agree_ren_pure H2 H).
-    apply prod; eauto.
+    apply u_prod; eauto.
     replace (s @ l) with ((s @ l).[ren (upren ξ)]) by autosubst.
     apply IHhas_type2.
-    destruct r; simpl; constructor; eauto;
-    apply agree_ren_re_re; eauto.
+    constructor; eauto.
+  - asimpl.
+    pose proof (agree_ren_pure H2 H).
+    apply l_prod; eauto.
+    replace (s @ l) with ((s @ l).[ren (upren ξ)]) by autosubst.
+    apply IHhas_type2.
+    constructor; eauto.
   - replace (ids (ξ x)) with (Var (ξ x)) by autosubst.
     apply u_var.
     eapply agree_ren_hasU; eauto.
@@ -1735,21 +1745,14 @@ Proof.
     eapply agree_subst_pure; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
     pose proof (agree_subst_u A H2).
-    pose proof (pure_re H).
-    destruct r; simpl in IHhas_type2.
-    + rewrite <- H4 in IHhas_type2.
-      specialize (IHhas_type2 _ _ H3).
-      apply prod; simpl; eauto.
-      eapply agree_subst_pure; eauto.
-      rewrite <- pure_re; eauto.
-      eapply agree_subst_pure; eauto.
-    + rewrite <- H4 in IHhas_type2.
-      pose proof (agree_subst_n H2).
-      specialize (IHhas_type2 _ _ H5).
-      apply prod; simpl; eauto.
-      eapply agree_subst_pure; eauto.
-      rewrite <- pure_re; eauto.
-      eapply agree_subst_pure; eauto.
+    specialize (IHhas_type2 _ _ H3).
+    apply u_prod; simpl; eauto.
+    eapply agree_subst_pure; eauto.
+  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
+    pose proof (agree_subst_n H2).
+    specialize (IHhas_type2 _ _ H3).
+    apply l_prod; simpl; eauto.
+    eapply agree_subst_pure; eauto.
   - eapply agree_subst_hasU; eauto.
   - eapply agree_subst_hasL; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
@@ -1897,11 +1900,11 @@ Ltac solve_sub :=
   | _ => solve_conv
   end.
 
-Lemma prod_inv Γ A B r s t :
-  [ %Γ |- Prod A B r s :- t -: U ] -> 
+Lemma u_prod_inv Γ A B s t :
+  [ %Γ |- Prod A B U s :- t -: U ] -> 
   exists l,
-    [ %Γ |- A :- Sort r l -: U ] /\ 
-    [ %(A +{r} Γ) |- B :- Sort s l -: U ].
+    [ %Γ |- A :- Sort U l -: U ] /\ 
+    [ A +u %Γ |- B :- Sort s l -: U ].
 Proof.
   intros.
   dependent induction H.
@@ -1912,7 +1915,18 @@ Proof.
     eapply conversion; eauto.
     constructor; apply re_pure.
   - exists (Some l); first_order; eauto.
-    destruct r; simpl; simpl in H1; rewrite <- re_re in H1; eauto.
+  - apply IHhas_type2; eauto.
+Qed.
+
+Lemma l_prod_inv Γ A B s t :
+  [ %Γ |- Prod A B L s :- t -: U ] -> 
+  exists l,
+    [ %Γ |- A :- Sort L l -: U ] /\ 
+    [ □ %Γ |- B :- Sort s l -: U ].
+Proof.
+  intros.
+  dependent induction H.
+  - exists (Some l); first_order; eauto.
   - apply IHhas_type2; eauto.
 Qed.
 
@@ -1928,7 +1942,7 @@ Proof.
     first_order; subst.
     pose proof (pure_re H).
     rewrite H6 in H0.
-    apply prod_inv in H0. inv H0.
+    apply u_prod_inv in H0. inv H0.
     eapply conversion; eauto.
     eapply context_convU.
     apply conv_sym; apply H4.
@@ -1936,7 +1950,7 @@ Proof.
     apply H1.
   + pose proof (sub_prod_inv H1).
     first_order; subst.
-    apply prod_inv in H. inv H.
+    apply u_prod_inv in H. inv H.
     eapply conversion; eauto.
     eapply context_convU.
     apply conv_sym; apply H3.
@@ -1954,7 +1968,7 @@ Lemma u_lam_inv Γ n A B s t l :
   [ A +u Γ |- n :- B -: s ].
 Proof.
   intros.
-  apply prod_inv in H; inv H; firstorder.
+  apply u_prod_inv in H; inv H; firstorder.
   eapply u_lam_invX; eauto.
 Qed.
 
@@ -1970,7 +1984,7 @@ Proof.
     first_order; subst.
     pose proof (pure_re H).
     rewrite H6 in H0.
-    apply prod_inv in H0. inv H0.
+    apply l_prod_inv in H0. inv H0.
     eapply conversion; eauto.
     eapply context_convL.
     apply conv_sym; apply H4.
@@ -1978,7 +1992,7 @@ Proof.
     apply H1.
   + pose proof (sub_prod_inv H1).
     first_order; subst.
-    apply prod_inv in H. inv H.
+    apply l_prod_inv in H. inv H.
     eapply conversion; eauto.
     eapply context_convL.
     apply conv_sym; apply H3.
@@ -1996,7 +2010,7 @@ Lemma l_lam_inv Γ n A B s t l :
   [ A +l Γ |- n :- B -: s ].
 Proof.
   intros.
-  apply prod_inv in H; inv H; firstorder.
+  apply l_prod_inv in H; inv H; firstorder.
   eapply l_lam_invX; eauto.
 Qed.
 
@@ -2054,6 +2068,9 @@ Proof.
   - exists (Some l.+1).
     constructor.
     rewrite <- pure_re; eauto.
+  - exists (Some l.+1).
+    constructor.
+    rewrite <- pure_re; eauto.
   - eapply hasU_ok; eauto.
   - eapply hasL_ok; eauto.
   - exists l.
@@ -2063,7 +2080,7 @@ Proof.
     pose proof (merge_re_re H1). inv H3.
     apply merge_context_ok_inv in H1; eauto. inv H1.
     apply IHhas_type1 in H2. inv H2.
-    apply prod_inv in H1. first_order.
+    apply u_prod_inv in H1. first_order.
     exists x0.
     replace (Sort s x0) with ((Sort s x0).[n/]) by autosubst.
     simpl in H7.
@@ -2076,7 +2093,7 @@ Proof.
   - pose proof (merge_re_re H0). inv H1.
     apply merge_context_ok_inv in H0; eauto. inv H0.
     apply IHhas_type1 in H1. inv H1.
-    eapply prod_inv in H0; eauto; inv H0.
+    eapply l_prod_inv in H0; eauto; inv H0.
     exists x0.
     replace (Sort s x0) with ((Sort s x0).[n/]) by autosubst.
     eapply substitutionN; eauto.
@@ -2125,21 +2142,22 @@ Proof.
       eapply prop; eauto.
   - inv H1.
     + specialize (IHhas_type1 H _ H7).
-      eapply prod; eauto.
-      destruct r; simpl; eauto.
+      eapply u_prod; eauto.
       eapply context_convU.
       eapply conv1i; eauto.
       repeat rewrite <- pure_re; eauto.
       eauto.
-    + destruct r; simpl in IHhas_type2.
-      assert ([A +u %Γ |-]).
+    + assert ([A +u Γ |-]).
       eapply u_ok; eauto; repeat rewrite <-pure_re; eauto.
       specialize (IHhas_type2 H1 _ H7).
-      eapply prod; eauto.
-      assert ([□ %Γ |-]).
-      eapply n_ok; eauto; repeat rewrite <-pure_re; eauto.
+      eapply u_prod; eauto.
+  - inv H1.
+    + specialize (IHhas_type1 H _ H7).
+      eapply l_prod; eauto.
+    + assert ([□ Γ |-]).
+      eapply n_ok; eauto.
       specialize (IHhas_type2 H1 _ H7).
-      eapply prod; eauto.
+      eapply l_prod; eauto.
   - inv H1.
   - inv H1.
   - inv H1.
@@ -2147,12 +2165,12 @@ Proof.
     pose proof H0_.
     rewrite H1 in H0_.
     destruct s.
-    + apply prod_inv in H0_. first_order.
+    + apply u_prod_inv in H0_. first_order.
       assert ([A +u Γ |-]).
       eapply u_ok; eauto.
       specialize (IHhas_type2 H6 _ H3).
       eapply u_lam; eauto.
-    + apply prod_inv in H0_. first_order.
+    + apply l_prod_inv in H0_. first_order.
       assert ([A +l Γ |-]).
       eapply l_ok; eauto.
       specialize (IHhas_type2 H6 _ H3).
@@ -2160,12 +2178,12 @@ Proof.
   - inv H1.
     pose proof H0_.
     destruct s.
-    + apply prod_inv in H0_. first_order.
+    + apply u_prod_inv in H0_. first_order.
       assert ([A +u Γ |-]).
       eapply u_ok; eauto.
       specialize (IHhas_type2 H4 _ H2).
       eapply l_lam; eauto.
-    + apply prod_inv in H0_. first_order.
+    + apply l_prod_inv in H0_. first_order.
       assert ([A +l Γ |-]).
       eapply l_ok; eauto.
       specialize (IHhas_type2 H4 _ H2).
@@ -2183,7 +2201,7 @@ Proof.
       apply conv1i; eauto.
       apply conv_sub in H2.
       pose proof (propagation H4 H0_). inv H3.
-      apply prod_inv in H6; simpl in H6. first_order.
+      apply u_prod_inv in H6; simpl in H6. first_order.
       assert ([%Γ |- B.[n/] :- (Sort s x0).[n/] -: U ]).
       eapply substitutionU; eauto.
       pose proof (pure_re H0).
@@ -2205,7 +2223,7 @@ Proof.
       apply conv1i; eauto.
       apply conv_sub in H1.
       pose proof (propagation H3 H0_). inv H2.
-      apply prod_inv in H5; simpl in H5. first_order.
+      apply l_prod_inv in H5; simpl in H5. first_order.
       assert ([%Γ |- B.[n/] :- (Sort s x0).[n/] -: U ]).
       eapply substitutionN; eauto.
       pose proof (merge_re_re H0). inv H6.
@@ -2456,8 +2474,10 @@ Proof.
     constructor; eauto.
   - rewrite IHhas_type1; eauto.
     rewrite IHhas_type2; eauto.
-    destruct r; simpl; constructor; eauto; 
-    rewrite <- pure_re; eauto.
+    constructor; eauto. 
+  - rewrite IHhas_type1; eauto.
+    rewrite IHhas_type2; eauto.
+    constructor; eauto.
   - pose proof (isN_hasU H0 H).
     rewrite H1; eauto.
   - pose proof (isN_hasL H0 H).
@@ -2791,12 +2811,10 @@ Proof.
   - apply t_axiom.  
   - eapply ty_prop; eauto.
   - apply ty_prod; eauto.
-    destruct r; simpl in IHhas_type2.
-    + rewrite <- pure_re in IHhas_type2; eauto.
-    + rewrite <- pure_re in IHhas_type2; eauto.
-      eapply wk_ok; eauto.
-      constructor.
-      apply agree_wk_refl.
+  - apply ty_prod; eauto.
+    eapply wk_ok; eauto; simpl.
+    constructor.
+    apply agree_wk_refl.
   - apply hasU_erase in H.
     apply ty_var; eauto.
   - apply hasL_erase in H.
