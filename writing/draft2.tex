@@ -100,7 +100,7 @@
   Our contributions can be summarized as follows.
   \begin{itemize}
     \item Fist, we describe the Calculus of Linear Constructions, an extension to the Calculus of Constructions with linear types. The integration of linear types and dependent types allows CLC to directly and precisely reason about resource.
-    \item Next, we study the meta-theory of CLC directly, showing that it satisfies the standard properties of confluence, regularity, and subject reduction. 
+    \item Next, we study the meta-theory of CLC directly, showing that it satisfies the standard properties of confluence, propagation, and subject reduction. 
     \item We observe that CLC is highly backwards compatible with CC$\omega$. We construct a reduction preserving model of CLC in CC$\omega$, showing that CLC is consistent. 
     \item All major results have been formalized and proven correct in the Coq Proof Assistant with help from the Autosubst \cite{autosubst} library. To the best of our knowledge, our development is the first machine checked formalization of a linear dependent type theory.
     \item Furthermore, we extend CLC with linear inductive data, demonstrating that as a programming language, CLC can safely manipulate mutable data structures.
@@ -147,7 +147,7 @@
   \end{figure}
   Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (2), (5), (6) if the co-domain $B$ is dependent on arguments of domain $A$. We will discuss function type formation in Section \ref{tyformation} in greater detail.
 
-  In practice, algorithmic type checking techniques such as bi-directional typing allow users to omit writing most of these sort indices.
+  In practice, algorithmic type checking techniques allow users to omit writing most of these sort indices. Our implementation employs bi-directional type checking and users never interact with indices in the surface syntax.
 
   \subsection{Universes and Cumulativity}
   CLC features two sorts of universes $U$, and $L$ with level indices $*, 0, 1, 2, \cdots$. $U_*$ is the impredicative universe of propositions. $U_k$, and $L_k$ are the predicative universe of non-linear types, and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by checking the universe to which they belong. Basically, terms with types that occur within $U_i$ are unrestricted in their usage. Terms with types that occur within $L_k$ are restricted to being used exactly once.
@@ -167,6 +167,8 @@
       \item $L_0 \preceq L_1 \preceq L_2 \preceq \cdots$
       \item If $A_1 \equiv A_2$ and $B_1 \preceq B_2$, then
         $(x : A_1) \arw{s}{t} B_1 \preceq (x : A_2) \arw{s}{t} B_2$
+      \item If $A_1 \equiv A_2$ and $B_1 \preceq B_2$, then
+        $(x : A_1) \lrw{s}{t} B_1 \preceq (x : A_2) \arw{s}{t} B_2$
     \end{enumerate}
   \end{definition}
 
@@ -272,7 +274,7 @@
   \end{definition}
 
   \subsection{Typing Judgment}
-  Typing judgments in CLC take on the form of $\Gamma \vdash m \stype{s} A$. Intuitively, this judgment states that the term $m$ is an inhabitant of type $A$, with free variables typed in $\Gamma$. The sort index $s$ tells us the linearity of $m$. Specifically, if $s = U$, then $m$ has unrestricted usage. Conversely, if $s = L$, then $m$ must be used exactly once. Theorem \ref{regularity} (regularity) shows that $s$ corresponds exactly to the sort of $A$'s universe.
+  Typing judgments in CLC take on the form of $\Gamma \vdash m \stype{s} A$. Intuitively, this judgment states that the term $m$ is an inhabitant of type $A$, with free variables typed in $\Gamma$. The sort index $s$ tells us the linearity of $m$. Specifically, if $s = U$, then $m$ has unrestricted usage. Conversely, if $s = L$, then $m$ must be used exactly once. Theorem \ref{propagation} (propagation) shows that $s$ corresponds exactly to the sort of $A$'s universe.
 
   \begin{definition} We formally define the terms \textit{non-linear}, \textit{linear}, \textit{unrestricted}, and \textit{restricted}.
     \begin{enumerate}
@@ -317,7 +319,7 @@
       { \pure{\Gamma} \\
         \Gamma \vdash A \utype U_k \\ 
         \Gamma, x \utype A \vdash B \utype s_k }
-      { \Gamma \vdash (x : A) \arw{U}{s} B \utype t_k } 
+      { \Gamma \vdash (x : A) \arw{U}{s} B \utype U_k } 
       \rname{U-Prod}
 
       \inferrule
@@ -325,8 +327,24 @@
         \Gamma \vdash A \utype L_k \\ 
         \Gamma \vdash B \utype s_k \\
         x \notin \Gamma }
-      { \Gamma \vdash (x : A) \arw{L}{s} B \utype t_k } 
+      { \Gamma \vdash (x : A) \arw{L}{s} B \utype U_k } 
       \rname{L-Prod}
+      \\
+
+      \inferrule
+      { \pure{\Gamma} \\
+        \Gamma \vdash A \utype U_k \\ 
+        \Gamma, x \utype A \vdash B \utype s_k }
+      { \Gamma \vdash (x : A) \lrw{U}{s} B \utype L_k } 
+      \rname{U-Lolli}
+
+      \inferrule
+      { \pure{\Gamma} \\
+        \Gamma \vdash A \utype L_k \\ 
+        \Gamma \vdash B \utype s_k \\
+        x \notin \Gamma }
+      { \Gamma \vdash (x : A) \lrw{L}{s} B \utype L_k } 
+      \rname{L-Lolli}
     \end{mathpar}
     \label{type}
   \end{figure}
@@ -335,11 +353,11 @@
 
   The \rname{U-Prop} rule is used for forming propositions. From the judgment $\Gamma \vdash A \utype U_i$ we can see that \rname{U-Prop} allows for quantification over non-linear types of arbitrary level, hence impredicative. The judgment $\Gamma, x \utype A \vdash B \utype U_*$ asserts that the co-domain must be in the impredicative universe $U_*$. The final resulting judgment $\Gamma \vdash (x : A) \arw{U}{U} B \utype U_*$ is indexed by $U$, indicating that the \textit{type} $(x : A) \arw{U}{U} B$ can be use unrestrictedly as a \textit{term}. Since $(x : A) \arw{U}{U} B$ belongs to universe $U_*$, its \textit{terms} also enjoys unrestricted usage.
 
-  The \rname{U-Prod} rule is used for forming function types with non-linear domains. This is evident from the judgment $\Gamma \vdash A \utype U_k$. Since $A$ is in the predicative non-linear universe $U_k$, terms of type $A$ have unrestricted usage. The non-linearity of domain $A$ allows $B$ to depend on terms of type $A$, as seen in judgment $\Gamma, x \utype A \vdash B \utype s_k$. The domain $B$ itself may be non-linear or linear, since $B$'s universe $s_k$ can vary between $U_k$ and $L_k$. From the resulting judgment $\Gamma \vdash (x : A) \arw{U}{s} B \utype t_k$, we see that $A$, and $B$'s universe sorts are used as indices to the arrow. Interestingly, $(x : A) \arw{U}{s} B$ is assigned to a universe $t_k$ of level $k$ and arbitrary sort $t$. If $t$ is chosen to be $U$, then $\Gamma \vdash (x : A) \arw{U}{s} B \utype U_k$ tells us $\lambda$-abstractions of this type have unrestricted usage. Conversely, if $t$ is chose to be $L$, then $\Gamma \vdash (x : A) \arw{U}{s} B \utype L_k$ tells us $\lambda$-abstractions of this type have restricted usage. This is how we encode the missing $!(A \multimap B)$ forms from MELL shown in Figure \ref{correspondence}.
+  The \rname{U-Prod} rule is used for forming non-linear function types with non-linear domains. This is evident from the judgment $\Gamma \vdash A \utype U_k$. Since $A$ is in the predicative non-linear universe $U_k$, terms of type $A$ have unrestricted usage. The non-linearity of domain $A$ allows $B$ to depend on terms of type $A$, as seen in judgment $\Gamma, x \utype A \vdash B \utype s_k$. The domain $B$ itself may be non-linear or linear, since $B$'s universe $s_k$ can vary between $U_k$ and $L_k$. From the resulting judgment $\Gamma \vdash (x : A) \arw{U}{s} B \utype U_k$, we see that $A$ and $B$'s universe sorts are used as indices to the arrow, and the overall type is a non-linear type. The term level $\lambda$-abstractions of these types can be used unrestrictedly.
 
-  The \rname{L-Prod} rule is used for forming function types with linear domains. From the judgment $\Gamma \vdash A \utype L_k$, we see that $A$ is a linear type, and terms of type $A$ have restricted usage. Because of this, we forbid co-domain $B$ from depending on terms of type $A$, evident in the judgment $\Gamma \vdash B \utype s_k$. Like \rname{U-Prod}, co-domain $B$ itself may be non-linear or linear, since $B$'s universe $s_k$ can vary between $U_k$ and $L_k$. The final resulting judgment is $\Gamma \vdash (x : A) \arw{L}{s} B \utype t_k$. Here, $x$ is a hypocritical unbinding variable whose only purpose is to preserve syntax uniformity. Again, we may chose $t$ to be either $U$ or $L$, which form function types for $\lambda$-abstractions with unrestricted or restricted usage respectively.
+  The \rname{L-Prod} rule is used for non-linear forming function types with linear domains. From the judgment $\Gamma \vdash A \utype L_k$, we see that $A$ is a linear type, and terms of type $A$ have restricted usage. Because of this, we forbid co-domain $B$ from depending on terms of type $A$, evident in the judgment $\Gamma \vdash B \utype s_k$. Like \rname{U-Prod}, co-domain $B$ itself may be non-linear or linear, since $B$'s universe $s_k$ can vary between $U_k$ and $L_k$. The final resulting judgment is $\Gamma \vdash (x : A) \arw{L}{s} B \utype U_k$. Here, $x$ is a hypocritical unbinding variable whose only purpose is to preserve syntax uniformity. Again, the overall resulting type a non-linear type, and the term level $\lambda$-abstractions of these types can be used unrestrictedly.
 
-  For rules \rname{U-Prod}, and \rname{L-Prod}, it may seem as if the final choice of $t_k$ does not matter. Indeed, the choice of $t = U$ or $t = L$ has no effect on type formation. But the differences will become apparent when typing $\lambda$-abstractions in Section \ref{teformation}. 
+  The \rname{U-Lolli}, \rname{L-Lolli} rules are similar to \rname{U-Prod}, \rname{L-Prod} in spirit. The dependency considerations for domain $A$ and co-domain $B$ are exactly the same. The main difference between \rname{U-Lolli}, \rname{L-Lolli} and \rname{U-Prod}, \rname{L-Prod} is the universe sort of the resulting type. The sorts of the function types formed by \rname{U-Lolli}, \rname{L-Lolli} are $L$, meaning that they are linear function types. The term level $\lambda$-abstractions of these types must be used exactly once.
 
   \subsection{Term Formation} \label{teformation}
   The rules for term formation are presented in Figure \ref{term}.
@@ -363,31 +381,48 @@
         \Gamma \vdash (x : A) \arw{s}{t} B \utype U_i \\ 
         \Gamma, x \stype{s} A \vdash n \stype{t} B }
       { \Gamma \vdash \lambda x . n \utype (x : A) \arw{s}{t} B }
-      \rname{U-$\lambda$}
+      \rname{Prod-$\lambda$}
       \\
 
       \inferrule
-      { \overline{\Gamma} \vdash (x : A) \arw{s}{t} B \utype L_k \\ 
+      { \overline{\Gamma} \vdash (x : A) \lrw{s}{t} B \utype L_k \\ 
         \Gamma, x \stype{s} A \vdash n \stype{t} B }
-      { \Gamma \vdash \lambda x . n \ltype (x : A) \arw{s}{t} B }
-      \rname{L-$\lambda$}
+      { \Gamma \vdash \lambda x . n \ltype (x : A) \lrw{s}{t} B }
+      \rname{Lolli-$\lambda$}
       \\
 
       \inferrule
-      { \Gamma_1 \vdash m \stype{t} (x : A) \arw{U}{s} B \\
+      { \Gamma_1 \vdash m \utype (x : A) \arw{U}{s} B \\
         \pure{\Gamma_2} \\
         \Gamma_2 \vdash n \utype A \\
         \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
       { \Gamma \vdash m\ n \stype{s} B[n/x] }
-      \rname{U-App}
+      \rname{U-Prod-App}
       \\
 
       \inferrule
-      { \Gamma_1 \vdash m \stype{t} (x : A) \arw{L}{s} B \\
+      { \Gamma_1 \vdash m \utype (x : A) \arw{L}{s} B \\
         \Gamma_2 \vdash n \ltype A \\
         \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
       { \Gamma \vdash m\ n \stype{s} B[n/x] }
-      \rname{L-App} 
+      \rname{L-Prod-App} 
+      \\
+
+      \inferrule
+      { \Gamma_1 \vdash m \ltype (x : A) \lrw{U}{s} B \\
+        \pure{\Gamma_2} \\
+        \Gamma_2 \vdash n \utype A \\
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+      { \Gamma \vdash m\ n \stype{s} B[n/x] }
+      \rname{U-Lolli-App}
+      \\
+
+      \inferrule
+      { \Gamma_1 \vdash m \ltype (x : A) \lrw{L}{s} B \\
+        \Gamma_2 \vdash n \ltype A \\
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+      { \Gamma \vdash m\ n \stype{s} B[n/x] }
+      \rname{L-Lolli-App} 
       \\
 
       \inferrule
@@ -401,18 +436,17 @@
 
   The rules \rname{U-Var}, and \rname{L-Var} are used for typing free variables. The \rname{U-Var} rule asserts that free variable $x$ occurs within the context $\Gamma, x \utype A$ with a non-linear type $A$. The \rname{L-Var} rule asserts that free variable $x$ occurs within the context $\Gamma, x \ltype A$ with linear type $A$. For both rules, the side condition $\pure{\Gamma}$ forbids irrelevant variables with linear type from occurring within $\Gamma$. This prevents weakening variables with linear type.
 
-  As promised in Section \ref{tyformation}, the choice of $t_k$ for function type formation comes into play during the typing of $\lambda$-abstractions. Namely, in the pair of rules \rname{U-$\lambda$}, and \rname{L-$\lambda$}.
+  By design, types with universe sort $U$ are non-linear, terms with these types enjoy unrestricted usage. In \rname{Prod-$\lambda$}, the function type being addressed has universe $U_i$, as seen by the judgment $\Gamma \vdash (x : A) \arw{s}{t} \utype U_i$. $\lambda$-abstractions of this type can be applied an unrestricted number of times, hence cannot depend on free variables with restricted usage. This consideration is realized by the side condition $\pure{\Gamma}$, asserting all variables in context $\Gamma$ are unrestricted. Next, the body of the abstraction $n$ is typed as $\Gamma, x \stype{s} A \vdash n \stype{t} B$, where $s$ is the sort of $A$ and $t$ is the sort of $B$. Finally, the resulting judgment $\Gamma \vdash \lambda x.n \utype (x : A) \arw{s}{t} B$ with index $U$, asserts that the $\lambda$-abstraction can be used unrestrictedly.
 
-  By design, types with universe sort $U$ are non-linear, terms with these types enjoy unrestricted usage. In \rname{U-$\lambda$}, the function type being addressed has universe $U_i$, as seen by the judgment $\Gamma \vdash (x : A) \arw{s}{t} \utype U_i$. $\lambda$-abstractions of this type can be applied an unrestricted number of times, hence cannot depend on free variables with restricted usage. This consideration is realized by the side condition $\pure{\Gamma}$, asserting all variables in context $\Gamma$ are unrestricted. Next, the body of the abstraction $n$ is typed as $\Gamma, x \stype{s} A \vdash n \stype{t} B$, where $s$ is the sort of $A$ and $t$ is the sort of $B$. Finally, the resulting judgment $\Gamma \vdash \lambda x.n \utype (x : A) \arw{s}{t} B$ with index $U$, asserts that the $\lambda$-abstraction can be used unrestrictedly.
+  In contrast to \rname{Prod-$\lambda$}, the \rname{Lolli-$\lambda$} rule is used for forming $\lambda$-abstractions that must be used exactly once. Since these abstractions must be used once, they are allowed access to restricted variables within context $\Gamma$, evident in the judgment $\Gamma, x \stype{s} A \vdash n \stype{t} B$, and lack of side condition $\pure{\Gamma}$. However, in judgment $\overline{\Gamma} \vdash (x : A) \arw{s}{t} B \utype L_k$ the context must be filtered, since types are not allowed to depend on restricted variables. The final resulting judgment $\Gamma \vdash \lambda x.n \ltype (x : A) \lrw{s}{t} B$ with index $L$, asserts that the $\lambda$-abstraction must be used exactly once.
+  
+  For \rname{U-Prod-App}, domain $A$ is a non-linear type, as seen by its arrow index in $(x : A) \arw{U}{s} B$. Intuitively, this tells us that $x$ may be used an arbitrary number of times within the body of $m$. Thus, the supplied argument $n$ must not depend on restricted variables in context $\Gamma_2$. Otherwise, substitution may put multiple copies of $n$ into $m$ during $\beta$-reduction, duplicating variables that should have been restricted. This justifies the side condition of $\pure{\Gamma_2}$. The contexts $\Gamma_1$, and $\Gamma_2$ are finally merged together into $\Gamma$ by the relation $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, contracting all unrestricted variables shared between $\Gamma_1$, and $\Gamma_2$.
+  
+  Now for \rname{L-Prod-App}, domain $A$ is a linear type, as seen by its arrow index in $(x : A) \arw{L}{s} B$. Intuitively, this tells us that $x$ must be used once within the body of $m$. During $\beta$-reduction, substitution will only put a single copy of $n$ into the body of $m$, so $n$ can depend on restricted variables within $\Gamma_2$ without fear of duplicating them. This justifies the lack of side condition $\pure{\Gamma_2}$. The contexts $\Gamma_1$, and $\Gamma_2$ are finally merged together into $\Gamma$ by the relation $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, contracting all unrestricted variables shared between $\Gamma_1$, and $\Gamma_2$.
 
-  In contrast to \rname{U-$\lambda$}, the \rname{L-$\lambda$} rule is used for forming $\lambda$-abstractions that must be used exactly once. Since these abstractions must be used once, they are allowed access to restricted variables within context $\Gamma$, evident in the judgment $\Gamma, x \stype{s} A \vdash n \stype{t} B$, and lack of side condition $\pure{\Gamma}$. However, in judgment $\overline{\Gamma} \vdash (x : A) \arw{s}{t} B \utype L_k$ the context must be filtered, since types are not allowed to depend on restricted variables. The final resulting judgment $\Gamma \vdash \lambda x.n \ltype (x : A) \arw{s}{t} B$ with index $L$, asserts that the $\lambda$-abstraction must be used exactly once.
-  
-  For \rname{U-App}, domain $A$ is a non-linear type, as seen by its arrow index in $(x : A) \arw{U}{s} B$. Intuitively, this tells us that $x$ may be used an arbitrary number of times within the body of $m$. Thus, the supplied argument $n$ must not depend on restricted variables in context $\Gamma_2$. Otherwise, substitution may put multiple copies of $n$ into $m$ during $\beta$-reduction, duplicating variables that should have been restricted. This justifies the side condition of $\pure{\Gamma_2}$. The contexts $\Gamma_1$, and $\Gamma_2$ are finally merged together into $\Gamma$ by the relation $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, contracting all unrestricted variables shared between $\Gamma_1$, and $\Gamma_2$.
-  
-  Now for \rname{L-App}, domain $A$ is a linear type, as seen by its arrow index in $(x : A) \arw{L}{s} B$. Intuitively, this tells us that $x$ must be used once within the body of $m$. During $\beta$-reduction, substitution will only put a single copy of $n$ into the body of $m$, so $n$ can depend on restricted variables within $\Gamma_2$ without fear of duplicating them. This justifies the lack of side condition $\pure{\Gamma_2}$. The contexts $\Gamma_1$, and $\Gamma_2$ are finally merged together into $\Gamma$ by the relation $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, contracting all unrestricted variables shared between $\Gamma_1$, and $\Gamma_2$.
+  The rules \rname{U-Lolli-App}, \rname{L-Lolli-App} follow the same considerations as \rname{U-Prod-App}, \rname{L-Prod-App}. Additional conditions are not required for these two rules to be sound.
 
   Finally, the \rname{Conv} rule allows judgment $\Gamma \vdash m \stype{s} A$ to convert to judgment $\Gamma \vdash m \stype{s} B$, if $B$ is a valid type in context $\overline{\Gamma}$, and of the same sort $s$ as $A$. Futhermore, $A$ must be a subtype of $B$ satisfying the cumulativity relation $A \preceq B$. This rule gives rise to large eliminations, as computations embedded at the type level can convert to canonical types.
-
 
   \subsection{Equality and Reduction} \label{reduction}
   The operational semantics, and definitional $\beta$-equality of CLC are presented in Figure \ref{parallel}, all of which are entirely standard.
@@ -445,6 +479,16 @@
       \rname{Step-ProdR}
 
       \inferrule
+      { A \pstep A' }
+      { (x : A) \lrw{s}{t} B \pstep (x : A') \lrw{s}{t} B }
+      \rname{Step-LolliL}
+
+      \inferrule
+      { B \pstep B' }
+      { (x : A) \lrw{s}{t} B \pstep (x : A) \lrw{s}{t} B' }
+      \rname{Step-LolliR}
+
+      \inferrule
       { m \step m' }
       { m\ n \step m'\ n }
       \rname{Step-AppL}
@@ -465,15 +509,19 @@
 
   \subsubsection{Reduction and Confluence}
 
-  The following lemmas and proofs are entirely standard. The presence of linear types do not pose any complications as reductions are untyped.
+  The following lemmas and proofs are entirely standard using parallel step technique \cite{takahashi}. The presence of linear types do not pose any complications as reductions are untyped.
 
   \begin{lemma} Parallel reduction satisfies the diamond property. \\
     If $m \pstep_p m_1$ and $m \pstep_p m_2$ then there exists $m'$ such that $m_1 \pstep_p m'$ and $m_2 \pstep_p m'$.
   \end{lemma}
 
-  \begin{corollary} The transitive reflexive closure of  reduction is confluent. \\ 
+  \begin{lemma} Each $\pstep_p$ is reachable with $\step^*$. \\
+    If $m \pstep_p m'$ then $m \step^* m'$.
+  \end{lemma}
+
+  \begin{theorem} The transitive reflexive closure of reduction is confluent. \\ 
     If $m \step^* m_1$ and $m \step^* m_2$ then there exists $m'$ such that $m_1 \pstep^* m'$ and $m_2 \pstep^* m'$.
-  \end{corollary}
+  \end{theorem}
 
   \begin{corollary}
     The definitional equality relation $\equiv$ is an equivalence relation.
@@ -496,14 +544,14 @@
   \end{lemma}
 
   \subsubsection{Type Soundness}
-  In order to prove subject reduction, we first prove the regularity theorem. The main purpose of regularity is to lower types down to the term level, enabling the application of various inversion lemmas. Regularity also serves a second purpose, it tells us the judgment index $s$ of a term $\Gamma \vdash m \stype{s} A$ is exactly the same sort as its type's universe $\overline{\Gamma} \vdash A \utype s_i$.
+  In order to prove subject reduction, we first prove the propagation theorem. The main purpose of propagation is to lower types down to the term level, enabling the application of various inversion lemmas. Propagation also serves a second purpose, it tells us the judgment index $s$ of a term $\Gamma \vdash m \stype{s} A$ is exactly the same sort as its type's universe $\overline{\Gamma} \vdash A \utype s_i$.
 
-  \begin{theorem} Regularity. \\
+  \begin{theorem} Propagation. \\
      For any context $\Gamma$, term $m$, type $A$, and sort $s$, if $\Gamma \vdash m \stype{s} A$ is a valid judgment, then there exists some level $i$ such that $\overline{\Gamma} \vdash A \utype s_i$.
-    \label{regularity}
+    \label{propagation}
   \end{theorem}
 
-  With weakening, substitution, regularity, and various inversion lemmas proven, subject reduction is proved by induction on typing derivation.
+  With weakening, substitution, propagation, and various inversion lemmas proven, subject reduction can now be proved by induction on typing derivation.
 
   \begin{theorem} Subject reduction. \\
     For $\Gamma \vdash m \stype{s} A$, if $m \pstep n$ then $\Gamma \vdash n \stype{s} A$.
@@ -534,6 +582,7 @@
       \erase{U_k} &= Type_k \\
       \erase{L_k} &= Type_k \\
       \erase{(x : A) \arw{s}{t} B} &= (x : \erase{A}) \rightarrow \erase{B} \\
+      \erase{(x : A) \lrw{s}{t} B} &= (x : \erase{A}) \rightarrow \erase{B} \\
       \erase{\lambda x.n} &= \lambda x.\erase{n} \\
       \erase{m\ n} &= \erase{m}\ \erase{n}
     \end{align*}
