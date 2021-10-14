@@ -2926,4 +2926,6 @@ Proof.
   apply sn_nn in H4; exfalso; eauto.
 Qed.
 
+Print Assumptions strong_normalization.
+
 End CLC.
