@@ -96,6 +96,40 @@ Proof.
   induction 1; intros; constructor; eauto.
 Qed.
 
+Lemma merge_pure T (Γ : context T) :
+  [ Γ ] -> [ Γ ‡ Γ ‡ Γ ].
+Proof.
+  induction 1; constructor; eauto.
+Qed.
+
+Lemma merge_re1 T (Γ : context T) :
+  [ %Γ ‡ Γ ‡ Γ ].
+Proof.
+  induction Γ.
+  - simpl; constructor.
+  - destruct a.
+    destruct p.
+    destruct s; simpl.
+    constructor; eauto.
+    constructor; eauto.
+    simpl.
+    constructor; eauto.
+Qed.
+
+Lemma merge_re2 T (Γ : context T) :
+  [ Γ ‡ %Γ ‡ Γ ].
+Proof.
+  induction Γ.
+  - simpl; constructor.
+  - destruct a.
+    destruct p.
+    destruct s; simpl.
+    constructor; eauto.
+    constructor; eauto.
+    simpl.
+    constructor; eauto.
+Qed.
+
 Lemma merge_pure_inv T (Γ₁ Γ₂ Γ : context T) :
   [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ ] -> [ Γ₁ ] /\ [ Γ₂ ].
 Proof.
@@ -2917,6 +2951,194 @@ Proof.
       rewrite H4.
       eauto.
   - apply IHhas_type2; eauto.
+Qed.
+
+Theorem promotion Γ m A B s :
+  [ Γ ] ->
+  [ Γ |- ] ->
+  [ Γ |- m :- Lolli A B s ] ->
+  exists m, [ Γ |- m :- Prod A B s ].
+Proof.
+  intros.
+  exists (Lam (App m.[ren (+1)] (Var 0))).
+  destruct s.
+  - pose proof (propagation H0 H1); first_order. 
+    apply u_lolli_inv in H2; first_order.
+    assert ([ Γ |- Prod A B U :- Sort U x2 ]).
+    destruct x2.
+    + eapply u_prod; eauto.
+      rewrite <- pure_re in H2; eauto.
+      rewrite <- pure_re in H3; eauto.
+    + destruct x1.
+      eapply prop; eauto.
+      rewrite <- pure_re in H2; eauto.
+      rewrite <- pure_re in H3; eauto.
+      apply has_propL_false in H3.
+      inv H3.
+      rewrite <- pure_re; eauto.
+      eapply u_ok; eauto.
+    eapply prod_lam; eauto.
+    assert ([ 0 :u A.[ren (+1)] ∈ A +u Γ ]).
+    apply hasU_O; eauto.
+    assert ([ A +u Γ |- Var 0 :- A.[ren (+1)] ]).
+    eapply u_var; eauto.
+    pose proof (weakeningU A H1).
+    asimpl in H7.
+    assert ([ A +u Γ ]).
+    constructor; eauto.
+    assert ([ A +u Γ ‡ A +u Γ ‡ A +u Γ]).
+    apply merge_pure; eauto.
+    pose proof (u_lolli_app H8 H7 H6 H9).
+    asimpl in H10; eauto.
+  - pose proof (propagation H0 H1); first_order. 
+    apply l_lolli_inv in H2; first_order.
+    assert ([ Γ |- Prod A B L :- Sort U x2 ]).
+    destruct x2.
+    + eapply l_prod; eauto.
+      rewrite <- pure_re in H2; eauto.
+      rewrite <- pure_re in H3; eauto.
+    + apply has_propL_false in H2.
+      inv H2.
+      rewrite <- pure_re; eauto.
+    eapply prod_lam; eauto.
+    assert ([ 0 :l A.[ren (+1)] ∈ A +l Γ ]).
+    apply hasL_O; eauto.
+    assert ([ A +l Γ |- Var 0 :- A.[ren (+1)] ]).
+    eapply l_var; eauto.
+    pose proof (weakeningN H1).
+    asimpl in H7.
+    assert ([ □ Γ ‡ A +l Γ ‡ A +l Γ ]).
+    constructor.
+    apply merge_pure; eauto.
+    pose proof (l_lolli_app H7 H6 H8).
+    asimpl in H9; eauto.
+Qed.
+  
+Theorem dereliction Γ m A B s :
+  [ Γ |- ] ->
+  [ Γ |- m :- Prod A B s ] ->
+  exists m, [ Γ |- m :- Lolli A B s ].
+Proof.
+  intros.
+  exists (Lam (App m.[ren (+1)] (Var 0))).
+  destruct s.
+  - pose proof (propagation H H0); first_order. 
+    apply u_prod_inv in H1; first_order.
+    destruct x1; destruct x2.
+    + assert ([ %Γ |- Lolli A B U :- L @ n ]).
+      eapply u_lolli; eauto.
+      apply re_pure.
+      eapply lolli_lam; eauto.
+      assert ([ 0 :u A.[ren (+1)] ∈ A +u %Γ ]).
+      apply hasU_O.
+      apply re_pure.
+      assert ([ A +u %Γ |- Var 0 :- A.[ren (+1)] ]).
+      eapply u_var; eauto.
+      pose proof (weakeningU A H0).
+      asimpl in H6.
+      assert ([ A +u %Γ ]).
+      constructor; eauto.
+      apply re_pure.
+      assert ([ A +u Γ ‡ A +u %Γ ‡ A +u Γ]).
+      constructor.
+      apply merge_re2.
+      pose proof (u_prod_app H7 H6 H5 H8).
+      asimpl in H9; eauto.
+    + assert ([ %Γ |- Lolli A B U :- L @ 0 ]).
+      assert (𝐏 <: U @ 0).
+      apply sub_prop.
+      eapply u_lolli; eauto.
+      apply re_pure.
+      eapply conversion; eauto.
+      constructor.
+      apply re_pure.
+      eapply conversion; eauto.
+      constructor.
+      apply re_pure.
+      eapply lolli_lam; eauto.
+      assert ([ 0 :u A.[ren (+1)] ∈ A +u %Γ ]).
+      apply hasU_O.
+      apply re_pure.
+      assert ([ A +u %Γ |- Var 0 :- A.[ren (+1)] ]).
+      eapply u_var; eauto.
+      pose proof (weakeningU A H0).
+      asimpl in H6.
+      assert ([ A +u %Γ ]).
+      constructor; eauto.
+      apply re_pure.
+      assert ([ A +u Γ ‡ A +u %Γ ‡ A +u Γ]).
+      constructor.
+      apply merge_re2.
+      pose proof (u_prod_app H7 H6 H5 H8).
+      asimpl in H9; eauto.
+    + assert ([ %Γ |- Lolli A B U :- L @ n ]).
+      eapply u_lolli; eauto.
+      apply re_pure.
+      eapply lolli_lam; eauto.
+      assert ([ 0 :u A.[ren (+1)] ∈ A +u %Γ ]).
+      apply hasU_O.
+      apply re_pure.
+      assert ([ A +u %Γ |- Var 0 :- A.[ren (+1)] ]).
+      eapply u_var; eauto.
+      pose proof (weakeningU A H0).
+      asimpl in H6.
+      assert ([ A +u %Γ ]).
+      constructor; eauto.
+      apply re_pure.
+      assert ([ A +u Γ ‡ A +u %Γ ‡ A +u Γ]).
+      constructor.
+      apply merge_re2.
+      pose proof (u_prod_app H7 H6 H5 H8).
+      asimpl in H9; eauto.
+    + apply has_propL_false in H2.
+      inv H2.
+      eapply u_ok.
+      apply re_ok; eauto.
+      rewrite <- pure_re; eauto.
+      apply re_pure.
+  - pose proof (propagation H H0); first_order. 
+    apply l_prod_inv in H1; first_order.
+    destruct x1; destruct x2.
+    + assert ([ %Γ |- Lolli A B L :- L @ n ]).
+      eapply l_lolli; eauto.
+      apply re_pure.
+      eapply lolli_lam; eauto.
+      assert ([ 0 :l A.[ren (+1)] ∈ A +l %Γ ]).
+      apply hasL_O.
+      apply re_pure.
+      assert ([ A +l %Γ |- Var 0 :- A.[ren (+1)] ]).
+      eapply l_var; eauto.
+      pose proof (weakeningN H0).
+      asimpl in H6.
+      assert ([ □ Γ ‡ A +l %Γ ‡ A +l Γ]).
+      constructor.
+      apply merge_re2.
+      pose proof (l_prod_app).
+      pose proof (l_prod_app H6 H5 H7).
+      asimpl in H9; eauto.
+    + apply has_propL_false in H1.
+      inv H1.
+      apply re_ok; eauto.
+    + assert ([ %Γ |- Lolli A B L :- L @ n ]).
+      eapply l_lolli; eauto.
+      apply re_pure.
+      eapply lolli_lam; eauto.
+      assert ([ 0 :l A.[ren (+1)] ∈ A +l %Γ ]).
+      apply hasL_O.
+      apply re_pure.
+      assert ([ A +l %Γ |- Var 0 :- A.[ren (+1)] ]).
+      eapply l_var; eauto.
+      pose proof (weakeningN H0).
+      asimpl in H6.
+      assert ([ □ Γ ‡ A +l %Γ ‡ A +l Γ]).
+      constructor.
+      apply merge_re2.
+      pose proof (l_prod_app H6 H5 H7).
+      asimpl in H8; eauto.
+    + apply has_propL_false in H2.
+      inv H2.
+      constructor.
+      apply re_ok; eauto.
 Qed.
 
 Close Scope clc_scope.
