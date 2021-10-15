@@ -2263,49 +2263,39 @@ Theorem propagation Γ m A :
 Proof.
   intros.
   dependent induction H0.
-  - exists U.
-    exists (Some 1).
+  - exists U; exists (Some 1).
     constructor.
     rewrite <- pure_re; eauto.
-  - exists U.
-    exists (Some l.+2).
+  - exists U; exists (Some l.+2).
     constructor.
     rewrite <- pure_re; eauto.
-  - exists U.
-    exists (Some 0).
+  - exists U; exists (Some 0).
     constructor.
     rewrite <- pure_re; eauto.
-  - exists U.
-    exists (Some l.+1).
+  - exists U; exists (Some l.+1).
     constructor.
     rewrite <- pure_re; eauto.
-  - exists U.
-    exists (Some l.+1).
+  - exists U; exists (Some l.+1).
     constructor.
     rewrite <- pure_re; eauto.
-  - exists U.
-    exists (Some l.+1).
+  - exists U; exists (Some l.+1).
     constructor.
     rewrite <- pure_re; eauto.
-  - exists U.
-    exists (Some l.+1).
+  - exists U; exists (Some l.+1).
     constructor.
     rewrite <- pure_re; eauto.
   - exists U.
     eapply hasU_ok; eauto.
   - exists L.
     eapply hasL_ok; eauto.
-  - exists t.
-    exists l.
+  - exists t; exists l.
     rewrite <- pure_re; eauto.
-  - exists t.
-    exists l; eauto.
+  - exists t; exists l; eauto.
   - pose proof (merge_pure2 H1 H0).
     pose proof (merge_re_re H1). inv H3.
     apply merge_context_ok_inv in H1; eauto. first_order.
     apply u_prod_inv in H2. first_order.
-    exists x3.
-    exists x4.
+    exists x3; exists x4.
     replace (Sort x3 x4) with ((Sort x3 x4).[n/]) by autosubst.
     eapply substitutionU; eauto.
     replace (Γ₂) with (%Γ₁).
@@ -2316,8 +2306,7 @@ Proof.
   - pose proof (merge_re_re H0). inv H1.
     apply merge_context_ok_inv in H0; eauto. first_order.
     eapply l_prod_inv in H5. first_order.
-    exists x3.
-    exists x4.
+    exists x3; exists x4.
     replace (Sort x3 x4) with ((Sort x3 x4).[n/]) by autosubst.
     eapply substitutionN; eauto.
     rewrite <- H2; eauto.
@@ -2325,8 +2314,7 @@ Proof.
     pose proof (merge_re_re H1). inv H3.
     apply merge_context_ok_inv in H1; eauto. first_order.
     apply u_lolli_inv in H2. first_order.
-    exists x3.
-    exists x4.
+    exists x3; exists x4.
     replace (Sort x3 x4) with ((Sort x3 x4).[n/]) by autosubst.
     eapply substitutionU; eauto.
     replace (Γ₂) with (re Γ₁).
@@ -2337,13 +2325,11 @@ Proof.
   - pose proof (merge_re_re H0). inv H1.
     apply merge_context_ok_inv in H0; eauto. first_order.
     eapply l_lolli_inv in H5. first_order.
-    exists x3.
-    exists x4.
+    exists x3; exists x4.
     replace (Sort x3 x4) with ((Sort x3 x4).[n/]) by autosubst.
     eapply substitutionN; eauto.
     rewrite <- H2; eauto.
-  - exists s.
-    exists l; eauto.
+  - exists s; exists l; eauto.
 Qed.
 
 Lemma propL_false Γ A :
