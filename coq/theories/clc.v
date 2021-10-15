@@ -1103,7 +1103,7 @@ Proof. move=> *; by apply: sub_subst. Qed.
 Notation 𝐏 := (Sort U None).
 Reserved Notation "[ Γ |- ]".
 Reserved Notation "[ Γ |- m :- A ]".
-  
+
 Inductive has_type : context term -> term -> term -> Prop :=
 | p_axiom Γ : 
   [ Γ ] ->
