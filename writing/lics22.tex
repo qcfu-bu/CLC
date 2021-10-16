@@ -114,7 +114,7 @@
 
       <$s, t$> ::= $U$ | $L$ \phantom{| $x$} \hspace*{4.6em} sorts
 
-      <$m, n, A, B, C$> ::= $U_i$ | $L_k$ | $x$ \hspace*{4em} expressions
+      <$m, n, A, B$> ::= $U_i$ | $L_k$ | $x$ \hspace*{4em} expressions
       \indalt $(x :_s A) \rightarrow B$
       \indalt $(x :_s A) \multimap B$
       \indalt $\lambda x. n$ | $m\ n$
@@ -151,7 +151,7 @@
   \begin{definition}
     The cumulativity relation ($\preceq$) is the smallest binary relation over terms such that
     \begin{enumerate}
-      \item $\preceq$ is a partial order with respect to definitional equality.
+      \item $\preceq$ is a partial order with respect to equality.
         \begin{enumerate}
           \item If $A \equiv B$, then $A \preceq B$.
           \item If $A \preceq B$ and $B \preceq A$, then $A \equiv B$.
@@ -394,7 +394,6 @@
         \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
       { \Gamma \vdash m\ n : B[n/x] }
       \rname{U-Prod-App}
-      \\
 
       \inferrule
       { \Gamma_1 \vdash m : (x \ltype A) \rightarrow B \\
@@ -411,7 +410,6 @@
         \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
       { \Gamma \vdash m\ n : B[n/x] }
       \rname{U-Lolli-App}
-      \\
 
       \inferrule
       { \Gamma_1 \vdash m : (x \ltype A) \multimap B \\
