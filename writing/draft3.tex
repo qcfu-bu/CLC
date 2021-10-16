@@ -50,14 +50,6 @@
 \newcommand{\step}{\leadsto}
 \newcommand{\pstep}{\leadsto}
 \newcommand{\mrg}[3]{#1\ddagger#2\ddagger#3}
-\newcommand{\arw}[2]
-{\hspace*{0.2em}{\scriptstyle #1}\hspace*{-0.2em}
-\rightarrow
-\hspace*{-0.2em}{\scriptstyle #2}\hspace*{0.2em}}
-\newcommand{\lrw}[2]
-{\hspace*{0.2em}{\scriptstyle #1}\hspace*{-0.2em}
-\multimap
-\hspace*{-0.2em}{\scriptstyle #2}\hspace*{0.2em}}
 \newcommand{\erase}[1]{\llbracket #1 \rrbracket}
 
 % title and author
@@ -567,9 +559,9 @@
   \end{theorem}
 
   \subsubsection{Promotion and Dereliction}
-  In most presentations of linear logic, there is no clear distinction between linear and non-linear objects. Non-linear objects are created by packing linear objects under non-linear contexts into the ! exponential through the \textit{promotion} rule. Conversely, the \textit{dereliction} rule unpacks ! objects so they can be used in place of linear ones. Linear type theories \cite{abramsky1993,dill,vakar14} based on ! will contain introduction and elimination rules for ! types that serve similar purpose to \textit{promotion} and \textit{dereliction}.
+  In most presentations of linear logic, non-linear objects are created by packing linear objects under non-linear contexts into the ! exponential through the \textit{promotion} rule. Conversely, the \textit{dereliction} rule unpacks non-linear objects so they can be used in place of linear ones. Linear type theories \cite{abramsky1993,dill,vakar14} utilizing exponential for non-linearity will contain ! types and rules that are equivalent to \textit{promotion} and \textit{dereliction}.
 
-  The linear types of CLC are not designed around packing and unpacking !, so there are no explicit rules for \textit{promotion} and \textit{dereliction}. However, \textit{promotion} and \textit{dereliction} for canonical types are derivable as theorems through $\eta$-expansion.
+  Linear types of CLC are not designed around packing and unpacking !, so there are no rules for \textit{promotion} and \textit{dereliction}. Arbitrary computations existing at the type level also muddle the association between which types can be promoted or derelicted to which. Nevertheless, \textit{promotion} and \textit{dereliction} for canonical types are derivable as theorems through $\eta$-expansion.
 
   \begin{theorem} Promotion \\
     If $\Gamma \vdash m : (x \stype{s} A) \multimap B$ and $\pure{\Gamma}$ are valid judgments, then there exists $n$ such that $\Gamma \vdash n : (x \stype{s} A) \rightarrow B$ is derivable.
@@ -609,16 +601,16 @@
     For any CLC terms $m$, $n$, and some variable $x$, $\erase{m[n/x]} = \erase{m}[\erase{n}/x]$. 
   \end{lemma}
 
-  For the following theorem, we refer to the reductions in CLC as $\pstep_{\scriptscriptstyle \text{CLC}}$, and the reductions in CC$\omega$ as $\pstep_{\scriptscriptstyle \text{CC$\omega$}}$.
-  \begin{theorem} \label{preserve} Erasure preserves reduction. \\
+  For the following lemma, we refer to the reductions in CLC as $\pstep_{\scriptscriptstyle \text{CLC}}$, and the reductions in CC$\omega$ as $\pstep_{\scriptscriptstyle \text{CC$\omega$}}$.
+  \begin{lemma} \label{preserve} Erasure preserves reduction. \\
     For any CLC terms $m$, and $n$, if there is $m \pstep_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \pstep_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
-  \end{theorem}
+  \end{lemma}
 
-  \begin{theorem} \label{embedding} Embedding. \\
+  \begin{lemma} \label{embedding} Embedding. \\
     If $\Gamma \vdash m \stype{s} A$ is a valid judgment in CLC, then $\erase{\Gamma} \vdash \erase{m} : \erase{A}$ is a valid judgment in CC$\omega$.
-  \end{theorem}
+  \end{lemma}
 
-  If there exists some well typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions by virtue of theorems \ref{preserve}, and \ref{embedding}. This is contradictory to the strong normalization property of CC$\omega$ proven through the Girard-Tait method \cite{ecc}, so this hypothetical term does not exist in CLC.
+  If there exists some well typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions by virtue of lemmas \ref{preserve}, and \ref{embedding}. This is contradictory to the strong normalization property of CC$\omega$ proven through the Girard-Tait method \cite{ecc}, so this hypothetical term does not exist in CLC.
 
   \begin{theorem}
     Well-typed CLC terms are strongly normalizing.
