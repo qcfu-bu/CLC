@@ -65,7 +65,7 @@
   \maketitle 
 
   \section{Introduction}
-  The Calculus of Constructions (CC) is a dependent type theory introduced by Coquand, and Huet in their landmark work \cite{cc}. In CC types can depend on terms, allowing one to write precise specifications as types. Today, CC and its variations CIC \cite{cic} and ECC \cite{ecc} lie at the core of popular proof assistants such as Coq \cite{coq}, Agda \cite{agda}, Lean \cite{lean}, and others. These theorem provers have found great success in the fields of software verification, and constructive mathematics. 
+  The Calculus of Constructions (CC) is a dependent type theory introduced by Coquand and Huet in their landmark work \cite{cc}. In CC types can depend on terms, allowing one to write precise specifications as types. Today, CC and its variations CIC \cite{cic} and ECC \cite{ecc} lie at the core of popular proof assistants such as Coq \cite{coq}, Agda \cite{agda}, Lean \cite{lean} and others. These theorem provers have found great success in the fields of software verification, and constructive mathematics. 
   
   However, due to its origins as a logical framework for constructive mathematics, it is quite difficult for CC to encode and reason about resources. Intuitively, a mathematical theorem can be applied an unrestricted number of times. Comparatively, the usage of resources is more limited. For example, if we encode Girard's classical example \cite{girard95} of purchasing cigarettes literally into CC as a function of type:
   \begin{equation*}
@@ -73,17 +73,17 @@
   \end{equation*}
   If viewed as a propositional implication, the customer will still maintain full ownership of their money after paying the vendor, because implication does not diminish the validity of its antecedent. Unless the vendor is exceedingly generous, we are faced with the crime of counterfeiting. Users of proof assistants based on CC often need to embed external logics such as Separation Logic to provide additional reasoning principles for dealing with resource. The design and embedding of these logics are a difficult problem in their own right, requiring additional proofs to justify their soundness, and effectiveness. We propose an alternative solution: extend CC with linear types.
 
-  Linear Logic is a substructural logic introduced by Girard in his seminal work \cite{girard}. Girard notice that the weakening and contraction rules of Classical Logic when restricted carefully, gives rise to a new logical foundation for reasoning about resource. Wadler \cite{wadler1990,wadler1991} first notice that an analogous restriction to variable usage in simple type theory leads to a linear type theory, where terms respect resources. A term calculus for linear type theory was later realized by Abramsky \cite{abramsky1993}. Benton \cite{benton1994} investigates the ramifications of the ! exponential in linear term calculi, decomposing it to adjoint connectives $F$ and $G$ that map between linear and non-linear judgments. Programming languages \cite{l3,ats,linear-haskell} featuring linear types have also been implemented, allowing programmers to write resource safe software in practical applications. The success of integrating Linear Logic with simple type theory exposes a tantalizing new frontier of integrating linearity with richer type theories.
+  Linear Logic is a substructural logic introduced by Girard in his seminal work \cite{girard}. Girard notices that the weakening and contraction rules of Classical Logic when restricted carefully, give rise to a new logical foundation for reasoning about resource. Wadler \cite{wadler1990,wadler1991} first notices that an analogous restriction to variable usage in simple type theory leads to a linear type theory, where terms respect resources. A term calculus for linear type theory was later realized by Abramsky \cite{abramsky1993}. Benton \cite{benton1994} investigates the ramifications of the ! exponential in linear term calculi, decomposing it to adjoint connectives $F$ and $G$ that map between linear and non-linear judgments. Programming languages \cite{l3,ats,linear-haskell} featuring linear types have also been implemented, allowing programmers to write resource safe software in practical applications. The success of integrating Linear Logic with simple type theory exposes a tantalizing new frontier of integrating linearity with richer type theories.
 
-  Work has been done to extend dependent type theories with linear types. Cervesato and Pfenning extend the Edinburgh Logical Framework with linear types \cite{lf,llf}, being the first to demonstrate that dependent types and linear types can coexist within a type theory. V\'{a}k\'{a}r \cite{vakar14} presents a linear dependent type theory, with syntax and semantics drawing inspiration from DILL \cite{dill}.  Krishnaswami et al. present a dependent linear type theory \cite{neel15} based on Benton's earlier work on mixed linear and non-linear calculus, demonstrating the ability to internalize imperative programming in the style of Hoare Type Theory \cite{htt}. Luo et al. introduce the property of essential linearity, and a mixed linear/non-linear context, describing the first type theory that allows types to depend on linear terms. Based on initial ideas of McBride \cite{nothing}, Atkey's Quantitative Type Theory (QTT) \cite{qtt} uses semi-ring annotations to track variable occurrence, simulating irrelevance, linear, and affine types within a unified framework. The Idris 2 programming language \cite{idris2} implements QTT as its core type system.
+  Work has been done to extend dependent type theories with linear types. Cervesato and Pfenning extend the Edinburgh Logical Framework with linear types \cite{lf,llf}, being the first to demonstrate that dependent types and linear types can coexist within a type theory. V\'{a}k\'{a}r \cite{vakar14} presents a linear dependent type theory, with syntax and semantics drawing inspiration from DILL \cite{dill}.  Krishnaswami et al. present a dependent linear type theory \cite{neel15} based on Benton's earlier work on mixed linear and non-linear calculus, demonstrating the ability to internalize imperative programming in the style of Hoare Type Theory \cite{htt}. Luo et al. introduce the property of essential linearity and a mixed linear/non-linear context, describing the first type theory that allows types to depend on linear terms. Based on initial ideas of McBride \cite{nothing}, Atkey's Quantitative Type Theory (QTT) \cite{qtt} uses semi-ring annotations to track variable occurrence, simulating irrelevance, linear and affine types within a unified framework. The Idris 2 programming language \cite{idris2} implements QTT as its core type system.
 
-  We present a new linear dependent type system - The Calculus of Linear Constructions (CLC). CLC extends CC$\omega$ with linear types. CC$\omega$ itself is an extension of CC with a cumulative hierarchy of type universes. We add an extra universe sort $L$ of linear types with cumulativity parallel to the sort $U$ of non-linear types. This ultimately cumulates in the \textit{linearity} theorem, stating that all resources are used exactly once.
+  We present a new linear dependent type system --- The Calculus of Linear Constructions (CLC). CLC extends CC$\omega$ with linear types. CC$\omega$ itself is an extension of CC with a cumulative hierarchy of type universes. We add an extra universe sort $L$ of linear types with cumulativity parallel to the sort $U$ of non-linear types. This ultimately cumulates in the \textit{linearity} theorem, stating that all resources are used exactly once.
 
   The presence of both linear and dependent types enables CLC to write specifications that faithfully encode the usage of resources. The previous example of monetary transaction can be refined using an indexed linear type family $Money : \mathbb{N} \rightarrow L$ as follows.
   \begin{equation*}
     (x \ltype Money\ 5) \rightarrow (Camels + Marlboro)
   \end{equation*}
-  This new specification for transaction states that it requires a payment of 5 units of money, the customer is relieved of their ownership after the transaction finishes, effectively preventing the contradiction of having your cake and eating it too.
+  This new specification for transaction demands a payment of 5 units of money, and the customer be relieved of their ownership after the transaction finishes, effectively preventing the contradiction of having your cake and eating it too.
 
   Compared to preexisting approaches for integrating linear types and dependent types, CLC offers a ``lightweight'' approach to extending CC$\omega$ with linear types, akin to Mazurak et al.'s work on System F \cite{mazurak}. This allows for a straightforward modeling of CLC in CC$\omega$, and lifting of CC$\omega$ into CLC, endowing CLC with the fruits of decades of CC research. We further extend CLC with inductive types, showing that CLC facilitates correct by construction imperative programming. We have formalized all major results in Coq, and implemented a prototype in OCaml. 
 
@@ -93,7 +93,7 @@
   Our contributions can be summarized as follows.
   \begin{itemize}
     \item Fist, we describe the Calculus of Linear Constructions, an extension to the Calculus of Constructions with linear types. The integration of linear types and dependent types allows CLC to directly and precisely reason about resource.
-    \item Second, we study the meta-theory of CLC directly, showing that it satisfies the standard properties of confluence, propagation, and subject reduction.
+    \item Second, we study the meta-theory of CLC directly, showing that it satisfies the standard properties of confluence, propagation and subject reduction.
     \item Next, we prove the linearity theorem, showing that the tangible impact linear types have how terms can be structured. We also show that promotion and dereliction of linear logic are derivable as theorems for canonical types.
     \item Additionally, we observe that CLC is highly backwards compatible with CC$\omega$, allowing us to construct a reduction preserving model of CLC in CC$\omega$. This shows that CLC is consistent.
     \item All major results have been formalized and proven correct in the Coq Proof Assistant with help from the Autosubst \cite{autosubst} library. To the best of our knowledge, our development is the first machine checked formalization of a linear dependent type theory.
@@ -104,9 +104,9 @@
   \section{The Language of CLC}
   \subsection{Syntax}
   \begin{figure}[h]
-    \vspace{-1em}
+    \vspace{-1.4em}
     \caption{Syntax}
-    \vspace{1.5em}
+    \vspace{1.4em}
     \begin{grammar}
       <$k$> := 0 | 1 | 2 ... \phantom{* |} \hspace*{3em} predicative levels
 
@@ -121,9 +121,9 @@
     \end{grammar}
     \label{syntax}
   \end{figure}
-  The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two sorts of universes $U$ and $L$. We use the meta variable $k$ to specifically quantify over levels $0, 1, 2, ...$ that correspond to the predicative universes. We use the meta variable $i$ to quantify over all levels $*, 0, 1, 2, ...$. Here, $U_*$ is the impredicative universe of propositions, in the same spirit as CC$\omega$'s $Prop$ universe. $U_k$, and $L_k$ are the predicative universes of non-linear, and linear types respectively.
+  The syntax of the core type theory is presented in Figure \ref{syntax}. Our type theory contains two sorts of universes $U$ and $L$. We use the meta variable $k$ to specifically quantify over levels $0, 1, 2, ...$ that correspond to the predicative universes. We use the meta variable $i$ to quantify over all levels $*, 0, 1, 2, ...$. Here, $U_*$ is the impredicative universe of propositions, in the same spirit as CC$\omega$'s $Prop$ universe. $U_k$, and $L_k$ are the predicative universes of non-linear and linear types respectively.
   \begin{figure}[H]
-    \vspace{-1em}
+    \vspace{-1.4em}
     \caption{Correspondence of CLC types and MELL implications}
     \Description{}
     \vspace{-1em}
@@ -133,18 +133,18 @@
       (\_ \utype A) \multimap B \quad &\Leftrightarrow \quad !A \multimap B \\
       (\_ \ltype A) \multimap B \quad &\Leftrightarrow \quad A \multimap B
     \end{align}
-    \vspace{-1em}
+    \vspace{-1.6em}
     \label{correspondence}
   \end{figure}
 
-  A clear departure of our language from standard presentations of both linear type theory, and dependent type theory are the presence of two function types: $(x :_s A) \rightarrow B$, $(x :_s A) \multimap B$. The reason for these function types is that we have built the ! exponential of linear logic directly into universe sorts. The sort annotation $s$ here records the universe sort of the function domain. The behavior of ! is difficult to account for even in simple linear type theory. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into universe sorts, we implicitly limit ! to only be canonically usable. This allows us to derive the substitution lemma, and construct a direct modeling of CLC in CC$\omega$ without requiring any additional machinery for manipulating exponential.
+  A clear departure of our language from standard presentations of both linear type theory and dependent type theory is the presence of two function types: $(x :_s A) \rightarrow B$, $(x :_s A) \multimap B$. The reason for these function types is that we have built the ! exponential of linear logic directly into universe sorts. The sort annotation $s$ here records the universe sort of the function domain. The behavior of ! is difficult to account for even in simple linear type theories. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into universe sorts, we implicitly limit ! to only be canonically usable. This allows us to derive the substitution lemma, and construct a direct modeling of CLC in CC$\omega$ without requiring any additional machinery for manipulating exponential.
 
   Figure \ref{correspondence} illustrates the correspondence between CLC function types and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (3) if the co-domain $B$ is dependent on arguments of domain $A$. We will discuss function type formation in Section \ref{tyformation} in greater detail.
 
   In practice, algorithmic type checking techniques allow users to omit writing sort indices. Our implementation employs bi-directional type checking and users never interact with indices in the surface syntax.
 
   \subsection{Universes and Cumulativity}
-  CLC features two sorts of universes $U$, and $L$ with level indices $*, 0, 1, 2, \cdots$. $U_*$ is the impredicative universe of propositions. $U_k$, and $L_k$ are the predicative universe of non-linear types, and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by checking the universe to which they belong. Basically, terms with types that occur within $U_i$ are unrestricted in their usage. Terms with types that occur within $L_k$ are restricted to being used exactly once.
+  CLC features two sorts of universes $U$ and $L$ with level indices $*, 0, 1, 2, \cdots$. $U_*$ is the impredicative universe of propositions. $U_k$ and $L_k$ are the predicative universes of non-linear types and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by checking the universe to which they belong. Basically, terms with types that occur within $U_i$ are unrestricted in their usage. Terms with types that occur within $L_k$ are restricted to being used exactly once.
 
   In order to lift terms from lower universes to higher ones, there exists cumulativity between universe levels of the same sort. We define cumulativity as follows.
 
@@ -184,14 +184,14 @@
       & L_2 \arrow[r, "\preceq" description, dash] \arrow[ru, ":" description, dash] 
       & \cdots
     \end{tikzcd}
-    \vspace{-1em}
+    \vspace{-0.5em}
     \label{universe}
   \end{figure}
 
   \subsection{Context and Structural Judgments}
   The context of our language employs a mixed linear/non-linear representation in the style of Luo\cite{luo}. Variables in the context are annotated to indicate whether they are linear or non-linear. A non-linear variable is annotated as $\Gamma, x \utype A$, whereas a linear variable is annotated as $\Gamma, x \ltype A$. 
   
-  Next, we define a $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ relation that merges two mixed contexts $\Gamma_1$, and $\Gamma_2$ into $\Gamma$, by performing contraction on shared non-linear variables. For linear variables, the $\mrg{\_}{\_}{\_}$ relation is defined if and only if each variable occurs uniquely in one context and not the other. This definition of $\mrg{\_}{\_}{\_}$ is what allows contraction for unrestricted variables whilst forbidding it for restricted.
+  Next, we define a $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ relation that merges two mixed contexts $\Gamma_1$, and $\Gamma_2$ into $\Gamma$, by performing contraction on shared non-linear variables. For linear variables, the $\mrg{\_}{\_}{\_}$ relation is defined if and only if each variable occurs uniquely in one context and not the other. This definition of $\mrg{\_}{\_}{\_}$ is what allows contraction for unrestricted variables whilst forbidding it for restricted ones.
 
   An auxiliary judgment $\pure{\Gamma}$ is defined to assert that a context $\Gamma$ does not contain linear variables. In other words, all variables found in $\pure{\Gamma}$ are annotated of the form $x \utype A$. The full rules for structural judgments are presented in Figure \ref{structural}.
   
@@ -258,7 +258,7 @@
             {\Gamma, x \ltype A} }
       \rname{Merge-L2} 
     \end{mathpar}
-    \vspace{-0.8em}
+    \vspace{-1em}
     \label{structural}
   \end{figure}
 
@@ -276,7 +276,7 @@
   \subsection{Typing Judgment}
   Typing judgments in CLC take on the form of $\Gamma \vdash m : A$. Intuitively, this judgment states that the term $m$ is an inhabitant of type $A$, with free variables typed in $\Gamma$.
 
-  \begin{definition} We formally define the terms \textit{non-linear}, \textit{linear}, \textit{unrestricted}, and \textit{restricted}.
+  \begin{definition} We formally define the terms \textit{non-linear}, \textit{linear}, \textit{unrestricted} and \textit{restricted}.
     \begin{enumerate}
       \item A \textit{type} $A$ is \textit{non-linear} under context $\Gamma$ if $\Gamma \vdash A : U_i$.
       \item A \textit{type} $A$ is \textit{linear} under context $\Gamma$ if $\Gamma \vdash A : L_k$.
@@ -446,7 +446,7 @@
   Finally, the \rname{Conv} rule allows judgment $\Gamma \vdash m : A$ to convert to judgment $\Gamma \vdash m : B$ if $B$ is a valid type in context $\overline{\Gamma}$. Futhermore, $A$ must be a subtype of $B$ satisfying the cumulativity relation $A \preceq B$. This rule gives rise to large eliminations (compute types from terms), as computations embedded at the type level can convert to canonical types.
 
   \subsection{Equality and Reduction} \label{reduction}
-  The operational semantics, and definitional $\beta$-equality of CLC are presented in Figure \ref{parallel}, all of which are entirely standard.
+  The operational semantics and definitional $\beta$-equality of CLC are presented in Figure \ref{parallel}, all of which are entirely standard.
   \begin{figure}[h]
     \caption{Equality and Parallel Reduction}
     \begin{mathpar}
@@ -502,7 +502,7 @@
   \subsection{Meta Theory} \label{meta}
   In this section, we focus our discussion on the meta-properties of CLC. First, we show the type soundness of CLC through the \textit{subject reduction} theorem. Next, we show that CLC is a valid linear type theory through the \textit{linearity} theorem. Furthermore, we show that the \textit{promotion} and \textit{dereliction} rules can be encoded as $\eta$-expansions. Finally, we construct a reduction preserving erasure function that maps well-typed CLC terms to well-typed CC$\omega$ terms, showing that CLC is strongly normalizing.
   
-  All proofs have been formalized in Coq with help from the Autosubst \cite{autosubst} library. The Coq development is publicly available on the first author's Github repository. To the best of our knowledge, this is the first machined checked formalization of a linear dependently type theory. We given a hand written version of the proof in the appendix as well.
+  All proofs have been formalized in Coq with help from the Autosubst \cite{autosubst} library. The Coq development is publicly available on the first author's Github repository. To the best of our knowledge, this is the first machined checked formalization of a linear dependently type theory. We give a hand written version of the proof in the appendix as well.
 
   \subsubsection{Reduction and Confluence}
 
@@ -532,7 +532,7 @@
   \end{lemma}
 
   \subsubsection{Substitution} \label{subst}
-  Though the substitution lemma is considered a boring and bureaucratic result, it is surprisingly hard to design linear typed languages where the substitution lemma is admissible. Much of the difficulty arise during the substitution of arguments containing ! exponential. Perhaps the most famous work detailing the issues of substitution is due to Wadler \cite{substitute}. He defines additional syntax and semantics for the intricate unboxing of ! terms, solving the lack of substitute in Abramsky's term calculus.
+  Though the substitution lemma is regarded as a boring and bureaucratic result, it is surprisingly hard to design linear typed languages where the substitution lemma is admissible. Much of the difficulty arises during the substitution of arguments containing ! exponential. Perhaps the most famous work detailing the issues of substitution is due to Wadler \cite{substitute}. He defines additional syntax and semantics for the intricate unboxing of ! terms, solving the lack of substitute in Abramsky's term calculus.
 
   Our design of integrating ! into universe sorts removes the need for ! manipulating syntax and semantics. The following substitution lemmas are directly proved by induction on typing derivations.
 
@@ -548,18 +548,18 @@
   In order to prove subject reduction, we first prove the propagation theorem. The main purpose of propagation is to lower types down to the term level, enabling the application of various inversion lemmas.
 
   \begin{theorem} 
-    Propagation. For any context $\Gamma$, term $m$, type $A$, and sort $s$, if $\Gamma \vdash m : A$ is a valid judgment, then there exists some sort $s$ and level $i$ such that $\overline{\Gamma} \vdash A : s_i$.
+    Propagation. For any context $\Gamma$, term $m$, type $A$, and sort $s$, if $\Gamma \vdash m : A$ is a valid judgment, then there exist some sort $s$ and level $i$ such that $\overline{\Gamma} \vdash A : s_i$.
     \label{propagation}
   \end{theorem}
 
-  With weakening, substitution, propagation, and various inversion lemmas proven, subject reduction can now be proved by induction on typing derivation.
+  With weakening, substitution, propagation and various inversion lemmas proven, subject reduction can now be proved by induction on typing derivation.
 
   \begin{theorem} 
     Subject Reduction. For $\Gamma \vdash m : A$, if $m \pstep n$ then $\Gamma \vdash n : A$.
   \end{theorem}
 
   \subsubsection{Linearity}
-  At this point, we have proven that CLC is type sound. However, we still need to prove that the removal of weakening, and contraction for restricted variables yield tangible impact on the structure of terms. For this purpose, we define a binding aware recursive function $occurs(x, m)$ that counts the number of times variable $x$ appears within term $m$. The linearity theorem asserts that restricted variables are used exactly once within a term, subsuming safe resource usage.
+  At this point, we have proven that CLC is type sound. However, we still need to prove that the removal of weakening and contraction for restricted variables yields tangible impact on the structure of terms. For this purpose, we define a binding aware recursive function $occurs(x, m)$ that counts the number of times variable $x$ appears within term $m$. The linearity theorem asserts that restricted variables are used exactly once within a term, subsuming safe resource usage.
 
   Before we proceed, we first prove the seemingly obvious narity lemma. 
 
@@ -567,7 +567,7 @@
     Narity. If $\Gamma \vdash m : A$ is a valid judgment, for any $x \notin \Gamma$, there is $occurs(x, m) = 0$.
   \end{lemma}
 
-  For cases with branched syntax in the linearity theorem, such as application $(m\ n)$, the $occurs$ function sums up the occurrences of variable $x$ in branches $m$, and $n$. The narity lemma is used to prove that either $occurs(x, m) = 1 \wedge occurs(x, n) = 0$ or $occurs(x, m) = 0 \wedge occurs(x, n) = 1$ is true.
+  For cases with branched syntax in the linearity theorem, such as application $(m\ n)$, the $occurs$ function sums up the occurrences of variable $x$ in branches $m$ and $n$. The narity lemma is used to prove that either $occurs(x, m) = 1 \wedge occurs(x, n) = 0$ or $occurs(x, m) = 0 \wedge occurs(x, n) = 1$ is true.
 
   \begin{theorem} 
     Linearity. If $\Gamma \vdash m : A$ is a valid judgment, for any $(x \ltype B) \in \Gamma$, there is $occurs(x, m) = 1$.
@@ -587,7 +587,7 @@
   \end{theorem}
 
   \subsubsection{Strong Normalization}
-  The strong normalization theorem of CLC is proven by construction of a typing, and reduction preserving erasure function to CC$\omega$. We assume familiarity with CC$\omega$ syntax here, and define the erasure function as follows.
+  The strong normalization theorem of CLC is proven by construction of a typing and reduction preserving erasure function to CC$\omega$. We assume familiarity with CC$\omega$ syntax here, and define the erasure function as follows.
 
   \begin{definition}
     \begin{align*}
