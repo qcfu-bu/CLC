@@ -1,5 +1,6 @@
 % document layout
-\documentclass[sigplan,screen,review,authordraft]{acmart}
+%\documentclass[sigplan,screen,review,authordraft]{acmart}
+\documentclass[sigplan,screen]{acmart}
 \usepackage[utf8]{inputenc}
 
 % packages
@@ -12,9 +13,11 @@
 \usepackage{mathtools}
 \usepackage{mathpartir}
 \usepackage{listings}
+\usepackage{lstlangcoq}
 \usepackage{float}
 \usepackage{tikz-cd}
 
+\lstset{basicstyle=\scriptsize,language=Coq,showstringspaces=false}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -520,7 +523,7 @@
     The definitional equality relation $\equiv$ is an equivalence relation.
   \end{corollary}
 
-  \subsubsection{Weakening} \label{weakening}
+  \subsubsection{Weakening} \label{weakening}ß
   CLC restricts the weakening rule for variables of linear types. However, weakening variables of non-linear types remain admissible.
 
   \begin{lemma} 
@@ -626,6 +629,62 @@
   \begin{theorem}
     Well-typed CLC terms are strongly normalizing.
   \end{theorem}
+
+  \section{Extensions}
+  \subsection{Inductive Types}
+  Readers familiar with the literature on linear logic or linear type theory will have noticed at this point that CLC does not possess the famous $\otimes$ connective. Though it is entirely possible to encode $\otimes$ in core CLC through a linear Church encoding, proofs and programs written this way will be incredibly unwieldy. 
+
+  A major design goal of CLC is to support an ergonomic interface for users to define inductive types \cite{inductive,cic}. The presence of universe sorts $U$ and $L$ allows users to define inductive types to be non-linear or linear. The lack of ! exponential simplifies the construction and elimination of inductive terms through direct use of constructors and pattern-matching. The $\otimes$ connective becomes a definable inductive type.
+
+  \begin{figure}[h]
+  \vspace{-1.4em}
+  \caption{Inductive Type Definition and Elimination}
+  \begin{lstlisting}
+  (* Sigma Definition *)
+  Inductive Sigma (A: Type) (F: A -> Type): Type :=
+  | pair : (x: A) -> F x -> Sigma A F.
+
+  (* Tensor Definition *)
+  Inductive Tensor (A: Linear) (B: Linear): Linear :=
+  | tpair: A -> B -> Tensor A B.
+
+  (* FTensor Definition *)
+  Inductive FTensor (A: Type) (F: A -> Linear): Linear :=
+  | fpair: (x: A) -> F x -> FTensor A F.
+
+  (* Sigma Elimination
+     x and y are unrestricted in clause body *)
+  match m with
+  | pair x y => (* clause body *)
+  end
+
+  (* Tensor Elimination
+     x and y must be used once in clause body *)
+  match m with
+  | tpair x y => (* clause body *)
+  end
+
+  (* FTensor Elimination
+     x is unrestricted in clause body, 
+     y must be used once in clause body *)
+  match m with
+  | fpair x y => (* clause body *)
+  end
+  \end{lstlisting}
+  \label{inductive}
+  \Description{}
+  \end{figure}
+  
+  Figure \ref{inductive} is an excerpt taken from our implementation's prelude, with syntax drawing heavily from Coq.
+
+  \begin{itemize}
+    \item \texttt{Sigma} defines the standard dependent sum type. Since first component of the pair constructor is of non-linear type, the type of the second component is allowed to depend on the first component.
+    \item \texttt{Tensor} defines the $\otimes$ connective for CLC. Both components of the \texttt{tpair} constructor are of linear types. When a \texttt{Tensor} term is eliminated through pattern-matching, its first and second components must be used exactly once in the body of its pattern clause.
+    \item \texttt{FTensor} fulfills a role similar to Krishnaswami et al.'s $F$ adjoint connective \cite{neel15}. The type of \texttt{FTensor}'s first component is non-linear. The linear type of its second component is allowed to depend on the first component. Due to the fact that \texttt{FTensor}'s second component is linear, \texttt{FTensor} must be linear as well, otherwise duplication of restricted variables may occur.
+  \end{itemize}
+  
+  Due to the complexity of checking soundness for dependent linear type definitions (such as \texttt{FTensor}) and pattern-matching based elimination, we have not verified the algorithm employed by our implementation yet.
+  
   
   % \section{CLC in Action}
 
