@@ -34,7 +34,9 @@
 \newcommand{\sort}{\textbf{sort}}
 \newcommand{\type}{\textbf{type}}
 \newcommand{\refl}{\text{refl}}
-\newcommand{\letin}[3]{$\text{let }#1\text{ := }#2\text{ in }#3$}
+\newcommand{\letin}[3]{\ $\text{let }#1\text{ := }#2\text{ in }#3$\ }
+\newcommand{\ind}{\ $\text{ind}$\ }
+\newcommand{\iter}{\ $\text{iter}$\ }
 \newcommand{\new}{\text{new}}
 \newcommand{\free}{\text{free}}
 \newcommand{\get}{\text{get}}
@@ -115,7 +117,7 @@
 
       <$s, t$> ::= $U$ | $L$ \phantom{| $x$} \hspace*{4.6em} sorts
 
-      <$m, n, A, B$> ::= $U_i$ | $L_k$ | $x$ \hspace*{4em} expressions
+      <$m, n, A, B, C$> ::= $U_i$ | $L_k$ | $x$ \hspace*{4em} expressions
       \indalt $(x :_s A) \rightarrow B$
       \indalt $(x :_s A) \multimap B$
       \indalt $\lambda x. n$ | $m\ n$
@@ -631,13 +633,12 @@
   \end{theorem}
 
   \section{Extensions}
-  \subsection{Inductive Types}
-  Readers familiar with the literature on linear logic or linear type theory will have noticed at this point that CLC does not possess the famous $\otimes$ connective. Though it is entirely possible to encode $\otimes$ in core CLC through a linear Church encoding, proofs and programs written this way will be incredibly unwieldy. 
+  Readers familiar with the literature on linear logic or linear type theory will have noticed at this point that CLC does not possess the famous $\otimes$ connective. Though it is entirely possible to encode $\otimes$ in core CLC through a linear Church encoding, proofs and programs written in this style will be incredibly difficult to use. 
 
-  A major design goal of CLC is to support an ergonomic interface for users to define inductive types \cite{inductive,cic}. The presence of universe sorts $U$ and $L$ allows users to define inductive types to be non-linear or linear. The lack of ! exponential simplifies the construction and elimination of inductive terms through direct use of constructors and pattern-matching. The $\otimes$ connective becomes a definable inductive type.
+  A major design goal of CLC is to support an ergonomic interface for users to define inductive types \cite{inductive,cic} as an extension to the core theory. The presence of universe sorts $U$ and $L$ allows users to declare inductive types to be non-linear or linear. The lack of ! exponential simplifies the construction and elimination of inductive terms through direct use of constructors and pattern-matching. The $\otimes$ connective becomes definable as an inductive type.
 
   \begin{figure}[h]
-  \vspace{-1.4em}
+  \vspace{-1.2em}
   \caption{Inductive Type Definition and Elimination}
   \begin{lstlisting}
   (* Sigma Definition *)
@@ -683,21 +684,190 @@
     \item \texttt{FTensor} fulfills a role similar to Krishnaswami et al.'s $F$ adjoint connective \cite{neel15}. The type of \texttt{FTensor}'s first component is non-linear. The linear type of its second component is allowed to depend on the first component. Due to the fact that \texttt{FTensor}'s second component is linear, \texttt{FTensor} must be linear as well, otherwise duplication of restricted variables may occur.
   \end{itemize}
   
-  Due to the complexity of checking soundness for dependent linear type definitions (such as \texttt{FTensor}) and pattern-matching based elimination, we have not verified the algorithm employed by our implementation yet.
+  Due to the complexity of checking soundness for dependent linear type definitions (such as \texttt{FTensor}) and pattern-matching based elimination, we have not verified the algorithm employed by our implementation. 
   
+  Figure \ref{formation}, Figure \ref{introduction} and Figure \ref{elimination} presents the formation, introduction and elimination rules for select inductive types respectively. We will refer to these inductive types during the construction of examples.
+
+  \begin{figure}[h]
+    \vspace{-0.8em}
+    \caption{Select Formation Rules}
+    \begin{mathpar}
+      \inferrule
+      { \pure{\Gamma} }
+      { \Gamma \vdash \mathbf{1} : U_0 }
+      \rname{$1$-Form}
+
+      \inferrule
+      { \pure{\Gamma} }
+      { \Gamma \vdash \mathbb{N} : U_0 }
+      \rname{$\mathbb{N}$-Form}
+
+      \inferrule
+      { \pure{\Gamma} \\
+        \Gamma \vdash A : U_i \\
+        \Gamma \vdash m : A \\
+        \Gamma \vdash n : A }
+      { \Gamma \vdash m =_A n : U_* }
+      \rname{=-Form}
+      
+      \inferrule
+      { \pure{\Gamma} \\ 
+        \Gamma \vdash A : U_k \\ 
+        \Gamma x \utype A \vdash B : U_k  }
+      { \Gamma \vdash \Sigma x:A.B : U_k }
+      \rname{$\Sigma$-Form}
+
+      \inferrule
+      { \pure{\Gamma} \\
+        \Gamma \vdash A : L_k \\
+        \Gamma \vdash B : L_k }
+      { \Gamma \vdash A \otimes B : L_k }
+      \rname{$\otimes$-Form}
+
+      \inferrule
+      { \pure{\Gamma} \\
+        \Gamma \vdash A : U_k \\ 
+        \Gamma x \utype A \vdash B : L_k }
+      { \Gamma \vdash F x:A.B : L_k }
+      \rname{$F$-Form}
+    \end{mathpar}
+    \vspace{-0.4em}
+    \label{formation}
+    \Description{}
+  \end{figure}
+
+  Of all the rules presented here, perhaps the most surprising to readers familiar with linear types or dependent types is the \rname{$\mathbb{N}$-L-Elim} rule. This rule constructs a term with linear type through primitive recursion. The $\multimap$ arrows prevent duplication of the O-case element of linear type $C\ O$, whereas the S-case function is of non-linear type $(n : \mathbb{N}) \rightarrow C\ n \rightarrow C\ (S\ n)$ because it must be applied repeatedly during iteration.
+
+  \begin{figure}[h]
+    \vspace{-0.8em}
+    \caption{Select Introduction Rules}
+    \begin{mathpar}
+      \inferrule
+      { \pure{\Gamma} }
+      { \Gamma \vdash () : \mathbf{1} }
+      \rname{$1$-Intro}
+
+      \inferrule
+      { \pure{\Gamma} }
+      { \Gamma \vdash O : \mathbb{N} }
+      \rname{O-Intro}
+
+      \inferrule
+      { \pure{\Gamma} \\
+        \Gamma \vdash n : \mathbb{N} }
+      { \Gamma \vdash S\ n : \mathbb{N} }
+      \rname{S-Intro}
+
+      \inferrule
+      { \pure{\Gamma} \\ 
+        \Gamma \vdash A : U_i \\
+        \Gamma \vdash m : A }
+      { \Gamma \vdash \refl_A m : m =_A m }
+      \rname{=-Intro}
+
+      \inferrule
+      { \pure{\Gamma} \\
+        \Gamma \vdash m : A \\
+        \Gamma \vdash n : B[m/x] \\\\
+        \Gamma \vdash \Sigma x:A.B : U_k }
+      { \Gamma \vdash (m, n) : \Sigma x:A.B }
+      \rname{$\Sigma$-Intro}
+
+      \inferrule
+      { \Gamma_1 \vdash m : A \\
+        \Gamma_2 \vdash n : B \\ 
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\\\
+        \Gamma \vdash A \otimes B : L_k }
+      { \Gamma \vdash (m, n) : A \otimes B }
+      \rname{$\otimes$-Intro}
+
+      \inferrule
+      { \pure{\Gamma_1} \\
+        \Gamma_1 \vdash m : A \\
+        \Gamma_2 \vdash n : B[m/x] \\\\
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\
+        \Gamma \vdash F x:A.B : L_k }
+      { \Gamma \vdash (m, n) : F x:A.B }
+      \rname{$F$-Intro}
+    \end{mathpar}
+    \vspace{-2em}
+    \label{introduction}
+    \Description{}
+  \end{figure}
+
+  \begin{figure}[h]
+    \vspace{-0.8em}
+    \caption{Select Elimination Rules}
+    \begin{mathpar}
+      \inferrule
+      { \Gamma_1 \vdash m : \mathbf{1} \\ 
+        \Gamma_2 \vdash n : A \\
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+      { \Gamma \vdash \letin{()}{m}{n} : A }
+      \rname{$1$-Elim}
+
+      \inferrule
+      { \pure{\Gamma} }
+      { \Gamma \vdash \iter_\mathbb{N}^U :
+        (C \utype \mathbb{N} \rightarrow U_i) \rightarrow C\ O \rightarrow \\
+        ((n \utype \mathbb{N}) \rightarrow C\ n \rightarrow C\ (S\ n)) \rightarrow
+        (n \utype \mathbb{N}) \rightarrow C\ n }
+      \rname{$\mathbb{N}$-U-Elim}
+
+      \inferrule
+      { \pure{\Gamma} }
+      { \Gamma \vdash \iter_\mathbb{N}^L :
+        (C \utype \mathbb{N} \rightarrow L_k) \rightarrow C\ O \multimap \\
+        ((n \utype \mathbb{N}) \rightarrow C\ n \rightarrow C\ (S\ n)) \multimap
+        (n \utype \mathbb{N}) \multimap C\ n }
+      \rname{$\mathbb{N}$-L-Elim}
+
+      \inferrule
+      { \Gamma_1 \vdash m : \Sigma x:A.B \\ 
+        \Gamma_2, x \utype A, y \utype B \vdash n : C \\\\
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+      { \Gamma \vdash \letin{$(x, y)$}{$m$}{$n$} \vdash C }
+      \rname{$\Sigma$-Elim}
+
+      \inferrule
+      { \Gamma_1 \vdash m : A \otimes B \\ 
+        \Gamma_2, x \ltype A, y \ltype B \vdash n : C \\\\
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+      { \Gamma \vdash \letin{$(x, y)$}{$m$}{$n$} \vdash C }
+      \rname{$\otimes$-Elim}
+
+      \inferrule
+      { \Gamma_1 \vdash m : F x:A.B \\
+        \Gamma_2, x \utype A, y \ltype B \vdash n : C \\\\
+        \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+      { \Gamma \vdash \letin{$(x, y)$}{$m$}{$n$} \vdash C }
+      \rname{$F$-Elim}
+    \end{mathpar}
+    \vspace{-0.8em}
+    \label{elimination}
+    \Description{}
+  \end{figure}
   
-  % \section{CLC in Action}
+  \section{Applications}
+  In this section, we demonstrate some of the possible applications of CLC through examples. We collapse the sort annotations on arrows $(x \utype A) \rightarrow B$ and $(x \ltype A) \rightarrow B$ into $(x : A) \rightarrow B$ whenever $A$'s sort is inferable from context.
 
-  % \subsection{Inductive Types}
-  % A core design goal of CLC is to support an ergonomic interface for users to define both non-linear and linear inductive types. Inductive data should be both easy to construct, and to eliminate. The ! exponential, or its adjoint alternatives often get in the way of directly using data. Due to CLC's usage of universe sorts instead of !, data construction and elimination becomes much.
-
-
-
-  % \subsection{Resource Reasoning}
-  % \subsection{Parametric Reasoning}
-  % \subsection{Mutable Data Structures}
-  % \subsection{Continuations}
-  % \subsection{Program Synthesis}
+  \subsection{Stateful Reasoning}
+  We first postulate five state axioms. These axioms could be viewed as an interface to a trusted memory allocator.
+  \begin{definition}
+    State axioms.
+    \begin{itemize}
+      \item $l \mapsto_A m : \mathbb{N} \rightarrow (A : U_k) \rightarrow A \rightarrow L_k$ \\
+      The $\mapsto$ is a linear type constructor. It fulfills a role similar to L3's \cite{l3} memory access capability, or Separation Logic's \cite{reynolds02} points-to assertion. Intuitively, it is a proof that a term $m$ of non-linear type $A$ is currently stored at address $l$.
+      \item $\new : (A : U_k) \rightarrow (m : A) \rightarrow F l:\mathbb{N}.(l \mapsto_A m)$ \\
+      $\new$ is a function that allocates a new memory store for term $m$ of non-linear type $A$. It results in an address $l$ paired with an assertion $l \mapsto_A m$.
+      \item $\free : (A : U_k) \rightarrow F l:\mathbb{N}.F m:A.(l \mapsto_A m) \rightarrow \mathbf{1}$ \\
+      $\free$ is a function that de-allocates the memory store at location $l$ which is currently in use. This can be seen in its input $F l:\mathbb{N}.F m:A.(l \mapsto_A m)$, where the $(l \mapsto_A m)$ component is a proof that location $l$ is currently allocated.
+      \item $\get : (A : U_k) \rightarrow (l : \mathbb{N}) \rightarrow (m : A) \rightarrow (l \mapsto_A m) \rightarrow F \_: (\Sigma x. x =_A m). (l \mapsto_A m)$ \\
+      $\get$ is a function that retrieves the term stored at address $l$ when given a proof $(l \mapsto_A m)$ that there is indeed a term $m$ currently stored there. The type of $\get$'s output is the rather complicated $F \_: (\Sigma x. x =_A m). (l \mapsto_A m)$. This not only returns the term stored at $l$, but also a proof that the returned term is exactly the same as what $(l \mapsto_A m)$ claimed. The proof $(l \mapsto_A m)$ is returned unchanged as well.
+      \item $\set : (A\ B : U_k) \rightarrow (l : \mathbb{N}) \rightarrow (m : A) \rightarrow (l \mapsto_A m) \multimap (n : B) \multimap (l \mapsto_B n)$ \\
+      $\set$ has the most complicated type of all the axioms presented here. Intuitively, if address $l$ is allocated and storing some term $m$ of type $A$, $\set$ may put term $n$ of type $B$ into the the store at address $l$, overwriting the original stored term. This is the so called "strong update". The consumption of $(l \mapsto_A m)$ and return of $(l \mapsto_B n)$ encode this update process.
+    \end{itemize}
+  \end{definition}
 
   \section{Future Work}
   \section{Conclusion}
