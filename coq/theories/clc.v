@@ -3499,6 +3499,217 @@ Proof.
   constructor; eauto.
 Qed.
 
+Fixpoint lift (m : CC.term) : CLC.term :=
+  match m with
+  | CC.Var x => CLC.Var x
+  | CC.Sort n => CLC.Sort U n
+  | CC.App m n => CLC.App (lift m) (lift n)
+  | CC.Lam m => CLC.Lam (lift m)
+  | CC.Prod m n => CLC.Prod (lift m) (lift n) U
+  end.
+
+Fixpoint lift_context
+   (Γ : CC.context CC.term)
+: CLC.context CLC.term :=
+  match Γ with
+  | Some t :: Γ => lift t +u lift_context Γ
+  | None :: Γ => □ lift_context Γ
+  | nil => nil
+  end.
+
+Notation "{| m |}" := (lift m).
+Notation "{{ Γ }}" := (lift_context Γ).
+
+Lemma lift_pure Γ : [{{Γ}}].
+Proof.
+  induction Γ.
+  constructor.
+  destruct a; constructor; eauto.
+Qed.
+
+Definition lift_subst 
+  (σ : var -> CC.term) 
+  (τ : var -> CLC.term)
+: Prop := 
+  forall x, {|σ x|} = τ x.
+
+Lemma lift_ren_com m :
+  forall ξ, {| m |}.[ren ξ] = {| m.[ren ξ] |}.
+Proof.
+  induction m; intros; asimpl; eauto.
+  - rewrite IHm1 IHm2; eauto.
+  - rewrite IHm; eauto.
+  - rewrite IHm IHm0; eauto.
+Qed.
+
+Lemma lift_subst_up σ τ :
+  lift_subst σ τ -> lift_subst (up σ) (up τ).
+Proof.
+  unfold lift_subst.
+  intros.
+  induction x; asimpl; eauto.
+  rewrite <- lift_ren_com.
+  rewrite H; eauto.
+Qed.
+
+Lemma lift_subst_com m :
+forall σ τ, 
+  lift_subst σ τ ->
+  {| m.[σ] |} = {| m |}.[τ].
+Proof.
+  induction m; intros; asimpl; eauto.
+  - erewrite IHm1; eauto.
+    erewrite IHm2; eauto.
+  - erewrite IHm; eauto.
+    apply lift_subst_up; eauto.
+  - erewrite IHm; eauto.
+    erewrite IHm0; eauto.
+    apply lift_subst_up; eauto.
+Qed.
+
+Lemma lift_subst_trivial n :
+  lift_subst (n .: ids) ({| n |} .: ids).
+Proof.
+  unfold lift_subst; intros.
+  destruct x; simpl; eauto.
+Qed.
+
+Lemma lift_step m n :
+  CC.step m n -> CLC.step {|m|} {|n|}.
+Proof with eauto using CLC.step.
+  induction 1; simpl; intros...
+  pose proof (lift_subst_trivial n).
+  erewrite lift_subst_com; eauto.
+  eapply CLC.step_beta; eauto.
+Qed.
+
+Lemma lift_red m n :
+  CC.red m n -> CLC.red {|m|} {|n|}.
+Proof with eauto using CLC.step, star.
+  induction 1; simpl; intros...
+  apply lift_step in H0.
+  apply star1 in H0.
+  eapply star_trans; eauto.
+Qed.
+
+Lemma lift_conv m n :
+  conv CC.step m n -> conv CLC.step {|m|} {|n|}.
+Proof.
+  induction 1; eauto.
+  eapply conv_trans.
+  apply IHconv.
+  eapply convSE; eauto.
+  apply lift_step; eauto.
+  eapply convSEi; eauto.
+  apply lift_step; eauto.
+Qed.
+
+Lemma lift_sub1 m n :
+  CC.sub1 m n -> CLC.sub1 {|m|} {|n|}.
+Proof.
+  induction 1; asimpl; eauto using CLC.sub1.
+Qed.
+
+Lemma lift_sub m n :
+  CC.sub m n -> CLC.sub {|m|} {|n|}.
+Proof.
+  move=> [A B sb] c1 c2.
+  inv sb.
+  - assert (conv CC.step m n).
+    eapply conv_trans.
+    apply c1.
+    apply c2.
+    apply lift_conv in H.
+    apply CLC.conv_sub; eauto.
+  - apply lift_conv in c1. simpl in c1.
+    apply lift_conv in c2. simpl in c2.
+    apply CLC.conv_sub in c1.
+    apply CLC.conv_sub in c2.
+    assert (CLC.sub1 CLC.𝐏 (U @ l)).
+    constructor; eauto.
+    apply CLC.sub1_sub in H.
+    eapply CLC.sub_trans. eauto.
+    eapply CLC.sub_trans; eauto.
+  - apply lift_conv in c1. simpl in c1.
+    apply lift_conv in c2. simpl in c2.
+    apply CLC.conv_sub in c1.
+    apply CLC.conv_sub in c2.
+    assert (CLC.sub1 (U @ l1) (U @ l2)).
+    constructor; eauto.
+    apply CLC.sub1_sub in H0.
+    eapply CLC.sub_trans; eauto.
+    eapply CLC.sub_trans; eauto.
+  - apply lift_conv in c1. simpl in c1.
+    apply lift_conv in c2. simpl in c2.
+    apply CLC.conv_sub in c1.
+    apply CLC.conv_sub in c2.
+    apply lift_sub1 in H.
+    assert 
+      (CLC.sub1 
+        (CLC.Prod {|A0|} {|B1|} U) 
+        (CLC.Prod {|A0|} {|B2|} U)).
+    constructor; eauto.
+    apply CLC.sub1_sub in H0.
+    eapply CLC.sub_trans; eauto.
+    eapply CLC.sub_trans; eauto.
+Qed.
+
+Lemma lift_hasU Γ x A :
+  [ x :- A ∈ Γ ] -> [ x :u {|A|} ∈ {{Γ}} ].
+Proof.
+  intros.
+  dependent induction H; simpl.
+  - rewrite <- lift_ren_com.
+    constructor.
+    apply lift_pure.
+  - rewrite <- lift_ren_com.
+    constructor; eauto.
+  - rewrite <- lift_ren_com.
+    constructor; eauto.
+Qed.
+
+Theorem lifting Γ m A :
+  CC.has_type Γ m A -> 
+  CLC.has_type {{ Γ }} {| m |} {| A |}.
+Proof.
+  intro H.
+  dependent induction H; simpl.
+  - constructor.
+    apply lift_pure.
+  - constructor.
+    apply lift_pure.
+  - econstructor; eauto.
+    apply lift_pure.
+  - econstructor; eauto.
+    apply lift_pure.
+  - econstructor; eauto.
+    apply lift_hasU; eauto.
+  - econstructor; eauto.
+    apply lift_pure.
+  - pose proof (lift_subst_trivial t).
+    erewrite lift_subst_com; eauto.
+    econstructor; eauto.
+    apply lift_pure.
+    apply merge_pure.
+    apply lift_pure.
+  - apply lift_sub in H.
+    eapply CLC.conversion; eauto.
+    rewrite <- pure_re; eauto.
+    apply lift_pure.
+Qed.
+
+Corollary lifting_context Γ :
+  CC.context_ok Γ -> CLC.context_ok {{Γ}}.
+Proof.
+  induction 1; simpl. 
+  constructor.
+  apply lifting in H.
+  econstructor; eauto.
+  rewrite <- pure_re; eauto.
+  apply lift_pure.
+  econstructor; eauto.
+Qed.
+
 CoInductive nn T (Rel : T -> T -> Prop) : T -> Prop :=
 | nnI m m' : Rel m m' -> nn Rel m' -> nn Rel m.
 
