@@ -634,7 +634,7 @@
   \end{theorem}
 
   \section{Extensions}
-  Readers familiar with the literature on linear logic or linear type theory will have noticed at this point that CLC does not possess the famous $\otimes$ connective. Though it is entirely possible to encode $\otimes$ in core CLC through a linear Church encoding, but proofs and programs written in this style will be incredibly difficult to maintain. 
+  Readers familiar with the literature of linear logic or linear type theory will have noticed at this point that CLC does not possess the famous $\otimes$ connective. Though it is entirely possible to encode $\otimes$ in core CLC through a linear Church encoding, proofs and programs written in this style will be incredibly difficult to maintain. 
 
   A major design goal of CLC is to support an ergonomic interface for users to define inductive types \cite{inductive,cic} as an extension to the core theory. The presence of universe sorts $U$ and $L$ allows users to declare inductive types to be non-linear or linear. The lack of ! exponential simplifies the construction and elimination of inductive terms through direct use of constructors and pattern-matching. The $\otimes$ connective becomes definable as an inductive type.
 
@@ -682,12 +682,12 @@
   \begin{itemize}
     \item \texttt{Sigma} defines the standard dependent sum type. Since first component of the pair constructor is of non-linear type, the type of the second component is allowed to depend on the first component.
     \item \texttt{Tensor} defines the $\otimes$ connective for CLC. Both components of the \texttt{tpair} constructor are of linear types. When a \texttt{Tensor} term is eliminated through pattern-matching, its first and second components must be used exactly once in the body of its pattern clause.
-    \item \texttt{FTensor} fulfills a role similar to Krishnaswami et al.'s $F$ adjoint connective \cite{neel15}. The type of \texttt{FTensor}'s first component is non-linear. The linear type of its second component is allowed to depend on the first component. Due to the fact that \texttt{FTensor}'s second component is linear, \texttt{FTensor} must be linear as well, otherwise duplication of restricted variables may occur.
+    \item \texttt{FTensor} fulfills a role similar to Krishnaswami et al.'s $F$ adjoint connective \cite{neel15}. The type of \texttt{FTensor}'s first component is non-linear. The linear type of its second component is allowed to depend on the first component. Due to the fact that \texttt{FTensor}'s second component is linear, the entire \texttt{FTensor} must be linear as well, otherwise duplication of restricted variables may occur.
   \end{itemize}
   
   Due to the complexity of checking soundness for dependent linear type definitions (such as \texttt{FTensor}) and pattern-matching based elimination, we have not verified the algorithm employed by our implementation. 
   
-  Figure \ref{formation}, Figure \ref{introduction} and Figure \ref{elimination} presents the formation, introduction and elimination rules for select inductive types respectively. We will refer to these inductive types during the construction of examples.
+  Figure \ref{formation}, Figure \ref{introduction} and Figure \ref{elimination} presents the formation, introduction and elimination rules for select inductive types respectively. We will use these inductive types during the construction of examples.
 
   \begin{figure}[h]
     \vspace{-0.8em}
@@ -737,7 +737,7 @@
     \Description{}
   \end{figure}
 
-  Of all the rules presented here, perhaps the most surprising to readers familiar with linear types or dependent types is the \rname{$\mathbb{N}$-L-Elim} rule. This rule constructs a term with linear type through primitive recursion. The $\multimap$ arrows prevent duplication of the O-case element of linear type $C\ O$, whereas the S-case function is of non-linear type $(n : \mathbb{N}) \rightarrow C\ n \rightarrow C\ (S\ n)$ because it must be applied repeatedly during iteration.
+  Of all the rules presented here, perhaps the most surprising to readers familiar with linear types or dependent types is the \rname{$\mathbb{N}$-L-Elim} rule. This rule constructs a term with linear type through a primitive recursion principle. The $\multimap$ arrows protect the O-case element of linear type $C\ O$ from duplication by currying. The S-case function is of non-linear type $(n : \mathbb{N}) \rightarrow C\ n \rightarrow C\ (S\ n)$ because it must be applied repeatedly during iteration.
 
   \begin{figure}[h]
     \vspace{-0.8em}
@@ -860,26 +860,26 @@
       \item $l \mapsto_A m : \mathbb{N} \rightarrow (A : U_k) \rightarrow A \rightarrow L_k$ \\
       The $\mapsto$ is a linear type constructor. It fulfills a role similar to L3's \cite{l3} memory access capability, or Separation Logic's \cite{reynolds02} points-to assertion. Intuitively, it is a proof that a term $m$ of non-linear type $A$ is currently stored at address $l$.
       \item $\new : (A : U_k) \rightarrow (m : A) \rightarrow F l:\mathbb{N}.(l \mapsto_A m)$ \\
-      $\new$ is a function that allocates a new memory store for term $m$ of non-linear type $A$. It results in an address $l$ paired with an assertion $l \mapsto_A m$.
+      $\new$ is a function that allocates a new memory cell for term $m$ of non-linear type $A$. It results in an address $l$ paired with an assertion $(l \mapsto_A m)$.
       \item $\free : (A : U_k) \rightarrow F l:\mathbb{N}.F m:A.(l \mapsto_A m) \rightarrow \mathbf{1}$ \\
-      $\free$ is a function that de-allocates the memory store at location $l$ which is currently in use. This can be seen in its input $F l:\mathbb{N}.F m:A.(l \mapsto_A m)$, where the $(l \mapsto_A m)$ component is a proof that location $l$ is currently allocated.
+      $\free$ is a function that de-allocates the memory cell at location $l$ which is currently in use. This can be seen in its input $F l:\mathbb{N}.F m:A.(l \mapsto_A m)$, where the assertion component $(l \mapsto_A m)$ is a proof that location $l$ is currently allocated.
       \item $\get : (A : U_k) \rightarrow (l : \mathbb{N}) \rightarrow (m : A) \rightarrow (l \mapsto_A m) \rightarrow F \_: (\Sigma x. x =_A m). (l \mapsto_A m)$ \\
-      $\get$ is a function that retrieves the term stored at address $l$ when given a proof $(l \mapsto_A m)$ that there is indeed a term $m$ currently stored there. The type of $\get$'s output is the rather complicated $F \_: (\Sigma x. x =_A m). (l \mapsto_A m)$. This not only returns the term stored at $l$, but also a proof that the returned term is exactly the same as what $(l \mapsto_A m)$ claimed. The proof $(l \mapsto_A m)$ is returned unchanged as well.
+      $\get$ is a function that retrieves the term stored at address $l$ when given a proof $(l \mapsto_A m)$ that there is indeed a term $m$ currently stored there. The type of $\get$'s output is the rather complicated $F \_: (\Sigma x. x =_A m). (l \mapsto_A m)$. This not only returns the term stored at $l$, but also a proof that the returned term is exactly the same as what $(l \mapsto_A m)$ claimed to have stored. The proof $(l \mapsto_A m)$ is returned unchanged as well.
       \item $\set : (A\ B : U_k) \rightarrow (l : \mathbb{N}) \rightarrow (m : A) \rightarrow (l \mapsto_A m) \multimap (n : B) \multimap (l \mapsto_B n)$ \\
-      $\set$ has the most complicated type of all the axioms presented here. Intuitively, if address $l$ is allocated and storing some term $m$ of type $A$, $\set$ may put term $n$ of type $B$ into the the store at address $l$, overwriting the original stored term. This is the so called "strong update". The consumption of $(l \mapsto_A m)$ and return of $(l \mapsto_B n)$ encode this update process.
+      $\set$ has the most complicated type of all the axioms presented here. Intuitively, if address $l$ is allocated and storing some term $m$ of type $A$, $\set$ may put term $n$ of type $B$ into the the store at address $l$, overwriting the original term. This is the so called "strong update" operation. The consumption of $(l \mapsto_A m)$ and return of $(l \mapsto_B n)$ accurately characterize this update process.
     \end{itemize}
   \end{definition}
-  Due to the fact that $(l \mapsto_A m)$ is a linear type, proofs of this type can not be duplicated and may only be consumed by other state axioms. This is the same non-sharing principle that empowers Separation Logic. Unlike Separation Logic, $(l \mapsto_A m)$ is a first-class object of CLC, meaning that it can be the result of computation (large eliminations), input to computations, stored in data structures etc.
+  Due to the fact that $(l \mapsto_A m)$ is a linear type, proofs of this type can not be duplicated and may only be consumed by other state axioms. This is the same non-sharing principle that empowers Separation Logic. Unlike Separation Logic, $(l \mapsto_A m)$ is a first-class object of CLC, meaning that it can be the result of computation (large eliminations), input to computations, stored in data structures, etc.
 
   \subsection{Internalization of Effect Laws}
-  The combination of linear types and dependent types within the state axioms allow the internalization of the so called "effect laws" for state, where these laws are provable theorems within the CLC framework.
+  The combination of linear types and dependent types within the state axioms enable the internalization of the so called "effect laws" for state, where these laws are now provable theorems within the CLC framework.
 
   \begin{enumerate}
     \item Performing $\get$ twice on the same address will produce two terms that are provably equal.
     \item After using $\set$ to update the store at an address $l$ to term $m$, performing $\get$ again on the same address will retrieve $m$.
   \end{enumerate}
 
-  Figure \ref{law1} is an excerpt taken from our implementation. It demonstrates the internalization of Law 1. The usage of implicit parameters allows us to omit much of the redundant arguments that could be inferred from the types of others. Here, $\new$ allocates a store for natural number 1, creating a proof $c$ of the form $(l \mapsto_\mathbb{N} 1)$. When $\get$ is applied to $c$ twice, the returned equality proofs $pf1$ and $pf2$ allow one to create proof $pf$ that the returned values $x$ and $y$ are equal. Finally, due to $c$ having linear type, it is required for it to be freed at the very end.
+  Figure \ref{law1} is an excerpt taken from our implementation. It demonstrates the internalization of Law 1. The usage of implicit parameters allows one to omit writing much of the redundant arguments that could be inferred from context. Here, $\new$ allocates a store for natural number 1, creating a proof $c$ of the form $(l \mapsto_\mathbb{N} 1)$. When $\get$ is applied to $c$ twice, the equality proofs \textit{pf1} $: (1 =_\mathbb{N} x)$ and \textit{pf2} $: (1 =_\mathbb{N} y)$ generated by $\get$ allow one to create proof \textit{pf} $: (x =_\mathbb{N} y)$ that the retrieved values $x$ and $y$ are equal. Finally, due to $c$ having linear type, it is required for it to be freed at the very end.
 
   \begin{figure}[h]
     \vspace{-1em}
@@ -899,7 +899,7 @@
     \Description{}
   \end{figure}
 
-  Figure \ref{law2} demonstrates the internalization of Law 2. Again, implicit parameters fill in the annoying bureaucratic arguments when they can be inferred. Here, a store is allocated by $\new$ for natural number 1, creating a proof $c$ of the form $(l \mapsto_\mathbb{N} 1)$. After using $\set$ to update the store at address $l$ to 2 and then performing $\get$ on $l$, one can prove that the value retrieved by $\get$ is exactly equal to 2.
+  Figure \ref{law2} demonstrates the internalization of Law 2. Again, implicit parameters fill in the annoying bureaucratic arguments when they can be inferred. Here, a store is allocated by $\new$ for natural number 1, creating a proof $c$ of the form $(l \mapsto_\mathbb{N} 1)$. After using $\set$ to update the store at $l$ to 2 and then performing $\get$ on $l$, one can create proof \textit{pf} $: (2 =_\mathbb{N} z)$ that the value $z$ retrieved by $\get$ is exactly equal to 2.
 
   \begin{figure}[h]
     \vspace{-1em}
@@ -922,7 +922,7 @@
   \subsection{Mutable Data}
   Immutable data in functional programming languages are easy to reason about due their values staying constant over their lifespan. However, this convenience comes at the price of efficiency when attempting to perform "updates" on existing data. In order to update immutable data, an entirely new copy must be created with new entries substituted in for the original ones. So after update, there are two data structures in memory, the original one and the updated one. A garbage collector is necessary to reclaim memory allocated for the original copy.
 
-  Due to the non-sharing property of linear types, it is possible to safely update linear data in-place without encountering synchronization issues. Garbage collection is no longer necessary as extra copies of data are not created. Languages such as ATS that implement mutable linear data have tiny runtime environments when compared to immutable garbage collection based ones such as OCaml or Haskell.
+  Due to the non-sharing property of linear types, it is possible to safely update linear data in-place without encountering synchronization issues. Garbage collection is no longer necessary as extra copies of data are not created. Languages such as ATS that implement mutable linear data have tiny runtimes when compared to immutable garbage collector based ones such as OCaml or Haskell, making them suitable for programming in computationally constrained settings such as embedded programming.
 
   \begin{figure}[h]
     \vspace{-1em}
@@ -946,17 +946,17 @@
     \Description{}
   \end{figure}
 
-  Figure \ref{list} presents a CPS append function for linear lists. In the \texttt{cons} case, the constructor is opened, exposing its data element \texttt{h} and tail list \texttt{t}. Instead of de-allocating the memory of \texttt{cons}, it is bound to the variable \texttt{_cons_} of linear type $A \multimap list\ A \multimap list\ A$. Intuitively, each \texttt{_cons_} must be applied exactly once to reconstruct a list using the memory of the original, thus mutating the original list in-place.
+  Figure \ref{list} presents a CPS append function for linear lists. In the \texttt{cons} case, the constructor is opened, exposing its data element \texttt{h} and tail list \texttt{t}. Instead of de-allocating the memory of \texttt{cons}, it is bound to the variable \texttt{_cons_} of linear type $A \multimap list\ A \multimap list\ A$. Basically, each \texttt{_cons_} must be applied exactly once to reconstruct a list using the memory of the original, thus mutating the original list in-place.
 
   \section{Future Work}
-  The marriage of linear types and dependent types opens the door to many topics for research, both in theory and in its applications.
+  The integration of linear types and dependent types opens the door to many topics for research, both in theory and in its applications.
 
-  On the theoretical side, we intend to investigate the semantic models of CLC, with the goal of explaining the seemingly natural cohesion between its rules. The impredicative nature of the \textit{Prop}-like universe $U_*$ hints at the possibility of extending term dependency to terms of linear types in a philosophically satisfying way. Linear types also appears to augment parametricity, which may produce stronger free theorems.
+  On the theoretical side, we intend to investigate the semantic models of CLC, with the goal of explaining the natural cohesion between its rules. The impredicative nature of the \textit{Prop}-like universe $U_*$ hints at the possibility of extending dependency to terms of linear types in a philosophically satisfying way. Linear types also appear to augment parametricity, which can produce stronger free theorems.
 
-  On the application side, we intend to bolster our implementation with more features, making it a full-blown theorem prover/programming language. We aim to fully verify the typechecking algorithms and extensions employed by the implementation. The unification algorithm used to solve implicit parameters is extremely ad-hoc, as the problem of unification for linear types has not been thoroughly explored. We hope to improve this situation.
+  On the application side, we intend to bolster our implementation with more features, making it a full-featured theorem prover/programming language. We aim to fully verify the typechecking algorithms and extensions employed by the current implementation. The unification algorithm used to resolve implicit parameters is extremely ad-hoc, as the problem of unification for linear types has not thoroughly studied, we hope to improve this situation.
 
   \section{Conclusion}
-  The Calculus of Linear Constructions is a lightweight extension of the Calculus of Constructions with linear types. As a type theory, it is a sound and effective framework for reasoning about resources. As a programing language, it allows one to write safe and efficient code, alleviating some of the issues faced by standard functional programming. 
+  The Calculus of Linear Constructions is a lightweight extension of the Calculus of Constructions with linear types. As a type theory, it is a sound and effective framework for reasoning about resources. As a programing language, it allows one to write safe and efficient code, alleviating some of the common issues faced by standard functional programming. 
 
 \bibliographystyle{acm}
 \bibliography{../ref}
