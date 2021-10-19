@@ -49,6 +49,7 @@
 \newcommand{\pstep}{\leadsto}
 \newcommand{\mrg}[3]{#1\ddagger#2\ddagger#3}
 \newcommand{\erase}[1]{\llbracket #1 \rrbracket}
+\newcommand{\lift}[1]{\llparenthesis #1 \rrparenthesis}
 
 % title and author
 \title{The Calculus of Linear Constructions}
@@ -615,22 +616,57 @@
 
   We prove the following lemma to commute erasure and substitution whenever needed.
   \begin{lemma} 
-    Erasure commutes with substitution. For any CLC terms $m$, $n$, and some variable $x$, $\erase{m[n/x]} = \erase{m}[\erase{n}/x]$. 
+    Erasure commutes with substitution. For any CLC terms $m$, $n$ and some variable $x$, $\erase{m[n/x]} = \erase{m}[\erase{n}/x]$. 
   \end{lemma}
 
-  For the following lemma, we refer to the reductions in CLC as $\pstep_{\scriptscriptstyle \text{CLC}}$, and the reductions in CC$\omega$ as $\pstep_{\scriptscriptstyle \text{CC$\omega$}}$.
-  \begin{lemma} \label{preserve} 
-    Erasure preserves reduction. For any CLC terms $m$, and $n$, if there is $m \pstep_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \pstep_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
-  \end{lemma}
+  For the following lemma, we refer to the reductions in CLC as $\step_{\scriptscriptstyle \text{CLC}}$, and the reductions in CC$\omega$ as $\step_{\scriptscriptstyle \text{CC$\omega$}}$.
+  \begin{theorem} \label{preserve} 
+    Erasure preserves reduction. For any CLC terms $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \step_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+  \end{theorem}
 
-  \begin{lemma} \label{embedding} 
+  \begin{theorem} \label{embedding} 
     Embedding. If $\Gamma \vdash m \stype{s} A$ is a valid judgment in CLC, then $\erase{\Gamma} \vdash \erase{m} : \erase{A}$ is a valid judgment in CC$\omega$.
-  \end{lemma}
+  \end{theorem}
 
-  If there exists some well typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions by virtue of lemmas \ref{preserve}, and \ref{embedding}. This is contradictory to the strong normalization property of CC$\omega$ proven through the Girard-Tait method \cite{ecc}, so this hypothetical term does not exist in CLC.
+  If there exists some well typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions by virtue of theorems \ref{preserve}, and \ref{embedding}. This is contradictory to the strong normalization property of CC$\omega$ proven through the Girard-Tait method \cite{ecc}, so this hypothetical term does not exist in CLC.
 
   \begin{theorem}
     Well-typed CLC terms are strongly normalizing.
+  \end{theorem}
+
+  \subsubsection{Backwards Capability}
+  To show that CLC is backwards compatible with CC$\omega$, we construct a function that annotates CC$\omega$ terms with sort $U$, lifting them into the non-linear fragment of CLC.
+
+  \begin{definition}
+    \begin{align*}
+      \lift{x} &= x \\
+      \lift{Prop} &= U_* \\
+      \lift{Type_k} &= U_k \\
+      \lift{(x : A) \rightarrow B} &= (x \utype \lift{A}) \rightarrow \lift{B} \\
+      \lift{\lambda x.n} &= \lambda x.\lift{n} \\
+      \lift{m\ n} &= \lift{m}\ \lift{n}
+    \end{align*}
+  \end{definition}
+
+  With slight overloading of notation, we define lifting for CC$\omega$ recursively.
+  \begin{definition}
+    \begin{align*}
+      \lift{\epsilon} &= \epsilon \\
+      \lift{\Gamma, x : A} &= \lift{\Gamma}, x \utype \lift{A}
+    \end{align*}
+  \end{definition}
+
+  The following lemmas and theorems are all proved following a similar procedure to proving the soundness of erasure.
+  \begin{lemma}
+    Lift commutes with substitution. For any CC$\omega$ terms $m$, $n$ and some variable $x$, $\lift{m[n/x]} = \lift{m}[\lift{n}/x]$.
+  \end{lemma}
+
+  \begin{theorem}
+    Lift preserves reduction. For any CC$\omega$ term $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CC}\omega} n$, then there is $\lift{m} \step_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+  \end{theorem}
+
+  \begin{theorem}
+    Lifting. If $\Gamma \vdash m : A$ is a valid judgment in CC$\omega$, then $\lift{\Gamma} \vdash \lift{m} \utype \lift{A}$ is a valid judgment in CLC.
   \end{theorem}
 
   \section{Extensions}
