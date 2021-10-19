@@ -1,6 +1,6 @@
 % document layout
-%\documentclass[sigplan,screen,review,authordraft]{acmart}
-\documentclass[sigplan,screen]{acmart}
+\documentclass[sigplan,screen,review,authordraft]{acmart}
+%\documentclass[sigplan,screen]{acmart}
 \usepackage[utf8]{inputenc}
 
 % packages
@@ -869,7 +869,7 @@
       $\set$ has the most complicated type of all the axioms presented here. Intuitively, if address $l$ is allocated and storing some term $m$ of type $A$, $\set$ may put term $n$ of type $B$ into the the store at address $l$, overwriting the original term. This is the so called "strong update" operation. The consumption of $(l \mapsto_A m)$ and return of $(l \mapsto_B n)$ accurately characterize this update process.
     \end{itemize}
   \end{definition}
-  Due to the fact that $(l \mapsto_A m)$ is a linear type, proofs of this type can not be duplicated and may only be consumed by other state axioms. This is the same non-sharing principle that empowers Separation Logic. Unlike Separation Logic, $(l \mapsto_A m)$ is a first-class object of CLC, meaning that it can be the result of computation (large eliminations), input to computations, stored in data structures, etc.
+  Due to the fact that $(l \mapsto_A m)$ is a linear type, proofs of this type can not be duplicated and may only be consumed by other state axioms. This is the same non-sharing principle that empowers Separation Logic. Unlike Separation Logic, $(l \mapsto_A m)$ itself is a first-class object in CLC, meaning that it can be the result of computation (large eliminations), input to computations, stored in data structures, etc.
 
   \subsection{Internalization of Effect Laws}
   The combination of linear types and dependent types within the state axioms enable the internalization of the so called "effect laws" for state, where these laws are now provable theorems within the CLC framework.
