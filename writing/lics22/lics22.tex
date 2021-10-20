@@ -191,6 +191,7 @@
     \end{tikzcd}
     \vspace{-0.5em}
     \label{universe}
+    \Description{}
   \end{figure}
 
   \subsection{Context and Structural Judgments}
@@ -265,6 +266,7 @@
     \end{mathpar}
     \vspace{-1em}
     \label{structural}
+    \Description{}
   \end{figure}
 
   \begin{definition}
@@ -348,6 +350,7 @@
     \end{mathpar}
     \vspace{-1em}
     \label{type}
+    \Description{}
   \end{figure}
 
   The axiom rules \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom} are almost standard, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the admissibility of weakening. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{Prop-Axiom}, \rname{U-Axiom}, \rname{L-Axiom}. From \rname{L-Axiom} we can see that the universe of linear types $L_k$ is an inhabitant of $U_{k+1}$. This is inspired by Krishnaswami et al.'s treatment of linear universes \cite{neel15}, where linear \textit{types} themselves can be used unrestrictedly.
@@ -432,6 +435,7 @@
     \end{mathpar}
     \vspace{-1em}
     \label{term}
+    \Description{}
   \end{figure}
 
   The rules \rname{U-Var}, and \rname{L-Var} are used for typing free variables. The \rname{U-Var} rule asserts that free variable $x$ occurs within the context $\Gamma, x \utype A$ with a non-linear type $A$. The \rname{L-Var} rule asserts that free variable $x$ occurs within the context $\Gamma, x \ltype A$ with linear type $A$. For both rules, the side condition $\pure{\Gamma}$ forbids irrelevant variables of linear types from occurring within $\Gamma$. This prevents another vector of weakening variables with linear type.
@@ -499,6 +503,7 @@
       \rname{Step-AppR}
     \end{mathpar}
     \label{parallel}
+    \Description{}
   \end{figure}
   As we have discussed previously, the elimination of the explicit ! exponential allows CLC to maintain the standard operational semantics of CC$\omega$, whose $\beta$-reductions are very well behaved.
 
