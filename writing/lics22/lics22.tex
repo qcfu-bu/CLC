@@ -962,11 +962,11 @@
   \vspace{-0.6em}
   \caption{Linear Lists}
   \begin{lstlisting}
-  Inductive list (A : Type) : Linear :=
+  Inductive list (A : U) : L :=
   | nil : list A
   | cons : A -> list A -> list A.
   
-  Fixpoint append (A : Type) : list A -o 
+  Fixpoint append (A : U) : list A -o 
     list A -o (list A -o list A) -o list A 
   :=
     fun ls1 ls2 k =>
