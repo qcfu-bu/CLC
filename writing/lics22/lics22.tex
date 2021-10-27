@@ -65,7 +65,7 @@
 % document body
 \begin{document}
   \begin{abstract}
-    The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends CC with a hierarchy of linear universes that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, showing that it is a sound and consistent logical framework for reasoning about resource. CLC is backwards compatible with CC, allowing CLC to enjoy the fruits of decades of CC research. We have formalized and proven correct all major results of the core calculus in the Coq Proof Assistant. We extend CLC with linear inductive types, showing that CLC facilitates correct by construction imperative programming.
+    The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends CC with a hierarchy of linear universes that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, showing that it is a sound logical framework for reasoning about resource. CLC is backwards compatible with CC, allowing CLC to enjoy the fruits of decades of CC research. We have formalized and proven correct all major results of the core calculus in the Coq Proof Assistant. We extend CLC with linear inductive types, showing that CLC facilitates correct by construction imperative programming.
   \end{abstract}
   \maketitle 
 
@@ -431,7 +431,7 @@
     \Description{}
   \end{figure}
 
-  The rules \rname{U-Var}, and \rname{L-Var} are used for typing free variables. The \rname{U-Var} rule asserts that free variable $x$ occurs within the context $\Gamma, x \utype A$ with a non-linear type $A$. The \rname{L-Var} rule asserts that free variable $x$ occurs within the context $\Gamma, x \ltype A$ with linear type $A$. For both rules, the side condition $\pure{\Gamma}$ forbids irrelevant variables of linear types from occurring within $\Gamma$. This prevents another vector of weakening variables with linear type.
+  The rules \rname{U-Var}, and \rname{L-Var} are used for typing free variables. The \rname{U-Var} rule asserts that free variable $x$ occurs within the context $\Gamma_1, x \utype A, \Gamma_2$ with a non-linear type $A$. The \rname{L-Var} rule asserts that free variable $x$ occurs within the context $\Gamma_1, x \ltype A, \Gamma_2$ with linear type $A$. For both rules, the side condition $\pure{\Gamma_1, \Gamma_2}$ forbids irrelevant variables of linear types from occurring within the context. This prevents another vector of weakening variables with linear type.
 
   In \rname{Prod-$\lambda$}, the function type being addressed has form $(x \stype{s} A) \rightarrow B$. $\lambda$-abstractions of this type can be applied an unrestricted number of times, hence cannot depend on free variables with restricted usage without possibly duplicating them. This consideration is realized by the side condition $\pure{\Gamma}$, asserting all variables in context $\Gamma$ are unrestricted. Next, the body of the abstraction $n$ is typed as $\Gamma, x \stype{s} A \vdash n : B$, where $s$ is the sort of $A$. Finally, the resulting judgment $\Gamma \vdash \lambda x.n : (x \stype{s} A) \rightarrow B$ asserts that the $\lambda$-abstraction can be used unrestrictedly.
 
