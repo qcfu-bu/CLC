@@ -65,7 +65,7 @@
 % document body
 \begin{document}
   \begin{abstract}
-    The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends CC with a hierarchy of linear universes that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, showing that it is a sound logical framework for reasoning about resource. CLC is backwards compatible with CC, allowing CLC to enjoy the fruits of decades of CC research. We have formalized and proven correct all major results of the core calculus in the Coq Proof Assistant. We extend CLC with linear inductive types, showing that CLC facilitates correct by construction imperative programming.
+    The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends CC with a hierarchy of linear universes that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, showing that it is a sound and consistent logical framework for reasoning about resource. CLC is backwards compatible with CC, allowing CLC to enjoy the fruits of decades of CC research. We have formalized and proven correct all major results of the core calculus in the Coq Proof Assistant. We extend CLC with linear inductive types, showing that CLC facilitates correct by construction imperative programming.
   \end{abstract}
   \maketitle 
 
@@ -364,13 +364,13 @@
     \caption{Term Formation}
     \begin{mathpar}
       \inferrule
-      {\pure{\Gamma}}
-      {\Gamma, x \utype A \vdash x : A} 
+      { \pure{\Gamma_1, \Gamma_2} }
+      { \Gamma_1, x \utype A, \Gamma_2 \vdash x : A }
       \rname{U-Var}
 
       \inferrule
-      { \pure{\Gamma} }
-      { \Gamma, x \ltype A \vdash x : A } 
+      { \pure{\Gamma_1, \Gamma_2} }
+      { \Gamma_1, x \ltype A, \Gamma_2 \vdash x : A } 
       \rname{L-Var}
       \\
 
