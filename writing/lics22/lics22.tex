@@ -16,6 +16,7 @@
 \usepackage{lstlangcoq}
 \usepackage{float}
 \usepackage{tikz-cd}
+\usepackage{enumitem}
 
 \lstset{basicstyle=\small,language=Coq,showstringspaces=false}
 \newtheorem{theorem}{Theorem}[section]
@@ -23,7 +24,7 @@
 \newtheorem{lemma}[theorem]{Lemma}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
-
+\setlist[itemize]{leftmargin=1.6em}
 \renewcommand{\syntleft}{}
 \renewcommand{\syntright}{}
 \setlength{\grammarparsep}{7pt}
@@ -31,17 +32,24 @@
 \newcommand{\indalt}[1][2]{\\\hspace*{-1.2em}\textbar\quad}
 \newcommand{\rname}[1]{\textsc{\footnotesize #1}}
 \newcommand{\pure}[1]{|#1|}
-\newcommand{\sort}{\textbf{sort}}
-\newcommand{\type}{\textbf{type}}
 \newcommand{\refl}{\text{refl}}
 \newcommand{\letin}[3]{\ $\text{let }#1\text{ := }#2\text{ in }#3$\ }
 \newcommand{\ind}{\ $\text{ind}$\ }
 \newcommand{\iter}{\ $\text{iter}$\ }
 \newcommand{\unit}{\text{unit}}
-\newcommand{\new}{\textbf{new}}
-\newcommand{\free}{\textbf{free}}
-\newcommand{\get}{\textbf{get}}
-\newcommand{\set}{\textbf{set}}
+\newcommand{\new}{\text{new}}
+\newcommand{\free}{\text{free}}
+\newcommand{\get}{\text{get}}
+\newcommand{\set}{\text{set}}
+\newcommand{\session}{\text{session}}
+\newcommand{\channel}{\text{channel}}
+\newcommand{\open}{\text{open}}
+\newcommand{\close}{\text{close}}
+\newcommand{\send}{\text{send}}
+\newcommand{\recv}{\text{recv}}
+\newcommand{\SEND}{\texttt{SEND}}
+\newcommand{\RECV}{\texttt{RECV}}
+\newcommand{\END}{\texttt{END}}
 \newcommand{\utype}{:_{\scriptscriptstyle U}}
 \newcommand{\ltype}{:_{\scriptscriptstyle L}}
 \newcommand{\stype}[1]{:_#1}
@@ -879,22 +887,22 @@
   Of all the rules presented here, perhaps the most surprising to readers familiar with linear types or dependent types is the \rname{$\mathbb{N}$-L-Elim} rule. This rule constructs a term with linear type through a primitive recursion principle. The $\multimap$ arrows protect the O-case element of linear type $C\ O$ from duplication by currying. The S-case function is of non-linear type $(n : \mathbb{N}) \rightarrow C\ n \rightarrow C\ (S\ n)$ because it must be applied repeatedly during iteration.
   
   \section{Applications}
-  In this section, we demonstrate some of the possible applications of CLC through examples. We collapse the sort annotations on arrows $(x \utype A) \rightarrow B$ and $(x \ltype A) \rightarrow B$ into $(x : A) \rightarrow B$ whenever $A$'s sort is inferable from context.
+  In this section, we demonstrate some of the possible applications of CLC through examples. We collapse the sort annotations on arrows $(x \utype A) \rightarrow B$ and $(x \ltype A) \rightarrow B$ into $(x : A) \rightarrow B$ whenever $A$'s sort is inferable from context. We also omit writing universe levels for the sake of clarity.
 
   \subsection{Stateful Reasoning}
   We first postulate five state axioms. These axioms could be viewed as an interface to a trusted memory allocator.
   \begin{definition}
     State axioms.
     \begin{itemize}
-      \item $l \mapsto_A m : \mathbb{N} \rightarrow (A : U_k) \rightarrow A \rightarrow L_k$ \\
+      \item $l \mapsto_A m : \mathbb{N} \rightarrow (A : U) \rightarrow A \rightarrow L$ \\
       The $\mapsto$ is a linear type constructor. It fulfills a role similar to L3's \cite{l3} memory access capability, or Separation Logic's \cite{reynolds02} points-to assertion. Intuitively, it is a proof that a term $m$ of non-linear type $A$ is currently stored at address $l$.
-      \item $\new : (A : U_k) \rightarrow (m : A) \rightarrow F l:\mathbb{N}.(l \mapsto_A m)$ \\
+      \item $\textbf{new} : (A : U) \rightarrow (m : A) \rightarrow F l:\mathbb{N}.(l \mapsto_A m)$ \\
       $\new$ is a function that allocates a new memory cell for term $m$ of non-linear type $A$. It results in an address $l$ paired with an assertion $(l \mapsto_A m)$.
-      \item $\free : (A : U_k) \rightarrow F l:\mathbb{N}.F m:A.(l \mapsto_A m) \rightarrow \mathbf{1}$ \\
+      \item $\textbf{free} : (A : U) \rightarrow F l:\mathbb{N}.F m:A.(l \mapsto_A m) \rightarrow \unit$ \\
       $\free$ is a function that de-allocates the memory cell at location $l$ which is currently in use. This can be seen in its input $F l:\mathbb{N}.F m:A.(l \mapsto_A m)$, where the assertion component $(l \mapsto_A m)$ is a proof that location $l$ is currently allocated.
-      \item $\get : (A : U_k) \rightarrow (l : \mathbb{N}) \rightarrow (m : A) \rightarrow (l \mapsto_A m) \rightarrow F \_: (\Sigma x. x =_A m). (l \mapsto_A m)$ \\
+      \item $\textbf{get} : (A : U) \rightarrow (l : \mathbb{N}) \rightarrow (m : A) \rightarrow (l \mapsto_A m) \rightarrow F \_: (\Sigma x. x =_A m). (l \mapsto_A m)$ \\
       $\get$ is a function that retrieves the term stored at address $l$ when given a proof $(l \mapsto_A m)$ that there is indeed a term $m$ currently stored there. The type of $\get$'s output is the rather complicated $F \_: (\Sigma x. x =_A m). (l \mapsto_A m)$. This not only returns the term stored at $l$, but also a proof that the returned term is exactly the same as what $(l \mapsto_A m)$ claimed to have stored. The proof $(l \mapsto_A m)$ is returned unchanged as well.
-      \item $\set : (A\ B : U_k) \rightarrow (l : \mathbb{N}) \rightarrow (m : A) \rightarrow (l \mapsto_A m) \multimap (n : B) \multimap (l \mapsto_B n)$ \\
+      \item $\textbf{set} : (A\ B : U) \rightarrow (l : \mathbb{N}) \rightarrow (m : A) \rightarrow (l \mapsto_A m) \multimap (n : B) \multimap (l \mapsto_B n)$ \\
       $\set$ has the most complicated type of all the axioms presented here. Intuitively, if address $l$ is allocated and storing some term $m$ of type $A$, $\set$ may put term $n$ of type $B$ into the the store at address $l$, overwriting the original term. This is the so called "strong update" operation. The consumption of $(l \mapsto_A m)$ and return of $(l \mapsto_B n)$ accurately characterize this update process.
     \end{itemize}
   \end{definition}
@@ -948,6 +956,75 @@
   \end{figure}
 
   Though we have not implemented program extraction for CLC yet, our preliminary experiments show the feasibility of compiling the state axioms to constant time imperative operations after proof erasure. This can greatly improve the runtime efficiency of CLC over pure functional languages when used for programming. More complex examples such as safe array indexing are available in the first author's Github repository.
+
+  \subsection{Session Reasoning}
+  The inclusion of dependent types and linear types in CLC makes it extremely expressive when encoding communication protocols. By indexing each channel with a protocol, CLC can enforce communication on a channel to strictly adhere to its specified protocol.
+  
+  In Figure \ref{session}, we declare an inductive \texttt{session} type for specifying protocols. Intuitively, the \texttt{session}  forms a stack of possible operations executed in a protocol. The $\SEND$ constructor takes in a non-linear type $A$ and a session $ss$ as its argument, indicating that after sending a message of type $A$, the protocol progresses to stage $ss$. Likewise, the $\RECV$ constructor takes in a non-linear type $A$ and a session $ss$ as its argument, indicating that after receiving a message of type $A$, the protocol progresses to stage $ss$. Finally, the $\END$ constructor indicates that the protocol has finished and communication is over.
+
+  \begin{figure}[h]
+  \caption{Inductive Session Type}
+  \begin{lstlisting}
+  Inductive session : U :=
+  | SEND : U -> session -> session
+  | RECV : U -> session -> session
+  | END : session.
+  \end{lstlisting}
+  \label{session}
+  \Description{}
+  \end{figure}
+
+  In Definition \ref{comm}, we postulate five axioms for communication using the $\session$ type. These axioms could be viewed as an interface to trusted communication libraries.
+
+  \begin{definition}
+    Communication axioms.
+    \begin{itemize}
+      \item $\textbf{channel} : \session \rightarrow L$ \\
+      The $\channel$ axiom is a type constructor. It is used to form the types of communication channels that obey the protocol specified by its session.
+      \item $\textbf{open} : (ss : \session) \rightarrow \channel\ ss$ \\
+      When given a protocol, $\open$ creates a channel indexed by this protocol.
+      \item $\textbf{close} : \channel\ \END \rightarrow \unit$ \\
+      Once all communications specified on a given channel has finished, $\close$ will close and reclaim the channel.
+      \item $\textbf{send} : (A : U) \rightarrow A \rightarrow (ss : \session) \rightarrow$ \\
+      \phantom{send : (A :)}
+      $\channel\ (\SEND\ A\ ss) \rightarrow \channel\ ss$ \\
+      After a channel has reached the point in its protocol where a message of type $A$ should be sent, $\send$ may send a term of type $A$ on this channel, causing the channel to progress to the next stage of its protocol.
+      \item $\textbf{recv} : (A : U) \rightarrow (ss : \session) \rightarrow $ \\
+      \phantom{recv : (A :)}
+      $\channel\ (\RECV\ A\ ss) \rightarrow F \_:A.\channel\ ss$
+      After a channel has reached the point in its protocol where a message of type $A$ should be received, $\recv$ may receive such a term of type $A$ from the channel, causing the channel to progress to the next stage of its protocol.
+    \end{itemize}
+    \label{comm}
+  \end{definition}
+
+  The important detail to notice here is that each channel created by $\open$ is of linear type $(\channel\ ss)$ where $ss$ is some arbitrary protocol, hence must be used exactly once. However, the $\send$ and $\recv$ operations return back channels after consuming them, progressing their protocols one stage forward. Coupled with the fact that the $\close$ operation is only able to close channels whose protocols have ended, this forces channels to communicate strictly by their specified protocols.
+
+  Dependent types also allows for more precise specifications of protocols themselves. A simple example would be the specification of message sizes. Figure \ref{communication} shows such an example. The inductive type \texttt{ilist} is a length indexed list. Using \texttt{ilist}, we construct a protocol \texttt{ss} that first sends two natural numbers, then receives eight natural numbers and finally sends back a boolean acknowledgement.
+
+  \begin{figure}[h]
+  \caption{Sized Communication}
+  \begin{lstlisting}
+  Inductive ilist (A : U) : Nat -> U :=
+  | nil  : ilist A 0
+  | cons : A -> (n : Nat) -> 
+              ilist A n -> ilist A (S n).
+
+  let ss := 
+    SEND (ilist Nat 2) 
+      (RECV (ilist Nat 8) (SEND Bool END)) 
+  in
+  let send_msg : ilist Nat 2 := 
+    (cons 1 _ (cons 2 _ nil)) 
+  in
+  let ch := open ss in
+  let ch := send _ send_msg _ ch in
+  let [ recv_msg, ch ] := recv _ _ ch in
+  let ch := send _ true _ ch in
+  close ch            
+  \end{lstlisting}
+  \label{communication}
+  \Description{}
+  \end{figure}
 
   \subsection{Mutable Data}
   Immutable data in functional programming languages are easy to reason about due their values staying constant over their lifespan. However, this convenience comes at the price of efficiency when attempting to perform "updates" on existing data. In order to update immutable data, an entirely new copy must be created with new entries substituted in for the original ones. So after update, there are two data structures in memory, the original one and the updated one. A garbage collector is necessary to reclaim memory allocated for the original copy.
