@@ -76,7 +76,34 @@
   { \Gamma \vdash Elim(c,Q)\{f_1|...|f_n\} : (Q \overrightarrow{a}) }
 \end{mathpar}
 
-\subsection{Conversion}
+\subsection{Non-Dependent Conversion}
+
+\begin{align*}
+  & ((\_ :_U P) \rightarrow C)[X,F,f] && = \lambda p.C[X,F,(f\ p\ \lambda \overrightarrow{x}.(F \overrightarrow{m} (p \overrightarrow{x})))] \\
+  & ((\_ :_U P) \multimap C)[X,F,f] && = \lambda p.C[X,F,(f\ p\ \lambda \overrightarrow{x}.(F \overrightarrow{m} (p \overrightarrow{x})))] \\
+  & ((\_ :_L P) \rightarrow C)[X,F,f] && = \lambda p.C[X,F,(f\ \lambda \overrightarrow{x}.(F \overrightarrow{m} (p \overrightarrow{x})))] \\
+  & ((\_ :_L P) \multimap C)[X,F,f] && = \lambda p.C[X,F,(f\ \lambda \overrightarrow{x}.(F \overrightarrow{m} (p \overrightarrow{x})))] \\
+  & ((x :_s M) \rightarrow C)[X,F,f] && = \lambda x.C[X,F,(f\ x)] \\
+  & ((x :_s M) \multimap C)[X,F,f] && = \lambda x.C[X,F,(f\ x)] \\
+  & (X \overrightarrow{m})[X,F,f] && = f
+\end{align*}
+
+\begin{align*}
+  & ((\_ :_s P) \rightarrow C)[X,f] && = \lambda p.C[X,(f\ p)] \\
+  & ((\_ :_s P) \multimap C)[X,f] && = \lambda p.C[X,(f\ p)] \\
+  & ((x :_s M) \rightarrow C)[X,f] && = \lambda x.C[X,(f\ x)] \\
+  & ((x :_s M) \multimap C)[X,f] && = \lambda x.C[X,(f\ x)] \\
+  & (X \overrightarrow{m})[X,f] && = f
+\end{align*}
+
+\begin{align*}
+  Fun\_Rec(I,Q,\overrightarrow{f}) = \lambda \overrightarrow{x}. \lambda c.Rec(c,Q)\{\overrightarrow{f}\}
+\end{align*}
+
+\begin{align*}
+  & Rec((Constr(i, I)\ \overrightarrow{m}), Q)\{\overrightarrow{f}\} && \rightarrow_\iota && (C_i[I,Fun\_Rec(I,Q,\overrightarrow{f}),f_i]\ \overrightarrow{m}) \\
+  & Elim((Constr(i, I)\ \overrightarrow{m}), Q)\{\overrightarrow{f}\} && \rightarrow_\iota && (C_i[I,f_i]\ \overrightarrow{m})
+\end{align*}
 
 \end{document}
-\message{ !name(scratch.tex) !offset(-82) }
+\message{ !name(scratch.tex) !offset(-109) }
