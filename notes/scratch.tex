@@ -20,6 +20,7 @@
 
 \subsection{Introduction Rules}
 
+\medskip
 \begin{mathpar}
 \inferrule
   { (\forall i = 1 ... n) \\ arity(A, s_k) \\ constructor_s(C_i, X) \\\\
@@ -38,7 +39,6 @@
   & ((x :_{s'} M) \multimap P) \{s\} && = L \\
   & (X\ \overrightarrow{m}) \{s\} && = s
 \end{align*}
-
 \begin{align*}
   & ((\_ :_U P) \rightarrow C)\{X,Q,s\} && = (\_ :_U P) \rightarrow (\_ :_{s'} P[Q/X]) \multimap C\{X,Q,s\} &&& (where\ s' = P\{s\}) \\
   & ((\_ :_U P) \multimap C)\{X,Q,s\} && = (\_ :_U P) \multimap (\_ :_{s'} P[Q/X]) \multimap C\{X,Q,s\} &&& (where\ s' = P\{s\}) \\
@@ -48,7 +48,6 @@
   & ((x :_s M) \multimap C)\{X,Q,s\} && = (x :_s M) \multimap C\{X,Q,s\} &&& \\
   & (X\ \overrightarrow{m})\{X,Q,s\} && = Q\ \overrightarrow{m} &&&
 \end{align*}
-
 \begin{align*}
   & ((\_ :_s P) \rightarrow C)\{X,Q\} && = (\_ :_s P) \multimap C\{X,Q\} \\
   & ((\_ :_s P) \multimap C)\{X,Q\} && = (\_ :_s P) \multimap C\{X,Q\} \\
@@ -56,7 +55,6 @@
   & ((x :_s M) \multimap C)\{X,Q\} && = (x :_s M) \multimap C\{X,Q\} \\
   & (X\ \overrightarrow{m})\{X,Q\} && = Q\ \overrightarrow{m}
 \end{align*}
-
 \begin{mathpar}
   \inferrule
   { (\forall i = \ 1...n) \\ |\Gamma_2| \\ \Gamma_1 \ddagger \Gamma_2 \ddagger \Gamma \\\\
@@ -115,7 +113,6 @@
 \end{mathpar}
 
 \subsection{Conversion}
-
 \begin{align*}
   & ((\_ :_U P) \rightarrow C)[X,F,f] && = \lambda p.C[X,F,(f\ p\ \lambda \overrightarrow{x}.(F\ \overrightarrow{m}\ (p\ \overrightarrow{x})))] \\
   & ((\_ :_U P) \multimap C)[X,F,f] && = \lambda p.C[X,F,(f\ p\ \lambda \overrightarrow{x}.(F\ \overrightarrow{m}\ (p\ \overrightarrow{x})))] \\
@@ -125,7 +122,6 @@
   & ((x :_s M) \multimap C)[X,F,f] && = \lambda x.C[X,F,(f\ x)] \\
   & (X\ \overrightarrow{m})[X,F,f] && = f
 \end{align*}
-
 \begin{align*}
   & ((\_ :_s P) \rightarrow C)[X,f] && = \lambda p.C[X,(f\ p)] \\
   & ((\_ :_s P) \multimap C)[X,f] && = \lambda p.C[X,(f\ p)] \\
@@ -133,11 +129,9 @@
   & ((x :_s M) \multimap C)[X,f] && = \lambda x.C[X,(f\ x)] \\
   & (X\ \overrightarrow{m})[X,f] && = f
 \end{align*}
-
 \begin{align*}
   Fun\_Rec(I_s,Q,\overrightarrow{f}) = \lambda \overrightarrow{x}. \lambda c.Rec(c,Q)\{\overrightarrow{f}\}
 \end{align*}
-
 \begin{align*}
   & Rec((Constr(i, I_s)\ \overrightarrow{m}), Q)\{\overrightarrow{f}\} && \rightarrow_\iota && (C_i[I_s,Fun\_Rec(I_s,Q,\overrightarrow{f}),f_i]\ \overrightarrow{m}) \\
   & Elim((Constr(i, I_s)\ \overrightarrow{m}), Q)\{\overrightarrow{f}\} && \rightarrow_\iota && (C_i[I_s,f_i]\ \overrightarrow{m})
