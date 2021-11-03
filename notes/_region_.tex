@@ -31,15 +31,15 @@
 
   \inferrule
   { |\Gamma| \\ \Gamma \vdash Ind_s(X : A)\{C_1|...|C_n\} : A \\ 1 \leq i \leq n }
-  { \Gamma \vdash Constr(i, I) : C_i[I/X] }
+  { \Gamma \vdash Constr(i, I_s) : C_i[I_s/X] }
 \end{mathpar}
 
 \subsection{Non-Dependent Elimination}
 
 \begin{align*}
-  & ((x :_s M) \rightarrow P) \{s\} && = U \\
-  & ((x :_s M) \multimap P) \{s\} && = L \\
-  & (X \overrightarrow{m}) \{s\} && = s
+  & ((x :_{s'} M) \rightarrow P) \{s\} && = U \\
+  & ((x :_{s'} M) \multimap P) \{s\} && = L \\
+  & (X\ \overrightarrow{m}) \{s\} && = s
 \end{align*}
 
 \begin{align*}
@@ -49,7 +49,7 @@
   & ((\_ :_L P) \multimap C)\{X,Q,s\} && = (\_ :_{s'} P[Q/X]) \multimap C\{X,Q,s\} &&& (where\ s' = P\{s\}) \\
   & ((x :_s M) \rightarrow C)\{X,Q,s\} && = (x :_s M) \rightarrow C\{X,Q,s\} &&& \\
   & ((x :_s M) \multimap C)\{X,Q,s\} && = (x :_s M) \multimap C\{X,Q,s\} &&& \\
-  & (X \overrightarrow{m})\{X,Q,s\} && = Q \overrightarrow{m} &&&
+  & (X\ \overrightarrow{m})\{X,Q,s\} && = Q\ \overrightarrow{m} &&&
 \end{align*}
 
 \begin{align*}
@@ -57,35 +57,76 @@
   & ((\_ :_s P) \multimap C)\{X,Q\} && = (\_ :_s P) \multimap C\{X,Q\} \\
   & ((x :_s M) \rightarrow C)\{X,Q\} && = (x :_s M) \multimap C\{X,Q\} \\
   & ((x :_s M) \multimap C)\{X,Q\} && = (x :_s M) \multimap C\{X,Q\} \\
-  & (X \overrightarrow{m})\{X,Q\} && = Q \overrightarrow{m}
+  & (X\ \overrightarrow{m})\{X,Q\} && = Q\ \overrightarrow{m}
 \end{align*}
 
 \begin{mathpar}
   \inferrule
-  { (\forall i \ 1...n) \\ |\Gamma_2| \\ \Gamma_1 \ddagger \Gamma_2 \ddagger \Gamma \\\\
-    \Gamma_1 \vdash c : (I \overrightarrow{a}) \\
+  { (\forall i = \ 1...n) \\ |\Gamma_2| \\ \Gamma_1 \ddagger \Gamma_2 \ddagger \Gamma \\\\
+    \Gamma_1 \vdash c : (I_s\ \overrightarrow{a}) \\
     \Gamma_2 \vdash Q : (\overrightarrow{x} :_U \overrightarrow{A}) \rightarrow s' \\
-    \Gamma_2 \vdash f_i : C_i\{I,Q,s'\} }
+    \Gamma_2 \vdash f_i : C_i\{I_s,Q,s'\} }
   { \Gamma \vdash Rec(c,Q)\{f_1|...|f_n\} : (Q \overrightarrow{a}) }
 
   \inferrule
-  { (\forall i \ 1...n) \\ \Gamma_1 \ddagger \Gamma_2 \ddagger \Gamma \\\\
-    \Gamma_1 \vdash c : (I \overrightarrow{a}) \\
+  { (\forall i = \ 1...n) \\ \Gamma_1 \ddagger \Gamma_2 \ddagger \Gamma \\\\
+    \Gamma_1 \vdash c : (I_s\ \overrightarrow{a}) \\
     \overline{\Gamma_2} \vdash Q : (\overrightarrow{x} :_U \overrightarrow{A}) \rightarrow s' \\
-    \Gamma_2 \vdash f_i : C_i\{I,Q\} }
+    \Gamma_2 \vdash f_i : C_i\{I_s,Q\} }
   { \Gamma \vdash Elim(c,Q)\{f_1|...|f_n\} : (Q \overrightarrow{a}) }
 \end{mathpar}
 
-\subsection{Non-Dependent Conversion}
+
+\subsection{Dependent Elimination}
 
 \begin{align*}
-  & ((\_ :_U P) \rightarrow C)[X,F,f] && = \lambda p.C[X,F,(f\ p\ \lambda \overrightarrow{x}.(F \overrightarrow{m} (p \overrightarrow{x})))] \\
-  & ((\_ :_U P) \multimap C)[X,F,f] && = \lambda p.C[X,F,(f\ p\ \lambda \overrightarrow{x}.(F \overrightarrow{m} (p \overrightarrow{x})))] \\
-  & ((\_ :_L P) \rightarrow C)[X,F,f] && = \lambda p.C[X,F,(f\ \lambda \overrightarrow{x}.(F \overrightarrow{m} (p \overrightarrow{x})))] \\
-  & ((\_ :_L P) \multimap C)[X,F,f] && = \lambda p.C[X,F,(f\ \lambda \overrightarrow{x}.(F \overrightarrow{m} (p \overrightarrow{x})))] \\
+  & ((x :_s M) \rightarrow P)\{Q,p\} && = (x :_s M) \rightarrow P\{Q,(p\ x)\} \\
+  & ((x :_s M) \multimap P)\{Q,p\} && = (x :_s M) \multimap P\{Q,(p\ x)\} \\
+  & (X\ \overrightarrow{m})\{Q,p\} && = Q\ \overrightarrow{m}\ p
+\end{align*}
+
+\begin{align*}
+  & ((\_ :_U P) \rightarrow C)\{X,Q,s,c\} && = (p :_U P) \rightarrow (\_ :_{s'} P\{Q,p\}) \multimap C\{X,Q,s,(c\ p)\} &&& (where\ s' = P\{s\}) \\
+  & ((\_ :_U P) \multimap C)\{X,Q,s,c\} && = (p :_U P) \multimap (\_ :_{s'} P\{Q,p\}) \multimap C\{X,Q,s,(c\ p)\} &&& (where\ s' = P\{s\})\\
+  & ((x :_U M) \rightarrow C)\{X,Q,s,c\} && = (x :_U M) \rightarrow C\{X,Q,s,(c\ x)\} \\
+  & ((x :_U M) \multimap C)\{X,Q,s,c\} && = (x :_U M) \multimap C\{X,Q,s,(c\ x)\} \\
+  & (X\ \overrightarrow{m})\{X,Q,s,c\} && = (Q\ \overrightarrow{m}\ c)
+\end{align*}
+
+\begin{align*}
+  & ((\_ :_U P) \rightarrow C)\{X,Q,c\} && = (p :_U P) \multimap C\{X,Q,(c\ p)\} \\
+  & ((\_ :_U P) \multimap C)\{X,Q,c\} && = (p :_U P) \multimap C\{X,Q,(c\ p)\} \\
+  & ((x :_U P) \rightarrow C)\{X,Q,c\} && = (x :_U M) \multimap C\{X,Q,(c\ x)\} \\
+  & ((x :_U P) \multimap C)\{X,Q,c\} && = (x :_U M) \multimap C\{X,Q,(c\ x)\} \\
+  & (X\ \overrightarrow{m})\{X,Q,c\} && = (Q\ \overrightarrow{m}\ c)
+\end{align*}
+
+\begin{mathpar}
+  \inferrule
+  { (\forall i = 1 ... n) \\ |\Gamma_2| \\ \Gamma_1 \ddagger \Gamma_2 \ddagger \Gamma \\\\
+    \Gamma_1 \vdash c : (I_U\ \overrightarrow{a}) \\
+    \Gamma_2 \vdash Q : (\overrightarrow{x} :_U \overrightarrow{A}) \rightarrow (\_ :_U I_U\ \overrightarrow{x}) \rightarrow s' \\
+    \Gamma_2 \vdash f_i : C_i\{I_U,Q,s',Constr(i,I_U)\} }
+  { \Gamma \vdash Rec(c,Q)\{f_1|...|f_n\} : (Q\ \overrightarrow{a}\ c) }
+
+  \inferrule
+  { (\forall i = 1 ... n) \\ \Gamma_1 \ddagger \Gamma_2 \ddagger \Gamma \\\\
+    \Gamma_1 \vdash c : (I_U\ \overrightarrow{a}) \\
+    \overline{\Gamma_2} \vdash Q : (\overrightarrow{x} :_U \overrightarrow{A}) \rightarrow (\_ :_U I_U\ \overrightarrow{x}) \rightarrow s' \\
+    \Gamma_2 \vdash f_i : C_i\{I_U,Q,Constr(i,I_U)\} }
+  { \Gamma \vdash Elim(c,Q)\{f_1|...|f_n\} : (Q\ \overrightarrow{a}\ c) }
+\end{mathpar}
+
+\subsection{Conversion}
+
+\begin{align*}
+  & ((\_ :_U P) \rightarrow C)[X,F,f] && = \lambda p.C[X,F,(f\ p\ \lambda \overrightarrow{x}.(F\ \overrightarrow{m}\ (p\ \overrightarrow{x})))] \\
+  & ((\_ :_U P) \multimap C)[X,F,f] && = \lambda p.C[X,F,(f\ p\ \lambda \overrightarrow{x}.(F\ \overrightarrow{m}\ (p\ \overrightarrow{x})))] \\
+  & ((\_ :_L P) \rightarrow C)[X,F,f] && = \lambda p.C[X,F,(f\ \lambda \overrightarrow{x}.(F\ \overrightarrow{m}\ (p\ \overrightarrow{x})))] \\
+  & ((\_ :_L P) \multimap C)[X,F,f] && = \lambda p.C[X,F,(f\ \lambda \overrightarrow{x}.(F\ \overrightarrow{m}\ (p\ \overrightarrow{x})))] \\
   & ((x :_s M) \rightarrow C)[X,F,f] && = \lambda x.C[X,F,(f\ x)] \\
   & ((x :_s M) \multimap C)[X,F,f] && = \lambda x.C[X,F,(f\ x)] \\
-  & (X \overrightarrow{m})[X,F,f] && = f
+  & (X\ \overrightarrow{m})[X,F,f] && = f
 \end{align*}
 
 \begin{align*}
@@ -93,17 +134,19 @@
   & ((\_ :_s P) \multimap C)[X,f] && = \lambda p.C[X,(f\ p)] \\
   & ((x :_s M) \rightarrow C)[X,f] && = \lambda x.C[X,(f\ x)] \\
   & ((x :_s M) \multimap C)[X,f] && = \lambda x.C[X,(f\ x)] \\
-  & (X \overrightarrow{m})[X,f] && = f
+  & (X\ \overrightarrow{m})[X,f] && = f
 \end{align*}
 
 \begin{align*}
-  Fun\_Rec(I,Q,\overrightarrow{f}) = \lambda \overrightarrow{x}. \lambda c.Rec(c,Q)\{\overrightarrow{f}\}
+  Fun\_Rec(I_s,Q,\overrightarrow{f}) = \lambda \overrightarrow{x}. \lambda c.Rec(c,Q)\{\overrightarrow{f}\}
 \end{align*}
 
 \begin{align*}
-  & Rec((Constr(i, I)\ \overrightarrow{m}), Q)\{\overrightarrow{f}\} && \rightarrow_\iota && (C_i[I,Fun\_Rec(I,Q,\overrightarrow{f}),f_i]\ \overrightarrow{m}) \\
-  & Elim((Constr(i, I)\ \overrightarrow{m}), Q)\{\overrightarrow{f}\} && \rightarrow_\iota && (C_i[I,f_i]\ \overrightarrow{m})
+  & Rec((Constr(i, I_s)\ \overrightarrow{m}), Q)\{\overrightarrow{f}\} && \rightarrow_\iota && (C_i[I_s,Fun\_Rec(I_s,Q,\overrightarrow{f}),f_i]\ \overrightarrow{m}) \\
+  & Elim((Constr(i, I_s)\ \overrightarrow{m}), Q)\{\overrightarrow{f}\} && \rightarrow_\iota && (C_i[I_s,f_i]\ \overrightarrow{m})
 \end{align*}
+
+
 
 \end{document}
-\message{ !name(scratch.tex) !offset(-109) }
+\message{ !name(scratch.tex) !offset(-152) }
