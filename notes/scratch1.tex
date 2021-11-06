@@ -150,7 +150,7 @@ The formation of new inductive types is defined as follows.
   \inferrule
   { (\forall i = 1...n) \\ arity(A, s) \\ \scons(C_i, X) \\\\
     \pure{\Gamma} \\ 
-    \Gamma \vdash A : U_{k+1} \\ 
+    \Gamma \vdash A : U_k \\ 
     \Gamma, X \utype A \vdash C_i : U_k }
   { \Gamma \vdash \inds(X : A)\{C_1|...|C_n\} : A }
   \rname{ind-intro}
@@ -224,5 +224,13 @@ Non-linear inductive objects can be eliminated by a dependent case expression as
   { \Gamma \vdash \fix f.m : T }
   \rname{fix}
 \end{mathpar}
+
+\subsection{Conversion}
+
+\begin{align*}
+  \case((\constr(i, I)\ a_1...a_n),Q)\{f_1|...f_n\} &\leadsto_\iota (f_i\ a_1...a_n) \\
+  \dcase((\constr(i, I)\ a_1...a_n),Q)\{f_1|...f_n\} &\leadsto_\iota (f_i\ a_1...a_n) \\
+  \fix f.m &\leadsto_\iota m[(\fix f.m)/f]
+\end{align*}
 
 \end{document}
