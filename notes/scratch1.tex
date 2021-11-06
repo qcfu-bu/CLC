@@ -1,0 +1,155 @@
+\documentclass{article}
+
+\usepackage[margin=0.6in]{geometry}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{mathpartir}
+\pagestyle{empty}
+
+\newcommand{\rname}[1]{\textsc{\footnotesize #1}}
+\newcommand{\utype}{:_{\scriptscriptstyle U}}
+\newcommand{\ltype}{:_{\scriptscriptstyle L}}
+\newcommand{\stype}{:_s}
+\newcommand{\ucons}{constructor_{\scriptscriptstyle U}}
+\newcommand{\lcons}{constructor_{\scriptscriptstyle L}}
+\newcommand{\scons}{constructor_{s}}
+\newcommand{\pure}[1]{|#1|}
+
+\begin{document}
+
+\section{Inductive Linear Types}
+
+\subsection{Arity}
+For some type $A$ and sort $s$, the judgment $arity(A, s)$ is inductively defined over the structure of $A$ as follows.
+\begin{mathpar}
+  \inferrule
+  { }
+  { arity(s,s) }
+  \rname{ar-sort}
+
+  \inferrule
+  { arity(A, s) }
+  { arity((x \utype M) \rightarrow A, s)}
+  \rname{ar-arrow}
+\end{mathpar}
+
+\subsection{Strict Positivity}
+For some type $P$ and type variable $X$, the judgment $postive(P, X)$ is inductively defined over the structure of $P$ as follows.
+\begin{mathpar}
+  \inferrule
+  { (\forall i = 1...n) \\ X \notin m_i }
+  { postive(X\ m_1...m_n, X) }
+  \rname{pos-x}
+
+  \inferrule
+  { X \notin M \\ postive(P, X)}
+  { postive((x \stype M) \rightarrow P, X) }
+  \rname{pos-arrow}
+
+  \inferrule
+  { X \notin M \\ postive(P, X) }
+  { postive((x \stype M) \multimap P, X) }
+  \rname{pos-lolli}
+\end{mathpar}
+We say that $X$ occurs strictly postive in $P$ if the judgment $postive(P,X)$ is valid.
+
+\subsection{Non-Linear Constructor}
+For some type $C$ and type variable $X$, the judgment $\ucons(C, X)$ is inductively defined over the structure of $C$ as follows.
+\begin{mathpar}
+  \inferrule
+  { (\forall i = 1...n) \\ X \notin m_i }
+  { \ucons(X\ m_i...m_n, X) }
+  \rname{u-constr-x}
+
+  \inferrule
+  { postive(P, X) \\ \ucons(C, X) }
+  { \ucons((\_ \utype P) \rightarrow C, X)}
+  \rname{u-constr-pos}
+
+  \inferrule
+  { X \notin M \\ \ucons(C, X) }
+  { \ucons((x \utype M) \rightarrow C, X)}
+  \rname{u-constr-arrow}
+\end{mathpar}
+Non-linear constructors are used for constructing non-linear objects that may be freely used. These constructors may not applied to linear terms as this may cause duplication of linear variables.
+
+\subsection{Linear Constructor}
+For some type $C$ and type variable $X$, the judgment $\lcons(C, X)$ is inductively defined over the structure of $C$ as follows.
+\begin{mathpar}
+  \inferrule
+  { (\forall i = 1...n) \\ X \notin m_i }
+  { \lcons(X\ m_i...m_n, X) }
+  \rname{l-constr-x} \\
+
+  \inferrule
+  { postive(P, X) \\ \lcons(C, X) }
+  { \lcons((\_ \utype P) \rightarrow C, X)}
+  \rname{l-constr-pos-1}
+
+  \inferrule
+  { X \notin M \\ \lcons(C, X) }
+  { \lcons((x \utype M) \rightarrow C, X)}
+  \rname{l-constr-arrow-1}
+
+  \inferrule
+  { postive(P, X) \\ activation(C, X) }
+  { \lcons((\_ \ltype P) \rightarrow C, X)}
+  \rname{l-constr-pos-2}
+
+  \inferrule
+  { X \notin M \\ activation(C, X) }
+  { \lcons((x \ltype M) \rightarrow C, X)}
+  \rname{l-constr-arrow-2}
+\end{mathpar}
+For some type $C$ and type variable $X$, the judgment $activation(C, X)$ is inductively defined over the structure of $C$ as follows.
+\begin{mathpar}
+  \inferrule
+  { (\forall i = 1...n) \\ X \notin m_i }
+  { activation(X\ m_i...m_n, X) }
+  \rname{act-x}
+
+  \inferrule
+  { postive(P, X) \\ activation(C, X) }
+  { activation((\_ \stype P) \multimap C, X)}
+  \rname{act-pos}
+
+  \inferrule
+  { X \notin M \\ activation(C, X) }
+  { activation((x \stype M) \multimap C, X)}
+  \rname{act-lolli}
+\end{mathpar}
+Linear constructors are used for constructing linear objects that must be used once. These constructors can be applied to linear terms as restricted usage prevent duplication of linear variables.
+
+An unapplied linear constructor is a non-linear entity as they can be created freely ``out of thin air". However, once a linear constructor has been partially applied to a linear term, its linearity is ``activated'' as seen in rules \rname{l-constr-pos-2} and \rname{l-constr-arrow-2}, essentially forcing the rest of its arguments to be fully applied. This is done to prevent partially applied constructors from duplicating linear variables.
+
+\pagebreak
+
+\subsection{Introduction Rules}
+The formation of new inductive types is defined as follows.
+\begin{mathpar}
+  \inferrule
+  { (\forall i = 1...n) \\ arity(A, s) \\ \scons(C_i, X) \\\\
+    \pure{\Gamma} \\ 
+    \Gamma \vdash A : U_{k+1} \\ 
+    \Gamma, X \utype A \vdash C_i : U_k }
+  { \Gamma \vdash Ind_s(X : A)\{C_1|...|C_n\} : A }
+  \rname{ind-intro}
+\end{mathpar}
+The formation of constructors for defined inductive types is defined as follows.
+\begin{mathpar}
+  \inferrule
+  { \pure{\Gamma} \\   
+    I_s := Ind_s(X : A)\{C_1|...|C_n\} \\
+    \Gamma \vdash I_s :A \\
+    1 \leq i \leq n }
+  { \Gamma \vdash Constr(i, I_s) : C_i[I_s/X] }
+  \rname{constr-intro}
+\end{mathpar}
+
+\subsection{Non-Dependent Case}
+\subsection{Dependent Case}
+\subsection{Fixpoint}
+\subsection{Examples}
+
+\end{document}
