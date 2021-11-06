@@ -14,7 +14,18 @@
 \newcommand{\ucons}{constructor_{\scriptscriptstyle U}}
 \newcommand{\lcons}{constructor_{\scriptscriptstyle L}}
 \newcommand{\scons}{constructor_{s}}
+\newcommand{\indu}{\text{Ind}_{\scriptscriptstyle U}}
+\newcommand{\indl}{\text{Ind}_{\scriptscriptstyle L}}
+\newcommand{\inds}{\text{Ind}_s}
+\newcommand{\constr}{\text{Constr}}
+\newcommand{\case}{\text{Case}}
+\newcommand{\dcase}{\text{DCase}}
+\newcommand{\fix}{\text{Fix }}
 \newcommand{\pure}[1]{|#1|}
+\newcommand{\mrg}[3]{#1\ddagger#2\ddagger#3}
+\newcommand{\restr}[1]{\overline{#1}}
+\newcommand{\lrangle}[1]{\langle #1 \rangle}
+
 
 \begin{document}
 
@@ -33,13 +44,23 @@ For some type $A$ and sort $s$, the judgment $arity(A, s)$ is inductively define
   { arity((x \utype M) \rightarrow A, s)}
   \rname{ar-arrow}
 \end{mathpar}
+For some arity type $A$ and sort $s'$, the term $A\lrangle{s'}$ is inductively defined over the structure of $A$ as follows.
+\begin{align*}
+  ((x \utype M) \rightarrow A)\lrangle{s'} &= (x \utype M) \rightarrow A\lrangle{s'} \\
+  (s)\lrangle{s'} &= s'
+\end{align*}
+For some arity type $A$, term $I$ and sort $s'$, the term $A\{I, s'\}$ is inductively defined over the structure of $A$ as follows.
+\begin{align*}
+  ((x \utype M) \rightarrow A)\lrangle{I, s'} &= (x \utype M) \rightarrow A\lrangle{(I\ x), s'} \\
+  (s)\lrangle{I, s'} &= (\_ \utype I) \rightarrow s'
+\end{align*}
 
 \subsection{Strict Positivity}
 For some type $P$ and type variable $X$, the judgment $postive(P, X)$ is inductively defined over the structure of $P$ as follows.
 \begin{mathpar}
   \inferrule
   { (\forall i = 1...n) \\ X \notin m_i }
-  { postive(X\ m_1...m_n, X) }
+  { postive((X\ m_1...m_n), X) }
   \rname{pos-x}
 
   \inferrule
@@ -59,7 +80,7 @@ For some type $C$ and type variable $X$, the judgment $\ucons(C, X)$ is inductiv
 \begin{mathpar}
   \inferrule
   { (\forall i = 1...n) \\ X \notin m_i }
-  { \ucons(X\ m_i...m_n, X) }
+  { \ucons((X\ m_i...m_n), X) }
   \rname{u-constr-x}
 
   \inferrule
@@ -79,7 +100,7 @@ For some type $C$ and type variable $X$, the judgment $\lcons(C, X)$ is inductiv
 \begin{mathpar}
   \inferrule
   { (\forall i = 1...n) \\ X \notin m_i }
-  { \lcons(X\ m_i...m_n, X) }
+  { \lcons((X\ m_i...m_n), X) }
   \rname{l-constr-x} \\
 
   \inferrule
@@ -106,7 +127,7 @@ For some type $C$ and type variable $X$, the judgment $activation(C, X)$ is indu
 \begin{mathpar}
   \inferrule
   { (\forall i = 1...n) \\ X \notin m_i }
-  { activation(X\ m_i...m_n, X) }
+  { activation((X\ m_i...m_n), X) }
   \rname{act-x}
 
   \inferrule
@@ -123,8 +144,6 @@ Linear constructors are used for constructing linear objects that must be used o
 
 An unapplied linear constructor is a non-linear entity as they can be created freely ``out of thin air". However, once a linear constructor has been partially applied to a linear term, its linearity is ``activated'' as seen in rules \rname{l-constr-pos-2} and \rname{l-constr-arrow-2}, essentially forcing the rest of its arguments to be fully applied. This is done to prevent partially applied constructors from duplicating linear variables.
 
-\pagebreak
-
 \subsection{Introduction Rules}
 The formation of new inductive types is defined as follows.
 \begin{mathpar}
@@ -133,23 +152,77 @@ The formation of new inductive types is defined as follows.
     \pure{\Gamma} \\ 
     \Gamma \vdash A : U_{k+1} \\ 
     \Gamma, X \utype A \vdash C_i : U_k }
-  { \Gamma \vdash Ind_s(X : A)\{C_1|...|C_n\} : A }
+  { \Gamma \vdash \inds(X : A)\{C_1|...|C_n\} : A }
   \rname{ind-intro}
 \end{mathpar}
 The formation of constructors for defined inductive types is defined as follows.
 \begin{mathpar}
   \inferrule
   { \pure{\Gamma} \\   
-    I_s := Ind_s(X : A)\{C_1|...|C_n\} \\
-    \Gamma \vdash I_s :A \\
+    I := \inds(X : A)\{C_1|...|C_n\} \\
+    \Gamma \vdash I :A \\
     1 \leq i \leq n }
-  { \Gamma \vdash Constr(i, I_s) : C_i[I_s/X] }
+  { \Gamma \vdash \constr(i, I) : C_i[I/X] }
   \rname{constr-intro}
 \end{mathpar}
 
 \subsection{Non-Dependent Case}
+For some constructor type $C$ and type variables $X$ and $Q$, the term $C\{X, Q\}$ is inductively defined over the structure of $C$ as follows.
+\begin{align*}
+  ((\_ \stype P) \rightarrow C)\{X, Q\} &= (\_ \stype P) \multimap C\{X, Q\} \\
+  ((\_ \stype P) \multimap C)\{X, Q\} &= (\_ \stype P) \multimap C\{X, Q\} \\
+  ((x \stype M) \rightarrow C)\{X, Q\} &= (x \stype P) \multimap C\{X, Q\} \\
+  ((x \stype M) \multimap C)\{X, Q\} &= (x \stype P) \multimap C\{X, Q\} \\
+  (X\ m_1...m_n)\{X, Q\} &= (Q\ m_1...m_n)
+\end{align*}
+We define the notation $C[I, P] := C\{X, Q\}[I/X, P/Q]$.
+
+Inductive objects can be eliminated by a case expression as follows.
+\begin{mathpar}
+  \inferrule
+  { (\forall i = 1...n) \\ 
+    \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\ 
+    arity(A, s) \\
+    I := \inds(X : A)\{C_1|...|C_n\} \\\\
+    \Gamma_1 \vdash m : (I\ a_1...a_n) \\
+    \restr{\Gamma_2} \vdash Q : A\lrangle{s'} \\
+    \Gamma_2 \vdash f_i : C_i[I, Q] }
+  { \Gamma \vdash \case(m, Q)\{f_1|...|f_n\} : (Q\ a_1...a_n) }
+  \rname{case}
+\end{mathpar}
+
 \subsection{Dependent Case}
+For some non-linear constructor type $C$ and type variables $X$, $Q$ and $c$, the term $C\{X, Q, c\}$ is inductively defined over the structure of $C$ as follows.
+\begin{align*}
+  ((\_ \utype P) \rightarrow C)\{X, Q, c\} &= (p \utype P) \multimap C\{X, Q, (c\ p)\} \\
+  ((x \utype M) \rightarrow C)\{X, Q, c\} &= (x \utype M) \multimap C\{X, Q, (c\ x)\} \\
+  (X\ m_1...m_n)\{X, Q, c\} &= (Q\ m_1...m_n\ c)
+\end{align*}
+We define the notation $C[I, P, t] := C\{X, Q, c\}[I/X, P/Q, t/c]$.
+
+Non-linear inductive objects can be eliminated by a dependent case expression as follows.
+\begin{mathpar}
+  \inferrule
+  { (\forall i = 1...n) \\ 
+    \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\ 
+    arity(A, U_i) \\
+    I := \indu(X : A)\{C_1|...|C_n\} \\\\
+    \Gamma_1 \vdash m : (I\ a_1...a_n) \\
+    \restr{\Gamma_2} \vdash Q : A\lrangle{I, s'} \\
+    \Gamma_2 \vdash f_i : C_i[I, Q, Constr(i, I)] }
+  { \Gamma \vdash \dcase(m, Q)\{f_1|...|f_n\} : (Q\ a_1...a_n) }
+  \rname{dcase}
+\end{mathpar}
+
 \subsection{Fixpoint}
-\subsection{Examples}
+\begin{mathpar}
+  \inferrule
+  { \pure{\Gamma} \\ 
+    \Gamma \vdash T : U_i \\ 
+    \Gamma, f \utype T \vdash m : T \\
+    \text{guard condition} }
+  { \Gamma \vdash \fix f.m : T }
+  \rname{fix}
+\end{mathpar}
 
 \end{document}
