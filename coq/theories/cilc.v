@@ -8,8 +8,8 @@ Unset Printing Implicit Defensive.
 
 Module CLC.
 
-Declare Scope clc_scope.
-Open Scope clc_scope.
+Declare Scope cilc_scope.
+Open Scope cilc_scope.
 
 Inductive sort : Type := U | L.
 
@@ -659,6 +659,11 @@ Instance substLemmas_term : SubstLemmas term.
   by apply: subst_comp.
 Qed.
 
+Ltac fold_subst :=
+  fold subst_term;
+  fold Subst_term;
+  fold subst.
+
 Fixpoint spine (h : term) (ls : terms) : term :=
   match ls with
   | Nil => h
@@ -827,11 +832,12 @@ Definition sred sigma tau :=
   forall x : var, red (sigma x) (tau x).
 
 Lemma spine_subst sigma h ls :
-  (spine h ls).[sigma] = spine (h.[sigma]) (ls..[sigma]).
+  (spine h ls).[sigma] = spine (h.[sigma]) (subst_terms sigma ls).
 Proof.
   move: sigma h. elim: ls => //.
   move=> a l ih sigma h.
-    replace (a :: l)..[sigma] with (a.[sigma] :: l..[sigma])
+    replace (subst_terms sigma (Cons a l)) 
+      with (Cons a.[sigma] (subst_terms sigma l))
       by autosubst; simpl.
     replace (App h.[sigma] a.[sigma]) with (App h a).[sigma]
       by autosubst.
@@ -839,30 +845,28 @@ Proof.
 Qed.
 
 Lemma iget_subst sigma i ls m :
-  iget i ls m -> iget i ls..[sigma] m.[sigma].
+  iget i ls m -> iget i (subst_terms sigma ls) m.[sigma].
 Proof.
   move=> ig. elim: ig; asimpl.
-  move=> m0 ls0.
-    constructor.
-  move=> n m0 m' ls0 ig ih.
-    constructor=>//.
+  move=> m0 ls0; by constructor.
+  move=> n m0 m' ls0 ig ih; by constructor.
 Qed.
 
 Lemma step_subst sigma m n : 
   step m n -> step m.[sigma] n.[sigma]
 with step'_subst sigma ls ls' : 
-  step' ls ls' -> step' ls..[sigma] ls'..[sigma].
+  step' ls ls' -> step' (subst_terms sigma ls) (subst_terms sigma ls').
 Proof.
   move=> st. elim: st sigma=> /={m n}; eauto using step.
     move=> m n sigma.
       replace (m.[n/].[sigma]) with (m.[up sigma].[n.[sigma]/])
         by autosubst.
       apply step_beta.
-    move=> i m ms Q Fs F ig sigma.
+    move=> i m ms Q Fs F ig sigma; fold_subst.
       rewrite! spine_subst; asimpl.
       constructor.
       by apply: iget_subst.
-    move=> i m ms Q Fs F ig sigma.
+    move=> i m ms Q Fs F ig sigma; fold_subst.
       rewrite! spine_subst; asimpl.
       constructor.
       by apply: iget_subst.
@@ -900,22 +904,61 @@ Proof.
   apply: (star_hom ((Lolli A2)^~ s)) B=> x y. exact: step_LolliR.
 Qed.
 
-Lemma red_Ind' A s Cs1 Cs2 :
-  red' Cs1 Cs2 -> red (Ind A s Cs1) (Ind A s Cs2).
-Proof.
-  move=> rd. elim: rd=> //.
-  move=> y z rd' rd st.
-  apply: star_trans.
-  apply: rd.
-  apply: star1; eauto using step.
-Qed.
-
 Lemma red_Ind A1 A2 s Cs1 Cs2 :
   red A1 A2 -> red' Cs1 Cs2 -> red (Ind A1 s Cs1) (Ind A2 s Cs2).
 Proof.
-  move=> A B. apply: (star_trans (Ind A2 s Cs1)).
+  move=> A B. 
+  apply: (star_trans (Ind A2 s Cs1)).
   apply: (star_hom ((Ind^~ s)^~ Cs1)) A=> x y. exact: step_IndA.
-  apply: red_Ind'=> //.
+  elim: B=> //.
+    move=> y z rd' rd st.
+    apply: star_trans.
+      by apply: rd.
+      by apply: star1; eauto using step.
+Qed.
+
+Lemma red_Constr i m1 m2 :
+  red m1 m2 -> red (Constr i m1) (Constr i m2).
+Proof.
+  move=> A.
+  apply: (star_hom (Constr i)) A => x y. exact: step_Constr.
+Qed.
+
+Lemma red_Case m1 m2 Q1 Q2 Fs1 Fs2 :
+  red m1 m2 -> red Q1 Q2 -> red' Fs1 Fs2 -> red (Case m1 Q1 Fs1) (Case m2 Q2 Fs2).
+Proof.
+  move=> A B C. 
+  apply: (star_trans (Case m2 Q1 Fs1)).
+  apply: (star_hom ((Case^~ Q1)^~ Fs1)) A=> x y. exact: step_CaseM.
+  apply: (star_trans (Case m2 Q2 Fs1)).
+  apply: (star_hom ((Case m2)^~ Fs1)) B=> x y. exact: step_CaseQ.
+  elim: C=> //.
+    move=> y z rd' rd st.
+    apply: star_trans.
+      by apply: rd.
+      by apply: star1; eauto using step.
+Qed.
+
+Lemma red_DCase m1 m2 Q1 Q2 Fs1 Fs2 :
+  red m1 m2 -> red Q1 Q2 -> red' Fs1 Fs2 -> red (DCase m1 Q1 Fs1) (DCase m2 Q2 Fs2).
+Proof.
+  move=> A B C. 
+  apply: (star_trans (DCase m2 Q1 Fs1)).
+  apply: (star_hom ((DCase^~ Q1)^~ Fs1)) A=> x y. exact: step_DCaseM.
+  apply: (star_trans (DCase m2 Q2 Fs1)).
+  apply: (star_hom ((DCase m2)^~ Fs1)) B=> x y. exact: step_DCaseQ.
+  elim: C=> //.
+    move=> y z rd' rd st.
+    apply: star_trans.
+      by apply: rd.
+      by apply: star1; eauto using step.
+Qed.
+
+Lemma red_Fix m1 m2 :
+  red m1 m2 -> red (Fix m1) (Fix m2).
+Proof.
+  move=> A.
+  apply: (star_hom Fix) A=> x y. exact: step_Fix.
 Qed.
 
 Lemma red_subst sigma m n :
@@ -931,41 +974,24 @@ Proof.
     by apply: star1.
 Qed.
 
-Lemma red'_h h h' ls :
-  red h h' -> red' (h :: ls) (h' :: ls).
+Lemma red'_h h1 h2 ls :
+  red h1 h2 -> red' (Cons h1 ls) (Cons h2 ls).
 Proof.
   move=> rd. elim: rd ls=> //.
   move=> y z rd ih st ls.
-    have st' : step' (y :: ls) (z :: ls).
-      by apply: step'_cons1.
-    apply: star_trans.
-    apply: ih.
-    by apply: star1.
+  apply: star_trans.
+    by apply: ih.
+    by apply: star1; constructor.
 Qed.
 
 Lemma red'_ls h ls ls' :
-  red' ls ls' -> red' (h :: ls) (h :: ls').
+  red' ls ls' -> red' (Cons h ls) (Cons h ls').
 Proof.
   move=> rd. elim: rd h=> //.
   move=> y z rd ih st h.
-    have st' : step' (h :: y) (h :: z).
-      by apply: step'_cons2.
-    apply: star_trans.
-    apply: ih.
-    by apply: star1.
-Qed.
-
-Lemma red'_subst sigma Cs Cs' :
-  red' Cs Cs' -> red' Cs..[sigma] Cs'..[sigma].
-Proof.
-  move=> rd. elim: rd sigma=> /={Cs'}.
-  move=> sigma //.
-  move=> y z rd ih st sigma.
-    have rd1 := ih sigma.
-    apply: star_trans.
-    apply rd1.
-    move: st=> /(step'_subst sigma) rd2.
-    by apply: star1.
+  apply: star_trans.
+    by apply: ih.
+    by apply: star1; constructor.
 Qed.
 
 Lemma sred_up sigma tau : 
@@ -976,11 +1002,21 @@ Proof.
   exact: A. 
 Qed.
 
-Hint Resolve red_App red_Lam red_Prod red_Lolli red_Ind sred_up : red_congr.
+Hint Resolve 
+  red_App red_Lam red_Prod red_Lolli 
+  red_Ind red_Constr red_Case red_DCase red_Fix
+  red_subst sred_up 
+: red_congr.
 
 Lemma red_compat sigma tau s : 
-  sred sigma tau -> red s.[sigma] s.[tau].
+  sred sigma tau -> red s.[sigma] s.[tau]
+with red_compat' sigma tau ls :
+  sred sigma tau -> red' (subst_terms sigma ls) (subst_terms tau ls).
 Proof. 
-  elim: s sigma tau=> *; asimpl; eauto 6 with red_congr.
-  apply: red_Ind; eauto.
-
+  elim: s sigma tau=> /={red_compat}; asimpl; eauto 6 with red_congr.
+  elim: ls sigma tau=> /={red_compat'}; asimpl; eauto 6 with red_congr.
+    move=> t t0 ih sigma tau sr.
+    apply: star_trans.
+      apply: red'_h; exact: red_compat.
+      apply: red'_ls; exact: ih.
+Qed.
