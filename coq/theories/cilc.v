@@ -890,42 +890,10 @@ Proof.
   move=> t ls e. by rewrite rev_sing e.
 Qed.
 
-Lemma append_sing_False h ls : ~Nil = append ls (sing h).
-Proof. elim: ls h=> //=. Qed.
-
-Lemma append_inj ls1 ls2 t1 t2 :
-  append ls1 (sing t1) = append ls2 (sing t2) ->
-    ls1 = ls2 /\ t1 = t2.
-Proof.
-  elim: ls1 ls2 t1 t2=> //=.
-  move=> ls1 t1 t2.
-    destruct ls1=> //= e.
-    by inv e.
-    rewrite /sing in e.
-    inv e.
-    by move: H1=> /append_sing_False.
-  move=> t ls1 ih ls2 t1 t2.
-    destruct ls2=> //= e.
-    rewrite /sing in e.
-    inv e.
-    exfalso.
-    apply: append_sing_False.
-    by rewrite <- H1.
-    inv e.
-    by move: H1=> /ih[->->].
-Qed.
-
 Lemma rev_inj ls1 ls2 : rev ls1 = rev ls2 -> ls1 = ls2.
 Proof.
-  elim: ls1 ls2=> //=.
-  move=> ls2. by destruct ls2=> //= /append_sing_False.
-  move=> t ls1 ih ls2.
-    destruct ls2=> //= e.
-    exfalso.
-    apply: append_sing_False.
-    by rewrite <- e.
-    move: e=> /append_inj[e1->].
-    by move: e1=> /ih ->.
+  move=> /(f_equal rev).
+  by rewrite! rev_rev.
 Qed.
 
 Lemma spine_append h xs ys :
@@ -1561,7 +1529,7 @@ Proof with eauto using psstep_refl, psstep_compat.
   apply: pstep_compat...
 Qed.
 
-Lemma pstep'_iget1 ls ls' i m :
+Lemma pstep_iget1' ls ls' i m :
   pstep' ls ls' -> iget i ls m -> exists m', iget i ls' m' /\ pstep m m'.
 Proof with eauto using iget.
   move=> p.
@@ -1573,7 +1541,7 @@ Proof with eauto using iget.
     exists m'0...
 Qed.
 
-Lemma pstep'_iget2 ls ls' i m' :
+Lemma pstep_iget2' ls ls' i m' :
   pstep' ls ls' -> iget i ls' m' -> exists m, iget i ls m /\ pstep m m'.
 Proof with eauto using iget.
   move=> p.
@@ -1595,75 +1563,65 @@ Proof.
   exact: pstep_App.
 Qed.
 
-Lemma pstep_spine_inv h ls m :
-  pstep (spine h ls) m -> (~ exists m, h = Lam m) -> 
-    exists h' ls', m = spine h' ls' /\ pstep h h' /\ pstep' ls ls'.
+Lemma spine_Lam_Constr_False m i h ls :
+  ~Lam m = spine' (Constr i h) ls.
+Proof. elim: ls=> //=. Qed.
+
+Lemma pstep_spine_inv' i h ls m :
+  pstep (spine' (Constr i h) ls) m -> 
+    exists h' ls', 
+      m = spine' (Constr i h') ls' /\ pstep h h' /\ pstep' ls ls'.
 Proof with eauto using pstep, pstep', pstep_refl, pstep_refl'.
   elim: ls h m.
-  move=> h m //= p nx.
-  exists m; exists Nil...
-  move=> t t0 ih h m //= p nx.
-  move: p=> /ih p.
-  have pf : ~ (exists m, App h t = Lam m).
-    apply: all_not_not_ex=> n.
-    have pf := classic (App h t = Lam n).
-    inv pf=> //.
-  move: pf=> /p [h' [ls' [-> [p1 p2]]]].
-  inv p1.
-  exists m'; exists (Cons n' ls')...
-  exfalso.
-  apply: nx.
-  by exists m0.
+  move=> h m //= p. inv p.
+    exists m'. exists Nil...
+  move=> t t0 ih h m //= p. inv p.
+    move: H1=>/ih[h'[ls'[->[p1 p2]]]].
+    exists h'. exists (Cons n' ls')...
+    exfalso.
+    by apply: spine_Lam_Constr_False; eauto.
 Qed.
 
+Lemma pstep_append' ls1 ls2 ls1' ls2' :
+  pstep' ls1 ls2 -> pstep' ls1' ls2' ->
+    pstep' (append ls1 ls1') (append ls2 ls2').
+Proof with eauto using pstep'.
+  move=> p. elim: p ls1' ls2'=> //={ls1 ls2}...
+Qed.
 
-(* pstep_diamond': ∀ ls ls1 ls2 : terms,
-                   pstep' ls ls1
-                   → pstep' ls ls2
-                     → ∃ ls' : terms, pstep' ls1 ls' ∧ pstep' ls2 ls'
-m, m', Q, Q': term
-Fs, Fs': terms
-p1: pstep m m'
-ih1: ∀ m2 : term, pstep m m2 → ∃ m'0 : term, pstep m' m'0 ∧ pstep m2 m'0
-p2: pstep Q Q'
-ih2: ∀ m2 : term, pstep Q m2 → ∃ m' : term, pstep Q' m' ∧ pstep m2 m'
-p3: pstep' Fs Fs'
-m2: term
-p4: pstep (Case m Q Fs) m2
-1/7
-∃ m'0 : term, pstep (Case m' Q' Fs') m'0 ∧ pstep m2 m'0 *)
+Lemma pstep_rev' ls1 ls2 :
+  pstep' ls1 ls2 -> pstep' (rev ls1) (rev ls2).
+Proof with eauto using pstep'.
+  elim=> //={ls1 ls2}...
+  move=> m m' ls ls' p1 p2 p3.
+    apply pstep_append'...
+Qed.
 
-Lemma pstep_pstep'_diamond :
-  (forall m m1 (p : pstep m m1), 
-    forall m2, pstep m m2 -> exists m', pstep m1 m' /\ pstep m2 m') /\
-  (forall ls ls1 (p : pstep' ls ls1),
-    forall ls2, pstep' ls ls2 -> exists ls', pstep' ls1 ls' /\ pstep' ls2 ls').
-Proof with eauto 6 using pstep, pstep', pstep_compat_Beta, pstep_spine, pstep_refl.
-  apply: pstep_pstep'_ind.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  move=> m m' Q Q' Fs Fs' p1 ih1 p2 ih2 p3 ih3 m2 p4. inv p4.
-    move: H2=> /ih1 [m'1 [p4 p5]].
-    move: H4=> /ih2 [m'2 [p6 p7]].
-    move: (ih3 _ H5)=> [ls' [p8 p9]].
-    exists (Case m'1 m'2 ls')...
-    move: H6=> /ih3[ls1 [p10 p11]].
-    move: (pstep'_iget1 p11 H3)=> [F1 [ig1 p12]].
-    move: (pstep'_iget2 p10 ig1)=> [F2 [ig2 p13]].
-    exists (spine F1 ms')...
+Lemma pstep_spine_inv i h ls m :
+  pstep (spine (Constr i h) ls) m -> 
+    exists h' ls', 
+      m = spine (Constr i h') ls' /\ pstep h h' /\ pstep' ls ls'.
+Proof with eauto using pstep, pstep', pstep_refl, pstep_refl'.
+  move=> p.
+  move: (rev_rev ls)=> e.
+  rewrite <- e in p.
+  rewrite spine_spine'_rev in p.
+  move: p=> /pstep_spine_inv'[h'[ls'[->[p1 p2]]]].
+  exists h'. exists (rev ls').
+  rewrite spine_spine'_rev.
+  rewrite rev_rev.
+  rewrite rev_rev in p2.
+  firstorder.
+  apply pstep_rev' in p2.
+  by rewrite rev_rev in p2.
+Qed.
 
-Fixpoint pstep_diamond (m m1 m2 : term) (p : pstep m m1) :
+Fixpoint pstep_diamond (m m1 m2 : term) (p : pstep m m1) {struct p} :
   pstep m m2 -> exists m', pstep m1 m' /\ pstep m2 m'
-with pstep_diamond' (ls ls1 ls2 : terms) (p : pstep' ls ls1) :
+with pstep_diamond' (ls ls1 ls2 : terms) (p : pstep' ls ls1) {struct p} :
   pstep' ls ls2 -> exists ls', pstep' ls1 ls' /\ pstep' ls2 ls'.
-Proof with eauto 6 using pstep, pstep', pstep_compat_Beta, pstep_spine.
+Proof with eauto 6 using 
+  pstep, pstep', pstep_compat_Beta, pstep_spine, pstep_refl, pstep_refl'.
   elim: p m2=> {m m1 pstep_diamond}.
     move=> x m2 p. inv p. exists (Var x)...
     move=> srt l m2 p. inv p. exists (Sort srt l)...
@@ -1709,15 +1667,19 @@ Proof with eauto 6 using pstep, pstep', pstep_compat_Beta, pstep_spine.
       move: H4=> /ih2 [m'2 [p6 p7]].
       move: (pstep_diamond' _ _ _ p3 H5)=> [ls' [p8 p9]].
       exists (Case m'1 m'2 ls')...
-      have pf :  ~(exists m : term, Constr i m0 = Lam m).
-        move=> [m1 e] //=.
-      move: p1=> /pstep_spine_inv p1.
-      move: pf=> /p1 [h' [ls'0 [-> [p4 p6]]]]. inv p4. 
-      move: (pstep_diamond' _ _ _ H4 p6)=> [ls' [p7 p8]].
-      move: (pstep_diamond' _ _ _ p3 H6)=> [ls'1 [p9 p10]].
-      move: (pstep'_iget1 p10 H3)=> [F1 [ig1 p11]].
-      move: (pstep'_iget2 p9 ig1)=> [F2 [ig2 p12]].
-      exists (spine F1 ls')...
+      have pf : pstep (spine (Constr i m0) ms) (spine (Constr i m0) ms').
+        apply: pstep_spine...
+      move: pf=> /pstep_spine_inv[h1[ls1[e1[p6 p7]]]]; subst.
+      move: p1=> /pstep_spine_inv[h2[ls2[e2[p8 p9]]]]; subst.
+
+      move: (pstep_diamond' _ _ _ p3 H6)=> [ls'1 [p8 p9]].
+      move: (pstep_iget1' p9 H3)=> [F1 [ig1 p11]].
+      move: (pstep_iget2' p8 ig1)=> [F2 [ig2 p12]].
+      exists (spine F1 ls').
+        split.
+        eapply pstep_CaseIota...
+        eapply pstep_spine...
+        constructor.
     move=> i m ms ms' Q Fs Fs' F F' ig ig' p1 p2 p3 ih m2 p4. inv p4.
       have pf :  ~(exists m0 : term, Constr i m = Lam m0).
         move=> [m0 e] //=.
@@ -1743,7 +1705,7 @@ Proof with eauto 6 using pstep, pstep', pstep_compat_Beta, pstep_spine.
         move=> [m e] //=.
       move: p1=> /pstep_spine_inv p1.
       move: pf=> /p1 [h' [ls'0 [-> [p4 p6]]]]. inv p4. 
-      move: (pstep_diamond' _ _ _ H4 p6)=> [ls' [p7 p8]].
+      move: (pstep_diamond' _ _ _ p6 H4)=> [ls' [p7 p8]].
       move: (pstep_diamond' _ _ _ p3 H6)=> [ls'1 [p9 p10]].
       move: (pstep'_iget1 p10 H3)=> [F1 [ig1 p11]].
       move: (pstep'_iget2 p9 ig1)=> [F2 [ig2 p12]].

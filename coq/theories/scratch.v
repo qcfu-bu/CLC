@@ -423,6 +423,62 @@ Inductive term : Type :=
 | DCase  (m Q : term) (Fs : list term)
 | Fix    (m : {bind term}).
 
+Section term_nested_ind.
+  Variable P : term -> Prop.
+  Hypothesis ih_Var : forall x, P (Var x).
+  Hypothesis ih_Sort : forall s l, P (Sort s l).
+  Hypothesis ih_Prod : forall A B s, P A -> P B -> P (Prod A B s).
+  Hypothesis ih_Lolli : forall A B s, P A -> P B -> P (Lolli A B s).
+  Hypothesis ih_Lam : forall m, P m -> P (Lam m).
+  Hypothesis ih_App : forall m n, P m -> P n -> P (App m n).
+  Hypothesis ih_Ind : forall A s Cs, P A -> List.Forall P Cs -> P (Ind A s Cs).
+  Hypothesis ih_Constr : forall i m, P m -> P (Constr i m).
+  Hypothesis ih_Case : 
+    forall m Q Fs, P m -> P Q -> List.Forall P Fs -> P (Case m Q Fs).
+  Hypothesis ih_DCase : 
+    forall m Q Fs, P m -> P Q -> List.Forall P Fs -> P (DCase m Q Fs).
+  Hypothesis ih_Fix : forall m, P m -> P (Fix m).
+
+  Fixpoint term_nested_ind m : P m.
+  Proof.
+    pose ih_nested := (
+      fix fold xs : List.Forall P xs :=
+        match xs with
+        | nil => List.Forall_nil _
+        | x :: xs => List.Forall_cons _ (term_nested_ind x) (fold xs)
+        end).
+    case m.
+    apply ih_Var.
+    apply ih_Sort.
+    intros; apply ih_Prod.
+      apply term_nested_ind.
+      apply term_nested_ind.
+    intros; apply ih_Lolli.
+      apply term_nested_ind.
+      apply term_nested_ind.
+    intros; apply ih_Lam.
+      apply term_nested_ind.
+    intros; apply ih_App.
+      apply term_nested_ind.
+      apply term_nested_ind.
+    intros; apply ih_Ind.
+      apply term_nested_ind.
+      apply ih_nested.
+    intros; apply ih_Constr.
+      apply term_nested_ind.
+    intros; apply ih_Case.
+      apply term_nested_ind.
+      apply term_nested_ind.
+      apply ih_nested.
+    intros; apply ih_DCase.
+      apply term_nested_ind.
+      apply term_nested_ind.
+      apply ih_nested.
+    intros; apply ih_Fix.
+      apply term_nested_ind.
+  Qed.
+End term_nested_ind.
+
 Instance Ids_term : Ids term. derive. Defined.
 Instance Rename_term : Rename term. derive. Defined.
 Instance Subst_term : Subst term. derive. Defined.
@@ -504,7 +560,7 @@ Inductive step : term -> term -> Prop :=
   step (DCase m Q Fs) (DCase m Q' Fs)
 | step_DCaseFs m Q Fs Fs' :
   one step Fs Fs' ->
-  step (DCase m Q Fs) (DCase m Q Fs')
+  step (DCase m Q Fs) (DCase m Q Fs') 
 | step_DCaseIota i m ms Q Fs F :
   iget i Fs F ->
   step 
@@ -515,6 +571,125 @@ Inductive step : term -> term -> Prop :=
   step (Fix m) (Fix m')
 | step_FixIota m :
   step (Fix m) (m.[Fix m/]).
+
+Section step_ind_nested.
+  Variable P : term -> term -> Prop.
+  Hypothesis ih_Lam : 
+    forall m m', step m m' -> P m m' -> P (Lam m) (Lam m').
+  Hypothesis ih_AppL : 
+    forall m m' n, step m m' -> P m m' -> P (App m n) (App m' n).
+  Hypothesis ih_AppR :
+    forall m n n', step n n' -> P n n' -> P (App m n) (App m n').
+  Hypothesis ih_Beta : 
+    forall m n, P (App (Lam m) n) m.[n/].
+  Hypothesis ih_ProdL :
+    forall A A' B s, step A A' -> P A A' -> P (Prod A B s) (Prod A' B s).
+  Hypothesis ih_ProdR :
+    forall A B B' s, step B B' -> P B B' -> P (Prod A B s) (Prod A B' s).
+  Hypothesis ih_LolliL :
+    forall A A' B s, step A A' -> P A A' -> P (Lolli A B s) (Lolli A' B s).
+  Hypothesis ih_LolliR :
+    forall A B B' s, step B B' -> P B B' -> P (Lolli A B s) (Lolli A B' s).
+  Hypothesis ih_IndA :
+    forall A A' s Cs, step A A' -> P A A' -> P (Ind A s Cs) (Ind A' s Cs).
+  Hypothesis ih_IndCs :
+    forall A s Cs Cs', one step Cs Cs' -> one P Cs Cs' -> 
+      P (Ind A s Cs) (Ind A s Cs').
+  Hypothesis ih_Constr :
+    forall i m m', step m m' -> P m m' -> P (Constr i m) (Constr i m').
+  Hypothesis ih_CaseM :
+    forall m m' Q Fs, step m m' -> P m m' -> P (Case m Q Fs) (Case m' Q Fs).
+  Hypothesis ih_CaseQ :
+    forall m Q Q' Fs, step Q Q' -> P Q Q' -> P (Case m Q Fs) (Case m Q' Fs).
+  Hypothesis ih_CaseFs :
+    forall m Q Fs Fs', one step Fs Fs' -> one P Fs Fs' -> 
+      P (Case m Q Fs) (Case m Q Fs').
+  Hypothesis ih_CaseIota : 
+    forall i m ms Q Fs F, iget i Fs F ->
+      P (Case (spine (Constr i m) ms) Q Fs) (spine F ms).
+  Hypothesis ih_DCaseM :
+    forall m m' Q Fs, step m m' -> P m m' -> P (DCase m Q Fs) (DCase m' Q Fs).
+  Hypothesis ih_DCaseQ :
+    forall m Q Q' Fs, step Q Q' -> P Q Q' -> P (DCase m Q Fs) (DCase m Q' Fs).
+  Hypothesis ih_DCaseFs :
+    forall m Q Fs Fs', one step Fs Fs' -> one P Fs Fs' -> 
+      P (DCase m Q Fs) (DCase m Q Fs').
+  Hypothesis ih_DCaseIota : 
+    forall i m ms Q Fs F, iget i Fs F ->
+      P (DCase (spine (Constr i m) ms) Q Fs) (spine F ms).
+  Hypothesis ih_Fix :
+    forall m m', step m m' -> P m m' -> P (Fix m) (Fix m').
+  Hypothesis ih_FixIota :
+    forall m, P (Fix m) (m.[Fix m/]).
+
+  Fixpoint step_ind_nested m m' (st : step m m') : P m m'.
+  Proof.
+    pose ih_nested := (
+      fix fold ls1 ls2 (p : one step ls1 ls2) : one P ls1 ls2 :=
+        match p with
+        | one_hd _ _ _ hd => one_hd _ (step_ind_nested _ _ hd)
+        | one_tl _ _ _ tl => one_tl _ (fold _ _ tl)
+        end).
+    case st.
+    intros; apply ih_Lam.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_AppL.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_AppR.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_Beta.
+    intros; apply ih_ProdL.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_ProdR.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_LolliL.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_LolliR.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_IndA.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_IndCs.
+      apply H.
+      apply ih_nested; apply H.
+    intros; apply ih_Constr.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_CaseM.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_CaseQ.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_CaseFs.
+      apply H.
+      apply ih_nested; apply H.
+    intros; apply ih_CaseIota.
+      apply H.
+    intros; apply ih_DCaseM.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_DCaseQ.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_DCaseFs.
+      apply H.
+      apply ih_nested; apply H.
+    intros; apply ih_DCaseIota.
+      apply H.
+    intros; apply ih_Fix.
+      apply H.
+      apply step_ind_nested; apply H.
+    intros; apply ih_FixIota.
+  Qed.
+End step_ind_nested.
 
 Inductive all R : list term -> list term -> Prop :=
 | all_nil : all R nil nil
@@ -561,12 +736,10 @@ Inductive pstep : term -> term -> Prop :=
   pstep Q Q' ->
   all pstep Fs Fs' ->
   pstep (Case m Q Fs) (Case m' Q' Fs')
-| pstep_CaseIota i m ms ms' Q Fs Fs' F F' :
-  iget i Fs F ->
+| pstep_CaseIota i m ms ms' Q Fs Fs' F' :
   iget i Fs' F' ->
   all pstep ms ms' ->
   all pstep Fs Fs' ->
-  pstep F F' ->
   pstep 
     (Case (spine (Constr i m) ms) Q Fs)
     (spine F' ms')
@@ -575,12 +748,10 @@ Inductive pstep : term -> term -> Prop :=
   pstep Q Q' ->
   all pstep Fs Fs' ->
   pstep (DCase m Q Fs) (DCase m' Q' Fs')
-| pstep_DCaseIota i m ms ms' Q Fs Fs' F F' :
-  iget i Fs F ->
+| pstep_DCaseIota i m ms ms' Q Fs Fs' F' :
   iget i Fs' F' ->
   all pstep ms ms' ->
   all pstep Fs Fs' ->
-  pstep F F' ->
   pstep 
     (DCase (spine (Constr i m) ms) Q Fs)
     (spine F' ms')
@@ -590,6 +761,136 @@ Inductive pstep : term -> term -> Prop :=
 | pstep_FixIota m m' :
   pstep m m' ->
   pstep (Fix m) (m'.[Fix m'/]).
+
+Section pstep_ind_nested.
+  Variable P : term -> term -> Prop.
+  Hypothesis ih_Var : forall x, P (Var x) (Var x).
+  Hypothesis ih_Sort : forall srt l, P (Sort srt l) (Sort srt l).
+  Hypothesis ih_Lam : 
+    forall n n', pstep n n' -> P n n' -> P (Lam n) (Lam n').
+  Hypothesis ih_App :
+    forall m m' n n', pstep m m' -> P m m' -> pstep n n' -> P n n' -> 
+      P (App m n) (App m' n').
+  Hypothesis ih_Beta :
+    forall m m' n n', pstep m m' -> P m m' -> pstep n n' -> P n n' ->
+      P (App (Lam m) n) m'.[n'/].
+  Hypothesis ih_Prod :
+    forall A A' s B B', pstep A A' -> P A A' -> pstep B B' -> P B B' ->
+      P (Prod A B s) (Prod A' B' s).
+  Hypothesis ih_Lolli :
+    forall A A' s B B', pstep A A' -> P A A' -> pstep B B' -> P B B' ->
+      P (Lolli A B s) (Lolli A' B' s).
+  Hypothesis ih_Ind :
+    forall A A' s Cs Cs', pstep A A' -> P A A' -> all pstep Cs Cs' -> all P Cs Cs' ->
+      P (Ind A s Cs) (Ind A' s Cs').
+  Hypothesis ih_Constr :
+    forall i m m', pstep m m' -> P m m' -> P (Constr i m) (Constr i m').
+  Hypothesis ih_Case :
+    forall m m' Q Q' Fs Fs', 
+      pstep m m' -> P m m' -> 
+      pstep Q Q' -> P Q Q' ->
+      all pstep Fs Fs' -> all P Fs Fs' ->
+      P (Case m Q Fs) (Case m' Q' Fs').
+  Hypothesis ih_CaseIota :
+    forall i m ms ms' Q Fs Fs' F',
+      iget i Fs' F' ->
+      all pstep ms ms' -> all P ms ms' ->
+      all pstep Fs Fs' -> all P Fs Fs' ->
+      P (Case (spine (Constr i m) ms) Q Fs) (spine F' ms').
+  Hypothesis ih_DCase :
+    forall m m' Q Q' Fs Fs', 
+      pstep m m' -> P m m' -> 
+      pstep Q Q' -> P Q Q' ->
+      all pstep Fs Fs' -> all P Fs Fs' ->
+      P (DCase m Q Fs) (DCase m' Q' Fs').
+  Hypothesis ih_DCaseIota :
+    forall i m ms ms' Q Fs Fs' F',
+      iget i Fs' F' ->
+      all pstep ms ms' -> all P ms ms' ->
+      all pstep Fs Fs' -> all P Fs Fs' ->
+      P (DCase (spine (Constr i m) ms) Q Fs) (spine F' ms').
+  Hypothesis ih_Fix :
+    forall m m', pstep m m' -> P m m' -> P (Fix m) (Fix m').
+  Hypothesis ih_FixIota :
+    forall m m', pstep m m' -> P m m' -> P (Fix m) (m'.[Fix m'/]).
+  
+  Fixpoint pstep_ind_nested m m' (st : pstep m m') : P m m'.
+  Proof.
+    pose ih_nested := (
+      fix fold ls1 ls2 (p : all pstep ls1 ls2) : all P ls1 ls2 :=
+        match p with
+        | all_nil => all_nil _
+        | all_cons _ _ _ _ hd tl =>
+          all_cons (pstep_ind_nested _ _ hd) (fold _ _ tl)
+        end).
+    case st.
+    apply ih_Var.
+    apply ih_Sort.
+    intros; apply ih_Lam.
+      apply H.
+      apply pstep_ind_nested; apply H.
+    intros; apply ih_App.
+      apply H.
+      apply pstep_ind_nested; apply H.
+      apply H0.
+      apply pstep_ind_nested; apply H0.
+    intros; apply ih_Beta.
+      apply H.
+      apply pstep_ind_nested; apply H.
+      apply H0.
+      apply pstep_ind_nested; apply H0.
+    intros; apply ih_Prod.
+      apply H.
+      apply pstep_ind_nested; apply H.
+      apply H0.
+      apply pstep_ind_nested; apply H0.
+    intros; apply ih_Lolli.
+      apply H.
+      apply pstep_ind_nested; apply H.
+      apply H0.
+      apply pstep_ind_nested; apply H0.
+    intros; apply ih_Ind.
+      apply H.
+      apply pstep_ind_nested; apply H.
+      apply H0.
+      apply ih_nested; apply H0.
+    intros; apply ih_Constr.
+      apply H.
+      apply pstep_ind_nested; apply H.
+    intros; apply ih_Case.
+      apply H.
+      apply pstep_ind_nested; apply H.
+      apply H0.
+      apply pstep_ind_nested; apply H0.
+      apply H1.
+      apply ih_nested; apply H1.
+    intros; eapply ih_CaseIota.
+      apply H.
+      apply H0.
+      apply ih_nested; apply H0.
+      apply H1.
+      apply ih_nested; apply H1.
+    intros; apply ih_DCase.
+      apply H.
+      apply pstep_ind_nested; apply H.
+      apply H0.
+      apply pstep_ind_nested; apply H0.
+      apply H1.
+      apply ih_nested; apply H1.
+    intros; eapply ih_DCaseIota.
+      apply H.
+      apply H0.
+      apply ih_nested; apply H0.
+      apply H1.
+      apply ih_nested; apply H1.
+    intros; apply ih_Fix.
+      apply H.
+      apply pstep_ind_nested; apply H.
+    intros; apply ih_FixIota.
+      apply H.
+      apply pstep_ind_nested; apply H.
+  Qed.
+End pstep_ind_nested.
 
 Notation red := (star step).
 Notation conv := (conv step).
@@ -602,6 +903,26 @@ Fixpoint spine' (h : term) (ls : list term) : term :=
   | nil => h
   | m :: ls => App (spine' h ls) m
   end.
+
+  (* Lemma OnOne2_mapP {A B} {P} {l l' : list A} (f : A → B) :
+  OnOne2 (on_rel P f) l l' → OnOne2 P (map f l) (map f l'). *)
+(* 
+  Definition on_rel {A B} (R : A → A → Prop) (f : B → A) : B → B → Prop :=
+  fun x y ⇒ R (f x) (f y). *)
+
+Lemma one_map R Q ls1 ls2 :
+  (forall m n, R m n -> R (Q m) (Q n)) -> 
+    one R ls1 ls2 -> one R (map Q ls1) (map Q ls2).
+Proof.
+  move=> f one.
+  elim: one f.
+  move=> m m' ls r f.
+    constructor.
+    exact: f.
+  move=> m ls ls' one ih f //=.
+    constructor.
+    exact: ih.
+Qed.
 
 Lemma rev_inj (ls1 ls2 : list term) : rev ls1 = rev ls2 -> ls1 = ls2.
 Proof.
@@ -695,10 +1016,46 @@ Proof.
   move=> n m0 m' ls0 ig ih; by constructor.
 Qed.
 
-Lemma step_subst sigma m n : 
-  step m n -> step m.[sigma] n.[sigma].
+Fixpoint step_subst sigma m n (st : step m n) {struct st} : 
+  step m.[sigma] n.[sigma].
 Proof.
-  move=> st. elim: st sigma=> /={m n}; eauto using step.
+  (* move: sigma. 
+  destruct st; 
+    try solve [constructor; exact: step_subst].
+  move=> sigma.
+    replace (m.[n/].[sigma]) with (m.[up sigma].[n.[sigma]/])
+    by autosubst.
+    exact: step_Beta.
+  move=> sigma; asimpl. 
+    constructor.
+    have pf := one_map (step_subst (up sigma)) H.
+    apply: pf.
+  move=> sigma; asimpl.
+    constructor.
+    have pf := one_map (step_subst sigma) H.
+    apply: pf.
+  move=> sigma.
+    repeat (rewrite spine_subst; asimpl).
+    constructor.
+    exact: iget_subst.
+  move=> sigma; asimpl.
+    constructor.
+    have pf := one_map (step_subst sigma) H.
+    apply: pf.
+  move=> sigma.
+    repeat (rewrite spine_subst; asimpl).
+    constructor.
+    exact: iget_subst.
+  move=> sigma.
+    replace m.[Fix m/].[sigma] with m.[up sigma].[Fix m.[up sigma]/]
+      by autosubst.
+    constructor.
+Qed.   *)
+Admitted.
+
+
+
+  (* move=> st. elim: st sigma=> /={m n}; eauto using step.
     move=> m n sigma.
       replace (m.[n/].[sigma]) with (m.[up sigma].[n.[sigma]/])
         by autosubst.
@@ -718,7 +1075,8 @@ Proof.
         by autosubst.
       constructor.    
   move=> st. elim: st sigma; asimpl; eauto using step'.
-Qed.
+Qed. *)
+
 
 Lemma red_App m1 m2 n1 n2 :
   red m1 m2 -> red n1 n2 -> red (App m1 n1) (App m2 n2).
@@ -748,7 +1106,8 @@ Proof.
 Qed.
 
 Lemma red_Ind A1 A2 s Cs1 Cs2 :
-  red A1 A2 -> red' Cs1 Cs2 -> red (Ind A1 s Cs1) (Ind A2 s Cs2).
+  red A1 A2 -> star (one step) Cs1 Cs2 -> 
+    red (Ind A1 s Cs1) (Ind A2 s Cs2).
 Proof.
   move=> A B. 
   apply: (star_trans (Ind A2 s Cs1)).
@@ -768,7 +1127,8 @@ Proof.
 Qed.
 
 Lemma red_Case m1 m2 Q1 Q2 Fs1 Fs2 :
-  red m1 m2 -> red Q1 Q2 -> red' Fs1 Fs2 -> red (Case m1 Q1 Fs1) (Case m2 Q2 Fs2).
+  red m1 m2 -> red Q1 Q2 -> star (one step) Fs1 Fs2 -> 
+    red (Case m1 Q1 Fs1) (Case m2 Q2 Fs2).
 Proof.
   move=> A B C. 
   apply: (star_trans (Case m2 Q1 Fs1)).
@@ -783,7 +1143,8 @@ Proof.
 Qed.
 
 Lemma red_DCase m1 m2 Q1 Q2 Fs1 Fs2 :
-  red m1 m2 -> red Q1 Q2 -> red' Fs1 Fs2 -> red (DCase m1 Q1 Fs1) (DCase m2 Q2 Fs2).
+  red m1 m2 -> red Q1 Q2 -> star (one step) Fs1 Fs2 -> 
+    red (DCase m1 Q1 Fs1) (DCase m2 Q2 Fs2).
 Proof.
   move=> A B C. 
   apply: (star_trans (DCase m2 Q1 Fs1)).
@@ -805,7 +1166,7 @@ Proof.
 Qed.
 
 Lemma red'_h h1 h2 ls :
-  red h1 h2 -> red' (Cons h1 ls) (Cons h2 ls).
+  red h1 h2 -> star (one step) (h1 :: ls) (h2 :: ls).
 Proof.
   move=> rd. elim: rd ls=> //.
   move=> y z rd ih st ls.
@@ -815,7 +1176,7 @@ Proof.
 Qed.
 
 Lemma red'_ls h ls ls' :
-  red' ls ls' -> red' (Cons h ls) (Cons h ls').
+  star (one step) ls ls' -> star (one step) (h :: ls) (h :: ls').
 Proof.
   move=> rd. elim: rd h=> //.
   move=> y z rd ih st h.
@@ -824,15 +1185,16 @@ Proof.
     by apply: star1; constructor.
 Qed.
 
-Lemma red'_Nil ls : red' Nil ls -> ls = Nil.
+Lemma red'_nil ls : star (one step) nil ls -> ls = nil.
 Proof. 
   elim=> //.
   move=> y z _ -> st. by inv st.
 Qed.
 
-Lemma red'_Cons m ls l : 
-  red' (Cons m ls) l -> 
-    exists m' ls', l = Cons m' ls' /\ red m m' /\ red' ls ls'.
+Lemma red'_cons m ls l : 
+  star (one step) (m :: ls) l -> 
+  exists m' ls', 
+    l = m' :: ls' /\ red m m' /\ star (one step) ls ls'.
 Proof.
   elim=> //.
   by exists m; exists ls=> //.
@@ -844,15 +1206,16 @@ Proof.
 Qed.
 
 Lemma red_spine h h' ls ls' :
-  red h h' -> red' ls ls' -> red (spine h ls) (spine h' ls').
+  red h h' -> star (one step) ls ls' -> 
+    red (spine h ls) (spine h' ls').
 Proof.
   elim: ls ls' h h'.
-  move=> ls' h h' rd /red'_Nil -> //.
+  move=> ls' h h' rd /red'_nil -> //.
   move=> t t0 ih ls' h h' rd rd'=> //=.
   apply: (star_trans (spine (App h' t) t0)).  
     apply: ih=> //.
     exact: red_App.
-  move: rd'=> /red'_Cons [m [ls [-> [rd1 rd2]]]] //=.
+  move: rd'=> /red'_cons [m [ls [-> [rd1 rd2]]]] //=.
     apply: ih.
     exact: red_App.
     exact: rd2.
@@ -886,17 +1249,16 @@ Hint Resolve
 : red_congr.
 
 Lemma red_compat sigma tau s : 
-  sred sigma tau -> red s.[sigma] s.[tau]
-with red_compat' sigma tau ls :
-  sred sigma tau -> red' (subst_terms sigma ls) (subst_terms tau ls).
+  sred sigma tau -> red s.[sigma] s.[tau].
 Proof. 
-  elim: s sigma tau=> /={red_compat}; asimpl; eauto 6 with red_congr.
-  elim: ls sigma tau=> /={red_compat'}; asimpl; eauto 6 with red_congr.
+  (* elim: s sigma tau; asimpl; eauto 6 with red_congr.
+  elim: ls sigma tau; asimpl; eauto 6 with red_congr.
     move=> t t0 ih sigma tau sr.
     apply: star_trans.
       apply: red'_h; exact: red_compat.
       apply: red'_ls; exact: ih.
-Qed.
+Qed. *)
+Admitted.
 
 Definition sconv (sigma tau : var -> term) := 
   forall x, conv (sigma x) (tau x).
@@ -937,8 +1299,9 @@ Proof.
     by constructor.
 Qed.
 
-Lemma conv_Ind A1 A2 s Cs1 Cs2 :
-  conv A1 A2 -> conv' Cs1 Cs2 -> conv (Ind A1 s Cs1) (Ind A2 s Cs2).
+(* Lemma conv_Ind A1 A2 s Cs1 Cs2 :
+  conv A1 A2 -> conv (one step) Cs1 Cs2 -> 
+    conv (Ind A1 s Cs1) (Ind A2 s Cs2).
 Proof.
   move=> A B. 
   apply: (conv_trans (Ind A2 s Cs1)).
@@ -952,7 +1315,7 @@ Proof.
     apply: (conv_trans (Ind A2 s y)).
       by apply: cv.
       by apply: conv1i; eauto using step.
-Qed.
+Qed. *)
 
 Lemma conv_Constr i m1 m2 :
   conv m1 m2 -> conv (Constr i m1) (Constr i m2).
@@ -961,7 +1324,7 @@ Proof.
   apply: (conv_hom (Constr i)) A => x y. exact: step_Constr.
 Qed.
 
-Lemma conv_Case m1 m2 Q1 Q2 Fs1 Fs2 :
+(* Lemma conv_Case m1 m2 Q1 Q2 Fs1 Fs2 :
   conv m1 m2 -> conv Q1 Q2 -> conv' Fs1 Fs2 -> conv (Case m1 Q1 Fs1) (Case m2 Q2 Fs2).
 Proof.
   move=> A B C. 
@@ -978,9 +1341,9 @@ Proof.
     apply: conv_trans.
       by apply: cv.
       by apply: conv1i; eauto using step.
-Qed.
+Qed. *)
 
-Lemma conv_DCase m1 m2 Q1 Q2 Fs1 Fs2 :
+(* Lemma conv_DCase m1 m2 Q1 Q2 Fs1 Fs2 :
   conv m1 m2 -> conv Q1 Q2 -> conv' Fs1 Fs2 -> conv (DCase m1 Q1 Fs1) (DCase m2 Q2 Fs2).
 Proof.
   move=> A B C. 
@@ -997,7 +1360,7 @@ Proof.
     apply: conv_trans.
       by apply: rd.
       by apply: conv1i; eauto using step.
-Qed.
+Qed. *)
 
 Lemma conv_Fix m1 m2 :
   conv m1 m2 -> conv (Fix m1) (Fix m2).
@@ -1006,7 +1369,7 @@ Proof.
   apply: (conv_hom Fix) A=> x y. exact: step_Fix.
 Qed.
 
-Lemma conv'_h h1 h2 ls :
+(* Lemma conv'_h h1 h2 ls :
   conv h1 h2 -> conv' (Cons h1 ls) (Cons h2 ls).
 Proof.
   move=> cv. elim: cv ls=> //.
@@ -1018,9 +1381,9 @@ Proof.
     apply: conv_trans.
       by apply: ih.
       by apply: conv1i; constructor.
-Qed.
+Qed. *)
 
-Lemma conv'_ls h ls ls' :
+(* Lemma conv'_ls h ls ls' :
   conv' ls ls' -> conv' (Cons h ls) (Cons h ls').
 Proof.
   move=> cv. elim: cv h=> //.
@@ -1032,7 +1395,7 @@ Proof.
     apply: conv_trans.
       by apply: ih.
       by apply: conv1i; constructor.
-Qed.
+Qed. *)
 
 Lemma conv_subst sigma m n :
   conv m n -> conv m.[sigma] n.[sigma].
@@ -1061,7 +1424,7 @@ Proof.
   exact: A. 
 Qed.
 
-Hint Resolve 
+(* Hint Resolve 
   conv_App conv_Lam conv_Prod conv_Lolli 
   conv_Ind conv_Constr conv_Case conv_DCase conv_Fix
   conv_subst sconv_up 
@@ -1081,23 +1444,23 @@ Proof.
 Qed.
 
 Lemma conv_Beta s t1 t2 : conv t1 t2 -> conv s.[t1/] s.[t2/].
-Proof. move=> c. by apply: conv_compat => -[]. Qed.
+Proof. move=> c. by apply: conv_compat => -[]. Qed. *)
 
-Lemma pstep_refl s : pstep s s
-with pstep_refl' ls : pstep' ls ls.
+Lemma pstep_refl s : pstep s s.
 Proof. 
-  elim: s=> /={pstep_refl}; eauto using pstep.
+  (* elim: s; eauto using pstep.
   elim: ls=> /={pstep_refl'}; eauto using pstep'.
-Qed.
+Qed. *)
+Admitted.
 
-Lemma step_pstep m m' : step m m' -> pstep m m'
+(* Lemma step_pstep m m' : step m m' -> pstep m m'
 with step_pstep' ls ls' : step' ls ls' -> pstep' ls ls'.
 Proof with eauto using pstep, pstep', pstep_refl, pstep_refl'.
   elim {step_pstep}...
   elim {step_pstep'}...
-Qed.
+Qed. *)
 
-Lemma pstep_red m m' : pstep m m' -> red m m'
+(* Lemma pstep_red m m' : pstep m m' -> red m m'
 with pstep_red' ls ls' : pstep' ls ls' -> red' ls ls'.
 Proof.
   elim=> {m m' pstep_red} //=; eauto with red_congr.
@@ -1300,7 +1663,7 @@ Proof with eauto using pstep, pstep', pstep_refl, pstep_refl'.
   exfalso.
   apply: nx.
   by exists m0.
-Qed.
+Qed. *)
 
 
 (* pstep_diamond': ∀ ls ls1 ls2 : terms,
@@ -1319,7 +1682,7 @@ p4: pstep (Case m Q Fs) m2
 1/7
 ∃ m'0 : term, pstep (Case m' Q' Fs') m'0 ∧ pstep m2 m'0 *)
 
-Lemma pstep_pstep'_diamond :
+(* Lemma pstep_pstep'_diamond :
   (forall m m1 (p : pstep m m1), 
     forall m2, pstep m m2 -> exists m', pstep m1 m' /\ pstep m2 m') /\
   (forall ls ls1 (p : pstep' ls ls1),
@@ -1343,14 +1706,26 @@ Proof with eauto 6 using pstep, pstep', pstep_compat_Beta, pstep_spine, pstep_re
     move: H6=> /ih3[ls1 [p10 p11]].
     move: (pstep'_iget1 p11 H3)=> [F1 [ig1 p12]].
     move: (pstep'_iget2 p10 ig1)=> [F2 [ig2 p13]].
-    exists (spine F1 ms')...
+    exists (spine F1 ms')... *)
 
 Fixpoint pstep_diamond (m m1 m2 : term) (p : pstep m m1) :
-  pstep m m2 -> exists m', pstep m1 m' /\ pstep m2 m'
-with pstep_diamond' (ls ls1 ls2 : terms) (p : pstep' ls ls1) :
-  pstep' ls ls2 -> exists ls', pstep' ls1 ls' /\ pstep' ls2 ls'.
-Proof with eauto 6 using pstep, pstep', pstep_compat_Beta, pstep_spine.
+  pstep m m2 -> exists m', pstep m1 m' /\ pstep m2 m'.
+(* Proof with eauto 6 using pstep, pstep', pstep_compat_Beta, pstep_spine. *)
+Proof.
   elim: p m2=> {m m1 pstep_diamond}.
+  admit.
+  admit.
+  admit.
+  admit.
+  admit.
+  admit.
+  admit.
+  admit.
+  admit.
+  intros. inv H4.
+  admit.
+
+
     move=> x m2 p. inv p. exists (Var x)...
     move=> srt l m2 p. inv p. exists (Sort srt l)...
     move=> n n' p1 ih m2 p2. inv p2.
