@@ -1592,43 +1592,44 @@ Proof with eauto using pstep, pstep_refl.
 Qed.
 
 Lemma pstep_compat sigma tau m m' :
-  pstep m m' -> psstep sigma tau -> pstep m.[sigma] m'.[tau]
-with pstep_compat' sigma tau ls ls' :
-  pstep' ls ls' -> 
-    psstep sigma tau -> pstep' (subst_terms sigma ls) (subst_terms tau ls').
-Proof with eauto 6 using pstep, pstep', psstep_up.
-  move=> p. 
-  elim: p sigma tau => {m m' pstep_compat}...
-    move=> m m' n n' p1 ih1 p2 ih2 sigma tau ps1; asimpl.
-      have ps2 := psstep_up ps1.
-      have h1 := ih1 _ _ ps2.
-      have h2 := ih2 _ _ ps1.
-      have h3 := pstep_Beta h1 h2.
-      by asimpl in h3.
-    move=> i m ms ms' Q Fs Fs' F F' ig ig' p1 p2 p3 ih sigma tau ps=> //=; fold_subst.
-      rewrite! spine_subst; fold_subst.
-      apply: pstep_CaseIota.
-      apply: iget_subst. exact: ig.
-      apply: iget_subst. exact: ig'.
-      exact: pstep_compat'.
-      exact: pstep_compat'.
-      exact: ih.
-    move=> i m ms ms' Q Fs Fs' F F' ig ig' p1 p2 p3 ih sigma tau ps=> //=; fold_subst.
-      rewrite! spine_subst; fold_subst.
-      apply: pstep_DCaseIota.
-      apply: iget_subst. exact: ig.
-      apply: iget_subst. exact: ig'.
-      exact: pstep_compat'.
-      exact: pstep_compat'.
-      exact: ih.
-    move=> m m' p ih sigma tau ps; asimpl.
-      replace m'.[Fix m'.[up tau] .: tau]
-        with (m'.[up tau]).[Fix m'.[up tau]/]
-        by autosubst.
-      constructor.
-      apply: ih.
-      exact: psstep_up.
-  elim=> {ls ls' pstep_compat'}...
+  pstep m m' -> psstep sigma tau -> pstep m.[sigma] m'.[tau].
+Proof with eauto 6 using pstep, All2, psstep_up.
+  move=> p. move: m m' p sigma tau.
+  apply: pstep_ind_nested... 
+  move=> m m' n n' pM ihM pN ihN sigma tau pss; asimpl.
+    have pss' := psstep_up pss.
+    have hM := ihM _ _ pss'.
+    have hN := ihN _ _ pss.
+    have hBeta := pstep_Beta hM hN.
+    by asimpl in hBeta.
+  move=> A A' s Cs Cs' pA ihA pCs ihCs sigma tau pss; asimpl.
+    constructor; eauto.
+    elim: ihCs; asimpl...
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs sigma tau pss; asimpl.
+    constructor; eauto.
+    elim: ihFs; asimpl...
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs sigma tau pss; asimpl.
+    rewrite! spine_subst.
+    apply: pstep_CaseIota.
+    apply: iget_subst. exact: ig.
+    elim: ihMs; asimpl...
+    elim: ihFs; asimpl...
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs sigma tau pss; asimpl.
+    constructor; eauto.
+    elim: ihFs; asimpl...
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs sigma tau pss; asimpl.
+    rewrite! spine_subst.
+    apply: pstep_DCaseIota.
+    apply: iget_subst. exact: ig.
+    elim: ihMs; asimpl...
+    elim: ihFs; asimpl...
+  move=> m m' p ih sigma tau ps; asimpl.
+    replace m'.[Fix m'.[up tau] .: tau]
+      with (m'.[up tau]).[Fix m'.[up tau]/]
+      by autosubst.
+    constructor.
+    apply: ih.
+    exact: psstep_up.
 Qed.
 
 Lemma psstep_compat sigma tau m1 m2 :
