@@ -1484,79 +1484,96 @@ Proof with eauto using pstep, pstep_refl, All2, All2_pstep_refl.
     elim: H0...
 Qed.
 
-(* Lemma pstep_red m m' : pstep m m' -> red m m'
-with pstep_red' ls ls' : pstep' ls ls' -> red' ls ls'.
+Lemma pstep_red m m' : pstep m m' -> red m m'.
 Proof.
-  elim=> {m m' pstep_red} //=; eauto with red_congr.
-    move=> m m' n n' p1 r1 p2 r2.
-      apply: starES.
-      by econstructor.
-      apply: (star_trans (m'.[n.:Var])). exact: red_subst.
-      by apply: red_compat => -[|].
-    move=> i m ms ms' Q Fs Fs' F F' ig ig' p1 p2 p3 r.
-      have ih1 := pstep_red' _ _ p1=> {p1}.
-      have ih2 := pstep_red' _ _ p2=> {p2}.
-      apply: star_trans.
-      apply: red_Case.
-      apply: red_spine.
-      exact: starR.
-      exact: ih1.
-      exact: starR.
-      exact: ih2.
-      apply: star1.
-      by constructor.
-    move=> i m ms ms' Q Fs Fs' F F' ig ig' p1 p2 p3 r.
-      have ih1 := pstep_red' _ _ p1=> {p1}.
-      have ih2 := pstep_red' _ _ p2=> {p2}.
-      apply: star_trans.
-      apply: red_DCase.
-      apply: red_spine.
-      exact: starR.
-      exact: ih1.
-      exact: starR.
-      exact: ih2.
-      apply: star1.
-      by constructor.
-    move=> m m' p r.
-      apply: star_trans.
-      apply: red_Fix.
-      exact: r.
-      apply: star1.
-      by constructor.
-  elim=> {ls ls' pstep_red'} //=.
-    move=> m m' ls ls' p1 p2 r.
-    apply: (star_trans (Cons m' ls)).
-      apply: red'_h. exact: pstep_red.
-      exact: red'_ls.
+  move: m m'.
+  apply: pstep_ind_nested=> //=; eauto with red_congr.
+  move=> m m' n n' p1 r1 p2 r2.
+    apply: starES.
+    by econstructor.
+    apply: (star_trans (m'.[n.:Var])). exact: red_subst.
+    by apply: red_compat => -[|].
+  move=> A A' s Cs Cs' pA rA pCs rCs.
+    apply: red_Ind; eauto.
+    elim: rCs; eauto with red_congr.
+  move=> m m' Q Q' Fs Fs' pM rM pQ rQ pFs rFs.
+    apply: red_Case; eauto.
+    elim: rFs; eauto with red_congr.
+  move=> i m ms ms' Q Fs Fs' F' ig pMs rMs pFs rFs.
+    have ihMs : star (One2 step) ms ms'.
+      elim: rMs; eauto with red_congr.
+    have ihFs : star (One2 step) Fs Fs'.
+      elim: rFs; eauto with red_congr.
+    apply: star_trans.
+    apply: red_Case.
+    apply: red_spine.
+    exact: starR.
+    exact: ihMs.
+    exact: starR.
+    exact: ihFs.
+    apply: star1.
+    by constructor.
+  move=> m m' Q Q' Fs Fs' pM rM pQ rQ pFs rFs.
+    apply: red_DCase; eauto.
+    elim: rFs; eauto with red_congr.
+  move=> i m ms ms' Q Fs Fs' F' ig pMs rMs pFs rFs.
+    have ihMs : star (One2 step) ms ms'.
+      elim: rMs; eauto with red_congr.
+    have ihFs : star (One2 step) Fs Fs'.
+      elim: rFs; eauto with red_congr.
+    apply: star_trans.
+    apply: red_DCase.
+    apply: red_spine.
+    exact: starR.
+    exact: ihMs.
+    exact: starR.
+    exact: ihFs.
+    apply: star1.
+    by constructor.
+  move=> m m' p r.
+    apply: star_trans.
+    apply: red_Fix.
+    exact: r.
+    apply: star1.
+    by constructor.
 Qed.
 
 Lemma pstep_subst sigma m m' :
-  pstep m m' -> pstep m.[sigma] m'.[sigma]
-with pstep_subst' sigma ls ls' :
-  pstep' ls ls' -> pstep' (subst_terms sigma ls) (subst_terms sigma ls').
-Proof with eauto using pstep, pstep', pstep_refl, pstep_refl'.
-  move=> p. elim: p sigma => {m m' pstep_subst}...
+  pstep m m' -> pstep m.[sigma] m'.[sigma].
+Proof with eauto using pstep, pstep_refl, All2, All2_pstep_refl.
+  move=> p. move: m m' p sigma.
+  apply: pstep_ind_nested...
   move=> m m' n n' p1 ih1 p2 ih2 sigma; asimpl.
     have h1 := (ih1 (up sigma))=> {ih1}.
     have h2 := (ih2 sigma)=> {ih2}.
     have h3 := pstep_Beta (h1 Ids_term Rename_term) h2.
     by asimpl in h3.
-  move=> i m ms ms' Q Fs Fs' F F' ig ig' p1 p2 p3 ih sigma=> //=; fold_subst.
-    rewrite! spine_subst; fold_subst.
+  move=> A A' s Cs Cs' pA ihA pCs ihCs sigma; asimpl.
+    constructor; eauto.
+    elim: ihCs; asimpl...
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs sigma; asimpl.
+    constructor; eauto.
+    elim: ihFs; asimpl...
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs sigma; asimpl.
+    rewrite! spine_subst.
     apply: pstep_CaseIota; eauto.
     apply: iget_subst. exact ig.
-    apply: iget_subst. exact ig'.
-  move=> i m ms ms' Q Fs Fs' F F' ig ig' p1 p2 p3 ih sigma=> //=; fold_subst.
-    rewrite! spine_subst; fold_subst.
+    elim: ihMs; asimpl...
+    elim: ihFs; asimpl...
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs sigma; asimpl.
+    constructor; eauto.
+    elim: ihFs; asimpl...
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs sigma; asimpl.
+    rewrite! spine_subst.
     apply: pstep_DCaseIota; eauto.
     apply: iget_subst. exact ig.
-    apply: iget_subst. exact ig'.
+    elim: ihMs; asimpl...
+    elim: ihFs; asimpl...
   move=> m m' p ih sigma; asimpl.
     replace m'.[Fix m'.[up sigma] .: sigma]
       with (m'.[up sigma]).[Fix m'.[up sigma]/]
       by autosubst.
     exact: pstep_FixIota.
-  elim=> {ls ls' pstep_subst'}...
 Qed.
 
 Definition psstep (sigma tau : var -> term) := 
@@ -1730,7 +1747,7 @@ Proof with eauto 6 using pstep, pstep', pstep_compat_Beta, pstep_spine, pstep_re
     move: H6=> /ih3[ls1 [p10 p11]].
     move: (pstep'_iget1 p11 H3)=> [F1 [ig1 p12]].
     move: (pstep'_iget2 p10 ig1)=> [F2 [ig2 p13]].
-    exists (spine F1 ms')... *)
+    exists (spine F1 ms')...
 
 Fixpoint pstep_diamond (m m1 m2 : term) (p : pstep m m1) :
   pstep m m2 -> exists m', pstep m1 m' /\ pstep m2 m'.
