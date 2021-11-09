@@ -413,289 +413,41 @@ Qed.
 Inductive term : Type :=
 | Var    (x : var)
 | Sort   (s : sort) (l : option nat)
-| Prod   (A B : term) (s : sort)
-| Lolli  (A B : term) (s : sort)
-| Lam    (m : term)
+| Prod   (A : term) (B : {bind term}) (s : sort)
+| Lolli  (A : term) (B : {bind term}) (s : sort)
+| Lam    (m : {bind term})
 | App    (m n : term)
-| Ind    (A : term) (s : sort) (Cs : terms)
+| Ind    (A : term) (s : sort) (Cs : list {bind term})
 | Constr (i : nat) (m : term)
-| Case   (m Q : term) (Fs : terms)
-| DCase  (m Q : term) (Fs : terms)
-| Fix    (m : term)
+| Case   (m Q : term) (Fs : list term)
+| DCase  (m Q : term) (Fs : list term)
+| Fix    (m : {bind term}).
 
-with terms : Type :=
-| Nil : terms
-| Cons : term -> terms -> terms.
+Instance Ids_term : Ids term. derive. Defined.
+Instance Rename_term : Rename term. derive. Defined.
+Instance Subst_term : Subst term. derive. Defined.
+Instance substLemmas_term : SubstLemmas term. derive. Qed.
 
-Definition ids_term (v : var) : term := Var v.
-
-Instance Ids_term : Ids term. by apply: ids_term. Defined.
-
-Fixpoint rename_term (xi : var -> var) (t : term) : term :=
-  match t with
-  | Var x => Var (xi x)
-  | Sort s l => Sort s l
-  | Prod A B s => Prod (rename_term xi A) (rename_term (upren xi) B) s
-  | Lolli A B s => Lolli (rename_term xi A) (rename_term (upren xi) B) s
-  | Lam m => Lam (rename_term (upren xi) m)
-  | App m n => App (rename_term xi m) (rename_term xi n)
-  | Ind A s Cs => Ind (rename_term xi A) s (rename_terms (upren xi) Cs)
-  | Constr i m => Constr i (rename_term xi m)
-  | Case m Q Fs => 
-    Case 
-      (rename_term xi m)
-      (rename_term xi Q)
-      (rename_terms xi Fs)
-  | DCase m Q Fs => 
-    DCase 
-      (rename_term xi m)
-      (rename_term xi Q)
-      (rename_terms xi Fs)
-  | Fix m => Fix (rename_term (upren xi) m)
-  end
-
-with rename_terms (xi : var -> var) (ts : terms) : terms :=
-  match ts with
-  | Nil => Nil
-  | Cons t ts => Cons (rename_term xi t) (rename_terms xi ts)
-  end.
-
-Instance Rename_term : Rename term. by apply: rename_term. Defined.
-
-Fixpoint subst_term (sigma : var -> term) (t : term) : term :=
-  match t with
-  | Var x => sigma x
-  | Sort s l => Sort s l
-  | Prod A B s => Prod (subst_term sigma A) (subst_term (up sigma) B) s
-  | Lolli A B s => Lolli (subst_term sigma A) (subst_term (up sigma) B) s
-  | Lam m => Lam (subst_term (up sigma) m)
-  | App m n => App (subst_term sigma m) (subst_term sigma n)
-  | Ind A s Cs => Ind (subst_term sigma A) s (subst_terms (up sigma) Cs)
-  | Constr i m => Constr i (subst_term sigma m)
-  | Case m Q Fs => 
-    Case 
-      (subst_term sigma m)
-      (subst_term sigma Q)
-      (subst_terms sigma Fs)
-  | DCase m Q Fs => 
-    DCase 
-      (subst_term sigma m)
-      (subst_term sigma Q)
-      (subst_terms sigma Fs)
-  | Fix m => Fix (subst_term (up sigma) m)
-  end
-
-with subst_terms (sigma : var -> term) (ts : terms) : terms :=
-  match ts with
-  | Nil => Nil
-  | Cons t ts => Cons (subst_term sigma t) (subst_terms sigma ts)
-  end.
-
-Instance Subst_term : Subst term. by apply: subst_term. Defined.
-
-Lemma rename_subst xi m :
-  rename_term xi m = subst_term (ren xi) m
-with rename_subst' xi ls :
-  rename_terms xi ls = subst_terms (ren xi) ls.
-Proof.
-  elim: m xi=> /={rename_subst} //.
-    move=> A ih1 B ih2 s xi.
-      rewrite ih1 ih2; by autosubst.
-    move=> A ih1 B ih2 s xi.
-      rewrite ih1 ih2; by autosubst.
-    move=> m ih xi.
-      rewrite ih; by autosubst.
-    move=> m ih1 n ih2 xi.
-      rewrite ih1 ih2; by autosubst.
-    move=> A ih s Cs xi.
-      rewrite ih rename_subst'; by autosubst.
-    move=> i m ih xi.
-      rewrite ih; by autosubst.
-    move=> m ih1 Q ih2 Fs xi.
-      rewrite ih1 ih2 rename_subst'; by autosubst.
-    move=> m ih1 Q ih2 Fs xi.
-      rewrite ih1 ih2 rename_subst'; by autosubst.
-    move=> m ih xi.
-      rewrite ih; by autosubst.
-  elim: ls xi=> /={rename_subst'} //.
-    move=> t t0 ih x1.
-      rewrite ih rename_subst; by autosubst.
-Qed.
-
-Lemma subst_id m :
-  subst_term ids m = m
-with subst_id' ls :
-  subst_terms ids ls = ls.
-Proof.
-  have up_id : up ids = ids.
-    by apply: up_id_internal.
-  elim: m=> /={subst_id} //; asimpl; try rewrite up_id.
-    move=> A ih1 B ih2 s.
-      rewrite ih1 ih2; by autosubst.
-    move=> A ih1 B ih2 s.
-      rewrite ih1 ih2; by autosubst.
-    move=> m ih.
-      rewrite ih; by autosubst.
-    move=> m ih1 n ih2.
-      rewrite ih1 ih2; by autosubst.
-    move=> A ih s Cs.
-      rewrite ih subst_id'; by autosubst.
-    move=> i m ih.
-      rewrite ih; by autosubst.
-    move=> m ih1 Q ih2 Fs.
-      rewrite ih1 ih2 subst_id'; by autosubst.
-    move=> m ih1 Q ih2 Fs.
-      rewrite ih1 ih2 subst_id'; by autosubst.
-    move=> m ih.
-      rewrite ih; by autosubst.
-  elim: ls=> /={subst_id'} //.
-    move=> t t0 ih.
-      rewrite ih subst_id; by autosubst.
-Qed.
-
-Lemma ren_subst_comp xi sigma m :
-  subst_term sigma (rename_term xi m) = subst_term (xi >>> sigma) m
-with ren_subst_comp' xi sigma ls :
-  subst_terms sigma (rename_terms xi ls) = subst_terms (xi >>> sigma) ls.
-Proof.
-  elim: m xi sigma=> /={ren_subst_comp} //; asimpl.
-    move=> A ih1 B ih2 s xi sigma.
-      rewrite ih1 ih2; by autosubst.
-    move=> A ih1 B ih2 s xi sigma.
-      rewrite ih1 ih2; by autosubst.
-    move=> m ih xi sigma.
-      rewrite ih; by autosubst.
-    move=> m ih1 n ih2 xi sigma.
-      rewrite ih1 ih2; by autosubst.
-    move=> A ih s Cs xi sigma.
-      rewrite ih ren_subst_comp'; by autosubst.
-    move=> i m ih xi sigma.
-      rewrite ih; by autosubst.
-    move=> m ih1 Q ih2 Fs xi sigma.
-      rewrite ih1 ih2 ren_subst_comp'; by autosubst.
-    move=> m ih1 Q ih2 Fs xi sigma.
-      rewrite ih1 ih2 ren_subst_comp'; by autosubst.
-    move=> m ih xi sigma.
-      rewrite ih; by autosubst.
-  elim: ls xi sigma=> /={ren_subst_comp'} //; asimpl.
-    move=> t t0 ih xi sigma.
-      rewrite ih ren_subst_comp; by autosubst.
-Qed.
-
-Lemma subst_ren_comp sigma xi m :
-  rename_term xi (subst_term sigma m) = subst_term (sigma >>> rename_term xi) m
-with subst_ren_comp' sigma xi ls :
-  rename_terms xi (subst_terms sigma ls) = subst_terms (sigma >>> rename_term xi) ls.
-Proof.
-  have up_comp_subst_ren : 
-    forall sigma xi, 
-      up (sigma >>> rename_term xi) = 
-      up sigma >>> rename_term (upren xi).
-    apply: up_comp_subst_ren_internal=> //.
-      by apply: rename_subst. 
-      by apply: ren_subst_comp.
-  elim: m xi sigma=> /={subst_ren_comp} //; asimpl.
-    move=> A ih1 B ih2 s xi sigma.
-      rewrite ih1 ih2 up_comp_subst_ren; by autosubst.
-    move=> A ih1 B ih2 s xi sigma.
-      rewrite ih1 ih2 up_comp_subst_ren; by autosubst.
-    move=> m ih xi sigma.
-      rewrite ih up_comp_subst_ren; by autosubst.
-    move=> m ih1 n ih2 xi sigma.
-      rewrite ih1 ih2; by autosubst.
-    move=> A ih s Cs xi sigma.
-      rewrite ih up_comp_subst_ren subst_ren_comp'; by autosubst.
-    move=> i m ih xi sigma.
-      rewrite ih; by autosubst.
-    move=> m ih1 Q ih2 Fs xi sigma.
-      rewrite ih1 ih2 subst_ren_comp'; by autosubst.
-    move=> m ih1 Q ih2 Fs xi sigma.
-      rewrite ih1 ih2 subst_ren_comp'; by autosubst.
-    move=> m ih xi sigma.
-      rewrite ih up_comp_subst_ren; by autosubst.
-  elim: ls xi sigma=> /={subst_ren_comp'} //; asimpl.
-    move=> t t0 ih xi sigma.
-      rewrite ih subst_ren_comp; by autosubst.
-Qed.
-
-Lemma subst_comp sigma tau m :
-  subst_term tau (subst_term sigma m) = subst_term (sigma >> tau) m
-with subst_comp' sigma tau ls :
-  subst_terms tau (subst_terms sigma ls) = subst_terms (sigma >> tau) ls.
-Proof.
-  have up_comp : 
-    forall sigma tau, up (sigma >> tau) = up sigma >> up tau.
-    apply: up_comp_internal=> //.
-      by apply: ren_subst_comp.
-      by apply: subst_ren_comp.
-  elim: m sigma tau=> /={subst_comp} //; asimpl.
-    move=> A ih1 B ih2 s sigma tau.
-      rewrite ih1 ih2 up_comp; by autosubst.
-    move=> A ih1 B ih2 s sigma tau.
-      rewrite ih1 ih2 up_comp; by autosubst.
-    move=> m ih sigma tau.
-      rewrite ih up_comp; by autosubst.
-    move=> m ih1 n ih2 sigma tau.
-      rewrite ih1 ih2; by autosubst.
-    move=> A ih s Cs sigma tau.
-      rewrite ih up_comp subst_comp'; by autosubst.
-    move=> i m ih sigma tau.
-      rewrite ih; by autosubst.
-    move=> m ih1 Q ih2 Fs sigma tau.
-      rewrite ih1 ih2 subst_comp'; by autosubst.
-    move=> m ih1 Q ih2 Fs sigma tau.
-      rewrite ih1 ih2 subst_comp'; by autosubst.
-    move=> m ih sigma tau.
-      rewrite ih up_comp; by autosubst.
-  elim: ls sigma tau=> /={subst_comp'} //; asimpl.
-    move=> t t0 ih sigma tau.
-      rewrite ih subst_comp; by autosubst.
-Qed.
-
-Instance substLemmas_term : SubstLemmas term.
-  constructor=> //.
-  by apply: rename_subst.
-  by apply: subst_id.
-  by apply: subst_comp.
-Qed.
-
-Ltac fold_subst :=
-  fold subst_term;
-  fold Subst_term;
-  fold subst.
-
-Definition sing t := Cons t Nil.
-
-Fixpoint append (ls1 ls2 : terms) : terms :=
-  match ls1 with
-  | Nil => ls2
-  | Cons h ls1 => Cons h (append ls1 ls2)
-  end.
-
-Fixpoint rev (ls : terms) : terms :=
+Fixpoint spine (h : term) (ls : list term) : term :=
   match ls with
-  | Nil => Nil
-  | Cons t ls => append (rev ls) (sing t)
+  | nil => h
+  | m :: ls => spine (App h m) ls
   end.
 
-Fixpoint spine (h : term) (ls : terms) : term :=
-  match ls with
-  | Nil => h
-  | Cons m ls => spine (App h m) ls
-  end.
-
-Fixpoint spine' (h : term) (ls : terms) : term :=
-  match ls with
-  | Nil => h
-  | Cons m ls => App (spine' h ls) m
-  end.
-
-Inductive iget : nat -> terms -> term -> Prop :=
+Inductive iget : nat -> list term -> term -> Prop :=
 | iget_O m ls :
-  iget 0 (Cons m ls) m
+  iget 0 (m :: ls) m
 | iget_S n m m' ls :
   iget n ls m ->
-  iget (S n) (Cons m' ls) m.
+  iget (S n) (m' :: ls) m.
+
+Inductive one R : list term -> list term -> Prop :=
+| one_hd m m' ls :
+  R m m' ->
+  one R (m :: ls) (m' :: ls)
+| one_tl m ls ls' :
+  one R ls ls' ->
+  one R (m :: ls) (m :: ls').
 
 Inductive step : term -> term -> Prop :=
 | step_Lam m m' :
@@ -725,7 +477,7 @@ Inductive step : term -> term -> Prop :=
   step A A' ->
   step (Ind A s Cs) (Ind A' s Cs)
 | step_IndCs A s Cs Cs' :
-  step' Cs Cs' ->
+  one step Cs Cs' ->
   step (Ind A s Cs) (Ind A s Cs')
 | step_Constr i m m' :
   step m m' ->
@@ -737,7 +489,7 @@ Inductive step : term -> term -> Prop :=
   step Q Q' ->
   step (Case m Q Fs) (Case m Q' Fs)
 | step_CaseFs m Q Fs Fs' :
-  step' Fs Fs' ->
+  one step Fs Fs' ->
   step (Case m Q Fs) (Case m Q Fs') 
 | step_CaseIota i m ms Q Fs F :
   iget i Fs F ->
@@ -751,7 +503,7 @@ Inductive step : term -> term -> Prop :=
   step Q Q' ->
   step (DCase m Q Fs) (DCase m Q' Fs)
 | step_DCaseFs m Q Fs Fs' :
-  step' Fs Fs' ->
+  one step Fs Fs' ->
   step (DCase m Q Fs) (DCase m Q Fs')
 | step_DCaseIota i m ms Q Fs F :
   iget i Fs F ->
@@ -762,16 +514,14 @@ Inductive step : term -> term -> Prop :=
   step m m' ->
   step (Fix m) (Fix m')
 | step_FixIota m :
-  step (Fix m) (m.[Fix m/])
+  step (Fix m) (m.[Fix m/]).
 
-with step' : terms -> terms -> Prop :=
-| step'_Nil : step' Nil Nil
-| step'_Cons1 m m' ls :
-  step m m' ->
-  step' (Cons m ls) (Cons m' ls)
-| step'_Cons2 m ls ls' :
-  step' ls ls' ->
-  step' (Cons m ls) (Cons m ls').
+Inductive all R : list term -> list term -> Prop :=
+| all_nil : all R nil nil
+| all_cons m m' ls ls' :
+  R m m' ->
+  all R ls ls' ->
+  all R (m :: ls) (m' :: ls').
 
 Inductive pstep : term -> term -> Prop :=
 | pstep_Var x :
@@ -801,7 +551,7 @@ Inductive pstep : term -> term -> Prop :=
         (Lolli A' B' s)
 | pstep_Ind A A' s Cs Cs' :
   pstep A A' ->
-  pstep' Cs Cs' ->
+  all pstep Cs Cs' ->
   pstep (Ind A s Cs) (Ind A' s Cs')
 | pstep_Constr i m m' :
   pstep m m' ->
@@ -809,13 +559,13 @@ Inductive pstep : term -> term -> Prop :=
 | pstep_Case m m' Q Q' Fs Fs' :
   pstep m m' ->
   pstep Q Q' ->
-  pstep' Fs Fs' ->
+  all pstep Fs Fs' ->
   pstep (Case m Q Fs) (Case m' Q' Fs')
 | pstep_CaseIota i m ms ms' Q Fs Fs' F F' :
   iget i Fs F ->
   iget i Fs' F' ->
-  pstep' ms ms' ->
-  pstep' Fs Fs' ->
+  all pstep ms ms' ->
+  all pstep Fs Fs' ->
   pstep F F' ->
   pstep 
     (Case (spine (Constr i m) ms) Q Fs)
@@ -823,13 +573,13 @@ Inductive pstep : term -> term -> Prop :=
 | pstep_DCase m m' Q Q' Fs Fs' :
   pstep m m' ->
   pstep Q Q' ->
-  pstep' Fs Fs' ->
+  all pstep Fs Fs' ->
   pstep (DCase m Q Fs) (DCase m' Q' Fs')
 | pstep_DCaseIota i m ms ms' Q Fs Fs' F F' :
   iget i Fs F ->
   iget i Fs' F' ->
-  pstep' ms ms' ->
-  pstep' Fs Fs' ->
+  all pstep ms ms' ->
+  all pstep Fs Fs' ->
   pstep F F' ->
   pstep 
     (DCase (spine (Constr i m) ms) Q Fs)
@@ -839,105 +589,41 @@ Inductive pstep : term -> term -> Prop :=
   pstep (Fix m) (Fix m')
 | pstep_FixIota m m' :
   pstep m m' ->
-  pstep (Fix m) (m'.[Fix m'/])
-
-with pstep' : terms -> terms -> Prop :=
-| pstep'_Nil : pstep' Nil Nil
-| pstep'_Cons m m' ls ls' :
-  pstep m m' ->
-  pstep' ls ls' ->
-  pstep' (Cons m ls) (Cons m' ls').
-
-Scheme pstep_ind2 := Induction for pstep Sort Prop
-  with pstep'_ind2 := Induction for pstep' Sort Prop.
-
-Combined Scheme pstep_pstep'_ind from pstep_ind2, pstep'_ind2.
+  pstep (Fix m) (m'.[Fix m'/]).
 
 Notation red := (star step).
-Notation red' := (star step').
-Notation conv' := (conv step').
 Notation conv := (conv step).
 
 Definition sred sigma tau := 
   forall x : var, red (sigma x) (tau x).
 
-Lemma append_Nil ls : append ls Nil = ls.
-Proof. elim: ls=>//=. by move=> t ls ->. Qed.
+Fixpoint spine' (h : term) (ls : list term) : term :=
+  match ls with
+  | nil => h
+  | m :: ls => App (spine' h ls) m
+  end.
 
-Lemma append_Cons m ls1 ls2 :
-  append (Cons m ls1) ls2 = Cons m (append ls1 ls2).
-Proof. by elim: ls1. Qed.
-
-Lemma append_assoc (xs ys zs : terms) :
-  append xs (append ys zs) = append (append xs ys) zs.
-Proof. elim: xs=> //=. by move=> t t0 ->. Qed.
-
-Lemma rev_append_distr (xs ys : terms) :
-  rev (append xs ys) = append (rev ys) (rev xs).
+Lemma rev_inj (ls1 ls2 : list term) : rev ls1 = rev ls2 -> ls1 = ls2.
 Proof.
-  elim: xs ys=> //=.
-  move=> ys. by rewrite append_Nil.
-  move=> t ls ih ys. by rewrite ih append_assoc.
-Qed.
-
-Lemma rev_sing h ls :
-  rev (append ls (sing h)) = Cons h (rev ls).
-Proof. exact: rev_append_distr. Qed.
-
-Lemma rev_rev ls : rev (rev ls) = ls.
-Proof.
-  elim: ls=> //=.
-  move=> t ls e. by rewrite rev_sing e.
-Qed.
-
-Lemma append_sing_False h ls : ~Nil = append ls (sing h).
-Proof. elim: ls h=> //=. Qed.
-
-Lemma append_inj ls1 ls2 t1 t2 :
-  append ls1 (sing t1) = append ls2 (sing t2) ->
-    ls1 = ls2 /\ t1 = t2.
-Proof.
-  elim: ls1 ls2 t1 t2=> //=.
-  move=> ls1 t1 t2.
-    destruct ls1=> //= e.
-    by inv e.
-    rewrite /sing in e.
-    inv e.
-    by move: H1=> /append_sing_False.
-  move=> t ls1 ih ls2 t1 t2.
-    destruct ls2=> //= e.
-    rewrite /sing in e.
-    inv e.
-    exfalso.
-    apply: append_sing_False.
-    by rewrite <- H1.
-    inv e.
-    by move: H1=> /ih[->->].
-Qed.
-
-Lemma rev_inj ls1 ls2 : rev ls1 = rev ls2 -> ls1 = ls2.
-Proof.
-  elim: ls1 ls2=> //=.
-  move=> ls2. by destruct ls2=> //= /append_sing_False.
-  move=> t ls1 ih ls2.
-    destruct ls2=> //= e.
-    exfalso.
-    apply: append_sing_False.
-    by rewrite <- e.
-    move: e=> /append_inj[e1->].
-    by move: e1=> /ih ->.
+  move=> e.
+  move:e=> /(f_equal rev).
+  by rewrite! revK.
 Qed.
 
 Lemma spine_append h xs ys :
-  spine h (append xs ys) = spine (spine h xs) ys.
+  spine h (xs ++ ys) = spine (spine h xs) ys.
 Proof. elim: xs ys h=> //=. Qed.
 
 Lemma spine_rev h m ls :
-  App (spine h (rev ls)) m = spine h (rev (Cons m ls)).
+  App (spine h (rev ls)) m = spine h (rev (m :: ls)).
 Proof.
   elim: ls h m=> //=.
   move=> t ls ih h m.
+  rewrite <-cat1s.
+  rewrite rev_cat.
   rewrite spine_append=> //=.
+  rewrite <-cat1s.
+  rewrite rev_cat.
   rewrite spine_append=> //=.
   by rewrite <- ih.
 Qed.
@@ -955,7 +641,7 @@ Lemma spine_spine'_rev h ls :
   spine h ls = spine' h (rev ls).
 Proof.
   have pf := spine_rev_spine' h (rev ls).
-  by rewrite rev_rev in pf.
+  by rewrite revK in pf.
 Qed.
 
 Lemma spine'_Constr i1 i2 h1 h2 ls1 ls2 :
@@ -980,12 +666,12 @@ Proof.
 Qed.
 
 Lemma spine_subst sigma h ls :
-  (spine h ls).[sigma] = spine (h.[sigma]) (subst_terms sigma ls).
+  (spine h ls).[sigma] = spine (h.[sigma]) ls..[sigma].
 Proof.
   move: sigma h. elim: ls => //.
   move=> a l ih sigma h.
-    replace (subst_terms sigma (Cons a l)) 
-      with (Cons a.[sigma] (subst_terms sigma l))
+    replace ((a :: l)..[sigma]) 
+      with (a.[sigma] :: l..[sigma])
       by autosubst; simpl.
     replace (App h.[sigma] a.[sigma]) with (App h a).[sigma]
       by autosubst.
@@ -1002,7 +688,7 @@ Proof.
 Qed.
 
 Lemma iget_subst sigma i ls m :
-  iget i ls m -> iget i (subst_terms sigma ls) m.[sigma].
+  iget i ls m -> iget i ls..[sigma] m.[sigma].
 Proof.
   move=> ig. elim: ig; asimpl.
   move=> m0 ls0; by constructor.
@@ -1010,16 +696,16 @@ Proof.
 Qed.
 
 Lemma step_subst sigma m n : 
-  step m n -> step m.[sigma] n.[sigma]
-with step'_subst sigma ls ls' : 
-  step' ls ls' -> step' (subst_terms sigma ls) (subst_terms sigma ls').
+  step m n -> step m.[sigma] n.[sigma].
 Proof.
   move=> st. elim: st sigma=> /={m n}; eauto using step.
     move=> m n sigma.
       replace (m.[n/].[sigma]) with (m.[up sigma].[n.[sigma]/])
         by autosubst.
-      apply step_Beta.
-    move=> i m ms Q Fs F ig sigma; fold_subst.
+      exact: step_Beta.
+    move=> A s Cs Cs' all sigma.
+      apply: step_IndCs.
+    move=> i m ms Q Fs F ig sigma.
       rewrite! spine_subst; asimpl.
       constructor.
       by apply: iget_subst.
