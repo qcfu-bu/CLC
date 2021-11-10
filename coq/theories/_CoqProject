@@ -1,4 +1,3 @@
--R ../autosubst/theories Autosubst
 -R . Ssr
 
 AutosubstSsr.v
