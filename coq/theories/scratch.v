@@ -1907,3 +1907,38 @@ Proof.
     move: H0=> /ihM[mx[pMx1 pMx2]].
     exists (mx.[Fix mx/])...
 Qed.
+
+Lemma strip m m1 m2 (p : pstep m m1) :
+  red m m2 -> exists m', red m1 m' /\ pstep m2 m'.
+Proof with eauto using pstep_refl, star.
+  move=> rd. elim: rd m1 p=>{m2}...
+  move=> y z rM ih /step_pstep p1 t /ih[x[r1 p2]].
+  move: (pstep_diamond p1 p2)=>[w[pW1 pW2]].
+  exists w. split...
+  apply: star_trans; eauto.
+  exact: pstep_red.
+Qed.
+
+Theorem confluence : confluent step.
+Proof with eauto using step, star.
+  unfold confluent.
+  unfold joinable.
+  move=> x y z r1 r2.
+  elim: r1 z r2=>{y}.
+  move=> z r.
+    exists z...
+  move=> y z1 r1 ih s z2 /ih[z3 r2].
+    move: s=> /step_pstep p1 p2.
+    move: (strip p1 r2)=>[mx[rMx1 rMx2]].
+    exists mx...
+    apply: star_trans...
+    exact: pstep_red.
+Qed.
+Hint Resolve confluence.
+
+Theorem church_rosser : CR step.
+Proof.
+  apply confluent_cr.
+  apply confluence.
+Qed.
+Hint Resolve church_rosser.
