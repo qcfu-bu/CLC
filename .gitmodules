@@ -1,3 +1,0 @@
-[submodule "autosubst"]
-	path = coq/autosubst
-	url = https://github.com/coq-community/autosubst.git
