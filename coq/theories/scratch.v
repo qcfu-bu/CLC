@@ -1742,10 +1742,10 @@ Qed.
 
 Lemma pstep_spine_inv i h ls m :
   pstep (spine (Constr i h) ls) m -> 
-    exists h' ls', 
-      m = spine (Constr i h') ls' /\ 
-      pstep h h' /\ 
-      All2 pstep ls ls'.
+  exists h' ls', 
+    m = spine (Constr i h') ls' /\ 
+    pstep h h' /\ 
+    All2 pstep ls ls'.
 Proof with eauto using pstep, All2, pstep_refl, All2_pstep_refl.
   move=> p.
   move: (revK ls)=> e.
