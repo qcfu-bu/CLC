@@ -895,7 +895,7 @@ Section pstep_ind_nested.
 End pstep_ind_nested.
 
 Notation red := (star step).
-Notation "m ~~ n" := (conv step m n) (at level 30).
+Notation "m === n" := (conv step m n) (at level 30).
 
 Definition sred sigma tau := 
   forall x : var, red (sigma x) (tau x).
@@ -1249,13 +1249,13 @@ Proof.
 Qed.
 
 Definition sconv (sigma tau : var -> term) := 
-  forall x, sigma x ~~ tau x.
+  forall x, sigma x === tau x.
 
-Lemma conv_Lam m1 m2 : m1 ~~ m2 -> Lam m1 ~~ Lam m2.
+Lemma conv_Lam m1 m2 : m1 === m2 -> Lam m1 === Lam m2.
 Proof. apply: conv_hom=> x y. exact: step_Lam. Qed.
 
 Lemma conv_Prod A1 A2 s B1 B2 :
-  A1 ~~ A2 -> B1 ~~ B2 -> Prod A1 B1 s ~~ Prod A2 B2 s.
+  A1 === A2 -> B1 === B2 -> Prod A1 B1 s === Prod A2 B2 s.
 Proof.
   move=> A B.
   apply: (conv_trans (Prod A2 B1 s)).
@@ -1266,7 +1266,7 @@ Proof.
 Qed.
 
 Lemma conv_Lolli A1 A2 s B1 B2 :
-  A1 ~~ A2 -> B1 ~~ B2 -> Lolli A1 B1 s ~~ Lolli A2 B2 s.
+  A1 === A2 -> B1 === B2 -> Lolli A1 B1 s === Lolli A2 B2 s.
 Proof.
   move=> A B.
   apply: (conv_trans (Lolli A2 B1 s)).
@@ -1277,7 +1277,7 @@ Proof.
 Qed.
 
 Lemma conv_App m1 m2 n1 n2 :
-  m1 ~~ m2 -> n1 ~~ n2 -> App m1 n1 ~~ App m2 n2.
+  m1 === m2 -> n1 === n2 -> App m1 n1 === App m2 n2.
 Proof.
   move=> A B.
   apply: (conv_trans (App m2 n1)).
@@ -1288,7 +1288,7 @@ Proof.
 Qed.
 
 Lemma conv_Ind A1 A2 s Cs1 Cs2 :
-  A1 ~~ A2 -> conv (One2 step) Cs1 Cs2 -> Ind A1 s Cs1 ~~ Ind A2 s Cs2.
+  A1 === A2 -> conv (One2 step) Cs1 Cs2 -> Ind A1 s Cs1 === Ind A2 s Cs2.
 Proof.
   move=> A B. 
   apply: (conv_trans (Ind A2 s Cs1)).
@@ -1305,17 +1305,17 @@ Proof.
 Qed.
 
 Lemma conv_Constr i m1 m2 :
-  m1 ~~ m2 -> Constr i m1 ~~ Constr i m2.
+  m1 === m2 -> Constr i m1 === Constr i m2.
 Proof.
   move=> A.
   apply: (conv_hom (Constr i)) A => x y. exact: step_Constr.
 Qed.
 
 Lemma conv_Case m1 m2 Q1 Q2 Fs1 Fs2 :
-  m1 ~~ m2 -> 
-  Q1 ~~ Q2 -> 
+  m1 === m2 -> 
+  Q1 === Q2 -> 
   conv (One2 step) Fs1 Fs2 -> 
-  Case m1 Q1 Fs1 ~~ Case m2 Q2 Fs2.
+  Case m1 Q1 Fs1 === Case m2 Q2 Fs2.
 Proof.
   move=> A B C. 
   apply: (conv_trans (Case m2 Q1 Fs1)).
@@ -1334,10 +1334,10 @@ Proof.
 Qed.
 
 Lemma conv_DCase m1 m2 Q1 Q2 Fs1 Fs2 :
-  m1 ~~ m2 -> 
-  Q1 ~~ Q2 -> 
+  m1 === m2 -> 
+  Q1 === Q2 -> 
   conv (One2 step) Fs1 Fs2 -> 
-  DCase m1 Q1 Fs1 ~~ DCase m2 Q2 Fs2.
+  DCase m1 Q1 Fs1 === DCase m2 Q2 Fs2.
 Proof.
   move=> A B C. 
   apply: (conv_trans (DCase m2 Q1 Fs1)).
@@ -1356,14 +1356,14 @@ Proof.
 Qed.
 
 Lemma conv_Fix m1 m2 :
-  m1 ~~ m2 -> Fix m1 ~~ Fix m2.
+  m1 === m2 -> Fix m1 === Fix m2.
 Proof.
   move=> A.
   apply: (conv_hom Fix) A=> x y. exact: step_Fix.
 Qed.
 
 Lemma conv_hd h1 h2 ls :
-  h1 ~~ h2 -> conv (One2 step) (h1 :: ls) (h2 :: ls).
+  h1 === h2 -> conv (One2 step) (h1 :: ls) (h2 :: ls).
 Proof.
   move=> cv. elim: cv ls=> //.
   move=> y z cv ih st ls.
@@ -1391,7 +1391,7 @@ Proof.
 Qed.
 
 Lemma conv_ls h h' ls ls' :
-  h ~~ h' ->
+  h === h' ->
   conv (One2 step) ls ls' -> 
   conv (One2 step) (h :: ls) (h' :: ls').
 Proof.
@@ -1403,7 +1403,7 @@ Proof.
 Qed.
 
 Lemma conv_subst sigma m n :
-  m ~~ n -> m.[sigma] ~~ n.[sigma].
+  m === n -> m.[sigma] === n.[sigma].
 Proof.
   move=> cv. elim: cv sigma=> /={n}.
   move=> sigma //.
@@ -1436,7 +1436,7 @@ Hint Resolve
 : conv_congr.
 
 Lemma conv_compat sigma tau s : 
-  sconv sigma tau -> s.[sigma] ~~ s.[tau].
+  sconv sigma tau -> s.[sigma] === s.[tau].
 Proof.
   move: s sigma tau.
   apply: term_ind_nested; asimpl; eauto 6 with conv_congr. 
@@ -1451,7 +1451,7 @@ Proof.
     elim: ih3=> //=; eauto 6 with conv_congr.
 Qed.
 
-Lemma conv_Beta s t1 t2 : t1 ~~ t2 -> s.[t1/] ~~ s.[t2/].
+Lemma conv_Beta s t1 t2 : t1 === t2 -> s.[t1/] === s.[t2/].
 Proof. move=> c. by apply: conv_compat => -[]. Qed.
 
 Lemma pstep_refl s : pstep s s.
@@ -1653,7 +1653,8 @@ Proof with eauto using psstep_refl, psstep_compat.
 Qed.
 
 Lemma pstep_iget1 ls ls' i m :
-  All2 pstep ls ls' -> iget i ls m -> exists m', iget i ls' m' /\ pstep m m'.
+  All2 pstep ls ls' -> iget i ls m -> 
+    exists m', iget i ls' m' /\ pstep m m'.
 Proof with eauto using iget.
   move=> p.
   elim: p m i => {ls ls'}.
@@ -1665,7 +1666,8 @@ Proof with eauto using iget.
 Qed.
 
 Lemma pstep_iget2 ls ls' i m' :
-  All2 pstep ls ls' -> iget i ls' m' -> exists m, iget i ls m /\ pstep m m'.
+  All2 pstep ls ls' -> iget i ls' m' -> 
+    exists m, iget i ls m /\ pstep m m'.
 Proof with eauto using iget.
   move=> p.
   elim: p m' i => {ls ls'}.
