@@ -1722,14 +1722,14 @@ Proof with eauto using All2.
       exfalso. by apply: spine_Lam_Constr_False; eauto.
 Qed.
 
-Lemma pstep_append ls1 ls2 ls1' ls2' :
+Lemma All2_pstep_append ls1 ls2 ls1' ls2' :
   All2 pstep ls1 ls2 -> All2 pstep ls1' ls2' ->
     All2 pstep (ls1 ++ ls1') (ls2 ++ ls2').
 Proof with eauto using All2.
   move=> p. elim: p ls1' ls2'=> //={ls1 ls2}...
 Qed.
 
-Lemma pstep_rev ls1 ls2 :
+Lemma All2_pstep_rev ls1 ls2 :
   All2 pstep ls1 ls2 -> All2 pstep (rev ls1) (rev ls2).
 Proof with eauto using All2.
   elim=> //={ls1 ls2}...
@@ -1737,7 +1737,7 @@ Proof with eauto using All2.
     replace (m :: ls) with ([:: m] ++ ls) by eauto.
     replace (m' :: ls') with ([:: m'] ++ ls') by eauto.
     rewrite! rev_cat.
-    apply pstep_append...
+    apply All2_pstep_append...
 Qed.
 
 Lemma pstep_spine_inv i h ls m :
@@ -1757,7 +1757,7 @@ Proof with eauto using pstep, All2, pstep_refl, All2_pstep_refl.
   rewrite revK.
   rewrite revK in p2.
   firstorder.
-  apply pstep_rev in p2.
+  apply All2_pstep_rev in p2.
   by rewrite revK in p2.
 Qed.
 
@@ -1772,7 +1772,7 @@ Proof with eauto using pstep, All2, pstep_refl, All2_pstep_refl.
   rewrite <- e2 in p=>{e2}.
   rewrite! spine_spine'_rev in p.
   move: p=> /pstep_spine'_congr.
-  rewrite! revK=> /pstep_rev.
+  rewrite! revK=> /All2_pstep_rev.
   by rewrite! revK.
 Qed.
 
@@ -1798,128 +1798,112 @@ Qed.
 
 Lemma pstep_diamond (m m1 m2 : term) (p : pstep m m1) :
   pstep m m2 -> exists m', pstep m1 m' /\ pstep m2 m'.
-Proof with eauto 6 using pstep, pstep_refl, All2, pstep_compat_Beta, pstep_spine.
+Proof with eauto 6 using 
+  pstep, pstep_refl, All2, pstep_compat_Beta, pstep_spine.
 Proof.
   move: m m1 p m2.
   apply: pstep_ind_nested.
-  move=> x m p. inv p. exists (Var x)...
+  move=> x t p. inv p. exists (Var x)...
   move=> srt l m p. inv p. exists (Sort srt l)...
   move=> n n' pN ihN m p. inv p.
     move: H0=> /ihN [m' [p2 p3]].
     exists (Lam m')...
-  move=> m m' n n' p1 ih1 p2 ih2 m2 p3. inv p3.
-    move: H1=> /ih1 [m'1 [p3 p4]].
-    move: H3=> /ih2 [m'2 [p5 p6]].
-    exists (App m'1 m'2)...
-    inv p1.
-    have h : pstep (Lam m0) (Lam m'0).
+  move=> m m' n n' pM ihM pN ihN t p. inv p.
+    move: H1=> /ihM [mx [pMx1 pM2]].
+    move: H3=> /ihN [nx [pNx1 pNx2]].
+    exists (App mx nx)...
+    inv pM.
+    have pLam : pstep (Lam m0) (Lam m'0).
       by constructor.
-    move: h=> /ih1 [m' [p3 p4]].
-    move: H3=> /ih2 [m'1 [p5 p6]].
-    inv p3; inv p4.
-    exists (n'2.[m'1/])... 
-  move=> m m' n n' p1 ih1 p2 ih2 m2 p3. inv p3.
+    move: pLam=> /ihM [mx [pMx1 pMx2]].
+    move: H3=> /ihN [nx [pNx1 pNx2]].
+    inv pMx1; inv pMx2.
+    exists (n'2.[nx/])... 
+  move=> m m' n n' pM ihM pN ihN t p. inv p.
     inv H1.
-    move: H0=> /ih1 [m'0 [p3 p4]].
-    move: H3=> /ih2 [m'1 [p5 p6]].
-    exists (m'0.[m'1/])...
-    move: H1=> /ih1 [m'1 [p3 p4]].
-    move: H3=> /ih2 [m'2 [p5 p6]].
-    exists (m'1.[m'2/])...
-  move=> A A' s B B' p1 ih1 p2 ih2 m2 p3. inv p3.
-    move: H3=> /ih1 [m' [p3 p4]].
-    move: H4=> /ih2 [m'0 [p5 p6]].
-    exists (Prod m' m'0 s)...
-  move=> A A' s B B' p1 ih1 p2 ih2 m2 p3. inv p3.
-    move: H3=> /ih1 [m' [p3 p4]].
-    move: H4=> /ih2 [m'0 [p5 p6]].
-    exists (Lolli  m' m'0 s)...
-  move=> A A' s Cs Cs' p1 ih1 p2 ih2 m2 p3. inv p3.
-    move: H3=> /ih1 [Ax [p4 p5]].
-    move: (All2_diamond p2 H4 ih2)=>[lsx[p6 p7]].
-    exists (Ind Ax s lsx)...
-  move=> i m m' p1 ih m2 p2. inv p2.
-    move: H2=> /ih [m'1 [p2 p3]].
-    exists (Constr i m'1)...
-  move=> m m' Q Q' Fs Fs' p1 ih1 p2 ih2 p3 ih3 m2 p4. inv p4.
-    move: H2=> /ih1 [mx [p4 p5]].
-    move: H4=> /ih2 [Qx [p6 p7]].
-    move: (All2_diamond p3 H5 ih3)=>[lsx [p8 p9]].
-    exists (Case mx Qx lsx)...
-    move: (pstep_spine_inv p1)=>[hx [msx[e[p4 p5]]]]; subst.
+    move: H0=> /ihM [mx [pMx1 pMx2]].
+    move: H3=> /ihN [nx [pNx1 pNx2]].
+    exists (mx.[nx/])...
+    move: H1=> /ihM [mx [pMx1 pMx2]].
+    move: H3=> /ihN [nx [pNx1 pNx2]].
+    exists (mx.[nx/])...
+  move=> A A' s B B' pA ihA pB ihB t p. inv p.
+    move: H3=> /ihA [Ax [pAx1 pAx2]].
+    move: H4=> /ihB [Bx [pBx1 pBx2]].
+    exists (Prod Ax Bx s)...
+  move=> A A' s B B' pA ihA pB ihB t p. inv p.
+    move: H3=> /ihA [Ax [pAx1 pAx2]].
+    move: H4=> /ihB [Bx [pBx1 pBx2]].
+    exists (Lolli Ax Bx s)...
+  move=> A A' s Cs Cs' pA ihA pCs ihCs t p. inv p.
+    move: H3=> /ihA [Ax [pAx1 pAx2]].
+    move: (All2_diamond pCs H4 ihCs)=>[Csx[pCsx1 pCsx2]].
+    exists (Ind Ax s Csx)...
+  move=> i m m' pM ihM t p. inv p.
+    move: H2=> /ihM [mx [pMx1 pMx2]].
+    exists (Constr i mx)...
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs t p. inv p.
+    move: H2=> /ihM [mx [pMx1 pMx2]].
+    move: H4=> /ihQ [Qx [pQx1 pQx2]].
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx [pFsx1 pFsx2]].
+    exists (Case mx Qx Fsx)...
+    move: (pstep_spine_inv pM)=>[hx [msx[e[pM0 pMs]]]]; subst.
     have pf : pstep (spine (Constr i m0) ms) (spine (Constr i m0) ms').
       apply: pstep_spine...
-    move: pf=> /ih1[mx[p6 p7]].
-    move: (pstep_spine_inv p6)=>[hx'[msx'[e[p8 p9]]]]; subst.
-    move: p7=>/pstep_spine_congr=> px1.
-    move: p6=>/pstep_spine_congr=> px2.
-    move: (All2_diamond p3 H5 ih3)=>[Fsx[pFxs1 pFxs2]].
+    move: pf=> /ihM[mx[pMx1 pMx2]].
+    move: (pstep_spine_inv pMx1)=>[hx'[msx'[e[pHx pMsx]]]]; subst.
+    move: pMx2=>/pstep_spine_congr=> pMs'.
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFxs1 pFxs2]].
     move: (pstep_iget1 pFxs2 H2)=> [Fx[ig pFx]].
     exists (spine Fx msx')...
-
-
-  move=> i m ms ms' Q Fs Fs' F F' ig ig' p1 p2 p3 ih m2 p4. inv p4.
-    have pf :  ~(exists m0 : term, Constr i m = Lam m0).
-      move=> [m0 e] //=.
-    move: H2=> /pstep_spine_inv H2.
-    move: pf=> /H2 [h' [ls' [-> [p4 p5]]]]. inv p4.
-    move: (pstep_diamond' _ _ _ p2 H5)=> [ls'0 [p6 p7]].
-    move: (pstep_diamond' _ _ _ p1 p5)=> [ls'1 [p8 p9]].
-    move: (pstep'_iget1 p6 ig')=> [m'1 [ig1 p10]].
-    move: (pstep'_iget2 p7 ig1)=> [m'2 [ig2 p11]].
-    exists (spine m'1 ls'1)...
-    move: H=> /spine_Constr[e1 [e2 e3]]; subst.
-    move: (pstep_diamond' _ _ _ p1 H4)=> [ls'0 [p6 p7]].
-    move: (pstep'_iget1 H6 ig)=> [F1 [ig1 p8]].
-    move: (iget_iget ig1 H3)=> e; subst.
-    move: p8=> /ih[F2 [p9 p10]].
-    exists (spine F2 ls'0)...
-  move=> m m' Q Q' Fs Fs' p1 ih1 p2 ih2 p3 m2 p4. inv p4.
-    move: H2=> /ih1 [m'1 [p4 p5]].
-    move: H4=> /ih2 [m'2 [p6 p7]].
-    move: (pstep_diamond' _ _ _ p3 H5)=> [ls' [p8 p9]].
-    exists (DCase m'1 m'2 ls')...
-    have pf :  ~(exists m : term, Constr i m0 = Lam m).
-      move=> [m e] //=.
-    move: p1=> /pstep_spine_inv p1.
-    move: pf=> /p1 [h' [ls'0 [-> [p4 p6]]]]. inv p4. 
-    move: (pstep_diamond' _ _ _ H4 p6)=> [ls' [p7 p8]].
-    move: (pstep_diamond' _ _ _ p3 H6)=> [ls'1 [p9 p10]].
-    move: (pstep'_iget1 p10 H3)=> [F1 [ig1 p11]].
-    move: (pstep'_iget2 p9 ig1)=> [F2 [ig2 p12]].
-    exists (spine F1 ls')...
-  move=> i m ms ms' Q Fs Fs' F F' ig ig' p1 p2 p3 ih m2 p4. inv p4.
-    have pf :  ~(exists m0 : term, Constr i m = Lam m0).
-      move=> [m0 e] //=.
-    move: H2=> /pstep_spine_inv H2.
-    move: pf=> /H2 [h' [ls' [-> [p4 p5]]]]. inv p4.
-    move: (pstep_diamond' _ _ _ p2 H5)=> [ls'0 [p6 p7]].
-    move: (pstep_diamond' _ _ _ p1 p5)=> [ls'1 [p8 p9]].
-    move: (pstep'_iget1 p6 ig')=> [m'1 [ig1 p10]].
-    move: (pstep'_iget2 p7 ig1)=> [m'2 [ig2 p11]].
-    exists (spine m'1 ls'1)...
-    move: H=> /spine_Constr[e1 [e2 e3]]; subst.
-    move: (pstep_diamond' _ _ _ p1 H4)=> [ls'0 [p6 p7]].
-    move: (pstep'_iget1 H6 ig)=> [F1 [ig1 p8]].
-    move: (iget_iget ig1 H3)=> e; subst.
-    move: p8=> /ih[F2 [p9 p10]].
-    exists (spine F2 ls'0)...
-  move=> m m' p1 ih m2 p2. inv p2.
-    move: H0=> /ih[m3 [p3 p4]].
-    exists (Fix m3)...
-    move: H0=> /ih[m3 [p3 p4]].
-    exists (m3.[Fix m3/])...
-  move=> m m' p1 ih m2 p2. inv p2.
-    move: H0=> /ih[m3 [p3 p4]].
-    exists (m3.[Fix m3/])...
-    move: H0=> /ih[m3 [p3 p4]].
-    exists (m3.[Fix m3/])...
-elim: p ls2=> {ls ls1 pstep_diamond'}.
-  move=> ls2 p. inv p.
-    exists Nil...
-  move=> m1 m2 ls1 ls2 p1 p2 ih ls3 p3. inv p3.
-    move: H3=> /ih[ls4 [p4 p5]].
-    move: (pstep_diamond _ _ _ H1 p1)=> [m3 [p6 p7]].
-    exists (Cons m3 ls4)...
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs t p. inv p.
+    move: H2=>/pstep_spine_inv[hx[mx[->[pM pMs']]]].
+    move: (All2_diamond pMs pMs' ihMs)=>[mx'[pMx1 pMx2]].
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFsx1 pFsx2]].
+    move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
+    exists (spine Fx mx')...
+    move: H=> /spine_Constr[e1[e2 e3]]; subst.
+    move: (All2_diamond pMs H4 ihMs)=>[mx[pMx1 pMx2]].
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFsx1 pFsx2]].
+    move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
+    move: (pstep_iget2 pFsx2 igFx)=>[Fx'[igFx' pFx']].
+    move: (iget_iget igFx' H2)=>e; subst.
+    exists (spine Fx mx)...
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs t p. inv p.
+    move: H2=> /ihM [mx [pMx1 pMx2]].
+    move: H4=> /ihQ [Qx [pQx1 pQx2]].
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx [pFsx1 pFsx2]].
+    exists (DCase mx Qx Fsx)...
+    move: (pstep_spine_inv pM)=>[hx [msx[e[pM0 pMs]]]]; subst.
+    have pf : pstep (spine (Constr i m0) ms) (spine (Constr i m0) ms').
+      apply: pstep_spine...
+    move: pf=> /ihM[mx[pMx1 pMx2]].
+    move: (pstep_spine_inv pMx1)=>[hx'[msx'[e[pHx pMsx]]]]; subst.
+    move: pMx2=>/pstep_spine_congr=> pMs'.
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFxs1 pFxs2]].
+    move: (pstep_iget1 pFxs2 H2)=> [Fx[ig pFx]].
+    exists (spine Fx msx')...
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs t p. inv p.
+    move: H2=>/pstep_spine_inv[hx[mx[->[pM pMs']]]].
+    move: (All2_diamond pMs pMs' ihMs)=>[mx'[pMx1 pMx2]].
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFsx1 pFsx2]].
+    move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
+    exists (spine Fx mx')...
+    move: H=> /spine_Constr[e1[e2 e3]]; subst.
+    move: (All2_diamond pMs H4 ihMs)=>[mx[pMx1 pMx2]].
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFsx1 pFsx2]].
+    move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
+    move: (pstep_iget2 pFsx2 igFx)=>[Fx'[igFx' pFx']].
+    move: (iget_iget igFx' H2)=>e; subst.
+    exists (spine Fx mx)...
+  move=> m m' pM ihM t p. inv p.
+    move: H0=> /ihM[mx[pMx1 pMx2]].
+    exists (Fix mx)...
+    move: H0=> /ihM[mx [pMx1 pMx2]].
+    exists (mx.[Fix mx/])...
+  move=> m m' pM ihM t p. inv p.
+    move: H0=> /ihM[mx[pMx1 pMx2]].
+    exists (mx.[Fix mx/])...
+    move: H0=> /ihM[mx[pMx1 pMx2]].
+    exists (mx.[Fix mx/])...
 Qed.
-      
