@@ -488,7 +488,6 @@ Inductive One2 R : list term -> list term -> Prop :=
   One2 R ls ls' ->
   One2 R (m :: ls) (m :: ls').
 
-
 Inductive All2 R : list term -> list term -> Prop :=
 | All2_nil : All2 R nil nil
 | All2_cons m m' ls ls' :
@@ -2267,8 +2266,8 @@ Section noccurs_ind_nested.
       fix fold x ls (no : List.Forall (noccurs x) ls) : List.Forall (P x) ls :=
         match no with
         | List.Forall_nil => List.Forall_nil _
-        | List.Forall_cons _ _ pfH pfTl =>
-          List.Forall_cons _ (noccurs_ind_nested x _ pfH) (fold x _ pfTl)
+        | List.Forall_cons _ _ pfHd pfTl =>
+          List.Forall_cons _ (noccurs_ind_nested x _ pfHd) (fold x _ pfTl)
         end).
     case no; intros.
     apply ih_Var; eauto.
@@ -2357,88 +2356,88 @@ Reserved Notation "[ Gamma |- ]".
 Reserved Notation "[ Gamma |- m :- A ]".
 
 Inductive has_type : context term -> term -> term -> Prop :=
-| p_axiom Gamma : 
+| u_Prop Gamma : 
   pure Gamma ->
   [ Gamma |- prop :- U @ 0 ]
-| s_axiom Gamma s l : 
+| u_Sort Gamma s l : 
   pure Gamma ->
   [ Gamma |- s @ l :- U @ l.+1 ]
-| p_prod Gamma A B l :
+| p_Prod Gamma A B l :
   pure Gamma ->
   [ Gamma |- A :- Sort U l ] ->
   [ A +u Gamma |- B :- prop ] ->
   [ Gamma |- Prod A B U :- prop ]
-| u_prod Gamma A B s l :
+| u_Prod Gamma A B s l :
   pure Gamma ->
   [ Gamma |- A :- U @ l ] ->
   [ A +u Gamma |- B :- s @ l ] ->
   [ Gamma |- Prod A B U :- U @ l ]
-| l_prod Gamma A B s l :
+| l_Prod Gamma A B s l :
   pure Gamma ->
   [ Gamma |- A :- L @ l ] ->
   [ +n Gamma |- B :- s @ l ] ->
   [ Gamma |- Prod A B L :- U @ l ]
-| u_lolli Gamma A B s l :
+| u_Lolli Gamma A B s l :
   pure Gamma ->
   [ Gamma |- A :- U @ l ] ->
   [ A +u Gamma |- B :- s @ l ] ->
   [ Gamma |- Lolli A B U :- L @ l ]
-| l_lolli Gamma A B s l :
+| l_Lolli Gamma A B s l :
   pure Gamma ->
   [ Gamma |- A :- L @ l ] ->
   [ +n Gamma |- B :- s @ l ] ->
   [ Gamma |- Lolli A B L :- L @ l ]
-| u_var Gamma x A : 
+| u_Var Gamma x A : 
   hasU Gamma x A ->
   [ Gamma |- Var x :- A ]
-| l_var Gamma x A :
+| l_Var Gamma x A :
   hasL Gamma x A ->
   [ Gamma |- Var x :- A ]
-| prod_lam Gamma n A B s t l :
+| u_Lam Gamma n A B s t l :
   pure Gamma ->
   [ Gamma |- Prod A B s :- Sort t l ] ->
   [ A +{s} Gamma |- n :- B ] ->
   [ Gamma |- Lam A n s :- Prod A B s ]
-| lolli_lam Gamma n A B s t l :
+| l_Lam Gamma n A B s t l :
   [ re Gamma |- Lolli A B s :- Sort t l ] ->
   [ A +{s} Gamma |- n :- B ] ->
   [ Gamma |- Lam A n s :- Lolli A B s ]
-| u_prod_app Gamma1 Gamma2 Gamma A B m n :
+| u_Prod_App Gamma1 Gamma2 Gamma A B m n :
   pure Gamma2 ->
   [ Gamma1 |- m :- Prod A B U ] ->
   [ Gamma2 |- n :- A ] ->
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma |- App m n :- B.[n/] ]
-| l_prod_app Gamma1 Gamma2 Gamma  A B m n :
+| l_Prod_App Gamma1 Gamma2 Gamma  A B m n :
   [ Gamma1 |- m :- Prod A B L ] ->
   [ Gamma2 |- n :- A ] ->
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma |- App m n :- B.[n/] ]
-| u_lolli_app Gamma1 Gamma2 Gamma A B m n :
+| u_Lolli_App Gamma1 Gamma2 Gamma A B m n :
   pure Gamma2 ->
   [ Gamma1 |- m :- Lolli A B U ] ->
   [ Gamma2 |- n :- A ] ->
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma |- App m n :- B.[n/] ]
-| l_lolli_app Gamma1 Gamma2 Gamma A B m n :
+| l_Lolli_App Gamma1 Gamma2 Gamma A B m n :
   [ Gamma1 |- m :- Lolli A B L ] ->
   [ Gamma2 |- n :- A ] ->
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma |- App m n :- B.[n/] ]
-| ind_intro Gamma A s Cs l :
+| s_Ind Gamma A s Cs l :
   arity s A ->
   List.Forall (constr 0 s) Cs ->
   pure Gamma ->
   [ Gamma |- A :- Sort U l ] ->
   List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs ->
   [ Gamma |- Ind A Cs s :- A ]
-| constr_intro Gamma A s i C Cs :
+| s_Constr Gamma A s i C Cs :
   let I := Ind A Cs s in
   iget i Cs C ->
   pure Gamma ->
   [ Gamma |- I :- A ] ->
   [ Gamma |- Constr i I :- C.[I/] ]
-| case_intro Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms :
+| s_Case Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms :
   let I := Ind A Cs s in
   arity s A ->
   merge Gamma1 Gamma2 Gamma ->
@@ -2447,24 +2446,210 @@ Inductive has_type : context term -> term -> term -> Prop :=
   All2 (fun F C => 
     [ Gamma2 |- F :- (case Q C).[I/] ]) Fs Cs ->
   [ Gamma |- Case m Q Fs :- spine Q ms ]
-| dcase_intro Gamma1 Gamma2 Gamma A Q s Fs Cs m ms :
+| s_DCase Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms :
   let I := Ind A Cs U in
   arity s A ->
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma1 |- m :- spine I ms ] ->
-  [ re Gamma2 |- Q :- arity2 s I A ] ->
+  [ re Gamma2 |- Q :- arity2 s' I A ] ->
   Alli (fun i F C =>
     [ Gamma2 |- F :- (dcase Q (Constr i I) C).[I/] ]) 0 Fs Cs ->
   [ Gamma |- DCase m Q Fs :- spine Q ms ]
-| fix_intro Gamma A m l :
+| u_Fix Gamma A m l :
   fix_guard m ->
   pure Gamma ->
   [ Gamma |- A :- Sort U l ] ->
   [ A +u Gamma |- m :- A ] ->
   [ Gamma |- Fix A m :- A ]
-| conversion Gamma A B m s l :
+| s_Conv Gamma A B m s l :
   A <: B ->
   [ re Gamma |- B :- Sort s l ] ->
   [ Gamma |- m :- A ] ->
   [ Gamma |- m :- B ]
 where "[ Gamma |- m :- A ]" := (has_type Gamma m A).
+
+Section has_type_nested_ind.
+  Variable P : context term -> term -> term -> Prop.
+  Hypothesis ih_u_Prop : forall Gamma, 
+    pure Gamma -> P Gamma prop (U @ 0).
+  Hypothesis ih_u_Sort : forall Gamma s l, 
+    pure Gamma -> P Gamma (s @ l) (U @ l.+1).
+  Hypothesis ih_p_Prod : forall Gamma A B l,
+    pure Gamma -> 
+    [ Gamma |- A :- Sort U l ] -> P Gamma A (Sort U l) ->
+    [ A +u Gamma |- B :- prop ] -> P (A +u Gamma) B prop ->
+    P Gamma (Prod A B U) prop.
+  Hypothesis ih_u_Prod : forall Gamma A B s l,
+    pure Gamma ->
+    [ Gamma |- A :- U @ l ] -> P Gamma A (U @ l) ->
+    [ A +u Gamma |- B :- s @ l ] -> P (A +u Gamma) B (s @ l) ->
+    P Gamma (Prod A B U) (U @ l).
+  Hypothesis ih_l_Prod : forall Gamma A B s l,
+    pure Gamma ->
+    [ Gamma |- A :- L @ l] -> P Gamma A (L @ l) ->
+    [ +n Gamma |- B :- s @ l ] -> P (+n Gamma) B (s @ l) ->
+    P Gamma (Prod A B L) (U @ l).
+  Hypothesis ih_u_Lolli : forall Gamma A B s l,
+    pure Gamma ->
+    [ Gamma |- A :- U @ l ] -> P Gamma A (U @ l) ->
+    [ A +u Gamma |- B :- s @ l ] -> P (A +u Gamma) B (s @ l) ->
+    P Gamma (Lolli A B U) (L @ l). 
+  Hypothesis ih_l_Lolli : forall Gamma A B s l,
+    pure Gamma ->
+    [ Gamma |- A :- L @ l ] -> P Gamma A (L @ l) ->
+    [ +n Gamma |- B :- s @ l ] -> P (+n Gamma) B (s @ l) ->
+    P Gamma (Lolli A B L) (L @ l).
+  Hypothesis ih_u_Var : forall Gamma x A,
+    hasU Gamma x A -> P Gamma (Var x) A.
+  Hypothesis ih_l_Var : forall Gamma x A,
+    hasL Gamma x A -> P Gamma (Var x) A.
+  Hypothesis ih_u_Lam : forall Gamma n A B s t l,
+    pure Gamma ->
+    [ Gamma |- Prod A B s :- Sort t l ] -> 
+      P Gamma (Prod A B s) (Sort t l) ->
+    [ A +{s} Gamma |- n :- B ] -> 
+      P (A +{s} Gamma) n B ->
+    P Gamma (Lam A n s) (Prod A B s).
+  Hypothesis ih_l_Lam : forall Gamma n A B s t l,
+    [ re Gamma |- Lolli A B s :- Sort t l ] -> 
+      P (re Gamma) (Lolli A B s) (Sort t l) ->
+    [ A +{s} Gamma |- n :- B ] ->
+      P (A +{s} Gamma) n B ->
+    P Gamma (Lam A n s) (Lolli A B s).
+  Hypothesis ih_u_Prod_App : forall Gamma1 Gamma2 Gamma A B m n,
+    pure Gamma2 ->
+    [ Gamma1 |- m :- Prod A B U ] -> P Gamma1 m (Prod A B U) ->
+    [ Gamma2 |- n :- A ] -> P Gamma2 n A ->
+    merge Gamma1 Gamma2 Gamma ->
+    P Gamma (App m n) B.[n/].
+  Hypothesis ih_l_Prod_App : forall Gamma1 Gamma2 Gamma A B m n,
+    [ Gamma1 |- m :- Prod A B L ] -> P Gamma1 m (Prod A B L) ->
+    [ Gamma2 |- n :- A ] -> P Gamma2 n A ->
+    merge Gamma1 Gamma2 Gamma ->
+    P Gamma (App m n) B.[n/].
+  Hypothesis ih_u_Lolli_App : forall Gamma1 Gamma2 Gamma A B m n,
+    pure Gamma2 ->
+    [ Gamma1 |- m :- Lolli A B U ] -> P Gamma1 m (Lolli A B U) ->
+    [ Gamma2 |- n :- A ] -> P Gamma2 n A ->
+    merge Gamma1 Gamma2 Gamma ->
+    P Gamma (App m n) B.[n/].
+  Hypothesis ih_l_Lolli_App : forall Gamma1 Gamma2 Gamma A B m n,
+    [ Gamma1 |- m :- Lolli A B L ] -> P Gamma1 m (Lolli A B L) ->
+    [ Gamma2 |- n :- A ] -> P Gamma2 n A ->
+    merge Gamma1 Gamma2 Gamma ->
+    P Gamma (App m n) B.[n/].
+  Hypothesis ih_s_Ind : forall Gamma A s Cs l,
+    arity s A ->
+    List.Forall (constr 0 s) Cs ->
+    pure Gamma ->
+    [ Gamma |- A :- Sort U l ] -> P Gamma A (Sort U l) ->
+    List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs ->
+      List.Forall (fun C => P (A +u Gamma) C (Sort U l)) Cs ->
+    P Gamma (Ind A Cs s) A.
+  Hypothesis ih_s_Constr : forall Gamma A s i C Cs,
+    let I := Ind A Cs s in
+    iget i Cs C ->
+    pure Gamma ->
+    [ Gamma |- I :- A ] -> P Gamma I A ->
+    P Gamma (Constr i I) C.[I/].
+  Hypothesis ih_s_Case : forall Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms,
+    let I := Ind A Cs s in
+    arity s A ->
+    merge Gamma1 Gamma2 Gamma ->
+    [ Gamma1 |- m :- spine I ms ] -> P Gamma1 m (spine I ms) ->
+    [ re Gamma2 |- Q :- arity1 s' A ] -> P (re Gamma2) Q (arity1 s' A) ->
+    All2 (fun F C =>
+      [ Gamma2 |- F :- (case Q C).[I/] ]) Fs Cs ->
+    All2 (fun F C =>
+      P Gamma2 F (case Q C).[I/]) Fs Cs ->
+    P Gamma (Case m Q Fs) (spine Q ms).
+  Hypothesis ih_s_DCase : forall Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms,
+    let I := Ind A Cs U in
+    arity s A ->
+    merge Gamma1 Gamma2 Gamma ->
+    [ Gamma1 |- m :- spine I ms ] -> P Gamma1 m (spine I ms) ->
+    [ re Gamma2 |- Q :- arity2 s' I A ] -> P (re Gamma2) Q (arity2 s' I A) ->
+    Alli (fun i F C =>
+      [ Gamma2 |- F :- (dcase Q (Constr i I) C).[I/] ]) 0 Fs Cs ->
+    Alli (fun i F C =>
+      P Gamma2 F (dcase Q (Constr i I) C).[I/]) 0 Fs Cs ->
+    P Gamma (DCase m Q Fs) (spine Q ms).
+  Hypothesis ih_u_Fix : forall Gamma A m l,
+    fix_guard m ->
+    pure Gamma ->
+    [ Gamma |- A :- Sort U l ] -> P Gamma A (Sort U l) ->
+    [ A +u Gamma |- m :- A ] -> P (A +u Gamma) m A ->
+    P Gamma (Fix A m) A.
+  Hypothesis ih_s_Conv : forall Gamma A B m s l,
+    A <: B ->
+    [ re Gamma |- B :- Sort s l ] -> P (re Gamma) B (Sort s l) ->
+    [ Gamma |- m :- A ] -> P Gamma m A ->
+    P Gamma m B.
+
+  Fixpoint has_type_nested_ind 
+    Gamma m A (pf : [ Gamma |- m :- A ]) : P Gamma m A.
+  Proof.
+    case pf; intros.
+    apply ih_u_Prop; eauto.
+    apply ih_u_Sort; eauto.
+    eapply ih_p_Prod; eauto.
+    eapply ih_u_Prod; eauto.
+    eapply ih_l_Prod; eauto.
+    eapply ih_u_Lolli; eauto.
+    eapply ih_l_Lolli; eauto.
+    apply ih_u_Var; eauto.
+    apply ih_l_Var; eauto.
+    eapply ih_u_Lam; eauto.
+    eapply ih_l_Lam; eauto.
+    eapply ih_u_Prod_App; eauto.
+    eapply ih_l_Prod_App; eauto.
+    eapply ih_u_Lolli_App; eauto.
+    eapply ih_l_Lolli_App; eauto.
+    eapply ih_s_Ind; eauto.
+      apply (
+        fix fold Cs 
+          (pf : List.Forall 
+            (fun C => [ A0 +u Gamma0 |- C :- Sort U l]) Cs) :
+          List.Forall (fun C => P (A0 +u Gamma0) C (Sort U l)) Cs
+        :=
+          match pf with
+          | List.Forall_nil => List.Forall_nil _
+          | List.Forall_cons _ _ pfHd pfTl =>
+            List.Forall_cons _ (has_type_nested_ind _ _ _ pfHd) (fold _ pfTl)
+          end); eauto.
+    apply ih_s_Constr; eauto.
+    eapply ih_s_Case; eauto.
+      apply (
+        fix fold Fs Cs
+          (pf : All2 (fun F C => 
+            [ Gamma2 |- F :- (case Q C).[I/] ]) Fs Cs) :
+          All2 (fun F C => 
+            P Gamma2 F (case Q C).[I/]) Fs Cs
+        :=
+          match pf with
+          | All2_nil => All2_nil _
+          | All2_cons _ _ _ _ pfHd pfTl =>
+            All2_cons (has_type_nested_ind _ _ _ pfHd) (fold _ _ pfTl)
+          end); eauto.
+    eapply ih_s_DCase; eauto.
+      apply (
+        fix fold n Fs Cs
+          (pf : Alli (fun i F C => 
+            [ Gamma2 |- F :- (dcase Q (Constr i I) C).[I/] ]) n Fs Cs) :
+          Alli (fun i F C => 
+            P Gamma2 F (dcase Q (Constr i I) C).[I/]) n Fs Cs
+        :=
+          match pf in 
+            Alli _ n Fs Cs
+          return
+            Alli (fun i F C => 
+              P Gamma2 F (dcase Q (Constr i I) C).[I/]) n Fs Cs
+          with
+          | Alli_nil _ => Alli_nil _ _
+          | Alli_cons _ _ _ _ _ pfHd pfTl =>
+            Alli_cons (has_type_nested_ind _ _ _ pfHd) (fold _ _ _ pfTl)
+          end); eauto.
+    eapply ih_u_Fix; eauto.
+    eapply ih_s_Conv; eauto.
+  Qed.
+End has_type_nested_ind.
