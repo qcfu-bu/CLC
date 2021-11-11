@@ -2191,6 +2191,123 @@ Proof. move=> [A' B' /sub1_subst]; eauto using sub, conv_subst. Qed.
 Lemma sub_ren A B xi : A <: B -> A.[ren xi] <: B.[ren xi].
 Proof. move=> *; by apply: sub_subst. Qed.
 
+Inductive arity : term -> sort -> Prop :=
+| arity_Sort s l : arity (Sort s l) s
+| arity_Prod s A B :
+  arity B s -> arity (Prod A B U) s.
+
+Inductive noccurs : var -> term -> Prop :=
+| noccurs_Var x y : x != y -> noccurs x (Var y)
+| noccurs_Sort x s l : noccurs x (Sort s l)
+| noccurs_Prod x A B s :
+  noccurs x A -> noccurs x.+1 B -> noccurs x (Prod A B s)
+| noccurs_Lolli x A B s :
+  noccurs x A -> noccurs x.+1 B -> noccurs x (Lolli A B s)
+| noccurs_Lam x A m s :
+  noccurs x A -> noccurs x.+1 m -> noccurs x (Lam A m s)
+| noccurs_App x m n :
+  noccurs x m -> noccurs x n -> noccurs x (App m n)
+| noccurs_Ind x A Cs s :
+  noccurs x A -> List.Forall (noccurs x.+1) Cs -> noccurs x (Ind A Cs s)
+| noccurs_Constr x i m :
+  noccurs x m -> noccurs x (Constr i m)
+| noccurs_Case x m Q Fs :
+  noccurs x m -> noccurs x Q -> List.Forall (noccurs x) Fs ->
+    noccurs x (Case m Q Fs)
+| noccurs_DCase x m Q Fs :
+  noccurs x m -> noccurs x Q -> List.Forall (noccurs x) Fs ->
+    noccurs x (DCase m Q Fs)
+| noccurs_Fix x A m :
+  noccurs x A -> noccurs x.+1 m -> noccurs x (Fix A m).
+
+Section noccurs_ind_nested.
+  Variable P : var -> term -> Prop.
+  Hypothesis ih_Var : forall x y, x != y -> P x (Var y).
+  Hypothesis ih_Sort : forall x s l, P x (Sort s l).
+  Hypothesis ih_Prod : forall x A B s,
+    noccurs x A -> P x A -> noccurs x.+1 B -> P x.+1 B -> P x (Prod A B s).
+  Hypothesis ih_Lolli : forall x A B s,
+    noccurs x A -> P x A -> noccurs x.+1 B -> P x.+1 B -> P x (Lolli A B s).
+  Hypothesis ih_Lam : forall x A m s,
+    noccurs x A -> P x A -> noccurs x.+1 m -> P x.+1 m -> P x (Lam A m s).
+  Hypothesis ih_App : forall x m n,
+    noccurs x m -> P x m -> noccurs x n -> P x n -> P x (App m n).
+  Hypothesis ih_Ind : forall x A Cs s,
+    noccurs x A -> P x A ->
+    List.Forall (noccurs x.+1) Cs -> List.Forall (P x.+1) Cs ->
+    P x (Ind A Cs s).
+  Hypothesis ih_Constr : forall x i m,
+    noccurs x m -> P x m -> P x (Constr i m).
+  Hypothesis ih_Case : forall x m Q Fs,
+    noccurs x m -> P x m -> 
+    noccurs x Q -> P x Q ->
+    List.Forall (noccurs x) Fs -> List.Forall (P x) Fs ->
+    P x (Case m Q Fs).
+  Hypothesis ih_DCase : forall x m Q Fs,
+    noccurs x m -> P x m -> 
+    noccurs x Q -> P x Q ->
+    List.Forall (noccurs x) Fs -> List.Forall (P x) Fs ->
+    P x (DCase m Q Fs).
+  Hypothesis ih_Fix : forall x A m,
+    noccurs x A -> P x A ->
+    noccurs x.+1 m -> P x.+1 m ->
+    P x (Fix A m).
+
+  Fixpoint noccurs_ind_nested x m (no : noccurs x m) : P x m.
+  Proof.
+    pose ih_nested := (
+      fix fold x ls (no : List.Forall (noccurs x) ls) : List.Forall (P x) ls :=
+        match no with
+        | List.Forall_nil => List.Forall_nil _
+        | List.Forall_cons _ _ pfH pfTl =>
+          List.Forall_cons _ (noccurs_ind_nested x _ pfH) (fold x _ pfTl)
+        end).
+    case no; intros.
+    apply ih_Var; eauto.
+    apply ih_Sort; eauto.
+    apply ih_Prod; eauto.
+    apply ih_Lolli; eauto.
+    apply ih_Lam; eauto.
+    apply ih_App; eauto.
+    apply ih_Ind; eauto.
+    apply ih_Constr; eauto.
+    apply ih_Case; eauto.
+    apply ih_DCase; eauto.
+    apply ih_Fix; eauto.
+  Qed.
+End noccurs_ind_nested.
+
+Inductive pos : var -> term -> Prop :=
+| pos_X x ms : List.Forall (noccurs x) ms -> pos x (spine (Var x) ms)
+| pos_Prod x A B s : noccurs x A -> pos x.+1 B -> pos x (Prod A B s)
+| pos_Lolli x A B s : noccurs x A -> pos x.+1 B -> pos x (Lolli A B s).
+
+Inductive active : var -> term -> Prop :=
+| active_X x ms : List.Forall (noccurs x) ms -> active x (spine (Var x) ms)
+| active_Pos x A B s :
+  pos x A -> active x.+1 B -> noccurs 0 B -> active x (Lolli A B s)
+| active_Lolli x A B s :
+  noccurs x A -> active x.+1 B -> active x (Lolli A B s).
+
+Inductive constr : var -> sort -> term -> Prop :=
+| constr_X x s ms : List.Forall (noccurs x) ms -> constr x s (spine (Var x) ms)
+| constr_UPos x A B :
+  pos x A -> constr x.+1 U B -> noccurs 0 B -> constr x U (Prod A B U)
+| constr_UProd x A B :
+  noccurs x A -> constr x.+1 U B -> constr x U (Prod A B U)
+| constr_LPos1 x A B :
+  pos x A-> constr x.+1 L B -> noccurs 0 B -> constr x L (Prod A B U)
+| constr_LPos2 x A B :
+  pos x A -> active x.+1 B -> noccurs 0 B -> constr x L (Prod A B L)
+| constr_LProd1 x A B :
+  noccurs x A -> constr x.+1 L B -> constr x L (Prod A B U)
+| constr_LProd2 x A B :
+  noccurs x A -> active x.+1 B -> constr x L (Prod A B L).
+
+Axiom fix_guard : term -> Prop.
+Axiom fix_guard_red : forall A A' m m', 
+  fix_guard m -> step (Fix A m) (Fix A' m') -> fix_guard m'.
+
 Notation prop := (Sort U None).
 Reserved Notation "[ Gamma |- ]".
 Reserved Notation "[ Gamma |- m :- A ]".
@@ -2264,6 +2381,26 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Gamma2 |- n :- A ] ->
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma |- App m n :- B.[n/] ]
+| ind_intro Gamma A s Cs l :
+  arity A s ->
+  List.Forall (constr 0 s) Cs ->
+  pure Gamma ->
+  [ Gamma |- A :- Sort U l ] ->
+  List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs ->
+  [ Gamma |- Ind A Cs s :- A ]
+| constr_intro Gamma A s i C Cs :
+  let I := Ind A Cs s in
+  iget i Cs C ->
+  pure Gamma ->
+  [ Gamma |- I :- A ] ->
+  [ Gamma |- Constr i I :- C.[I/] ]
+(* TODO: Case, DCase *)
+| fix_intro Gamma A m l :
+  fix_guard m ->
+  pure Gamma ->
+  [ Gamma |- A :- Sort U l ] ->
+  [ A +u Gamma |- m :- A ] ->
+  [ Gamma |- Fix A m :- A ]
 | conversion Gamma A B m s l :
   A <: B ->
   [ re Gamma |- B :- Sort s l ] ->
