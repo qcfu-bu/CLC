@@ -2771,3 +2771,79 @@ Proof with eauto.
     constructor.
     exact: ih.
 Qed.
+
+Lemma agree_ren_hasL Gamma Gamma' xi x A :
+  agree_ren xi Gamma Gamma' ->
+  hasL Gamma x A ->
+  hasL Gamma' (xi x) A.[ren xi].
+Proof with eauto.
+  move=> ag. elim: ag x A=>{Gamma Gamma' xi}.
+  move=> xi x A hs. inv hs.
+  move=> Gamma Gamma' xi m ag ih x A hs. inv hs.
+    replace (m0.[ren (+1)].[ren (upren xi)]) 
+      with (m0.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    exact: ih.
+  move=> Gamma Gamma' xi m ag ih x A hs. inv hs.
+    replace (m.[ren (+1)].[ren (upren xi)]) 
+      with (m.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    apply: agree_ren_pure...
+  move=> Gamma Gamma' xi ag ih x A hs. inv hs.
+    replace (m.[ren (+1)].[ren (upren xi)]) 
+      with (m.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    exact: ih.
+  move=> Gamma Gamma' xi m ag ih x A hs.
+    replace (A.[ren ((+1) ∘ xi)])
+      with (A.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    exact: ih.
+  move=> Gamma Gamma' xi ag ih x A hs.
+    replace (A.[ren ((+1) ∘ xi)])
+      with (A.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    exact: ih.
+Qed.
+
+Lemma merge_agree_ren_inv Gamma1 Gamma2 Gamma Gamma' xi :
+  agree_ren xi Gamma Gamma' ->
+    merge Gamma1 Gamma2 Gamma ->
+    exists Gamma1' Gamma2',
+      merge Gamma1' Gamma2' Gamma' /\
+      agree_ren xi Gamma1 Gamma1' /\
+      agree_ren xi Gamma2 Gamma2'.
+Proof with eauto.
+  move=> ag. elim: ag Gamma1 Gamma2=>{Gamma Gamma' xi}.
+  move=> xi Gamma1 Gamma2 mg. inv mg.
+    exists nil. exists nil. repeat constructor.
+  move=> Gamma Gamma' xi m ag ih Gamma1 Gamma2 mg. inv mg.
+    move: H2=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
+    exists (m.[ren xi] +u Gamma1').
+    exists (m.[ren xi] +u Gamma2').
+    repeat constructor...
+  move=> Gamma Gamma' xi m ag ih Gamma1 Gamma2 mg. inv mg.
+    move: H2=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
+    exists (m.[ren xi] +l Gamma1').
+    exists (+n Gamma2').
+      repeat constructor...
+    move: H2=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
+    exists (+n Gamma1').
+    exists (m.[ren xi] +l Gamma2').
+      repeat constructor...
+  move=> Gamma Gamma' xi ag ih Gamma1 Gamma2 mg. inv mg.
+    move: H2=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
+    exists (+n Gamma1').
+    exists (+n Gamma2').
+    repeat constructor...
+  move=> Gamma Gamma' xi m ag ih Gamma1 Gamma2 mg.
+    move: mg=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
+    exists (m +u Gamma1').
+    exists (m +u Gamma2').
+    repeat constructor...
+  move=> Gamma Gamma' xi ag ih Gamma1 Gamma2 mg.
+    move: mg=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
+    exists (+n Gamma1').
+    exists (+n Gamma2').
+    repeat constructor...
+Qed.
