@@ -415,13 +415,13 @@ Inductive term : Type :=
 | Sort   (s : sort) (l : option nat)
 | Prod   (A : term) (B : {bind term}) (s : sort)
 | Lolli  (A : term) (B : {bind term}) (s : sort)
-| Lam    (m : {bind term})
+| Lam    (A : term) (m : {bind term}) (s : sort)
 | App    (m n : term)
-| Ind    (A : term) (s : sort) (Cs : list {bind term})
+| Ind    (A : term) (Cs : list {bind term}) (s : sort)
 | Constr (i : nat) (m : term)
 | Case   (m Q : term) (Fs : list term)
 | DCase  (m Q : term) (Fs : list term)
-| Fix    (m : {bind term}).
+| Fix    (A : term) (m : {bind term}).
 
 Section term_ind_nested.
   Variable P : term -> Prop.
@@ -429,15 +429,15 @@ Section term_ind_nested.
   Hypothesis ih_Sort : forall s l, P (Sort s l).
   Hypothesis ih_Prod : forall A B s, P A -> P B -> P (Prod A B s).
   Hypothesis ih_Lolli : forall A B s, P A -> P B -> P (Lolli A B s).
-  Hypothesis ih_Lam : forall m, P m -> P (Lam m).
+  Hypothesis ih_Lam : forall A m s, P A -> P m -> P (Lam A m s).
   Hypothesis ih_App : forall m n, P m -> P n -> P (App m n).
-  Hypothesis ih_Ind : forall A s Cs, P A -> List.Forall P Cs -> P (Ind A s Cs).
+  Hypothesis ih_Ind : forall A Cs s, P A -> List.Forall P Cs -> P (Ind A Cs s).
   Hypothesis ih_Constr : forall i m, P m -> P (Constr i m).
   Hypothesis ih_Case : 
     forall m Q Fs, P m -> P Q -> List.Forall P Fs -> P (Case m Q Fs).
   Hypothesis ih_DCase : 
     forall m Q Fs, P m -> P Q -> List.Forall P Fs -> P (DCase m Q Fs).
-  Hypothesis ih_Fix : forall m, P m -> P (Fix m).
+  Hypothesis ih_Fix : forall A m, P A -> P m -> P (Fix A m).
 
   Fixpoint term_ind_nested m : P m.
   Proof.
@@ -447,35 +447,18 @@ Section term_ind_nested.
         | nil => List.Forall_nil _
         | x :: xs => List.Forall_cons _ (term_ind_nested x) (fold xs)
         end).
-    case m.
+    case m; intros.
     apply ih_Var.
     apply ih_Sort.
-    intros; apply ih_Prod.
-      apply term_ind_nested.
-      apply term_ind_nested.
-    intros; apply ih_Lolli.
-      apply term_ind_nested.
-      apply term_ind_nested.
-    intros; apply ih_Lam.
-      apply term_ind_nested.
-    intros; apply ih_App.
-      apply term_ind_nested.
-      apply term_ind_nested.
-    intros; apply ih_Ind.
-      apply term_ind_nested.
-      apply ih_nested.
-    intros; apply ih_Constr.
-      apply term_ind_nested.
-    intros; apply ih_Case.
-      apply term_ind_nested.
-      apply term_ind_nested.
-      apply ih_nested.
-    intros; apply ih_DCase.
-      apply term_ind_nested.
-      apply term_ind_nested.
-      apply ih_nested.
-    intros; apply ih_Fix.
-      apply term_ind_nested.
+    apply ih_Prod; eauto.
+    apply ih_Lolli; eauto.
+    apply ih_Lam; eauto.
+    apply ih_App; eauto.
+    apply ih_Ind; eauto.
+    apply ih_Constr; eauto.
+    apply ih_Case; eauto.
+    apply ih_DCase; eauto.
+    apply ih_Fix; eauto.
   Qed.
 End term_ind_nested.
 
@@ -506,17 +489,20 @@ Inductive One2 R : list term -> list term -> Prop :=
   One2 R (m :: ls) (m :: ls').
 
 Inductive step : term -> term -> Prop :=
-| step_Lam m m' :
+| step_LamL A A' m s :
+  step A A' ->
+  step (Lam A m s) (Lam A' m s)
+| step_LamR A m m' s :
   step m m' ->
-  step (Lam m) (Lam m')
+  step (Lam A m s) (Lam A m' s)
 | step_AppL m m' n :
   step m m' ->
   step (App m n) (App m' n)
 | step_AppR m n n' :
   step n n' ->
   step (App m n) (App m n')
-| step_Beta m n :
-  step (App (Lam m) n) m.[n/]
+| step_Beta A m n s :
+  step (App (Lam A m s) n) m.[n/]
 | step_ProdL A A' B s :
   step A A' ->
   step (Prod A B s) (Prod A' B s)
@@ -529,12 +515,12 @@ Inductive step : term -> term -> Prop :=
 | step_LolliR A B B' s :
   step B B' ->
   step (Lolli A B s) (Lolli A B' s)
-| step_IndA A A' s Cs :
+| step_IndA A A' Cs s :
   step A A' ->
-  step (Ind A s Cs) (Ind A' s Cs)
-| step_IndCs A s Cs Cs' :
+  step (Ind A Cs s) (Ind A' Cs s)
+| step_IndCs A Cs Cs' s :
   One2 step Cs Cs' ->
-  step (Ind A s Cs) (Ind A s Cs')
+  step (Ind A Cs s) (Ind A Cs' s)
 | step_Constr i m m' :
   step m m' ->
   step (Constr i m) (Constr i m')
@@ -566,22 +552,27 @@ Inductive step : term -> term -> Prop :=
   step 
     (DCase (spine (Constr i m) ms) Q Fs)
     (spine F ms)
-| step_Fix m m' :
+| step_FixL A A' m :
+  step A A' ->
+  step (Fix A m) (Fix A' m)
+| step_FixR A m m' :
   step m m' ->
-  step (Fix m) (Fix m')
-| step_FixIota m :
-  step (Fix m) (m.[Fix m/]).
+  step (Fix A m) (Fix A m')
+| step_FixIota A m :
+  step (Fix A m) (m.[Fix A m/]).
 
 Section step_ind_nested.
   Variable P : term -> term -> Prop.
-  Hypothesis ih_Lam : 
-    forall m m', step m m' -> P m m' -> P (Lam m) (Lam m').
+  Hypothesis ih_LamL : 
+    forall A A' m s, step A A' -> P A A' -> P (Lam A m s) (Lam A' m s).
+  Hypothesis ih_LamR : 
+    forall A m m' s, step m m' -> P m m' -> P (Lam A m s) (Lam A m' s).
   Hypothesis ih_AppL : 
     forall m m' n, step m m' -> P m m' -> P (App m n) (App m' n).
   Hypothesis ih_AppR :
     forall m n n', step n n' -> P n n' -> P (App m n) (App m n').
   Hypothesis ih_Beta : 
-    forall m n, P (App (Lam m) n) m.[n/].
+    forall A m n s, P (App (Lam A m s) n) m.[n/].
   Hypothesis ih_ProdL :
     forall A A' B s, step A A' -> P A A' -> P (Prod A B s) (Prod A' B s).
   Hypothesis ih_ProdR :
@@ -591,10 +582,10 @@ Section step_ind_nested.
   Hypothesis ih_LolliR :
     forall A B B' s, step B B' -> P B B' -> P (Lolli A B s) (Lolli A B' s).
   Hypothesis ih_IndA :
-    forall A A' s Cs, step A A' -> P A A' -> P (Ind A s Cs) (Ind A' s Cs).
+    forall A A' Cs s, step A A' -> P A A' -> P (Ind A Cs s) (Ind A' Cs s).
   Hypothesis ih_IndCs :
-    forall A s Cs Cs', One2 step Cs Cs' -> One2 P Cs Cs' -> 
-      P (Ind A s Cs) (Ind A s Cs').
+    forall A Cs Cs' s, One2 step Cs Cs' -> One2 P Cs Cs' -> 
+      P (Ind A Cs s) (Ind A Cs' s).
   Hypothesis ih_Constr :
     forall i m m', step m m' -> P m m' -> P (Constr i m) (Constr i m').
   Hypothesis ih_CaseM :
@@ -617,10 +608,12 @@ Section step_ind_nested.
   Hypothesis ih_DCaseIota : 
     forall i m ms Q Fs F, iget i Fs F ->
       P (DCase (spine (Constr i m) ms) Q Fs) (spine F ms).
-  Hypothesis ih_Fix :
-    forall m m', step m m' -> P m m' -> P (Fix m) (Fix m').
+  Hypothesis ih_FixL :
+    forall A A' m, step A A' -> P A A' -> P (Fix A m) (Fix A' m).
+  Hypothesis ih_FixR :
+    forall A m m', step m m' -> P m m' -> P (Fix A m) (Fix A m').
   Hypothesis ih_FixIota :
-    forall m, P (Fix m) (m.[Fix m/]).
+    forall A m, P (Fix A m) (m.[Fix A m/]).
 
   Fixpoint step_ind_nested m m' (st : step m m') : P m m'.
   Proof.
@@ -630,64 +623,30 @@ Section step_ind_nested.
         | One2_hd _ _ _ hd => One2_hd _ (step_ind_nested _ _ hd)
         | One2_tl _ _ _ tl => One2_tl _ (fold _ _ tl)
         end).
-    case st.
-    intros; apply ih_Lam.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_AppL.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_AppR.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_Beta.
-    intros; apply ih_ProdL.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_ProdR.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_LolliL.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_LolliR.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_IndA.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_IndCs.
-      apply H.
-      apply ih_nested; apply H.
-    intros; apply ih_Constr.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_CaseM.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_CaseQ.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_CaseFs.
-      apply H.
-      apply ih_nested; apply H.
-    intros; apply ih_CaseIota.
-      apply H.
-    intros; apply ih_DCaseM.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_DCaseQ.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_DCaseFs.
-      apply H.
-      apply ih_nested; apply H.
-    intros; apply ih_DCaseIota.
-      apply H.
-    intros; apply ih_Fix.
-      apply H.
-      apply step_ind_nested; apply H.
-    intros; apply ih_FixIota.
+    case st; intros.
+    apply ih_LamL; eauto.
+    apply ih_LamR; eauto.
+    apply ih_AppL; eauto.
+    apply ih_AppR; eauto.
+    apply ih_Beta; eauto.
+    apply ih_ProdL; eauto.
+    apply ih_ProdR; eauto.
+    apply ih_LolliL; eauto.
+    apply ih_LolliR; eauto.
+    apply ih_IndA; eauto.
+    apply ih_IndCs; eauto.
+    apply ih_Constr; eauto.
+    apply ih_CaseM; eauto.
+    apply ih_CaseQ; eauto.
+    apply ih_CaseFs; eauto.
+    apply ih_CaseIota; eauto.
+    apply ih_DCaseM; eauto.
+    apply ih_DCaseQ; eauto.
+    apply ih_DCaseFs; eauto.
+    apply ih_DCaseIota; eauto.
+    apply ih_FixL; eauto.
+    apply ih_FixR; eauto.
+    apply ih_FixIota; eauto.
   Qed.
 End step_ind_nested.
 
@@ -703,17 +662,18 @@ Inductive pstep : term -> term -> Prop :=
   pstep (Var x) (Var x)
 | pstep_Sort srt l :
   pstep (Sort srt l) (Sort srt l)
-| pstep_Lam n n' : 
+| pstep_Lam A A' n n' s : 
+  pstep A A' ->
   pstep n n' -> 
-  pstep (Lam n) (Lam n')
+  pstep (Lam A n s) (Lam A' n' s)
 | pstep_App m m' n n' :
   pstep m m' ->
   pstep n n' ->
   pstep (App m n) (App m' n')
-| pstep_Beta m m' n n' :
+| pstep_Beta A m m' n n' s :
   pstep m m' ->
   pstep n n' ->
-  pstep (App (Lam m) n) (m'.[n'/])
+  pstep (App (Lam A m s) n) (m'.[n'/])
 | pstep_Prod A A' s B B' :
   pstep A A' ->
   pstep B B' ->
@@ -724,10 +684,10 @@ Inductive pstep : term -> term -> Prop :=
   pstep B B' ->
   pstep (Lolli A B s) 
         (Lolli A' B' s)
-| pstep_Ind A A' s Cs Cs' :
+| pstep_Ind A A' Cs Cs' s :
   pstep A A' ->
   All2 pstep Cs Cs' ->
-  pstep (Ind A s Cs) (Ind A' s Cs')
+  pstep (Ind A Cs s) (Ind A' Cs' s)
 | pstep_Constr i m m' :
   pstep m m' ->
   pstep (Constr i m) (Constr i m')
@@ -755,36 +715,39 @@ Inductive pstep : term -> term -> Prop :=
   pstep 
     (DCase (spine (Constr i m) ms) Q Fs)
     (spine F' ms')
-| pstep_Fix m m' :
+| pstep_Fix A A' m m' :
+  pstep A A' ->
   pstep m m' ->
-  pstep (Fix m) (Fix m')
-| pstep_FixIota m m' :
+  pstep (Fix A m) (Fix A' m')
+| pstep_FixIota A A' m m' :
+  pstep A A' ->
   pstep m m' ->
-  pstep (Fix m) (m'.[Fix m'/]).
+  pstep (Fix A m) (m'.[Fix A' m'/]).
 
 Section pstep_ind_nested.
   Variable P : term -> term -> Prop.
   Hypothesis ih_Var : forall x, P (Var x) (Var x).
   Hypothesis ih_Sort : forall srt l, P (Sort srt l) (Sort srt l).
   Hypothesis ih_Lam : 
-    forall n n', pstep n n' -> P n n' -> P (Lam n) (Lam n').
+    forall A A' n n' s, pstep A A' -> P A A' -> pstep n n' -> P n n' -> 
+      P (Lam A n s) (Lam A' n' s).
   Hypothesis ih_App :
     forall m m' n n', pstep m m' -> P m m' -> pstep n n' -> P n n' -> 
       P (App m n) (App m' n').
   Hypothesis ih_Beta :
-    forall m m' n n', pstep m m' -> P m m' -> pstep n n' -> P n n' ->
-      P (App (Lam m) n) m'.[n'/].
+    forall A m m' n n' s, pstep m m' -> P m m' -> pstep n n' -> P n n' ->
+      P (App (Lam A m s) n) m'.[n'/].
   Hypothesis ih_Prod :
-    forall A A' s B B', pstep A A' -> P A A' -> pstep B B' -> P B B' ->
+    forall A A' B B' s, pstep A A' -> P A A' -> pstep B B' -> P B B' ->
       P (Prod A B s) (Prod A' B' s).
   Hypothesis ih_Lolli :
-    forall A A' s B B', pstep A A' -> P A A' -> pstep B B' -> P B B' ->
+    forall A A' B B' s, pstep A A' -> P A A' -> pstep B B' -> P B B' ->
       P (Lolli A B s) (Lolli A' B' s).
   Hypothesis ih_Ind :
-    forall A A' s Cs Cs', 
+    forall A A' Cs Cs' s, 
       pstep A A' -> P A A' -> 
       All2 pstep Cs Cs' -> All2 P Cs Cs' ->
-      P (Ind A s Cs) (Ind A' s Cs').
+      P (Ind A Cs s) (Ind A' Cs' s).
   Hypothesis ih_Constr :
     forall i m m', pstep m m' -> P m m' -> P (Constr i m) (Constr i m').
   Hypothesis ih_Case :
@@ -812,9 +775,11 @@ Section pstep_ind_nested.
       All2 pstep Fs Fs' -> All2 P Fs Fs' ->
       P (DCase (spine (Constr i m) ms) Q Fs) (spine F' ms').
   Hypothesis ih_Fix :
-    forall m m', pstep m m' -> P m m' -> P (Fix m) (Fix m').
+    forall A A' m m', pstep A A' -> P A A' -> pstep m m' -> P m m' -> 
+      P (Fix A m) (Fix A' m').
   Hypothesis ih_FixIota :
-    forall m m', pstep m m' -> P m m' -> P (Fix m) (m'.[Fix m'/]).
+    forall A A' m m', pstep A A' -> P A A' -> pstep m m' -> P m m' -> 
+      P (Fix A m) (m'.[Fix A' m'/]).
   
   Fixpoint pstep_ind_nested m m' (st : pstep m m') : P m m'.
   Proof.
@@ -825,77 +790,27 @@ Section pstep_ind_nested.
         | All2_cons _ _ _ _ hd tl =>
           All2_cons (pstep_ind_nested _ _ hd) (fold _ _ tl)
         end).
-    case st.
+    case st; intros.
     apply ih_Var.
     apply ih_Sort.
-    intros; apply ih_Lam.
-      apply H.
-      apply pstep_ind_nested; apply H.
-    intros; apply ih_App.
-      apply H.
-      apply pstep_ind_nested; apply H.
-      apply H0.
-      apply pstep_ind_nested; apply H0.
-    intros; apply ih_Beta.
-      apply H.
-      apply pstep_ind_nested; apply H.
-      apply H0.
-      apply pstep_ind_nested; apply H0.
-    intros; apply ih_Prod.
-      apply H.
-      apply pstep_ind_nested; apply H.
-      apply H0.
-      apply pstep_ind_nested; apply H0.
-    intros; apply ih_Lolli.
-      apply H.
-      apply pstep_ind_nested; apply H.
-      apply H0.
-      apply pstep_ind_nested; apply H0.
-    intros; apply ih_Ind.
-      apply H.
-      apply pstep_ind_nested; apply H.
-      apply H0.
-      apply ih_nested; apply H0.
-    intros; apply ih_Constr.
-      apply H.
-      apply pstep_ind_nested; apply H.
-    intros; apply ih_Case.
-      apply H.
-      apply pstep_ind_nested; apply H.
-      apply H0.
-      apply pstep_ind_nested; apply H0.
-      apply H1.
-      apply ih_nested; apply H1.
-    intros; eapply ih_CaseIota.
-      apply H.
-      apply H0.
-      apply ih_nested; apply H0.
-      apply H1.
-      apply ih_nested; apply H1.
-    intros; apply ih_DCase.
-      apply H.
-      apply pstep_ind_nested; apply H.
-      apply H0.
-      apply pstep_ind_nested; apply H0.
-      apply H1.
-      apply ih_nested; apply H1.
-    intros; eapply ih_DCaseIota.
-      apply H.
-      apply H0.
-      apply ih_nested; apply H0.
-      apply H1.
-      apply ih_nested; apply H1.
-    intros; apply ih_Fix.
-      apply H.
-      apply pstep_ind_nested; apply H.
-    intros; apply ih_FixIota.
-      apply H.
-      apply pstep_ind_nested; apply H.
+    apply ih_Lam; eauto.
+    apply ih_App; eauto.
+    apply ih_Beta; eauto.
+    apply ih_Prod; eauto.
+    apply ih_Lolli; eauto.
+    apply ih_Ind; eauto.
+    apply ih_Constr; eauto.
+    apply ih_Case; eauto.
+    eapply ih_CaseIota; eauto.
+    apply ih_DCase; eauto.
+    eapply ih_DCaseIota; eauto.
+    apply ih_Fix; eauto.
+    apply ih_FixIota; eauto.
   Qed.
 End pstep_ind_nested.
 
 Notation red := (star step).
-Notation "m === n" := (conv step m n) (at level 30).
+Notation "m === n" := (conv step m n) (at level 50).
 
 Definition sred sigma tau := 
   forall x : var, red (sigma x) (tau x).
@@ -1017,7 +932,7 @@ Lemma step_subst sigma m n (st : step m n) :
 Proof with eauto using step.
   move: m n st sigma.
   apply: step_ind_nested; asimpl... 
-  move=> m n sigma.
+  move=> A m n s sigma.
     replace (m.[n/].[sigma]) with (m.[up sigma].[n.[sigma]/])
     by autosubst.
     exact: step_Beta.
@@ -1044,8 +959,8 @@ Proof with eauto using step.
     repeat (rewrite spine_subst; asimpl).
     constructor.
     exact: iget_subst.
-  move=> m sigma.
-    replace m.[Fix m/].[sigma] with m.[up sigma].[Fix m.[up sigma]/]
+  move=> A m sigma.
+    replace m.[Fix A m/].[sigma] with m.[up sigma].[Fix A.[sigma] m.[up sigma]/]
       by autosubst.
     constructor.
 Qed.
@@ -1058,8 +973,13 @@ Proof.
   apply: star_hom B=> x y. exact: step_AppR.
 Qed.
 
-Lemma red_Lam s1 s2 : red s1 s2 -> red (Lam s1) (Lam s2).
-Proof. apply: star_hom=> x y. exact: step_Lam. Qed.
+Lemma red_Lam A1 A2 n1 n2 s : 
+  red A1 A2 -> red n1 n2 -> red (Lam A1 n1 s) (Lam A2 n2 s).
+Proof. 
+  move=> A B. apply: (star_trans (Lam A2 n1 s)).
+  apply: (star_hom ((Lam^~ n1)^~ s)) A=> x y. exact: step_LamL.
+  apply: (star_hom ((Lam A2)^~ s)) B=> x y. exact: step_LamR. 
+Qed.
 
 Lemma red_Prod A1 A2 B1 B2 s :
   red A1 A2 -> red B1 B2 -> red (Prod A1 B1 s) (Prod A2 B2 s).
@@ -1077,13 +997,13 @@ Proof.
   apply: (star_hom ((Lolli A2)^~ s)) B=> x y. exact: step_LolliR.
 Qed.
 
-Lemma red_Ind A1 A2 s Cs1 Cs2 :
+Lemma red_Ind A1 A2 Cs1 Cs2 s :
   red A1 A2 -> star (One2 step) Cs1 Cs2 -> 
-    red (Ind A1 s Cs1) (Ind A2 s Cs2).
+    red (Ind A1 Cs1 s) (Ind A2 Cs2 s).
 Proof.
   move=> A B. 
-  apply: (star_trans (Ind A2 s Cs1)).
-  apply: (star_hom ((Ind^~ s)^~ Cs1)) A=> x y. exact: step_IndA.
+  apply: (star_trans (Ind A2 Cs1 s)).
+  apply: (star_hom ((Ind^~ Cs1)^~ s)) A=> x y. exact: step_IndA.
   elim: B=> //.
     move=> y z rd' rd st.
     apply: star_trans.
@@ -1130,11 +1050,12 @@ Proof.
       by apply: star1; eauto using step.
 Qed.
 
-Lemma red_Fix m1 m2 :
-  red m1 m2 -> red (Fix m1) (Fix m2).
+Lemma red_Fix A1 A2 m1 m2 :
+  red A1 A2 -> red m1 m2 -> red (Fix A1 m1) (Fix A2 m2).
 Proof.
-  move=> A.
-  apply: (star_hom Fix) A=> x y. exact: step_Fix.
+  move=> A B. apply: (star_trans (Fix A2 m1)).
+  apply: (star_hom (Fix^~ m1)) A=> x y. exact: step_FixL.
+  apply: (star_hom (Fix A2)) B=> x y. exact: step_FixR.
 Qed.
 
 Lemma red_hd h1 h2 ls :
@@ -1251,8 +1172,14 @@ Qed.
 Definition sconv (sigma tau : var -> term) := 
   forall x, sigma x === tau x.
 
-Lemma conv_Lam m1 m2 : m1 === m2 -> Lam m1 === Lam m2.
-Proof. apply: conv_hom=> x y. exact: step_Lam. Qed.
+Lemma conv_Lam A1 A2 m1 m2 s : 
+  A1 === A2 -> m1 === m2 -> Lam A1 m1 s === Lam A2 m2 s.
+Proof. 
+  move=> A B.
+  apply: (conv_trans (Lam A2 m1 s)).
+  apply: (conv_hom ((Lam^~ m1)^~ s)) A=> x y. exact: step_LamL.
+  apply: (conv_hom ((Lam A2)^~ s)) B=> x y. exact: step_LamR.
+Qed.
 
 Lemma conv_Prod A1 A2 s B1 B2 :
   A1 === A2 -> B1 === B2 -> Prod A1 B1 s === Prod A2 B2 s.
@@ -1287,19 +1214,19 @@ Proof.
     by constructor.
 Qed.
 
-Lemma conv_Ind A1 A2 s Cs1 Cs2 :
-  A1 === A2 -> conv (One2 step) Cs1 Cs2 -> Ind A1 s Cs1 === Ind A2 s Cs2.
+Lemma conv_Ind A1 A2 Cs1 Cs2 s :
+  A1 === A2 -> conv (One2 step) Cs1 Cs2 -> Ind A1 Cs1 s === Ind A2 Cs2 s.
 Proof.
   move=> A B. 
-  apply: (conv_trans (Ind A2 s Cs1)).
-  apply: (conv_hom ((Ind^~ s)^~ Cs1)) A=> x y. exact: step_IndA.
+  apply: (conv_trans (Ind A2 Cs1 s)).
+  apply: (conv_hom ((Ind^~ Cs1)^~ s)) A=> x y. exact: step_IndA.
   elim: B=> //.
     move=> y z cv' cv st.
-    apply: (conv_trans (Ind A2 s y)).
+    apply: (conv_trans (Ind A2 y s)).
       by apply: cv.
       by apply: conv1; eauto using step.
     move=> y z cv' cv st.
-    apply: (conv_trans (Ind A2 s y)).
+    apply: (conv_trans (Ind A2 y s)).
       by apply: cv.
       by apply: conv1i; eauto using step.
 Qed.
@@ -1355,11 +1282,13 @@ Proof.
       by apply: conv1i; eauto using step.
 Qed.
 
-Lemma conv_Fix m1 m2 :
-  m1 === m2 -> Fix m1 === Fix m2.
+Lemma conv_Fix A1 A2 m1 m2 :
+  A1 === A2 -> m1 === m2 -> Fix A1 m1 === Fix A2 m2.
 Proof.
-  move=> A.
-  apply: (conv_hom Fix) A=> x y. exact: step_Fix.
+  move=> A B.
+  apply: (conv_trans (Fix A2 m1)).
+  apply: (conv_hom (Fix^~ m1)) A=> x y. exact: step_FixL.
+  apply: (conv_hom (Fix A2)) B=> x y. exact: step_FixR.
 Qed.
 
 Lemma conv_hd h1 h2 ls :
@@ -1458,7 +1387,7 @@ Lemma pstep_refl s : pstep s s.
 Proof.
   move: s.
   apply: term_ind_nested; eauto using pstep. 
-  move=> A s Cs pA ih.
+  move=> A Cs s pA ih.
     constructor; eauto.
     elim: ih; eauto using pstep, All2.
   move=> m Q Fs pm pQ ih.
@@ -1488,7 +1417,7 @@ Lemma pstep_red m m' : pstep m m' -> red m m'.
 Proof.
   move: m m'.
   apply: pstep_ind_nested=> //=; eauto with red_congr.
-  move=> m m' n n' p1 r1 p2 r2.
+  move=> A m m' n n' s p1 r1 p2 r2.
     apply: starES.
     by econstructor.
     apply: (star_trans (m'.[n.:Var])). exact: red_subst.
@@ -1530,10 +1459,11 @@ Proof.
     exact: ihFs.
     apply: star1.
     by constructor.
-  move=> m m' p r.
+  move=> A A' m m' pA rA pM rM.
     apply: star_trans.
     apply: red_Fix.
-    exact: r.
+    exact: rA.
+    exact: rM.
     apply: star1.
     by constructor.
 Qed.
@@ -1543,11 +1473,11 @@ Lemma pstep_subst sigma m m' :
 Proof with eauto using pstep, pstep_refl, All2, All2_pstep_refl.
   move=> p. move: m m' p sigma.
   apply: pstep_ind_nested...
-  move=> m m' n n' p1 ih1 p2 ih2 sigma; asimpl.
-    have h1 := (ih1 (up sigma))=> {ih1}.
-    have h2 := (ih2 sigma)=> {ih2}.
-    have h3 := pstep_Beta (h1 Ids_term Rename_term) h2.
-    by asimpl in h3.
+  move=> A m m' n n' s p1 ih1 p2 ih2 sigma; asimpl.
+    pose proof (ih1 (up sigma))=> {ih1}.
+    pose proof (ih2 sigma)=> {ih2}.
+    pose proof (pstep_Beta A.[sigma] s H H0).
+    by asimpl in H1.
   move=> A A' s Cs Cs' pA ihA pCs ihCs sigma; asimpl.
     constructor; eauto.
     elim: ihCs; asimpl...
@@ -1569,9 +1499,9 @@ Proof with eauto using pstep, pstep_refl, All2, All2_pstep_refl.
     apply: iget_subst. exact ig.
     elim: ihMs; asimpl...
     elim: ihFs; asimpl...
-  move=> m m' p ih sigma; asimpl.
-    replace m'.[Fix m'.[up sigma] .: sigma]
-      with (m'.[up sigma]).[Fix m'.[up sigma]/]
+  move=> A A' m m' pA ihA pM ihM sigma; asimpl.
+    replace m'.[Fix A'.[sigma] m'.[up sigma] .: sigma]
+      with (m'.[up sigma]).[Fix A'.[sigma] m'.[up sigma]/]
       by autosubst.
     exact: pstep_FixIota.
 Qed.
@@ -1596,13 +1526,13 @@ Lemma pstep_compat sigma tau m m' :
 Proof with eauto 6 using pstep, All2, psstep_up.
   move=> p. move: m m' p sigma tau.
   apply: pstep_ind_nested... 
-  move=> m m' n n' pM ihM pN ihN sigma tau pss; asimpl.
+  move=> A m m' n n' s pM ihM pN ihN sigma tau pss; asimpl.
     have pss' := psstep_up pss.
     have hM := ihM _ _ pss'.
     have hN := ihN _ _ pss.
-    have hBeta := pstep_Beta hM hN.
-    by asimpl in hBeta.
-  move=> A A' s Cs Cs' pA ihA pCs ihCs sigma tau pss; asimpl.
+    pose proof (pstep_Beta (A.[sigma]) s hM hN).
+    by asimpl in H.
+  move=> A A' Cs Cs' s pA ihA pCs ihCs sigma tau pss; asimpl.
     constructor; eauto.
     elim: ihCs; asimpl...
   move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs sigma tau pss; asimpl.
@@ -1623,12 +1553,13 @@ Proof with eauto 6 using pstep, All2, psstep_up.
     apply: iget_subst. exact: ig.
     elim: ihMs; asimpl...
     elim: ihFs; asimpl...
-  move=> m m' p ih sigma tau ps; asimpl.
-    replace m'.[Fix m'.[up tau] .: tau]
-      with (m'.[up tau]).[Fix m'.[up tau]/]
+  move=> A A' m m' pA ihA pM ihM sigma tau ps; asimpl.
+    replace m'.[Fix A'.[tau] m'.[up tau] .: tau]
+      with (m'.[up tau]).[Fix A'.[tau] m'.[up tau]/]
       by autosubst.
     constructor.
-    apply: ih.
+    exact: ihA.
+    apply: ihM.
     exact: psstep_up.
 Qed.
 
@@ -1688,8 +1619,8 @@ Proof.
   exact: pstep_App.
 Qed.
 
-Lemma spine_Lam_Constr_False m i h ls :
-  ~Lam m = spine' (Constr i h) ls.
+Lemma spine_Lam_Constr_False A m s i h ls :
+  ~Lam A m s = spine' (Constr i h) ls.
 Proof. elim: ls=> //=. Qed.
 
 Lemma pstep_spine'_inv i h ls m :
@@ -1807,40 +1738,41 @@ Proof.
   apply: pstep_ind_nested.
   move=> x t p. inv p. exists (Var x)...
   move=> srt l m p. inv p. exists (Sort srt l)...
-  move=> n n' pN ihN m p. inv p.
-    move: H0=> /ihN [m' [p2 p3]].
-    exists (Lam m')...
+  move=> A A' n n' s pA ihA pN ihN m p. inv p.
+    move: H3=> /ihA[Ax [pAx1 pAx2]].
+    move: H4=> /ihN [nx [nx1 nx2]].
+    exists (Lam Ax nx s)...
   move=> m m' n n' pM ihM pN ihN t p. inv p.
     move: H1=> /ihM [mx [pMx1 pM2]].
     move: H3=> /ihN [nx [pNx1 pNx2]].
     exists (App mx nx)...
     inv pM.
-    have pLam : pstep (Lam m0) (Lam m'0).
+    have pLam : pstep (Lam A m0 s) (Lam A' m'0 s).
       by constructor.
     move: pLam=> /ihM [mx [pMx1 pMx2]].
     move: H3=> /ihN [nx [pNx1 pNx2]].
     inv pMx1; inv pMx2.
-    exists (n'2.[nx/])... 
-  move=> m m' n n' pM ihM pN ihN t p. inv p.
+    exists (n'2.[nx/])...
+  move=> A m m' n n' s pM ihM pN ihN t p. inv p.
     inv H1.
-    move: H0=> /ihM [mx [pMx1 pMx2]].
+    move: H6=> /ihM [mx [pMx1 pMx2]].
     move: H3=> /ihN [nx [pNx1 pNx2]].
     exists (mx.[nx/])...
-    move: H1=> /ihM [mx [pMx1 pMx2]].
-    move: H3=> /ihN [nx [pNx1 pNx2]].
+    move: H4=> /ihM [mx [pMx1 pMx2]].
+    move: H5=> /ihN [nx [pNx1 pNx2]].
     exists (mx.[nx/])...
-  move=> A A' s B B' pA ihA pB ihB t p. inv p.
+  move=> A A' B B' s pA ihA pB ihB t p. inv p.
     move: H3=> /ihA [Ax [pAx1 pAx2]].
     move: H4=> /ihB [Bx [pBx1 pBx2]].
     exists (Prod Ax Bx s)...
-  move=> A A' s B B' pA ihA pB ihB t p. inv p.
+  move=> A A' B B' s pA ihA pB ihB t p. inv p.
     move: H3=> /ihA [Ax [pAx1 pAx2]].
     move: H4=> /ihB [Bx [pBx1 pBx2]].
     exists (Lolli Ax Bx s)...
-  move=> A A' s Cs Cs' pA ihA pCs ihCs t p. inv p.
+  move=> A A' Cs Cs' s pA ihA pCs ihCs t p. inv p.
     move: H3=> /ihA [Ax [pAx1 pAx2]].
     move: (All2_diamond pCs H4 ihCs)=>[Csx[pCsx1 pCsx2]].
-    exists (Ind Ax s Csx)...
+    exists (Ind Ax Csx s)...
   move=> i m m' pM ihM t p. inv p.
     move: H2=> /ihM [mx [pMx1 pMx2]].
     exists (Constr i mx)...
@@ -1898,16 +1830,20 @@ Proof.
     move: (pstep_iget2 pFsx2 igFx)=>[Fx'[igFx' pFx']].
     move: (iget_iget igFx' H2)=>e; subst.
     exists (spine Fx mx)...
-  move=> m m' pM ihM t p. inv p.
-    move: H0=> /ihM[mx[pMx1 pMx2]].
-    exists (Fix mx)...
-    move: H0=> /ihM[mx [pMx1 pMx2]].
-    exists (mx.[Fix mx/])...
-  move=> m m' pM ihM t p. inv p.
-    move: H0=> /ihM[mx[pMx1 pMx2]].
-    exists (mx.[Fix mx/])...
-    move: H0=> /ihM[mx[pMx1 pMx2]].
-    exists (mx.[Fix mx/])...
+  move=> A A' m m' pA ihA pM ihM t p. inv p.
+    move: H1=> /ihA[Ax[pAx1 pAx2]].
+    move: H3=> /ihM[mx[pMx1 pMx2]].
+    exists (Fix Ax mx)...
+    move: H1=> /ihA[Ax[pAx1 pAx2]].
+    move: H3=> /ihM[mx[pMx1 pMx2]].
+    exists (mx.[Fix Ax mx/])...
+  move=> A A' m m' pA ihA pM ihM t p. inv p.
+    move: H1=> /ihA[Ax[pAx1 pAx2]].
+    move: H3=> /ihM[mx[pMx1 pMx2]].
+    exists (mx.[Fix Ax mx/])...
+    move: H1=> /ihA[Ax[pAx1 pAx2]].
+    move: H3=> /ihM[mx[pMx1 pMx2]].
+    exists (mx.[Fix Ax mx/])...
 Qed.
 
 Lemma strip m m1 m2 (p : pstep m m1) :
@@ -1944,3 +1880,393 @@ Proof.
   apply confluence.
 Qed.
 Hint Resolve church_rosser.
+
+Lemma red_Sort_inv s l A :
+  red (Sort s l) A -> A = Sort s l.
+Proof.
+  elim; eauto.
+  move=> y z r e st; subst.
+  inv st; eauto.
+Qed.
+
+Lemma red_Prod_inv A B s x :
+  red (Prod A B s) x -> 
+  exists A' B',
+    red A A' /\
+    red B B' /\
+    x = Prod A' B' s.
+Proof.
+  elim; eauto.
+  move=> y z rd [A'[B'[rA[rB e]]]] st; subst.
+  inv st.
+  exists A'0. exists B'. firstorder.
+    apply: star_trans; eauto.
+    exact: star1.
+  exists A'. exists B'0. firstorder.
+    apply: star_trans; eauto.
+    exact: star1.
+Qed.
+
+Lemma red_Lolli_inv A B s x :
+  red (Lolli A B s) x -> 
+  exists A' B',
+    red A A' /\
+    red B B' /\
+    x = Lolli A' B' s.
+Proof.
+  elim; eauto.
+  move=> y z rd [A'[B'[rA[rB e]]]] st; subst.
+  inv st.
+  exists A'0. exists B'. firstorder.
+    apply: star_trans; eauto.
+    exact: star1.
+  exists A'. exists B'0. firstorder.
+    apply: star_trans; eauto.
+    exact: star1.
+Qed.
+
+Lemma red_Var_inv x y :
+  red (Var x) y -> y = Var x.
+Proof.
+  elim; eauto.
+  move=> y' z rd e s; subst. inv s.
+Qed.
+
+Lemma red_Lam_inv A m s n :
+  red (Lam A m s) n ->
+  exists A' m',
+    red A A' /\ red m m' /\ n = Lam A' m' s.
+Proof.
+  elim.
+  by exists A; exists m.
+  move=> y z rd [A'[m'[rA[rM e]]]] st; subst.
+  inv st.
+  exists A'0. exists m'. repeat constructor; eauto using star.
+  exists A'. exists m'0. repeat constructor; eauto using star.
+Qed.
+
+Lemma red_Ind_inv A Cs s n :
+  red (Ind A Cs s) n ->
+  exists A' Cs',
+    red A A' /\ 
+    star (One2 step) Cs Cs' /\ 
+    n = Ind A' Cs' s.
+Proof.
+  elim.
+  exists A. exists Cs. repeat constructor.
+  move=> y z rd [A'[Cs'[rA[rCs e]]]] st; subst.
+  inv st.
+  exists A'0. exists Cs'. repeat constructor; eauto using star.
+  exists A'. exists Cs'0. repeat constructor; eauto using star.
+Qed.
+
+Lemma red_Constr_inv i m n :
+  red (Constr i m) n ->
+  exists m',
+    red m m' /\ n = Constr i m'.
+Proof.
+  elim.
+  exists m. repeat constructor.
+  move=> y z rd [m'[rM e]] st; subst.
+  inv st.
+  exists m'0. repeat constructor; eauto using star.
+Qed.
+
+Lemma Sort_inj s1 s2 l1 l2 :
+  Sort s1 l1 === Sort s2 l2 ->
+  s1 = s2 /\ l1 = l2.
+Proof.
+  move=> /church_rosser h. inv h.
+  move: H=> /red_Sort_inv e; subst.
+  move: H0=> /red_Sort_inv [->->]; eauto.
+Qed.
+
+Lemma Prod_inj A A' B B' s s' :
+  Prod A B s === Prod A' B' s' ->
+  A === A' /\ B === B' /\ s = s'.
+Proof.
+  move=> /church_rosser h. inv h.
+  move: H=> /red_Prod_inv[Ax[Bx[rA[rB e]]]]; subst.
+  move: H0=> /red_Prod_inv[Ax'[Bx'[rA'[rB' [e1 e2]]]]] ->; subst.
+  firstorder; eauto using join_conv.
+Qed.
+
+Lemma Lolli_inj A A' B B' s s' :
+  Lolli A B s === Lolli A' B' s' ->
+  A === A' /\ B === B' /\ s = s'.
+Proof.
+  move=> /church_rosser h. inv h.
+  move: H=> /red_Lolli_inv[Ax[Bx[rA[rB e]]]]; subst.
+  move: H0=> /red_Lolli_inv[Ax'[Bx'[rA'[rB' [e1 e2]]]]] ->; subst.
+  firstorder; eauto using join_conv.
+Qed.
+
+Ltac red_inv m H :=
+  match m with
+  | Var    => apply red_Var_inv in H
+  | Sort   => apply red_Sort_inv in H
+  | Prod   => apply red_Prod_inv in H
+  | Lolli  => apply red_Lolli_inv in H
+  | Lam    => apply red_Lam_inv in H
+  | Ind    => apply red_Ind_inv in H
+  | Constr => apply red_Constr_inv in H
+  end.
+
+Ltac solve_conv' :=
+  unfold not; intros;
+  match goal with
+  | [ H : _ === _ |- _ ] =>
+    apply church_rosser in H; inv H
+  end;
+  repeat match goal with
+  | [ H : red (?m _) _ |- _ ] => red_inv m H
+  | [ H : red (?m _ _) _ |- _ ] => red_inv m H
+  | [ H : red (?m _ _ _) _ |- _ ] => red_inv m H
+  | [ H : red (?m _ _ _ _) _ |- _ ] => red_inv m H
+  | [ H : red (?m _ _ _ _ _) _ |- _ ] => red_inv m H
+  end;
+  firstorder; subst;
+  match goal with
+  | [ H : _ = _ |- _ ] => inv H
+  end.
+
+Ltac solve_conv :=
+  match goal with
+  | [ H : ?t1 === ?t2 |- _ ] =>
+    assert (~ t1 === t2) by solve_conv'
+  | [ H : value (App _ _) |- _ ] => inv H
+  end; eauto.
+
+Notation "s @ l" := (Sort s (Some l)) (at level 30).
+
+Inductive sub1 : term -> term -> Prop :=
+| sub1_refl A : 
+  sub1 A A
+| sub1_Prop s l : 
+  sub1 (Sort s None) (s @ l)
+| sub1_Sort s l1 l2 : 
+  l1 <= l2 -> 
+  sub1 (s @ l1) (s @ l2)
+| sub1_Prod A B1 B2 s : 
+  sub1 B1 B2 -> 
+  sub1 (Prod A B1 s) (Prod A B2 s)
+| sub1_Lolli A B1 B2 s : 
+  sub1 B1 B2 -> 
+  sub1 (Lolli A B1 s) (Lolli A B2 s).
+
+CoInductive sub (A B : term) : Prop :=
+| SubI A' B' : 
+  sub1 A' B' -> A === A' -> B' === B -> sub A B.
+Notation "A <: B" := (sub A B) (at level 50, no associativity) : cilc_scope.
+
+Lemma sub1_sub A B : sub1 A B -> sub A B. move=> /SubI. exact. Qed.
+Lemma sub1_conv B A C : sub1 A B -> B === C -> A <: C. move=>/SubI. exact. Qed.
+Lemma conv_sub1 B A C : A === B -> sub1 B C -> A <: C. move=>c/SubI. exact. Qed.
+
+Lemma conv_sub A B : A === B -> A <: B.
+Proof. move/conv_sub1. apply. exact: sub1_refl. Qed.
+
+Lemma sub_refl A : A <: A.
+Proof. apply: sub1_sub. exact: sub1_refl. Qed.
+Hint Resolve sub_refl.
+
+Lemma sub_Prop s n : Sort s None <: s @ n.
+Proof. exact/sub1_sub/sub1_Prop. Qed.
+
+Lemma sub_Sort s n m : n <= m -> s @ n <: s @ m.
+Proof. move=> leq. exact/sub1_sub/sub1_Sort. Qed.
+
+Lemma sub1_trans A B C D :
+  sub1 A B -> B === C -> sub1 C D -> A <: D.
+Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
+  move=> sb. elim: sb C D => {A B}
+    [ A C D 
+    | s l C D conv sb
+    | s l1 l2 leq C D conv sb
+    | A B1 B2 s sb1 ih C D conv sb2
+    | A B1 B2 s sb1 ih C D conv sb2 ]...
+  inv sb; try (exfalso; solve_conv)...
+    move: conv => /Sort_inj [->[eq]].
+    apply: sub_Prop.
+  inv sb; try (exfalso; solve_conv)...
+    move: conv => /Sort_inj [->[eq]].
+    apply: sub_Sort. subst.
+    exact: leq_trans leq _.
+  inv sb2; try (exfalso; solve_conv)...
+    move: conv => /Prod_inj[conv1 [conv2 ->]].
+    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
+    eapply SubI.
+    eapply sub1_Prod...
+    eapply conv_Prod...
+    exact: conv_Prod.
+  inv sb2; try (exfalso; solve_conv)...
+    move: conv => /Lolli_inj[conv1 [conv2 ->]].
+    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
+    eapply SubI. 
+    eapply sub1_Lolli...
+    eapply conv_Lolli...
+    exact: conv_Lolli.
+Qed.
+
+Lemma sub_trans B A C :
+  A <: B -> B <: C -> A <: C.
+Proof.
+  move=> [A' B' s1 c1 c2] [B'' C' s2 c3 c4]. move: (conv_trans _ c2 c3) => h.
+  case: (sub1_trans s1 h s2) => A0 B0 s3 c5 c6. apply: (SubI s3).
+  exact: conv_trans c5. exact: conv_trans c4.
+Qed.
+
+Lemma sub_Prop_inv s1 s2 :
+  Sort s1 None <: Sort s2 None -> s1 = s2.
+Proof.
+  move=> [s1' s2' []].
+  move=> A c1 c2.
+    have{c1 c2}/Sort_inj[s l]: Sort s1 None === Sort s2 None.
+      exact: conv_trans c2.
+      exact: s.
+  move=> s l /Sort_inj[-> _] /Sort_inj[-> _] => //.
+  move=> *. exfalso; solve_conv.
+  move=> *. exfalso; solve_conv.
+  move=> *. exfalso; solve_conv.
+Qed.
+
+Lemma sub_Sort_inv s1 s2 l1 l2 :
+  s1 @ l1 <: s2 @ l2 -> s1 = s2 /\ l1 <= l2.
+Proof.
+  move=> [s1' s2' []].
+  move=> A c1 c2.
+    have{c1 c2}/Sort_inj[s l]: s1 @ l1 === s2 @ l2.
+      exact: conv_trans c2.
+    inv l=> //.
+  move=> s l0 /Sort_inj[_ h] => //.
+  move=> s l0 l3 leq /Sort_inj[->[->]] /Sort_inj[<-[<-]] => //.
+  move=> *. exfalso; solve_conv.
+  move=> *. exfalso; solve_conv.
+Qed.
+
+Lemma sub_Prod_inv A1 A2 s1 s2 B1 B2 :
+  Prod A1 B1 s1 <: Prod A2 B2 s2 -> 
+  A1 === A2 /\ B1 <: B2 /\ s1 = s2.
+Proof.
+  move=> [A' B' []].
+  - move=> C c1 c2. 
+    have{c1 c2}/Prod_inj[c1 [c2 ->]]: 
+      Prod A1 B1 s1 === Prod A2 B2 s2.
+     exact: conv_trans c2.
+    firstorder=>//. exact: conv_sub.
+  - move=> *. exfalso; solve_conv.
+  - move=> *. exfalso; solve_conv.
+  - move=> A B0 B3 s sb /Prod_inj[c1 [c2 <-]]. 
+    move=> /Prod_inj[c3 [c4 ->]]. 
+    firstorder.
+    exact: conv_trans c3. exact: SubI sb c2 c4.
+  - move=> *. exfalso; solve_conv.
+Qed.
+
+Lemma sub_Lolli_inv A1 A2 s1 s2 B1 B2 :
+  Lolli A1 B1 s1 <: Lolli A2 B2 s2 -> 
+  A1 === A2 /\ B1 <: B2 /\ s1 = s2.
+Proof.
+  move=> [A' B' []].
+  move=> C c1 c2. 
+    have{c1 c2}/Lolli_inj[c1 [c2 ->]]: 
+      Lolli A1 B1 s1 === Lolli A2 B2 s2.
+      exact: conv_trans c2.
+    firstorder=>//. exact: conv_sub.
+  move=> *. exfalso; solve_conv.
+  move=> *. exfalso; solve_conv.
+  move=> *. exfalso; solve_conv.
+  move=> A B0 B3 s sb /Lolli_inj[c1 [c2 <-]]. 
+    move=> /Lolli_inj[c3 [c4 ->]]. 
+    firstorder.
+    exact: conv_trans c3. exact: SubI sb c2 c4.
+Qed.
+
+Lemma sub1_subst sigma A B : sub1 A B -> sub1 A.[sigma] B.[sigma].
+Proof. move=> s. elim: s sigma => /=; eauto using sub1. Qed.
+
+Lemma sub_subst sigma A B : A <: B -> A.[sigma] <: B.[sigma].
+Proof. move=> [A' B' /sub1_subst]; eauto using sub, conv_subst. Qed.
+
+Lemma sub_ren A B xi : A <: B -> A.[ren xi] <: B.[ren xi].
+Proof. move=> *; by apply: sub_subst. Qed.
+
+Notation prop := (Sort U None).
+Reserved Notation "[ Gamma |- ]".
+Reserved Notation "[ Gamma |- m :- A ]".
+
+Inductive has_type : context term -> term -> term -> Prop :=
+| p_axiom Gamma : 
+  pure Gamma ->
+  [ Gamma |- prop :- U @ 0 ]
+| s_axiom Gamma s l : 
+  pure Gamma ->
+  [ Gamma |- s @ l :- U @ l.+1 ]
+| p_prod Gamma A B l :
+  pure Gamma ->
+  [ Gamma |- A :- Sort U l ] ->
+  [ A +u Gamma |- B :- prop ] ->
+  [ Gamma |- Prod A B U :- prop ]
+| u_prod Gamma A B s l :
+  pure Gamma ->
+  [ Gamma |- A :- U @ l ] ->
+  [ A +u Gamma |- B :- s @ l ] ->
+  [ Gamma |- Prod A B U :- U @ l ]
+| l_prod Gamma A B s l :
+  pure Gamma ->
+  [ Gamma |- A :- L @ l ] ->
+  [ +n Gamma |- B :- s @ l ] ->
+  [ Gamma |- Prod A B L :- U @ l ]
+| u_lolli Gamma A B s l :
+  pure Gamma ->
+  [ Gamma |- A :- U @ l ] ->
+  [ A +u Gamma |- B :- s @ l ] ->
+  [ Gamma |- Lolli A B U :- L @ l ]
+| l_lolli Gamma A B s l :
+  pure Gamma ->
+  [ Gamma |- A :- L @ l ] ->
+  [ +n Gamma |- B :- s @ l ] ->
+  [ Gamma |- Lolli A B L :- L @ l ]
+| u_var Gamma x A : 
+  hasU Gamma x A ->
+  [ Gamma |- Var x :- A ]
+| l_var Gamma x A :
+  hasL Gamma x A ->
+  [ Gamma |- Var x :- A ]
+| prod_lam Gamma n A B s t l :
+  pure Gamma ->
+  [ Gamma |- Prod A B s :- Sort t l ] ->
+  [ A +{s} Gamma |- n :- B ] ->
+  [ Gamma |- Lam A n s :- Prod A B s ]
+| lolli_lam Gamma n A B s t l :
+  [ re Gamma |- Lolli A B s :- Sort t l ] ->
+  [ A +{s} Gamma |- n :- B ] ->
+  [ Gamma |- Lam A n s :- Lolli A B s ]
+| u_prod_app Gamma1 Gamma2 Gamma A B m n :
+  pure Gamma2 ->
+  [ Gamma1 |- m :- Prod A B U ] ->
+  [ Gamma2 |- n :- A ] ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma |- App m n :- B.[n/] ]
+| l_prod_app Gamma1 Gamma2 Gamma  A B m n :
+  [ Gamma1 |- m :- Prod A B L ] ->
+  [ Gamma2 |- n :- A ] ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma |- App m n :- B.[n/] ]
+| u_lolli_app Gamma1 Gamma2 Gamma A B m n :
+  pure Gamma2 ->
+  [ Gamma1 |- m :- Lolli A B U ] ->
+  [ Gamma2 |- n :- A ] ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma |- App m n :- B.[n/] ]
+| l_lolli_app Gamma1 Gamma2 Gamma A B m n :
+  [ Gamma1 |- m :- Lolli A B L ] ->
+  [ Gamma2 |- n :- A ] ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma |- App m n :- B.[n/] ]
+| conversion Gamma A B m s l :
+  A <: B ->
+  [ re Gamma |- B :- Sort s l ] ->
+  [ Gamma |- m :- A ] ->
+  [ Gamma |- m :- B ]
+where "[ Gamma |- m :- A ]" := (has_type Gamma m A).
