@@ -488,6 +488,21 @@ Inductive One2 R : list term -> list term -> Prop :=
   One2 R ls ls' ->
   One2 R (m :: ls) (m :: ls').
 
+
+Inductive All2 R : list term -> list term -> Prop :=
+| All2_nil : All2 R nil nil
+| All2_cons m m' ls ls' :
+  R m m' ->
+  All2 R ls ls' ->
+  All2 R (m :: ls) (m' :: ls').
+
+Inductive Alli R : nat -> list term -> list term -> Prop :=
+| Alli_nil i : Alli R i nil nil
+| Alli_cons i m m' ls ls' :
+  R i m m' ->
+  Alli R i.+1 ls ls' ->
+  Alli R i (m :: ls) (m' :: ls').
+
 Inductive step : term -> term -> Prop :=
 | step_LamL A A' m s :
   step A A' ->
@@ -649,13 +664,6 @@ Section step_ind_nested.
     apply ih_FixIota; eauto.
   Qed.
 End step_ind_nested.
-
-Inductive All2 R : list term -> list term -> Prop :=
-| All2_nil : All2 R nil nil
-| All2_cons m m' ls ls' :
-  R m m' ->
-  All2 R ls ls' ->
-  All2 R (m :: ls) (m' :: ls').
 
 Inductive pstep : term -> term -> Prop :=
 | pstep_Var x :
@@ -2191,10 +2199,10 @@ Proof. move=> [A' B' /sub1_subst]; eauto using sub, conv_subst. Qed.
 Lemma sub_ren A B xi : A <: B -> A.[ren xi] <: B.[ren xi].
 Proof. move=> *; by apply: sub_subst. Qed.
 
-Inductive arity : term -> sort -> Prop :=
-| arity_Sort s l : arity (Sort s l) s
-| arity_Prod s A B :
-  arity B s -> arity (Prod A B U) s.
+Inductive arity (s : sort) : term -> Prop :=
+| arity_Sort l : arity s (Sort s l)
+| arity_Prod A B :
+  arity s B -> arity s (Prod A B U).
 
 Inductive noccurs : var -> term -> Prop :=
 | noccurs_Var x y : x != y -> noccurs x (Var y)
@@ -2304,6 +2312,42 @@ Inductive constr : var -> sort -> term -> Prop :=
 | constr_LProd2 x A B :
   noccurs x A -> active x.+1 B -> constr x L (Prod A B L).
 
+Fixpoint arity1 (s : sort) (A : term) : term :=
+  match A with
+  | Sort _ l => Sort s l
+  | Prod A B U =>
+    Prod A (arity1 s B) U
+  | _ => Var 0
+  end.
+
+Fixpoint arity2 (s : sort) (I : term) (A : term) : term :=
+  match A with
+  | Sort _ l => Prod I (Sort s l) U
+  | Prod A B U =>
+    Prod A (arity2 s (App I.[ren (+1)] (Var 0)) B) U
+  | _ => Var 0
+  end.
+
+Fixpoint respine (hd sp : term) : term :=
+  match sp with
+  | App m n => App (respine hd m) n
+  | _ => hd
+  end.
+
+Fixpoint case (Q C : term) : term :=
+  match C with
+  | Prod A B s => Lolli A (case Q.[ren (+1)] B) s
+  | Lolli A B s => Lolli A (case Q.[ren (+1)] B) s
+  | _ => respine Q C
+  end.
+   
+Fixpoint dcase (Q c C : term) : term :=
+  match C with
+  | Prod A B U => 
+    Lolli A (dcase Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) B) U
+  | _ => respine Q (App C c)
+  end.
+
 Axiom fix_guard : term -> Prop.
 Axiom fix_guard_red : forall A A' m m', 
   fix_guard m -> step (Fix A m) (Fix A' m') -> fix_guard m'.
@@ -2382,7 +2426,7 @@ Inductive has_type : context term -> term -> term -> Prop :=
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma |- App m n :- B.[n/] ]
 | ind_intro Gamma A s Cs l :
-  arity A s ->
+  arity s A ->
   List.Forall (constr 0 s) Cs ->
   pure Gamma ->
   [ Gamma |- A :- Sort U l ] ->
@@ -2394,7 +2438,24 @@ Inductive has_type : context term -> term -> term -> Prop :=
   pure Gamma ->
   [ Gamma |- I :- A ] ->
   [ Gamma |- Constr i I :- C.[I/] ]
-(* TODO: Case, DCase *)
+| case_intro Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms :
+  let I := Ind A Cs s in
+  arity s A ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma1 |- m :- spine I ms ] ->
+  [ re Gamma2 |- Q :- arity1 s' A ] ->
+  All2 (fun F C => 
+    [ Gamma2 |- F :- (case Q C).[I/] ]) Fs Cs ->
+  [ Gamma |- Case m Q Fs :- spine Q ms ]
+| dcase_intro Gamma1 Gamma2 Gamma A Q s Fs Cs m ms :
+  let I := Ind A Cs U in
+  arity s A ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma1 |- m :- spine I ms ] ->
+  [ re Gamma2 |- Q :- arity2 s I A ] ->
+  Alli (fun i F C =>
+    [ Gamma2 |- F :- (dcase Q (Constr i I) C).[I/] ]) 0 Fs Cs ->
+  [ Gamma |- DCase m Q Fs :- spine Q ms ]
 | fix_intro Gamma A m l :
   fix_guard m ->
   pure Gamma ->
