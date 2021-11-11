@@ -2653,3 +2653,121 @@ Section has_type_nested_ind.
     eapply ih_s_Conv; eauto.
   Qed.
 End has_type_nested_ind.
+
+Inductive context_ok : context term -> Prop :=
+| nil_ok :
+  [ nil |- ]
+| u_ok Gamma A l :
+  [ Gamma |- ] ->
+  [ re Gamma |- A :- Sort U l ] ->
+  [ A +u Gamma |- ]
+| l_ok Gamma A l :
+  [ Gamma |- ] ->
+  [ re Gamma |- A :- Sort L l ] ->
+  [ A +l Gamma |- ]
+| n_ok Gamma :
+  [ Gamma |- ] ->
+  [ +n Gamma |- ]
+where "[ Gamma |- ]" := (context_ok Gamma).
+
+Lemma re_ok Gamma :
+  [ Gamma |- ] ->
+  [ re Gamma |- ].
+Proof with eauto using context_ok.
+  elim...
+  move{Gamma}=> Gamma A l wf1 wf2 ty //=.
+  apply: u_ok...
+  rewrite <-re_re...
+Qed.
+
+Inductive agree_ren : (var -> var) ->
+  context term -> context term -> Prop :=
+| agree_ren_nil xi :
+  agree_ren xi nil nil
+| agree_ren_u Gamma Gamma' xi m :
+  agree_ren xi Gamma Gamma' ->
+  agree_ren (upren xi) (m +u Gamma) (m.[ren xi] +u Gamma')
+| agree_ren_l Gamma Gamma' xi m :
+  agree_ren xi Gamma Gamma' ->
+  agree_ren (upren xi) (m +l Gamma) (m.[ren xi] +l Gamma')
+| agree_ren_n Gamma Gamma' xi :
+  agree_ren xi Gamma Gamma' ->
+  agree_ren (upren xi) (+n Gamma) (+n Gamma')
+| agree_ren_wkU Gamma Gamma' xi m :
+  agree_ren xi Gamma Gamma' ->
+  agree_ren ((+1) ∘ xi) Gamma (m +u Gamma')
+| agree_ren_wkN Gamma Gamma' xi :
+  agree_ren xi Gamma Gamma' ->
+  agree_ren ((+1) ∘ xi) Gamma (+n Gamma').
+
+Lemma agree_ren_refl Gamma : agree_ren id Gamma Gamma.
+Proof.
+  elim: Gamma.
+  apply: agree_ren_nil.
+  move=> a Gamma ag.
+  destruct a.
+  destruct p.
+  destruct s.
+  have h : (agree_ren id (t +u Gamma) (t +u Gamma)
+    = agree_ren (upren id) (t +u Gamma) (t.[ren id] +u Gamma))
+    by autosubst.
+  rewrite h; constructor; eauto.
+  have h : (agree_ren id (t +l Gamma) (t +l Gamma)
+    = agree_ren (upren id) (t +l Gamma) (t.[ren id] +l Gamma))
+    by autosubst.
+  rewrite h; constructor; eauto.
+  have h : (agree_ren id (+n Gamma) (+n Gamma)
+    = agree_ren (upren id) (+n Gamma) (+n Gamma))
+    by autosubst.
+  rewrite h; constructor; eauto.
+Qed.
+
+Lemma agree_ren_pure Gamma Gamma' xi :
+  agree_ren xi Gamma Gamma' -> pure Gamma -> pure Gamma'.
+Proof with eauto using pure.
+  elim=>{Gamma Gamma' xi} //=...
+  move=> Gamma Gamma' xi m ag ih pu.
+    inv pu...
+  move=> Gamma Gamma' xi m ag ih pu.
+    inv pu.
+  move=> Gamma Gamma' xi ag ih pu.
+    inv pu...
+Qed.
+
+Lemma agree_ren_re_re Gamma Gamma' xi :
+  agree_ren xi Gamma Gamma' -> agree_ren xi (re Gamma) (re Gamma').
+Proof. elim; eauto using agree_ren. Qed.
+
+Lemma agree_ren_hasU Gamma Gamma' xi x A :
+  agree_ren xi Gamma Gamma' ->
+  hasU Gamma x A ->
+  hasU Gamma' (xi x) A.[ren xi].
+Proof with eauto.
+  move=> ag. elim: ag x A=> {Gamma Gamma' xi}.
+  move=> xi x A hs. inv hs.
+  move=> Gamma Gamma' xi m ag ih x A hs. inv hs.
+    replace (m.[ren (+1)].[ren (upren xi)]) 
+      with (m.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    apply: agree_ren_pure...
+    replace (m0.[ren (+1)].[ren (upren xi)]) 
+      with (m0.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    exact: ih.
+  move=> Gamma Gamma' xi m ag ih x A hs. inv hs.
+  move=> Gamma Gamma' xi ag ih x A hs. inv hs.
+    replace (m.[ren (+1)].[ren (upren xi)]) 
+      with (m.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    exact: ih.
+  move=> Gamma Gamma' xi m ag ih x A hs.
+    replace (A.[ren ((+1) ∘ xi)])
+      with (A.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    exact: ih.
+  move=> Gamma Gamma' xi ag ih x A hs.
+    replace (A.[ren ((+1) ∘ xi)])
+      with (A.[ren xi].[ren (+1)]) by autosubst.
+    constructor.
+    exact: ih.
+Qed.
