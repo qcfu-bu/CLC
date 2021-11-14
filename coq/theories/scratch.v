@@ -2350,10 +2350,6 @@ Definition case I Q C : term :=
 Definition dcase I Q (c C : term) : term :=
   drespine Q c C.[I/].
 
-Axiom fix_guard : term -> Prop.
-Axiom fix_guard_red : forall A A' m m', 
-  fix_guard m -> step (Fix A m) (Fix A' m') -> fix_guard m'.
-
 Notation prop := (Sort U None).
 Reserved Notation "[ Gamma |- ]".
 Reserved Notation "[ Gamma |- m :- A ]".
@@ -2457,14 +2453,13 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Gamma1 |- m :- spine I ms ] ->
   [ re Gamma2 |- Q :- arity2 s' I A ] ->
   Alli (fun i F C =>
-    constr 0 s C /\
+    constr 0 U C /\
     [ Gamma2 |- F :- dcase I Q (Constr i I) C ]) 0 Fs Cs ->
   [ Gamma |- DCase m Q Fs :- spine Q ms ]
 | u_Fix Gamma A m l :
-  fix_guard m ->
   pure Gamma ->
   [ Gamma |- A :- Sort U l ] ->
-  [ A +u Gamma |- m :- A ] ->
+  [ A +u Gamma |- m :- A.[ren (+1)] ] ->
   [ Gamma |- Fix A m :- A ]
 | s_Conv Gamma A B m s l :
   A <: B ->
@@ -2577,17 +2572,16 @@ Section has_type_nested_ind.
     [ Gamma1 |- m :- spine I ms ] -> P Gamma1 m (spine I ms) ->
     [ re Gamma2 |- Q :- arity2 s' I A ] -> P (re Gamma2) Q (arity2 s' I A) ->
     Alli (fun i F C =>
-      constr 0 s C /\
+      constr 0 U C /\
       [ Gamma2 |- F :- (dcase I Q (Constr i I) C) ]) 0 Fs Cs ->
     Alli (fun i F C =>
-      constr 0 s C /\
+      constr 0 U C /\
       P Gamma2 F (dcase I Q (Constr i I) C)) 0 Fs Cs ->
     P Gamma (DCase m Q Fs) (spine Q ms).
   Hypothesis ih_u_Fix : forall Gamma A m l,
-    fix_guard m ->
     pure Gamma ->
     [ Gamma |- A :- Sort U l ] -> P Gamma A (Sort U l) ->
-    [ A +u Gamma |- m :- A ] -> P (A +u Gamma) m A ->
+    [ A +u Gamma |- m :- A.[ren (+1)] ] -> P (A +u Gamma) m A.[ren (+1)] ->
     P Gamma (Fix A m) A.
   Hypothesis ih_s_Conv : forall Gamma A B m s l,
     A <: B ->
@@ -2646,17 +2640,17 @@ Section has_type_nested_ind.
       apply (
         fix fold n Fs Cs
           (pf : Alli (fun i F C => 
-            constr 0 s C /\
+            constr 0 U C /\
             [ Gamma2 |- F :- dcase I Q (Constr i I) C ]) n Fs Cs) :
           Alli (fun i F C => 
-            constr 0 s C /\
+            constr 0 U C /\
             P Gamma2 F (dcase I Q (Constr i I) C)) n Fs Cs
         :=
           match pf in 
             Alli _ n Fs Cs
           return
             Alli (fun i F C => 
-              constr 0 s C /\
+              constr 0 U C /\
               P Gamma2 F (dcase I Q (Constr i I) C)) n Fs Cs
           with
           | Alli_nil _ => Alli_nil _ _
@@ -3067,6 +3061,17 @@ Proof.
     move: (h (Var 0))=>//=.
 Qed.
 
+Lemma drespine_I Q c I xi :
+  (forall Q, drespine Q c I = Q) ->
+  Q.[ren xi] = drespine Q.[ren xi] c.[ren xi] I.[ren xi].
+Proof.
+  elim: I xi c Q=>//=.
+  move=> A _ B _ s xi c Q h.
+    move: (h (Var 0))=>//=.
+  move=> A _ B _ xi c Q h.
+    move: (h (Var 0))=>//=.
+Qed.
+
 Lemma respine_spine'_I Q I ms xi :
   (forall Q, respine Q I = Q) ->
   (respine Q (spine' I ms)).[ren xi] =
@@ -3080,6 +3085,19 @@ Proof.
     rewrite ih; eauto.
 Qed.
 
+Lemma drespine_spine'_I Q c I ms xi :
+  (forall Q, drespine Q c I = Q) ->
+  (drespine Q c (spine' I ms)).[ren xi] =
+    drespine Q.[ren xi] c.[ren xi] (spine' I ms).[ren xi].
+Proof.
+  elim: ms Q c I xi=>//=.
+  move=> Q c I xi h.
+    rewrite h.
+    by apply drespine_I.
+  move=> m ms ih Q c I xi h.
+    rewrite ih; eauto.
+Qed.
+
 Lemma respine_spine_I Q I ms xi :
   (forall Q, respine Q I = Q) ->
   (respine Q (spine I ms)).[ren xi] =
@@ -3088,6 +3106,16 @@ Proof.
   move=> h.
   rewrite spine_spine'_rev.
   by rewrite respine_spine'_I.
+Qed.
+
+Lemma drespine_spine_I Q c I ms xi :
+  (forall Q, drespine Q c I = Q) ->
+  (drespine Q c (spine I ms)).[ren xi] =
+    drespine Q.[ren xi] c.[ren xi] (spine I ms).[ren xi].
+Proof.
+  move=> h.
+  rewrite spine_spine'_rev.
+  by rewrite drespine_spine'_I.
 Qed.
 
 Lemma respine_ren1 (I : var -> term) :
@@ -3108,6 +3136,21 @@ Proof.
     by rewrite e=>//=.
 Qed.
 
+Lemma drespine_ren1 (I : var -> term) :
+  (forall i c Q, drespine Q c (I i) = Q) ->
+  (forall i c Q, drespine Q c (I i).[ren (+1)] = Q).
+Proof.
+  move=> h i.
+  move e:(I i)=> n.
+  elim: n e h=>//=.
+  move=> A _ B _ s e h c Q.
+    move: (h i c (Var 0)).
+    by rewrite e=>//=.
+  move=> m _ n _ e h c Q.
+    move: (h i c (Var 0)).
+    by rewrite e=>//=.
+Qed.
+
 Lemma respine_up I :
   (forall i Q, respine Q (I i) = Q) ->
   (forall i Q, respine Q (up I i) = Q).
@@ -3118,7 +3161,17 @@ Proof.
   by apply respine_ren1.
 Qed.
 
-Lemma active_ren_I n (Q C : term) I (xi : var -> var) :
+Lemma drespine_up I :
+  (forall i c Q, drespine Q c (I i) = Q) ->
+  (forall i c Q, drespine Q c (up I i) = Q).
+Proof.
+  move=> h i.
+  elim: i I h=>//=.
+  move=> i ih I h c Q; asimpl.
+  by apply drespine_ren1.
+Qed.
+
+Lemma active_respine n (Q C : term) I (xi : var -> var) :
   active n C ->
   (forall i Q, respine Q (I i) = Q) ->
   (respine Q C.[I]).[ren xi] = 
@@ -3138,7 +3191,23 @@ Proof.
     by apply respine_up.
 Qed.
 
-Lemma respine_ren_I n s (Q C : term) I (xi : var -> var) :
+Lemma active_drespine n (Q c C : term) I (xi : var -> var) :
+  active n C ->
+  (forall i c Q, drespine Q c (I i) = Q) ->
+  (drespine Q c C.[I]).[ren xi] = 
+    drespine Q.[ren xi] c.[ren xi] C.[I].[ren xi].
+Proof.
+  move=> a; unfold case.
+  elim: a c Q I xi; intros.
+  - rewrite! spine_subst.
+    rewrite drespine_spine_I.
+    rewrite! spine_subst; asimpl; eauto.
+    destruct x; asimpl; eauto.
+  - asimpl; eauto.
+  - asimpl; eauto.
+Qed.
+
+Lemma constr_respine n s (Q C : term) I (xi : var -> var) :
   constr n s C ->
   (forall i Q, respine Q (I i) = Q) ->
   (respine Q C.[I]).[ren xi] = 
@@ -3160,14 +3229,46 @@ Proof.
     rewrite H1; asimpl; eauto.
     by apply respine_up.
   - asimpl. f_equal.
-    erewrite active_ren_I; asimpl; eauto.
+    erewrite active_respine; asimpl; eauto.
     by apply respine_up.
   - asimpl. f_equal.
     rewrite H1; asimpl; eauto.
     by apply respine_up.
   - asimpl. f_equal.
-    erewrite active_ren_I; asimpl; eauto.
+    erewrite active_respine; asimpl; eauto.
     by apply respine_up.
+Qed.
+
+Lemma constr_drespine n s (Q c C : term) I (xi : var -> var) :
+  constr n s C ->
+  (forall i c Q, drespine Q c (I i) = Q) ->
+  (drespine Q c C.[I]).[ren xi] = 
+    drespine Q.[ren xi] c.[ren xi] C.[I].[ren xi].
+Proof.
+  move=> cn; unfold case.
+  elim: cn Q c I xi; intros.
+  - rewrite! spine_subst.
+    rewrite drespine_spine_I.
+    rewrite! spine_subst; asimpl; eauto.
+    destruct x; asimpl; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply drespine_up.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply drespine_up.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply drespine_up.
+  - asimpl. f_equal.
+    erewrite active_drespine; asimpl; eauto.
+    by apply drespine_up.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply drespine_up.
+  - asimpl. f_equal.
+    erewrite active_drespine; asimpl; eauto.
+    by apply drespine_up.
 Qed.
 
 Lemma All2_case_ren Gamma Gamma' s A Q Fs Cs Cs' xi :
@@ -3192,9 +3293,42 @@ Proof.
     apply: n_ren0.
   - move: (H0 _ _ ag)=>{}H0.
     unfold case in H0.
-    erewrite respine_ren_I in H0; eauto.
+    erewrite constr_respine in H0; eauto.
     asimpl in H0.
     by unfold case; asimpl.
+    move=> i Q'.
+    destruct i; asimpl; eauto.
+  - replace (ren (upren xi)) with (up (ren xi)) by autosubst.
+    apply: ih; eauto.
+Qed.
+
+Lemma Alli_case_ren Gamma Gamma' n s A Q Fs Cs Cs' xi :
+  Alli (fun i F C =>
+    let I := Ind A Cs' s in
+    constr 0 s C /\
+    forall Gamma' xi, agree_ren xi Gamma Gamma' ->
+      [ Gamma' |- F.[ren xi] :- (dcase I Q (Constr i I) C).[ren xi] ])
+    n Fs Cs ->
+  agree_ren xi Gamma Gamma' ->
+  Alli (fun i F C =>
+    let I := Ind A.[ren xi] Cs'..[up (ren xi)] s in
+    constr 0 s C /\
+    [ Gamma' |- F :- dcase I Q.[ren xi] (Constr i I) C])
+    n Fs..[ren xi] Cs..[up (ren xi)].
+Proof.
+  elim: Fs Gamma Gamma' n s A Q Cs xi.
+  move=> Gamma Gamma' n s A Q Cs xi h. inv h=> *.
+    constructor.
+  move=> F Fs ih Gamma Gamma' n s A Q Cs xi h ag.
+  destruct Cs; inv h. inv H3; asimpl.
+  constructor. split.
+  - apply: constr_ren; eauto.
+    apply: n_ren0.
+  - move: (H0 _ _ ag)=>{}H0.
+    unfold dcase in H0.
+    erewrite constr_drespine in H0; eauto.
+    asimpl in H0.
+    by unfold dcase; asimpl.
     move=> i Q'.
     destruct i; asimpl; eauto.
   - replace (ren (upren xi)) with (up (ren xi)) by autosubst.
@@ -3311,3 +3445,17 @@ Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
     move: (ihQ _ _ rag2)=> {} ihQ.
     move: (arity2_ren s' (Ind A Cs U) xi ar)=> e. rewrite e in ihQ.
     apply: s_DCase...
+    apply: Alli_case_ren...
+  move=> Gamma A m l p tyA ihA tyM ihM Gamma' xi ag.
+    econstructor...
+    have ag' : agree_ren (upren xi) (A +u Gamma) (A.[ren xi] +u Gamma').
+      by constructor.
+    move: (ihM _ _ ag'); asimpl=>//.
+  move=> Gamma A B m s l sub tyB ihB tyM ihM Gamma' xi ag.
+    apply: s_Conv.
+    apply: sub_ren.
+    apply: sub.
+    apply: ihB.
+    by apply: agree_ren_re_re.
+    by apply: ihM.
+Qed.
