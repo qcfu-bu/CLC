@@ -3459,3 +3459,101 @@ Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
     by apply: agree_ren_re_re.
     by apply: ihM.
 Qed.
+
+Lemma hasU_ok Gamma x A :
+  [ Gamma |- ] ->
+  hasU Gamma x A ->
+  exists l, [ re Gamma |- A :- Sort U l ].
+Proof.
+  move=> wf. elim: wf x A.
+  move=> x A h. inv h.
+  move=> Gamma' A l wf ih tyA x A' h. inv h=>//=.
+    exists l.
+    replace (Sort U l) with (Sort U l).[ren (+1)] by autosubst.
+    apply: rename_ok; eauto.
+    apply: agree_ren_wkU.
+    apply: agree_ren_refl.
+    move: (ih _ _ H3)=>{ih}[l' tyM].
+    exists l'.
+    replace (Sort U l') with (Sort U l').[ren (+1)] by autosubst.
+    apply: rename_ok; eauto.
+    apply: agree_ren_wkU.
+    apply: agree_ren_refl.
+  move=> Gamma' A l wf ih tyA x A' h. inv h.
+  move=> Gamma' wf ih x A h. inv h=>//=.
+    move: (ih _ _ H0)=>{ih}[l tyM].
+    exists l.
+    replace (Sort U l) with (Sort U l).[ren (+1)] by autosubst.
+    apply: rename_ok; eauto.
+    apply: agree_ren_wkN.
+    apply: agree_ren_refl.
+Qed.
+
+Lemma hasL_ok Gamma x A :
+  [ Gamma |- ] ->
+  hasL Gamma x A ->
+  exists l, [ re Gamma |- A :- Sort L l ].
+Proof.
+  move=> wf. elim: wf x A.
+  move=> x A h. inv h.
+  move=> Gamma' A l wf ih tyA x A' h=>//=. inv h.
+    move: (ih _ _ H3)=>{ih}[l' tyM].
+    exists l'.
+    replace (Sort L l') with (Sort L l').[ren (+1)] by autosubst.
+    apply: rename_ok; eauto.
+    apply: agree_ren_wkU.
+    apply: agree_ren_refl.
+  move=> Gamma' A l wf ih tyA x A' h=>//=. inv h.
+    exists l.
+    replace (Sort L l) with (Sort L l).[ren (+1)] by autosubst.
+    apply: rename_ok; eauto.
+    apply: agree_ren_wkN.
+    apply: agree_ren_refl.
+  move=> Gamma' wf ih x A h=>//=. inv h.
+    move: (ih _ _ H0)=>{ih}[l tyM].
+    exists l.
+    replace (Sort L l) with (Sort L l).[ren (+1)] by autosubst.
+    apply: rename_ok; eauto.
+    apply: agree_ren_wkN.
+    apply: agree_ren_refl.
+Qed.
+
+Lemma weakeningU Gamma m A B :
+  [ Gamma |- m :- A ] ->
+  [ B +u Gamma |- m.[ren (+1)] :- A.[ren (+1)] ].
+Proof.
+  move=> tyM.
+  apply: rename_ok; eauto.
+  apply: agree_ren_wkU.
+  apply: agree_ren_refl.
+Qed.
+
+Lemma weakeningN Gamma m A :
+  [ Gamma |- m :- A ] ->
+  [ +n Gamma |- m.[ren (+1)] :- A.[ren (+1)] ].
+Proof.
+  move=> tyM.
+  apply: rename_ok; eauto.
+  apply: agree_ren_wkN.
+  apply: agree_ren_refl.
+Qed.
+
+Lemma eweakeningU Gamma m m' A A' B :
+  m' = m.[ren (+1)] -> 
+  A' = A.[ren (+1)] ->
+  [ Gamma |- m :- A ] -> 
+  [ B +u Gamma |- m' :- A' ].
+Proof.  
+  intros; subst.
+  apply weakeningU; eauto.
+Qed.
+
+Lemma eweakeningN Gamma m m' A A' :
+  m' = m.[ren (+1)] -> 
+  A' = A.[ren (+1)] ->
+  [ Gamma |- m :- A ] -> 
+  [ +n Gamma |-m' :- A' ].
+Proof.  
+  intros; subst.
+  apply weakeningN; eauto.
+Qed.
