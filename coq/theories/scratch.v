@@ -2340,8 +2340,7 @@ Fixpoint drespine hd c sp : term :=
   match sp with
   | Prod A B s => 
     Lolli A (drespine hd.[ren (+1)] (App c.[ren (+1)] (Var 0)) B) s
-  | App m n => App (drespine hd c m) n
-  | _ => hd
+  | _ => App (respine hd sp) c
   end.
 
 Definition case I Q C : term :=
@@ -2455,7 +2454,7 @@ Inductive has_type : context term -> term -> term -> Prop :=
   Alli (fun i F C =>
     constr 0 U C /\
     [ Gamma2 |- F :- dcase I Q (Constr i I) C ]) 0 Fs Cs ->
-  [ Gamma |- DCase m Q Fs :- spine Q ms ]
+  [ Gamma |- DCase m Q Fs :- App (spine Q ms) m ]
 | u_Fix Gamma A m l :
   pure Gamma ->
   [ Gamma |- A :- Sort U l ] ->
@@ -2577,7 +2576,7 @@ Section has_type_nested_ind.
     Alli (fun i F C =>
       constr 0 U C /\
       P Gamma2 F (dcase I Q (Constr i I) C)) 0 Fs Cs ->
-    P Gamma (DCase m Q Fs) (spine Q ms).
+    P Gamma (DCase m Q Fs) (App (spine Q ms) m).
   Hypothesis ih_u_Fix : forall Gamma A m l,
     pure Gamma ->
     [ Gamma |- A :- Sort U l ] -> P Gamma A (Sort U l) ->
@@ -3062,14 +3061,29 @@ Proof.
 Qed.
 
 Lemma drespine_I Q c I xi :
-  (forall Q, drespine Q c I = Q) ->
-  Q.[ren xi] = drespine Q.[ren xi] c.[ren xi] I.[ren xi].
+  (forall Q, drespine Q c I = App Q c) ->
+  App Q.[ren xi] c.[ren xi] = drespine Q.[ren xi] c.[ren xi] I.[ren xi].
 Proof.
   elim: I xi c Q=>//=.
   move=> A _ B _ s xi c Q h.
     move: (h (Var 0))=>//=.
-  move=> A _ B _ xi c Q h.
+  move=> A _ B _ s xi c Q h.
     move: (h (Var 0))=>//=.
+  move=> m _ n _ xi c Q h.
+    move: (h (Var 0))=>//=.
+Qed.
+
+Lemma drespine_respine I :
+  (forall Q c, drespine Q c I = App Q c) ->
+  (forall Q, respine Q I = Q).
+Proof.
+  elim: I=>//=.
+  move=> A _ B _ s h Q.
+    move: (h Q (Var 0))=>//=.
+  move=> A _ B _ s h Q.
+    move: (h (Lam Q Q s) (Var 0))=>//=.
+  move=> m _ n _ h Q.
+    move: (h (Lam Q Q U) (Var 0))=>//=.
 Qed.
 
 Lemma respine_spine'_I Q I ms xi :
@@ -3086,7 +3100,7 @@ Proof.
 Qed.
 
 Lemma drespine_spine'_I Q c I ms xi :
-  (forall Q, drespine Q c I = Q) ->
+  (forall Q c, drespine Q c I = App Q c) ->
   (drespine Q c (spine' I ms)).[ren xi] =
     drespine Q.[ren xi] c.[ren xi] (spine' I ms).[ren xi].
 Proof.
@@ -3095,7 +3109,9 @@ Proof.
     rewrite h.
     by apply drespine_I.
   move=> m ms ih Q c I xi h.
-    rewrite ih; eauto.
+    repeat f_equal.
+    apply respine_spine'_I.
+    by apply drespine_respine.
 Qed.
 
 Lemma respine_spine_I Q I ms xi :
@@ -3109,7 +3125,7 @@ Proof.
 Qed.
 
 Lemma drespine_spine_I Q c I ms xi :
-  (forall Q, drespine Q c I = Q) ->
+  (forall Q c, drespine Q c I = App Q c) ->
   (drespine Q c (spine I ms)).[ren xi] =
     drespine Q.[ren xi] c.[ren xi] (spine I ms).[ren xi].
 Proof.
@@ -3137,12 +3153,15 @@ Proof.
 Qed.
 
 Lemma drespine_ren1 (I : var -> term) :
-  (forall i c Q, drespine Q c (I i) = Q) ->
-  (forall i c Q, drespine Q c (I i).[ren (+1)] = Q).
+  (forall i c Q, drespine Q c (I i) = App Q c) ->
+  (forall i c Q, drespine Q c (I i).[ren (+1)] = App Q c).
 Proof.
   move=> h i.
   move e:(I i)=> n.
   elim: n e h=>//=.
+  move=> A _ B _ s e h c Q.
+    move: (h i c (Var 0)).
+    by rewrite e=>//=.
   move=> A _ B _ s e h c Q.
     move: (h i c (Var 0)).
     by rewrite e=>//=.
@@ -3162,8 +3181,8 @@ Proof.
 Qed.
 
 Lemma drespine_up I :
-  (forall i c Q, drespine Q c (I i) = Q) ->
-  (forall i c Q, drespine Q c (up I i) = Q).
+  (forall i c Q, drespine Q c (I i) = App Q c) ->
+  (forall i c Q, drespine Q c (up I i) = App Q c).
 Proof.
   move=> h i.
   elim: i I h=>//=.
@@ -3193,7 +3212,7 @@ Qed.
 
 Lemma active_drespine n (Q c C : term) I (xi : var -> var) :
   active n C ->
-  (forall i c Q, drespine Q c (I i) = Q) ->
+  (forall i c Q, drespine Q c (I i) = App Q c) ->
   (drespine Q c C.[I]).[ren xi] = 
     drespine Q.[ren xi] c.[ren xi] C.[I].[ren xi].
 Proof.
@@ -3203,8 +3222,14 @@ Proof.
     rewrite drespine_spine_I.
     rewrite! spine_subst; asimpl; eauto.
     destruct x; asimpl; eauto.
-  - asimpl; eauto.
-  - asimpl; eauto.
+  - asimpl. repeat f_equal.
+    erewrite active_respine; asimpl; eauto.
+    apply: respine_up=> i.
+    by apply: drespine_respine.
+  - asimpl. repeat f_equal.
+    erewrite active_respine; asimpl; eauto.
+    apply: respine_up=> i.
+    by apply: drespine_respine.
 Qed.
 
 Lemma constr_respine n s (Q C : term) I (xi : var -> var) :
@@ -3241,7 +3266,7 @@ Qed.
 
 Lemma constr_drespine n s (Q c C : term) I (xi : var -> var) :
   constr n s C ->
-  (forall i c Q, drespine Q c (I i) = Q) ->
+  (forall i c Q, drespine Q c (I i) = App Q c) ->
   (drespine Q c C.[I]).[ren xi] = 
     drespine Q.[ren xi] c.[ren xi] C.[I].[ren xi].
 Proof.

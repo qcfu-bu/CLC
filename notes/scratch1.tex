@@ -210,7 +210,7 @@ Non-linear inductive objects can be eliminated by a dependent case expression as
     \Gamma_1 \vdash m : (I\ a_1...a_n) \\
     \restr{\Gamma_2} \vdash Q : A\lrangle{I, s'} \\
     \Gamma_2 \vdash f_i : C_i[I, Q, Constr(i, I)] }
-  { \Gamma \vdash \dcase(m, Q)\{f_1|...|f_n\} : (Q\ a_1...a_n) }
+  { \Gamma \vdash \dcase(m, Q)\{f_1|...|f_n\} : (Q\ a_1...a_n\ m) }
   \rname{dcase}
 \end{mathpar}
 
