@@ -3752,3 +3752,183 @@ Lemma merge_agree_subst_inv Delta sigma Gamma1 Gamma2 Gamma :
     [ Delta1 |- sigma -| Gamma1 ] /\
     [ Delta2 |- sigma -| Gamma2 ].
 Proof.
+  move=> ag. elim: ag Gamma1 Gamma2=>{Delta sigma Gamma}.
+  move=> sigma Gamma1 Gamma2 mg. inv mg.
+    exists nil. exists nil. repeat constructor; eauto.
+  move=> Delta sigma Gamma A ag ih Gamma1 Gamma2 mg. inv mg.
+    move: (ih _ _ H2)=> {H2}[Delta1[Delta2[mg'[ag1 ag2]]]].
+    exists (A.[sigma] +u Delta1).
+    exists (A.[sigma] +u Delta2).
+    repeat constructor; eauto.
+  move=> Delta sigma Gamma A ag ih Gamma1 Gamma2 mg. inv mg.
+    move: (ih _ _ H2)=> {H2}[Delta1[Delta2[mg'[ag1 ag2]]]].
+      exists (A.[sigma] +l Delta1).
+      exists (+n Delta2).
+      repeat constructor; eauto.
+    move: (ih _ _ H2)=> {H2}[Delta1[Delta2[mg'[ag1 ag2]]]].
+      exists (+n Delta1).
+      exists (A.[sigma] +l Delta2).
+      repeat constructor; eauto.
+  move=> Delta sigma Gamma ag ih Gamma1 Gamma2 mg. inv mg.
+    move: (ih _ _ H2)=> {H2}[Delta1[Delta2[mg'[ag1 ag2]]]].
+    exists (+n Delta1).
+    exists (+n Delta2).
+    repeat constructor; eauto.
+  move=> Delta sigma Gamma n A ag ih ty Gamma1 Gamma2 mg. inv mg.
+    move: (ih _ _ H2)=> {H2}[Delta1[Delta2[mg'[ag1 ag2]]]].
+    exists Delta1. 
+    exists Delta2.
+    move: (merge_re_re mg')=>[e1 e2]. 
+    repeat constructor; eauto.
+    move: e1=>->; eauto.
+    move: e2=>->; eauto.
+  move=> Delta1 Delta2 Delta sigma Gamma n A mg1 ag ih ty
+    Gamma1 Gamma2 mg2. inv mg2.
+    move: (ih _ _ H2)=> {H2}[Delta1'[Delta2'[mg'[ag1 ag2]]]].
+      move: (merge_split1 mg1 mg')=>[Delta'[mg1' mg2']].
+      exists Delta'. 
+      exists Delta2'.
+      repeat constructor; eauto.
+      apply: agree_subst_wkL; eauto.
+    move: (ih _ _ H2)=> {H2}[Delta1'[Delta2'[mg'[ag1 ag2]]]].
+      move: (merge_split2 mg1 mg')=>[Delta'[mg1' mg2']].
+      exists Delta1'.
+      exists Delta'.
+      repeat constructor; eauto.
+      apply: agree_subst_wkL; eauto.
+  move=> Delta sigma Gamma n ag ih Gamma1 Gamma2 mg. inv mg.
+    move: (ih _ _ H2)=> {H2}[Delta1[Delta2[mg'[ag1 ag2]]]].
+    exists Delta1.
+    exists Delta2.
+    repeat constructor; eauto.
+  move=> Delta sigma Gamma A B l sb ty ag ih Gamma1 Gamma2 mg.
+    inv mg.
+    have mg : merge (A +u Gamma0) (A +u Gamma3) (A +u Gamma).
+      constructor; eauto.
+    move: (ih _ _ mg)=>{mg}[Delta1[Delta2[mg[ag1 ag2]]]].
+    exists Delta1.
+    exists Delta2.
+    move: (merge_re_re mg)=>[e1 e2].
+    repeat constructor; eauto.
+    apply: agree_subst_convU; eauto.
+    rewrite e1; eauto.
+    apply: agree_subst_convU; eauto.
+    rewrite e2; eauto.
+  move=> Delta sigma Gamma A B l sb ty1 ty2 ag ih Gamma1 Gamma2 mg.
+    inv mg.
+    have mg' : merge (A +l Gamma0) (+n Gamma3) (A +l Gamma).
+      constructor; eauto.
+      move: (ih _ _ mg')=>{mg'}[Delta1[Delta2[mg'[ag1 ag2]]]].
+      exists Delta1.
+      exists Delta2.
+      move: (merge_re_re H2)=>[eG1 eG2].
+      move: (merge_re_re mg')=>[eD1 eD2].
+      repeat constructor; eauto.
+      apply: agree_subst_convL; eauto.
+      move: eD1=>->; eauto.
+      move: eG1=>->; eauto.
+    have mg' : merge (+n Gamma0) (A +l Gamma3) (A +l Gamma).
+      constructor; eauto.
+      move: (ih _ _ mg')=>{mg'}[Delta1[Delta2[mg'[ag1 ag2]]]].
+      exists Delta1.
+      exists Delta2.
+      move: (merge_re_re H2)=>[eG1 eG2].
+      move: (merge_re_re mg')=>[eD1 eD2].
+      repeat constructor; eauto.
+      apply: agree_subst_convL; eauto.
+      move: eD2=>->; eauto.
+      move: eG2=>->; eauto.
+Qed.
+
+Lemma substitution Gamma Delta sigma m A :
+  [ Gamma |- m :- A ] ->
+  [ Delta |- sigma -| Gamma ] ->
+  [ Delta |- m.[sigma] :- A.[sigma] ].
+Proof.
+  move=> ty. elim: ty Delta sigma=>//={Gamma m A}.
+  move=> Gamma p Delta sigma ag.
+    apply: u_Prop.
+    apply: agree_subst_pure; eauto.
+  move=> Gamma s l p Delta sigma ag.
+    apply: u_Sort.
+    apply: agree_subst_pure; eauto.
+  move=> Gamma A B l p tyA ihA tyB ihB Delta sigma ag.
+    move: (ihA _ _ ag)=>{}ihA.
+    move: (agree_subst_u A ag)=>ag'.
+    move: (ihB _ _ ag')=>{}ihB.
+    apply: p_Prod; eauto.
+    apply: agree_subst_pure; eauto.
+  move=> Gamma A B s l p tyA ihA tyB ihB Delta sigma ag.
+    move: (ihA _ _ ag)=>{}ihA.
+    move: (agree_subst_u A ag)=>ag'.
+    move: (ihB _ _ ag')=>{}ihB.
+    apply: u_Prod; eauto.
+    apply: agree_subst_pure; eauto.
+  move=> Gamma A B s l p tyA ihA tyB ihB Delta sigma ag.
+    move: (ihA _ _ ag)=>{}ihA.
+    move: (agree_subst_n ag)=>ag'.
+    move: (ihB _ _ ag')=>{}ihB.
+    apply: l_Prod; eauto.
+    apply: agree_subst_pure; eauto.
+  move=> Gamma A B s l p tyA ihA tyB ihB Delta sigma ag.
+    move: (ihA _ _ ag)=>{}ihA.
+    move: (agree_subst_u A ag)=>ag'.
+    move: (ihB _ _ ag')=>{}ihB.
+    apply: u_Lolli; eauto.
+    apply: agree_subst_pure; eauto.
+  move=> Gamma A B s l p tyA ihA tyB ihB Delta sigma ag.
+    move: (ihA _ _ ag)=>{}ihA.
+    move: (agree_subst_n ag)=>ag'.
+    move: (ihB _ _ ag')=>{}ihB.
+    apply: l_Lolli; eauto.
+    apply: agree_subst_pure; eauto.
+  move=> Gamma x A h Delta sigma ag.
+    apply: agree_subst_hasU; eauto.
+  move=> Gamma x A h Delta sigam ag.
+    apply: agree_subst_hasL; eauto.
+  move=> Gamma n A B s t l p tyProd ihProd tyN ihN Delta sigma ag.
+    destruct s.
+    move: (agree_subst_u A ag)=>ag'.
+      move: (ihN _ _ ag')=>{ag'}tyN.
+      apply: u_Lam; eauto.
+      apply: agree_subst_pure; eauto.
+    move: (agree_subst_l A ag)=>ag'.
+      move: (ihN _ _ ag')=>{ag'}tyN.
+      apply: u_Lam; eauto.
+      apply: agree_subst_pure; eauto.
+  move=> Gamma n A B s t l tyLolli ihLolli tyN ihN Delta sigma ag.
+    move: (agree_subst_re_re ag)=>ag'.
+    move: (ihLolli _ _ ag')=>{}ihLolli.
+    destruct s.
+    move: (agree_subst_u A ag)=>{}ag.
+      move: (ihN _ _ ag)=>{}ihN.
+      apply: l_Lam; eauto.
+    move: (agree_subst_l A ag)=>{}ag.
+      move: (ihN _ _ ag)=>{}ihN.
+      apply: l_Lam; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n p tyM ihM tyN ihN mg Delta sigma ag.
+    replace B.[n/].[sigma] 
+      with (B.[up sigma]).[n.[sigma]/]
+      by autosubst.
+    move: (merge_agree_subst_inv ag mg)=>[Delta1[Delta2[mg'[ag1 ag2]]]].
+    move: (agree_subst_pure ag2 p)=>{}p.
+    apply: u_Prod_App; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg Delta sigma ag.
+    replace B.[n/].[sigma]
+      with (B.[up sigma]).[n.[sigma]/]
+      by autosubst.
+    move: (merge_agree_subst_inv ag mg)=>[Delta1[Delta2[mg'[ag1 ag2]]]].
+    apply: l_Prod_App; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n p tyM ihM tyN ihN mg Delta sigma ag.
+    replace B.[n/].[sigma] 
+      with (B.[up sigma]).[n.[sigma]/]
+      by autosubst.
+    move: (merge_agree_subst_inv ag mg)=>[Delta1[Delta2[mg'[ag1 ag2]]]].
+    move: (agree_subst_pure ag2 p)=>{}p.
+    apply: u_Lolli_App; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg Delta sigma ag.
+    replace B.[n/].[sigma]
+      with (B.[up sigma]).[n.[sigma]/]
+      by autosubst.
+    move: (merge_agree_subst_inv ag mg)=>[Delta1[Delta2[mg'[ag1 ag2]]]].
+    apply: l_Lolli_App; eauto.
