@@ -2204,7 +2204,7 @@ Inductive arity (s : sort) : term -> Prop :=
   arity s B -> arity s (Prod A B U).
 
 Inductive noccurs : var -> term -> Prop :=
-| noccurs_Var x y : x != y -> noccurs x (Var y)
+| noccurs_Var x y : ~x = y -> noccurs x (Var y)
 | noccurs_Sort x s l : noccurs x (Sort s l)
 | noccurs_Prod x A B s :
   noccurs x A -> noccurs x.+1 B -> noccurs x (Prod A B s)
@@ -2229,7 +2229,7 @@ Inductive noccurs : var -> term -> Prop :=
 
 Section noccurs_ind_nested.
   Variable P : var -> term -> Prop.
-  Hypothesis ih_Var : forall x y, x != y -> P x (Var y).
+  Hypothesis ih_Var : forall x y, ~x = y -> P x (Var y).
   Hypothesis ih_Sort : forall x s l, P x (Sort s l).
   Hypothesis ih_Prod : forall x A B s,
     noccurs x A -> P x A -> noccurs x.+1 B -> P x.+1 B -> P x (Prod A B s).
@@ -2297,7 +2297,8 @@ Inductive active : var -> term -> Prop :=
   noccurs x A -> active x.+1 B -> active x (Lolli A B s).
 
 Inductive constr : var -> sort -> term -> Prop :=
-| constr_X x s ms : List.Forall (noccurs x) ms -> constr x s (spine (Var x) ms)
+| constr_X x s ms : 
+  List.Forall (noccurs x) ms -> constr x s (spine (Var x) ms)
 | constr_UPos x A B :
   pos x A -> constr x.+1 U B -> noccurs 0 B -> constr x U (Prod A B U)
 | constr_UProd x A B :
@@ -2327,25 +2328,27 @@ Fixpoint arity2 (s : sort) (I : term) (A : term) : term :=
   | _ => Var 0
   end.
 
-Fixpoint respine (hd sp : term) : term :=
+Fixpoint respine hd sp : term :=
   match sp with
+  | Prod A B s => Lolli A (respine hd.[ren (+1)] B) s
+  | Lolli A B s => Lolli A (respine hd.[ren (+1)] B) s
   | App m n => App (respine hd m) n
   | _ => hd
   end.
 
-Fixpoint case (Q C : term) : term :=
-  match C with
-  | Prod A B s => Lolli A (case Q.[ren (+1)] B) s
-  | Lolli A B s => Lolli A (case Q.[ren (+1)] B) s
-  | _ => respine Q C
+Fixpoint drespine hd c sp : term :=
+  match sp with
+  | Prod A B s => 
+    Lolli A (drespine hd.[ren (+1)] (App c.[ren (+1)] (Var 0)) B) s
+  | App m n => App (drespine hd c m) n
+  | _ => hd
   end.
-   
-Fixpoint dcase (Q c C : term) : term :=
-  match C with
-  | Prod A B U => 
-    Lolli A (dcase Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) B) U
-  | _ => respine Q (App C c)
-  end.
+
+Definition case I Q C : term :=
+  respine Q C.[I/].
+
+Definition dcase I Q (c C : term) : term :=
+  drespine Q c C.[I/].
 
 Axiom fix_guard : term -> Prop.
 Axiom fix_guard_red : forall A A' m m', 
@@ -2443,8 +2446,9 @@ Inductive has_type : context term -> term -> term -> Prop :=
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma1 |- m :- spine I ms ] ->
   [ re Gamma2 |- Q :- arity1 s' A ] ->
-  All2 (fun F C => 
-    [ Gamma2 |- F :- (case Q C).[I/] ]) Fs Cs ->
+  All2 (fun F C =>
+    constr 0 s C /\
+    [ Gamma2 |- F :- case I Q C ]) Fs Cs ->
   [ Gamma |- Case m Q Fs :- spine Q ms ]
 | s_DCase Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms :
   let I := Ind A Cs U in
@@ -2453,7 +2457,8 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Gamma1 |- m :- spine I ms ] ->
   [ re Gamma2 |- Q :- arity2 s' I A ] ->
   Alli (fun i F C =>
-    [ Gamma2 |- F :- (dcase Q (Constr i I) C).[I/] ]) 0 Fs Cs ->
+    constr 0 s C /\
+    [ Gamma2 |- F :- dcase I Q (Constr i I) C ]) 0 Fs Cs ->
   [ Gamma |- DCase m Q Fs :- spine Q ms ]
 | u_Fix Gamma A m l :
   fix_guard m ->
@@ -2559,9 +2564,11 @@ Section has_type_nested_ind.
     [ Gamma1 |- m :- spine I ms ] -> P Gamma1 m (spine I ms) ->
     [ re Gamma2 |- Q :- arity1 s' A ] -> P (re Gamma2) Q (arity1 s' A) ->
     All2 (fun F C =>
-      [ Gamma2 |- F :- (case Q C).[I/] ]) Fs Cs ->
+      constr 0 s C /\
+      [ Gamma2 |- F :- case I Q C ]) Fs Cs ->
     All2 (fun F C =>
-      P Gamma2 F (case Q C).[I/]) Fs Cs ->
+      constr 0 s C /\
+      P Gamma2 F (case I Q C)) Fs Cs ->
     P Gamma (Case m Q Fs) (spine Q ms).
   Hypothesis ih_s_DCase : forall Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms,
     let I := Ind A Cs U in
@@ -2570,9 +2577,11 @@ Section has_type_nested_ind.
     [ Gamma1 |- m :- spine I ms ] -> P Gamma1 m (spine I ms) ->
     [ re Gamma2 |- Q :- arity2 s' I A ] -> P (re Gamma2) Q (arity2 s' I A) ->
     Alli (fun i F C =>
-      [ Gamma2 |- F :- (dcase Q (Constr i I) C).[I/] ]) 0 Fs Cs ->
+      constr 0 s C /\
+      [ Gamma2 |- F :- (dcase I Q (Constr i I) C) ]) 0 Fs Cs ->
     Alli (fun i F C =>
-      P Gamma2 F (dcase Q (Constr i I) C).[I/]) 0 Fs Cs ->
+      constr 0 s C /\
+      P Gamma2 F (dcase I Q (Constr i I) C)) 0 Fs Cs ->
     P Gamma (DCase m Q Fs) (spine Q ms).
   Hypothesis ih_u_Fix : forall Gamma A m l,
     fix_guard m ->
@@ -2622,32 +2631,37 @@ Section has_type_nested_ind.
       apply (
         fix fold Fs Cs
           (pf : All2 (fun F C => 
-            [ Gamma2 |- F :- (case Q C).[I/] ]) Fs Cs) :
+            constr 0 s C /\
+            [ Gamma2 |- F :- case I Q C ]) Fs Cs) :
           All2 (fun F C => 
-            P Gamma2 F (case Q C).[I/]) Fs Cs
+            constr 0 s C /\
+            P Gamma2 F (case I Q C)) Fs Cs
         :=
           match pf with
           | All2_nil => All2_nil _
-          | All2_cons _ _ _ _ pfHd pfTl =>
-            All2_cons (has_type_nested_ind _ _ _ pfHd) (fold _ _ pfTl)
+          | All2_cons _ _ _ _ (conj h1 h2) tl =>
+            All2_cons (conj h1 (has_type_nested_ind _ _ _ h2)) (fold _ _ tl)
           end); eauto.
     eapply ih_s_DCase; eauto.
       apply (
         fix fold n Fs Cs
           (pf : Alli (fun i F C => 
-            [ Gamma2 |- F :- (dcase Q (Constr i I) C).[I/] ]) n Fs Cs) :
+            constr 0 s C /\
+            [ Gamma2 |- F :- dcase I Q (Constr i I) C ]) n Fs Cs) :
           Alli (fun i F C => 
-            P Gamma2 F (dcase Q (Constr i I) C).[I/]) n Fs Cs
+            constr 0 s C /\
+            P Gamma2 F (dcase I Q (Constr i I) C)) n Fs Cs
         :=
           match pf in 
             Alli _ n Fs Cs
           return
             Alli (fun i F C => 
-              P Gamma2 F (dcase Q (Constr i I) C).[I/]) n Fs Cs
+              constr 0 s C /\
+              P Gamma2 F (dcase I Q (Constr i I) C)) n Fs Cs
           with
           | Alli_nil _ => Alli_nil _ _
-          | Alli_cons _ _ _ _ _ pfHd pfTl =>
-            Alli_cons (has_type_nested_ind _ _ _ pfHd) (fold _ _ _ pfTl)
+          | Alli_cons _ _ _ _ _ (conj h1 h2) pfTl =>
+            Alli_cons (conj h1 (has_type_nested_ind _ _ _ h2)) (fold _ _ _ pfTl)
           end); eauto.
     eapply ih_u_Fix; eauto.
     eapply ih_s_Conv; eauto.
@@ -2848,46 +2862,367 @@ Proof with eauto.
     repeat constructor...
 Qed.
 
+Lemma arity_ren s A xi : arity s A -> arity s A.[ren xi].
+Proof with eauto using arity.
+  move=> ar. elim: ar xi=>//=...
+  move=> A' B ar ih xi.
+    constructor.
+    replace (up (ren xi)) with (ren (upren xi)) by autosubst.
+    exact: ih.
+Qed.
+
+Definition n_ren (xi : var -> var) x :=
+  xi x = x /\ 
+    forall i, (~x = i -> ~xi i = x) /\ (~i = 0 -> ~xi i = 0).
+
+Lemma n_ren0 xi : n_ren (upren xi) 0.
+Proof.
+  split; eauto.
+  move=> i. elim: i xi=>//=.
+Qed.
+
+Lemma n_ren_up xi x :
+  n_ren xi x -> n_ren (upren xi) x.+1.
+Proof.
+  move=>[e h]. split.
+  asimpl; eauto.
+  elim; asimpl; eauto.
+  move=> n [ih1 ih2]. split; eauto.
+  move=> neq. 
+  have pf : ~x = n by eauto.
+  move: (h n)=>[h1 h2].
+  move: pf=>/h1; eauto.
+Qed.
+
+Lemma noccurs_ren x m xi :
+  noccurs x m -> n_ren xi x -> noccurs x m.[ren xi].
+Proof with eauto using noccurs, n_ren_up, and.
+  move=> no. move: x m no xi.
+  apply: noccurs_ind_nested=>//=...
+  move=> x y neq xi [e h].
+    move: (h y)=> {h} [h _].
+    move: neq=> /h neq.
+    constructor; eauto.
+  move=> x A B s nA ihA nB ihB xi n.
+    constructor.
+    apply: ihA...
+    asimpl. apply: ihB. exact: n_ren_up.
+  move=> x A B s nA ihA nB ihB xi n.
+    constructor.
+    apply: ihA...
+    asimpl. apply: ihB. exact: n_ren_up.
+  move=> x A m s nA ihA nM ihM xi n.
+    constructor.
+    apply: ihA...
+    asimpl. apply: ihM. exact: n_ren_up.
+  move=> x A Cs s nA ihA nCs ihCs xi n.
+    constructor.
+    apply: ihA...
+    elim: ihCs=>//=.
+    move=> x' l h' _ ih. constructor; asimpl.
+    apply: h'. apply n_ren_up...
+    asimpl in ih...
+  move=> x m Q Fs nM ihM nQ ihQ nFs ihFs xi n.
+    constructor.
+    apply: ihM...
+    apply: ihQ...
+    elim: ihFs=>//=.
+    move=> x' l h' _ ih. constructor; asimpl.
+    apply: h'...
+    asimpl in ih...
+  move=> x m Q Fs nM ihM nQ ihQ nFs ihFs xi n.
+    constructor.
+    apply: ihM...
+    apply: ihQ...
+    elim: ihFs=>//=.
+    move=> x' l h' _ ih. constructor; asimpl.
+    apply: h'...
+    asimpl in ih...
+  move=> x A m nA ihA nM ihM xi n.
+    constructor.
+    apply: ihA...
+    asimpl. apply: ihM...
+Qed.
+
+Lemma noccurs_ren_Forall x ms xi :
+  List.Forall (noccurs x) ms -> n_ren xi x ->
+    List.Forall (noccurs x) ms..[ren xi].
+Proof.
+  move=> no. elim: no xi=>//={ms}.
+  move=> m ms nM nMs ih xi n.
+    constructor.
+    apply: noccurs_ren; eauto.
+    apply: ih; eauto.
+Qed.
+
+Lemma pos_ren x A xi :
+  pos x A -> n_ren xi x -> pos x A.[ren xi].
+Proof.
+  move=> p. elim: p xi=>{x A}//=.
+  move=> x ms no xi [e h].
+    rewrite spine_subst=>//=.
+    rewrite e. constructor. exact: noccurs_ren_Forall.
+  move=> x A B s nA pB ihB xi n.
+    constructor.
+    exact: noccurs_ren.
+    asimpl. apply: ihB. exact: n_ren_up.
+  move=> x A B s nA pB ihB xi n.
+    constructor.
+    exact: noccurs_ren.
+    asimpl. apply: ihB. exact: n_ren_up.
+Qed.
+
+Lemma active_ren i C xi :
+  active i C -> n_ren xi i -> active i C.[ren xi].
+Proof.
+  move=> c. elim: c xi=>{i C}//=.
+  move=> x ms no xi [e h].
+    rewrite spine_subst; asimpl.
+    rewrite e.
+    apply: active_X.
+    elim: no=>//=.
+    move{ms}=> m ms nM nMs ihMs.
+      constructor; asimpl.
+      apply: noccurs_ren; eauto; constructor; eauto.
+      exact: ihMs.
+  move=> x A B s pA c ih nB xi n.
+    apply: active_Pos.
+    exact: pos_ren.
+    asimpl. apply: ih. exact: n_ren_up.
+    asimpl. apply: noccurs_ren; eauto. exact: n_ren0.
+  move=> x A B s nA c ih xi n.
+    apply: active_Lolli.
+    apply: noccurs_ren; eauto.
+    asimpl. apply: ih. exact: n_ren_up.
+Qed.  
+
+Lemma constr_ren i s C xi :
+  constr i s C -> n_ren xi i -> constr i s C.[ren xi].
+Proof.
+  move=> c. elim: c xi=>{i s C}.
+  move=> x s ms no xi [e h].
+    rewrite spine_subst; asimpl.
+    rewrite e.
+    constructor.
+    elim: no=>//=.
+    move{ms}=> m ms nM nMs ihMs.
+      constructor.
+      apply: noccurs_ren; eauto; constructor; eauto.
+      apply: ihMs.
+  move=> x A B pA c ih nB xi n=>//=.
+    apply: constr_UPos.
+    exact: pos_ren.
+    asimpl. apply: ih. exact: n_ren_up.
+    asimpl. apply: noccurs_ren; eauto. apply n_ren0.
+  move=> x A B nA cB ih xi n=>//=.
+    apply: constr_UProd.
+    apply: noccurs_ren; eauto.
+    asimpl. apply: ih. exact: n_ren_up.
+  move=> x A B pA cB ih no xi n=>//=.
+    apply: constr_LPos1.
+    exact: pos_ren.
+    asimpl. apply: ih. exact: n_ren_up.
+    asimpl. apply: noccurs_ren; eauto. apply n_ren0.
+  move=> x A B pA c nB xi n=>//=.
+    apply: constr_LPos2.
+    exact: pos_ren.
+    asimpl. apply: active_ren; eauto. exact: n_ren_up.
+    asimpl. apply: noccurs_ren; eauto. exact: n_ren0.
+  move=> x A B nA c ih xi n=>//=.
+    apply: constr_LProd1.
+    exact: noccurs_ren.
+    asimpl. apply: ih. exact: n_ren_up.
+  move=> x A B nA c xi n=>//=.
+    apply: constr_LProd2.
+    exact: noccurs_ren.
+    asimpl. apply: active_ren; eauto. exact: n_ren_up.
+Qed.
+
+Lemma arity1_ren s s' A xi : 
+  arity s A -> (arity1 s' A).[ren xi] = arity1 s' A.[ren xi].
+Proof.
+  move=> ar. elim: ar xi s'=>{A}//=.
+  move=> A B ar ih xi s'; asimpl.
+  rewrite ih; eauto.
+Qed.
+
+Lemma arity2_ren s s' I A xi : 
+  arity s A -> (arity2 s' I A).[ren xi] = arity2 s' I.[ren xi] A.[ren xi].
+Proof.
+  move=> ar. elim: ar I xi s'=>{A}//=.
+  move=> A B ar ih I xi s'; asimpl.
+  rewrite ih; asimpl; eauto.
+Qed.
+
+Lemma respine_I Q I xi :
+  (forall Q, respine Q I = Q) ->
+  Q.[ren xi] = respine Q.[ren xi] I.[ren xi].
+Proof.
+  elim: I xi Q=>//=.
+  move=> A _ B _ s xi Q h.
+    move: (h (Var 0))=>//=.
+  move=> A _ B _ s xi Q h.
+    move: (h (Var 0))=>//=.
+  move=> m _ n _ xi Q h.
+    move: (h (Var 0))=>//=.
+Qed.
+
+Lemma respine_spine'_I Q I ms xi :
+  (forall Q, respine Q I = Q) ->
+  (respine Q (spine' I ms)).[ren xi] =
+    respine Q.[ren xi] (spine' I ms).[ren xi].
+Proof.
+  elim: ms Q I xi=>//=.
+  move=> Q I xi h.
+    rewrite h.
+    by apply respine_I.
+  move=> m ms ih Q I xi h.
+    rewrite ih; eauto.
+Qed.
+
+Lemma respine_spine_I Q I ms xi :
+  (forall Q, respine Q I = Q) ->
+  (respine Q (spine I ms)).[ren xi] =
+    respine Q.[ren xi] (spine I ms).[ren xi].
+Proof.
+  move=> h.
+  rewrite spine_spine'_rev.
+  by rewrite respine_spine'_I.
+Qed.
+
+Lemma respine_ren1 (I : var -> term) :
+  (forall i Q, respine Q (I i) = Q) ->
+  (forall i Q, respine Q (I i).[ren (+1)] = Q).
+Proof.
+  move=> h i.
+  move e:(I i)=> n.
+  elim: n e h=>//=.
+  move=> A _ B _ s e h Q.
+    move: (h i (Var 0)).
+    by rewrite e=>//=.
+  move=> A _ B _ s e h Q.
+    move: (h i (Var 0)).
+    by rewrite e=>//=.
+  move=> m _ n _ e h Q.
+    move: (h i (Var 0)).
+    by rewrite e=>//=.
+Qed.
+
+Lemma respine_up I :
+  (forall i Q, respine Q (I i) = Q) ->
+  (forall i Q, respine Q (up I i) = Q).
+Proof.
+  move=> h i.
+  elim: i I h=>//=.
+  move=> i ih I h Q; asimpl.
+  by apply respine_ren1.
+Qed.
+
+Lemma active_ren_I n (Q C : term) I (xi : var -> var) :
+  active n C ->
+  (forall i Q, respine Q (I i) = Q) ->
+  (respine Q C.[I]).[ren xi] = 
+    respine Q.[ren xi] C.[I].[ren xi].
+Proof.
+  move=> c; unfold case.
+  elim: c Q I xi; intros.
+  - rewrite! spine_subst.
+    rewrite respine_spine_I.
+    rewrite! spine_subst; asimpl; eauto.
+    destruct x; asimpl; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply respine_up.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply respine_up.
+Qed.
+
+Lemma respine_ren_I n s (Q C : term) I (xi : var -> var) :
+  constr n s C ->
+  (forall i Q, respine Q (I i) = Q) ->
+  (respine Q C.[I]).[ren xi] = 
+    respine Q.[ren xi] C.[I].[ren xi].
+Proof.
+  move=> c; unfold case.
+  elim: c Q I xi; intros.
+  - rewrite! spine_subst.
+    rewrite respine_spine_I.
+    rewrite! spine_subst; asimpl; eauto.
+    destruct x; asimpl; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply respine_up.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply respine_up.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply respine_up.
+  - asimpl. f_equal.
+    erewrite active_ren_I; asimpl; eauto.
+    by apply respine_up.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    by apply respine_up.
+  - asimpl. f_equal.
+    erewrite active_ren_I; asimpl; eauto.
+    by apply respine_up.
+Qed.
+
+Lemma All2_case_ren Gamma Gamma' s A Q Fs Cs Cs' xi :
+  All2 (fun F C =>
+    constr 0 s C /\
+    forall Gamma' xi, agree_ren xi Gamma Gamma' ->
+      [ Gamma' |- F.[ren xi] :- (case (Ind A Cs' s) Q C).[ren xi] ])
+    Fs Cs ->
+  agree_ren xi Gamma Gamma' ->
+  All2 (fun F C =>
+    constr 0 s C /\
+    [ Gamma' |- F :- case (Ind A.[ren xi] Cs'..[up (ren xi)] s) Q.[ren xi] C])
+    Fs..[ren xi] Cs..[up (ren xi)].
+Proof.
+  elim: Fs Gamma Gamma' s A Q Cs xi.
+  move=> Gamma Gamma' s A Q Cs xi h. inv h=> *.
+    constructor.
+  move=> F Fs ih Gamma Gamma' s A Q Cs xi h ag.
+  destruct Cs; inv h. inv H2; asimpl.
+  constructor. split.
+  - apply: constr_ren; eauto.
+    apply: n_ren0.
+  - move: (H0 _ _ ag)=>{}H0.
+    unfold case in H0.
+    erewrite respine_ren_I in H0; eauto.
+    asimpl in H0.
+    by unfold case; asimpl.
+    move=> i Q'.
+    destruct i; asimpl; eauto.
+  - replace (ren (upren xi)) with (up (ren xi)) by autosubst.
+    apply: ih; eauto.
+Qed.
+
 Lemma rename_ok Gamma Gamma' m A xi :
   [ Gamma |- m :- A ] ->
   agree_ren xi Gamma Gamma' ->
   [ Gamma' |- m.[ren xi] :- A.[ren xi] ].
-Proof with eauto.
+Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
   move=> ty.
   move: Gamma m A ty Gamma' xi.
   apply: has_type_nested_ind=> //=.
   move=> Gamma pu Gamma' xi ag.
-    apply: u_Prop.
-    apply: agree_ren_pure...
+    apply: u_Prop...
   move=> Gamma s l pu Gamma' xi ag.
-    apply: u_Sort.
-    apply: agree_ren_pure...
+    apply: u_Sort...
   move=> Gamma A B l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
     apply: p_Prod...
-    apply: agree_ren_pure...
-    replace prop with prop.[ren (upren xi)] by autosubst.
-    apply: ihB.
-    constructor...
   move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
     apply: u_Prod...
-    apply: agree_ren_pure...
-    apply: ihB.
-    constructor...
   move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
     apply: l_Prod...
-    apply: agree_ren_pure...
-    apply: ihB.
-    constructor...
   move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
     apply: u_Lolli...
-    apply: agree_ren_pure...
-    apply: ihB.
-    constructor...
   move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
     apply: l_Lolli...
-    apply: agree_ren_pure...
-    apply: ihB.
-    constructor...
   move=> Gamma x A hs Gamma' xi ag //=.
     apply: u_Var.
     apply: agree_ren_hasU...
@@ -2895,9 +3230,7 @@ Proof with eauto.
     apply: l_Var.
     apply: agree_ren_hasL...
   move=> Gamma n A B s t l pu ty1 ih1 ty2 ih2 Gamma' xi ag.
-    apply: u_Lam.
-    apply: agree_ren_pure...
-    apply: ih1...
+    apply: u_Lam...
     asimpl. apply: ih2. destruct s; constructor...
   move=> Gamma n A B s t l ty1 ih1 ty2 ih2 Gamma' xi ag.
     apply: l_Lam.
@@ -2937,3 +3270,44 @@ Proof with eauto.
     apply: l_Lolli_App...
     replace (ren (upren xi)) with (up (ren xi)) by autosubst.
     apply: ih1...
+  move=> Gamma A s Cs l ar cnstr pu ty1 ih1 ty2 ih2 Gamma' xi ag.
+    apply: s_Ind...
+    exact: arity_ren.
+    move=>{ag}. elim: cnstr xi=>//=...
+      move=> m ms c hMs ihMs xi; asimpl.
+      constructor. 
+      apply: constr_ren... apply: n_ren0.
+      move: (ihMs xi)=> {} ihMs.
+      asimpl in ihMs. exact: ihMs.
+    elim: ih2=>//=.
+      move=> m ms ihM hMs ihMs; asimpl.
+      constructor. 
+      asimpl. apply: ihM...
+      asimpl in ihMs. exact: ihMs.
+  move=> Gamma A s i C Cs ig pu ty ih Gamma' xi ag.
+    replace (C.[Ind A Cs s/].[ren xi]) 
+      with (C.[up (ren xi)]).[Ind A.[ren xi] Cs..[up (ren xi)] s/]
+        by autosubst.
+    apply: s_Constr...
+    apply: iget_subst...
+  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms ar mg 
+    tyM ihM tyQ ihQ ty ih Gamma' xi ag.
+    rewrite spine_subst.
+    move: (merge_agree_ren_inv ag mg)=>[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
+    move: (arity_ren xi ar)=> ar'.
+    move: (agree_ren_re_re ag2)=> rag2.
+    move: (ihM _ _ ag1)=> {} ihM. rewrite spine_subst in ihM.
+    move: (ihQ _ _ rag2)=> {} ihQ.
+    move: (arity1_ren s' xi ar)=> e. rewrite e in ihQ.
+    apply: s_Case...
+    apply: All2_case_ren...
+  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms ar mg
+    tyM ihM tyQ ihQ ty ih Gamma' xi ag.
+    rewrite spine_subst.
+    move: (merge_agree_ren_inv ag mg)=>[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
+    move: (arity_ren xi ar)=> ar'.
+    move: (agree_ren_re_re ag2)=> rag2.
+    move: (ihM _ _ ag1)=> {} ihM. rewrite spine_subst in ihM.
+    move: (ihQ _ _ rag2)=> {} ihQ.
+    move: (arity2_ren s' (Ind A Cs U) xi ar)=> e. rewrite e in ihQ.
+    apply: s_DCase...
