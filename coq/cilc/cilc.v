@@ -6,7 +6,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Module CLC.
+Module CILC.
 
 Declare Scope cilc_scope.
 Open Scope cilc_scope.
@@ -3622,3 +3622,133 @@ Inductive agree_subst :
   [ Delta |- sigma -| A +l Gamma ] ->
   [ Delta |- sigma -| B +l Gamma ]
 where "[ Delta |- sigma -| Gamma ]" := (agree_subst Delta sigma Gamma).
+
+Lemma agree_subst_pure Delta sigma Gamma :
+  [ Delta |- sigma -| Gamma ] -> pure Gamma -> pure Delta.
+Proof with eauto using pure.
+  elim=>//=...
+  move=> Delta' sigma' Gamma' A ag h p. inv p...
+  move=> Delta' sigma' Gamma' A ag h p. inv p.
+  move=> Delta' sigma' Gamma' ag h p. inv p...
+  move=> Delta' sigma' Gamma' n A ag1 h ag2 p. inv p...
+  move=> Delta1 Delta2 Delta' sigma' Gamma' n A mg ag1 h ag2 p. inv p.
+  move=> Delta' sigma' Gamma' _ ag h p. inv p...
+  move=> Delta' sigma' Gamma' A B l sb ag1 ag2 h p. inv p...
+  move=> Delta' sigma' Gamma' A B l sb ty1 ty2 ag h p. inv p.
+Qed.
+
+Lemma agree_subst_refl Gamma : [ Gamma |- ids -| Gamma ].
+Proof with eauto using agree_subst.
+  elim: Gamma...
+  move=> a Gamma ag.
+  destruct a.
+  destruct p.
+  destruct s.
+  replace [ t +u Gamma |- ids -| t +u Gamma ]
+    with [ t.[ids] +u Gamma |- up ids -| t +u Gamma ]
+    by autosubst...
+  replace [ t +l Gamma |- ids -| t +l Gamma ]
+    with [ t.[ids] +l Gamma |- up ids -| t +l Gamma ]
+    by autosubst...
+  replace ids with (up ids) by autosubst...
+Qed.
+
+Lemma agree_subst_hasU Delta sigma Gamma x A :
+  [ Delta |- sigma -| Gamma ] ->
+  hasU Gamma x A ->
+  [ Delta |- sigma x :- A.[sigma] ].
+Proof.
+  move=> ag. elim: ag x A=>{sigma Delta Gamma}.
+  move=> sigma x A h. inv h.
+  move=> Delta sigma Gamma A ag ih x A' h. inv h; asimpl.
+    apply: u_Var.
+    replace (A.[sigma >> ren (+1)])
+      with (A.[sigma].[ren (+1)]) by autosubst.
+    constructor.
+    apply: agree_subst_pure; eauto.
+    apply: eweakeningU; eauto. autosubst.
+  move=> Delta sigma Gamma A ag ih x A' h. inv h.
+  move=> Delta sigma Gamma Ag ih x A h. inv h.
+    apply: eweakeningN; eauto; autosubst.
+  move=> Delta sigma Gamma n A ag ih ty x A' h. 
+    inv h; asimpl; eauto.
+    have p := agree_subst_pure ag H3.
+    by rewrite (pure_re p).
+  move=> Delta1 Delta2 Delta sigma Gamma n A mg ag ih ty x A' h. 
+    inv h.
+  move=> Delta sigma Gamma n ag ih x A h. inv h; asimpl; eauto.
+  move=> Delta sigma Gamma A B l sb ty ag ih x A' h. inv h.
+    have h' : hasU (A +u Gamma) 0 A.[ren (+1)].
+      constructor; eauto.
+    apply: s_Conv.
+    apply: sub_subst.
+    apply: sub_ren; eauto.
+    apply: ty.
+    apply: ih; eauto.
+    apply: ih.
+    constructor; eauto.
+  move=> Delta sigma Gamma A B l sb t1 ty2 ag ih x A' h.
+    inv h.
+Qed.
+
+Lemma agree_subst_hasL Delta sigma Gamma x A :
+  [ Delta |- sigma -| Gamma ] ->
+  hasL Gamma x A ->
+  [ Delta |- sigma x :- A.[sigma] ].
+Proof.
+  move=> ag. elim: ag x A=>{Delta sigma Gamma}.
+  move=> sigma x A h. inv h.
+  move=> Delta sigma Gamma A ag ih x A' h. inv h.
+    apply: eweakeningU; eauto; autosubst.
+  move=> Delta sigma Gamma A ag ih x A' h. inv h; asimpl.  
+    replace (A.[sigma >> ren (+1)])
+      with (A.[sigma].[ren (+1)]) by autosubst.
+    apply: l_Var.
+    constructor.
+    apply: agree_subst_pure; eauto.
+  move=> Delta sigma Gamma ag ih x A h. inv h.
+    apply: eweakeningN; eauto; autosubst.
+  move=> Delta sigma Gamma n A ag ih ty x A' h. 
+    inv h; asimpl; eauto.
+  move=> Delta1 Delta2 Delta sigma Gamma n A mg ag ih ty x A' h.
+    inv h; asimpl.
+    have p := agree_subst_pure ag H3.
+    rewrite (merge_pure1 mg p); eauto.
+  move=> Delta sigma Gamma n ag ih x A h. inv h; asimpl; eauto.
+  move=> Delta sigma Gamma A B l sb ty ag ih x A' h. inv h.
+    apply: ih.
+    constructor; eauto.
+  move=> Delta sigma Gamma A B l sb ty1 ty2 ag ih x A' h. inv h.
+    have h' : hasL (A +l Gamma) 0 A.[ren (+1)].
+      constructor; eauto.
+    apply: s_Conv.
+    apply: sub_subst.
+    apply: sub_ren; eauto.
+    apply: ty1.
+    apply: ih; eauto.
+Qed.
+
+Lemma agree_subst_re_re Delta sigma Gamma :
+  [ Delta |- sigma -| Gamma ] ->
+  [ re Delta |- sigma -| re Gamma ].
+Proof with eauto using agree_subst.
+  move=> ag. elim: ag=>//={Delta sigma Gamma}...
+  move=> Delta sigma Gamma n A ag1 ag2 ty.
+    constructor...
+    rewrite <- re_re...
+  move=> Delta1 Delta2 Delta sigma Gamma n A mg ag1 ag2 ty.
+    constructor...
+    move: (merge_re_re mg)=>[<-_]...
+  move=> Delta sigma Gamma A B l sb ty ag1 ag2.
+    apply: agree_subst_convU...
+    rewrite <- re_re...
+Qed.
+
+Lemma merge_agree_subst_inv Delta sigma Gamma1 Gamma2 Gamma :
+  [ Delta |- sigma -| Gamma ] ->
+  merge Gamma1 Gamma2 Gamma ->
+  exists Delta1 Delta2,
+    merge Delta1 Delta2 Delta /\
+    [ Delta1 |- sigma -| Gamma1 ] /\
+    [ Delta2 |- sigma -| Gamma2 ].
+Proof.
