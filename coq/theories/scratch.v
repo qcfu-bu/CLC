@@ -3543,9 +3543,9 @@ Lemma eweakeningU Gamma m m' A A' B :
   A' = A.[ren (+1)] ->
   [ Gamma |- m :- A ] -> 
   [ B +u Gamma |- m' :- A' ].
-Proof.  
-  intros; subst.
-  apply weakeningU; eauto.
+Proof.
+  move=>->-> h.  
+  apply: weakeningU; eauto.
 Qed.
 
 Lemma eweakeningN Gamma m m' A A' :
@@ -3553,7 +3553,47 @@ Lemma eweakeningN Gamma m m' A A' :
   A' = A.[ren (+1)] ->
   [ Gamma |- m :- A ] -> 
   [ +n Gamma |-m' :- A' ].
-Proof.  
-  intros; subst.
-  apply weakeningN; eauto.
+Proof.
+  move=>->-> h.
+  apply: weakeningN; eauto.
 Qed.
+
+Reserved Notation "[ Delta |- sigma -| Gamma ]".
+
+Inductive agree_subst :
+  context term -> (var -> term) -> context term -> Prop :=
+| agree_subst_nil sigma :
+  [ nil |- sigma -| nil ]
+| agree_subst_u Delta sigma Gamma A :
+  [ Delta |- sigma -| Gamma ] ->
+  [ A.[sigma] +u Delta |- up sigma -| A +u Gamma ]
+| agree_subst_l Delta sigma Gamma A :
+  [ Delta |- sigma -| Gamma ] ->
+  [ A.[sigma] +l Delta |- up sigma -| A +l Gamma ]
+| agree_subst_n Delta sigma Gamma :
+  [ Delta |- sigma -| Gamma ] ->
+  [ +n Delta |- up sigma -| +n Gamma ]
+| agree_subst_wkU Delta sigma Gamma n A :
+  [ Delta |- sigma -| Gamma ] ->
+  [ re Delta |- n :- A.[sigma] ] ->
+  [ Delta |- n .: sigma -| A +u Gamma ]
+| agree_subst_wkL Delta1 Delta2 Delta sigma Gamma n A :
+  merge Delta1 Delta2 Delta ->
+  [ Delta1 |- sigma -| Gamma ] ->
+  [ Delta2 |- n :- A.[sigma] ] ->
+  [ Delta |- n .: sigma -| A +l Gamma ]
+| agree_subst_wkN Delta sigma Gamma n :
+  [ Delta |- sigma -| Gamma ] ->
+  [ Delta |- n .: sigma -| +n Gamma ]
+| agree_subst_convU Delta sigma Gamma A B l :
+  A <: B ->
+  [ re Delta |- B.[ren (+1)].[sigma] :- Sort U l ] ->
+  [ Delta |- sigma -| A +u Gamma ] ->
+  [ Delta |- sigma -| B +u Gamma ]
+| agree_subst_convL Delta sigma Gamma A B l :
+  A <: B ->
+  [ re Delta |- B.[ren (+1)].[sigma] :- Sort L l ] ->
+  [ re Gamma |- B :- Sort L l ] ->
+  [ Delta |- sigma -| A +l Gamma ] ->
+  [ Delta |- sigma -| B +l Gamma ]
+where "[ Delta |- sigma -| Gamma ]" := (agree_subst Delta sigma Gamma).
