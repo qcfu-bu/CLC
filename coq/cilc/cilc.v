@@ -4814,3 +4814,80 @@ Proof.
     move: (ih H0)=>{H0 ih}[h1 h2].
     repeat constructor; eauto.
 Qed.
+
+Theorem propagation Gamma m A :
+  [ Gamma |- ] ->
+  [ Gamma |- m :- A ] ->
+  exists s l, [ re Gamma |- A :- Sort s l ].
+Proof.
+  move=> wf ty. move: Gamma m A ty wf.
+  apply: has_type_nested_ind=>//=; eauto.
+  move=> Gamma p wf.
+    exists U. exists (Some 1).
+    constructor.
+    rewrite <- pure_re; eauto.
+  move=> Gamma _ l p wf.
+    exists U. exists (Some l.+2).
+    constructor.
+    rewrite <- pure_re; eauto.
+  move=> Gamma _ _ _ p _ _ _ _ wf.
+    exists U. exists (Some 0).
+    constructor.
+    rewrite <- pure_re; eauto.
+  move=> Gamma _ _ _ l p _ _ _ _ wf.
+    exists U. exists (Some l.+1).
+    constructor.
+    rewrite <- pure_re; eauto.
+  move=> Gamma _ _ _ l p _ _ _ _ wf.
+    exists U. exists (Some l.+1).
+    constructor.
+    rewrite <- pure_re; eauto.
+  move=> Gamma x A h wf.
+    exists U. apply: hasU_ok; eauto.
+  move=> Gamma x A h wf.
+    exists L. apply: hasL_ok; eauto.
+  move=> Gamma n A B s t l p tyProd _ _ _ _.
+    exists t. exists l.
+    rewrite <- pure_re; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n p tyM ihM tyN ihN mg wf.
+    move: (merge_pure2 mg p)=>->.
+    move: (merge_re_re mg)=>[e1 e2].
+    have [wf1 wf2] := merge_context_ok_inv mg wf.
+    move: (ihM wf1)=>{ihM}[s[l /u_Prod_inv[s'[l'[tyA tyB]]]]].
+    exists s'. exists l'.
+    replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
+    apply: substitutionU; eauto.
+    replace Gamma2 with (re Gamma1).
+    apply: merge_re_re_re.
+    move: (pure_re p)=>->.
+    rewrite e1 e2; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg wf.
+    move: (merge_re_re mg)=>[e1 e2].
+    have [wf1 wf2] := merge_context_ok_inv mg wf.
+    move: (ihM wf1)=>{ihM}[s[l /l_Prod_inv[s'[l'[tyA tyB]]]]].
+    exists s'. exists l'.
+    replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
+    apply: substitutionN; eauto.
+    rewrite <- e1; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n p tyM ihM tyN ihN mg wf.
+    move: (merge_pure2 mg p)=>->.
+    move: (merge_re_re mg)=>[e1 e2].
+    have [wf1 wf2] := merge_context_ok_inv mg wf.
+    move: (ihM wf1)=>{ihM}[s[l /u_Lolli_inv[s'[l'[tyA tyB]]]]].
+    exists s'. exists l'.
+    replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
+    apply: substitutionU; eauto.
+    replace Gamma2 with (re Gamma1).
+    apply: merge_re_re_re.
+    move: (pure_re p)=>->.
+    rewrite e1 e2; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg wf.
+    move: (merge_re_re mg)=>[e1 e2].
+    have [wf1 wf2] := merge_context_ok_inv mg wf.
+    move: (ihM wf1)=>{ihM}[s[l /l_Lolli_inv[s'[l'[tyA tyB]]]]].
+    exists s'. exists l'.
+    replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
+    apply: substitutionN; eauto.
+    rewrite <- e1; eauto.
+  
+
