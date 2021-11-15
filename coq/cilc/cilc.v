@@ -4383,6 +4383,39 @@ Proof.
   - apply: ih; eauto.
 Qed.
 
+Lemma Alli_dcase_subst Gamma Delta n s A Q Fs Cs Cs' sigma :
+  Alli (fun i F C =>
+    let I := Ind A Cs' s in
+    constr 0 s C /\
+    forall Delta sigma, [ Delta |- sigma -| Gamma ] ->
+      [ Delta |- F.[sigma] :- (dcase I Q (Constr i I) C).[sigma] ])
+    n Fs Cs ->
+  [ Delta |- sigma -| Gamma ] ->
+  Alli (fun i F C =>
+    let I := Ind A.[sigma] Cs'..[up sigma] s in
+    constr 0 s C /\
+    [ Delta |- F :-dcase I Q.[sigma] (Constr i I) C ])
+  n Fs..[sigma] Cs..[up sigma].
+Proof.
+  elim: Fs Gamma Delta n s A Q Cs sigma.
+  move=> Gamma Delta n s A Q Cs sigma h. inv h.
+    constructor.
+  move=> F Fs ih Gamma Gamma' n s A Q Cs sigma h ag.
+  destruct Cs; inv h. inv H3; asimpl.
+  constructor. split.
+  - apply: constr_subst; eauto.
+    apply: n_subst0.
+  - move: (H0 _ _ ag)=>{}H0.
+    unfold dcase in H0.
+    erewrite constr_drespine_subst in H0; eauto.
+    asimpl in H0.
+    by unfold dcase; asimpl.
+    move=> i.
+    destruct i; asimpl; eauto.
+    move=> x h. inv h.
+  - apply: ih; eauto.
+Qed.
+
 Lemma substitution Gamma Delta sigma m A :
   [ Gamma |- m :- A ] ->
   [ Delta |- sigma -| Gamma ] ->
@@ -4516,4 +4549,22 @@ Proof with eauto using List.Forall.
     move: (arity_subst sigma a)=> a'.
     move: (agree_subst_re_re ag2)=> ag2'.
     move: (ihQ _ _ ag2')=> {}ihQ.
-    erewrite arit
+    erewrite arity2_subst in ihQ...
+    move: (ihM _ _ ag1)=> {}ihM.
+    rewrite spine_subst in ihM.
+    apply: s_DCase...
+    apply: Alli_dcase_subst...
+  move=> Gamma A m l p tyA ihA tyM ihM Delta sigma ag.
+    apply: u_Fix; eauto.
+    apply: agree_subst_pure; eauto.
+    have ag' : [ A.[sigma] +u Delta |- up sigma -| A +u Gamma ].
+      by constructor.
+    move: (ihM _ _ ag'); asimpl=>//.
+  move=> Gamma A B m s l sub tyB ihB tyM ihM Delta sigma ag.
+    apply: s_Conv.
+    apply: sub_subst.
+    apply: sub.
+    apply: ihB.
+    by apply: agree_subst_re_re.
+    by apply: ihM.
+Qed.
