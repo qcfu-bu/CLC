@@ -4568,3 +4568,43 @@ Proof with eauto using List.Forall.
     by apply: agree_subst_re_re.
     by apply: ihM.
 Qed.
+
+Lemma substitutionU Gamma1 Gamma2 Gamma m n A B :
+  [ A +u Gamma1 |- m :- B ] ->
+  [ Gamma2 |- n :- A ] ->
+  pure Gamma2 ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma |- m.[n/] :- B.[n/] ].
+Proof.
+  move=> tyM tyN p mg.
+  apply: substitution; eauto.
+  move: (merge_pure2 mg p)=>->.
+  apply: agree_subst_wkU.
+  apply: agree_subst_refl.
+  move: (merge_re_re mg)=>[-><-].
+  asimpl.
+  by rewrite <- pure_re.
+Qed.
+
+Lemma substitutionN Gamma1 Gamma2 m n A B :
+  [ +n Gamma1 |- m :- B ] ->
+  [ Gamma2 |- n :- A ] ->
+  [ Gamma1 |- m.[n/] :- B.[n/] ].
+Proof.
+  move=> tyM tyN.
+  apply: substitution; eauto.
+  apply: agree_subst_wkN.
+  apply: agree_subst_refl.
+Qed.
+
+Lemma substitutionL Gamma1 Gamma2 Gamma m n A B :
+  [ A +l Gamma1 |- m :- B ] ->
+  [ Gamma2 |- n :- A ] ->
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma |- m.[n/] :- B.[n/] ].
+Proof.
+  move=> tyM tyN mg.
+  apply: substitution; eauto.
+  apply: agree_subst_wkL; asimpl; eauto.
+  apply: agree_subst_refl.
+Qed.
