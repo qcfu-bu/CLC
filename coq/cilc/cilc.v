@@ -4130,12 +4130,12 @@ Qed.
 
 Lemma respine_I_subst Q I sigma :
   (forall Q, respine Q I = Q) ->
-  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (forall x, ~I = Var x) ->
   Q.[sigma] = respine Q.[sigma] I.[sigma].
 Proof.
   elim: I sigma Q=>//=.
   move=> x sigma Q _ h.
-    move: (h x)=>{h}[h | ->]//=.
+    move: (h x)=>//=.
   move=> A _ B _ s sigma Q h _.
     move: (h (Var 0))=>//=.
   move=> A _ B _ s sigma Q h _.
@@ -4146,12 +4146,12 @@ Qed.
 
 Lemma drespine_I_subst Q c I sigma :
   (forall Q, drespine Q c I = App Q c) ->
-  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (forall x, ~I = Var x) ->
   App Q.[sigma] c.[sigma] = drespine Q.[sigma] c.[sigma] I.[sigma].
 Proof.
   elim: I sigma Q=>//=.
   move=> x sigma Q _ h.
-    move: (h x)=>{h}[h | ->]//=.
+    move: (h x)=>//=.
   move=> A _ B _ s sigma Q h _.
     move: (h (Var 0))=>//=.
   move=> A _ B _ s sigma Q h _.
@@ -4162,7 +4162,7 @@ Qed.
 
 Lemma respine_spine'_I_subst Q I ms sigma :
   (forall Q, respine Q I = Q) ->
-  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (forall x, ~I = Var x) ->
   (respine Q (spine' I ms)).[sigma] =
     respine Q.[sigma] (spine' I ms).[sigma].
 Proof.
@@ -4176,7 +4176,7 @@ Qed.
 
 Lemma drespine_spine'_I_subst Q c I ms sigma :
   (forall Q c, drespine Q c I = App Q c) ->
-  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (forall x, ~I = Var x) ->
   (drespine Q c (spine' I ms)).[sigma] =
     drespine Q.[sigma] c.[sigma] (spine' I ms).[sigma].
 Proof.
@@ -4192,7 +4192,7 @@ Qed.
 
 Lemma respine_spine_I_subst Q I ms sigma :
   (forall Q, respine Q I = Q) ->
-  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (forall x, ~I = Var x) ->
   (respine Q (spine I ms)).[sigma] =
     respine Q.[sigma] (spine I ms).[sigma].
 Proof.
@@ -4203,7 +4203,7 @@ Qed.
 
 Lemma drespine_spine_I_subst Q c I ms sigma :
   (forall Q c, drespine Q c I = App Q c) ->
-  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (forall x, ~I = Var x) ->
   (drespine Q c (spine I ms)).[sigma] =
     drespine Q.[sigma] c.[sigma] (spine I ms).[sigma].
 Proof.
@@ -4607,4 +4607,157 @@ Proof.
   apply: substitution; eauto.
   apply: agree_subst_wkL; asimpl; eauto.
   apply: agree_subst_refl.
+Qed.
+
+Lemma context_convU Gamma m A B C l :
+  B === A ->
+  [ re Gamma |- A :- Sort U l ] ->
+  [ A +u Gamma |- m :- C ] ->
+  [ B +u Gamma |- m :- C ].
+Proof.
+  move=> e tyA tyM.
+  cut [ B +u Gamma |- m.[ids] :- C.[ids] ]. 
+    by autosubst.
+  apply: substitution; eauto.
+  apply: agree_subst_convU; asimpl.
+  apply: conv_sub; eauto.
+  move: (weakeningU B tyA); asimpl; eauto.
+  apply: agree_subst_refl.
+Qed.
+
+Lemma context_convL Gamma m A B C l :
+  B === A ->
+  [ re Gamma |- A :- Sort L l ] ->
+  [ A +l Gamma |- m :- C ] ->
+  [ B +l Gamma |- m :- C ].
+Proof.
+  move=> e tyA tyB.
+  cut [ B +l Gamma |- m.[ids] :- C.[ids] ].
+    by autosubst.
+  apply: substitution; eauto.
+  apply: agree_subst_convL; asimpl.
+  apply: conv_sub; eauto.
+  move: (weakeningN tyA); asimpl; eauto.
+  eauto.
+  apply: agree_subst_refl.
+Qed.
+
+Ltac solve_sub :=
+  match goal with
+  | [ H : _ <: _ |- _ ] =>
+    let A := fresh "A" in
+    let B := fresh "B" in
+    let sb := fresh "sb" in
+    let c1 := fresh "c1" in
+    let c2 := fresh "c2" in
+    destruct H as [A B sb c1 c2]; destruct sb
+  end;
+  match goal with
+  | [ c1 : ?A === ?x, c2 : ?x === ?B |- _ ] => 
+    assert (A === B) by 
+      (eapply conv_trans; try solve [apply c1| apply c2]);
+    clear c1 c2;
+    solve_conv
+  | _ => solve_conv
+  end.
+
+Lemma u_Prod_inv Gamma A B s :
+  [ Gamma |- Prod A B U :- s ] ->
+  exists s l,
+    [ Gamma |- A :- Sort U l ] /\ [ A +u Gamma |- B :- Sort s l ].
+Proof.
+  move e:(Prod A B U)=> n ty. elim: ty A B e =>//={Gamma n s}.
+  move=> Gamma A B l p tyA _ tyB _ A' B' [->->].
+    exists U. 
+    exists l.
+    split; eauto.
+    destruct l; eauto.
+    have sb : prop <: U @ n by apply: sub_Prop.
+    apply: s_Conv; eauto.
+    constructor.
+    apply: re_pure.
+  move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
+    exists s.
+    exists (Some l).
+    eauto.
+Qed.
+
+Lemma l_Prod_inv Gamma A B s :
+  [ Gamma |- Prod A B L :- s ] ->
+  exists s l,
+    [ Gamma |- A :- Sort L l ] /\ [ +n Gamma |- B :- Sort s l ].
+Proof.
+  move e:(Prod A B L)=> n ty. elim: ty A B e=>//={Gamma n s}.
+  move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
+    exists s.
+    exists (Some l).
+    eauto.
+Qed.
+
+Lemma u_Lolli_inv Gamma A B s :
+  [ Gamma |- Lolli A B U :- s ] ->
+  exists s l,
+    [ Gamma |- A :- Sort U l ] /\ [ A +u Gamma |- B :- Sort s l ].
+Proof.
+  move e:(Lolli A B U)=> n ty. elim: ty A B e=>//={Gamma n s}.
+  move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
+    exists s.
+    exists (Some l).
+    eauto.
+Qed.
+
+Lemma l_Lolli_inv Gamma A B s :
+  [ Gamma |- Lolli A B L :- s ] ->
+  exists s l,
+    [ Gamma |- A :- Sort L l ] /\ [ +n Gamma |- B :- Sort s l ].
+Proof.
+  move e:(Lolli A B L)=> n ty. elim: ty A B e=>//={Gamma n s}.
+  move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
+    exists s.
+    exists (Some l).
+    eauto.
+Qed.
+
+Lemma u_Lam_invX Gamma A B C s m t l :
+  [ Gamma |- Lam A m s :- C ] ->
+  (C <: Prod A B s /\ [ re (A +{s} Gamma) |- B :- Sort t l ]) ->
+  [ A +{s} Gamma |- m :- B ].
+Proof.
+  move e:(Lam A m s)=> n ty. 
+  elim: ty A B t l e=>{Gamma C n}; intros; try discriminate.
+  - inv e. inv H4.
+    move: (sub_Prod_inv H5)=>[_[sb _]].
+    move: (pure_re H)=> e.
+    rewrite e in H0.
+    destruct s0.
+    + move: H0=>/u_Prod_inv[s[l'[tyA' tyB']]].
+      apply: s_Conv; eauto.
+    + move: H0=>/l_Prod_inv[s[l'[tyA' tyB']]].
+      apply: s_Conv; eauto.
+  - inv H3. exfalso; solve_sub.
+  - inv H4.
+    apply: H3; eauto.
+    split; eauto.
+    apply: sub_trans; eauto.
+Qed.
+
+Lemma l_Lam_invX Gamma A B C s m t l :
+  [ Gamma |- Lam A m s :- C ] ->
+  (C <: Lolli A B s /\ [ re (A +{s} Gamma) |- B :- Sort t l ]) ->
+  [ A +{s} Gamma |- m :- B ].
+Proof.
+  move e:(Lam A m s)=> n ty.
+  elim: ty A B t l e=>{Gamma C n}; intros; try discriminate.
+  - inv H4. exfalso; solve_sub.
+  - inv e. inv H3.
+    move: (sub_Lolli_inv H4)=>[_[sb _]].
+    destruct s0.
+    + move: H=>/u_Lolli_inv[s[l'[tyA' tyB']]].
+      apply: s_Conv; eauto.
+    + move: H=>/l_Lolli_inv[s[l'[tyA' tyB']]].
+      apply: s_Conv; eauto.
+  - inv H4.
+    apply: H3; eauto.
+    split; eauto.
+    apply: sub_trans; eauto.
 Qed.
