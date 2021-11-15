@@ -4761,3 +4761,27 @@ Proof.
     split; eauto.
     apply: sub_trans; eauto.
 Qed.
+
+Lemma u_Lam_inv Gamma A B s m t l :
+  [ re Gamma |- Prod A B s :- Sort t l ] ->
+  [ Gamma |- Lam A m s :- Prod A B s ] ->
+  [ A +{s} Gamma |- m :- B ].
+Proof.
+  destruct s.
+  move=> /u_Prod_inv=>[[s[l'[tyA tyB]]] ty].
+    apply: u_Lam_invX; eauto.
+  move=> /l_Prod_inv=>[[s[l'[tyA tyB]]] ty].
+    apply: u_Lam_invX; eauto.
+Qed.
+
+Lemma l_Lam_inv Gamma A B s m t l :
+  [ re Gamma |- Lolli A B s :- Sort t l ] ->
+  [ Gamma |- Lam A m s :- Lolli A B s ] ->
+  [ A +{s} Gamma |- m :- B ].
+Proof.
+  destruct s.
+  move=> /u_Lolli_inv=>[[s[l'[tyA tyB]]] ty].
+    apply: l_Lam_invX; eauto.
+  move=> /l_Lolli_inv=>[[s[l'[tyA tyB]]] ty].
+    apply: l_Lam_invX; eauto.
+Qed.
