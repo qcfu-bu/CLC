@@ -3840,6 +3840,278 @@ Proof.
       move: eG2=>->; eauto.
 Qed.
 
+Lemma arity_subst s A sigma :
+  arity s A -> arity s A.[sigma].
+Proof with eauto using arity.
+  move=> ar. elim: ar sigma...
+Qed.
+
+Definition n_subst sigma x := 
+  (forall i, ~x = i -> noccurs x (sigma i)) /\ sigma x = Var x.
+
+Lemma noccurs_ren0 x m xi :
+  (forall i, ~xi i = x) -> noccurs x m.[ren xi].
+Proof with eauto using noccurs, List.Forall.
+  move: m x xi. apply: term_ind_nested...
+  move=> A B s ihA ihB x xi h; asimpl.
+    constructor...
+    apply: ihB=> i.
+    destruct i; asimpl; eauto.
+  move=> A B s ihA ihB x xi h; asimpl.
+    constructor...
+    apply: ihB=> i.
+    destruct i; asimpl; eauto.
+  move=> A m s ihA ihM x xi h; asimpl.
+    constructor...
+    apply: ihM=> i.
+    destruct i; asimpl; eauto.
+  move=> A Cs s ihA ihCs x xi h; asimpl.
+    constructor...
+    elim: ihCs...
+    move=> C Cs' hd tl ih.
+    constructor...
+    apply: hd=> i.
+    destruct i; asimpl; eauto.
+  move=> m Q Fs ihM ihQ ihFs x xi h; asimpl.
+    constructor...
+    elim: ihFs...
+  move=> m Q Fs ihM ihQ ihFs x xi h; asimpl.
+    constructor...
+    elim: ihFs...
+  move=> A m ihA ihM x xi h; asimpl.
+    constructor...
+    apply: ihM=> i.
+    destruct i; asimpl; eauto.
+Qed.
+
+Lemma n_subst0 sigma : n_subst (up sigma) 0.
+Proof.
+  split; eauto.
+  move=> i. elim: i sigma=>//=.
+  move=> i _ sigma _; asimpl.
+  apply: noccurs_ren0; eauto.
+Qed.
+
+Lemma noccurs_up x m xi :
+  noccurs x m -> 
+    (forall i, ~x = i -> ~xi x = xi i) -> 
+    noccurs (xi x) m.[ren xi].
+Proof with eauto using noccurs.
+  move=> no. move: x m no xi.
+  apply: noccurs_ind_nested=>//=... 
+  move=> x A B s noA ihA noB ihB xi h.
+    constructor; asimpl; eauto.
+    apply: ihB=> i. 
+    destruct i; asimpl; eauto.
+    move=> n.
+    have /h neq : ~x = i by eauto.
+    eauto.
+  move=> x A B s noA ihA noB ihB xi h.
+    constructor; asimpl; eauto.
+    apply: ihB=> i. 
+    destruct i; asimpl; eauto.
+    move=> n.
+    have /h neq : ~x = i by eauto.
+    eauto.
+  move=> x A m s noA ihA noM ihM xi h.
+    constructor; asimpl; eauto.
+    apply: ihM=> i.
+    destruct i; asimpl; eauto.
+    move=> n.
+    have /h neq : ~x = i by eauto.
+    eauto.
+  move=> x A Cs s noA ihA noCs ihCs xi h.
+    constructor; asimpl; eauto.
+    elim: ihCs.
+    asimpl; constructor.
+    move=> C Cs' hd tl ih; asimpl.
+    constructor; eauto.
+    apply: hd=> i neq.
+    destruct i; asimpl; eauto.
+    have /h neq' : ~x = i by eauto.
+    eauto.
+  move=> x m Q Fs noM ihM noQ ihQ noFs ihFs xi h.
+    constructor; asimpl; eauto.
+    elim: ihFs.
+    asimpl; constructor.
+    move=> F Fs' hd tl ih; asimpl.
+    constructor; eauto.
+  move=> x m Q Fs noM ihM noQ ihQ noFs ihFs xi h.
+    constructor; asimpl; eauto.
+    elim: ihFs.
+    asimpl; constructor.
+    move=> F Fs' hd tl ih; asimpl.
+    constructor; eauto.
+  move=> x A m noA ihA noM ihM xi h.
+    constructor; asimpl; eauto.
+    apply: ihM=> i neq.
+    destruct i; asimpl; eauto.
+    have /h neq' : ~x = i by eauto.
+    eauto.
+Qed.
+
+Lemma n_subst_up sigma x :
+  n_subst sigma x -> n_subst (up sigma) x.+1.
+Proof.
+  move=>[h e]. split; asimpl.
+  elim; asimpl.
+  constructor; eauto.
+  move=> n h' neq.
+  have pf : ~x = n by eauto.
+  move: (h _ pf)=>{}h.
+  apply: noccurs_up; eauto.
+  rewrite e. autosubst.
+Qed.
+
+Lemma noccurs_subst sigma m x :
+  noccurs x m -> n_subst sigma x -> noccurs x m.[sigma].
+Proof with eauto using noccurs.
+  move=> no. move: x m no sigma.
+  apply: noccurs_ind_nested=>//=...
+  move=> x y neq sigma [n _]...
+  move=> x A B s noA ihA noB ihB sigma no.
+    constructor...
+    apply: ihB...
+    apply: n_subst_up...
+  move=> x A B s noA ihA noB ihB sigma no.
+    constructor...
+    apply: ihB...
+    apply: n_subst_up...
+  move=> x A m s noA ihA noM ihM sigma no.
+    constructor...
+    apply: ihM...
+    apply: n_subst_up...
+  move=> x A Cs s noA ihA noCs ihCs sigma no.
+    constructor...
+    elim: ihCs noCs; asimpl.
+    constructor.
+    move=> C Cs' hd tl ih1 ih2. inv ih2.
+    constructor...
+    apply: hd.
+    apply: n_subst_up...
+  move=> x m Q Fs noM ihM noQ ihQ noFs ihFs sigma no.
+    constructor...
+    elim: ihFs noFs; asimpl.
+    constructor.
+    move=> F Fs' hd tl ih1 ih2. inv ih2.
+    constructor...
+  move=> x m Q Fs noM ihM noQ ihQ noFs ihFs sigma no.
+    constructor...
+    elim: ihFs noFs; asimpl.
+    constructor.
+    move=> F Fs' hd tl ih1 ih2. inv ih2.
+    constructor...
+  move=> x A m noA ihA noM ihM sigma no.
+    constructor...
+    apply: ihM.
+    apply: n_subst_up...
+Qed.
+
+Lemma pos_subst i A sigma :
+  pos i A -> n_subst sigma i -> pos i A.[sigma].
+Proof with eauto.
+  move=> p. elim: p sigma=>//={i A}.
+  move=> x ms noMs sigma [h e].
+    rewrite spine_subst; asimpl.
+    rewrite e.
+    constructor.
+    elim: noMs.
+    constructor.
+    move=> m ms' noM noMs ihMs; asimpl.
+    constructor...
+    apply: noccurs_subst...
+    split; eauto.
+  move=> x A B s noA pB ihB sigma n.
+    constructor.
+    apply: noccurs_subst...
+    apply: ihB.
+    apply: n_subst_up...
+  move=> x A B s noA pB ihB sigma n.
+    constructor.
+    apply: noccurs_subst...
+    apply: ihB.
+    apply: n_subst_up...
+Qed.
+
+Lemma active_subst i m sigma :
+  active i m -> n_subst sigma i -> active i m.[sigma].
+Proof with eauto using List.Forall.
+  move=> a. elim: a sigma=>{i m}=>//=.
+  move=> x ms no sigma [h e].
+    rewrite spine_subst; asimpl.
+    rewrite e.
+    constructor.
+    elim: no...
+    move=> m ms' hd tl ih; asimpl.
+    constructor...
+    apply: noccurs_subst...
+    split; eauto.
+  move=> x A B s p a ihB nB sigma n.
+    apply: active_Pos.
+    apply: pos_subst...
+    apply: ihB.
+    apply: n_subst_up...
+    apply: noccurs_subst...
+    apply: n_subst0.
+  move=> x A B s noA a ihB sigma n.
+    apply: active_Lolli.
+    apply: noccurs_subst...
+    apply: ihB.
+    apply: n_subst_up...
+Qed.    
+
+Lemma constr_subst i s (m : term) sigma :
+  constr i s m -> n_subst sigma i -> constr i s m.[sigma].
+Proof with eauto.
+  move=> c. elim: c sigma=>{i s m}=>//=.
+  move=> x s ms no sigma [h e].
+    rewrite spine_subst; asimpl.
+    rewrite e.
+    constructor.
+    elim: no.
+    constructor.
+    move=> m ms' hd tl ih; asimpl.
+    constructor...
+    apply: noccurs_subst...
+    split; eauto.
+  move=> x A B p cB ihB nB sigma n.
+    apply: constr_UPos.
+    apply: pos_subst...
+    apply: ihB.
+    apply: n_subst_up...
+    apply: noccurs_subst...
+    apply: n_subst0.
+  move=> x A B noA cB ihB sigma n.
+    apply: constr_UProd.
+    apply: noccurs_subst...
+    apply: ihB.
+    apply: n_subst_up...
+  move=> x A B p cB ihB nB sigma n.
+    apply: constr_LPos1.
+    apply: pos_subst...
+    apply: ihB.
+    apply: n_subst_up...
+    apply: noccurs_subst...
+    apply: n_subst0.
+  move=> x A B p a noB sigma n.
+    apply: constr_LPos2.
+    apply: pos_subst...
+    apply: active_subst...
+    apply: n_subst_up...
+    apply: noccurs_subst...
+    apply: n_subst0.
+  move=> x A B noA cB ihB sigma n.
+    apply: constr_LProd1.
+    apply: noccurs_subst...
+    apply: ihB.
+    apply: n_subst_up...
+  move=> x A B noA a sigma n.
+    apply: constr_LProd2.
+    apply: noccurs_subst...
+    apply: active_subst...
+    apply: n_subst_up...
+Qed.
+
 Lemma substitution Gamma Delta sigma m A :
   [ Gamma |- m :- A ] ->
   [ Delta |- sigma -| Gamma ] ->
@@ -3932,3 +4204,10 @@ Proof.
       by autosubst.
     move: (merge_agree_subst_inv ag mg)=>[Delta1[Delta2[mg'[ag1 ag2]]]].
     apply: l_Lolli_App; eauto.
+  move=> Gamma A s Cs l ar cs p tyA ihA ihCs Delta sigma ag.
+    apply: s_Ind; eauto.
+    apply: arity_subst; eauto.
+    elim: cs; asimpl.
+      constructor.
+      intros. constructor; eauto.
+    
