@@ -3031,48 +3031,6 @@ Proof.
     asimpl. apply: active_ren; eauto. exact: n_ren_up.
 Qed.
 
-Lemma arity1_ren s s' A xi : 
-  arity s A -> (arity1 s' A).[ren xi] = arity1 s' A.[ren xi].
-Proof.
-  move=> ar. elim: ar xi s'=>{A}//=.
-  move=> A B ar ih xi s'; asimpl.
-  rewrite ih; eauto.
-Qed.
-
-Lemma arity2_ren s s' I A xi : 
-  arity s A -> (arity2 s' I A).[ren xi] = arity2 s' I.[ren xi] A.[ren xi].
-Proof.
-  move=> ar. elim: ar I xi s'=>{A}//=.
-  move=> A B ar ih I xi s'; asimpl.
-  rewrite ih; asimpl; eauto.
-Qed.
-
-Lemma respine_I Q I xi :
-  (forall Q, respine Q I = Q) ->
-  Q.[ren xi] = respine Q.[ren xi] I.[ren xi].
-Proof.
-  elim: I xi Q=>//=.
-  move=> A _ B _ s xi Q h.
-    move: (h (Var 0))=>//=.
-  move=> A _ B _ s xi Q h.
-    move: (h (Var 0))=>//=.
-  move=> m _ n _ xi Q h.
-    move: (h (Var 0))=>//=.
-Qed.
-
-Lemma drespine_I Q c I xi :
-  (forall Q, drespine Q c I = App Q c) ->
-  App Q.[ren xi] c.[ren xi] = drespine Q.[ren xi] c.[ren xi] I.[ren xi].
-Proof.
-  elim: I xi c Q=>//=.
-  move=> A _ B _ s xi c Q h.
-    move: (h (Var 0))=>//=.
-  move=> A _ B _ s xi c Q h.
-    move: (h (Var 0))=>//=.
-  move=> m _ n _ xi c Q h.
-    move: (h (Var 0))=>//=.
-Qed.
-
 Lemma drespine_respine I :
   (forall Q c, drespine Q c I = App Q c) ->
   (forall Q, respine Q I = Q).
@@ -3084,54 +3042,6 @@ Proof.
     move: (h (Lam Q Q s) (Var 0))=>//=.
   move=> m _ n _ h Q.
     move: (h (Lam Q Q U) (Var 0))=>//=.
-Qed.
-
-Lemma respine_spine'_I Q I ms xi :
-  (forall Q, respine Q I = Q) ->
-  (respine Q (spine' I ms)).[ren xi] =
-    respine Q.[ren xi] (spine' I ms).[ren xi].
-Proof.
-  elim: ms Q I xi=>//=.
-  move=> Q I xi h.
-    rewrite h.
-    by apply respine_I.
-  move=> m ms ih Q I xi h.
-    rewrite ih; eauto.
-Qed.
-
-Lemma drespine_spine'_I Q c I ms xi :
-  (forall Q c, drespine Q c I = App Q c) ->
-  (drespine Q c (spine' I ms)).[ren xi] =
-    drespine Q.[ren xi] c.[ren xi] (spine' I ms).[ren xi].
-Proof.
-  elim: ms Q c I xi=>//=.
-  move=> Q c I xi h.
-    rewrite h.
-    by apply drespine_I.
-  move=> m ms ih Q c I xi h.
-    repeat f_equal.
-    apply respine_spine'_I.
-    by apply drespine_respine.
-Qed.
-
-Lemma respine_spine_I Q I ms xi :
-  (forall Q, respine Q I = Q) ->
-  (respine Q (spine I ms)).[ren xi] =
-    respine Q.[ren xi] (spine I ms).[ren xi].
-Proof.
-  move=> h.
-  rewrite spine_spine'_rev.
-  by rewrite respine_spine'_I.
-Qed.
-
-Lemma drespine_spine_I Q c I ms xi :
-  (forall Q c, drespine Q c I = App Q c) ->
-  (drespine Q c (spine I ms)).[ren xi] =
-    drespine Q.[ren xi] c.[ren xi] (spine I ms).[ren xi].
-Proof.
-  move=> h.
-  rewrite spine_spine'_rev.
-  by rewrite drespine_spine'_I.
 Qed.
 
 Lemma respine_ren1 (I : var -> term) :
@@ -3190,7 +3100,97 @@ Proof.
   by apply drespine_ren1.
 Qed.
 
-Lemma active_respine n (Q C : term) I (xi : var -> var) :
+Lemma arity1_ren s s' A xi : 
+  arity s A -> (arity1 s' A).[ren xi] = arity1 s' A.[ren xi].
+Proof.
+  move=> ar. elim: ar xi s'=>{A}//=.
+  move=> A B ar ih xi s'; asimpl.
+  rewrite ih; eauto.
+Qed.
+
+Lemma arity2_ren s s' I A xi : 
+  arity s A -> (arity2 s' I A).[ren xi] = arity2 s' I.[ren xi] A.[ren xi].
+Proof.
+  move=> ar. elim: ar I xi s'=>{A}//=.
+  move=> A B ar ih I xi s'; asimpl.
+  rewrite ih; asimpl; eauto.
+Qed.
+
+Lemma respine_I_ren Q I xi :
+  (forall Q, respine Q I = Q) ->
+  Q.[ren xi] = respine Q.[ren xi] I.[ren xi].
+Proof.
+  elim: I xi Q=>//=.
+  move=> A _ B _ s xi Q h.
+    move: (h (Var 0))=>//=.
+  move=> A _ B _ s xi Q h.
+    move: (h (Var 0))=>//=.
+  move=> m _ n _ xi Q h.
+    move: (h (Var 0))=>//=.
+Qed.
+
+Lemma drespine_I_ren Q c I xi :
+  (forall Q, drespine Q c I = App Q c) ->
+  App Q.[ren xi] c.[ren xi] = drespine Q.[ren xi] c.[ren xi] I.[ren xi].
+Proof.
+  elim: I xi c Q=>//=.
+  move=> A _ B _ s xi c Q h.
+    move: (h (Var 0))=>//=.
+  move=> A _ B _ s xi c Q h.
+    move: (h (Var 0))=>//=.
+  move=> m _ n _ xi c Q h.
+    move: (h (Var 0))=>//=.
+Qed.
+
+Lemma respine_spine'_I_ren Q I ms xi :
+  (forall Q, respine Q I = Q) ->
+  (respine Q (spine' I ms)).[ren xi] =
+    respine Q.[ren xi] (spine' I ms).[ren xi].
+Proof.
+  elim: ms Q I xi=>//=.
+  move=> Q I xi h.
+    rewrite h.
+    by apply respine_I_ren.
+  move=> m ms ih Q I xi h.
+    rewrite ih; eauto.
+Qed.
+
+Lemma drespine_spine'_I_ren Q c I ms xi :
+  (forall Q c, drespine Q c I = App Q c) ->
+  (drespine Q c (spine' I ms)).[ren xi] =
+    drespine Q.[ren xi] c.[ren xi] (spine' I ms).[ren xi].
+Proof.
+  elim: ms Q c I xi=>//=.
+  move=> Q c I xi h.
+    rewrite h.
+    by apply drespine_I_ren.
+  move=> m ms ih Q c I xi h.
+    repeat f_equal.
+    apply respine_spine'_I_ren.
+    by apply drespine_respine.
+Qed.
+
+Lemma respine_spine_I_ren Q I ms xi :
+  (forall Q, respine Q I = Q) ->
+  (respine Q (spine I ms)).[ren xi] =
+    respine Q.[ren xi] (spine I ms).[ren xi].
+Proof.
+  move=> h.
+  rewrite spine_spine'_rev.
+  by rewrite respine_spine'_I_ren.
+Qed.
+
+Lemma drespine_spine_I_ren Q c I ms xi :
+  (forall Q c, drespine Q c I = App Q c) ->
+  (drespine Q c (spine I ms)).[ren xi] =
+    drespine Q.[ren xi] c.[ren xi] (spine I ms).[ren xi].
+Proof.
+  move=> h.
+  rewrite spine_spine'_rev.
+  by rewrite drespine_spine'_I_ren.
+Qed.
+
+Lemma active_respine_ren n (Q C : term) I (xi : var -> var) :
   active n C ->
   (forall i Q, respine Q (I i) = Q) ->
   (respine Q C.[I]).[ren xi] = 
@@ -3199,7 +3199,7 @@ Proof.
   move=> c; unfold case.
   elim: c Q I xi; intros.
   - rewrite! spine_subst.
-    rewrite respine_spine_I.
+    rewrite respine_spine_I_ren.
     rewrite! spine_subst; asimpl; eauto.
     destruct x; asimpl; eauto.
   - asimpl. f_equal.
@@ -3210,7 +3210,7 @@ Proof.
     by apply respine_up.
 Qed.
 
-Lemma active_drespine n (Q c C : term) I (xi : var -> var) :
+Lemma active_drespine_ren n (Q c C : term) I (xi : var -> var) :
   active n C ->
   (forall i c Q, drespine Q c (I i) = App Q c) ->
   (drespine Q c C.[I]).[ren xi] = 
@@ -3219,20 +3219,20 @@ Proof.
   move=> a; unfold case.
   elim: a c Q I xi; intros.
   - rewrite! spine_subst.
-    rewrite drespine_spine_I.
+    rewrite drespine_spine_I_ren.
     rewrite! spine_subst; asimpl; eauto.
     destruct x; asimpl; eauto.
   - asimpl. repeat f_equal.
-    erewrite active_respine; asimpl; eauto.
+    erewrite active_respine_ren; asimpl; eauto.
     apply: respine_up=> i.
     by apply: drespine_respine.
   - asimpl. repeat f_equal.
-    erewrite active_respine; asimpl; eauto.
+    erewrite active_respine_ren; asimpl; eauto.
     apply: respine_up=> i.
     by apply: drespine_respine.
 Qed.
 
-Lemma constr_respine n s (Q C : term) I (xi : var -> var) :
+Lemma constr_respine_ren n s (Q C : term) I (xi : var -> var) :
   constr n s C ->
   (forall i Q, respine Q (I i) = Q) ->
   (respine Q C.[I]).[ren xi] = 
@@ -3241,7 +3241,7 @@ Proof.
   move=> c; unfold case.
   elim: c Q I xi; intros.
   - rewrite! spine_subst.
-    rewrite respine_spine_I.
+    rewrite respine_spine_I_ren.
     rewrite! spine_subst; asimpl; eauto.
     destruct x; asimpl; eauto.
   - asimpl. f_equal.
@@ -3254,17 +3254,17 @@ Proof.
     rewrite H1; asimpl; eauto.
     by apply respine_up.
   - asimpl. f_equal.
-    erewrite active_respine; asimpl; eauto.
+    erewrite active_respine_ren; asimpl; eauto.
     by apply respine_up.
   - asimpl. f_equal.
     rewrite H1; asimpl; eauto.
     by apply respine_up.
   - asimpl. f_equal.
-    erewrite active_respine; asimpl; eauto.
+    erewrite active_respine_ren; asimpl; eauto.
     by apply respine_up.
 Qed.
 
-Lemma constr_drespine n s (Q c C : term) I (xi : var -> var) :
+Lemma constr_drespine_ren n s (Q c C : term) I (xi : var -> var) :
   constr n s C ->
   (forall i c Q, drespine Q c (I i) = App Q c) ->
   (drespine Q c C.[I]).[ren xi] = 
@@ -3273,7 +3273,7 @@ Proof.
   move=> cn; unfold case.
   elim: cn Q c I xi; intros.
   - rewrite! spine_subst.
-    rewrite drespine_spine_I.
+    rewrite drespine_spine_I_ren.
     rewrite! spine_subst; asimpl; eauto.
     destruct x; asimpl; eauto.
   - asimpl. f_equal.
@@ -3286,13 +3286,13 @@ Proof.
     rewrite H1; asimpl; eauto.
     by apply drespine_up.
   - asimpl. f_equal.
-    erewrite active_drespine; asimpl; eauto.
+    erewrite active_drespine_ren; asimpl; eauto.
     by apply drespine_up.
   - asimpl. f_equal.
     rewrite H1; asimpl; eauto.
     by apply drespine_up.
   - asimpl. f_equal.
-    erewrite active_drespine; asimpl; eauto.
+    erewrite active_drespine_ren; asimpl; eauto.
     by apply drespine_up.
 Qed.
 
@@ -3318,7 +3318,7 @@ Proof.
     apply: n_ren0.
   - move: (H0 _ _ ag)=>{}H0.
     unfold case in H0.
-    erewrite constr_respine in H0; eauto.
+    erewrite constr_respine_ren in H0; eauto.
     asimpl in H0.
     by unfold case; asimpl.
     move=> i Q'.
@@ -3351,7 +3351,7 @@ Proof.
     apply: n_ren0.
   - move: (H0 _ _ ag)=>{}H0.
     unfold dcase in H0.
-    erewrite constr_drespine in H0; eauto.
+    erewrite constr_drespine_ren in H0; eauto.
     asimpl in H0.
     by unfold dcase; asimpl.
     move=> i Q'.
@@ -4112,6 +4112,277 @@ Proof with eauto.
     apply: n_subst_up...
 Qed.
 
+Lemma arity1_subst s s' A sigma :
+  arity s A -> (arity1 s' A).[sigma] = arity1 s' A.[sigma].
+Proof.
+  move=> a. elim: a sigma s'=>//={A}.
+  move=> A B a ih sigma s'.
+  rewrite ih; eauto.
+Qed.
+
+Lemma arity2_subst s s' I A sigma :
+  arity s A -> (arity2 s' I A).[sigma] = arity2 s' I.[sigma] A.[sigma].
+Proof.
+  move=> a. elim: a I sigma s'=>//={A}.
+  move=> A B a ih I sigma s'; asimpl.
+  rewrite ih; asimpl; eauto.
+Qed.
+
+Lemma respine_I_subst Q I sigma :
+  (forall Q, respine Q I = Q) ->
+  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  Q.[sigma] = respine Q.[sigma] I.[sigma].
+Proof.
+  elim: I sigma Q=>//=.
+  move=> x sigma Q _ h.
+    move: (h x)=>{h}[h | ->]//=.
+  move=> A _ B _ s sigma Q h _.
+    move: (h (Var 0))=>//=.
+  move=> A _ B _ s sigma Q h _.
+    move: (h (Var 0))=>//=.
+  move=> m _ n _ xi Q h _.
+    move: (h (Var 0))=>//=.
+Qed.
+
+Lemma drespine_I_subst Q c I sigma :
+  (forall Q, drespine Q c I = App Q c) ->
+  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  App Q.[sigma] c.[sigma] = drespine Q.[sigma] c.[sigma] I.[sigma].
+Proof.
+  elim: I sigma Q=>//=.
+  move=> x sigma Q _ h.
+    move: (h x)=>{h}[h | ->]//=.
+  move=> A _ B _ s sigma Q h _.
+    move: (h (Var 0))=>//=.
+  move=> A _ B _ s sigma Q h _.
+    move: (h (Var 0))=>//=.
+  move=> m _ n _ xi Q h _.
+    move: (h (Var 0))=>//=.
+Qed.
+
+Lemma respine_spine'_I_subst Q I ms sigma :
+  (forall Q, respine Q I = Q) ->
+  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (respine Q (spine' I ms)).[sigma] =
+    respine Q.[sigma] (spine' I ms).[sigma].
+Proof.
+  elim: ms Q I sigma=>//=.
+  move=> Q I sigma h1 h2.
+    rewrite h1.
+    by apply: respine_I_subst.
+  move=> m ms ih Q I xi h1 h2.
+    rewrite ih; eauto.
+Qed.
+
+Lemma drespine_spine'_I_subst Q c I ms sigma :
+  (forall Q c, drespine Q c I = App Q c) ->
+  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (drespine Q c (spine' I ms)).[sigma] =
+    drespine Q.[sigma] c.[sigma] (spine' I ms).[sigma].
+Proof.
+  elim: ms Q I sigma=>//=.
+  move=> Q I sigma h1 h2.
+    rewrite h1.
+    by apply: drespine_I_subst.
+  move=> m ms ih Q I xi h1 h2.
+    repeat f_equal.
+    apply: respine_spine'_I_subst; eauto.
+    by apply: drespine_respine.
+Qed.
+
+Lemma respine_spine_I_subst Q I ms sigma :
+  (forall Q, respine Q I = Q) ->
+  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (respine Q (spine I ms)).[sigma] =
+    respine Q.[sigma] (spine I ms).[sigma].
+Proof.
+  move=> h1 h2.
+  rewrite spine_spine'_rev.
+  by rewrite respine_spine'_I_subst.
+Qed.
+
+Lemma drespine_spine_I_subst Q c I ms sigma :
+  (forall Q c, drespine Q c I = App Q c) ->
+  (forall x, ~I = Var x \/ I.[sigma] = I) ->
+  (drespine Q c (spine I ms)).[sigma] =
+    drespine Q.[sigma] c.[sigma] (spine I ms).[sigma].
+Proof.
+  move=> h1 h2.
+  rewrite spine_spine'_rev.
+  by rewrite drespine_spine'_I_subst.
+Qed.
+
+Lemma ren_Var_False (I : var -> term) x :
+  (forall y, ~I x = Var y) -> (forall y, ~(I x).[ren (+1)] = Var y).
+Proof.
+  move e:(I x)=> n h y.
+  elim: n h I e y; intros; try discriminate.
+  destruct y; asimpl.
+  discriminate.
+  move: (h y)=>{}h eq.
+  inv eq.
+  apply: h; eauto.
+Qed.
+
+Lemma active_respine_subst n (Q C : term) I sigma :
+  active n C ->
+  (forall i Q, respine Q (I i) = Q) ->
+  (forall x, ~I n = Var x) ->
+  (respine Q C.[I]).[sigma] =
+    respine Q.[sigma] C.[I].[sigma].
+Proof.
+  move=> c.
+  elim: c Q I sigma; intros.
+  - rewrite! spine_subst.
+    rewrite respine_spine_I_subst; eauto.
+    rewrite! spine_subst; asimpl; eauto.    
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: respine_up; eauto.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: respine_up; eauto.
+    apply: ren_Var_False; eauto.
+Qed.
+
+Lemma active_drespine_subst n (Q c C : term) I sigma :
+  active n C ->
+  (forall i c Q, drespine Q c (I i) = App Q c) ->
+  (forall x, ~I n = Var x) ->
+  (drespine Q c C.[I]).[sigma] =
+    drespine Q.[sigma] c.[sigma] C.[I].[sigma].
+Proof.
+  move=> a.
+  elim: a c Q I sigma; intros.
+  - rewrite! spine_subst.
+    rewrite drespine_spine_I_subst; eauto.
+    rewrite! spine_subst; asimpl; eauto.    
+  - asimpl. repeat f_equal.
+    erewrite active_respine_subst; asimpl; eauto.
+    apply: respine_up=> i.
+    by apply: drespine_respine.
+    move=> x'; asimpl.
+    apply: ren_Var_False; eauto.
+  - asimpl. repeat f_equal.
+    erewrite active_respine_subst; asimpl; eauto.
+    apply: respine_up=> i.
+    by apply: drespine_respine.
+    move=> x'; asimpl.
+    apply: ren_Var_False; eauto.
+Qed.
+
+Lemma constr_respine_subst n s (Q C : term) I sigma :
+  constr n s C ->
+  (forall i Q, respine Q (I i)= Q) ->
+  (forall x, ~I n = Var x) ->
+  (respine Q C.[I]).[sigma] =
+    respine Q.[sigma] C.[I].[sigma].
+Proof.
+  move=> c.
+  elim: c Q I sigma; intros.
+  - rewrite! spine_subst.
+    rewrite respine_spine_I_subst; eauto.
+    rewrite! spine_subst; asimpl; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: respine_up; eauto.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: respine_up; eauto.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: respine_up; eauto.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    erewrite active_respine_subst; asimpl; eauto.
+    apply: respine_up; eauto.
+    move=> x0; asimpl.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: respine_up; eauto.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    erewrite active_respine_subst; asimpl; eauto.
+    apply: respine_up; eauto.
+    move=> x0; asimpl.
+    apply: ren_Var_False; eauto.
+Qed.
+
+Lemma constr_drespine_subst n s (Q c C : term) I sigma :
+  constr n s C ->
+  (forall i c Q, drespine Q c (I i)= App Q c) ->
+  (forall x, ~I n = Var x) ->
+  (drespine Q c C.[I]).[sigma] =
+    drespine Q.[sigma] c.[sigma] C.[I].[sigma].
+Proof.
+  move=> cn.
+  elim: cn Q c I sigma; intros.
+  - rewrite! spine_subst.
+    rewrite drespine_spine_I_subst; eauto.
+    rewrite! spine_subst; asimpl; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: drespine_up; eauto.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: drespine_up; eauto.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: drespine_up; eauto.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    erewrite active_drespine_subst; asimpl; eauto.
+    apply: drespine_up; eauto.
+    move=> x0; asimpl.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    rewrite H1; asimpl; eauto.
+    apply: drespine_up; eauto.
+    apply: ren_Var_False; eauto.
+  - asimpl. f_equal.
+    erewrite active_drespine_subst; asimpl; eauto.
+    apply: drespine_up; eauto.
+    move=> x0; asimpl.
+    apply: ren_Var_False; eauto.
+Qed.
+
+Lemma All2_case_subst Gamma Delta s A Q Fs Cs Cs' sigma :
+  All2 (fun F C =>
+    constr 0 s C /\
+    forall Delta sigma, [ Delta |- sigma -| Gamma ] ->
+      [ Delta |- F.[sigma] :- (case (Ind A Cs' s) Q C).[sigma] ])
+    Fs Cs ->
+  [ Delta |- sigma -| Gamma ] ->
+  All2 (fun F C =>
+    constr 0 s C /\
+    [ Delta |- F :- case (Ind A.[sigma] Cs'..[up sigma] s) Q.[sigma] C])
+  Fs..[sigma] Cs..[up sigma].
+Proof.
+  elim: Fs Gamma Delta s A Q Cs sigma.
+  move=> Gamma Delta s A Q Cs sigma h. inv h.
+    constructor.
+  move=> F Fs ih Gamma Delta s A Q Cs sigma h ag.
+  destruct Cs; inv h. inv H2; asimpl.
+  constructor. split.
+  - apply: constr_subst; eauto.
+    apply: n_subst0.
+  - move: (H0 _ _ ag)=>{}H0.
+    unfold case in H0.
+    erewrite constr_respine_subst in H0; eauto.
+    asimpl in H0.
+    by unfold case; asimpl.
+    move=> i Q'.
+    destruct i; asimpl; eauto.
+    move=> x h. inv h.
+  - apply: ih; eauto.
+Qed.
+
 Lemma substitution Gamma Delta sigma m A :
   [ Gamma |- m :- A ] ->
   [ Delta |- sigma -| Gamma ] ->
@@ -4219,3 +4490,30 @@ Proof with eauto using List.Forall.
       constructor...
       apply: hd.
       constructor...
+  move=> Gamma A s i C Cs ig p ty ih Delta sigma ag; asimpl.
+    replace C.[Ind A.[sigma] Cs..[up sigma] s .: sigma]
+      with C.[up sigma].[Ind A.[sigma] Cs..[up sigma] s/]
+      by autosubst.
+    apply: s_Constr...
+    apply: iget_subst...
+    apply: agree_subst_pure...
+  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms a mg
+    tyM ihM tyQ ihQ tyFsCs ihFsCs Delta sigma ag.
+    rewrite spine_subst.
+    move: (merge_agree_subst_inv ag mg)=>[Delta1[Delta2[mg'[ag1 ag2]]]].
+    move: (arity_subst sigma a)=> a'.
+    move: (agree_subst_re_re ag2)=> ag2'.
+    move: (ihQ _ _ ag2')=> {}ihQ.
+    erewrite arity1_subst in ihQ...
+    move: (ihM _ _ ag1)=> {}ihM.
+    rewrite spine_subst in ihM.
+    apply: s_Case...
+    apply: All2_case_subst...
+  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms a mg
+    tyM ihM tyQ ihQ tyFsCs ihFsCs Delta sigma ag.
+    rewrite spine_subst.
+    move: (merge_agree_subst_inv ag mg)=>[Delta1[Delta2[mg'[ag1 ag2]]]].
+    move: (arity_subst sigma a)=> a'.
+    move: (agree_subst_re_re ag2)=> ag2'.
+    move: (ihQ _ _ ag2')=> {}ihQ.
+    erewrite arit
