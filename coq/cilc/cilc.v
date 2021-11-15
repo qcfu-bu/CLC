@@ -4725,17 +4725,17 @@ Lemma u_Lam_invX Gamma A B C s m t l :
 Proof.
   move e:(Lam A m s)=> n ty. 
   elim: ty A B t l e=>{Gamma C n}; intros; try discriminate.
-  - inv e. inv H4.
+  inv e. inv H4.
     move: (sub_Prod_inv H5)=>[_[sb _]].
     move: (pure_re H)=> e.
     rewrite e in H0.
     destruct s0.
-    + move: H0=>/u_Prod_inv[s[l'[tyA' tyB']]].
+    move: H0=>/u_Prod_inv[s[l'[tyA' tyB']]].
       apply: s_Conv; eauto.
-    + move: H0=>/l_Prod_inv[s[l'[tyA' tyB']]].
+    move: H0=>/l_Prod_inv[s[l'[tyA' tyB']]].
       apply: s_Conv; eauto.
-  - inv H3. exfalso; solve_sub.
-  - inv H4.
+  inv H3. exfalso; solve_sub.
+  inv H4.
     apply: H3; eauto.
     split; eauto.
     apply: sub_trans; eauto.
@@ -4748,15 +4748,15 @@ Lemma l_Lam_invX Gamma A B C s m t l :
 Proof.
   move e:(Lam A m s)=> n ty.
   elim: ty A B t l e=>{Gamma C n}; intros; try discriminate.
-  - inv H4. exfalso; solve_sub.
-  - inv e. inv H3.
+  inv H4. exfalso; solve_sub.
+  inv e. inv H3.
     move: (sub_Lolli_inv H4)=>[_[sb _]].
     destruct s0.
-    + move: H=>/u_Lolli_inv[s[l'[tyA' tyB']]].
+    move: H=>/u_Lolli_inv[s[l'[tyA' tyB']]].
       apply: s_Conv; eauto.
-    + move: H=>/l_Lolli_inv[s[l'[tyA' tyB']]].
+    move: H=>/l_Lolli_inv[s[l'[tyA' tyB']]].
       apply: s_Conv; eauto.
-  - inv H4.
+  inv H4.
     apply: H3; eauto.
     split; eauto.
     apply: sub_trans; eauto.
@@ -4784,4 +4784,33 @@ Proof.
     apply: l_Lam_invX; eauto.
   move=> /l_Lolli_inv=>[[s[l'[tyA tyB]]] ty].
     apply: l_Lam_invX; eauto.
+Qed.
+
+Lemma merge_context_ok_inv Gamma1 Gamma2 Gamma :
+  merge Gamma1 Gamma2 Gamma ->
+  [ Gamma |- ] ->
+  [ Gamma1 |- ] /\ [ Gamma2 |- ].
+Proof.
+  elim=>{Gamma1 Gamma2 Gamma}//=.
+  move=> Gamma1 Gamma2 Gamma m mg ih h. inv h.
+    move: (ih H1)=>{H1 ih}[h1 h2].
+    move: (merge_re_re mg)=>[e1 e2].
+    split.
+    apply: u_ok; eauto. rewrite e1; eauto.
+    apply: u_ok; eauto. rewrite e2; eauto.
+  move=> Gamma1 Gamma2 Gamma m mg ih h. inv h.
+    move: (ih H1)=>{H1 ih}[h1 h2].
+    move: (merge_re_re mg)=>[e1 e2].
+    split.
+    apply: l_ok; eauto. rewrite e1; eauto.
+    apply: n_ok; eauto.
+  move=> Gamma1 Gamma2 Gamma m mg ih h. inv h.
+    move: (ih H1)=>{H1 ih}[h1 h2].
+    move: (merge_re_re mg)=>[e1 e2].
+    split.
+    apply: n_ok; eauto.
+    apply: l_ok; eauto. rewrite e2; eauto.
+  move=> Gamma1 Gamma2 Gamma mg ih h. inv h.
+    move: (ih H0)=>{H0 ih}[h1 h2].
+    repeat constructor; eauto.
 Qed.
