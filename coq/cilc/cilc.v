@@ -4889,5 +4889,9 @@ Proof.
     replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
     apply: substitutionN; eauto.
     rewrite <- e1; eauto.
+  move=> Gamma A s Cs l a c p tyA ihA tyCs ihCs wf.
+    exists U. exists l.
+    rewrite <- pure_re; eauto.
+  move=> Gamma A s i C Cs ig p tyInd ihInd wf.
   
 
