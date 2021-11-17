@@ -412,7 +412,7 @@ Qed.
 
 Inductive term : Type :=
 | Var    (x : var)
-| Sort   (s : sort) (l : option nat)
+| Sort   (s : sort) (l : nat)
 | Prod   (A : term) (B : {bind term}) (s : sort)
 | Lolli  (A : term) (B : {bind term}) (s : sort)
 | Lam    (A : term) (m : {bind term}) (s : sort)
@@ -2044,13 +2044,11 @@ Ltac solve_conv :=
   | [ H : value (App _ _) |- _ ] => inv H
   end; eauto.
 
-Notation "s @ l" := (Sort s (Some l)) (at level 30).
+Notation "s @ l" := (Sort s l) (at level 30).
 
 Inductive sub1 : term -> term -> Prop :=
 | sub1_refl A : 
   sub1 A A
-| sub1_Prop s l : 
-  sub1 (Sort s None) (s @ l)
 | sub1_Sort s l1 l2 : 
   l1 <= l2 -> 
   sub1 (s @ l1) (s @ l2)
@@ -2077,26 +2075,19 @@ Lemma sub_refl A : A <: A.
 Proof. apply: sub1_sub. exact: sub1_refl. Qed.
 Hint Resolve sub_refl.
 
-Lemma sub_Prop s n : Sort s None <: s @ n.
-Proof. exact/sub1_sub/sub1_Prop. Qed.
-
 Lemma sub_Sort s n m : n <= m -> s @ n <: s @ m.
 Proof. move=> leq. exact/sub1_sub/sub1_Sort. Qed.
 
 Lemma sub1_trans A B C D :
   sub1 A B -> B === C -> sub1 C D -> A <: D.
 Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
-  move=> sb. elim: sb C D => {A B}
+  move=> sb. elim: sb C D=>{A B}
     [ A C D 
-    | s l C D conv sb
     | s l1 l2 leq C D conv sb
     | A B1 B2 s sb1 ih C D conv sb2
     | A B1 B2 s sb1 ih C D conv sb2 ]...
   inv sb; try (exfalso; solve_conv)...
-    move: conv => /Sort_inj [->[eq]].
-    apply: sub_Prop.
-  inv sb; try (exfalso; solve_conv)...
-    move: conv => /Sort_inj [->[eq]].
+    move: conv => /Sort_inj [->eq].
     apply: sub_Sort. subst.
     exact: leq_trans leq _.
   inv sb2; try (exfalso; solve_conv)...
@@ -2123,20 +2114,6 @@ Proof.
   exact: conv_trans c5. exact: conv_trans c4.
 Qed.
 
-Lemma sub_Prop_inv s1 s2 :
-  Sort s1 None <: Sort s2 None -> s1 = s2.
-Proof.
-  move=> [s1' s2' []].
-  move=> A c1 c2.
-    have{c1 c2}/Sort_inj[s l]: Sort s1 None === Sort s2 None.
-      exact: conv_trans c2.
-      exact: s.
-  move=> s l /Sort_inj[-> _] /Sort_inj[-> _] => //.
-  move=> *. exfalso; solve_conv.
-  move=> *. exfalso; solve_conv.
-  move=> *. exfalso; solve_conv.
-Qed.
-
 Lemma sub_Sort_inv s1 s2 l1 l2 :
   s1 @ l1 <: s2 @ l2 -> s1 = s2 /\ l1 <= l2.
 Proof.
@@ -2145,10 +2122,33 @@ Proof.
     have{c1 c2}/Sort_inj[s l]: s1 @ l1 === s2 @ l2.
       exact: conv_trans c2.
     inv l=> //.
-  move=> s l0 /Sort_inj[_ h] => //.
-  move=> s l0 l3 leq /Sort_inj[->[->]] /Sort_inj[<-[<-]] => //.
+  move=> s l0 l3 leq /Sort_inj[->->] /Sort_inj[<-<-] => //.
   move=> *. exfalso; solve_conv.
   move=> *. exfalso; solve_conv.
+Qed.
+
+Lemma sub_Sort_False1 l1 l2 : ~Sort U l1 <: Sort L l2.
+Proof.
+  move=> [s1 s2 []].
+  move=> A e1 e2.
+    have e : Sort U l1 === Sort L l2.
+      exact: conv_trans e2.
+    solve_conv.
+  move=> s l3 l4 _ /Sort_inj[<- _] h. solve_conv.
+  move=> A B1 B2 s _ e1 e2. solve_conv.
+  move=> A B1 B2 s _ e1 e2. solve_conv.
+Qed.
+
+Lemma sub_Sort_False2 l1 l2 : ~Sort L l1 <: Sort U l2.
+Proof.
+  move=> [s1 s2 []].
+  move=> A e1 e2.
+    have e : Sort L l1 === Sort U l2.
+      exact: conv_trans e2.
+    solve_conv.
+  move=> s l3 l4 _ /Sort_inj[<- _] h. solve_conv.
+  move=> A B1 B2 s _ e1 e2. solve_conv.
+  move=> A B1 B2 s _ e1 e2. solve_conv.
 Qed.
 
 Lemma sub_Prod_inv A1 A2 s1 s2 B1 B2 :
@@ -2161,7 +2161,6 @@ Proof.
       Prod A1 B1 s1 === Prod A2 B2 s2.
      exact: conv_trans c2.
     firstorder=>//. exact: conv_sub.
-  - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
   - move=> A B0 B3 s sb /Prod_inj[c1 [c2 <-]]. 
     move=> /Prod_inj[c3 [c4 ->]]. 
@@ -2180,7 +2179,6 @@ Proof.
       Lolli A1 B1 s1 === Lolli A2 B2 s2.
       exact: conv_trans c2.
     firstorder=>//. exact: conv_sub.
-  move=> *. exfalso; solve_conv.
   move=> *. exfalso; solve_conv.
   move=> *. exfalso; solve_conv.
   move=> A B0 B3 s sb /Lolli_inj[c1 [c2 <-]]. 
@@ -2312,20 +2310,22 @@ Inductive constr : var -> sort -> term -> Prop :=
 | constr_LProd2 x A B :
   noccurs x A -> active x.+1 B -> constr x L (Prod A B L).
 
+Notation prop := (Sort U None).
+
 Fixpoint arity1 (s : sort) (A : term) : term :=
   match A with
   | Sort _ l => Sort s l
-  | Prod A B U =>
-    Prod A (arity1 s B) U
-  | _ => Var 0
+  | Prod A B t =>
+    Prod A (arity1 s B) t
+  | _ => A
   end.
 
 Fixpoint arity2 (s : sort) (I : term) (A : term) : term :=
   match A with
   | Sort _ l => Prod I (Sort s l) U
-  | Prod A B U =>
-    Prod A (arity2 s (App I.[ren (+1)] (Var 0)) B) U
-  | _ => Var 0
+  | Prod A B t =>
+    Prod A (arity2 s (App I.[ren (+1)] (Var 0)) B) t
+  | _ => A
   end.
 
 Fixpoint respine hd sp : term :=
@@ -2349,22 +2349,13 @@ Definition case I Q C : term :=
 Definition dcase I Q (c C : term) : term :=
   drespine Q c C.[I/].
 
-Notation prop := (Sort U None).
 Reserved Notation "[ Gamma |- ]".
 Reserved Notation "[ Gamma |- m :- A ]".
 
 Inductive has_type : context term -> term -> term -> Prop :=
-| u_Prop Gamma : 
-  pure Gamma ->
-  [ Gamma |- prop :- U @ 0 ]
 | u_Sort Gamma s l : 
   pure Gamma ->
   [ Gamma |- s @ l :- U @ l.+1 ]
-| p_Prod Gamma A B l :
-  pure Gamma ->
-  [ Gamma |- A :- Sort U l ] ->
-  [ A +u Gamma |- B :- prop ] ->
-  [ Gamma |- Prod A B U :- prop ]
 | u_Prod Gamma A B s l :
   pure Gamma ->
   [ Gamma |- A :- U @ l ] ->
@@ -2469,15 +2460,8 @@ where "[ Gamma |- m :- A ]" := (has_type Gamma m A).
 
 Section has_type_nested_ind.
   Variable P : context term -> term -> term -> Prop.
-  Hypothesis ih_u_Prop : forall Gamma, 
-    pure Gamma -> P Gamma prop (U @ 0).
   Hypothesis ih_u_Sort : forall Gamma s l, 
     pure Gamma -> P Gamma (s @ l) (U @ l.+1).
-  Hypothesis ih_p_Prod : forall Gamma A B l,
-    pure Gamma -> 
-    [ Gamma |- A :- Sort U l ] -> P Gamma A (Sort U l) ->
-    [ A +u Gamma |- B :- prop ] -> P (A +u Gamma) B prop ->
-    P Gamma (Prod A B U) prop.
   Hypothesis ih_u_Prod : forall Gamma A B s l,
     pure Gamma ->
     [ Gamma |- A :- U @ l ] -> P Gamma A (U @ l) ->
@@ -2592,9 +2576,7 @@ Section has_type_nested_ind.
     Gamma m A (pf : [ Gamma |- m :- A ]) : P Gamma m A.
   Proof.
     case pf; intros.
-    apply ih_u_Prop; eauto.
     apply ih_u_Sort; eauto.
-    eapply ih_p_Prod; eauto.
     eapply ih_u_Prod; eauto.
     eapply ih_l_Prod; eauto.
     eapply ih_u_Lolli; eauto.
@@ -3368,12 +3350,8 @@ Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
   move=> ty.
   move: Gamma m A ty Gamma' xi.
   apply: has_type_nested_ind=> //=.
-  move=> Gamma pu Gamma' xi ag.
-    apply: u_Prop...
   move=> Gamma s l pu Gamma' xi ag.
     apply: u_Sort...
-  move=> Gamma A B l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
-    apply: p_Prod...
   move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
     apply: u_Prod...
   move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
@@ -4058,7 +4036,7 @@ Proof with eauto using List.Forall.
     apply: noccurs_subst...
     apply: ihB.
     apply: n_subst_up...
-Qed.    
+Qed.
 
 Lemma constr_subst i s (m : term) sigma :
   constr i s m -> n_subst sigma i -> constr i s m.[sigma].
@@ -4423,17 +4401,8 @@ Lemma substitution Gamma Delta sigma m A :
 Proof with eauto using List.Forall.
   move=> ty. move: Gamma m A ty Delta sigma.
   apply: has_type_nested_ind=>//=.
-  move=> Gamma p Delta sigma ag.
-    apply: u_Prop.
-    apply: agree_subst_pure...
   move=> Gamma s l p Delta sigma ag.
     apply: u_Sort.
-    apply: agree_subst_pure...
-  move=> Gamma A B l p tyA ihA tyB ihB Delta sigma ag.
-    move: (ihA _ _ ag)=>{}ihA.
-    move: (agree_subst_u A ag)=>ag'.
-    move: (ihB _ _ ag')=>{}ihB.
-    apply: p_Prod...
     apply: agree_subst_pure...
   move=> Gamma A B s l p tyA ihA tyB ihB Delta sigma ag.
     move: (ihA _ _ ag)=>{}ihA.
@@ -4661,61 +4630,100 @@ Ltac solve_sub :=
   | _ => solve_conv
   end.
 
-Lemma u_Prod_inv Gamma A B s :
-  [ Gamma |- Prod A B U :- s ] ->
-  exists s l,
-    [ Gamma |- A :- Sort U l ] /\ [ A +u Gamma |- B :- Sort s l ].
+Lemma u_Sort_inv Gamma s l A :
+  [ Gamma |- s @ l :- A ] -> U @ l.+1 <: A.
 Proof.
-  move e:(Prod A B U)=> n ty. elim: ty A B e =>//={Gamma n s}.
-  move=> Gamma A B l p tyA _ tyB _ A' B' [->->].
-    exists U. 
+  move e:(s @ l)=> n ty. elim: ty s l e=>//={Gamma A n}.
+  move=> Gamma s l p s' l' [_ ->]; eauto.
+  move=> Gamma A B m s l sb _ _ _ ihM s' l' /ihM sb'.
+    apply: sub_trans; eauto.
+Qed.
+
+Lemma u_Prod_inv Gamma A B C :
+  [ Gamma |- Prod A B U :- C ] ->
+  exists s l l',
+    [ Gamma |- A :- Sort U l ] /\ 
+    [ A +u Gamma |- B :- Sort s l ] /\
+    Sort U l' <: C.
+Proof.
+  move e:(Prod A B U)=> n ty. elim: ty A B e =>//={Gamma n}.
+  move=> Gamma A B s l p tyA _ tyB _ A' B' [->->].
+    exists s. 
     exists l.
-    split; eauto.
-    destruct l; eauto.
-    have sb : prop <: U @ n by apply: sub_Prop.
-    apply: s_Conv; eauto.
-    constructor.
-    apply: re_pure.
-  move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
-    exists s.
-    exists (Some l).
+    exists l.
     eauto.
+  move=> Gamma A B m s l sb tyB ihB tyM ihM A' B' e; subst.
+    move: (ihM A' B'); firstorder.
+    exists x.
+    exists x0.
+    exists x1.
+    firstorder.
+    apply: sub_trans; eauto.
 Qed.
 
-Lemma l_Prod_inv Gamma A B s :
-  [ Gamma |- Prod A B L :- s ] ->
-  exists s l,
-    [ Gamma |- A :- Sort L l ] /\ [ +n Gamma |- B :- Sort s l ].
+Lemma l_Prod_inv Gamma A B C :
+  [ Gamma |- Prod A B L :- C ] ->
+  exists s l l',
+    [ Gamma |- A :- Sort L l ] /\ 
+    [ +n Gamma |- B :- Sort s l ] /\
+    Sort U l' <: C.
 Proof.
-  move e:(Prod A B L)=> n ty. elim: ty A B e=>//={Gamma n s}.
+  move e:(Prod A B L)=> n ty. elim: ty A B e=>//={Gamma n}.
   move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
     exists s.
-    exists (Some l).
+    exists l.
+    exists l.
     eauto.
+  move=> Gamma A B m s l sb tyB ihB tyM ihM A' B' e; subst.
+    move: (ihM A' B'); firstorder.
+    exists x.
+    exists x0.
+    exists x1.
+    firstorder.
+    apply: sub_trans; eauto.
 Qed.
 
-Lemma u_Lolli_inv Gamma A B s :
-  [ Gamma |- Lolli A B U :- s ] ->
-  exists s l,
-    [ Gamma |- A :- Sort U l ] /\ [ A +u Gamma |- B :- Sort s l ].
+Lemma u_Lolli_inv Gamma A B C :
+  [ Gamma |- Lolli A B U :- C ] ->
+  exists s l l',
+    [ Gamma |- A :- Sort U l ] /\ 
+    [ A +u Gamma |- B :- Sort s l ] /\
+    Sort L l' <: C.
 Proof.
-  move e:(Lolli A B U)=> n ty. elim: ty A B e=>//={Gamma n s}.
+  move e:(Lolli A B U)=> n ty. elim: ty A B e=>//={Gamma n}.
   move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
     exists s.
-    exists (Some l).
+    exists l.
+    exists l.
     eauto.
+  move=> Gamma A B m s l sb tyB ihB tyM ihM A' B' e; subst.
+    move: (ihM A' B'); firstorder.
+    exists x.
+    exists x0.
+    exists x1.
+    firstorder.
+    apply: sub_trans; eauto.
 Qed.
 
-Lemma l_Lolli_inv Gamma A B s :
-  [ Gamma |- Lolli A B L :- s ] ->
-  exists s l,
-    [ Gamma |- A :- Sort L l ] /\ [ +n Gamma |- B :- Sort s l ].
+Lemma l_Lolli_inv Gamma A B C :
+  [ Gamma |- Lolli A B L :- C ] ->
+  exists s l l',
+    [ Gamma |- A :- Sort L l ] /\ 
+    [ +n Gamma |- B :- Sort s l ] /\
+    Sort L l' <: C.
 Proof.
-  move e:(Lolli A B L)=> n ty. elim: ty A B e=>//={Gamma n s}.
+  move e:(Lolli A B L)=> n ty. elim: ty A B e=>//={Gamma n}.
   move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
     exists s.
-    exists (Some l).
+    exists l.
     eauto.
+  move=> Gamma A B m s l sb tyB ihB tyM ihM A' B' e; subst.
+    move: (ihM A' B'); firstorder.
+    exists x.
+    exists x0.
+    exists x1.
+    firstorder.
+    apply: sub_trans; eauto.
 Qed.
 
 Lemma u_Lam_invX Gamma A B C s m t l :
@@ -4768,9 +4776,9 @@ Lemma u_Lam_inv Gamma A B s m t l :
   [ A +{s} Gamma |- m :- B ].
 Proof.
   destruct s.
-  move=> /u_Prod_inv=>[[s[l'[tyA tyB]]] ty].
+  move=> /u_Prod_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
     apply: u_Lam_invX; eauto.
-  move=> /l_Prod_inv=>[[s[l'[tyA tyB]]] ty].
+  move=> /l_Prod_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
     apply: u_Lam_invX; eauto.
 Qed.
 
@@ -4780,10 +4788,362 @@ Lemma l_Lam_inv Gamma A B s m t l :
   [ A +{s} Gamma |- m :- B ].
 Proof.
   destruct s.
-  move=> /u_Lolli_inv=>[[s[l'[tyA tyB]]] ty].
+  move=> /u_Lolli_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
     apply: l_Lam_invX; eauto.
-  move=> /l_Lolli_inv=>[[s[l'[tyA tyB]]] ty].
+  move=> /l_Lolli_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
     apply: l_Lam_invX; eauto.
+Qed.
+
+Lemma s_Ind_invX Gamma A B Cs s :
+  [ Gamma |- Ind A Cs s :- B ] ->
+  exists l,
+    A <: B /\
+    arity s A /\
+    List.Forall (constr 0 s) Cs /\
+    pure Gamma /\
+    [ Gamma |- A :- Sort U l ] /\
+    List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs.
+Proof.
+  move e:(Ind A Cs s)=> n ty.
+  elim: ty Cs e=>{Gamma n}; intros; try discriminate.
+  inv e. exists l. firstorder.
+  move: (H3 _ e)=>[l'[sb h]].
+    exists l'. firstorder.
+    apply: sub_trans.
+    apply: sb.
+    apply: H.
+Qed.
+
+Lemma s_Ind_inv Gamma A Cs s :
+  [ Gamma |- Ind A Cs s :- A ] ->
+  exists l,
+    arity s A /\
+    List.Forall (constr 0 s) Cs /\
+    pure Gamma /\
+    [ Gamma |- A :- Sort U l ] /\
+    List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs.
+Proof. move=> /s_Ind_invX; firstorder. Qed.
+
+Lemma App_inv Gamma m n A :
+  [ Gamma |- App m n :- A ] ->
+  pure Gamma ->
+  exists B C s, 
+    [ Gamma |- m :- Prod B C s ] \/
+    [ Gamma |- m :- Lolli B C s ].
+Proof.
+  move e:(App m n)=> t ty. move: Gamma t A ty m n e.
+  apply: has_type_nested_ind; intros; try discriminate.
+  inv e. exists A. exists B. exists U. left.
+    move: (merge_pure_inv H4 H5)=>[p1 p2].
+    move: (merge_pure2 H4 p2)=>->//=.
+  inv e. exists A. exists B. exists L. left.
+    move: (merge_pure_inv H3 H4)=>[p1 p2].
+    move: (merge_pure2 H3 p2)=>->//=.
+  inv e. exists A. exists B. exists U. right.
+    move: (merge_pure_inv H4 H5)=>[p1 p2].
+    move: (merge_pure2 H4 p2)=>->//=.
+  inv e. exists A. exists B. exists L. right.
+    move: (merge_pure_inv H3 H4)=>[p1 p2].
+    move: (merge_pure2 H3 p2)=>->//=.
+  apply: H3; eauto.
+Qed.
+
+Lemma iget_has_type_Forall Gamma A Cs C i l :
+  iget i Cs C ->
+  List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs ->
+  [ A +u Gamma |- C :- Sort U l ].
+Proof.
+  elim=>{i C Cs}.
+  move=> C Cs tyCs. by inv tyCs.
+  move=> i C C' Cs ig ih tyCs.
+    inv tyCs.
+    apply: ih; eauto.
+Qed.
+
+Inductive typing_spine (Gamma : context term) :
+  term -> list term -> term -> Prop :=
+| typing_spine_nil A B s l :
+  A <: B ->
+  [ Gamma |- B :- Sort s l ] -> 
+  typing_spine Gamma A nil B
+| typing_spine_Prod_cons hd tl T A B B' s l :
+  T <: Prod A B s ->  
+  [ Gamma |- hd :- A ] ->
+  [ Gamma |- Prod A B s :- Sort U l ] ->
+  typing_spine Gamma B.[hd/] tl B' ->
+  typing_spine Gamma T (hd :: tl) B'
+| typing_spine_Lolli_cons hd tl T A B B' s l :
+  T <: Lolli A B s ->  
+  [ Gamma |- hd :- A ] ->
+  [ Gamma |- Lolli A B s :- Sort L l ] ->
+  typing_spine Gamma B.[hd/] tl B' ->
+  typing_spine Gamma T (hd :: tl) B'.
+
+Lemma App_spine Gamma m ms A B :
+  typing_spine Gamma A ms B ->
+  pure Gamma ->
+  [ Gamma |- m :- A ] ->
+  [ Gamma |- spine m ms :- B ].
+Proof.
+  move=> tsp. elim: tsp m=>//=.
+  move=> A' B' s l sb tyB m p tyM.
+    apply: s_Conv; eauto.
+    rewrite <- pure_re; eauto.
+  move=> hd tl T A0 B0 B' s l sb tyHd tyProd tyTl ih m p tyM.
+    apply: ih; eauto.
+    destruct s.
+    apply: u_Prod_App; eauto.
+      apply: s_Conv; eauto.
+      rewrite <- pure_re; eauto.
+      apply: merge_pure; eauto.
+    apply: l_Prod_App; eauto.
+      apply: s_Conv; eauto.
+      rewrite <- pure_re; eauto.
+      apply: merge_pure; eauto.
+  move=> hd tl T A0 B0 B' s l sb tyHd tyProd tyTl ih m p tyM.
+    apply: ih; eauto.
+    destruct s.
+    apply: u_Lolli_App; eauto.
+      apply: s_Conv; eauto.
+      rewrite <- pure_re; eauto.
+      apply: merge_pure; eauto.
+    apply: l_Lolli_App; eauto.
+      apply: s_Conv; eauto.
+      rewrite <- pure_re; eauto.
+      apply: merge_pure; eauto.
+Qed.
+
+Lemma App_spine' Gamma ms A s s' t l :
+  typing_spine Gamma A ms (Sort s l) ->
+  arity s' A ->
+  pure Gamma ->
+  typing_spine Gamma (arity1 t A) ms (Sort t l).
+Proof.
+  move e:(Sort s l)=> n tsp. 
+  elim: tsp s l e t=>//={n A ms}.
+  move=> A B s l sb tyB s0 l0 e t a p; subst.
+    inv a=>//=.
+    apply: typing_spine_nil.
+    move: sb=>/sub_Sort_inv[_ leq].
+    apply: sub_Sort; eauto.
+    apply: u_Sort; eauto.
+    exfalso; solve_sub.
+  move=> hd tl T A B B' s l sb 
+    tyHd tyProd sp ih s0 l0 e t a p; subst.
+    inv a=>//=.
+    exfalso; solve_sub.
+    move: sb=>/sub_Prod_inv[cv[sb e]]; subst.
+    have e : s0 @ l0 = s0 @ l0 by eauto.
+    have a : arity s' B0.[hd/].
+      apply: arity_subst; eauto.
+    move: (ih s0 l0 e t)=> h.
+    admit.
+  move=> hd tl T A B B' s l sb 
+    tyHd tyLolli sp ih s0 l0 e t a p; subst.
+    inv a.
+    exfalso; solve_sub.
+    exfalso; solve_sub.
+Qed.   
+
+
+Lemma typing_spine_Sort Gamma ms s l A :
+  typing_spine Gamma (Sort s l) ms A ->
+  ms = nil /\ (Sort s l) <: A.
+Proof.
+  intros.
+  dependent induction H; eauto.
+  exfalso; solve_sub.
+  exfalso; solve_sub.
+Qed.
+
+Ltac solve_spine :=
+  match goal with 
+  | [ H : spine' (Ind _ _ _) ?ms = _ |- _ ] =>
+    induction ms; simpl; intros; discriminate
+  | [ H : _ = spine' (Ind _ _ _) ?ms  |- _ ] =>
+    induction ms; simpl; intros; discriminate
+  end.
+
+Lemma typing_spine_Prod_rcons Gamma A B C n ms s :
+  typing_spine Gamma A ms (Prod B C s) ->
+  pure Gamma ->
+  [ Gamma |- n :- B ] ->
+  typing_spine Gamma A (rcons ms n) C.[n/].
+Proof.
+  intro.
+  dependent induction H; intros.
+  - rewrite /rcons.
+    destruct s.
+    move: (u_Prod_inv H0)=>[s[l1'[l2'[tyB [tyC sb]]]]].
+    destruct s0.
+    apply: typing_spine_Prod_cons; eauto.
+      have mg : merge Gamma Gamma Gamma.
+        by apply: merge_pure.
+      move: (substitutionU tyC H2 H1 mg)=>//=tyC'.
+      apply: typing_spine_nil; eauto.
+    exfalso. apply: sub_Sort_False1; eauto.
+    move: (l_Prod_inv H0)=>[s[l1'[l2'[tyB [tyC sb]]]]].
+    destruct s0.
+    apply: typing_spine_Prod_cons; eauto.
+      have mg : merge Gamma Gamma Gamma.
+        by apply: merge_pure.
+      move: (substitutionN tyC H2)=>//=tyC'.
+      apply: typing_spine_nil; eauto.
+    exfalso. apply: sub_Sort_False1; eauto.
+  - apply: typing_spine_Prod_cons; eauto.
+  - apply: typing_spine_Lolli_cons; eauto.
+Qed.
+
+Lemma typing_spine_Lolli_rcons Gamma A B C n ms s :
+  typing_spine Gamma A ms (Lolli B C s) ->
+  pure Gamma ->
+  [ Gamma |- n :- B ] ->
+  typing_spine Gamma A (rcons ms n) C.[n/].
+Proof.
+  intro.
+  dependent induction H; intros.
+  - rewrite /rcons.
+    destruct s.
+    move: (u_Lolli_inv H0)=>[s[l1'[l2'[tyB [tyC sb]]]]].
+    destruct s0.
+    exfalso. apply: sub_Sort_False2; eauto.
+    apply: typing_spine_Lolli_cons; eauto.
+      have mg : merge Gamma Gamma Gamma.
+        by apply: merge_pure.
+      move: (substitutionU tyC H2 H1 mg)=>//=tyC'.
+      apply: typing_spine_nil; eauto.
+    move: (l_Lolli_inv H0)=>[s[l1'[l2'[tyB [tyC sb]]]]].
+    destruct s0.
+    exfalso. apply: sub_Sort_False2; eauto.
+    apply: typing_spine_Lolli_cons; eauto.
+      have mg : merge Gamma Gamma Gamma.
+        by apply: merge_pure.
+      move: (substitutionN tyC H2)=>//=tyC'.
+      apply: typing_spine_nil; eauto.
+  - apply: typing_spine_Prod_cons; eauto.
+  - apply: typing_spine_Lolli_cons; eauto.
+Qed.
+
+Lemma typing_spine_sub Gamma A B C ms s l :
+  typing_spine Gamma A ms B -> 
+  B <: C ->
+  [ Gamma |- C :- Sort s l ] ->
+  typing_spine Gamma A ms C.
+Proof.
+  move=> sp. elim: sp s l C=>//={A B ms}; intros.
+  - apply: typing_spine_nil; eauto.
+    apply: sub_trans; eauto.
+  - apply: typing_spine_Prod_cons; eauto.
+  - apply: typing_spine_Lolli_cons; eauto.
+Qed.
+
+Lemma s_Ind_spine'_inv Gamma A B Cs ms s :
+  pure Gamma ->
+  [ Gamma |- spine' (Ind A Cs s) ms :- B ] ->
+  typing_spine Gamma A (rev ms) B.
+Proof.
+  move e:(spine' (Ind A Cs s) ms)=> n p ty. 
+  elim: ty A Cs ms s p e=>{Gamma n}; intros; 
+  try solve [exfalso; solve_spine].
+  - move: e; destruct ms.
+    rewrite /rev/catrev=>//=.
+    move=>//=e. inv e.
+    move: (merge_pure_inv H4 p)=>[p1 p2].
+    move: (merge_pure1 H4 p1)=> e1.
+    move: (merge_pure2 H4 p2)=> e2.
+    have eInd : spine' (Ind A0 Cs s) ms = spine' (Ind A0 Cs s) ms.
+      by eauto.
+    move: (H1 _ _ _ _ p1 eInd)=> sp.
+    rewrite rev_cons; subst.
+    apply: typing_spine_Prod_rcons; eauto.
+  - move: e; destruct ms.
+    rewrite /rev/catrev=>//=.
+    move=>//=e. inv e.
+    move: (merge_pure_inv H3 p)=>[p1 p2].
+    move: (merge_pure1 H3 p1)=> e1.
+    move: (merge_pure2 H3 p2)=> e2.
+    have eInd : spine' (Ind A0 Cs s) ms = spine' (Ind A0 Cs s) ms.
+      by eauto.
+    move: (H0 _ _ _ _ p1 eInd)=> sp.
+    rewrite rev_cons; subst.
+    apply: typing_spine_Prod_rcons; eauto.
+  - move: e; destruct ms.
+    rewrite /rev/catrev=>//=.
+    move=>//=e. inv e.
+    move: (merge_pure_inv H4 p)=>[p1 p2].
+    move: (merge_pure1 H4 p1)=> e1.
+    move: (merge_pure2 H4 p2)=> e2.
+    have eInd : spine' (Ind A0 Cs s) ms = spine' (Ind A0 Cs s) ms.
+      by eauto.
+    move: (H1 _ _ _ _ p1 eInd)=> sp.
+    rewrite rev_cons; subst.
+    apply: typing_spine_Lolli_rcons; eauto.
+  - move: e; destruct ms.
+    rewrite /rev/catrev=>//=.
+    move=>//=e. inv e.
+    move: (merge_pure_inv H3 p)=>[p1 p2].
+    move: (merge_pure1 H3 p1)=> e1.
+    move: (merge_pure2 H3 p2)=> e2.
+    have eInd : spine' (Ind A0 Cs s) ms = spine' (Ind A0 Cs s) ms.
+      by eauto.
+    move: (H0 _ _ _ _ p1 eInd)=> sp.
+    rewrite rev_cons; subst.
+    apply: typing_spine_Lolli_rcons; eauto.
+  - destruct ms; simpl in e.
+    inv e.
+    rewrite /rev/catrev.
+    apply: typing_spine_nil; eauto.
+    inv e.
+  - subst.
+    move: (H3 A0 Cs ms s0 p); firstorder.
+    apply: typing_spine_sub; eauto.
+    rewrite <- pure_re in H0; eauto.
+Qed.
+
+Lemma s_Ind_spine_inv Gamma A B Cs s ms :
+  pure Gamma ->
+  [ Gamma |- spine (Ind A Cs s) ms :- B ] ->
+  typing_spine Gamma A ms B.
+Proof.
+  move=> p ty.
+  rewrite spine_spine'_rev in ty.
+  apply s_Ind_spine'_inv in ty; eauto.
+  rewrite revK in ty; eauto.
+Qed.
+
+Lemma s_Ind_spine' Gamma A B Cs s ms :
+  pure Gamma ->
+  [ Gamma |- spine' (Ind A Cs s) ms :- B ] ->
+  [ Gamma |- Ind A Cs s :- A ].
+Proof.
+  move e:(spine' (Ind A Cs s) ms)=> n p ty.
+  elim: ty A Cs s ms p e=>//{Gamma B n}; intros; 
+  try solve [destruct ms; simpl in e; try inv e].
+  - destruct ms; simpl in e; inv e.
+    move: (merge_pure_inv H4 p)=>[p1 p2].
+    move: (merge_pure2 H4 p2)=>->; eauto.
+  - destruct ms; simpl in e; inv e.
+    move: (merge_pure_inv H3 p)=>[p1 p2].
+    move: (merge_pure2 H3 p2)=>->; eauto.
+  - destruct ms; simpl in e; inv e.
+    move: (merge_pure_inv H4 p)=>[p1 p2].
+    move: (merge_pure2 H4 p2)=>->; eauto.
+  - destruct ms; simpl in e; inv e.
+    move: (merge_pure_inv H3 p)=>[p1 p2].
+    move: (merge_pure2 H3 p2)=>->; eauto.
+  - destruct ms; simpl in e; inv e.
+    econstructor; eauto.
+  - destruct ms0; simpl in e; inv e.
+  - destruct ms0; simpl in e; inv e.
+Qed.
+
+Lemma s_Ind_spine Gamma A B Cs s ms :
+  pure Gamma ->
+  [ Gamma |- spine (Ind A Cs s) ms :- B ] ->
+  [ Gamma |- Ind A Cs s :- A ].
+Proof.
+  rewrite spine_spine'_rev=> p ty.
+  by move: (s_Ind_spine' p ty).
 Qed.
 
 Lemma merge_context_ok_inv Gamma1 Gamma2 Gamma :
@@ -4853,7 +5213,7 @@ Proof.
     move: (merge_pure2 mg p)=>->.
     move: (merge_re_re mg)=>[e1 e2].
     have [wf1 wf2] := merge_context_ok_inv mg wf.
-    move: (ihM wf1)=>{ihM}[s[l /u_Prod_inv[s'[l'[tyA tyB]]]]].
+    move: (ihM wf1)=>{ihM}[s[l /u_Prod_inv[s'[l'[_[tyA [tyB _]]]]]]].
     exists s'. exists l'.
     replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
     apply: substitutionU; eauto.
@@ -4864,7 +5224,7 @@ Proof.
   move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg wf.
     move: (merge_re_re mg)=>[e1 e2].
     have [wf1 wf2] := merge_context_ok_inv mg wf.
-    move: (ihM wf1)=>{ihM}[s[l /l_Prod_inv[s'[l'[tyA tyB]]]]].
+    move: (ihM wf1)=>{ihM}[s[l /l_Prod_inv[s'[l'[_[tyA [tyB _]]]]]]].
     exists s'. exists l'.
     replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
     apply: substitutionN; eauto.
@@ -4873,7 +5233,7 @@ Proof.
     move: (merge_pure2 mg p)=>->.
     move: (merge_re_re mg)=>[e1 e2].
     have [wf1 wf2] := merge_context_ok_inv mg wf.
-    move: (ihM wf1)=>{ihM}[s[l /u_Lolli_inv[s'[l'[tyA tyB]]]]].
+    move: (ihM wf1)=>{ihM}[s[l /u_Lolli_inv[s'[l'[_[tyA [tyB _]]]]]]].
     exists s'. exists l'.
     replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
     apply: substitutionU; eauto.
@@ -4884,7 +5244,7 @@ Proof.
   move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg wf.
     move: (merge_re_re mg)=>[e1 e2].
     have [wf1 wf2] := merge_context_ok_inv mg wf.
-    move: (ihM wf1)=>{ihM}[s[l /l_Lolli_inv[s'[l'[tyA tyB]]]]].
+    move: (ihM wf1)=>{ihM}[s[l /l_Lolli_inv[s'[l'[_[tyA [tyB _]]]]]]].
     exists s'. exists l'.
     replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
     apply: substitutionN; eauto.
@@ -4893,5 +5253,18 @@ Proof.
     exists U. exists l.
     rewrite <- pure_re; eauto.
   move=> Gamma A s i C Cs ig p tyInd ihInd wf.
-  
-
+    move: (s_Ind_inv tyInd)=>[l'[_[c[_[tyA tyCs]]]]].
+    exists U. exists l'.
+    move: (iget_has_type_Forall ig tyCs)=>tyC.
+    replace (Sort U l') with (Sort U l').[Ind A Cs s/] by autosubst.
+    apply: substitutionU; eauto.
+    rewrite <- pure_re; eauto.
+    apply: merge_pure; eauto.
+  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms a mg 
+    tyM ihM tyQ ihQ tyFs ihFsCs wf.
+    move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
+    move: wf1=>/ihM{ihM}[s1[l1 tyInd]].
+    move: wf2=>/re_ok/ihQ{ihQ}[s2[l2 tyA]].
+    have p : pure (re Gamma1) by apply: re_pure.
+    apply s_Ind_spine_inv in tyInd; eauto.
+    rewrite <- re_re in tyA.
