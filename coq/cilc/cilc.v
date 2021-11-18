@@ -5465,6 +5465,271 @@ Proof.
     rewrite <- pure_re; eauto.
 Qed.
 
+Lemma arity_step s A A' :
+  arity s A -> step A A' -> arity s A'.
+Proof.
+  move=> a. elim: a A'.
+  move=> l A' st. inv st.
+  move=> A0 B a ih A' st. inv st.
+    constructor; eauto.
+    constructor; eauto.
+Qed.
+
+Definition n_Beta k (sigma : var -> term) x :=
+  k < x.+1 /\
+  (forall i, i < k -> sigma i = (Var i)) /\
+  (noccurs x (sigma k)) /\
+  (forall i, k < i -> (sigma i).[ren (+1)] = Var i).
+
+Lemma noccurs_n_Beta x m :
+  noccurs x m -> n_Beta 0 (m .: ids) x.
+Proof.
+  move=> no.
+  firstorder.
+  inv H.
+  destruct i.
+  inv H.
+  asimpl; eauto.
+Qed.
+
+Lemma n_Beta_up k x sigma :
+  n_Beta k sigma x -> n_Beta k.+1 (up sigma) x.+1.
+Proof.
+  move=> [lt[h1[h2 h3]]].
+  firstorder.
+  - destruct i; asimpl; eauto.
+    have lt' : i < k by eauto.
+    replace (Var i.+1) with (Var i).[ren (+1)] by eauto.
+    f_equal; eauto.
+  - asimpl.
+    apply noccurs_up; eauto.
+  - destruct i.
+    inv H.
+    have lt' : k < i by eauto.
+    move: (h3 _ lt')=>e; asimpl.
+    replace (sigma i).[ren (+2)] 
+      with (sigma i).[ren (+1)].[ren (+1)] by autosubst.
+    rewrite e; eauto.
+Qed.
+
+Lemma lt_False x y : x < y -> y < x.+1 -> False.
+Proof.
+  elim: x y; intros.
+  destruct y.
+  inv H.
+  inv H0.
+  destruct y.
+  inv H0.
+  eapply H; eauto.
+Qed.
+
+Lemma noccurs_Beta k x m sigma :
+  noccurs (x.+1) m -> n_Beta k sigma x -> noccurs x m.[sigma].
+Proof with eauto using n_Beta_up, lt_False.
+  move e:(x.+1)=> i no. move: i m no sigma k x e. 
+  apply: noccurs_ind_nested=>//=; intros; subst; try constructor...
+  unfold n_Beta in H0; firstorder.
+    move: (ltngtP k y)=>[h|h|h].
+    move: (H3 _ h)=>e.
+    destruct (sigma y); try discriminate.
+    inv e.
+    constructor; eauto.
+    rewrite H1; eauto.
+    constructor.
+    intro; subst...
+    subst; eauto.
+  elim: H2=>//=; intros.
+    constructor...
+  elim: H4=>//=; intros.
+    constructor...
+  elim: H4=>//=; intros.
+    constructor...
+Qed.
+
+Lemma noccurs_spine' x h1 h2 ms : 
+  noccurs x (spine' h1 ms) -> noccurs x h2 -> noccurs x (spine' h2 ms).
+Proof.
+  move e:(spine' h1 ms)=> n no. move: x n no h1 h2 ms e.
+  apply: noccurs_ind_nested; intros;
+  match goal with
+  | [ H : spine' _ ?ms = _ |- _ ] =>
+    destruct ms; simpl; simpl in H; inv H; eauto
+  end.
+  constructor; eauto.
+Qed.
+
+Lemma noccurs_spine x h1 h2 ms : 
+  noccurs x (spine h1 ms) -> noccurs x h2 -> noccurs x (spine h2 ms).
+Proof.
+  rewrite! spine_spine'_rev=> noSp no.
+  apply: noccurs_spine'; eauto.
+Qed.
+
+Lemma noccurs_step x m n :
+  noccurs x m -> step m n -> noccurs x n.
+Proof with eauto using noccurs, noccurs_Beta, noccurs_n_Beta.
+  move=> no. move: x m no n. 
+  apply: noccurs_ind_nested; intros;
+  match goal with
+  | [ H : step _ _ |- _ ] => 
+    try solve [inv H; eauto using noccurs]
+  end.
+  - inv H3.
+    move: (H0 _ H7)=>no...
+    move: (H2 _ H7)=>no...
+    inv H...
+  - inv H3...
+    constructor...
+    elim: H8 H2 H1=>//=; intros.
+      inv H2. inv H3. constructor...
+      inv H3. inv H4. constructor...
+  - inv H5...
+    constructor...
+      elim: H10 H4 H3=>//=; intros.
+        inv H4. inv H5. constructor...
+        inv H5. inv H6. constructor...
+    apply: noccurs_spine; eauto.
+      elim: H10 H3; intros.
+        inv H3...
+        inv H6...
+  - inv H5...
+    constructor...
+      elim: H10 H4 H3=>//=; intros.
+        inv H4. inv H5. constructor...
+        inv H5. inv H6. constructor...
+    apply: noccurs_spine; eauto.
+      elim: H10 H3; intros.
+        inv H3...
+        inv H6...
+  - inv H3...
+Qed.
+
+Lemma step_spine' x ms C :
+  step (spine' (Var x) ms) C ->
+  List.Forall (noccurs x) ms ->
+  exists ms', 
+    C = spine' (Var x) ms' /\ List.Forall (noccurs x) ms'.
+Proof.
+  elim: ms x C=>//=.
+  move=> x C st. inv st.
+  move=> a l ih x C st no.
+    inv no.
+    inv st.
+    move: (ih x m' H4 H2)=>[ms'[e no]]; subst.
+      exists (a :: ms'); eauto.
+    exists (n' :: l); firstorder.
+      constructor; eauto.
+      apply: noccurs_step; eauto.
+    destruct l; inv H0.
+Qed.
+
+Lemma noccurs_Forall_cat x ms ns :
+  List.Forall (noccurs x) ms ->
+  List.Forall (noccurs x) ns ->
+  List.Forall (noccurs x) (ms ++ ns).
+Proof with eauto using List.Forall.
+  move=> no. elim: no ns=>//={ms}...
+Qed.
+
+Lemma noccurs_Forall_rev x ms :
+  List.Forall (noccurs x) ms -> List.Forall (noccurs x) (rev ms).
+Proof with eauto using List.Forall.
+  elim: ms=>//=; intros.
+  inv H0.
+  move: (H H4)=> {}H.
+  replace (a :: l) with ([:: a] ++ l) by eauto.
+  rewrite rev_cat.
+  apply: noccurs_Forall_cat; eauto.
+  rewrite /rev/catrev...
+Qed.
+
+Lemma step_spine x ms C :
+  step (spine (Var x) ms) C ->
+  List.Forall (noccurs x) ms ->
+  exists ms', 
+    C = spine (Var x) ms' /\ List.Forall (noccurs x) ms'.
+Proof.
+  rewrite! spine_spine'_rev.
+  move=> st /noccurs_Forall_rev no.
+  move: (step_spine' st no)=>[ms' [h1 h2]].
+  exists (rev ms'). split.
+  rewrite spine_spine'_rev. rewrite revK; eauto.
+  apply noccurs_Forall_rev; eauto.
+Qed.
+
+Lemma pos_step x A B :
+  pos x A -> step A B -> pos x B.
+Proof.
+  move=> p. elim: p B=>{A x}.
+  move=> x ms no B st.
+    move: (step_spine st no)=>[ms'[e no']]; subst.
+    constructor; eauto.
+  move=> x A B s n p ih B' st. inv st.
+    constructor; eauto.
+    apply: noccurs_step; eauto.
+    constructor; eauto.
+  move=> x A B s n p ih B' st. inv st.
+    constructor; eauto.
+    apply: noccurs_step; eauto.
+    constructor; eauto.
+Qed.
+
+Lemma active_step x C C' :
+  active x C -> step C C' -> active x C'.
+Proof.
+  move=> a. elim: a C'=>{C x}.
+  move=> x ms no C' st.
+    move: (step_spine st no)=>[ms'[e no']]; subst.
+    apply: active_X; eauto.
+  move=> x A B s p a ih no C' st. inv st.
+    apply: active_Pos; eauto.
+    apply: pos_step; eauto.
+    apply: active_Pos; eauto.
+    apply: noccurs_step; eauto.
+  move=> x A B s n a ih C' st. inv st.
+    apply: active_Lolli; eauto.
+    apply: noccurs_step; eauto.
+    apply: active_Lolli; eauto.
+Qed.
+
+Lemma constr_step x s C C' :
+  constr x s C -> step C C' -> constr x s C'.
+Proof.
+  move=> c. elim: c C'=>{C x s}.
+  move=> x s ms no C' st.
+    move: (step_spine st no)=>[ms'[e no']]; subst.
+    apply: constr_X; eauto.
+  move=> x A B p c ih no C' st. inv st.
+    apply: constr_UPos; eauto.
+    apply: pos_step; eauto.
+    apply: constr_UPos; eauto.
+    apply: noccurs_step; eauto.
+  move=> x A B n c ih C' st. inv st.
+    apply: constr_UProd; eauto.
+    apply: noccurs_step; eauto.
+    apply: constr_UProd; eauto.
+  move=> x A B p c ih n C' st. inv st.
+    apply: constr_LPos1; eauto.
+    apply: pos_step; eauto.
+    apply: constr_LPos1; eauto.
+    apply: noccurs_step; eauto.
+  move=> x A B p a n C' st. inv st.
+    apply: constr_LPos2; eauto.
+    apply: pos_step; eauto.
+    apply: constr_LPos2; eauto.
+    apply: active_step; eauto.
+    apply: noccurs_step; eauto.
+  move=> x A B n c ih C' st. inv st.
+    apply: constr_LProd1; eauto.
+    apply: noccurs_step; eauto.
+    apply: constr_LProd1; eauto.
+  move=> x A B n a C' st. inv st.
+    apply: constr_LProd2; eauto.
+    apply: noccurs_step; eauto.
+    apply: constr_LProd2; eauto.
+    apply: active_step; eauto.
+Qed.
+
 Theorem subject_reduction Gamma m A :
   [ Gamma |- ] ->
   [ Gamma |- m :- A ] ->
@@ -5700,6 +5965,26 @@ Proof.
         apply: l_Lolli_App; eauto.
       move: (l_Lam_inv tyLolli tyM)=>tyM0.
         apply: substitutionL; eauto.
+  move=> Gamma A s Cs l a cs p tyA ihA tyCs ihCs wf n st. inv st.
+    move: (ihA wf _ H3)=>tyA'.
+      have e : A' === A.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      apply: s_Conv.
+      apply: conv_sub.
+      apply: e.
+      rewrite <- pure_re; eauto.
+      apply: s_Ind; eauto.
+      apply: arity_step; eauto.
+      elim: tyCs=>//=; intros.
+        constructor; eauto.
+        apply: context_convU.
+        apply: e.
+        rewrite <- pure_re; eauto.
+        apply: H.
+    apply: s_Ind; eauto.
+      
+      
 
     
 
