@@ -495,12 +495,12 @@ Inductive All2 R : list term -> list term -> Prop :=
   All2 R ls ls' ->
   All2 R (m :: ls) (m' :: ls').
 
-Inductive Alli R : nat -> list term -> list term -> Prop :=
-| Alli_nil i : Alli R i nil nil
-| Alli_cons i m m' ls ls' :
+Inductive All2i R : nat -> list term -> list term -> Prop :=
+| All2i_nil i : All2i R i nil nil
+| All2i_cons i m m' ls ls' :
   R i m m' ->
-  Alli R i.+1 ls ls' ->
-  Alli R i (m :: ls) (m' :: ls').
+  All2i R i.+1 ls ls' ->
+  All2i R i (m :: ls) (m' :: ls').
 
 Inductive step : term -> term -> Prop :=
 | step_LamL A A' m s :
@@ -2443,7 +2443,7 @@ Inductive has_type : context term -> term -> term -> Prop :=
   merge Gamma1 Gamma2 Gamma ->
   [ Gamma1 |- m :- spine I ms ] ->
   [ re Gamma2 |- Q :- arity2 s' I A ] ->
-  Alli (fun i F C =>
+  All2i (fun i F C =>
     constr 0 U C /\
     [ Gamma2 |- F :- dcase I Q (Constr i I) C ]) 0 Fs Cs ->
   [ Gamma |- DCase m Q Fs :- App (spine Q ms) m ]
@@ -2556,10 +2556,10 @@ Section has_type_nested_ind.
     merge Gamma1 Gamma2 Gamma ->
     [ Gamma1 |- m :- spine I ms ] -> P Gamma1 m (spine I ms) ->
     [ re Gamma2 |- Q :- arity2 s' I A ] -> P (re Gamma2) Q (arity2 s' I A) ->
-    Alli (fun i F C =>
+    All2i (fun i F C =>
       constr 0 U C /\
       [ Gamma2 |- F :- (dcase I Q (Constr i I) C) ]) 0 Fs Cs ->
-    Alli (fun i F C =>
+    All2i (fun i F C =>
       constr 0 U C /\
       P Gamma2 F (dcase I Q (Constr i I) C)) 0 Fs Cs ->
     P Gamma (DCase m Q Fs) (App (spine Q ms) m).
@@ -2622,23 +2622,23 @@ Section has_type_nested_ind.
     eapply ih_s_DCase; eauto.
       apply (
         fix fold n Fs Cs
-          (pf : Alli (fun i F C => 
+          (pf : All2i (fun i F C => 
             constr 0 U C /\
             [ Gamma2 |- F :- dcase I Q (Constr i I) C ]) n Fs Cs) :
-          Alli (fun i F C => 
+          All2i (fun i F C => 
             constr 0 U C /\
             P Gamma2 F (dcase I Q (Constr i I) C)) n Fs Cs
         :=
           match pf in 
-            Alli _ n Fs Cs
+            All2i _ n Fs Cs
           return
-            Alli (fun i F C => 
+            All2i (fun i F C => 
               constr 0 U C /\
               P Gamma2 F (dcase I Q (Constr i I) C)) n Fs Cs
           with
-          | Alli_nil _ => Alli_nil _ _
-          | Alli_cons _ _ _ _ _ (conj h1 h2) pfTl =>
-            Alli_cons (conj h1 (has_type_nested_ind _ _ _ h2)) (fold _ _ _ pfTl)
+          | All2i_nil _ => All2i_nil _ _
+          | All2i_cons _ _ _ _ _ (conj h1 h2) pfTl =>
+            All2i_cons (conj h1 (has_type_nested_ind _ _ _ h2)) (fold _ _ _ pfTl)
           end); eauto.
     eapply ih_u_Fix; eauto.
     eapply ih_s_Conv; eauto.
@@ -3311,15 +3311,15 @@ Proof.
     apply: ih; eauto.
 Qed.
 
-Lemma Alli_case_ren Gamma Gamma' n s A Q Fs Cs Cs' xi :
-  Alli (fun i F C =>
+Lemma All2i_case_ren Gamma Gamma' n s A Q Fs Cs Cs' xi :
+  All2i (fun i F C =>
     let I := Ind A Cs' s in
     constr 0 s C /\
     forall Gamma' xi, agree_ren xi Gamma Gamma' ->
       [ Gamma' |- F.[ren xi] :- (dcase I Q (Constr i I) C).[ren xi] ])
     n Fs Cs ->
   agree_ren xi Gamma Gamma' ->
-  Alli (fun i F C =>
+  All2i (fun i F C =>
     let I := Ind A.[ren xi] Cs'..[up (ren xi)] s in
     constr 0 s C /\
     [ Gamma' |- F :- dcase I Q.[ren xi] (Constr i I) C])
@@ -3451,7 +3451,7 @@ Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
     move: (arity2_ren s' (Ind A Cs U) xi ar)=> e. rewrite e in ihQ.
     move: (agree_ren_pure ag1 p)=>{}p.
     apply: s_DCase...
-    apply: Alli_case_ren...
+    apply: All2i_case_ren...
   move=> Gamma A m l p tyA ihA tyM ihM Gamma' xi ag.
     econstructor...
     have ag' : agree_ren (upren xi) (A +u Gamma) (A.[ren xi] +u Gamma').
@@ -4364,15 +4364,15 @@ Proof.
   - apply: ih; eauto.
 Qed.
 
-Lemma Alli_dcase_subst Gamma Delta n s A Q Fs Cs Cs' sigma :
-  Alli (fun i F C =>
+Lemma All2i_dcase_subst Gamma Delta n s A Q Fs Cs Cs' sigma :
+  All2i (fun i F C =>
     let I := Ind A Cs' s in
     constr 0 s C /\
     forall Delta sigma, [ Delta |- sigma -| Gamma ] ->
       [ Delta |- F.[sigma] :- (dcase I Q (Constr i I) C).[sigma] ])
     n Fs Cs ->
   [ Delta |- sigma -| Gamma ] ->
-  Alli (fun i F C =>
+  All2i (fun i F C =>
     let I := Ind A.[sigma] Cs'..[up sigma] s in
     constr 0 s C /\
     [ Delta |- F :-dcase I Q.[sigma] (Constr i I) C ])
@@ -4526,7 +4526,7 @@ Proof with eauto using List.Forall.
     rewrite spine_subst in ihM.
     move: (agree_subst_pure ag1 p)=>{}p.
     apply: s_DCase...
-    apply: Alli_dcase_subst...
+    apply: All2i_dcase_subst...
   move=> Gamma A m l p tyA ihA tyM ihM Delta sigma ag.
     apply: u_Fix...
     apply: agree_subst_pure...
@@ -5440,3 +5440,139 @@ Proof.
     exists U. exists l.
     rewrite <- pure_re; eauto.
 Qed.
+
+Theorem subject_reduction Gamma m A :
+  [ Gamma |- ] ->
+  [ Gamma |- m :- A ] ->
+  forall n, step m n -> [ Gamma |- n :- A ].
+Proof.
+  move=> wf ty.
+  move: Gamma m A ty wf. apply: has_type_nested_ind.
+  move=> Gamma s l p wf n st. inv st.
+  move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
+    move: (ihA wf _ H3)=>tyA'.
+      have e : A' === A.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      apply: u_Prod; eauto.
+      apply: context_convU.
+      apply: e.
+      rewrite <- pure_re; eauto.
+      apply: tyB.
+    have {}wf : [ A +u Gamma |- ].
+      apply: u_ok; eauto.
+      rewrite <- pure_re; eauto.
+      move: (ihB wf _ H3)=>tyB'.
+      apply: u_Prod; eauto.
+  move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
+    move: (ihA wf _ H3)=>tyA'.
+      have e : A' === A.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      apply: l_Prod; eauto.
+    have {}wf : [ +n Gamma |- ].
+      apply: n_ok; eauto.
+      move: (ihB wf _ H3)=>tyB'.
+      apply: l_Prod; eauto.
+  move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
+    move: (ihA wf _ H3)=>tyA'.
+      have e : A' === A.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      apply: u_Lolli; eauto.
+      apply: context_convU.
+      apply: e.
+      rewrite <- pure_re; eauto.
+      apply: tyB.
+    have {}wf : [ A +u Gamma |- ].
+      apply: u_ok; eauto.
+      rewrite <- pure_re; eauto.
+      apply: u_Lolli; eauto.
+  move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
+    move: (ihA wf _ H3)=>tyA'.
+      have e : A' === A.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      apply: l_Lolli; eauto.
+    have {}wf : [ +n Gamma |- ].
+      apply: n_ok; eauto.
+      move: (ihB wf _ H3)=>tyB'.
+      apply: l_Lolli; eauto.
+  move=> Gamma x A hA wf n st. inv st.
+  move=> Gamma x A hA wf n st. inv st.
+  move=> Gamma n A B s t l p tyProd ihProd tyN ihN wf n' st. inv st.
+    have stProd : step (Prod A B s) (Prod A' B s).
+      by constructor.
+      move: (ihProd wf _ stProd)=>tyProd'.
+      apply: s_Conv.
+        apply: conv_sub. 
+        apply: conv_sym. 
+        apply: conv1; eauto.
+        rewrite <- pure_re; eauto.
+      apply: u_Lam; eauto.
+      have e : A' === A.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      destruct s.
+        move: tyProd=>/u_Prod_inv[_[lA[_[tyA _]]]].
+          apply: context_convU.
+          apply: e.
+          rewrite <- pure_re; eauto.
+          apply: tyN.
+        move: tyProd=>/l_Prod_inv[_[lA[_[tyA _]]]].
+          apply: context_convL.
+          apply: e.
+          rewrite <- pure_re; eauto.
+          apply: tyN.
+    destruct s.
+      move: (u_Prod_inv tyProd)=>[_[lA[_[tyA _]]]].
+        have {}wf : [ A +u Gamma |- ].
+          apply: u_ok; eauto.
+          rewrite <- pure_re; eauto.
+        move: (ihN wf _ H3)=>tyM'.
+        apply: u_Lam; eauto.
+      move: (l_Prod_inv tyProd)=>[_[lA[_[tyA _]]]].
+        have {}wf : [ A+l Gamma |- ].
+          apply: l_ok; eauto.
+          rewrite <- pure_re; eauto.
+        move: (ihN wf _ H3)=>tyM'.
+        apply: u_Lam; eauto.
+  move=> Gamma n A B s t l tyLolli ihLolli tyN ihN wf n' st. inv st.
+    have stLolli : step (Lolli A B s) (Lolli A' B s).
+      by constructor.
+      have {}wf : [ re Gamma |- ].
+        apply: re_ok; eauto.
+      move: (ihLolli wf _ stLolli)=>tyLolli'.
+      apply: s_Conv.
+        apply: conv_sub.
+        apply: conv_sym.
+        apply: conv1; eauto.
+        apply: tyLolli.
+      apply: l_Lam; eauto.
+      have e : A' === A.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      destruct s.
+        move: tyLolli=>/u_Lolli_inv[_[lA[_[tyA _]]]].
+          apply: context_convU.
+          apply: e.
+          apply: tyA.
+          apply: tyN.
+        move: tyLolli=>/l_Lolli_inv[_[lA[_[tyA _]]]].
+          apply: context_convL.
+          apply: e.
+          apply: tyA.
+          apply: tyN.
+    destruct s.
+      move: (u_Lolli_inv tyLolli)=>[_[lA[_[tyA _]]]].
+        have {}wf : [ A +u Gamma |- ].
+          apply: u_ok; eauto.
+        move: (ihN wf _ H3)=>tyM'.
+        apply: l_Lam; eauto.
+      move: (l_Lolli_inv tyLolli)=>[_[lA[_[tyA _]]]].
+        have {}wf : [ A +l Gamma |- ].
+          apply: l_ok; eauto.
+        move: (ihN wf _ H3)=>tyM'.
+        apply: l_Lam; eauto.
+  
+
