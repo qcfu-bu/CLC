@@ -5730,6 +5730,23 @@ Proof.
     apply: active_step; eauto.
 Qed.
 
+Lemma iget_step i Cs Cs' C :
+  iget i Cs C -> One2 step Cs Cs' -> 
+    exists C', C === C' /\ iget i Cs' C'.
+Proof.
+  move=> ig h. elim: h i ig=>{Cs Cs'}.
+  move=> m m' Cs st i ig. inv ig.
+    exists m'. split.
+      apply: conv1; eauto.
+      constructor.
+    exists C. split; eauto.
+      constructor; eauto.
+  move=> m Cs Cs' h ih i ig. inv ig.
+    exists C. repeat constructor.
+    move: (ih _ H3)=>[C' [e ig]].
+    exists C'. repeat constructor; eauto.
+Qed.
+
 Theorem subject_reduction Gamma m A :
   [ Gamma |- ] ->
   [ Gamma |- m :- A ] ->
@@ -5983,8 +6000,52 @@ Proof.
         rewrite <- pure_re; eauto.
         apply: H.
     apply: s_Ind; eauto.
-      
-      
-
-    
-
+      elim: H3 cs; intros.
+        inv cs. constructor; eauto.
+          apply: constr_step; eauto.
+        inv cs. constructor; eauto.
+      elim: H3 tyCs ihCs; intros.
+        inv tyCs. inv ihCs. constructor; eauto.
+          apply: H4; eauto. apply: u_ok; eauto. rewrite <- pure_re; eauto.
+        inv tyCs. inv ihCs. constructor; eauto. 
+  move=> Gamma A s i C Cs I ig p tyI ihI wf n st. inv st. inv H2.
+    - have st : step (Ind A Cs s) (Ind A' Cs s).
+        constructor; eauto.
+      have e : Ind A' Cs s === Ind A Cs s.
+        apply: conv_sym. apply: conv1; eauto.
+      move: (ihI wf _ st)=>ihI'.
+      move: (s_Ind_inv tyI)=>[l[a[cs[_[tyA tyCs]]]]].
+      move: (s_Ind_invX ihI')=>[l'[_[_[_[_[tyA' _]]]]]].
+      move: (iget_has_type_Forall ig tyCs)=>tyC.
+      have mg : merge Gamma Gamma Gamma.
+        apply: merge_pure; eauto.
+      move: (substitutionU tyC tyI p mg)=>tyCI.
+      apply: s_Conv.
+      apply: conv_sub. apply: conv_Beta. apply: e.
+      rewrite <- pure_re; eauto.
+      constructor; eauto.
+      apply: s_Conv. apply: conv_sub. apply: conv1; eauto.
+      rewrite <- pure_re; eauto.
+      apply: ihI'.
+    - have st : step (Ind A Cs s) (Ind A Cs' s).
+        constructor; eauto.
+      have e : Ind A Cs' s === Ind A Cs s.
+        apply: conv_sym. apply: conv1; eauto.
+      move: (ihI wf _ st)=>ihI'.
+      move: (s_Ind_inv tyI)=>[l[a[cs[_[tyA tyCs]]]]].
+      move: (s_Ind_inv ihI')=>[l'[_[cs'[_[tyA' tyCs']]]]].
+      move: (iget_step ig H4)=>[C' [e' ig']].
+      move: (iget_has_type_Forall ig tyCs)=>tyC.
+      move: (iget_has_type_Forall ig' tyCs')=>tyC'.
+      have mg : merge Gamma Gamma Gamma.
+        apply: merge_pure; eauto.
+      move: (substitutionU tyC tyI p mg)=>//=tyCI.
+      move: (substitutionU tyC' ihI' p mg)=>//=tyCI'.
+      have ex : C.[Ind A Cs s/] === C'.[Ind A Cs' s/].
+        apply: (conv_trans C.[Ind A Cs' s/]).
+        apply: conv_Beta. apply: conv_sym; eauto.
+        apply: conv_subst; eauto.
+      apply: s_Conv.
+      apply: conv_sub. apply: conv_sym. apply: ex.
+      rewrite <- pure_re; eauto.
+      constructor; eauto.
