@@ -5497,13 +5497,13 @@ Lemma n_Beta_up k x sigma :
 Proof.
   move=> [lt[h1[h2 h3]]].
   firstorder.
-  - destruct i; asimpl; eauto.
+  destruct i; asimpl; eauto.
     have lt' : i < k by eauto.
     replace (Var i.+1) with (Var i).[ren (+1)] by eauto.
     f_equal; eauto.
-  - asimpl.
+  asimpl.
     apply noccurs_up; eauto.
-  - destruct i.
+  destruct i.
     inv H.
     have lt' : k < i by eauto.
     move: (h3 _ lt')=>e; asimpl.
@@ -5574,16 +5574,16 @@ Proof with eauto using noccurs, noccurs_Beta, noccurs_n_Beta.
   | [ H : step _ _ |- _ ] => 
     try solve [inv H; eauto using noccurs]
   end.
-  - inv H3.
+  inv H3.
     move: (H0 _ H7)=>no...
     move: (H2 _ H7)=>no...
     inv H...
-  - inv H3...
+  inv H3...
     constructor...
     elim: H8 H2 H1=>//=; intros.
       inv H2. inv H3. constructor...
       inv H3. inv H4. constructor...
-  - inv H5...
+  inv H5...
     constructor...
       elim: H10 H4 H3=>//=; intros.
         inv H4. inv H5. constructor...
@@ -5592,7 +5592,7 @@ Proof with eauto using noccurs, noccurs_Beta, noccurs_n_Beta.
       elim: H10 H3; intros.
         inv H3...
         inv H6...
-  - inv H5...
+  inv H5...
     constructor...
       elim: H10 H4 H3=>//=; intros.
         inv H4. inv H5. constructor...
@@ -5601,10 +5601,25 @@ Proof with eauto using noccurs, noccurs_Beta, noccurs_n_Beta.
       elim: H10 H3; intros.
         inv H3...
         inv H6...
-  - inv H3...
+  inv H3...
 Qed.
 
-Lemma step_spine' x ms C :
+Lemma head_spine'_step h h' ms :
+  step h h' -> step (spine' h ms) (spine' h' ms).
+Proof.
+  elim: ms h h'; eauto.
+  move=> h ms ih h1 h2 st; simpl.
+  constructor; eauto.
+Qed.
+
+Lemma head_spine_step h h' ms :
+  step h h' -> step (spine h ms) (spine h' ms).
+Proof.
+  rewrite! spine_spine'_rev=>st.
+  apply: head_spine'_step; eauto.
+Qed.
+
+Lemma Var_spine'_step x ms C :
   step (spine' (Var x) ms) C ->
   List.Forall (noccurs x) ms ->
   exists ms', 
@@ -5643,7 +5658,7 @@ Proof with eauto using List.Forall.
   rewrite /rev/catrev...
 Qed.
 
-Lemma step_spine x ms C :
+Lemma Var_spine_step x ms C :
   step (spine (Var x) ms) C ->
   List.Forall (noccurs x) ms ->
   exists ms', 
@@ -5651,7 +5666,7 @@ Lemma step_spine x ms C :
 Proof.
   rewrite! spine_spine'_rev.
   move=> st /noccurs_Forall_rev no.
-  move: (step_spine' st no)=>[ms' [h1 h2]].
+  move: (Var_spine'_step st no)=>[ms' [h1 h2]].
   exists (rev ms'). split.
   rewrite spine_spine'_rev. rewrite revK; eauto.
   apply noccurs_Forall_rev; eauto.
@@ -5662,7 +5677,7 @@ Lemma pos_step x A B :
 Proof.
   move=> p. elim: p B=>{A x}.
   move=> x ms no B st.
-    move: (step_spine st no)=>[ms'[e no']]; subst.
+    move: (Var_spine_step st no)=>[ms'[e no']]; subst.
     constructor; eauto.
   move=> x A B s n p ih B' st. inv st.
     constructor; eauto.
@@ -5679,7 +5694,7 @@ Lemma active_step x C C' :
 Proof.
   move=> a. elim: a C'=>{C x}.
   move=> x ms no C' st.
-    move: (step_spine st no)=>[ms'[e no']]; subst.
+    move: (Var_spine_step st no)=>[ms'[e no']]; subst.
     apply: active_X; eauto.
   move=> x A B s p a ih no C' st. inv st.
     apply: active_Pos; eauto.
@@ -5697,7 +5712,7 @@ Lemma constr_step x s C C' :
 Proof.
   move=> c. elim: c C'=>{C x s}.
   move=> x s ms no C' st.
-    move: (step_spine st no)=>[ms'[e no']]; subst.
+    move: (Var_spine_step st no)=>[ms'[e no']]; subst.
     apply: constr_X; eauto.
   move=> x A B p c ih no C' st. inv st.
     apply: constr_UPos; eauto.
@@ -6050,4 +6065,28 @@ Proof.
       rewrite <- pure_re; eauto.
       constructor; eauto.
   move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms I a mg 
-    tyM ihM tyQ ihQ tyFsCs ihFsCs wf n st. inv st.
+    tyM ihM tyQ ihQ tyFsCs ihFsCs wf n st.
+    move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
+    move: (merge_re_re mg)=>[e1 e2].
+    move: (propagation wf1 tyM)=>[sI[lI tyI]].
+    inv st.
+    - move: (ihM wf1 _ H3)=>{}ihM.
+      econstructor; eauto.
+    - move: (re_ok wf2)=>{}wf2.
+      move: (ihQ wf2 _ H3)=>{}ihQ.
+      have p : pure (re Gamma1).
+        apply: re_pure.
+      move: (s_Ind_spine_inv p a tyI)=>[sA[lA sp]].
+      move: (@arity1_spine (re Gamma1) ms A sA s s' lA sp a p)=>{}sp.
+      rewrite e2 in tyQ. rewrite <- e1 in tyQ.
+      rewrite e2 in ihQ. rewrite <- e1 in ihQ.
+      move: (App_spine sp p tyQ)=>tySp.
+      move: (App_spine sp p ihQ)=>tySp'.
+      have e : step (spine Q ms) (spine Q' ms).
+        apply: head_spine_step; eauto.
+      apply: s_Conv.
+      apply: conv_sub. apply: conv_sym. apply: conv1; eauto.
+      rewrite <-e1; eauto.
+      econstructor; eauto.
+      rewrite e2. rewrite <-e1; eauto.
+      
