@@ -6049,3 +6049,5 @@ Proof.
       apply: conv_sub. apply: conv_sym. apply: ex.
       rewrite <- pure_re; eauto.
       constructor; eauto.
+  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms I a mg 
+    tyM ihM tyQ ihQ tyFsCs ihFsCs wf n st. inv st.
