@@ -6277,22 +6277,66 @@ Proof.
     exists t. exists l0; eauto.
 Qed.
 
-Lemma All2_case_step Gamma I Q Q' Fs Cs s :
-  [ Gamma |- ] ->
+Lemma All2_case_stepQ Gamma A Q Q' Fs Cs Cs' s t l :
+  let I := Ind A Cs' s in
   step Q Q' ->
+  arity s A ->
+  [ re Gamma |- Ind A Cs' s :- A ] ->
+  [ re Gamma |- Q' :- arity1 t A ] ->
   All2 (fun F C => constr 0 s C /\ 
     [ Gamma |- F :- case I Q C ]) Fs Cs ->
+  List.Forall (fun C => [ A +u re Gamma |- C :- U @ l ]) Cs ->
   All2 (fun F C => constr 0 s C /\
     [ Gamma |- F :- case I Q' C ]) Fs Cs.
 Proof.
-  move=> wf st a. elim: a=>{Fs Cs}.
+  move=> I st a tyInd tyQ all. elim: all=>{Fs Cs}.
   constructor.
-  move=> F C Fs Cs [c tyF] hd tl.
+  move=> F C Fs Cs [c tyF] hd tl h.
+  inv h.
   constructor; eauto.
-  split; eauto.
-  move: (propagation wf tyF)=>[sC[lC tyC]].
-Admitted.
-  
+  firstorder.
+  have h1 : (forall i Q, respine Q ((I .: ids) i) = Q).
+    destruct i; simpl; eauto.
+  have h2 : (I .: ids) 0 = Ind A Cs' s by eauto.
+  have h3 : [re Gamma |- C.[I/] :- (U @ l).[I/]].
+    apply: substitutionU; eauto.
+    apply: re_pure.
+    apply: merge_re_re_re.
+  have h4 : respine Q C.[I/] <: respine Q' C.[I/].
+    apply: conv_sub.
+    apply: conv1.
+    apply: respine_step; eauto.
+  move: 
+  (@constr_respine Gamma (I .: ids) Cs' A Q' C 0 U s t l c a h1 h2 
+    tyInd tyQ h3)=>[s0[l0 tySp]].
+  unfold case.
+  unfold case in tyF.
+  apply: s_Conv.
+  apply: h4.
+  apply: tySp.
+  apply: tyF.
+Qed.
+
+Lemma All2_One2_stepF Gamma A Q Fs Fs' Cs Cs' s :
+  let I := Ind A Cs' s in
+  [ Gamma |- ] ->
+  One2 step Fs Fs' ->
+  All2 (fun F C => constr 0 s C /\ 
+    [ Gamma |- F :- case I Q C ]) Fs Cs ->
+  All2 (fun F C => constr 0 s C /\ ([ Gamma |- ] -> 
+    forall F', step F F' -> [ Gamma |- F' :- case I Q C ])) Fs Cs ->
+  All2 (fun F C => constr 0 s C /\
+    [ Gamma |- F :- case I Q C ]) Fs' Cs.
+Proof.
+  move=> I wf one. elim: one Cs=>{Fs Fs'}.
+  move=> F F' Fs' st Cs hd tl.
+    inv hd. inv tl.
+    constructor; eauto.
+    constructor; firstorder; eauto.
+  move=> F Fs Fs' one ih Cs hd tl.
+    inv hd. inv tl.
+    constructor; eauto.
+Qed.
 
 Theorem subject_reduction Gamma m A :
   [ Gamma |- ] ->
@@ -6621,5 +6665,11 @@ Proof.
       rewrite <-e1; eauto.
       econstructor; eauto.
       rewrite e2. rewrite <-e1; eauto.
+      move: (s_Ind_spine p tyI)=>tyInd.
+      move: (s_Ind_inv tyInd)=>[l[_[cs[_[tyA tyCs]]]]].
+      apply: All2_case_stepQ; eauto.
+      rewrite e2; rewrite <-e1; eauto.
+      rewrite e2; rewrite <-e1; eauto.
+      rewrite e2; rewrite <-e1; eauto.
     - econstructor; eauto.
-      
+      apply: All2_One2_stepF; eauto.
