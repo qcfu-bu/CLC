@@ -883,7 +883,7 @@ Proof.
   by rewrite revK in pf.
 Qed.
 
-Lemma spine'_Constr i1 i2 h1 h2 ls1 ls2 :
+Lemma spine'_Constr_inj i1 i2 h1 h2 ls1 ls2 :
   spine' (Constr i1 h1) ls1 = spine' (Constr i2 h2) ls2 ->
     i1 = i2 /\ h1 = h2 /\ ls1 = ls2.
 Proof.
@@ -896,11 +896,11 @@ Proof.
     by move: H0=> /ih [->[->->]].
 Qed.
 
-Lemma spine_Constr i1 i2 h1 h2 ls1 ls2 :
+Lemma spine_Constr_inj i1 i2 h1 h2 ls1 ls2 :
   spine (Constr i1 h1) ls1 = spine (Constr i2 h2) ls2 ->
     i1 = i2 /\ h1 = h2 /\ ls1 = ls2.
 Proof.
-  rewrite! spine_spine'_rev=> /spine'_Constr[->[->e]].
+  rewrite! spine_spine'_rev=> /spine'_Constr_inj[->[->e]].
   by move: e=> /rev_inj->.
 Qed.
 
@@ -1803,7 +1803,7 @@ Proof.
     move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFsx1 pFsx2]].
     move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
     exists (spine Fx mx')...
-    move: H=> /spine_Constr[e1[e2 e3]]; subst.
+    move: H=> /spine_Constr_inj[e1[e2 e3]]; subst.
     move: (All2_diamond pMs H4 ihMs)=>[mx[pMx1 pMx2]].
     move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFsx1 pFsx2]].
     move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
@@ -1830,7 +1830,7 @@ Proof.
     move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFsx1 pFsx2]].
     move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
     exists (spine Fx mx')...
-    move: H=> /spine_Constr[e1[e2 e3]]; subst.
+    move: H=> /spine_Constr_inj[e1[e2 e3]]; subst.
     move: (All2_diamond pMs H4 ihMs)=>[mx[pMx1 pMx2]].
     move: (All2_diamond pFs H5 ihFs)=>[Fsx[pFsx1 pFsx2]].
     move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
@@ -4992,34 +4992,38 @@ Lemma s_Ind_inv Gamma A Cs s :
     List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs.
 Proof. move=> /s_Ind_invX; firstorder. Qed.
 
-Lemma App_inv Gamma m n A :
-  [ Gamma |- App m n :- A ] ->
-  pure Gamma ->
-  exists B C s, 
-    [ Gamma |- m :- Prod B C s ] \/
-    [ Gamma |- m :- Lolli B C s ].
+Lemma s_Constr_invX Gamma i I CI :
+  [ Gamma |- Constr i I :- CI ] ->
+  exists i A C Cs s,
+    iget i Cs C /\
+    pure Gamma /\
+    I = Ind A Cs s /\
+    C.[I/] <: CI /\
+    [ Gamma |- I :- A ].
 Proof.
-  move e:(App m n)=> t ty. move: Gamma t A ty m n e.
-  apply: has_type_nested_ind; intros; try discriminate.
-  inv e. exists A. exists B. exists U. left.
-    move: (merge_pure_inv H4 H5)=>[p1 p2].
-    move: (merge_pure2 H4 p2)=>->//=.
-  inv e. exists A. exists B. exists L. left.
-    move: (merge_pure_inv H3 H4)=>[p1 p2].
-    move: (merge_pure2 H3 p2)=>->//=.
-  inv e. exists A. exists B. exists U. right.
-    move: (merge_pure_inv H4 H5)=>[p1 p2].
-    move: (merge_pure2 H4 p2)=>->//=.
-  inv e. exists A. exists B. exists L. right.
-    move: (merge_pure_inv H3 H4)=>[p1 p2].
-    move: (merge_pure2 H3 p2)=>->//=.
-  apply: H3; eauto.
+  move e:(Constr i I)=> n ty.
+  elim: ty i I e=>{Gamma CI n}; intros; try discriminate.
+  - inv e. 
+    exists i.
+    exists A.
+    exists C.
+    exists Cs.
+    exists s.
+    eauto.
+  - subst.
+    have e : Constr i I = Constr i I by eauto.
+    move: (H3 i I e)=>[i0[A0[C[Cs[s0[ig[p[->[sb tyI]]]]]]]]].
+    exists i0.
+    exists A0.
+    exists C.
+    exists Cs.
+    exists s0.
+    firstorder.
+    apply: sub_trans; eauto.
 Qed.
 
-Lemma iget_has_type_Forall Gamma A Cs C i l :
-  iget i Cs C ->
-  List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs ->
-  [ A +u Gamma |- C :- Sort U l ].
+Lemma iget_Forall i P C Cs:
+  iget i Cs C -> List.Forall (fun C => P C) Cs -> P C.
 Proof.
   elim=>{i C Cs}.
   move=> C Cs tyCs. by inv tyCs.
@@ -5564,7 +5568,7 @@ Proof.
   move=> Gamma A s i C Cs ig p tyInd ihInd wf.
     move: (s_Ind_inv tyInd)=>[l'[_[c[_[tyA tyCs]]]]].
     exists U. exists l'.
-    move: (iget_has_type_Forall ig tyCs)=>tyC.
+    move: (iget_Forall ig tyCs)=>tyC.
     replace (Sort U l') with (Sort U l').[Ind A Cs s/] by autosubst.
     apply: substitutionU; eauto.
     rewrite <- pure_re; eauto.
@@ -5981,11 +5985,18 @@ Ltac solve_spine' :=
     match goal with
     | [ H : _ = ?x |- _ ] => inv H
     end
+  | [ H : _ = spine' _ ?ms |- ?x ] =>
+    induction ms; simpl in H; intros;
+    match goal with
+    | [ H : ?x = _ |- _ ] => inv H
+    end
   end.
 
 Ltac solve_spine :=
   match goal with
   | [ H : spine _ _ = _ |- _ ] =>
+    rewrite spine_spine'_rev in H; solve_spine'
+  | [ H : _ = spine _ _ |- _ ] =>
     rewrite spine_spine'_rev in H; solve_spine'
   end.
 
@@ -6338,6 +6349,28 @@ Proof.
     constructor; eauto.
 Qed.
 
+Ltac solve_sub_spine' :=
+  match goal with
+  | [ H : spine' _ ?ms = _ |- ?x ] =>
+    induction ms; simpl in H; intros;
+    match goal with
+    | [ H : _ = ?x |- _ ] => inv H
+    end
+  | [ H : _ = spine' _ ?ms |- ?x ] =>
+    induction ms; simpl in H; intros;
+    match goal with
+    | [ H : ?x = _ |- _ ] => inv H
+    end
+  end.
+
+Ltac solve_sub_spine :=
+  match goal with
+  | [ H : spine _ _ = _ |- _ ] =>
+    rewrite spine_spine'_rev in H; solve_spine'
+  | [ H : _ = spine _ _ |- _ ] =>
+    rewrite spine_spine'_rev in H; solve_spine'
+  end.
+
 Theorem subject_reduction Gamma m A :
   [ Gamma |- ] ->
   [ Gamma |- m :- A ] ->
@@ -6607,7 +6640,7 @@ Proof.
       move: (ihI wf _ st)=>ihI'.
       move: (s_Ind_inv tyI)=>[l[a[cs[_[tyA tyCs]]]]].
       move: (s_Ind_invX ihI')=>[l'[_[_[_[_[tyA' _]]]]]].
-      move: (iget_has_type_Forall ig tyCs)=>tyC.
+      move: (iget_Forall ig tyCs)=>tyC.
       have mg : merge Gamma Gamma Gamma.
         apply: merge_pure; eauto.
       move: (substitutionU tyC tyI p mg)=>tyCI.
@@ -6626,8 +6659,8 @@ Proof.
       move: (s_Ind_inv tyI)=>[l[a[cs[_[tyA tyCs]]]]].
       move: (s_Ind_inv ihI')=>[l'[_[cs'[_[tyA' tyCs']]]]].
       move: (iget_step ig H4)=>[C' [e' ig']].
-      move: (iget_has_type_Forall ig tyCs)=>tyC.
-      move: (iget_has_type_Forall ig' tyCs')=>tyC'.
+      move: (iget_Forall ig tyCs)=>tyC.
+      move: (iget_Forall ig' tyCs')=>tyC'.
       have mg : merge Gamma Gamma Gamma.
         apply: merge_pure; eauto.
       move: (substitutionU tyC tyI p mg)=>//=tyCI.
@@ -6673,3 +6706,6 @@ Proof.
       rewrite e2; rewrite <-e1; eauto.
     - econstructor; eauto.
       apply: All2_One2_stepF; eauto.
+    - have p : pure (re Gamma1).
+        apply: re_pure.
+      move: (s_Ind_spine p tyI)=>tyInd.
