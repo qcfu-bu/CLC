@@ -6127,7 +6127,39 @@ Proof.
     apply: merge_sym; eauto.
 Qed.
 
-Lemma typing_spine_sub Gamma A B C ms s l :
+Lemma typing_spine_strengthen Gamma A B C ms s l :
+  typing_spine Gamma B ms C ->
+  A <: B ->
+  [ re Gamma |- B :- s @ l ] ->
+  typing_spine Gamma A ms C.
+Proof.
+  move=>sp. elim: sp A s l=>{Gamma B C ms}.
+  move=> Gamma A B s l p sb tyB C s' l' sb' tyC.
+    apply: typing_spine_nil; eauto.
+    apply: sub_trans; eauto.
+  move=> Gamma1 Gamma2 Gamma hd tl T A B B' l p sb
+    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    move: (merge_re_re mg)=>[e1 e2].
+    apply: typing_spine_u_Prod_cons; eauto.
+    apply: sub_trans; eauto.
+  move=> Gamma1 Gamma2 Gamma hd tl T A B B' l sb
+    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    move: (merge_re_re mg)=>[e1 e2].
+    apply: typing_spine_l_Prod_cons; eauto.
+    apply: sub_trans; eauto.
+  move=> Gamma1 Gamma2 Gamma hd tl T A B B' l p sb
+    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    move: (merge_re_re mg)=>[e1 e2].
+    apply: typing_spine_u_Lolli_cons; eauto.
+    apply: sub_trans; eauto.
+  move=> Gamma1 Gamma2 Gamma hd tl T A B B' l sb
+    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    move: (merge_re_re mg)=>[e1 e2].
+    apply: typing_spine_l_Lolli_cons; eauto.
+    apply: sub_trans; eauto.
+Qed.
+
+Lemma typing_spine_weaken Gamma A B C ms s l :
   typing_spine Gamma A ms B ->
   B <: C ->
   [ re Gamma |- C :- s @ l ] ->
@@ -6441,7 +6473,7 @@ Proof.
     move: (merge_re_re mg)=>[e1 e2].
     exists Gamma1. exists Gamma2. exists A0.
     repeat split; eauto.
-    apply: typing_spine_sub; eauto.
+    apply: typing_spine_weaken; eauto.
     rewrite e2; eauto.
 Qed.
 
@@ -7573,3 +7605,15 @@ Proof.
     - have p : pure (re Gamma1).
         apply: re_pure.
       move: (s_Ind_spine p tyI)=>tyInd.
+      move: (spine_inv wf1 tyM)=>[Gamma3[Gamma4[X[mgX[tyC tySp]]]]].
+      move: (s_Constr_invX tyC)=>[A'[C'[Cs'[s0[ig[p'[e[sb tyM']]]]]]]]; subst.
+      move: (merge_pure1 mgX p')=>e; subst.
+      move: (s_Ind_inv tyM')=>[l[a'[cs[_[tyA' tyCs']]]]].
+      move: (iget_Forall ig tyCs')=>tyC'.
+      move: (merge_context_ok_inv mgX wf1)=>[wf3 wf4].
+      move: (merge_re_re mgX)=>[e _].
+      have mg3 : merge Gamma3 Gamma3 Gamma3.
+        apply: merge_pure; eauto.
+      move: (propagation wf3 tyC)=>[sX[lX tyX]].
+      rewrite e in tyX.
+      move: (typing_spine_strengthen tySp sb tyX)=>{}tySp.
