@@ -5668,7 +5668,8 @@ Proof.
     move: tyInd=>[sx[lx sp]].
     move: (@arity1_spine (re Gamma1) ms A sx s s' lx sp a p)=>{}sp.
     rewrite e2 in tyQ. rewrite <- e1 in tyQ.
-    move: (@App_spine (re Gamma1) Q ms _ _ sp p tyQ)=>tySp.
+    move: (merge_re_re_re Gamma1)=>mg1.
+    move: (App_spine tyQ sp mg1)=>tySp.
     exists s'. exists lx. rewrite <-e1; eauto.
   move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms _ p mg 
     tyM ihM tyQ _ _ _ wf.
@@ -5683,7 +5684,8 @@ Proof.
     move: (@arity2_spine (re Gamma1) ms 
       (Ind A Cs U) A sx s' lx sp a pr tyInd)=>{}sp.
     rewrite e2 in tyQ. rewrite <- e1 in tyQ.
-    move: (@App_spine (re Gamma1) Q ms _ _ sp pr tyQ)=>tySp.
+    move: (merge_re_re_re Gamma1)=>mg1.
+    move: (App_spine tyQ sp mg1)=>tySp.
     exists s'. exists lx.
     replace (s' @ lx) with (s' @ lx).[m/] by autosubst.
     apply: u_Prod_App; eauto.
@@ -5693,6 +5695,8 @@ Proof.
     exists U. exists l.
     rewrite <- pure_re; eauto.
 Qed.
+
+
 
 Lemma arity_step s A A' :
   arity s A -> step A A' -> arity s A'.
