@@ -4994,7 +4994,7 @@ Proof. move=> /s_Ind_invX; firstorder. Qed.
 
 Lemma s_Constr_invX Gamma i I CI :
   [ Gamma |- Constr i I :- CI ] ->
-  exists i A C Cs s,
+  exists A C Cs s,
     iget i Cs C /\
     pure Gamma /\
     I = Ind A Cs s /\
@@ -5004,7 +5004,6 @@ Proof.
   move e:(Constr i I)=> n ty.
   elim: ty i I e=>{Gamma CI n}; intros; try discriminate.
   - inv e. 
-    exists i.
     exists A.
     exists C.
     exists Cs.
@@ -5012,8 +5011,7 @@ Proof.
     eauto.
   - subst.
     have e : Constr i I = Constr i I by eauto.
-    move: (H3 i I e)=>[i0[A0[C[Cs[s0[ig[p[->[sb tyI]]]]]]]]].
-    exists i0.
+    move: (H3 i I e)=>[A0[C[Cs[s0[ig[p[->[sb tyI]]]]]]]].
     exists A0.
     exists C.
     exists Cs.
@@ -6349,27 +6347,35 @@ Proof.
     constructor; eauto.
 Qed.
 
-Ltac solve_sub_spine' :=
-  match goal with
-  | [ H : spine' _ ?ms = _ |- ?x ] =>
-    induction ms; simpl in H; intros;
-    match goal with
-    | [ H : _ = ?x |- _ ] => inv H
-    end
-  | [ H : _ = spine' _ ?ms |- ?x ] =>
-    induction ms; simpl in H; intros;
-    match goal with
-    | [ H : ?x = _ |- _ ] => inv H
-    end
-  end.
+(* Lemma s_Constr_spine'_False Gamma A B C U i m ms :
+  [ Gamma |- spine' (Constr i m) ms :- C ] -> 
+  Prod A B U <: C -> False.
+Proof.
 
-Ltac solve_sub_spine :=
-  match goal with
-  | [ H : spine _ _ = _ |- _ ] =>
-    rewrite spine_spine'_rev in H; solve_spine'
-  | [ H : _ = spine _ _ |- _ ] =>
-    rewrite spine_spine'_rev in H; solve_spine'
-  end.
+Lemma s_Constr_spine' Gamma A C Cs i m ms1 ms2 s :
+  iget i Cs C ->
+  [ Gamma |- spine' (Constr i m) ms1 :- spine' (Ind A Cs s) ms2 ] ->
+  [ Gamma |- Constr i m :- C.[Ind A Cs s/] ].
+Proof.
+  move e1:(spine' (Constr i m) ms1)=> n1.
+  move e2:(spine' (Ind A Cs s) ms2)=> n2 ig ty.
+  elim: ty A C Cs s i m ms1 ms2 ig e1 e2=>{Gamma n1 n2}; intros;
+  try solve 
+  [ (destruct ms1; simpl in e1; try inv e1) ||
+    (destruct ms2; simpl in e2; try inv e2) ].
+  - destruct ms1; simpl in e1; inv e1.
+    destruct ms2; simpl in e2.
+    move: (merge_re_re H4)=>{e2}[<- e2].
+    apply: H1; eauto. *)
+
+(* Lemma spine_Constr Gamma A Cs i m ms1 ms2 s :
+  let I := Ind A Cs s in
+  [ Gamma |- spine (Constr i m) ms1 :- spine I ms2 ] ->
+  [ Gamma |- spine (Constr i I) ms1 :- spine I ms2 ].
+Proof.
+  move=> I.
+  rewrite! spine_spine'_rev.
+  rewrite! spine_spine'_rev. *)
 
 Theorem subject_reduction Gamma m A :
   [ Gamma |- ] ->
