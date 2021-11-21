@@ -5941,8 +5941,164 @@ Proof.
       apply: merge_sym; eauto.
       apply: tyM'.
       rewrite rev_cons.
-      apply: typing_spine_Prod_rcons.
-      rewrite e; eauto.
+      apply: typing_spine_u_Prod_rcons; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg m' ms wf sp.
+    move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
+    destruct ms; simpl in sp.
+    subst.
+      move: (l_Prod_App tyM tyN mg)=>tyApp.
+      move: (propagation wf tyApp)=>[s[l tyBN]].
+      rewrite /rev/catrev.
+      exists Gamma. exists (re Gamma). exists (B.[n/]).
+      repeat split; eauto.
+      apply: merge_re2.
+      apply: typing_spine_nil; eauto.
+      apply: re_pure.
+    inv sp.
+      have e : spine' m' ms = spine' m' ms by eauto.
+      move: (ihM m' ms wf1 e)=>[Gamma3[Gamma4[A0[mg'[tyM' tySp]]]]].
+      move: (merge_sym mg')=>{}mg'.
+      move: (merge_merge mg' mg)=>[Gamma5[mg1 mg2]].
+      exists Gamma3. exists Gamma5. exists A0.
+      repeat split.
+      apply: merge_sym; eauto.
+      apply: tyM'.
+      rewrite rev_cons.
+      apply: typing_spine_l_Prod_rcons; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n p tyM ihM tyN ihN mg m' ms wf sp.
+    move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
+    destruct ms; simpl in sp.
+    subst.
+      move: (merge_pure2 mg p)=>e; subst.
+      move: (merge_re_re mg)=>[e1 e2].
+      move: (u_Lolli_App p tyM tyN mg)=>tyApp.
+      move: (propagation wf tyApp)=>[s[l tyBN]].
+      rewrite /rev/catrev.
+      exists Gamma1. exists Gamma2. exists (B.[n/]).
+      repeat split; eauto.
+      apply: typing_spine_nil; eauto.
+      replace Gamma2 with (re Gamma2).
+      rewrite e2; eauto.
+      rewrite<-pure_re; eauto.
+    inv sp.
+      have e : spine' m' ms = spine' m' ms by eauto.
+      move: (ihM m' ms wf1 e)=>[Gamma3[Gamma4[A0[mg'[tyM' tySp]]]]].
+      move: (merge_sym mg')=>{}mg'.
+      move: (merge_merge mg' mg)=>[Gamma5[mg1 mg2]].
+      move: (merge_pure2 mg1 p)=>{}e.
+      exists Gamma3. exists Gamma5. exists A0.
+      repeat split.
+      apply: merge_sym; eauto.
+      apply: tyM'.
+      rewrite rev_cons.
+      apply: typing_spine_u_Lolli_rcons; eauto.
+  move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg m' ms wf sp.
+    move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
+    destruct ms; simpl in sp.
+    subst.
+      move: (l_Lolli_App tyM tyN mg)=>tyApp.
+      move: (propagation wf tyApp)=>[s[l tyBN]].
+      rewrite /rev/catrev.
+      exists Gamma. exists (re Gamma). exists (B.[n/]).
+      repeat split; eauto.
+      apply: merge_re2.
+      apply: typing_spine_nil; eauto.
+      apply: re_pure.
+    inv sp.
+      have e : spine' m' ms = spine' m' ms by eauto.
+      move: (ihM m' ms wf1 e)=>[Gamma3[Gamma4[A0[mg'[tyM' tySp]]]]].
+      move: (merge_sym mg')=>{}mg'.
+      move: (merge_merge mg' mg)=>[Gamma5[mg1 mg2]].
+      exists Gamma3. exists Gamma5. exists A0.
+      repeat split.
+      apply: merge_sym; eauto.
+      apply: tyM'.
+      rewrite rev_cons.
+      apply: typing_spine_l_Lolli_rcons; eauto.
+  move=> Gamma A s Cs l a cs p tyA ihA tyCs m ms wf sp.
+    destruct ms; simpl in sp; try discriminate; subst.
+    rewrite /rev/catrev.
+    exists Gamma. exists Gamma. exists A.
+    repeat split.
+    apply: merge_pure; eauto.
+    apply: s_Ind; eauto.
+    apply: typing_spine_nil; eauto.
+  move=> Gamma A s i C Cs I ig p tyI ihI m ms wf sp.
+    destruct ms; simpl in sp; try discriminate; subst.
+    move: (s_Ind_inv tyI)=>[l[a[cs[_[tyA tyCs]]]]].
+    move: (iget_Forall ig tyCs)=>tyC.
+    have mg : merge Gamma Gamma Gamma.
+      apply: merge_pure; eauto.
+    move: (substitutionU tyC tyI p mg)=>tyCI.
+    rewrite /rev/catrev.
+    exists Gamma. exists Gamma. exists (C.[I/]).
+    repeat split.
+    apply: merge_pure; eauto.
+    apply: s_Constr; eauto.
+    apply: typing_spine_nil; eauto.
+  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms I a mg
+    tyM ihM tyQ ihQ tyFsCs m0 ms0 wf sp.
+    destruct ms0; simpl in sp; try discriminate; subst.
+    move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
+    move: (merge_re_re mg)=>[e1 e2].
+    have mg' : merge (re Gamma2) (re Gamma1) (re Gamma).
+      rewrite e1. rewrite e2. apply: merge_re_re_re.
+    move: (propagation wf1 tyM)=>[s0[l tyI]].
+    have p : pure (re Gamma1).
+      apply: re_pure.
+    move: (s_Ind_spine_inv p a tyI)=>[s1[l0 tySp]].
+    move: (arity1_spine s' tySp a p)=>{}tySp.
+    move: (App_spine tyQ tySp mg')=>{}tySp.
+    rewrite /rev/catrev.
+    exists Gamma. exists (re Gamma). exists (spine Q ms).
+    repeat split; eauto.
+    apply: merge_re2.
+    apply: s_Case; eauto.
+    apply: typing_spine_nil.
+    apply: re_pure.
+    apply: tySp.
+  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms I a p mg
+    tyM ihM tyQ ihQ tyFsCs m0 ms0 wf sp.
+    destruct ms0; simpl in sp; try discriminate; subst.
+    move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
+    move: (merge_re_re mg)=>[e1 e2].      
+    have mg' : merge (re Gamma2) (re Gamma1) (re Gamma).
+      rewrite e1. rewrite e2. apply: merge_re_re_re.    
+    have tyM' : [ re Gamma1 |- m :- spine I ms ].
+      rewrite <-pure_re; eauto.
+    move: (propagation wf1 tyM)=>[s0[l tyI]].
+    have pr : pure (re Gamma1).
+      apply: re_pure.
+    move: (s_Ind_spine pr tyI)=>tyInd.
+    move: (s_Ind_inv tyInd)=>{a}[l0[a[cs[_[tyA tyCs]]]]].
+    move: (s_Ind_spine_inv pr a tyI)=>[s1[l1 tySp]].
+    move: (arity2_spine s' tySp a pr tyInd)=>{}tySp.
+    move: (App_spine tyQ tySp mg')=>{}tySp.
+    rewrite <-e2 in tySp.
+    move: (u_Prod_App pr tySp tyM' mg')=>tyApp.
+    rewrite /rev/catrev.
+    exists Gamma. exists (re Gamma). exists (App (spine Q ms) m).
+    repeat split; eauto.
+    apply: merge_re2.
+    apply: s_DCase; eauto.
+    rewrite <-pure_re; eauto.
+    apply: typing_spine_nil; eauto.
+    apply: re_pure.
+  move=> Gamma A m l p tyA ihA tyM ihM m0 ms wf sp.
+    destruct ms; simpl in sp; try discriminate; subst.
+    exists Gamma. exists Gamma. exists A.
+    repeat split.
+    apply: merge_pure; eauto.
+    eapply u_Fix; eauto.
+    apply: typing_spine_nil; eauto.
+  move=> Gamma A B m s l sb tyB ihB tyM ihM m0 ms wf sp.
+    destruct
+    subst.
+    have e : (spine' m0 ms = spine' m0 ms) by eauto.
+    move: (ihM m0 ms wf e)=>[Gamma1[Gamma2[A0[mg[tyM0 tySp]]]]].
+    exists Gamma1. exists Gamma2. exists A0.
+    repeat split; eauto.
+    apply: typing_spine
 
 
       
