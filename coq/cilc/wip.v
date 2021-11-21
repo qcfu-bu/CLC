@@ -6228,7 +6228,8 @@ Proof.
       apply: re_pure.
     move: (s_Ind_spine_inv p H2 H7)=>[s0[l0 tySp]].
     move: (arity1_spine t tySp H2 p)=>{}tySp.
-    move: (App_spine tySp p H6)=>tyQ.
+    move: (merge_re_re_re Gamma)=>mg.
+    move: (App_spine H6 tySp mg)=>tyQ.
     rewrite respine_spine_Ind.
     exists t. exists l0; eauto.
 Qed.
@@ -6372,7 +6373,8 @@ Proof.
       apply: re_pure.
     move: (s_Ind_spine_inv p H2 H7)=>[s0[l0 tySp]].
     move: (arity1_spine t tySp H2 p)=>{}tySp.
-    move: (App_spine tySp p H6)=>tyQ.
+    move: (merge_re_re_re Gamma)=> mg.
+    move: (App_spine H6 tySp mg)=>tyQ.
     rewrite respine_spine_Ind.
     exists t. exists l0; eauto.
 Qed.
@@ -6786,8 +6788,9 @@ Proof.
       move: (@arity1_spine (re Gamma1) ms A sA s s' lA sp a p)=>{}sp.
       rewrite e2 in tyQ. rewrite <- e1 in tyQ.
       rewrite e2 in ihQ. rewrite <- e1 in ihQ.
-      move: (App_spine sp p tyQ)=>tySp.
-      move: (App_spine sp p ihQ)=>tySp'.
+      move: (merge_re_re_re Gamma1)=>mg1.
+      move: (App_spine tyQ sp mg1)=>tySp.
+      move: (App_spine ihQ sp mg1)=>tySp'.
       have e : step (spine Q ms) (spine Q' ms).
         apply: head_spine_step; eauto.
       apply: s_Conv.
