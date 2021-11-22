@@ -7236,36 +7236,6 @@ Proof.
     constructor; eauto.
 Qed.
 
-(* Lemma s_Constr_spine'_False Gamma A B C U i m ms :
-  [ Gamma |- spine' (Constr i m) ms :- C ] -> 
-  Prod A B U <: C -> False.
-Proof.
-
-Lemma s_Constr_spine' Gamma A C Cs i m ms1 ms2 s :
-  iget i Cs C ->
-  [ Gamma |- spine' (Constr i m) ms1 :- spine' (Ind A Cs s) ms2 ] ->
-  [ Gamma |- Constr i m :- C.[Ind A Cs s/] ].
-Proof.
-  move e1:(spine' (Constr i m) ms1)=> n1.
-  move e2:(spine' (Ind A Cs s) ms2)=> n2 ig ty.
-  elim: ty A C Cs s i m ms1 ms2 ig e1 e2=>{Gamma n1 n2}; intros;
-  try solve 
-  [ (destruct ms1; simpl in e1; try inv e1) ||
-    (destruct ms2; simpl in e2; try inv e2) ].
-  - destruct ms1; simpl in e1; inv e1.
-    destruct ms2; simpl in e2.
-    move: (merge_re_re H4)=>{e2}[<- e2].
-    apply: H1; eauto. *)
-
-(* Lemma spine_Constr Gamma A Cs i m ms1 ms2 s :
-  let I := Ind A Cs s in
-  [ Gamma |- spine (Constr i m) ms1 :- spine I ms2 ] ->
-  [ Gamma |- spine (Constr i I) ms1 :- spine I ms2 ].
-Proof.
-  move=> I.
-  rewrite! spine_spine'_rev.
-  rewrite! spine_spine'_rev. *)
-
 Theorem subject_reduction Gamma m A :
   [ Gamma |- ] ->
   [ Gamma |- m :- A ] ->
@@ -7617,3 +7587,4 @@ Proof.
       move: (propagation wf3 tyC)=>[sX[lX tyX]].
       rewrite e in tyX.
       move: (typing_spine_strengthen tySp sb tyX)=>{}tySp.
+      move: (iget_Forall ig cs)=>c.
