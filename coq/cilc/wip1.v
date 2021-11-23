@@ -7859,6 +7859,40 @@ Proof.
     { exfalso; solve_sub. } }
 Qed.
 
+Lemma typing_spine'_Ind_Q Gamma A Q Cs ms1 ms2 ms s t l :
+  typing_spine Gamma (spine' (Ind A Cs s) ms1) ms (spine' (Ind A Cs s) ms2) ->
+  [ re Gamma |- spine' Q ms2 :- t @ l ] ->
+  typing_spine Gamma (spine' Q ms1) ms (spine' Q ms2).
+Proof.
+  move e1:(spine' (Ind A Cs s) ms1)=> n1.
+  move e2:(spine' (Ind A Cs s) ms2)=> n2 sp.
+  elim: sp A Q Cs ms1 ms2 s t l e1 e2=>{Gamma ms n1 n2}; intros; subst.
+  { apply: typing_spine_nil; eauto.
+    2:{ rewrite<-pure_re in H2; eauto. }
+    admit. }
+  { move: H0=>[_ _ []]. 
+
+  }
+
+
+
+Lemma typing_spine_case Gamma A Cs C I Q ms1 ms2 s t l n :
+  constr n s C ->
+  typing_spine Gamma C.[I] ms1 (spine (I n) ms2) ->
+  (I n = Ind A Cs s) ->
+  [ re Gamma |- spine Q ms2 :- t @ l ] ->
+  typing_spine Gamma (respine Q C.[I]) ms1 (spine Q ms2).
+Proof.
+  move=>c. 
+  elim: c Gamma A Cs I Q ms1 ms2 t l; intros.
+  { rewrite spine_subst; simpl.
+    rewrite H1.
+    rewrite respine_spine_Ind.
+    rewrite spine_subst in H0; simpl in H0.
+    rewrite H1 in H0.
+
+  }
+
 Lemma iget_All2 (P : term -> term -> Prop) xs ys i x :
   All2 (fun x y => P x y) xs ys ->
   iget i xs x ->
@@ -8251,3 +8285,8 @@ Proof.
         rewrite<-pure_re; eauto.
       rewrite e in tyCI.
       move: (typing_spine_strengthen tySp eCI tyCI)=>{}tySp.
+      move: (s_Ind_spine_inv p a tyI)=>[s0[l0 arSp]].
+      move: (arity1_spine s' arSp a p)=>{}arSp.
+      move: (merge_re_re_re Gamma4)=>mg4.
+      rewrite e2 in tyQ. rewrite<-e1 in tyQ.
+      move: (App_arity_spine tyQ arSp mg4)=>tySQ.
