@@ -8225,8 +8225,6 @@ Proof.
       move: (iget_Forall ig tyCs')=>tyC'.
       move: (merge_context_ok_inv mgX wf1)=>[wf3 wf4].
       move: (merge_re_re mgX)=>[e _].
-      have mg3 : merge Gamma3 Gamma3 Gamma3.
-        apply: merge_pure; eauto.
       move: (propagation wf3 tyC)=>[sX[lX tyX]].
       rewrite e in tyX.
       move: (typing_spine_strengthen tySp sb tyX)=>{}tySp.
@@ -8234,3 +8232,22 @@ Proof.
       have ex : (Ind A' Cs' s0 .: ids) 0 = Ind A' Cs' s0 by eauto.
       move: (typing_spine_constr_Ind c tySp ex)=>//=cv.
       move: (iget_All2 tyFsCs H3)=>[C[igC[cC tyF]]].
+      move: (Ind_inj cv)=>[eA[a2Cs es]]; subst.
+      move: (iget_All2 a2Cs ig)=>[Cx[igCx eCx]].
+      move: (iget_iget igCx igC)=>eC; subst.
+      have eCI : C.[Ind A Cs s/] <: C'.[Ind A' Cs' s/].
+        apply: conv_sub.
+        apply: conv_trans.
+        apply: conv_Beta.
+        apply: conv_sym.
+        apply: cv.
+        apply: conv_subst.
+        apply: conv_sym.
+        apply: eCx.
+      have mg3 : merge Gamma3 Gamma3 Gamma3.
+        apply: merge_pure; eauto.
+      move: (substitutionU tyC' tyM' p' mg3)=>//=tyCI.
+      have {}tyCI : [ re Gamma3 |- C'.[Ind A' Cs' s/] :- U @ l ].
+        rewrite<-pure_re; eauto.
+      rewrite e in tyCI.
+      move: (typing_spine_strengthen tySp eCI tyCI)=>{}tySp.
