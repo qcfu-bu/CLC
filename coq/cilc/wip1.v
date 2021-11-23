@@ -2035,6 +2035,78 @@ Proof.
   firstorder; eauto using join_conv.
 Qed.
 
+Lemma All2_conv_refl xs : All2 (conv step) xs xs.
+Proof.
+  elim: xs.
+  { constructor. }
+  { move=> a l ih.
+    constructor; eauto. }
+Qed.
+
+Lemma One2_step_All2_conv xs ys :
+  One2 step xs ys -> All2 (conv step) xs ys.
+Proof.
+  elim=>{xs ys}.
+  { move=> m m' ls st.
+    constructor; eauto.
+    apply: conv1; eauto.
+    apply: All2_conv_refl. }
+  { move=> m ls ls' o2 a2.
+    constructor; eauto. }
+Qed.
+
+Lemma All2_conv_trans xs ys zs :
+  All2 (conv step) xs ys ->
+  All2 (conv step) ys zs ->
+  All2 (conv step) xs zs.
+Proof.
+  move=> a2. elim: a2 zs=>{xs ys}.
+  { move=> zs a2.
+    inv a2.
+    constructor. }
+  { move=> m m' ls ls' e a2 ih zs a2'.
+    inv a2'.
+    constructor; eauto.
+    apply: conv_trans; eauto. }
+Qed.
+
+Lemma All2_conv_sym xs ys :
+  All2 (conv step) xs ys -> All2 (conv step) ys xs.
+Proof.
+  elim.
+  { constructor. }
+  { move=> m m' ls ls' e a2 ih.
+    constructor; eauto.
+    apply: conv_sym; eauto. }
+Qed.
+
+Lemma star_One2_step_All2_conv xs ys :
+  star (One2 step) xs ys -> All2 (conv step) xs ys.
+Proof.
+  elim.
+  { elim: xs; intros; constructor; eauto. }
+  { move=> x z st a2 o2.
+    apply One2_step_All2_conv in o2.
+    apply: All2_conv_trans; eauto. }
+Qed.
+
+Lemma Ind_inj A A' Cs Cs' s s' :
+  Ind A Cs s === Ind A' Cs' s' ->
+  A === A' /\ 
+  All2 (conv step) Cs Cs' /\
+  s = s'.
+Proof.
+  move=>/church_rosser h. inv h.
+  move: H=>/red_Ind_inv[Ax[Csx[rA[rCs e]]]]; subst.
+  move: H0=>/red_Ind_inv[Ax'[Csx'[rA'[rCs' e']]]]; subst.
+  inv e'.
+  firstorder; eauto using join_conv.
+  apply star_One2_step_All2_conv in rCs.
+  apply star_One2_step_All2_conv in rCs'.
+  apply: All2_conv_trans; eauto.
+  apply: All2_conv_sym; eauto.
+Qed.
+
 Ltac red_inv m H :=
   match m with
   | Var    => apply red_Var_inv in H
@@ -7787,6 +7859,26 @@ Proof.
     { exfalso; solve_sub. } }
 Qed.
 
+Lemma iget_All2 (P : term -> term -> Prop) xs ys i x :
+  All2 (fun x y => P x y) xs ys ->
+  iget i xs x ->
+  exists y,
+    iget i ys y /\ P x y.
+Proof.
+  move=>a2. elim: a2 i x=>//={xs ys}; intros.
+  { inv H. }
+  { inv H2.
+    { exists m'. 
+      split.
+      constructor.
+      apply: H. }
+    { move: (H1 _ _ H7)=>[y[ig pxy]].
+      exists y.
+      split.
+      constructor; eauto.
+      apply: pxy. } }
+Qed.
+
 Theorem subject_reduction Gamma m A :
   [ Gamma |- ] ->
   [ Gamma |- m :- A ] ->
@@ -8141,4 +8233,4 @@ Proof.
       move: (iget_Forall ig cs)=>c.
       have ex : (Ind A' Cs' s0 .: ids) 0 = Ind A' Cs' s0 by eauto.
       move: (typing_spine_constr_Ind c tySp ex)=>//=cv.
-      
+      move: (iget_All2 tyFsCs H3)=>[C[igC[cC tyF]]].
