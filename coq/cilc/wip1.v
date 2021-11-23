@@ -2035,24 +2035,70 @@ Proof.
   firstorder; eauto using join_conv.
 Qed.
 
-Lemma All2_conv_refl xs : All2 (conv step) xs xs.
+Lemma All2_cat (P : term -> term -> Prop) xs1 xs2 ys1 ys2 :
+  All2 P xs1 ys1 ->
+  All2 P xs2 ys2 ->
+  All2 P (xs1 ++ xs2) (ys1 ++ ys2).
 Proof.
-  elim: xs.
-  { constructor. }
-  { move=> a l ih.
+  move=>a2. elim: a2 xs2 ys2=>//=.
+  { move=> m m' ls ls' p a2 ih xs2 ys2 a2'.
     constructor; eauto. }
+Qed.
+
+Lemma All2_rev (P : term -> term -> Prop) xs ys :
+  All2 P xs ys -> All2 P (rev xs) (rev ys).
+Proof.
+  elim.
+  { rewrite /rev/catrev.
+    constructor. }
+  { move=> m m' ls ls' p a2 ih.
+    replace (m :: ls) with ([::m] ++ ls) by eauto.
+    replace (m' :: ls') with ([::m'] ++ ls') by eauto.
+    rewrite! rev_cat.
+    apply: All2_cat; eauto.
+    rewrite /rev/catrev.
+    repeat constructor; eauto. }
+Qed.
+
+Lemma All2_red_refl ms : All2 red ms ms.
+Proof with eauto using All2.
+  elim: ms...
+Qed.
+
+Lemma All2_conv_refl xs : All2 (conv step) xs xs.
+Proof with eauto using All2.
+  elim: xs...
+Qed.
+
+Lemma One2_step_All2_red xs ys :
+  One2 step xs ys -> All2 red xs ys.
+Proof with eauto using star1, All2, All2_red_refl.
+  elim=>{xs ys}.
+  { move=> m m' ls st... }
+  { move=> m ls ls' o2 a2... }
 Qed.
 
 Lemma One2_step_All2_conv xs ys :
   One2 step xs ys -> All2 (conv step) xs ys.
-Proof.
+Proof with eauto using conv1, All2, All2_conv_refl.
   elim=>{xs ys}.
-  { move=> m m' ls st.
+  { move=> m m' ls st... }
+  { move=> m ls ls' o2 a2... }
+Qed.
+
+Lemma All2_red_trans xs ys zs :
+  All2 red xs ys ->
+  All2 red ys zs ->
+  All2 red xs zs.
+Proof.
+  move=> a2. elim: a2 zs=>{xs ys}.
+  { move=> zs a2.
+    inv a2.
+    constructor. }
+  { move=> m m' ls ls' rd a2 ih zs a2'.
+    inv a2'.
     constructor; eauto.
-    apply: conv1; eauto.
-    apply: All2_conv_refl. }
-  { move=> m ls ls' o2 a2.
-    constructor; eauto. }
+    apply: star_trans; eauto. }
 Qed.
 
 Lemma All2_conv_trans xs ys zs :
@@ -2078,6 +2124,15 @@ Proof.
   { move=> m m' ls ls' e a2 ih.
     constructor; eauto.
     apply: conv_sym; eauto. }
+Qed.
+
+Lemma All2_red_conv xs ys :
+  All2 red xs ys -> All2 (conv step) xs ys.
+Proof with eauto using All2.
+  elim...
+  move=> m m' ls ls' rd a2 ih.
+  constructor...
+  apply: star_conv...
 Qed.
 
 Lemma star_One2_step_All2_conv xs ys :
@@ -7308,177 +7363,229 @@ Proof.
     constructor; eauto.
 Qed.
 
+Lemma All2_conv_spine'_tail h xs ys :
+  All2 (conv step) xs ys -> spine' h xs === spine' h ys.
+Proof.
+  elim=>//=.
+  move=> m m' ls ls' e a2 ih.
+  apply: conv_App; eauto.
+Qed.
+
+Lemma All2_conv_spine_tail h xs ys :
+  All2 (conv step) xs ys -> spine h xs === spine h ys.
+Proof.
+  move=>/All2_rev/(All2_conv_spine'_tail h).
+  rewrite! spine_spine'_rev; eauto.
+Qed.
+
 Lemma eq_spine'_Ind A A' Cs Cs' s s' ms ms' :
   spine' (Ind A Cs s) ms = spine' (Ind A' Cs' s') ms' ->
-  Ind A Cs s = Ind A' Cs' s'.
+  Ind A Cs s = Ind A' Cs' s' /\ ms = ms'.
 Proof.
   elim: ms A A' Cs Cs' s s' ms'; intros; simpl in H.
-  - destruct ms'; simpl in H; try discriminate; eauto.
-  - destruct ms'; simpl in H0; try discriminate; eauto.
+  { destruct ms'; simpl in H; try discriminate; eauto. }
+  { destruct ms'; simpl in H0; try discriminate; eauto.
     inv H0.
-    apply: H; eauto.
+    move: (H _ _ _ _ _ _ _ H2)=>[->->].
+    eauto. }
 Qed.
 
 Lemma step_spine'_Var x ms n:
   step (spine' (Var x) ms) n ->
-  exists ms', n = spine' (Var x) ms'.
-Proof.
+  exists ms', 
+    n = spine' (Var x) ms' /\
+    One2 step ms ms'.
+Proof with eauto using One2.
   elim: ms x n; simpl; intros.
   inv H.
   inv H0.
-  - move: (H _ _ H4)=>[ms'->].
-    exists (a :: ms'); eauto.
-  - exists (n' :: l); eauto.
-  - exfalso; solve_spine'.
+  { move: (H _ _ H4)=>[ms'[-> o2]].
+    exists (a :: ms')... }
+  { exists (n' :: l)... }
+  { exfalso; solve_spine'... }
 Qed.
 
 Lemma step_spine'_Ind A Cs s ms n :
   step (spine' (Ind A Cs s) ms) n ->
   exists A' Cs' ms', 
     n = spine' (Ind A' Cs' s) ms' /\
-    (step (Ind A Cs s) (Ind A' Cs' s) \/ Ind A Cs s = Ind A' Cs' s).
+    ((step (Ind A Cs s) (Ind A' Cs' s) /\ ms = ms') \/ 
+      (Ind A Cs s = Ind A' Cs' s /\ One2 step ms ms')).
 Proof.
   elim: ms A Cs s n; intros.
-  - simpl in H. inv H.
-    exists A'.
-    exists Cs.
-    exists nil. 
-    split; simpl; eauto.
-    left; constructor; eauto.
-    exists A.
-    exists Cs'.
-    exists nil.
-    split; simpl; eauto.
-    left; constructor; eauto.
-  - simpl in H0. inv H0.
-    + move: (H _ _ _ _ H4)=>[A'[Cs'[ms'[e[h1|h2]]]]]; subst.
-      exists A'.
-      exists Cs'.
-      exists (a :: ms').
-      split; simpl; eauto.
-      exists A.
+  { simpl in H. inv H.
+    { exists A'.
       exists Cs.
-      exists (a :: ms').
+      exists nil. 
       split; simpl; eauto.
-      rewrite h2; eauto.
-    + exists A.
+      left; repeat constructor; eauto. }
+    { exists A.
+      exists Cs'.
+      exists nil.
+      split; simpl; eauto.
+      left; repeat constructor; eauto. } }
+  { simpl in H0. inv H0.
+    { move: (H _ _ _ _ H4)=>[A'[Cs'[ms'[e[[h1 h2]|[h1 h2]]]]]]; subst.
+      { exists A'.
+        exists Cs'.
+        exists (a :: ms').
+        split; simpl; eauto. }
+      { exists A.
+        exists Cs.
+        exists (a :: ms').
+        split; simpl.
+        rewrite h1; eauto.
+        right; repeat constructor; eauto. } }
+    { exists A.
       exists Cs.
       exists (n' :: l).
       split; simpl; eauto.
-    + destruct l; try discriminate.
+      right; repeat constructor; eauto. }
+    { destruct l; try discriminate. } }
 Qed.
 
 Lemma red_spine'_Var x ms n :
   red (spine' (Var x) ms) n ->
-  exists ms', n = spine' (Var x) ms'.
-Proof.
+  exists ms', 
+    n = spine' (Var x) ms' /\
+    All2 red ms ms'.
+Proof with eauto using All2, All2_red_refl.
   move e:(spine' (Var x) ms)=>m rd.
   elim: rd x ms e=>{n}; intros; subst.
-  - exists ms; eauto.
-  - have e : spine' (Var x) ms = spine' (Var x) ms by eauto.
-    move: (H0 _ _ e)=>[ms' e']; subst.
-    move: (step_spine'_Var H1); eauto.
+  { exists ms... }
+  { have e : spine' (Var x) ms = spine' (Var x) ms by eauto.
+    move: (H0 _ _ e)=>[ms'[e' a2]]; subst.
+    move: (step_spine'_Var H1)=>[msx[ez o2]].
+    move: o2=>/One2_step_All2_red a2x.
+    exists msx.
+    split; eauto.
+    apply: All2_red_trans; eauto. }
 Qed.
 
 Lemma red_spine'_Ind A Cs s ms n :
   red (spine' (Ind A Cs s) ms) n ->
   exists A' Cs' ms',
-    n = (spine' (Ind A' Cs' s) ms') /\ red (Ind A Cs s) (Ind A' Cs' s).
-Proof.
+    n = (spine' (Ind A' Cs' s) ms') /\ 
+    red (Ind A Cs s) (Ind A' Cs' s) /\
+    All2 red ms ms'.
+Proof with eauto using All2, All2_red_refl.
   move e:(spine' (Ind A Cs s) ms)=>m rd.
   elim: rd A Cs s ms e=>{n}; intros; subst.
-  - exists A.
+  { exists A.
     exists Cs.
     exists ms.
-    eauto.
-  - have e : spine' (Ind A Cs s) ms = spine' (Ind A Cs s) ms.
+    repeat split... }
+  { have e : spine' (Ind A Cs s) ms = spine' (Ind A Cs s) ms.
       by eauto.
-    move: (H0 _ _ _ _ e)=>{e}[A'[Cs'[ms'[e rd]]]]; subst.
-    move: (step_spine'_Ind H1)=>[Ax[Csx[msx[e[h1|h2]]]]]; subst.
-    + exists Ax.
+    move: (H0 _ _ _ _ e)=>{e}[A'[Cs'[ms'[e[rd a2]]]]]; subst.
+    move: (step_spine'_Ind H1)=>[Ax[Csx[msx[e[[h1 h2]|[h1 h2]]]]]]; 
+    subst.
+    { exists Ax.
+      exists Csx.
+      exists msx.
+      repeat split; eauto.
+      apply: star_trans; eauto. 
+      apply: star1; eauto. }
+    { exists Ax.
       exists Csx.
       exists msx.
       split; eauto.
-      apply: star_trans; eauto.
-      apply: star1; eauto.
-    + exists Ax.
-      exists Csx.
-      exists msx.
-      split; eauto.
-      rewrite<-h2; eauto.
+      rewrite<-h1; split; eauto.
+      apply One2_step_All2_red in h2.
+      apply: All2_red_trans... } }
 Qed.
 
 Lemma red_spine_Var x ms n :
   red (spine (Var x) ms) n ->
-  exists ms', n = spine (Var x) ms'.
+  exists ms', 
+    n = spine (Var x) ms' /\
+    All2 red ms ms'.
 Proof.
   rewrite spine_spine'_rev=> rd.
   move: (red_spine'_Var rd); firstorder.
   exists (rev x0).
-  rewrite spine_spine'_rev.
-  rewrite revK; eauto.
+  split.
+  { rewrite spine_spine'_rev.
+    rewrite revK; eauto. }
+  { apply All2_rev in H0.
+    rewrite revK in H0; eauto. }
 Qed.
 
 Lemma red_spine_Ind A Cs s ms n :
   red (spine (Ind A Cs s) ms) n ->
   exists A' Cs' ms',
-    n = (spine (Ind A' Cs' s) ms') /\ red (Ind A Cs s) (Ind A' Cs' s).
+    n = (spine (Ind A' Cs' s) ms') /\ 
+    red (Ind A Cs s) (Ind A' Cs' s) /\
+    All2 red ms ms'.
 Proof.
   rewrite spine_spine'_rev=> rd.
   move: (red_spine'_Ind rd); firstorder.
   exists x.
   exists x0.
   exists (rev x1).
-  rewrite spine_spine'_rev.
-  rewrite revK; eauto.
+  repeat split; eauto.
+  { rewrite spine_spine'_rev.
+    rewrite revK; eauto. }
+  { apply All2_rev in H1.
+    rewrite revK in H1; eauto. }
 Qed.
 
 Lemma conv_spine'_Ind A A' Cs Cs' s s' ms ms' :
   spine' (Ind A Cs s) ms === spine' (Ind A' Cs' s') ms' ->
-  Ind A Cs s === Ind A' Cs' s'.
+  Ind A Cs s === Ind A' Cs' s' /\ 
+  All2 (conv step) ms ms'.
 Proof.
   move=> /church_rosser h. inv h.
-  move: (red_spine'_Ind H)=>{H}[A1[Cs1[ms1[e1 rd1]]]].
-  move: (red_spine'_Ind H0)=>{H0}[A2[Cs2[ms2[e2 rd2]]]]; subst.
-  move: (eq_spine'_Ind e2)=>e.
-  rewrite e in rd1.
-  apply: conv_trans.
-  apply: star_conv.
-  apply: rd1.
-  apply: conv_sym.
-  apply: star_conv.
-  eauto.
+  move: (red_spine'_Ind H)=>{H}[A1[Cs1[ms1[e1[rd1 a1]]]]].
+  move: (red_spine'_Ind H0)=>{H0}[A2[Cs2[ms2[e2[rd2 a2]]]]]; subst.
+  move: (eq_spine'_Ind e2)=>[e3 e4]; subst.
+  split.
+  { rewrite e3 in rd1.
+    apply: conv_trans.
+    apply: star_conv.
+    apply: rd1.
+    apply: conv_sym.
+    apply: star_conv.
+    eauto. }
+  { apply: All2_conv_trans.
+    { apply: All2_red_conv; eauto. }
+    { apply: All2_conv_sym.
+      apply: All2_red_conv; eauto. } }
 Qed.
 
 Lemma sub_spine'_Ind A A' Cs Cs' s s' ms ms' :
   spine' (Ind A Cs s) ms <: spine' (Ind A' Cs' s') ms' ->
-  Ind A Cs s === Ind A' Cs' s'.
+  Ind A Cs s === Ind A' Cs' s' /\
+  All2 (conv step) ms ms'.
 Proof.
   move=>[X Y []]; intros.
-  - apply: conv_spine'_Ind.
+  { apply: conv_spine'_Ind.
     apply: conv_trans.
     apply: c.
-    apply: c0.
-  - move: c=>/church_rosser h. inv h.
+    apply: c0. }
+  { move: c=>/church_rosser h. inv h.
     move: H0=>/red_Sort_inv e; subst.
-    move: H=>/red_spine'_Ind; firstorder.
-    exfalso; solve_spine'.
-  - move: c=>/church_rosser h. inv h.
+    move: H=>/red_spine'_Ind[Ax[Csx[msx[e _]]]].
+    exfalso; solve_spine'. }
+  { move: c=>/church_rosser h. inv h.
     move: H0=>/red_Prod_inv[Ax[Bx[_[_ e]]]]; subst.
-    move: H=>/red_spine'_Ind; firstorder.
-    exfalso; solve_spine'.
-  - move: c=>/church_rosser h. inv h.
+    move: H=>/red_spine'_Ind[Ay[Csy[msy[e _]]]].
+    exfalso; solve_spine'. }
+  { move: c=>/church_rosser h. inv h.
     move: H0=>/red_Lolli_inv[Ax[Bx[_[_ e]]]]; subst.
-    move: H=>/red_spine'_Ind; firstorder.
-    exfalso; solve_spine'.
+    move: H=>/red_spine'_Ind[Ay[Csy[msy[e _]]]].
+    exfalso; solve_spine'. }
 Qed.
 
 Lemma sub_spine_Ind A A' Cs Cs' s s' ms ms' :
   spine (Ind A Cs s) ms <: spine (Ind A' Cs' s') ms' ->
-  Ind A Cs s === Ind A' Cs' s'.
+  Ind A Cs s === Ind A' Cs' s' /\
+  All2 (conv step) ms ms'.
 Proof.
-  rewrite! spine_spine'_rev.
-  apply: sub_spine'_Ind.
+  rewrite! spine_spine'_rev=>/sub_spine'_Ind[e h].
+  split; eauto.
+  apply All2_rev in h.
+  rewrite !revK in h; eauto.
 Qed.
 
 Lemma typing_spine_Ind_Ind Gamma A1 A2 Cs1 Cs2 s1 s2 ms1 ms2 ms :
@@ -7490,7 +7597,7 @@ Proof.
   move e2:(spine (Ind A2 Cs2 s2) ms2)=> n2 sp.
   elim: sp A1 A2 Cs1 Cs2 s1 s2 ms1 ms2 e1 e2=>{Gamma n1 n2 ms}; 
   intros; subst.
-  { apply: sub_spine_Ind; eauto. }
+  { move: H0=>/sub_spine_Ind[h _]; eauto. }
   { move: H0=>[_ _ []]; intros.
     { have e : spine (Ind A1 Cs1 s1) ms1 === Prod A B U.
         apply: conv_trans; eauto.
@@ -7859,22 +7966,24 @@ Proof.
     { exfalso; solve_sub. } }
 Qed.
 
-Lemma typing_spine'_Ind_Q Gamma A Q Cs ms1 ms2 ms s t l :
-  typing_spine Gamma (spine' (Ind A Cs s) ms1) ms (spine' (Ind A Cs s) ms2) ->
-  [ re Gamma |- spine' Q ms2 :- t @ l ] ->
-  typing_spine Gamma (spine' Q ms1) ms (spine' Q ms2).
+Lemma typing_spine_Ind_Q Gamma A Q Cs ms1 ms2 ms s t l :
+  typing_spine Gamma (spine (Ind A Cs s) ms1) ms (spine (Ind A Cs s) ms2) ->
+  [ re Gamma |- spine Q ms2 :- t @ l ] ->
+  typing_spine Gamma (spine Q ms1) ms (spine Q ms2).
 Proof.
-  move e1:(spine' (Ind A Cs s) ms1)=> n1.
-  move e2:(spine' (Ind A Cs s) ms2)=> n2 sp.
+  move e1:(spine (Ind A Cs s) ms1)=> n1.
+  move e2:(spine (Ind A Cs s) ms2)=> n2 sp.
   elim: sp A Q Cs ms1 ms2 s t l e1 e2=>{Gamma ms n1 n2}; intros; subst.
   { apply: typing_spine_nil; eauto.
     2:{ rewrite<-pure_re in H2; eauto. }
-    admit. }
-  { move: H0=>[_ _ []]. 
-
-  }
-
-
+    move: H0=>/sub_spine_Ind[_ a2].
+    apply: conv_sub.
+    apply: All2_conv_spine_tail; eauto. }
+  { admit. }
+  { admit. }
+  { admit. }
+  { admit. }
+Admitted.
 
 Lemma typing_spine_case Gamma A Cs C I Q ms1 ms2 s t l n :
   constr n s C ->
@@ -7884,14 +7993,19 @@ Lemma typing_spine_case Gamma A Cs C I Q ms1 ms2 s t l n :
   typing_spine Gamma (respine Q C.[I]) ms1 (spine Q ms2).
 Proof.
   move=>c. 
-  elim: c Gamma A Cs I Q ms1 ms2 t l; intros.
+  elim: c Gamma A Cs I Q ms1 ms2 t l; simpl; intros.
   { rewrite spine_subst; simpl.
     rewrite H1.
     rewrite respine_spine_Ind.
     rewrite spine_subst in H0; simpl in H0.
     rewrite H1 in H0.
-
-  }
+    apply: typing_spine_Ind_Q; eauto. }
+  { inv H3.
+    { admit. }
+    { admit. }
+    { admit. }
+    { admit. }
+    { admit. } }
 
 Lemma iget_All2 (P : term -> term -> Prop) xs ys i x :
   All2 (fun x y => P x y) xs ys ->
