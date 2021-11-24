@@ -8899,10 +8899,20 @@ Proof.
       have pr : pure (re Gamma1) by apply re_pure.
       have {}tyI : [re Gamma1 |- spine (Ind A Cs U) ms :- sI @ lI].
         by eauto.
-      pose proof (s_Ind_spine_inv pr a tyI).
+      move: (s_Ind_spine_inv pr a tyI)=>[s0[l tySp]].
+      move: (s_Ind_spine pr tyI)=>{}tyI.
+      move: (arity2_spine s tySp a pr tyI)=>{}tySp.
+      have mg' : merge (re Gamma2) (re Gamma1) (re Gamma).
+        rewrite e1 e2. apply: merge_re_re_re.
+      move: (App_arity_spine tyQ tySp mg')=>tySQ.
+      have {}tyM : [ re Gamma1 |- m :- spine I ms ].
+        rewrite<-pure_re; eauto.
+      rewrite<-e2 in tySQ.
+      move: (u_Prod_App pr tySQ tyM mg')=>//=tyApp.
       apply: s_Conv; eauto.
-      apply s_DCase.
-      econstructor; eauto. }
+      apply: s_DCase; eauto.
+      rewrite<-pure_re; eauto.
+      rewrite<-pure_re; eauto. }
     { move: (re_ok wf2)=>rwf2.
       move: (ihQ rwf2 _ H3)=>{}ihQ.
       have p : pure (re Gamma1).
