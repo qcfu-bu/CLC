@@ -7452,25 +7452,65 @@ Proof.
   apply: tyF.
 Qed.
 
-Lemma All2i_case_stepQ Gamma A Q Q' Fs Cs Cs' n s t l :
-  let I := Ind A Cs' U in
-  step Q Q' ->
-  arity s A ->
-  [ re Gamma |- I :- A ] ->
-  [ re Gamma |- Q' :- arity2 t I A ] ->
-  All2i (fun i F C => constr 0 U C /\ 
-    [ Gamma |- F :- dcase I Q (Constr i I) C ]) n Fs Cs ->
-  List.Forall (fun C => [ A +u re Gamma |- C :- U @ l ]) Cs ->
-  All2i (fun i F C => constr 0 U C /\
-    [ Gamma |- F :- dcase I Q' (Constr i I) C ]) n Fs Cs.
+Inductive sub_list : nat -> list term -> list term -> Prop :=
+| sub_list_O xs : sub_list 0 xs xs
+| sub_list_S x xs ys n : 
+  sub_list n xs ys -> sub_list n.+1 (x :: xs) ys.
+
+Lemma sub_list_iget i XS x xs :
+  sub_list i XS (x :: xs) -> iget i XS x.
 Proof.
-  move=> I st a tyInd tyQ all. elim: all=>{Fs Cs}.
+  move e:(x :: xs)=> ys sb.
+  elim: sb x xs e=>{i XS ys}; intros; subst.
+  { constructor. }
+  { constructor.
+    apply: H0; eauto. }
+Qed.
+
+Lemma sub_list_ok i XS x xs :
+  sub_list i XS (x :: xs) -> sub_list i.+1 XS xs.
+Proof.
+  move e:(x :: xs)=> ys sb.
+  elim: sb x xs e=>{i XS ys}; intros; subst.
+  { repeat constructor. }
+  { constructor.
+    apply: H0; eauto. }
+Qed.
+
+Lemma All2i_strengthen (P : nat -> term -> term -> Prop) Cs Fs Xs n :
+  All2i (fun i F C => P i F C) n Fs Xs ->
+  sub_list n Cs Xs ->
+  All2i (fun i F C => iget i Cs C /\ P i F C) n Fs Xs.
+Proof.
+  move=> a2i. elim: a2i Cs=>{Fs Xs n}; intros.
+  { constructor. }
+  { constructor.
+    { apply sub_list_iget in H2; eauto. }
+    { apply: H1.
+      apply: sub_list_ok; eauto. } }
+Qed.
+
+Lemma All2i_dcase_stepQ Gamma A Q Q' Fs Cs Xs n s l :
+  let I := Ind A Cs U in
+  step Q Q' ->
+  arity U A ->
+  [ re Gamma |- I :- A ] ->
+  [ re Gamma |- Q' :- arity2 s I A ] ->
+  sub_list n Cs Xs ->
+  All2i (fun i F C => constr 0 U C /\ 
+    [ Gamma |- F :- dcase I Q (Constr i I) C ]) n Fs Xs ->
+  List.Forall (fun C => [ A +u re Gamma |- C :- U @ l ]) Xs ->
+  All2i (fun i F C => constr 0 U C /\
+    [ Gamma |- F :- dcase I Q' (Constr i I) C ]) n Fs Xs.
+Proof.
+  move=> I st a tyInd tyQ sb a2i. 
+  move: (All2i_strengthen a2i sb)=>{sb}a2i. elim: a2i=>{Fs Xs}.
   constructor.
-  move=> i F C Fs Cs [c tyF] hd tl h.
+  move=> i F C Fs Cs' [c tyF] hd tl h; subst.
   inv h.
   constructor; eauto.
   firstorder.
-  have h1 : (I .: ids) 0 = Ind A Cs' U by eauto.
+  have h1 : (I .: ids) 0 = Ind A Cs U by eauto.
   have //=h2 : [re Gamma |- C.[I/] :- (U @ l).[I/]].
     apply: substitutionU; eauto.
     apply: re_pure.
@@ -7479,15 +7519,17 @@ Proof.
     apply: conv_sub.
     apply: conv1.
     apply: drespine_step; eauto.
-  move: 
-  (@constr_drespine Gamma (I .: ids) Cs' A Q' C 0 U s t l c a h1
-    tyInd tyQ h2)=>[s0[l0 tySp]].
-  unfold case.
-  unfold case in tyF.
+  have h4 : [re Gamma |- Constr i I :- C.[I/]].
+    apply: s_Constr; eauto.
+    apply: re_pure.
+  pose proof
+  (@constr_drespine Gamma (I .: ids) Cs A Q' C (Constr i I) 0 s U l
+    H a h1 tyInd tyQ h2 h4); firstorder.
+  unfold dcase.
   apply: s_Conv.
   apply: h3.
-  apply: tySp.
-  apply: tyF.
+  apply: H4.
+  apply: H0.
 Qed.
 
 Lemma All2_One2_stepF Gamma A Q Fs Fs' Cs Cs' s :
