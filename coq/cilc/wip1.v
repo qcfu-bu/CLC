@@ -8499,9 +8499,9 @@ Theorem subject_reduction Gamma m A :
 Proof.
   move=> wf ty.
   move: Gamma m A ty wf. apply: has_type_nested_ind.
-  move=> Gamma s l p wf n st. inv st.
-  move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
-    move: (ihA wf _ H3)=>tyA'.
+  { move=> Gamma s l p wf n st. inv st. }
+  { move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
+    { move: (ihA wf _ H3)=>tyA'.
       have e : A' === A.
         apply: conv_sym.
         apply: conv1; eauto.
@@ -8509,24 +8509,24 @@ Proof.
       apply: context_convU.
       apply: e.
       rewrite <- pure_re; eauto.
-      apply: tyB.
-    have {}wf : [ A +u Gamma |- ].
+      apply: tyB. }
+    { have {}wf : [ A +u Gamma |- ].
       apply: u_ok; eauto.
       rewrite <- pure_re; eauto.
       move: (ihB wf _ H3)=>tyB'.
-      apply: u_Prod; eauto.
-  move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
-    move: (ihA wf _ H3)=>tyA'.
+      apply: u_Prod; eauto. } }
+  { move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
+    { move: (ihA wf _ H3)=>tyA'.
       have e : A' === A.
         apply: conv_sym.
         apply: conv1; eauto.
-      apply: l_Prod; eauto.
-    have {}wf : [ +n Gamma |- ].
+      apply: l_Prod; eauto. }
+    { have {}wf : [ +n Gamma |- ].
       apply: n_ok; eauto.
       move: (ihB wf _ H3)=>tyB'.
-      apply: l_Prod; eauto.
-  move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
-    move: (ihA wf _ H3)=>tyA'.
+      apply: l_Prod; eauto. } }
+  { move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
+    { move: (ihA wf _ H3)=>tyA'.
       have e : A' === A.
         apply: conv_sym.
         apply: conv1; eauto.
@@ -8534,25 +8534,25 @@ Proof.
       apply: context_convU.
       apply: e.
       rewrite <- pure_re; eauto.
-      apply: tyB.
-    have {}wf : [ A +u Gamma |- ].
+      apply: tyB. }
+    { have {}wf : [ A +u Gamma |- ].
       apply: u_ok; eauto.
       rewrite <- pure_re; eauto.
-      apply: u_Lolli; eauto.
-  move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
-    move: (ihA wf _ H3)=>tyA'.
+      apply: u_Lolli; eauto. } }
+  { move=> Gamma A B s l p tyA ihA tyB ihB wf n st. inv st.
+    { move: (ihA wf _ H3)=>tyA'.
       have e : A' === A.
         apply: conv_sym.
         apply: conv1; eauto.
-      apply: l_Lolli; eauto.
-    have {}wf : [ +n Gamma |- ].
+      apply: l_Lolli; eauto. }
+    { have {}wf : [ +n Gamma |- ].
       apply: n_ok; eauto.
       move: (ihB wf _ H3)=>tyB'.
-      apply: l_Lolli; eauto.
-  move=> Gamma x A hA wf n st. inv st.
-  move=> Gamma x A hA wf n st. inv st.
-  move=> Gamma n A B s t l p tyProd ihProd tyN ihN wf n' st. inv st.
-    have stProd : step (Prod A B s) (Prod A' B s).
+      apply: l_Lolli; eauto. } }
+  { move=> Gamma x A hA wf n st. inv st. }
+  { move=> Gamma x A hA wf n st. inv st. }
+  { move=> Gamma n A B s t l p tyProd ihProd tyN ihN wf n' st. inv st.
+    { have stProd : step (Prod A B s) (Prod A' B s).
       by constructor.
       move: (ihProd wf _ stProd)=>tyProd'.
       apply: s_Conv.
@@ -8574,8 +8574,8 @@ Proof.
           apply: context_convL.
           apply: e.
           rewrite <- pure_re; eauto.
-          apply: tyN.
-    destruct s.
+          apply: tyN. }
+    { destruct s.
       move: (u_Prod_inv tyProd)=>[_[lA[_[tyA _]]]].
         have {}wf : [ A +u Gamma |- ].
           apply: u_ok; eauto.
@@ -8587,9 +8587,9 @@ Proof.
           apply: l_ok; eauto.
           rewrite <- pure_re; eauto.
         move: (ihN wf _ H3)=>tyM'.
-        apply: u_Lam; eauto.
-  move=> Gamma n A B s t l tyLolli ihLolli tyN ihN wf n' st. inv st.
-    have stLolli : step (Lolli A B s) (Lolli A' B s).
+        apply: u_Lam; eauto. } }
+  { move=> Gamma n A B s t l tyLolli ihLolli tyN ihN wf n' st. inv st.
+    { have stLolli : step (Lolli A B s) (Lolli A' B s).
       by constructor.
       have {}wf : [ re Gamma |- ].
         apply: re_ok; eauto.
@@ -8613,8 +8613,8 @@ Proof.
           apply: context_convL.
           apply: e.
           apply: tyA.
-          apply: tyN.
-    destruct s.
+          apply: tyN. }
+    { destruct s.
       move: (u_Lolli_inv tyLolli)=>[_[lA[_[tyA _]]]].
         have {}wf : [ A +u Gamma |- ].
           apply: u_ok; eauto.
@@ -8624,8 +8624,8 @@ Proof.
         have {}wf : [ A +l Gamma |- ].
           apply: l_ok; eauto.
         move: (ihN wf _ H3)=>tyM'.
-        apply: l_Lam; eauto.
-  move=> Gamma1 Gamma2 Gamma A B m n p tyM ihM tyN ihN mg wf n' st.
+        apply: l_Lam; eauto. } }
+  { move=> Gamma1 Gamma2 Gamma A B m n p tyM ihM tyN ihN mg wf n' st.
     move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
     move: (ihM wf1)=>{}ihM.
     move: (ihN wf2)=>{}ihN.
@@ -8633,50 +8633,50 @@ Proof.
     move: (pure_re p)=> e3.
     move: (propagation wf1 tyM)=>[s[l tyProd]].
     inv st.
-      move: (ihM _ H2)=>{H2}ihM.
-        apply: u_Prod_App; eauto.
-      move: (ihN _ H2)=>{}ihN.
-        move: (u_Prod_inv tyProd)=>[sB[lB[_ [_ [tyB _]]]]].
-        have //={}tyB : [ re Gamma1 |- B.[n/] :- (sB @ lB).[n/] ].
-          apply: substitutionU; eauto.
-          rewrite e3 e2 e1.
-          apply: merge_re_re_re.
-        have e : B.[n'0/] === B.[n/].
-          apply: conv_Beta.
-          apply: conv_sym.
-          apply: conv1; eauto.
-        apply: s_Conv.
-        apply: conv_sub.
-        apply: e.
-        rewrite <- e1; eauto.
-        apply: u_Prod_App; eauto.
-      move: (u_Lam_inv tyProd tyM)=>tyM0.
+    { move: (ihM _ H2)=>{H2}ihM.
+      apply: u_Prod_App; eauto. }
+    { move: (ihN _ H2)=>{}ihN.
+      move: (u_Prod_inv tyProd)=>[sB[lB[_ [_ [tyB _]]]]].
+      have //={}tyB : [ re Gamma1 |- B.[n/] :- (sB @ lB).[n/] ].
         apply: substitutionU; eauto.
-  move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg wf n' st.
+        rewrite e3 e2 e1.
+        apply: merge_re_re_re.
+      have e : B.[n'0/] === B.[n/].
+        apply: conv_Beta.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      apply: s_Conv.
+      apply: conv_sub.
+      apply: e.
+      rewrite <- e1; eauto.
+      apply: u_Prod_App; eauto. }
+    { move: (u_Lam_inv tyProd tyM)=>tyM0.
+      apply: substitutionU; eauto. } }
+  { move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg wf n' st.
     move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
     move: (ihM wf1)=>{}ihM.
     move: (ihN wf2)=>{}ihN.
     move: (merge_re_re mg)=>[e1 e2].
     move: (propagation wf1 tyM)=>[s[l tyProd]].
     inv st.
-      move: (ihM _ H2)=>{H2}ihM.
-        apply: l_Prod_App; eauto.
-      move: (ihN _ H2)=>{}ihN.
-        move: (l_Prod_inv tyProd)=>[sB[lB[_ [_ [tyB _]]]]].
-        have //={}tyB : [ re Gamma1 |- B.[n/] :- (sB @ lB).[n/] ].
-          apply: substitutionN; eauto.
-        have e : B.[n'0/] === B.[n/].
-          apply: conv_Beta.
-          apply: conv_sym.
-          apply: conv1; eauto.
-        apply: s_Conv.
-        apply: conv_sub.
-        apply: e.
-        rewrite <- e1; eauto.
-        apply: l_Prod_App; eauto.
-      move: (u_Lam_inv tyProd tyM)=>tyM0.
-        apply: substitutionL; eauto.
-  move=> Gamma1 Gamma2 Gamma A B m n p tyM ihM tyN ihN mg wf n' st.
+    { move: (ihM _ H2)=>{H2}ihM.
+      apply: l_Prod_App; eauto. }
+    { move: (ihN _ H2)=>{}ihN.
+      move: (l_Prod_inv tyProd)=>[sB[lB[_ [_ [tyB _]]]]].
+      have //={}tyB : [ re Gamma1 |- B.[n/] :- (sB @ lB).[n/] ].
+        apply: substitutionN; eauto.
+      have e : B.[n'0/] === B.[n/].
+        apply: conv_Beta.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      apply: s_Conv.
+      apply: conv_sub.
+      apply: e.
+      rewrite <- e1; eauto.
+      apply: l_Prod_App; eauto. }
+    { move: (u_Lam_inv tyProd tyM)=>tyM0.
+      apply: substitutionL; eauto. } }
+  { move=> Gamma1 Gamma2 Gamma A B m n p tyM ihM tyN ihN mg wf n' st.
     move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
     move: (ihM wf1)=>{}ihM.
     move: (ihN wf2)=>{}ihN.
@@ -8684,51 +8684,51 @@ Proof.
     move: (pure_re p)=> e3.
     move: (propagation wf1 tyM)=>[s[l tyLolli]].
     inv st.
-      move: (ihM _ H2)=>{H2}ihM.
-        apply: u_Lolli_App; eauto.
-      move: (ihN _ H2)=>{}ihN.
-        move: (u_Lolli_inv tyLolli)=>[sB[lB[_ [_ [tyB _]]]]].
-        have //={}tyB : [ re Gamma1 |- B.[n/] :- (sB @ lB).[n/] ].
-          apply: substitutionU; eauto.
-          rewrite e3 e2 e1.
-          apply: merge_re_re_re.
-        have e : B.[n'0/] === B.[n/].
-          apply: conv_Beta.
-          apply: conv_sym.
-          apply: conv1; eauto.
-        apply: s_Conv.
-        apply: conv_sub.
-        apply: e.
-        rewrite <- e1; eauto.
-        apply: u_Lolli_App; eauto.
-      move: (l_Lam_inv tyLolli tyM)=>tyM0.
+    { move: (ihM _ H2)=>{H2}ihM.
+        apply: u_Lolli_App; eauto. }
+    { move: (ihN _ H2)=>{}ihN.
+      move: (u_Lolli_inv tyLolli)=>[sB[lB[_ [_ [tyB _]]]]].
+      have //={}tyB : [ re Gamma1 |- B.[n/] :- (sB @ lB).[n/] ].
         apply: substitutionU; eauto.
-  move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg wf n' st.
+        rewrite e3 e2 e1.
+        apply: merge_re_re_re.
+      have e : B.[n'0/] === B.[n/].
+        apply: conv_Beta.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      apply: s_Conv.
+      apply: conv_sub.
+      apply: e.
+      rewrite <- e1; eauto.
+      apply: u_Lolli_App; eauto. }
+    { move: (l_Lam_inv tyLolli tyM)=>tyM0.
+      apply: substitutionU; eauto. } }
+  { move=> Gamma1 Gamma2 Gamma A B m n tyM ihM tyN ihN mg wf n' st.
     move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
     move: (ihM wf1)=>{}ihM.
     move: (ihN wf2)=>{}ihN.
     move: (merge_re_re mg)=>[e1 e2].
     move: (propagation wf1 tyM)=>[s[l tyLolli]].
     inv st.
-      move: (ihM _ H2)=>{H2}ihM.
-        apply: l_Lolli_App; eauto.
-      move: (ihN _ H2)=>{}ihN.
-        move: (l_Lolli_inv tyLolli)=>[sB[lB[_ [_ [tyB _]]]]].
-        have //={}tyB : [ re Gamma1 |- B.[n/] :- (sB @ lB).[n/] ].
-          apply: substitutionN; eauto.
-        have e : B.[n'0/] === B.[n/].
-          apply: conv_Beta.
-          apply: conv_sym.
-          apply: conv1; eauto.
-        apply: s_Conv.
-        apply: conv_sub.
-        apply: e.
-        rewrite <- e1; eauto.
-        apply: l_Lolli_App; eauto.
-      move: (l_Lam_inv tyLolli tyM)=>tyM0.
-        apply: substitutionL; eauto.
-  move=> Gamma A s Cs l a cs p tyA ihA tyCs ihCs wf n st. inv st.
-    move: (ihA wf _ H3)=>tyA'.
+    { move: (ihM _ H2)=>{H2}ihM.
+      apply: l_Lolli_App; eauto. }
+    { move: (ihN _ H2)=>{}ihN.
+      move: (l_Lolli_inv tyLolli)=>[sB[lB[_ [_ [tyB _]]]]].
+      have //={}tyB : [ re Gamma1 |- B.[n/] :- (sB @ lB).[n/] ].
+        apply: substitutionN; eauto.
+      have e : B.[n'0/] === B.[n/].
+        apply: conv_Beta.
+        apply: conv_sym.
+        apply: conv1; eauto.
+      apply: s_Conv.
+      apply: conv_sub.
+      apply: e.
+      rewrite <- e1; eauto.
+      apply: l_Lolli_App; eauto. }
+    { move: (l_Lam_inv tyLolli tyM)=>tyM0.
+      apply: substitutionL; eauto. } }
+  { move=> Gamma A s Cs l a cs p tyA ihA tyCs ihCs wf n st. inv st.
+    { move: (ihA wf _ H3)=>tyA'.
       have e : A' === A.
         apply: conv_sym.
         apply: conv1; eauto.
@@ -8743,8 +8743,8 @@ Proof.
         apply: context_convU.
         apply: e.
         rewrite <- pure_re; eauto.
-        apply: H.
-    apply: s_Ind; eauto.
+        apply: H. }
+    { apply: s_Ind; eauto.
       elim: H3 cs; intros.
         inv cs. constructor; eauto.
           apply: constr_step; eauto.
@@ -8752,9 +8752,9 @@ Proof.
       elim: H3 tyCs ihCs; intros.
         inv tyCs. inv ihCs. constructor; eauto.
           apply: H4; eauto. apply: u_ok; eauto. rewrite <- pure_re; eauto.
-        inv tyCs. inv ihCs. constructor; eauto. 
-  move=> Gamma A s i C Cs I ig p tyI ihI wf n st. inv st. inv H2.
-    - have st : step (Ind A Cs s) (Ind A' Cs s).
+        inv tyCs. inv ihCs. constructor; eauto. } } 
+  { move=> Gamma A s i C Cs I ig p tyI ihI wf n st. inv st. inv H2.
+    { have st : step (Ind A Cs s) (Ind A' Cs s).
         constructor; eauto.
       have e : Ind A' Cs s === Ind A Cs s.
         apply: conv_sym. apply: conv1; eauto.
@@ -8771,8 +8771,8 @@ Proof.
       constructor; eauto.
       apply: s_Conv. apply: conv_sub. apply: conv1; eauto.
       rewrite <- pure_re; eauto.
-      apply: ihI'.
-    - have st : step (Ind A Cs s) (Ind A Cs' s).
+      apply: ihI'. }
+    { have st : step (Ind A Cs s) (Ind A Cs' s).
         constructor; eauto.
       have e : Ind A Cs' s === Ind A Cs s.
         apply: conv_sym. apply: conv1; eauto.
@@ -8793,16 +8793,16 @@ Proof.
       apply: s_Conv.
       apply: conv_sub. apply: conv_sym. apply: ex.
       rewrite <- pure_re; eauto.
-      constructor; eauto.
-  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms I a mg 
+      constructor; eauto. } } 
+  { move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms I a mg 
     tyM ihM tyQ ihQ tyFsCs ihFsCs wf n st.
     move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
     move: (merge_re_re mg)=>[e1 e2].
     move: (propagation wf1 tyM)=>[sI[lI tyI]].
     inv st.
-    - move: (ihM wf1 _ H3)=>{}ihM.
-      econstructor; eauto.
-    - move: (re_ok wf2)=>rwf2.
+    { move: (ihM wf1 _ H3)=>{}ihM.
+      econstructor; eauto. }
+    { move: (re_ok wf2)=>rwf2.
       move: (ihQ rwf2 _ H3)=>{}ihQ.
       have p : pure (re Gamma1).
         apply: re_pure.
@@ -8825,10 +8825,10 @@ Proof.
       apply: All2_case_stepQ; eauto.
       rewrite e2; rewrite <-e1; eauto.
       rewrite e2; rewrite <-e1; eauto.
-      rewrite e2; rewrite <-e1; eauto.
-    - econstructor; eauto.
-      apply: All2_One2_stepF; eauto.
-    - have p : pure (re Gamma1).
+      rewrite e2; rewrite <-e1; eauto. }
+    { econstructor; eauto.
+      apply: All2_One2_stepF; eauto. }
+    { have p : pure (re Gamma1).
         apply: re_pure.
       move: (s_Ind_spine p tyI)=>tyInd.
       move: (spine_inv wf1 tyM)=>[Gamma3[Gamma4[X[mgX[tyC0 tySp]]]]].
@@ -8883,4 +8883,4 @@ Proof.
       apply: App_typing_spine.
       apply: tyF.
       apply: H.
-      apply: merge_sym; eauto.
+      apply: merge_sym; eauto. } }
