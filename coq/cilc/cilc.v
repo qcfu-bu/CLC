@@ -9588,4 +9588,5 @@ Proof.
 Qed.
 
 Print Assumptions subject_reduction.
-End.
+
+End CILC.
