@@ -9552,12 +9552,39 @@ Proof.
       apply: typing_spine_constr2; eauto.
       rewrite<-pure_re; eauto.
       rewrite<-pure_re; eauto. } }
+  { move=> Gamma A m l p tyA ihA tyM ihM wf n st. inv st.
+    { have {}ihA := ihA wf _ H2.
+      have h : [ A +u re Gamma |- A'.[ren (+1)] :- (U @ l).[ren (+1)] ].
+        apply: eweakeningU; eauto.
+        rewrite<-pure_re; eauto.
+      apply: s_Conv.
+      apply: conv_sub.
+      apply: conv_sym.
+      apply: conv1; eauto.
+      rewrite<-pure_re; eauto.
+      apply: u_Fix; eauto.
+      apply: context_convU.
+      apply: conv_sym.
+      apply: conv1; eauto.
+      rewrite<-pure_re; eauto.
+      apply: s_Conv.
+      apply: sub_subst.
+      apply: conv_sub.
+      apply: conv1; eauto.
+      apply: h.
+      apply: tyM. }
+    { have {}wf : [ A +u Gamma |- ].
+        apply: u_ok; eauto.
+        rewrite<-pure_re; eauto.
+      have {}ihM := ihM wf _ H2.
+      apply: u_Fix; eauto. }
+    { have tyFix : [ Gamma |- Fix A m :- A ].
+        apply: u_Fix; eauto.
+      have mg := merge_pure p.
+      have h := substitutionU tyM tyFix p mg.
+      asimpl in h; eauto. } }
+  { move=> Gamma A B m s l sb tyB ihB tyM ihM wf m' st.
+    apply: s_Conv; eauto. }
+Qed.
 
-
-      (* pose proof 
-      (@typing_spine_constr Gamma4 A Cs C (Ind A Cs s .: ids) 
-        Q ms0 ms U s s' s' l1 l0 0 cC tySp h1 h2 tyCI tyInd tyQ tySQ).
-      apply: App_typing_spine.
-      apply: tyF.
-      apply: H.
-      apply: merge_sym; eauto. } } *)
+Print Assumptions subject_reduction.
