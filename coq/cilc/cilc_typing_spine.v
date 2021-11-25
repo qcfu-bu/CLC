@@ -576,7 +576,7 @@ Proof.
       apply: tyM'.
       rewrite rev_cons.
       apply: typing_spine_l_Lolli_rcons; eauto. } }
-  { move=> Γ A s Cs l a cs p tyA ihA tyCs m ms wf sp.
+  { move=> Γ A Cs s t l a cs p tyA ihA tyCs m ms wf sp.
     destruct ms; simpl in sp; try discriminate; subst.
     rewrite /rev/catrev.
     exists Γ. exists Γ. exists A.
@@ -586,7 +586,7 @@ Proof.
     apply: typing_spine_nil; eauto. }
   { move=> Γ A s i C Cs I ig p tyI ihI m ms wf sp.
     destruct ms; simpl in sp; try discriminate; subst.
-    move: (s_Ind_inv tyI)=>[l[a[cs[_[tyA tyCs]]]]].
+    move: (s_Ind_inv tyI)=>[t[l[a[cs[_[tyA tyCs]]]]]].
     move: (iget_Forall ig tyCs)=>tyC.
     have mg : merge Γ Γ Γ.
       apply: merge_pure; eauto.
@@ -632,7 +632,7 @@ Proof.
     have pr : pure (re Γ1).
       apply: re_pure.
     move: (s_Ind_spine pr tyI)=>tyInd.
-    move: (s_Ind_inv tyInd)=>{a}[l0[a[cs[_[tyA tyCs]]]]].
+    move: (s_Ind_inv tyInd)=>{a}[t[l0[a[cs[_[tyA tyCs]]]]]].
     move: (s_Ind_spine_inv pr a tyI)=>[s1[l1 tySp]].
     move: (arity2_spine s tySp a pr tyInd)=>{tySp}/arity_typing_spine tySp.
     move: (App_typing_spine tyQ tySp mg')=>{}tySp.

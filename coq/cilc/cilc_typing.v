@@ -195,11 +195,11 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Γ |- Var x :- A ]
 | u_Lam Γ n A B s t l :
   pure Γ ->
-  [ Γ |- Prod A B s :- Sort t l ] ->
+  [ Γ |- Prod A B s :- t @ l ] ->
   [ A +{s} Γ |- n :- B ] ->
   [ Γ |- Lam A n s :- Prod A B s ]
 | l_Lam Γ n A B s t l :
-  [ re Γ |- Lolli A B s :- Sort t l ] ->
+  [ re Γ |- Lolli A B s :- t @ l ] ->
   [ A +{s} Γ |- n :- B ] ->
   [ Γ |- Lam A n s :- Lolli A B s ]
 | u_Prod_App Γ1 Γ2 Γ A B m n :
@@ -224,12 +224,12 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Γ2 |- n :- A ] ->
   merge Γ1 Γ2 Γ ->
   [ Γ |- App m n :- B.[n/] ]
-| s_Ind Γ A s Cs l :
+| s_Ind Γ A Cs s t l :
   arity s A ->
   List.Forall (constr 0 s) Cs ->
   pure Γ ->
-  [ Γ |- A :- Sort U l ] ->
-  List.Forall (fun C => [ A +u Γ |- C :- Sort U l ]) Cs ->
+  [ Γ |- A :- U @ l ] ->
+  List.Forall (fun C => [ A +u Γ |- C :- t @ l ]) Cs ->
   [ Γ |- Ind A Cs s :- A ]
 | s_Constr Γ A s i C Cs :
   let I := Ind A Cs s in
@@ -260,12 +260,12 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Γ |- DCase m Q Fs :- App (spine Q ms) m ]
 | u_Fix Γ A m l :
   pure Γ ->
-  [ Γ |- A :- Sort U l ] ->
+  [ Γ |- A :- U @ l ] ->
   [ A +u Γ |- m :- A.[ren (+1)] ] ->
   [ Γ |- Fix A m :- A ]
 | s_Conv Γ A B m s l :
   A <: B ->
-  [ re Γ |- B :- Sort s l ] ->
+  [ re Γ |- B :- s @ l ] ->
   [ Γ |- m :- A ] ->
   [ Γ |- m :- B ]
 where "[ Γ |- m :- A ]" := (has_type Γ m A).
@@ -333,13 +333,13 @@ Section has_type_nested_ind.
     [ Γ2 |- n :- A ] -> P Γ2 n A ->
     merge Γ1 Γ2 Γ ->
     P Γ (App m n) B.[n/].
-  Hypothesis ih_s_Ind : forall Γ A s Cs l,
+  Hypothesis ih_s_Ind : forall Γ A Cs s t l,
     arity s A ->
     List.Forall (constr 0 s) Cs ->
     pure Γ ->
     [ Γ |- A :- Sort U l ] -> P Γ A (Sort U l) ->
-    List.Forall (fun C => [ A +u Γ |- C :- Sort U l ]) Cs ->
-      List.Forall (fun C => P (A +u Γ) C (Sort U l)) Cs ->
+    List.Forall (fun C => [ A +u Γ |- C :- Sort t l ]) Cs ->
+      List.Forall (fun C => P (A +u Γ) C (Sort t l)) Cs ->
     P Γ (Ind A Cs s) A.
   Hypothesis ih_s_Constr : forall Γ A s i C Cs,
     let I := Ind A Cs s in
@@ -406,8 +406,8 @@ Section has_type_nested_ind.
       apply (
         fix fold Cs 
           (pf : List.Forall 
-            (fun C => [ A0 +u Γ0 |- C :- Sort U l]) Cs) :
-          List.Forall (fun C => P (A0 +u Γ0) C (Sort U l)) Cs
+            (fun C => [ A0 +u Γ0 |- C :- Sort t l]) Cs) :
+          List.Forall (fun C => P (A0 +u Γ0) C (Sort t l)) Cs
         :=
           match pf with
           | List.Forall_nil => List.Forall_nil _

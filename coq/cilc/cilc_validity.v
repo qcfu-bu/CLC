@@ -103,14 +103,14 @@ Proof.
     replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
     apply: substitutionN; eauto.
     rewrite <- e1; eauto. }
-  { move=> Γ A s Cs l a c p tyA ihA tyCs ihCs wf.
+  { move=> Γ A Cs s t l a c p tyA ihA tyCs ihCs wf.
     exists U. exists l.
     rewrite <- pure_re; eauto. }
   { move=> Γ A s i C Cs ig p tyInd ihInd wf.
-    move: (s_Ind_inv tyInd)=>[l'[_[c[_[tyA tyCs]]]]].
-    exists U. exists l'.
+    move: (s_Ind_inv tyInd)=>[t[l'[_[c[_[tyA tyCs]]]]]].
+    exists t. exists l'.
     move: (iget_Forall ig tyCs)=>tyC.
-    replace (Sort U l') with (Sort U l').[Ind A Cs s/] by autosubst.
+    replace (Sort t l') with (Sort t l').[Ind A Cs s/] by autosubst.
     apply: substitutionU; eauto.
     rewrite <- pure_re; eauto.
     apply: merge_pure; eauto. }
@@ -134,7 +134,7 @@ Proof.
     have pr : pure (re Γ1) by apply: re_pure.
     move: (merge_re_re mg)=>[e1 e2].
     move: (s_Ind_spine pr tySpInd)=>tyInd.
-    move: (s_Ind_inv tyInd)=>[l[a[_[_[tyA _]]]]].
+    move: (s_Ind_inv tyInd)=>[t[l[a[_[_[tyA _]]]]]].
     apply s_Ind_spine_inv in tySpInd; eauto.
     move: tySpInd=>[sx[lx sp]].
     move: (@arity2_spine (re Γ1) ms 

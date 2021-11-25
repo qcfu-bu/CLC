@@ -253,19 +253,19 @@ Qed.
 
 Lemma s_Ind_invX Γ A B Cs s :
   [ Γ |- Ind A Cs s :- B ] ->
-  exists l,
+  exists t l,
     A <: B /\
     arity s A /\
     List.Forall (constr 0 s) Cs /\
     pure Γ /\
     [ Γ |- A :- Sort U l ] /\
-    List.Forall (fun C => [ A +u Γ |- C :- Sort U l ]) Cs.
+    List.Forall (fun C => [ A +u Γ |- C :- Sort t l ]) Cs.
 Proof.
   move e:(Ind A Cs s)=> n ty.
   elim: ty Cs e=>{Γ n}; intros; try discriminate.
-  inv e. exists l. firstorder.
-  move: (H3 _ e)=>[l'[sb h]].
-    exists l'. firstorder.
+  inv e. exists t. exists l. firstorder.
+  move: (H3 _ e)=>[t[l'[sb h]]].
+    exists t. exists l'. firstorder.
     apply: sub_trans.
     apply: sb.
     apply: H.
@@ -273,12 +273,12 @@ Qed.
 
 Lemma s_Ind_inv Γ A Cs s :
   [ Γ |- Ind A Cs s :- A ] ->
-  exists l,
+  exists t l,
     arity s A /\
     List.Forall (constr 0 s) Cs /\
     pure Γ /\
     [ Γ |- A :- Sort U l ] /\
-    List.Forall (fun C => [ A +u Γ |- C :- Sort U l ]) Cs.
+    List.Forall (fun C => [ A +u Γ |- C :- Sort t l ]) Cs.
 Proof. move=> /s_Ind_invX; firstorder. Qed.
 
 Lemma s_Constr_invX Γ i I CI :
