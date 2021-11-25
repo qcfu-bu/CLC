@@ -82,7 +82,7 @@ Inductive pstep : term -> term -> Prop :=
   pstep A A' ->
   pstep m m' ->
   pstep (Fix A m) (Fix A' m')
-| pstep_FixIota A A' m m' :
+| pstep_Fiξota A A' m m' :
   pstep A A' ->
   pstep m m' ->
   pstep (Fix A m) (m'.[Fix A' m'/]).
@@ -140,7 +140,7 @@ Section pstep_ind_nested.
   Hypothesis ih_Fix :
     forall A A' m m', pstep A A' -> P A A' -> pstep m m' -> P m m' -> 
       P (Fix A m) (Fix A' m').
-  Hypothesis ih_FixIota :
+  Hypothesis ih_Fiξota :
     forall A A' m m', pstep A A' -> P A A' -> pstep m m' -> P m m' -> 
       P (Fix A m) (m'.[Fix A' m'/]).
   
@@ -168,15 +168,12 @@ Section pstep_ind_nested.
     apply ih_DCase; eauto.
     eapply ih_DCaseIota; eauto.
     apply ih_Fix; eauto.
-    apply ih_FixIota; eauto.
+    apply ih_Fiξota; eauto.
   Qed.
 End pstep_ind_nested.
 
-Notation red := (star step).
-Notation "m === n" := (conv step m n) (at level 50).
-
-Definition sred sigma tau := 
-  forall x : var, red (sigma x) (tau x).
+Definition sred σ tau := 
+  forall x : var, red (σ x) (tau x).
 
 Fixpoint spine' (h : term) (ls : list term) : term :=
   match ls with
@@ -300,15 +297,15 @@ Proof.
   by move: e=> /rev_inj->.
 Qed.
 
-Lemma spine_subst sigma h ls :
-  (spine h ls).[sigma] = spine (h.[sigma]) ls..[sigma].
+Lemma spine_subst σ h ls :
+  (spine h ls).[σ] = spine (h.[σ]) ls..[σ].
 Proof.
-  move: sigma h. elim: ls => //.
-  move=> a l ih sigma h.
-    replace ((a :: l)..[sigma]) 
-      with (a.[sigma] :: l..[sigma])
+  move: σ h. elim: ls => //.
+  move=> a l ih σ h.
+    replace ((a :: l)..[σ]) 
+      with (a.[σ] :: l..[σ])
       by autosubst; simpl.
-    replace (App h.[sigma] a.[sigma]) with (App h a).[sigma]
+    replace (App h.[σ] a.[σ]) with (App h a).[σ]
       by autosubst.
     apply ih.
 Qed.
@@ -322,48 +319,48 @@ Proof.
     by move: H3=> /ih.
 Qed.
 
-Lemma iget_subst sigma i ls m :
-  iget i ls m -> iget i ls..[sigma] m.[sigma].
+Lemma iget_subst σ i ls m :
+  iget i ls m -> iget i ls..[σ] m.[σ].
 Proof.
   move=> ig. elim: ig; asimpl.
   move=> m0 ls0; by constructor.
   move=> n m0 m' ls0 ig ih; by constructor.
 Qed.
 
-Lemma step_subst sigma m n (st : step m n) : 
-  step m.[sigma] n.[sigma].
+Lemma step_subst σ m n (st : step m n) : 
+  step m.[σ] n.[σ].
 Proof with eauto using step.
-  move: m n st sigma.
+  move: m n st σ.
   apply: step_ind_nested; asimpl... 
-  move=> A m n s sigma.
-    replace (m.[n/].[sigma]) with (m.[up sigma].[n.[sigma]/])
+  move=> A m n s σ.
+    replace (m.[n/].[σ]) with (m.[up σ].[n.[σ]/])
     by autosubst.
     exact: step_Beta.
-  move=> A s Cs Cs' h ih sigma; asimpl. 
+  move=> A s Cs Cs' h ih σ; asimpl. 
     constructor.
     elim: ih=> //=.
     intros; constructor; asimpl...
     intros; constructor; asimpl...
-  move=> m Q Fs Fs' h ih sigma; asimpl.
+  move=> m Q Fs Fs' h ih σ; asimpl.
     constructor.
     elim: ih=> //=.
     intros; constructor; asimpl...
     intros; constructor; asimpl...
-  move=> i m ms Q Fs F ig sigma.
+  move=> i m ms Q Fs F ig σ.
     repeat (rewrite spine_subst; asimpl).
     constructor.
     exact: iget_subst.
-  move=> m Q Fs Fs' h ih sigma; asimpl.
+  move=> m Q Fs Fs' h ih σ; asimpl.
     constructor.
     elim: ih=> //=.
     intros; constructor; asimpl...
     intros; constructor; asimpl...
-  move=> i m ms Q Fs F ig sigma; asimpl.
+  move=> i m ms Q Fs F ig σ; asimpl.
     repeat (rewrite spine_subst; asimpl).
     constructor.
     exact: iget_subst.
-  move=> A m sigma.
-    replace m.[Fix A m/].[sigma] with m.[up sigma].[Fix A.[sigma] m.[up sigma]/]
+  move=> A m σ.
+    replace m.[Fix A m/].[σ] with m.[up σ].[Fix A.[σ] m.[up σ]/]
       by autosubst.
     constructor.
 Qed.
@@ -529,21 +526,21 @@ Proof.
     exact: rd2.
 Qed.
 
-Lemma red_subst sigma m n :
-  red m n -> red m.[sigma] n.[sigma].
+Lemma red_subst σ m n :
+  red m n -> red m.[σ] n.[σ].
 Proof.
-  move=> rd. elim: rd sigma=> /={n}.
-  move=> sigma //.
-  move=> y z rd ih st sigma.
-    have rd1 := ih sigma.
+  move=> rd. elim: rd σ=> /={n}.
+  move=> σ //.
+  move=> y z rd ih st σ.
+    have rd1 := ih σ.
     apply: star_trans.
     apply: rd1.
-    move: st=> /(step_subst sigma) rd2.
+    move: st=> /(step_subst σ) rd2.
     by apply: star1.
 Qed.
 
-Lemma sred_up sigma tau : 
-  sred sigma tau -> sred (up sigma) (up tau).
+Lemma sred_up σ tau : 
+  sred σ tau -> sred (up σ) (up tau).
 Proof. 
   move=> A [|n] //=; asimpl. 
   apply: red_subst. 
@@ -556,24 +553,24 @@ Hint Resolve
   red_ls red_subst sred_up 
 : red_congr.
 
-Lemma red_compat sigma tau s : 
-  sred sigma tau -> red s.[sigma] s.[tau].
+Lemma red_compat σ tau s : 
+  sred σ tau -> red s.[σ] s.[tau].
 Proof.
-  move: s sigma tau.
+  move: s σ tau.
   apply: term_ind_nested; asimpl; eauto 6 with red_congr.
-  move=> A s Cs ih h sigma tau sr.
+  move=> A s Cs ih h σ tau sr.
     apply: red_Ind; eauto.
     elim: h=> //=; eauto 6 with red_congr.
-  move=> m Q Fs ih1 ih2 ih3 sigma tau sr.
+  move=> m Q Fs ih1 ih2 ih3 σ tau sr.
     apply: red_Case; eauto.
     elim: ih3=> //=; eauto 6 with red_congr.
-  move=> m Q Fs ih1 ih2 ih3 sigma tau sr.
+  move=> m Q Fs ih1 ih2 ih3 σ tau sr.
     apply: red_DCase; eauto.
     elim: ih3=> //=; eauto 6 with red_congr.
 Qed.
 
-Definition sconv (sigma tau : var -> term) := 
-  forall x, sigma x === tau x.
+Definition sconv (σ tau : var -> term) := 
+  forall x, σ x === tau x.
 
 Lemma conv_Lam A1 A2 m1 m2 s : 
   A1 === A2 -> m1 === m2 -> Lam A1 m1 s === Lam A2 m2 s.
@@ -734,27 +731,27 @@ Proof.
     exact: conv_tl.
 Qed.
 
-Lemma conv_subst sigma m n :
-  m === n -> m.[sigma] === n.[sigma].
+Lemma conv_subst σ m n :
+  m === n -> m.[σ] === n.[σ].
 Proof.
-  move=> cv. elim: cv sigma=> /={n}.
-  move=> sigma //.
-  move=> y z rd ih st sigma.
-    have cv1 := ih sigma.
+  move=> cv. elim: cv σ=> /={n}.
+  move=> σ //.
+  move=> y z rd ih st σ.
+    have cv1 := ih σ.
     apply: conv_trans.
     apply: cv1.
-    move: st=> /(step_subst sigma) rd2.
+    move: st=> /(step_subst σ) rd2.
     by apply: conv1.
-  move=> y z rd ih st sigma.
-    have cv1 := ih sigma.
+  move=> y z rd ih st σ.
+    have cv1 := ih σ.
     apply: conv_trans.
     apply: cv1.
-    move: st=> /(step_subst sigma) rd2.
+    move: st=> /(step_subst σ) rd2.
     by apply: conv1i.
 Qed.
 
-Lemma sconv_up sigma tau : 
-  sconv sigma tau -> sconv (up sigma) (up tau).
+Lemma sconv_up σ tau : 
+  sconv σ tau -> sconv (up σ) (up tau).
 Proof. 
   move=> A [|n] //=; asimpl. 
   apply: conv_subst. 
@@ -767,18 +764,18 @@ Hint Resolve
   conv_ls conv_subst sconv_up 
 : conv_congr.
 
-Lemma conv_compat sigma tau s : 
-  sconv sigma tau -> s.[sigma] === s.[tau].
+Lemma conv_compat σ tau s : 
+  sconv σ tau -> s.[σ] === s.[tau].
 Proof.
-  move: s sigma tau.
+  move: s σ tau.
   apply: term_ind_nested; asimpl; eauto 6 with conv_congr. 
-  move=> A s Cs ih h sigma tau sr.
+  move=> A s Cs ih h σ tau sr.
     apply: conv_Ind; eauto.
     elim: h=> //=; eauto 6 with conv_congr.
-  move=> m Q Fs ih1 ih2 ih3 sigma tau sr.
+  move=> m Q Fs ih1 ih2 ih3 σ tau sr.
     apply: conv_Case; eauto.
     elim: ih3=> //=; eauto 6 with conv_congr.
-  move=> m Q Fs ih1 ih2 ih3 sigma tau sr.
+  move=> m Q Fs ih1 ih2 ih3 σ tau sr.
     apply: conv_DCase; eauto.
     elim: ih3=> //=; eauto 6 with conv_congr.
 Qed.
@@ -871,92 +868,92 @@ Proof.
     by constructor.
 Qed.
 
-Lemma pstep_subst sigma m m' :
-  pstep m m' -> pstep m.[sigma] m'.[sigma].
+Lemma pstep_subst σ m m' :
+  pstep m m' -> pstep m.[σ] m'.[σ].
 Proof with eauto using pstep, pstep_refl, All2, All2_pstep_refl.
-  move=> p. move: m m' p sigma.
+  move=> p. move: m m' p σ.
   apply: pstep_ind_nested...
-  move=> A m m' n n' s p1 ih1 p2 ih2 sigma; asimpl.
-    pose proof (ih1 (up sigma))=> {ih1}.
-    pose proof (ih2 sigma)=> {ih2}.
-    pose proof (pstep_Beta A.[sigma] s H H0).
+  move=> A m m' n n' s p1 ih1 p2 ih2 σ; asimpl.
+    pose proof (ih1 (up σ))=> {ih1}.
+    pose proof (ih2 σ)=> {ih2}.
+    pose proof (pstep_Beta A.[σ] s H H0).
     by asimpl in H1.
-  move=> A A' s Cs Cs' pA ihA pCs ihCs sigma; asimpl.
+  move=> A A' s Cs Cs' pA ihA pCs ihCs σ; asimpl.
     constructor; eauto.
     elim: ihCs; asimpl...
-  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs sigma; asimpl.
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs σ; asimpl.
     constructor; eauto.
     elim: ihFs; asimpl...
-  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs sigma; asimpl.
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs σ; asimpl.
     rewrite! spine_subst.
     apply: pstep_CaseIota; eauto.
     apply: iget_subst. exact ig.
     elim: ihMs; asimpl...
     elim: ihFs; asimpl...
-  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs sigma; asimpl.
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs σ; asimpl.
     constructor; eauto.
     elim: ihFs; asimpl...
-  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs sigma; asimpl.
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs σ; asimpl.
     rewrite! spine_subst.
     apply: pstep_DCaseIota; eauto.
     apply: iget_subst. exact ig.
     elim: ihMs; asimpl...
     elim: ihFs; asimpl...
-  move=> A A' m m' pA ihA pM ihM sigma; asimpl.
-    replace m'.[Fix A'.[sigma] m'.[up sigma] .: sigma]
-      with (m'.[up sigma]).[Fix A'.[sigma] m'.[up sigma]/]
+  move=> A A' m m' pA ihA pM ihM σ; asimpl.
+    replace m'.[Fix A'.[σ] m'.[up σ] .: σ]
+      with (m'.[up σ]).[Fix A'.[σ] m'.[up σ]/]
       by autosubst.
-    exact: pstep_FixIota.
+    exact: pstep_Fiξota.
 Qed.
 
-Definition psstep (sigma tau : var -> term) := 
-  forall x, pstep (sigma x) (tau x).
+Definition psstep (σ tau : var -> term) := 
+  forall x, pstep (σ x) (tau x).
 
-Lemma psstep_refl sigma : psstep sigma sigma.
+Lemma psstep_refl σ : psstep σ σ.
 Proof with eauto using pstep_refl.
   unfold psstep.
   induction x...
 Qed.
 
-Lemma psstep_up sigma tau :
-  psstep sigma tau -> psstep (up sigma) (up tau).
+Lemma psstep_up σ tau :
+  psstep σ tau -> psstep (up σ) (up tau).
 Proof with eauto using pstep, pstep_refl.
   move=> A [|n] //=. asimpl... asimpl; apply: pstep_subst. exact: A.
 Qed.
 
-Lemma pstep_compat sigma tau m m' :
-  pstep m m' -> psstep sigma tau -> pstep m.[sigma] m'.[tau].
+Lemma pstep_compat σ tau m m' :
+  pstep m m' -> psstep σ tau -> pstep m.[σ] m'.[tau].
 Proof with eauto 6 using pstep, All2, psstep_up.
-  move=> p. move: m m' p sigma tau.
+  move=> p. move: m m' p σ tau.
   apply: pstep_ind_nested... 
-  move=> A m m' n n' s pM ihM pN ihN sigma tau pss; asimpl.
+  move=> A m m' n n' s pM ihM pN ihN σ tau pss; asimpl.
     have pss' := psstep_up pss.
     have hM := ihM _ _ pss'.
     have hN := ihN _ _ pss.
-    pose proof (pstep_Beta (A.[sigma]) s hM hN).
+    pose proof (pstep_Beta (A.[σ]) s hM hN).
     by asimpl in H.
-  move=> A A' Cs Cs' s pA ihA pCs ihCs sigma tau pss; asimpl.
+  move=> A A' Cs Cs' s pA ihA pCs ihCs σ tau pss; asimpl.
     constructor; eauto.
     elim: ihCs; asimpl...
-  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs sigma tau pss; asimpl.
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs σ tau pss; asimpl.
     constructor; eauto.
     elim: ihFs; asimpl...
-  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs sigma tau pss; asimpl.
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs σ tau pss; asimpl.
     rewrite! spine_subst.
     apply: pstep_CaseIota.
     apply: iget_subst. exact: ig.
     elim: ihMs; asimpl...
     elim: ihFs; asimpl...
-  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs sigma tau pss; asimpl.
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs σ tau pss; asimpl.
     constructor; eauto.
     elim: ihFs; asimpl...
-  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs sigma tau pss; asimpl.
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs σ tau pss; asimpl.
     rewrite! spine_subst.
     apply: pstep_DCaseIota.
     apply: iget_subst. exact: ig.
     elim: ihMs; asimpl...
     elim: ihFs; asimpl...
-  move=> A A' m m' pA ihA pM ihM sigma tau ps; asimpl.
+  move=> A A' m m' pA ihA pM ihM σ tau ps; asimpl.
     replace m'.[Fix A'.[tau] m'.[up tau] .: tau]
       with (m'.[up tau]).[Fix A'.[tau] m'.[up tau]/]
       by autosubst.
@@ -966,8 +963,8 @@ Proof with eauto 6 using pstep, All2, psstep_up.
     exact: psstep_up.
 Qed.
 
-Lemma psstep_compat sigma tau m1 m2 :
-  psstep sigma tau -> pstep m1 m2 -> psstep (m1 .: sigma) (m2 .: tau).
+Lemma psstep_compat σ tau m1 m2 :
+  psstep σ tau -> pstep m1 m2 -> psstep (m1 .: σ) (m2 .: tau).
 Proof. move=> A B [|n] //=. Qed.
 
 Lemma pstep_subst_term m n n' :

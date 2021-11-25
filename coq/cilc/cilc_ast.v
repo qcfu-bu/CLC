@@ -154,8 +154,11 @@ Inductive step : term -> term -> Prop :=
 | step_FixR A m m' :
   step m m' ->
   step (Fix A m) (Fix A m')
-| step_FixIota A m :
+| step_Fiξota A m :
   step (Fix A m) (m.[Fix A m/]).
+
+Notation red := (star step).
+Notation "m === n" := (conv step m n) (at level 50).
 
 Section step_ind_nested.
   Variable P : term -> term -> Prop.
@@ -208,7 +211,7 @@ Section step_ind_nested.
     forall A A' m, step A A' -> P A A' -> P (Fix A m) (Fix A' m).
   Hypothesis ih_FixR :
     forall A m m', step m m' -> P m m' -> P (Fix A m) (Fix A m').
-  Hypothesis ih_FixIota :
+  Hypothesis ih_Fiξota :
     forall A m, P (Fix A m) (m.[Fix A m/]).
 
   Fixpoint step_ind_nested m m' (st : step m m') : P m m'.
@@ -242,6 +245,6 @@ Section step_ind_nested.
     apply ih_DCaseIota; eauto.
     apply ih_FixL; eauto.
     apply ih_FixR; eauto.
-    apply ih_FixIota; eauto.
+    apply ih_Fiξota; eauto.
   Qed.
 End step_ind_nested.

@@ -3,4 +3,15 @@
 AutosubstSsr.v
 ARS.v
 cc.v
-clc.v
+clc_context.v
+clc_ast.v
+clc_confluence.v
+clc_subtype.v
+clc_typing.v
+clc_weakening.v
+clc_substitution.v
+clc_inversion.v
+clc_validity.v
+clc_soundness.v
+clc_linearity.v
+clc_consistent.v

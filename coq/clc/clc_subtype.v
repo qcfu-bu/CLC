@@ -1,30 +1,32 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Program Utf8 Classical.
-Require Import AutosubstSsr ARS cilc_context cilc_ast cilc_confluence.
+Require Import AutosubstSsr ARS clc_context clc_ast clc_confluence.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Notation "s @ l" := (Sort s l) (at level 30).
+Notation "s @ l" := (Sort s (Some l)) (at level 30).
 
 Inductive sub1 : term -> term -> Prop :=
 | sub1_refl A : 
   sub1 A A
-| sub1_Sort s l1 l2 : 
+| sub1_prop s l : 
+  sub1 (Sort s None) (s @ l)
+| sub1_sort s l1 l2 : 
   l1 <= l2 -> 
   sub1 (s @ l1) (s @ l2)
-| sub1_Prod A B1 B2 s : 
+| sub1_prod A B1 B2 s : 
   sub1 B1 B2 -> 
   sub1 (Prod A B1 s) (Prod A B2 s)
-| sub1_Lolli A B1 B2 s : 
+| sub1_lolli A B1 B2 s : 
   sub1 B1 B2 -> 
   sub1 (Lolli A B1 s) (Lolli A B2 s).
 
 CoInductive sub (A B : term) : Prop :=
 | SubI A' B' : 
   sub1 A' B' -> A === A' -> B' === B -> sub A B.
-Notation "A <: B" := (sub A B) (at level 50, no associativity).
+Infix "<:" := sub (at level 50, no associativity).
 
 Lemma sub1_sub A B : sub1 A B -> sub A B. move=> /SubI. exact. Qed.
 Lemma sub1_conv B A C : sub1 A B -> B === C -> A <: C. move=>/SubI. exact. Qed.
@@ -37,35 +39,42 @@ Lemma sub_refl A : A <: A.
 Proof. apply: sub1_sub. exact: sub1_refl. Qed.
 Hint Resolve sub_refl.
 
-Lemma sub_Sort s n m : n <= m -> s @ n <: s @ m.
-Proof. move=> leq. exact/sub1_sub/sub1_Sort. Qed.
+Lemma sub_prop s n : Sort s None <: s @ n.
+Proof. exact/sub1_sub/sub1_prop. Qed.
+
+Lemma sub_sort s n m : n <= m -> s @ n <: s @ m.
+Proof. move=> leq. exact/sub1_sub/sub1_sort. Qed.
 
 Lemma sub1_trans A B C D :
   sub1 A B -> B === C -> sub1 C D -> A <: D.
 Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
-  move=> sb. elim: sb C D=>{A B}
+  move=> sb. elim: sb C D => {A B}
     [ A C D 
+    | s l C D conv sb
     | s l1 l2 leq C D conv sb
     | A B1 B2 s sb1 ih C D conv sb2
     | A B1 B2 s sb1 ih C D conv sb2 ]...
-  inv sb; try (exfalso; solve_conv)...
-    move: conv => /Sort_inj [->eq].
-    apply: sub_Sort. subst.
+  - inv sb; try (exfalso; solve_conv)...
+    move: conv => /sort_inj [->[eq]].
+    apply: sub_prop.
+  - inv sb; try (exfalso; solve_conv)...
+    move: conv => /sort_inj [->[eq]].
+    apply: sub_sort. subst.
     exact: leq_trans leq _.
-  inv sb2; try (exfalso; solve_conv)...
-    move: conv => /Prod_inj[conv1 [conv2 ->]].
-    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
-    eapply SubI.
-    eapply sub1_Prod...
-    eapply conv_Prod...
-    exact: conv_Prod.
-  inv sb2; try (exfalso; solve_conv)...
-    move: conv => /Lolli_inj[conv1 [conv2 ->]].
+  - inv sb2; try (exfalso; solve_conv)...
+    move: conv => /prod_inj[conv1 [conv2 ->]].
     move: (ih _ _ conv2 H) => {ih} sub. inv sub.
     eapply SubI. 
-    eapply sub1_Lolli...
-    eapply conv_Lolli...
-    exact: conv_Lolli.
+    eapply sub1_prod... 
+    eapply conv_prod... 
+    exact: conv_prod.
+  - inv sb2; try (exfalso; solve_conv)...
+    move: conv => /lolli_inj[conv1 [conv2 ->]].
+    move: (ih _ _ conv2 H) => {ih} sub. inv sub.
+    eapply SubI. 
+    eapply sub1_lolli... 
+    eapply conv_lolli... 
+    exact: conv_lolli.
 Qed.
 
 Lemma sub_trans B A C :
@@ -76,75 +85,68 @@ Proof.
   exact: conv_trans c5. exact: conv_trans c4.
 Qed.
 
-Lemma sub_Sort_inv s1 s2 l1 l2 :
+Lemma sub_prop_inv s1 s2 :
+  Sort s1 None <: Sort s2 None -> s1 = s2.
+Proof.
+  move=> [s1' s2' []].
+  - move=> A c1 c2.
+    have{c1 c2}/sort_inj[s l]: Sort s1 None === Sort s2 None.
+     exact: conv_trans c2.
+     exact: s.
+  - move=> s l /sort_inj[-> _] /sort_inj[-> _] => //.
+  - move=> *. exfalso; solve_conv.
+  - move=> *. exfalso; solve_conv.
+  - move=> *. exfalso; solve_conv.
+Qed.
+
+Lemma sub_sort_inv s1 s2 l1 l2 :
   s1 @ l1 <: s2 @ l2 -> s1 = s2 /\ l1 <= l2.
 Proof.
   move=> [s1' s2' []].
-  move=> A c1 c2.
-    have{c1 c2}/Sort_inj[s l]: s1 @ l1 === s2 @ l2.
-      exact: conv_trans c2.
+  - move=> A c1 c2.
+    have{c1 c2}/sort_inj[s l]: s1 @ l1 === s2 @ l2.
+     exact: conv_trans c2.
     inv l=> //.
-  move=> s l0 l3 leq /Sort_inj[->->] /Sort_inj[<-<-] => //.
-  move=> *. exfalso; solve_conv.
-  move=> *. exfalso; solve_conv.
+  - move=> s l0 /sort_inj[_ h] => //.
+  - move=> s l0 l3 leq /sort_inj[->[->]] /sort_inj[<-[<-]] => //.
+  - move=> *. exfalso; solve_conv.
+  - move=> *. exfalso; solve_conv.
 Qed.
 
-Lemma sub_Sort_False1 l1 l2 : ~Sort U l1 <: Sort L l2.
-Proof.
-  move=> [s1 s2 []].
-  move=> A e1 e2.
-    have e : Sort U l1 === Sort L l2.
-      exact: conv_trans e2.
-    solve_conv.
-  move=> s l3 l4 _ /Sort_inj[<- _] h. solve_conv.
-  move=> A B1 B2 s _ e1 e2. solve_conv.
-  move=> A B1 B2 s _ e1 e2. solve_conv.
-Qed.
-
-Lemma sub_Sort_False2 l1 l2 : ~Sort L l1 <: Sort U l2.
-Proof.
-  move=> [s1 s2 []].
-  move=> A e1 e2.
-    have e : Sort L l1 === Sort U l2.
-      exact: conv_trans e2.
-    solve_conv.
-  move=> s l3 l4 _ /Sort_inj[<- _] h. solve_conv.
-  move=> A B1 B2 s _ e1 e2. solve_conv.
-  move=> A B1 B2 s _ e1 e2. solve_conv.
-Qed.
-
-Lemma sub_Prod_inv A1 A2 s1 s2 B1 B2 :
+Lemma sub_prod_inv A1 A2 s1 s2 B1 B2 :
   Prod A1 B1 s1 <: Prod A2 B2 s2 -> 
   A1 === A2 /\ B1 <: B2 /\ s1 = s2.
 Proof.
   move=> [A' B' []].
   - move=> C c1 c2. 
-    have{c1 c2}/Prod_inj[c1 [c2 ->]]: 
+    have{c1 c2}/prod_inj[c1 [c2 ->]]: 
       Prod A1 B1 s1 === Prod A2 B2 s2.
      exact: conv_trans c2.
     firstorder=>//. exact: conv_sub.
   - move=> *. exfalso; solve_conv.
-  - move=> A B0 B3 s sb /Prod_inj[c1 [c2 <-]]. 
-    move=> /Prod_inj[c3 [c4 ->]]. 
+  - move=> *. exfalso; solve_conv.
+  - move=> A B0 B3 s sb /prod_inj[c1 [c2 <-]]. 
+    move=> /prod_inj[c3 [c4 ->]]. 
     firstorder.
     exact: conv_trans c3. exact: SubI sb c2 c4.
   - move=> *. exfalso; solve_conv.
 Qed.
 
-Lemma sub_Lolli_inv A1 A2 s1 s2 B1 B2 :
+Lemma sub_lolli_inv A1 A2 s1 s2 B1 B2 :
   Lolli A1 B1 s1 <: Lolli A2 B2 s2 -> 
   A1 === A2 /\ B1 <: B2 /\ s1 = s2.
 Proof.
   move=> [A' B' []].
-  move=> C c1 c2. 
-    have{c1 c2}/Lolli_inj[c1 [c2 ->]]: 
+  - move=> C c1 c2. 
+    have{c1 c2}/lolli_inj[c1 [c2 ->]]: 
       Lolli A1 B1 s1 === Lolli A2 B2 s2.
-      exact: conv_trans c2.
+     exact: conv_trans c2.
     firstorder=>//. exact: conv_sub.
-  move=> *. exfalso; solve_conv.
-  move=> *. exfalso; solve_conv.
-  move=> A B0 B3 s sb /Lolli_inj[c1 [c2 <-]]. 
-    move=> /Lolli_inj[c3 [c4 ->]]. 
+  - move=> *. exfalso; solve_conv.
+  - move=> *. exfalso; solve_conv.
+  - move=> *. exfalso; solve_conv.
+  - move=> A B0 B3 s sb /lolli_inj[c1 [c2 <-]]. 
+    move=> /lolli_inj[c3 [c4 ->]]. 
     firstorder.
     exact: conv_trans c3. exact: SubI sb c2 c4.
 Qed.

@@ -9,193 +9,193 @@ Unset Printing Implicit Defensive.
 
 Inductive agree_ren : (var -> var) ->
   context term -> context term -> Prop :=
-| agree_ren_nil xi :
-  agree_ren xi nil nil
-| agree_ren_u Gamma Gamma' xi m :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren (upren xi) (m +u Gamma) (m.[ren xi] +u Gamma')
-| agree_ren_l Gamma Gamma' xi m :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren (upren xi) (m +l Gamma) (m.[ren xi] +l Gamma')
-| agree_ren_n Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren (upren xi) (+n Gamma) (+n Gamma')
-| agree_ren_wkU Gamma Gamma' xi m :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren ((+1) ∘ xi) Gamma (m +u Gamma')
-| agree_ren_wkN Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
-  agree_ren ((+1) ∘ xi) Gamma (+n Gamma').
+| agree_ren_nil ξ :
+  agree_ren ξ nil nil
+| agree_ren_u Γ Γ' ξ m :
+  agree_ren ξ Γ Γ' ->
+  agree_ren (upren ξ) (m +u Γ) (m.[ren ξ] +u Γ')
+| agree_ren_l Γ Γ' ξ m :
+  agree_ren ξ Γ Γ' ->
+  agree_ren (upren ξ) (m +l Γ) (m.[ren ξ] +l Γ')
+| agree_ren_n Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
+  agree_ren (upren ξ) (+n Γ) (+n Γ')
+| agree_ren_wkU Γ Γ' ξ m :
+  agree_ren ξ Γ Γ' ->
+  agree_ren ((+1) ∘ ξ) Γ (m +u Γ')
+| agree_ren_wkN Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
+  agree_ren ((+1) ∘ ξ) Γ (+n Γ').
 
-Lemma agree_ren_refl Gamma : agree_ren id Gamma Gamma.
+Lemma agree_ren_refl Γ : agree_ren id Γ Γ.
 Proof.
-  elim: Gamma.
+  elim: Γ.
   apply: agree_ren_nil.
-  move=> a Gamma ag.
+  move=> a Γ ag.
   destruct a.
   destruct p.
   destruct s.
-  have h : (agree_ren id (t +u Gamma) (t +u Gamma)
-    = agree_ren (upren id) (t +u Gamma) (t.[ren id] +u Gamma))
+  have h : (agree_ren id (t +u Γ) (t +u Γ)
+    = agree_ren (upren id) (t +u Γ) (t.[ren id] +u Γ))
     by autosubst.
   rewrite h; constructor; eauto.
-  have h : (agree_ren id (t +l Gamma) (t +l Gamma)
-    = agree_ren (upren id) (t +l Gamma) (t.[ren id] +l Gamma))
+  have h : (agree_ren id (t +l Γ) (t +l Γ)
+    = agree_ren (upren id) (t +l Γ) (t.[ren id] +l Γ))
     by autosubst.
   rewrite h; constructor; eauto.
-  have h : (agree_ren id (+n Gamma) (+n Gamma)
-    = agree_ren (upren id) (+n Gamma) (+n Gamma))
+  have h : (agree_ren id (+n Γ) (+n Γ)
+    = agree_ren (upren id) (+n Γ) (+n Γ))
     by autosubst.
   rewrite h; constructor; eauto.
 Qed.
 
-Lemma agree_ren_pure Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' -> pure Gamma -> pure Gamma'.
+Lemma agree_ren_pure Γ Γ' ξ :
+  agree_ren ξ Γ Γ' -> pure Γ -> pure Γ'.
 Proof with eauto using pure.
-  elim=>{Gamma Gamma' xi} //=...
-  move=> Gamma Gamma' xi m ag ih pu.
+  elim=>{Γ Γ' ξ} //=...
+  move=> Γ Γ' ξ m ag ih pu.
     inv pu...
-  move=> Gamma Gamma' xi m ag ih pu.
+  move=> Γ Γ' ξ m ag ih pu.
     inv pu.
-  move=> Gamma Gamma' xi ag ih pu.
+  move=> Γ Γ' ξ ag ih pu.
     inv pu...
 Qed.
 
-Lemma agree_ren_re_re Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' -> agree_ren xi (re Gamma) (re Gamma').
+Lemma agree_ren_re_re Γ Γ' ξ :
+  agree_ren ξ Γ Γ' -> agree_ren ξ (re Γ) (re Γ').
 Proof. elim; eauto using agree_ren. Qed.
 
-Lemma agree_ren_hasU Gamma Gamma' xi x A :
-  agree_ren xi Gamma Gamma' ->
-  hasU Gamma x A ->
-  hasU Gamma' (xi x) A.[ren xi].
+Lemma agree_ren_hasU Γ Γ' ξ x A :
+  agree_ren ξ Γ Γ' ->
+  hasU Γ x A ->
+  hasU Γ' (ξ x) A.[ren ξ].
 Proof with eauto.
-  move=> ag. elim: ag x A=> {Gamma Gamma' xi}.
-  move=> xi x A hs. inv hs.
-  move=> Gamma Gamma' xi m ag ih x A hs. inv hs.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+  move=> ag. elim: ag x A=> {Γ Γ' ξ}.
+  move=> ξ x A hs. inv hs.
+  move=> Γ Γ' ξ m ag ih x A hs. inv hs.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply: agree_ren_pure...
-    replace (m0.[ren (+1)].[ren (upren xi)]) 
-      with (m0.[ren xi].[ren (+1)]) by autosubst.
+    replace (m0.[ren (+1)].[ren (upren ξ)]) 
+      with (m0.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     exact: ih.
-  move=> Gamma Gamma' xi m ag ih x A hs. inv hs.
-  move=> Gamma Gamma' xi ag ih x A hs. inv hs.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+  move=> Γ Γ' ξ m ag ih x A hs. inv hs.
+  move=> Γ Γ' ξ ag ih x A hs. inv hs.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     exact: ih.
-  move=> Gamma Gamma' xi m ag ih x A hs.
-    replace (A.[ren ((+1) ∘ xi)])
-      with (A.[ren xi].[ren (+1)]) by autosubst.
+  move=> Γ Γ' ξ m ag ih x A hs.
+    replace (A.[ren ((+1) ∘ ξ)])
+      with (A.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     exact: ih.
-  move=> Gamma Gamma' xi ag ih x A hs.
-    replace (A.[ren ((+1) ∘ xi)])
-      with (A.[ren xi].[ren (+1)]) by autosubst.
+  move=> Γ Γ' ξ ag ih x A hs.
+    replace (A.[ren ((+1) ∘ ξ)])
+      with (A.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     exact: ih.
 Qed.
 
-Lemma agree_ren_hasL Gamma Gamma' xi x A :
-  agree_ren xi Gamma Gamma' ->
-  hasL Gamma x A ->
-  hasL Gamma' (xi x) A.[ren xi].
+Lemma agree_ren_hasL Γ Γ' ξ x A :
+  agree_ren ξ Γ Γ' ->
+  hasL Γ x A ->
+  hasL Γ' (ξ x) A.[ren ξ].
 Proof with eauto.
-  move=> ag. elim: ag x A=>{Gamma Gamma' xi}.
-  move=> xi x A hs. inv hs.
-  move=> Gamma Gamma' xi m ag ih x A hs. inv hs.
-    replace (m0.[ren (+1)].[ren (upren xi)]) 
-      with (m0.[ren xi].[ren (+1)]) by autosubst.
+  move=> ag. elim: ag x A=>{Γ Γ' ξ}.
+  move=> ξ x A hs. inv hs.
+  move=> Γ Γ' ξ m ag ih x A hs. inv hs.
+    replace (m0.[ren (+1)].[ren (upren ξ)]) 
+      with (m0.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     exact: ih.
-  move=> Gamma Gamma' xi m ag ih x A hs. inv hs.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+  move=> Γ Γ' ξ m ag ih x A hs. inv hs.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     apply: agree_ren_pure...
-  move=> Gamma Gamma' xi ag ih x A hs. inv hs.
-    replace (m.[ren (+1)].[ren (upren xi)]) 
-      with (m.[ren xi].[ren (+1)]) by autosubst.
+  move=> Γ Γ' ξ ag ih x A hs. inv hs.
+    replace (m.[ren (+1)].[ren (upren ξ)]) 
+      with (m.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     exact: ih.
-  move=> Gamma Gamma' xi m ag ih x A hs.
-    replace (A.[ren ((+1) ∘ xi)])
-      with (A.[ren xi].[ren (+1)]) by autosubst.
+  move=> Γ Γ' ξ m ag ih x A hs.
+    replace (A.[ren ((+1) ∘ ξ)])
+      with (A.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     exact: ih.
-  move=> Gamma Gamma' xi ag ih x A hs.
-    replace (A.[ren ((+1) ∘ xi)])
-      with (A.[ren xi].[ren (+1)]) by autosubst.
+  move=> Γ Γ' ξ ag ih x A hs.
+    replace (A.[ren ((+1) ∘ ξ)])
+      with (A.[ren ξ].[ren (+1)]) by autosubst.
     constructor.
     exact: ih.
 Qed.
 
-Lemma merge_agree_ren_inv Gamma1 Gamma2 Gamma Gamma' xi :
-  agree_ren xi Gamma Gamma' ->
-    merge Gamma1 Gamma2 Gamma ->
-    exists Gamma1' Gamma2',
-      merge Gamma1' Gamma2' Gamma' /\
-      agree_ren xi Gamma1 Gamma1' /\
-      agree_ren xi Gamma2 Gamma2'.
+Lemma merge_agree_ren_inv Γ1 Γ2 Γ Γ' ξ :
+  agree_ren ξ Γ Γ' ->
+    merge Γ1 Γ2 Γ ->
+    exists Γ1' Γ2',
+      merge Γ1' Γ2' Γ' /\
+      agree_ren ξ Γ1 Γ1' /\
+      agree_ren ξ Γ2 Γ2'.
 Proof with eauto.
-  move=> ag. elim: ag Gamma1 Gamma2=>{Gamma Gamma' xi}.
-  move=> xi Gamma1 Gamma2 mg. inv mg.
+  move=> ag. elim: ag Γ1 Γ2=>{Γ Γ' ξ}.
+  move=> ξ Γ1 Γ2 mg. inv mg.
     exists nil. exists nil. repeat constructor.
-  move=> Gamma Gamma' xi m ag ih Gamma1 Gamma2 mg. inv mg.
-    move: H2=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    exists (m.[ren xi] +u Gamma1').
-    exists (m.[ren xi] +u Gamma2').
+  move=> Γ Γ' ξ m ag ih Γ1 Γ2 mg. inv mg.
+    move: H2=>/ih[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    exists (m.[ren ξ] +u Γ1').
+    exists (m.[ren ξ] +u Γ2').
     repeat constructor...
-  move=> Gamma Gamma' xi m ag ih Gamma1 Gamma2 mg. inv mg.
-    move: H2=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    exists (m.[ren xi] +l Gamma1').
-    exists (+n Gamma2').
+  move=> Γ Γ' ξ m ag ih Γ1 Γ2 mg. inv mg.
+    move: H2=>/ih[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    exists (m.[ren ξ] +l Γ1').
+    exists (+n Γ2').
       repeat constructor...
-    move: H2=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    exists (+n Gamma1').
-    exists (m.[ren xi] +l Gamma2').
+    move: H2=>/ih[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    exists (+n Γ1').
+    exists (m.[ren ξ] +l Γ2').
       repeat constructor...
-  move=> Gamma Gamma' xi ag ih Gamma1 Gamma2 mg. inv mg.
-    move: H2=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    exists (+n Gamma1').
-    exists (+n Gamma2').
+  move=> Γ Γ' ξ ag ih Γ1 Γ2 mg. inv mg.
+    move: H2=>/ih[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    exists (+n Γ1').
+    exists (+n Γ2').
     repeat constructor...
-  move=> Gamma Gamma' xi m ag ih Gamma1 Gamma2 mg.
-    move: mg=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    exists (m +u Gamma1').
-    exists (m +u Gamma2').
+  move=> Γ Γ' ξ m ag ih Γ1 Γ2 mg.
+    move: mg=>/ih[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    exists (m +u Γ1').
+    exists (m +u Γ2').
     repeat constructor...
-  move=> Gamma Gamma' xi ag ih Gamma1 Gamma2 mg.
-    move: mg=>/ih[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    exists (+n Gamma1').
-    exists (+n Gamma2').
+  move=> Γ Γ' ξ ag ih Γ1 Γ2 mg.
+    move: mg=>/ih[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    exists (+n Γ1').
+    exists (+n Γ2').
     repeat constructor...
 Qed.
 
-Lemma arity_ren s A xi : arity s A -> arity s A.[ren xi].
+Lemma arity_ren s A ξ : arity s A -> arity s A.[ren ξ].
 Proof with eauto using arity.
-  move=> ar. elim: ar xi=>//=...
-  move=> A' B ar ih xi.
+  move=> ar. elim: ar ξ=>//=...
+  move=> A' B ar ih ξ.
     constructor.
-    replace (up (ren xi)) with (ren (upren xi)) by autosubst.
+    replace (up (ren ξ)) with (ren (upren ξ)) by autosubst.
     exact: ih.
 Qed.
 
-Definition n_ren (xi : var -> var) x :=
-  xi x = x /\ 
-    forall i, (~x = i -> ~xi i = x) /\ (~i = 0 -> ~xi i = 0).
+Definition n_ren (ξ : var -> var) x :=
+  ξ x = x /\ 
+    forall i, (~x = i -> ~ξ i = x) /\ (~i = 0 -> ~ξ i = 0).
 
-Lemma n_ren0 xi : n_ren (upren xi) 0.
+Lemma n_ren0 ξ : n_ren (upren ξ) 0.
 Proof.
   split; eauto.
-  move=> i. elim: i xi=>//=.
+  move=> i. elim: i ξ=>//=.
 Qed.
 
-Lemma n_ren_up xi x :
-  n_ren xi x -> n_ren (upren xi) x.+1.
+Lemma n_ren_up ξ x :
+  n_ren ξ x -> n_ren (upren ξ) x.+1.
 Proof.
   move=>[e h]. split.
   asimpl; eauto.
@@ -207,35 +207,35 @@ Proof.
   move: pf=>/h1; eauto.
 Qed.
 
-Lemma noccurs_ren x m xi :
-  noccurs x m -> n_ren xi x -> noccurs x m.[ren xi].
+Lemma noccurs_ren x m ξ :
+  noccurs x m -> n_ren ξ x -> noccurs x m.[ren ξ].
 Proof with eauto using noccurs, n_ren_up, and.
-  move=> no. move: x m no xi.
+  move=> no. move: x m no ξ.
   apply: noccurs_ind_nested=>//=...
-  move=> x y neq xi [e h].
+  move=> x y neq ξ [e h].
     move: (h y)=> {h} [h _].
     move: neq=> /h neq.
     constructor; eauto.
-  move=> x A B s nA ihA nB ihB xi n.
+  move=> x A B s nA ihA nB ihB ξ n.
     constructor.
     apply: ihA...
     asimpl. apply: ihB. exact: n_ren_up.
-  move=> x A B s nA ihA nB ihB xi n.
+  move=> x A B s nA ihA nB ihB ξ n.
     constructor.
     apply: ihA...
     asimpl. apply: ihB. exact: n_ren_up.
-  move=> x A m s nA ihA nM ihM xi n.
+  move=> x A m s nA ihA nM ihM ξ n.
     constructor.
     apply: ihA...
     asimpl. apply: ihM. exact: n_ren_up.
-  move=> x A Cs s nA ihA nCs ihCs xi n.
+  move=> x A Cs s nA ihA nCs ihCs ξ n.
     constructor.
     apply: ihA...
     elim: ihCs=>//=.
     move=> x' l h' _ ih. constructor; asimpl.
     apply: h'. apply n_ren_up...
     asimpl in ih...
-  move=> x m Q Fs nM ihM nQ ihQ nFs ihFs xi n.
+  move=> x m Q Fs nM ihM nQ ihQ nFs ihFs ξ n.
     constructor.
     apply: ihM...
     apply: ihQ...
@@ -243,7 +243,7 @@ Proof with eauto using noccurs, n_ren_up, and.
     move=> x' l h' _ ih. constructor; asimpl.
     apply: h'...
     asimpl in ih...
-  move=> x m Q Fs nM ihM nQ ihQ nFs ihFs xi n.
+  move=> x m Q Fs nM ihM nQ ihQ nFs ihFs ξ n.
     constructor.
     apply: ihM...
     apply: ihQ...
@@ -251,45 +251,45 @@ Proof with eauto using noccurs, n_ren_up, and.
     move=> x' l h' _ ih. constructor; asimpl.
     apply: h'...
     asimpl in ih...
-  move=> x A m nA ihA nM ihM xi n.
+  move=> x A m nA ihA nM ihM ξ n.
     constructor.
     apply: ihA...
     asimpl. apply: ihM...
 Qed.
 
-Lemma noccurs_ren_Forall x ms xi :
-  List.Forall (noccurs x) ms -> n_ren xi x ->
-    List.Forall (noccurs x) ms..[ren xi].
+Lemma noccurs_ren_Forall x ms ξ :
+  List.Forall (noccurs x) ms -> n_ren ξ x ->
+    List.Forall (noccurs x) ms..[ren ξ].
 Proof.
-  move=> no. elim: no xi=>//={ms}.
-  move=> m ms nM nMs ih xi n.
+  move=> no. elim: no ξ=>//={ms}.
+  move=> m ms nM nMs ih ξ n.
     constructor.
     apply: noccurs_ren; eauto.
     apply: ih; eauto.
 Qed.
 
-Lemma pos_ren x A xi :
-  pos x A -> n_ren xi x -> pos x A.[ren xi].
+Lemma pos_ren x A ξ :
+  pos x A -> n_ren ξ x -> pos x A.[ren ξ].
 Proof.
-  move=> p. elim: p xi=>{x A}//=.
-  move=> x ms no xi [e h].
+  move=> p. elim: p ξ=>{x A}//=.
+  move=> x ms no ξ [e h].
     rewrite spine_subst=>//=.
     rewrite e. constructor. exact: noccurs_ren_Forall.
-  move=> x A B s nA pB ihB xi n.
+  move=> x A B s nA pB ihB ξ n.
     constructor.
     exact: noccurs_ren.
     asimpl. apply: ihB. exact: n_ren_up.
-  move=> x A B s nA pB ihB xi n.
+  move=> x A B s nA pB ihB ξ n.
     constructor.
     exact: noccurs_ren.
     asimpl. apply: ihB. exact: n_ren_up.
 Qed.
 
-Lemma active_ren i C xi :
-  active i C -> n_ren xi i -> active i C.[ren xi].
+Lemma active_ren i C ξ :
+  active i C -> n_ren ξ i -> active i C.[ren ξ].
 Proof.
-  move=> c. elim: c xi=>{i C}//=.
-  move=> x ms no xi [e h].
+  move=> c. elim: c ξ=>{i C}//=.
+  move=> x ms no ξ [e h].
     rewrite spine_subst; asimpl.
     rewrite e.
     apply: active_X.
@@ -298,22 +298,22 @@ Proof.
       constructor; asimpl.
       apply: noccurs_ren; eauto; constructor; eauto.
       exact: ihMs.
-  move=> x A B s pA c ih nB xi n.
+  move=> x A B s pA c ih nB ξ n.
     apply: active_Pos.
     exact: pos_ren.
     asimpl. apply: ih. exact: n_ren_up.
     asimpl. apply: noccurs_ren; eauto. exact: n_ren0.
-  move=> x A B s nA c ih xi n.
+  move=> x A B s nA c ih ξ n.
     apply: active_Lolli.
     apply: noccurs_ren; eauto.
     asimpl. apply: ih. exact: n_ren_up.
 Qed.  
 
-Lemma constr_ren i s C xi :
-  constr i s C -> n_ren xi i -> constr i s C.[ren xi].
+Lemma constr_ren i s C ξ :
+  constr i s C -> n_ren ξ i -> constr i s C.[ren ξ].
 Proof.
-  move=> c. elim: c xi=>{i s C}.
-  move=> x s ms no xi [e h].
+  move=> c. elim: c ξ=>{i s C}.
+  move=> x s ms no ξ [e h].
     rewrite spine_subst; asimpl.
     rewrite e.
     constructor.
@@ -322,30 +322,30 @@ Proof.
       constructor.
       apply: noccurs_ren; eauto; constructor; eauto.
       apply: ihMs.
-  move=> x A B pA c ih nB xi n=>//=.
+  move=> x A B pA c ih nB ξ n=>//=.
     apply: constr_UPos.
     exact: pos_ren.
     asimpl. apply: ih. exact: n_ren_up.
     asimpl. apply: noccurs_ren; eauto. apply n_ren0.
-  move=> x A B nA cB ih xi n=>//=.
+  move=> x A B nA cB ih ξ n=>//=.
     apply: constr_UProd.
     apply: noccurs_ren; eauto.
     asimpl. apply: ih. exact: n_ren_up.
-  move=> x A B pA cB ih no xi n=>//=.
+  move=> x A B pA cB ih no ξ n=>//=.
     apply: constr_LPos1.
     exact: pos_ren.
     asimpl. apply: ih. exact: n_ren_up.
     asimpl. apply: noccurs_ren; eauto. apply n_ren0.
-  move=> x A B pA c nB xi n=>//=.
+  move=> x A B pA c nB ξ n=>//=.
     apply: constr_LPos2.
     exact: pos_ren.
     asimpl. apply: active_ren; eauto. exact: n_ren_up.
     asimpl. apply: noccurs_ren; eauto. exact: n_ren0.
-  move=> x A B nA c ih xi n=>//=.
+  move=> x A B nA c ih ξ n=>//=.
     apply: constr_LProd1.
     exact: noccurs_ren.
     asimpl. apply: ih. exact: n_ren_up.
-  move=> x A B nA c xi n=>//=.
+  move=> x A B nA c ξ n=>//=.
     apply: constr_LProd2.
     exact: noccurs_ren.
     asimpl. apply: active_ren; eauto. exact: n_ren_up.
@@ -420,104 +420,104 @@ Proof.
   by apply drespine_ren1.
 Qed.
 
-Lemma arity1_ren s s' A xi : 
-  arity s A -> (arity1 s' A).[ren xi] = arity1 s' A.[ren xi].
+Lemma arity1_ren s s' A ξ : 
+  arity s A -> (arity1 s' A).[ren ξ] = arity1 s' A.[ren ξ].
 Proof.
-  move=> ar. elim: ar xi s'=>{A}//=.
-  move=> A B ar ih xi s'; asimpl.
+  move=> ar. elim: ar ξ s'=>{A}//=.
+  move=> A B ar ih ξ s'; asimpl.
   rewrite ih; eauto.
 Qed.
 
-Lemma arity2_ren s s' I A xi : 
-  arity s A -> (arity2 s' I A).[ren xi] = arity2 s' I.[ren xi] A.[ren xi].
+Lemma arity2_ren s s' I A ξ : 
+  arity s A -> (arity2 s' I A).[ren ξ] = arity2 s' I.[ren ξ] A.[ren ξ].
 Proof.
-  move=> ar. elim: ar I xi s'=>{A}//=.
-  move=> A B ar ih I xi s'; asimpl.
+  move=> ar. elim: ar I ξ s'=>{A}//=.
+  move=> A B ar ih I ξ s'; asimpl.
   rewrite ih; asimpl; eauto.
 Qed.
 
-Lemma respine_I_ren Q I xi :
+Lemma respine_I_ren Q I ξ :
   (forall Q, respine Q I = Q) ->
-  Q.[ren xi] = respine Q.[ren xi] I.[ren xi].
+  Q.[ren ξ] = respine Q.[ren ξ] I.[ren ξ].
 Proof.
-  elim: I xi Q=>//=.
-  move=> A _ B _ s xi Q h.
+  elim: I ξ Q=>//=.
+  move=> A _ B _ s ξ Q h.
     move: (h (Var 0))=>//=.
-  move=> A _ B _ s xi Q h.
+  move=> A _ B _ s ξ Q h.
     move: (h (Var 0))=>//=.
-  move=> m _ n _ xi Q h.
+  move=> m _ n _ ξ Q h.
     move: (h (Var 0))=>//=.
 Qed.
 
-Lemma drespine_I_ren Q c I xi :
+Lemma drespine_I_ren Q c I ξ :
   (forall Q, drespine Q c I = App Q c) ->
-  App Q.[ren xi] c.[ren xi] = drespine Q.[ren xi] c.[ren xi] I.[ren xi].
+  App Q.[ren ξ] c.[ren ξ] = drespine Q.[ren ξ] c.[ren ξ] I.[ren ξ].
 Proof.
-  elim: I xi c Q=>//=.
-  move=> A _ B _ s xi c Q h.
+  elim: I ξ c Q=>//=.
+  move=> A _ B _ s ξ c Q h.
     move: (h (Var 0))=>//=.
-  move=> A _ B _ s xi c Q h.
+  move=> A _ B _ s ξ c Q h.
     move: (h (Var 0))=>//=.
-  move=> m _ n _ xi c Q h.
+  move=> m _ n _ ξ c Q h.
     move: (h (Var 0))=>//=.
 Qed.
 
-Lemma respine_spine'_I_ren Q I ms xi :
+Lemma respine_spine'_I_ren Q I ms ξ :
   (forall Q, respine Q I = Q) ->
-  (respine Q (spine' I ms)).[ren xi] =
-    respine Q.[ren xi] (spine' I ms).[ren xi].
+  (respine Q (spine' I ms)).[ren ξ] =
+    respine Q.[ren ξ] (spine' I ms).[ren ξ].
 Proof.
-  elim: ms Q I xi=>//=.
-  move=> Q I xi h.
+  elim: ms Q I ξ=>//=.
+  move=> Q I ξ h.
     rewrite h.
     by apply respine_I_ren.
-  move=> m ms ih Q I xi h.
+  move=> m ms ih Q I ξ h.
     rewrite ih; eauto.
 Qed.
 
-Lemma drespine_spine'_I_ren Q c I ms xi :
+Lemma drespine_spine'_I_ren Q c I ms ξ :
   (forall Q c, drespine Q c I = App Q c) ->
-  (drespine Q c (spine' I ms)).[ren xi] =
-    drespine Q.[ren xi] c.[ren xi] (spine' I ms).[ren xi].
+  (drespine Q c (spine' I ms)).[ren ξ] =
+    drespine Q.[ren ξ] c.[ren ξ] (spine' I ms).[ren ξ].
 Proof.
-  elim: ms Q c I xi=>//=.
-  move=> Q c I xi h.
+  elim: ms Q c I ξ=>//=.
+  move=> Q c I ξ h.
     rewrite h.
     by apply drespine_I_ren.
-  move=> m ms ih Q c I xi h.
+  move=> m ms ih Q c I ξ h.
     repeat f_equal.
     apply respine_spine'_I_ren.
     by apply drespine_respine.
 Qed.
 
-Lemma respine_spine_I_ren Q I ms xi :
+Lemma respine_spine_I_ren Q I ms ξ :
   (forall Q, respine Q I = Q) ->
-  (respine Q (spine I ms)).[ren xi] =
-    respine Q.[ren xi] (spine I ms).[ren xi].
+  (respine Q (spine I ms)).[ren ξ] =
+    respine Q.[ren ξ] (spine I ms).[ren ξ].
 Proof.
   move=> h.
   rewrite spine_spine'_rev.
   by rewrite respine_spine'_I_ren.
 Qed.
 
-Lemma drespine_spine_I_ren Q c I ms xi :
+Lemma drespine_spine_I_ren Q c I ms ξ :
   (forall Q c, drespine Q c I = App Q c) ->
-  (drespine Q c (spine I ms)).[ren xi] =
-    drespine Q.[ren xi] c.[ren xi] (spine I ms).[ren xi].
+  (drespine Q c (spine I ms)).[ren ξ] =
+    drespine Q.[ren ξ] c.[ren ξ] (spine I ms).[ren ξ].
 Proof.
   move=> h.
   rewrite spine_spine'_rev.
   by rewrite drespine_spine'_I_ren.
 Qed.
 
-Lemma active_respine_ren n (Q C : term) I (xi : var -> var) :
+Lemma active_respine_ren n (Q C : term) I (ξ : var -> var) :
   active n C ->
   (forall i Q, respine Q (I i) = Q) ->
-  (respine Q C.[I]).[ren xi] = 
-    respine Q.[ren xi] C.[I].[ren xi].
+  (respine Q C.[I]).[ren ξ] = 
+    respine Q.[ren ξ] C.[I].[ren ξ].
 Proof.
   move=> c; unfold case.
-  elim: c Q I xi; intros.
+  elim: c Q I ξ; intros.
   - rewrite! spine_subst.
     rewrite respine_spine_I_ren.
     rewrite! spine_subst; asimpl; eauto.
@@ -530,14 +530,14 @@ Proof.
     by apply respine_up.
 Qed.
 
-Lemma active_drespine_ren n (Q c C : term) I (xi : var -> var) :
+Lemma active_drespine_ren n (Q c C : term) I (ξ : var -> var) :
   active n C ->
   (forall i c Q, drespine Q c (I i) = App Q c) ->
-  (drespine Q c C.[I]).[ren xi] = 
-    drespine Q.[ren xi] c.[ren xi] C.[I].[ren xi].
+  (drespine Q c C.[I]).[ren ξ] = 
+    drespine Q.[ren ξ] c.[ren ξ] C.[I].[ren ξ].
 Proof.
   move=> a; unfold case.
-  elim: a c Q I xi; intros.
+  elim: a c Q I ξ; intros.
   - rewrite! spine_subst.
     rewrite drespine_spine_I_ren.
     rewrite! spine_subst; asimpl; eauto.
@@ -552,14 +552,14 @@ Proof.
     by apply: drespine_respine.
 Qed.
 
-Lemma constr_respine_ren n s (Q C : term) I (xi : var -> var) :
+Lemma constr_respine_ren n s (Q C : term) I (ξ : var -> var) :
   constr n s C ->
   (forall i Q, respine Q (I i) = Q) ->
-  (respine Q C.[I]).[ren xi] = 
-    respine Q.[ren xi] C.[I].[ren xi].
+  (respine Q C.[I]).[ren ξ] = 
+    respine Q.[ren ξ] C.[I].[ren ξ].
 Proof.
   move=> c; unfold case.
-  elim: c Q I xi; intros.
+  elim: c Q I ξ; intros.
   - rewrite! spine_subst.
     rewrite respine_spine_I_ren.
     rewrite! spine_subst; asimpl; eauto.
@@ -584,14 +584,14 @@ Proof.
     by apply respine_up.
 Qed.
 
-Lemma constr_drespine_ren n s (Q c C : term) I (xi : var -> var) :
+Lemma constr_drespine_ren n s (Q c C : term) I (ξ : var -> var) :
   constr n s C ->
   (forall i c Q, drespine Q c (I i) = App Q c) ->
-  (drespine Q c C.[I]).[ren xi] = 
-    drespine Q.[ren xi] c.[ren xi] C.[I].[ren xi].
+  (drespine Q c C.[I]).[ren ξ] = 
+    drespine Q.[ren ξ] c.[ren ξ] C.[I].[ren ξ].
 Proof.
   move=> cn; unfold case.
-  elim: cn Q c I xi; intros.
+  elim: cn Q c I ξ; intros.
   - rewrite! spine_subst.
     rewrite drespine_spine_I_ren.
     rewrite! spine_subst; asimpl; eauto.
@@ -616,22 +616,22 @@ Proof.
     by apply drespine_up.
 Qed.
 
-Lemma All2_case_ren Gamma Gamma' s A Q Fs Cs Cs' xi :
+Lemma All2_case_ren Γ Γ' s A Q Fs Cs Cs' ξ :
   All2 (fun F C =>
     constr 0 s C /\
-    forall Gamma' xi, agree_ren xi Gamma Gamma' ->
-      [ Gamma' |- F.[ren xi] :- (case (Ind A Cs' s) Q C).[ren xi] ])
+    forall Γ' ξ, agree_ren ξ Γ Γ' ->
+      [ Γ' |- F.[ren ξ] :- (case (Ind A Cs' s) Q C).[ren ξ] ])
     Fs Cs ->
-  agree_ren xi Gamma Gamma' ->
+  agree_ren ξ Γ Γ' ->
   All2 (fun F C =>
     constr 0 s C /\
-    [ Gamma' |- F :- case (Ind A.[ren xi] Cs'..[up (ren xi)] s) Q.[ren xi] C])
-    Fs..[ren xi] Cs..[up (ren xi)].
+    [ Γ' |- F :- case (Ind A.[ren ξ] Cs'..[up (ren ξ)] s) Q.[ren ξ] C])
+    Fs..[ren ξ] Cs..[up (ren ξ)].
 Proof.
-  elim: Fs Gamma Gamma' s A Q Cs xi.
-  move=> Gamma Gamma' s A Q Cs xi h. inv h=> *.
+  elim: Fs Γ Γ' s A Q Cs ξ.
+  move=> Γ Γ' s A Q Cs ξ h. inv h=> *.
     constructor.
-  move=> F Fs ih Gamma Gamma' s A Q Cs xi h ag.
+  move=> F Fs ih Γ Γ' s A Q Cs ξ h ag.
   destruct Cs; inv h. inv H2; asimpl.
   constructor. split.
   - apply: constr_ren; eauto.
@@ -643,28 +643,28 @@ Proof.
     by unfold case; asimpl.
     move=> i Q'.
     destruct i; asimpl; eauto.
-  - replace (ren (upren xi)) with (up (ren xi)) by autosubst.
+  - replace (ren (upren ξ)) with (up (ren ξ)) by autosubst.
     apply: ih; eauto.
 Qed.
 
-Lemma All2i_case_ren Gamma Gamma' n s A Q Fs Cs Cs' xi :
+Lemma All2i_case_ren Γ Γ' n s A Q Fs Cs Cs' ξ :
   All2i (fun i F C =>
     let I := Ind A Cs' s in
     constr 0 s C /\
-    forall Gamma' xi, agree_ren xi Gamma Gamma' ->
-      [ Gamma' |- F.[ren xi] :- (dcase I Q (Constr i I) C).[ren xi] ])
+    forall Γ' ξ, agree_ren ξ Γ Γ' ->
+      [ Γ' |- F.[ren ξ] :- (dcase I Q (Constr i I) C).[ren ξ] ])
     n Fs Cs ->
-  agree_ren xi Gamma Gamma' ->
+  agree_ren ξ Γ Γ' ->
   All2i (fun i F C =>
-    let I := Ind A.[ren xi] Cs'..[up (ren xi)] s in
+    let I := Ind A.[ren ξ] Cs'..[up (ren ξ)] s in
     constr 0 s C /\
-    [ Gamma' |- F :- dcase I Q.[ren xi] (Constr i I) C])
-    n Fs..[ren xi] Cs..[up (ren xi)].
+    [ Γ' |- F :- dcase I Q.[ren ξ] (Constr i I) C])
+    n Fs..[ren ξ] Cs..[up (ren ξ)].
 Proof.
-  elim: Fs Gamma Gamma' n s A Q Cs xi.
-  move=> Gamma Gamma' n s A Q Cs xi h. inv h=> *.
+  elim: Fs Γ Γ' n s A Q Cs ξ.
+  move=> Γ Γ' n s A Q Cs ξ h. inv h=> *.
     constructor.
-  move=> F Fs ih Gamma Gamma' n s A Q Cs xi h ag.
+  move=> F Fs ih Γ Γ' n s A Q Cs ξ h ag.
   destruct Cs; inv h. inv H3; asimpl.
   constructor. split.
   - apply: constr_ren; eauto.
@@ -676,124 +676,124 @@ Proof.
     by unfold dcase; asimpl.
     move=> i Q'.
     destruct i; asimpl; eauto.
-  - replace (ren (upren xi)) with (up (ren xi)) by autosubst.
+  - replace (ren (upren ξ)) with (up (ren ξ)) by autosubst.
     apply: ih; eauto.
 Qed.
 
-Lemma rename_ok Gamma Gamma' m A xi :
-  [ Gamma |- m :- A ] ->
-  agree_ren xi Gamma Gamma' ->
-  [ Gamma' |- m.[ren xi] :- A.[ren xi] ].
+Lemma rename_ok Γ Γ' m A ξ :
+  [ Γ |- m :- A ] ->
+  agree_ren ξ Γ Γ' ->
+  [ Γ' |- m.[ren ξ] :- A.[ren ξ] ].
 Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
   move=> ty.
-  move: Gamma m A ty Gamma' xi.
+  move: Γ m A ty Γ' ξ.
   apply: has_type_nested_ind=> //=.
-  move=> Gamma s l pu Gamma' xi ag.
+  move=> Γ s l pu Γ' ξ ag.
     apply: u_Sort...
-  move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
+  move=> Γ A B s l pu tyA ihA tyB ihB Γ' ξ ag; asimpl.
     apply: u_Prod...
-  move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
+  move=> Γ A B s l pu tyA ihA tyB ihB Γ' ξ ag; asimpl.
     apply: l_Prod...
-  move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
+  move=> Γ A B s l pu tyA ihA tyB ihB Γ' ξ ag; asimpl.
     apply: u_Lolli...
-  move=> Gamma A B s l pu tyA ihA tyB ihB Gamma' xi ag; asimpl.
+  move=> Γ A B s l pu tyA ihA tyB ihB Γ' ξ ag; asimpl.
     apply: l_Lolli...
-  move=> Gamma x A hs Gamma' xi ag //=.
+  move=> Γ x A hs Γ' ξ ag //=.
     apply: u_Var.
     apply: agree_ren_hasU...
-  move=> Gamma x A hs Gamma' xi ag //=.
+  move=> Γ x A hs Γ' ξ ag //=.
     apply: l_Var.
     apply: agree_ren_hasL...
-  move=> Gamma n A B s t l pu ty1 ih1 ty2 ih2 Gamma' xi ag.
+  move=> Γ n A B s t l pu ty1 ih1 ty2 ih2 Γ' ξ ag.
     apply: u_Lam...
     asimpl. apply: ih2. destruct s; constructor...
-  move=> Gamma n A B s t l ty1 ih1 ty2 ih2 Gamma' xi ag.
+  move=> Γ n A B s t l ty1 ih1 ty2 ih2 Γ' ξ ag.
     apply: l_Lam.
     apply: ih1. apply: agree_ren_re_re...
     asimpl. apply: ih2. destruct s; constructor...
-  move=> Gamma1 Gamma2 Gamma A B m n pu ty1 ih1 ty2 ih2 mg Gamma' xi ag.
+  move=> Γ1 Γ2 Γ A B m n pu ty1 ih1 ty2 ih2 mg Γ' ξ ag.
     asimpl.
-    move: (merge_agree_ren_inv ag mg)=>[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    replace (B.[n.[ren xi] .: ren xi]) 
-      with (B.[ren (upren xi)].[n.[ren xi]/]) by autosubst.
+    move: (merge_agree_ren_inv ag mg)=>[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    replace (B.[n.[ren ξ] .: ren ξ]) 
+      with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
     move: (agree_ren_pure ag2 pu)=> {} pu.
     apply: u_Prod_App...
-    replace (ren (upren xi)) with (up (ren xi)) by autosubst.
+    replace (ren (upren ξ)) with (up (ren ξ)) by autosubst.
     apply: ih1...
-  move=> Gamma1 Gamma2 Gamma A B m n ty1 ih1 ty2 ih2 mg Gamma' xi ag.
+  move=> Γ1 Γ2 Γ A B m n ty1 ih1 ty2 ih2 mg Γ' ξ ag.
     asimpl.
-    move: (merge_agree_ren_inv ag mg)=>[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    replace (B.[n.[ren xi] .: ren xi]) 
-      with (B.[ren (upren xi)].[n.[ren xi]/]) by autosubst.
+    move: (merge_agree_ren_inv ag mg)=>[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    replace (B.[n.[ren ξ] .: ren ξ]) 
+      with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
     apply: l_Prod_App...
-    replace (ren (upren xi)) with (up (ren xi)) by autosubst.
+    replace (ren (upren ξ)) with (up (ren ξ)) by autosubst.
     apply: ih1...
-  move=> Gamma1 Gamma2 Gamma A B m n pu ty1 ih1 ty2 ih2 mg Gamma' xi ag.
+  move=> Γ1 Γ2 Γ A B m n pu ty1 ih1 ty2 ih2 mg Γ' ξ ag.
     asimpl.
-    move: (merge_agree_ren_inv ag mg)=>[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    replace (B.[n.[ren xi] .: ren xi]) 
-      with (B.[ren (upren xi)].[n.[ren xi]/]) by autosubst.
+    move: (merge_agree_ren_inv ag mg)=>[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    replace (B.[n.[ren ξ] .: ren ξ]) 
+      with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
     move: (agree_ren_pure ag2 pu)=> {} pu.
     apply: u_Lolli_App...
-    replace (ren (upren xi)) with (up (ren xi)) by autosubst.
+    replace (ren (upren ξ)) with (up (ren ξ)) by autosubst.
     apply: ih1...
-  move=> Gamma1 Gamma2 Gamma A B m n ty1 ih1 ty2 ih2 mg Gamma' xi ag.
+  move=> Γ1 Γ2 Γ A B m n ty1 ih1 ty2 ih2 mg Γ' ξ ag.
     asimpl.
-    move: (merge_agree_ren_inv ag mg)=>[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    replace (B.[n.[ren xi] .: ren xi]) 
-      with (B.[ren (upren xi)].[n.[ren xi]/]) by autosubst.
+    move: (merge_agree_ren_inv ag mg)=>[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    replace (B.[n.[ren ξ] .: ren ξ]) 
+      with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
     apply: l_Lolli_App...
-    replace (ren (upren xi)) with (up (ren xi)) by autosubst.
+    replace (ren (upren ξ)) with (up (ren ξ)) by autosubst.
     apply: ih1...
-  move=> Gamma A s Cs l ar cnstr pu ty1 ih1 ty2 ih2 Gamma' xi ag.
+  move=> Γ A s Cs l ar cnstr pu ty1 ih1 ty2 ih2 Γ' ξ ag.
     apply: s_Ind...
     exact: arity_ren.
-    move=>{ag}. elim: cnstr xi=>//=...
-      move=> m ms c hMs ihMs xi; asimpl.
+    move=>{ag}. elim: cnstr ξ=>//=...
+      move=> m ms c hMs ihMs ξ; asimpl.
       constructor. 
       apply: constr_ren... apply: n_ren0.
-      move: (ihMs xi)=> {} ihMs.
+      move: (ihMs ξ)=> {} ihMs.
       asimpl in ihMs. exact: ihMs.
     elim: ih2=>//=.
       move=> m ms ihM hMs ihMs; asimpl.
       constructor. 
       asimpl. apply: ihM...
       asimpl in ihMs. exact: ihMs.
-  move=> Gamma A s i C Cs ig pu ty ih Gamma' xi ag.
-    replace (C.[Ind A Cs s/].[ren xi]) 
-      with (C.[up (ren xi)]).[Ind A.[ren xi] Cs..[up (ren xi)] s/]
+  move=> Γ A s i C Cs ig pu ty ih Γ' ξ ag.
+    replace (C.[Ind A Cs s/].[ren ξ]) 
+      with (C.[up (ren ξ)]).[Ind A.[ren ξ] Cs..[up (ren ξ)] s/]
         by autosubst.
     apply: s_Constr...
     apply: iget_subst...
-  move=> Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms ar mg 
-    tyM ihM tyQ ihQ ty ih Gamma' xi ag.
+  move=> Γ1 Γ2 Γ A Q s s' Fs Cs m ms ar mg 
+    tyM ihM tyQ ihQ ty ih Γ' ξ ag.
     rewrite spine_subst.
-    move: (merge_agree_ren_inv ag mg)=>[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    move: (arity_ren xi ar)=> ar'.
+    move: (merge_agree_ren_inv ag mg)=>[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    move: (arity_ren ξ ar)=> ar'.
     move: (agree_ren_re_re ag2)=> rag2.
     move: (ihM _ _ ag1)=> {} ihM. rewrite spine_subst in ihM.
     move: (ihQ _ _ rag2)=> {} ihQ.
-    move: (arity1_ren s' xi ar)=> e. rewrite e in ihQ.
+    move: (arity1_ren s' ξ ar)=> e. rewrite e in ihQ.
     apply: s_Case...
     apply: All2_case_ren...
-  move=> Gamma1 Gamma2 Gamma A Q s Fs Cs m ms ar p mg
-    tyM ihM tyQ ihQ ty ih Gamma' xi ag.
+  move=> Γ1 Γ2 Γ A Q s Fs Cs m ms ar p mg
+    tyM ihM tyQ ihQ ty ih Γ' ξ ag.
     rewrite spine_subst.
-    move: (merge_agree_ren_inv ag mg)=>[Gamma1'[Gamma2'[mg'[ag1 ag2]]]].
-    move: (arity_ren xi ar)=> ar'.
+    move: (merge_agree_ren_inv ag mg)=>[Γ1'[Γ2'[mg'[ag1 ag2]]]].
+    move: (arity_ren ξ ar)=> ar'.
     move: (agree_ren_re_re ag2)=> rag2.
     move: (ihM _ _ ag1)=> {} ihM. rewrite spine_subst in ihM.
     move: (ihQ _ _ rag2)=> {} ihQ.
-    move: (arity2_ren s (Ind A Cs U) xi ar)=> e. rewrite e in ihQ.
+    move: (arity2_ren s (Ind A Cs U) ξ ar)=> e. rewrite e in ihQ.
     move: (agree_ren_pure ag1 p)=>{}p.
     apply: s_DCase...
     apply: All2i_case_ren...
-  move=> Gamma A m l p tyA ihA tyM ihM Gamma' xi ag.
+  move=> Γ A m l p tyA ihA tyM ihM Γ' ξ ag.
     econstructor...
-    have ag' : agree_ren (upren xi) (A +u Gamma) (A.[ren xi] +u Gamma').
+    have ag' : agree_ren (upren ξ) (A +u Γ) (A.[ren ξ] +u Γ').
       by constructor.
     move: (ihM _ _ ag'); asimpl=>//.
-  move=> Gamma A B m s l sub tyB ihB tyM ihM Gamma' xi ag.
+  move=> Γ A B m s l sub tyB ihB tyM ihM Γ' ξ ag.
     apply: s_Conv.
     apply: sub_ren.
     apply: sub.
@@ -802,14 +802,14 @@ Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
     by apply: ihM.
 Qed.
 
-Lemma hasU_ok Gamma x A :
-  [ Gamma |- ] ->
-  hasU Gamma x A ->
-  exists l, [ re Gamma |- A :- Sort U l ].
+Lemma hasU_ok Γ x A :
+  [ Γ |- ] ->
+  hasU Γ x A ->
+  exists l, [ re Γ |- A :- Sort U l ].
 Proof.
   move=> wf. elim: wf x A.
   move=> x A h. inv h.
-  move=> Gamma' A l wf ih tyA x A' h. inv h=>//=.
+  move=> Γ' A l wf ih tyA x A' h. inv h=>//=.
     exists l.
     replace (Sort U l) with (Sort U l).[ren (+1)] by autosubst.
     apply: rename_ok; eauto.
@@ -821,8 +821,8 @@ Proof.
     apply: rename_ok; eauto.
     apply: agree_ren_wkU.
     apply: agree_ren_refl.
-  move=> Gamma' A l wf ih tyA x A' h. inv h.
-  move=> Gamma' wf ih x A h. inv h=>//=.
+  move=> Γ' A l wf ih tyA x A' h. inv h.
+  move=> Γ' wf ih x A h. inv h=>//=.
     move: (ih _ _ H0)=>{ih}[l tyM].
     exists l.
     replace (Sort U l) with (Sort U l).[ren (+1)] by autosubst.
@@ -831,27 +831,27 @@ Proof.
     apply: agree_ren_refl.
 Qed.
 
-Lemma hasL_ok Gamma x A :
-  [ Gamma |- ] ->
-  hasL Gamma x A ->
-  exists l, [ re Gamma |- A :- Sort L l ].
+Lemma hasL_ok Γ x A :
+  [ Γ |- ] ->
+  hasL Γ x A ->
+  exists l, [ re Γ |- A :- Sort L l ].
 Proof.
   move=> wf. elim: wf x A.
   move=> x A h. inv h.
-  move=> Gamma' A l wf ih tyA x A' h=>//=. inv h.
+  move=> Γ' A l wf ih tyA x A' h=>//=. inv h.
     move: (ih _ _ H3)=>{ih}[l' tyM].
     exists l'.
     replace (Sort L l') with (Sort L l').[ren (+1)] by autosubst.
     apply: rename_ok; eauto.
     apply: agree_ren_wkU.
     apply: agree_ren_refl.
-  move=> Gamma' A l wf ih tyA x A' h=>//=. inv h.
+  move=> Γ' A l wf ih tyA x A' h=>//=. inv h.
     exists l.
     replace (Sort L l) with (Sort L l).[ren (+1)] by autosubst.
     apply: rename_ok; eauto.
     apply: agree_ren_wkN.
     apply: agree_ren_refl.
-  move=> Gamma' wf ih x A h=>//=. inv h.
+  move=> Γ' wf ih x A h=>//=. inv h.
     move: (ih _ _ H0)=>{ih}[l tyM].
     exists l.
     replace (Sort L l) with (Sort L l).[ren (+1)] by autosubst.
@@ -860,9 +860,9 @@ Proof.
     apply: agree_ren_refl.
 Qed.
 
-Lemma weakeningU Gamma m A B :
-  [ Gamma |- m :- A ] ->
-  [ B +u Gamma |- m.[ren (+1)] :- A.[ren (+1)] ].
+Lemma weakeningU Γ m A B :
+  [ Γ |- m :- A ] ->
+  [ B +u Γ |- m.[ren (+1)] :- A.[ren (+1)] ].
 Proof.
   move=> tyM.
   apply: rename_ok; eauto.
@@ -870,9 +870,9 @@ Proof.
   apply: agree_ren_refl.
 Qed.
 
-Lemma weakeningN Gamma m A :
-  [ Gamma |- m :- A ] ->
-  [ +n Gamma |- m.[ren (+1)] :- A.[ren (+1)] ].
+Lemma weakeningN Γ m A :
+  [ Γ |- m :- A ] ->
+  [ +n Γ |- m.[ren (+1)] :- A.[ren (+1)] ].
 Proof.
   move=> tyM.
   apply: rename_ok; eauto.
@@ -880,21 +880,21 @@ Proof.
   apply: agree_ren_refl.
 Qed.
 
-Lemma eweakeningU Gamma m m' A A' B :
+Lemma eweakeningU Γ m m' A A' B :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  [ Gamma |- m :- A ] -> 
-  [ B +u Gamma |- m' :- A' ].
+  [ Γ |- m :- A ] -> 
+  [ B +u Γ |- m' :- A' ].
 Proof.
   move=>->-> h.  
   apply: weakeningU; eauto.
 Qed.
 
-Lemma eweakeningN Gamma m m' A A' :
+Lemma eweakeningN Γ m m' A A' :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  [ Gamma |- m :- A ] -> 
-  [ +n Gamma |-m' :- A' ].
+  [ Γ |- m :- A ] -> 
+  [ +n Γ |-m' :- A' ].
 Proof.
   move=>->-> h.
   apply: weakeningN; eauto.

@@ -6,11 +6,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Module CC.
-
-Declare Scope coc_scope.
-Open Scope coc_scope.
-
 Definition context T := seq (option T).
 
 Notation "m +: Γ" := (Some m :: Γ) (at level 30).
@@ -423,7 +418,7 @@ Inductive sub1 : term ->term -> Prop :=
 
 CoInductive sub (A B : term) : Prop :=
 | SubI A' B' : sub1 A' B' -> A === A' -> B' === B -> sub A B.
-Infix "<:" := sub (at level 50, no associativity) : coc_scope.
+Infix "<:" := sub (at level 50, no associativity).
 
 Lemma sub1_sub A B : sub1 A B -> sub A B. move=> /SubI. exact. Qed.
 Lemma sub1_conv B A C : sub1 A B -> B === C -> A <: C. move=>/SubI. exact. Qed.
@@ -640,7 +635,3 @@ Qed.
 
 Axiom strong_normalization : forall Γ m A,
   [ Γ |- m :- A ] -> sn step m.
-
-Close Scope coc_scope.
-
-End CC.

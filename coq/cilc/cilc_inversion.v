@@ -27,22 +27,22 @@ Ltac solve_sub :=
   | _ => solve_conv
   end.
 
-Lemma u_Sort_inv Gamma s l A :
-  [ Gamma |- s @ l :- A ] -> U @ l.+1 <: A.
+Lemma u_Sort_inv Γ s l A :
+  [ Γ |- s @ l :- A ] -> U @ l.+1 <: A.
 Proof.
-  move e:(s @ l)=> n ty. elim: ty s l e=>//={Gamma A n}.
-  move=> Gamma s l p s' l' [_ ->]; eauto.
-  move=> Gamma A B m s l sb _ _ _ ihM s' l' /ihM sb'.
+  move e:(s @ l)=> n ty. elim: ty s l e=>//={Γ A n}.
+  move=> Γ s l p s' l' [_ ->]; eauto.
+  move=> Γ A B m s l sb _ _ _ ihM s' l' /ihM sb'.
     apply: sub_trans; eauto.
 Qed.
 
-Lemma u_Var_inv Gamma x B :
-  [ Gamma |- Var x :- B ] -> 
-  (exists A, hasU Gamma x A /\ A <: B) \/
-  (exists A, hasL Gamma x A /\ A <: B).
+Lemma u_Var_inv Γ x B :
+  [ Γ |- Var x :- B ] -> 
+  (exists A, hasU Γ x A /\ A <: B) \/
+  (exists A, hasL Γ x A /\ A <: B).
 Proof.
   move e:(Var x)=> v ty.
-  move: Gamma v B ty x e.
+  move: Γ v B ty x e.
   apply: has_type_nested_ind; intros; try discriminate.
   - inv e.
     left. exists A; eauto.
@@ -55,12 +55,12 @@ Proof.
     right. exists A0. firstorder. apply: sub_trans; eauto.
 Qed.
 
-Lemma l_Var_inv Gamma A B :
-  [ A +l Gamma |- Var 0 :- B ] -> A.[ren (+1)] <: B.
+Lemma l_Var_inv Γ A B :
+  [ A +l Γ |- Var 0 :- B ] -> A.[ren (+1)] <: B.
 Proof.
-  move e1:(A +l Gamma)=> Delta.
+  move e1:(A +l Γ)=> Δ.
   move e2:(Var 0)=> v ty.
-  move: Delta v B ty Gamma A e1 e2.
+  move: Δ v B ty Γ A e1 e2.
   apply: has_type_nested_ind; intros; try discriminate.
   - inv e2.
     inv H; eauto.
@@ -72,20 +72,20 @@ Proof.
     apply: H.
 Qed.
 
-Lemma u_Prod_inv Gamma A B C :
-  [ Gamma |- Prod A B U :- C ] ->
+Lemma u_Prod_inv Γ A B C :
+  [ Γ |- Prod A B U :- C ] ->
   exists s l l',
-    [ Gamma |- A :- Sort U l ] /\ 
-    [ A +u Gamma |- B :- Sort s l ] /\
+    [ Γ |- A :- Sort U l ] /\ 
+    [ A +u Γ |- B :- Sort s l ] /\
     Sort U l' <: C.
 Proof.
-  move e:(Prod A B U)=> n ty. elim: ty A B e =>//={Gamma n}.
-  move=> Gamma A B s l p tyA _ tyB _ A' B' [->->].
+  move e:(Prod A B U)=> n ty. elim: ty A B e =>//={Γ n}.
+  move=> Γ A B s l p tyA _ tyB _ A' B' [->->].
     exists s. 
     exists l.
     exists l.
     eauto.
-  move=> Gamma A B m s l sb tyB ihB tyM ihM A' B' e; subst.
+  move=> Γ A B m s l sb tyB ihB tyM ihM A' B' e; subst.
     move: (ihM A' B'); firstorder.
     exists x.
     exists x0.
@@ -94,20 +94,20 @@ Proof.
     apply: sub_trans; eauto.
 Qed.
 
-Lemma l_Prod_inv Gamma A B C :
-  [ Gamma |- Prod A B L :- C ] ->
+Lemma l_Prod_inv Γ A B C :
+  [ Γ |- Prod A B L :- C ] ->
   exists s l l',
-    [ Gamma |- A :- Sort L l ] /\ 
-    [ +n Gamma |- B :- Sort s l ] /\
+    [ Γ |- A :- Sort L l ] /\ 
+    [ +n Γ |- B :- Sort s l ] /\
     Sort U l' <: C.
 Proof.
-  move e:(Prod A B L)=> n ty. elim: ty A B e=>//={Gamma n}.
-  move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
+  move e:(Prod A B L)=> n ty. elim: ty A B e=>//={Γ n}.
+  move=> Γ A B s l p tyA ihA tyB ihB A' B' [->->].
     exists s.
     exists l.
     exists l.
     eauto.
-  move=> Gamma A B m s l sb tyB ihB tyM ihM A' B' e; subst.
+  move=> Γ A B m s l sb tyB ihB tyM ihM A' B' e; subst.
     move: (ihM A' B'); firstorder.
     exists x.
     exists x0.
@@ -116,20 +116,20 @@ Proof.
     apply: sub_trans; eauto.
 Qed.
 
-Lemma u_Lolli_inv Gamma A B C :
-  [ Gamma |- Lolli A B U :- C ] ->
+Lemma u_Lolli_inv Γ A B C :
+  [ Γ |- Lolli A B U :- C ] ->
   exists s l l',
-    [ Gamma |- A :- Sort U l ] /\ 
-    [ A +u Gamma |- B :- Sort s l ] /\
+    [ Γ |- A :- Sort U l ] /\ 
+    [ A +u Γ |- B :- Sort s l ] /\
     Sort L l' <: C.
 Proof.
-  move e:(Lolli A B U)=> n ty. elim: ty A B e=>//={Gamma n}.
-  move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
+  move e:(Lolli A B U)=> n ty. elim: ty A B e=>//={Γ n}.
+  move=> Γ A B s l p tyA ihA tyB ihB A' B' [->->].
     exists s.
     exists l.
     exists l.
     eauto.
-  move=> Gamma A B m s l sb tyB ihB tyM ihM A' B' e; subst.
+  move=> Γ A B m s l sb tyB ihB tyM ihM A' B' e; subst.
     move: (ihM A' B'); firstorder.
     exists x.
     exists x0.
@@ -138,19 +138,19 @@ Proof.
     apply: sub_trans; eauto.
 Qed.
 
-Lemma l_Lolli_inv Gamma A B C :
-  [ Gamma |- Lolli A B L :- C ] ->
+Lemma l_Lolli_inv Γ A B C :
+  [ Γ |- Lolli A B L :- C ] ->
   exists s l l',
-    [ Gamma |- A :- Sort L l ] /\ 
-    [ +n Gamma |- B :- Sort s l ] /\
+    [ Γ |- A :- Sort L l ] /\ 
+    [ +n Γ |- B :- Sort s l ] /\
     Sort L l' <: C.
 Proof.
-  move e:(Lolli A B L)=> n ty. elim: ty A B e=>//={Gamma n}.
-  move=> Gamma A B s l p tyA ihA tyB ihB A' B' [->->].
+  move e:(Lolli A B L)=> n ty. elim: ty A B e=>//={Γ n}.
+  move=> Γ A B s l p tyA ihA tyB ihB A' B' [->->].
     exists s.
     exists l.
     eauto.
-  move=> Gamma A B m s l sb tyB ihB tyM ihM A' B' e; subst.
+  move=> Γ A B m s l sb tyB ihB tyM ihM A' B' e; subst.
     move: (ihM A' B'); firstorder.
     exists x.
     exists x0.
@@ -159,13 +159,13 @@ Proof.
     apply: sub_trans; eauto.
 Qed.
 
-Lemma u_Lam_invX Gamma A0 A1 B C s0 s1 m t l :
-  [ Gamma |- Lam A0 m s0 :- C ] ->
-  (C <: Prod A1 B s1 /\ [ re (A1 +{s1} Gamma) |- B :- Sort t l ]) ->
-  [ A1 +{s1} Gamma |- m :- B ].
+Lemma u_Lam_invX Γ A0 A1 B C s0 s1 m t l :
+  [ Γ |- Lam A0 m s0 :- C ] ->
+  (C <: Prod A1 B s1 /\ [ re (A1 +{s1} Γ) |- B :- Sort t l ]) ->
+  [ A1 +{s1} Γ |- m :- B ].
 Proof.
   move e:(Lam A0 m s0)=> n ty. 
-  elim: ty A0 A1 B s0 s1 t l e=>{Gamma C n}; intros; try discriminate.
+  elim: ty A0 A1 B s0 s1 t l e=>{Γ C n}; intros; try discriminate.
   inv e. inv H4.
     move: (sub_Prod_inv H5)=>[_[sb e]]; subst.
     move: (pure_re H)=> e.
@@ -194,13 +194,13 @@ Proof.
     apply: sub_trans; eauto.
 Qed.
 
-Lemma l_Lam_invX Gamma A0 A1 B C s0 s1 m t l :
-  [ Gamma |- Lam A0 m s0 :- C ] ->
-  (C <: Lolli A1 B s1 /\ [ re (A1 +{s1} Gamma) |- B :- Sort t l ]) ->
-  [ A1 +{s1} Gamma |- m :- B ].
+Lemma l_Lam_invX Γ A0 A1 B C s0 s1 m t l :
+  [ Γ |- Lam A0 m s0 :- C ] ->
+  (C <: Lolli A1 B s1 /\ [ re (A1 +{s1} Γ) |- B :- Sort t l ]) ->
+  [ A1 +{s1} Γ |- m :- B ].
 Proof.
   move e:(Lam A0 m s0)=> n ty.
-  elim: ty A0 A1 B s0 s1 t l e=>{Gamma C n}; intros; try discriminate.
+  elim: ty A0 A1 B s0 s1 t l e=>{Γ C n}; intros; try discriminate.
   inv H4. exfalso; solve_sub.
   inv e. inv H3.
     move: (sub_Lolli_inv H4)=>[_[sb e]]; subst.
@@ -227,10 +227,10 @@ Proof.
     apply: sub_trans; eauto.
 Qed.
 
-Lemma u_Lam_inv Gamma A0 A1 B s0 s1 m t l :
-  [ re Gamma |- Prod A1 B s1 :- Sort t l ] ->
-  [ Gamma |- Lam A0 m s0 :- Prod A1 B s1 ] ->
-  [ A1 +{s1} Gamma |- m :- B ].
+Lemma u_Lam_inv Γ A0 A1 B s0 s1 m t l :
+  [ re Γ |- Prod A1 B s1 :- Sort t l ] ->
+  [ Γ |- Lam A0 m s0 :- Prod A1 B s1 ] ->
+  [ A1 +{s1} Γ |- m :- B ].
 Proof.
   destruct s1.
   move=> /u_Prod_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
@@ -239,10 +239,10 @@ Proof.
     apply: u_Lam_invX; eauto.
 Qed.
 
-Lemma l_Lam_inv Gamma A0 A1 B s0 s1 m t l :
-  [ re Gamma |- Lolli A1 B s1 :- Sort t l ] ->
-  [ Gamma |- Lam A0 m s0 :- Lolli A1 B s1 ] ->
-  [ A1 +{s1} Gamma |- m :- B ].
+Lemma l_Lam_inv Γ A0 A1 B s0 s1 m t l :
+  [ re Γ |- Lolli A1 B s1 :- Sort t l ] ->
+  [ Γ |- Lam A0 m s0 :- Lolli A1 B s1 ] ->
+  [ A1 +{s1} Γ |- m :- B ].
 Proof.
   destruct s1.
   move=> /u_Lolli_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
@@ -251,18 +251,18 @@ Proof.
     apply: l_Lam_invX; eauto.
 Qed.
 
-Lemma s_Ind_invX Gamma A B Cs s :
-  [ Gamma |- Ind A Cs s :- B ] ->
+Lemma s_Ind_invX Γ A B Cs s :
+  [ Γ |- Ind A Cs s :- B ] ->
   exists l,
     A <: B /\
     arity s A /\
     List.Forall (constr 0 s) Cs /\
-    pure Gamma /\
-    [ Gamma |- A :- Sort U l ] /\
-    List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs.
+    pure Γ /\
+    [ Γ |- A :- Sort U l ] /\
+    List.Forall (fun C => [ A +u Γ |- C :- Sort U l ]) Cs.
 Proof.
   move e:(Ind A Cs s)=> n ty.
-  elim: ty Cs e=>{Gamma n}; intros; try discriminate.
+  elim: ty Cs e=>{Γ n}; intros; try discriminate.
   inv e. exists l. firstorder.
   move: (H3 _ e)=>[l'[sb h]].
     exists l'. firstorder.
@@ -271,27 +271,27 @@ Proof.
     apply: H.
 Qed.
 
-Lemma s_Ind_inv Gamma A Cs s :
-  [ Gamma |- Ind A Cs s :- A ] ->
+Lemma s_Ind_inv Γ A Cs s :
+  [ Γ |- Ind A Cs s :- A ] ->
   exists l,
     arity s A /\
     List.Forall (constr 0 s) Cs /\
-    pure Gamma /\
-    [ Gamma |- A :- Sort U l ] /\
-    List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs.
+    pure Γ /\
+    [ Γ |- A :- Sort U l ] /\
+    List.Forall (fun C => [ A +u Γ |- C :- Sort U l ]) Cs.
 Proof. move=> /s_Ind_invX; firstorder. Qed.
 
-Lemma s_Constr_invX Gamma i I CI :
-  [ Gamma |- Constr i I :- CI ] ->
+Lemma s_Constr_invX Γ i I CI :
+  [ Γ |- Constr i I :- CI ] ->
   exists A C Cs s,
     iget i Cs C /\
-    pure Gamma /\
+    pure Γ /\
     I = Ind A Cs s /\
     C.[I/] <: CI /\
-    [ Gamma |- I :- A ].
+    [ Γ |- I :- A ].
 Proof.
   move e:(Constr i I)=> n ty.
-  elim: ty i I e=>{Gamma CI n}; intros; try discriminate.
+  elim: ty i I e=>{Γ CI n}; intros; try discriminate.
   - inv e. 
     exists A.
     exists C.

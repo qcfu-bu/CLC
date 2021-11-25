@@ -160,233 +160,233 @@ Definition case I Q C : term :=
 Definition dcase I Q (c C : term) : term :=
   drespine Q c C.[I/].
 
-Reserved Notation "[ Gamma |- ]".
-Reserved Notation "[ Gamma |- m :- A ]".
+Reserved Notation "[ Γ |- ]".
+Reserved Notation "[ Γ |- m :- A ]".
 
 Inductive has_type : context term -> term -> term -> Prop :=
-| u_Sort Gamma s l : 
-  pure Gamma ->
-  [ Gamma |- s @ l :- U @ l.+1 ]
-| u_Prod Gamma A B s l :
-  pure Gamma ->
-  [ Gamma |- A :- U @ l ] ->
-  [ A +u Gamma |- B :- s @ l ] ->
-  [ Gamma |- Prod A B U :- U @ l ]
-| l_Prod Gamma A B s l :
-  pure Gamma ->
-  [ Gamma |- A :- L @ l ] ->
-  [ +n Gamma |- B :- s @ l ] ->
-  [ Gamma |- Prod A B L :- U @ l ]
-| u_Lolli Gamma A B s l :
-  pure Gamma ->
-  [ Gamma |- A :- U @ l ] ->
-  [ A +u Gamma |- B :- s @ l ] ->
-  [ Gamma |- Lolli A B U :- L @ l ]
-| l_Lolli Gamma A B s l :
-  pure Gamma ->
-  [ Gamma |- A :- L @ l ] ->
-  [ +n Gamma |- B :- s @ l ] ->
-  [ Gamma |- Lolli A B L :- L @ l ]
-| u_Var Gamma x A : 
-  hasU Gamma x A ->
-  [ Gamma |- Var x :- A ]
-| l_Var Gamma x A :
-  hasL Gamma x A ->
-  [ Gamma |- Var x :- A ]
-| u_Lam Gamma n A B s t l :
-  pure Gamma ->
-  [ Gamma |- Prod A B s :- Sort t l ] ->
-  [ A +{s} Gamma |- n :- B ] ->
-  [ Gamma |- Lam A n s :- Prod A B s ]
-| l_Lam Gamma n A B s t l :
-  [ re Gamma |- Lolli A B s :- Sort t l ] ->
-  [ A +{s} Gamma |- n :- B ] ->
-  [ Gamma |- Lam A n s :- Lolli A B s ]
-| u_Prod_App Gamma1 Gamma2 Gamma A B m n :
-  pure Gamma2 ->
-  [ Gamma1 |- m :- Prod A B U ] ->
-  [ Gamma2 |- n :- A ] ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- B.[n/] ]
-| l_Prod_App Gamma1 Gamma2 Gamma  A B m n :
-  [ Gamma1 |- m :- Prod A B L ] ->
-  [ Gamma2 |- n :- A ] ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- B.[n/] ]
-| u_Lolli_App Gamma1 Gamma2 Gamma A B m n :
-  pure Gamma2 ->
-  [ Gamma1 |- m :- Lolli A B U ] ->
-  [ Gamma2 |- n :- A ] ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- B.[n/] ]
-| l_Lolli_App Gamma1 Gamma2 Gamma A B m n :
-  [ Gamma1 |- m :- Lolli A B L ] ->
-  [ Gamma2 |- n :- A ] ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma |- App m n :- B.[n/] ]
-| s_Ind Gamma A s Cs l :
+| u_Sort Γ s l : 
+  pure Γ ->
+  [ Γ |- s @ l :- U @ l.+1 ]
+| u_Prod Γ A B s l :
+  pure Γ ->
+  [ Γ |- A :- U @ l ] ->
+  [ A +u Γ |- B :- s @ l ] ->
+  [ Γ |- Prod A B U :- U @ l ]
+| l_Prod Γ A B s l :
+  pure Γ ->
+  [ Γ |- A :- L @ l ] ->
+  [ +n Γ |- B :- s @ l ] ->
+  [ Γ |- Prod A B L :- U @ l ]
+| u_Lolli Γ A B s l :
+  pure Γ ->
+  [ Γ |- A :- U @ l ] ->
+  [ A +u Γ |- B :- s @ l ] ->
+  [ Γ |- Lolli A B U :- L @ l ]
+| l_Lolli Γ A B s l :
+  pure Γ ->
+  [ Γ |- A :- L @ l ] ->
+  [ +n Γ |- B :- s @ l ] ->
+  [ Γ |- Lolli A B L :- L @ l ]
+| u_Var Γ x A : 
+  hasU Γ x A ->
+  [ Γ |- Var x :- A ]
+| l_Var Γ x A :
+  hasL Γ x A ->
+  [ Γ |- Var x :- A ]
+| u_Lam Γ n A B s t l :
+  pure Γ ->
+  [ Γ |- Prod A B s :- Sort t l ] ->
+  [ A +{s} Γ |- n :- B ] ->
+  [ Γ |- Lam A n s :- Prod A B s ]
+| l_Lam Γ n A B s t l :
+  [ re Γ |- Lolli A B s :- Sort t l ] ->
+  [ A +{s} Γ |- n :- B ] ->
+  [ Γ |- Lam A n s :- Lolli A B s ]
+| u_Prod_App Γ1 Γ2 Γ A B m n :
+  pure Γ2 ->
+  [ Γ1 |- m :- Prod A B U ] ->
+  [ Γ2 |- n :- A ] ->
+  merge Γ1 Γ2 Γ ->
+  [ Γ |- App m n :- B.[n/] ]
+| l_Prod_App Γ1 Γ2 Γ  A B m n :
+  [ Γ1 |- m :- Prod A B L ] ->
+  [ Γ2 |- n :- A ] ->
+  merge Γ1 Γ2 Γ ->
+  [ Γ |- App m n :- B.[n/] ]
+| u_Lolli_App Γ1 Γ2 Γ A B m n :
+  pure Γ2 ->
+  [ Γ1 |- m :- Lolli A B U ] ->
+  [ Γ2 |- n :- A ] ->
+  merge Γ1 Γ2 Γ ->
+  [ Γ |- App m n :- B.[n/] ]
+| l_Lolli_App Γ1 Γ2 Γ A B m n :
+  [ Γ1 |- m :- Lolli A B L ] ->
+  [ Γ2 |- n :- A ] ->
+  merge Γ1 Γ2 Γ ->
+  [ Γ |- App m n :- B.[n/] ]
+| s_Ind Γ A s Cs l :
   arity s A ->
   List.Forall (constr 0 s) Cs ->
-  pure Gamma ->
-  [ Gamma |- A :- Sort U l ] ->
-  List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs ->
-  [ Gamma |- Ind A Cs s :- A ]
-| s_Constr Gamma A s i C Cs :
+  pure Γ ->
+  [ Γ |- A :- Sort U l ] ->
+  List.Forall (fun C => [ A +u Γ |- C :- Sort U l ]) Cs ->
+  [ Γ |- Ind A Cs s :- A ]
+| s_Constr Γ A s i C Cs :
   let I := Ind A Cs s in
   iget i Cs C ->
-  pure Gamma ->
-  [ Gamma |- I :- A ] ->
-  [ Gamma |- Constr i I :- C.[I/] ]
-| s_Case Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms :
+  pure Γ ->
+  [ Γ |- I :- A ] ->
+  [ Γ |- Constr i I :- C.[I/] ]
+| s_Case Γ1 Γ2 Γ A Q s s' Fs Cs m ms :
   let I := Ind A Cs s in
   arity s A ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma1 |- m :- spine I ms ] ->
-  [ re Gamma2 |- Q :- arity1 s' A ] ->
+  merge Γ1 Γ2 Γ ->
+  [ Γ1 |- m :- spine I ms ] ->
+  [ re Γ2 |- Q :- arity1 s' A ] ->
   All2 (fun F C =>
     constr 0 s C /\
-    [ Gamma2 |- F :- case I Q C ]) Fs Cs ->
-  [ Gamma |- Case m Q Fs :- spine Q ms ]
-| s_DCase Gamma1 Gamma2 Gamma A Q s Fs Cs m ms :
+    [ Γ2 |- F :- case I Q C ]) Fs Cs ->
+  [ Γ |- Case m Q Fs :- spine Q ms ]
+| s_DCase Γ1 Γ2 Γ A Q s Fs Cs m ms :
   let I := Ind A Cs U in
   arity U A ->
-  pure Gamma1 ->
-  merge Gamma1 Gamma2 Gamma ->
-  [ Gamma1 |- m :- spine I ms ] ->
-  [ re Gamma2 |- Q :- arity2 s I A ] ->
+  pure Γ1 ->
+  merge Γ1 Γ2 Γ ->
+  [ Γ1 |- m :- spine I ms ] ->
+  [ re Γ2 |- Q :- arity2 s I A ] ->
   All2i (fun i F C =>
     constr 0 U C /\
-    [ Gamma2 |- F :- dcase I Q (Constr i I) C ]) 0 Fs Cs ->
-  [ Gamma |- DCase m Q Fs :- App (spine Q ms) m ]
-| u_Fix Gamma A m l :
-  pure Gamma ->
-  [ Gamma |- A :- Sort U l ] ->
-  [ A +u Gamma |- m :- A.[ren (+1)] ] ->
-  [ Gamma |- Fix A m :- A ]
-| s_Conv Gamma A B m s l :
+    [ Γ2 |- F :- dcase I Q (Constr i I) C ]) 0 Fs Cs ->
+  [ Γ |- DCase m Q Fs :- App (spine Q ms) m ]
+| u_Fix Γ A m l :
+  pure Γ ->
+  [ Γ |- A :- Sort U l ] ->
+  [ A +u Γ |- m :- A.[ren (+1)] ] ->
+  [ Γ |- Fix A m :- A ]
+| s_Conv Γ A B m s l :
   A <: B ->
-  [ re Gamma |- B :- Sort s l ] ->
-  [ Gamma |- m :- A ] ->
-  [ Gamma |- m :- B ]
-where "[ Gamma |- m :- A ]" := (has_type Gamma m A).
+  [ re Γ |- B :- Sort s l ] ->
+  [ Γ |- m :- A ] ->
+  [ Γ |- m :- B ]
+where "[ Γ |- m :- A ]" := (has_type Γ m A).
 
 Section has_type_nested_ind.
   Variable P : context term -> term -> term -> Prop.
-  Hypothesis ih_u_Sort : forall Gamma s l, 
-    pure Gamma -> P Gamma (s @ l) (U @ l.+1).
-  Hypothesis ih_u_Prod : forall Gamma A B s l,
-    pure Gamma ->
-    [ Gamma |- A :- U @ l ] -> P Gamma A (U @ l) ->
-    [ A +u Gamma |- B :- s @ l ] -> P (A +u Gamma) B (s @ l) ->
-    P Gamma (Prod A B U) (U @ l).
-  Hypothesis ih_l_Prod : forall Gamma A B s l,
-    pure Gamma ->
-    [ Gamma |- A :- L @ l] -> P Gamma A (L @ l) ->
-    [ +n Gamma |- B :- s @ l ] -> P (+n Gamma) B (s @ l) ->
-    P Gamma (Prod A B L) (U @ l).
-  Hypothesis ih_u_Lolli : forall Gamma A B s l,
-    pure Gamma ->
-    [ Gamma |- A :- U @ l ] -> P Gamma A (U @ l) ->
-    [ A +u Gamma |- B :- s @ l ] -> P (A +u Gamma) B (s @ l) ->
-    P Gamma (Lolli A B U) (L @ l). 
-  Hypothesis ih_l_Lolli : forall Gamma A B s l,
-    pure Gamma ->
-    [ Gamma |- A :- L @ l ] -> P Gamma A (L @ l) ->
-    [ +n Gamma |- B :- s @ l ] -> P (+n Gamma) B (s @ l) ->
-    P Gamma (Lolli A B L) (L @ l).
-  Hypothesis ih_u_Var : forall Gamma x A,
-    hasU Gamma x A -> P Gamma (Var x) A.
-  Hypothesis ih_l_Var : forall Gamma x A,
-    hasL Gamma x A -> P Gamma (Var x) A.
-  Hypothesis ih_u_Lam : forall Gamma n A B s t l,
-    pure Gamma ->
-    [ Gamma |- Prod A B s :- Sort t l ] -> 
-      P Gamma (Prod A B s) (Sort t l) ->
-    [ A +{s} Gamma |- n :- B ] -> 
-      P (A +{s} Gamma) n B ->
-    P Gamma (Lam A n s) (Prod A B s).
-  Hypothesis ih_l_Lam : forall Gamma n A B s t l,
-    [ re Gamma |- Lolli A B s :- Sort t l ] -> 
-      P (re Gamma) (Lolli A B s) (Sort t l) ->
-    [ A +{s} Gamma |- n :- B ] ->
-      P (A +{s} Gamma) n B ->
-    P Gamma (Lam A n s) (Lolli A B s).
-  Hypothesis ih_u_Prod_App : forall Gamma1 Gamma2 Gamma A B m n,
-    pure Gamma2 ->
-    [ Gamma1 |- m :- Prod A B U ] -> P Gamma1 m (Prod A B U) ->
-    [ Gamma2 |- n :- A ] -> P Gamma2 n A ->
-    merge Gamma1 Gamma2 Gamma ->
-    P Gamma (App m n) B.[n/].
-  Hypothesis ih_l_Prod_App : forall Gamma1 Gamma2 Gamma A B m n,
-    [ Gamma1 |- m :- Prod A B L ] -> P Gamma1 m (Prod A B L) ->
-    [ Gamma2 |- n :- A ] -> P Gamma2 n A ->
-    merge Gamma1 Gamma2 Gamma ->
-    P Gamma (App m n) B.[n/].
-  Hypothesis ih_u_Lolli_App : forall Gamma1 Gamma2 Gamma A B m n,
-    pure Gamma2 ->
-    [ Gamma1 |- m :- Lolli A B U ] -> P Gamma1 m (Lolli A B U) ->
-    [ Gamma2 |- n :- A ] -> P Gamma2 n A ->
-    merge Gamma1 Gamma2 Gamma ->
-    P Gamma (App m n) B.[n/].
-  Hypothesis ih_l_Lolli_App : forall Gamma1 Gamma2 Gamma A B m n,
-    [ Gamma1 |- m :- Lolli A B L ] -> P Gamma1 m (Lolli A B L) ->
-    [ Gamma2 |- n :- A ] -> P Gamma2 n A ->
-    merge Gamma1 Gamma2 Gamma ->
-    P Gamma (App m n) B.[n/].
-  Hypothesis ih_s_Ind : forall Gamma A s Cs l,
+  Hypothesis ih_u_Sort : forall Γ s l, 
+    pure Γ -> P Γ (s @ l) (U @ l.+1).
+  Hypothesis ih_u_Prod : forall Γ A B s l,
+    pure Γ ->
+    [ Γ |- A :- U @ l ] -> P Γ A (U @ l) ->
+    [ A +u Γ |- B :- s @ l ] -> P (A +u Γ) B (s @ l) ->
+    P Γ (Prod A B U) (U @ l).
+  Hypothesis ih_l_Prod : forall Γ A B s l,
+    pure Γ ->
+    [ Γ |- A :- L @ l] -> P Γ A (L @ l) ->
+    [ +n Γ |- B :- s @ l ] -> P (+n Γ) B (s @ l) ->
+    P Γ (Prod A B L) (U @ l).
+  Hypothesis ih_u_Lolli : forall Γ A B s l,
+    pure Γ ->
+    [ Γ |- A :- U @ l ] -> P Γ A (U @ l) ->
+    [ A +u Γ |- B :- s @ l ] -> P (A +u Γ) B (s @ l) ->
+    P Γ (Lolli A B U) (L @ l). 
+  Hypothesis ih_l_Lolli : forall Γ A B s l,
+    pure Γ ->
+    [ Γ |- A :- L @ l ] -> P Γ A (L @ l) ->
+    [ +n Γ |- B :- s @ l ] -> P (+n Γ) B (s @ l) ->
+    P Γ (Lolli A B L) (L @ l).
+  Hypothesis ih_u_Var : forall Γ x A,
+    hasU Γ x A -> P Γ (Var x) A.
+  Hypothesis ih_l_Var : forall Γ x A,
+    hasL Γ x A -> P Γ (Var x) A.
+  Hypothesis ih_u_Lam : forall Γ n A B s t l,
+    pure Γ ->
+    [ Γ |- Prod A B s :- Sort t l ] -> 
+      P Γ (Prod A B s) (Sort t l) ->
+    [ A +{s} Γ |- n :- B ] -> 
+      P (A +{s} Γ) n B ->
+    P Γ (Lam A n s) (Prod A B s).
+  Hypothesis ih_l_Lam : forall Γ n A B s t l,
+    [ re Γ |- Lolli A B s :- Sort t l ] -> 
+      P (re Γ) (Lolli A B s) (Sort t l) ->
+    [ A +{s} Γ |- n :- B ] ->
+      P (A +{s} Γ) n B ->
+    P Γ (Lam A n s) (Lolli A B s).
+  Hypothesis ih_u_Prod_App : forall Γ1 Γ2 Γ A B m n,
+    pure Γ2 ->
+    [ Γ1 |- m :- Prod A B U ] -> P Γ1 m (Prod A B U) ->
+    [ Γ2 |- n :- A ] -> P Γ2 n A ->
+    merge Γ1 Γ2 Γ ->
+    P Γ (App m n) B.[n/].
+  Hypothesis ih_l_Prod_App : forall Γ1 Γ2 Γ A B m n,
+    [ Γ1 |- m :- Prod A B L ] -> P Γ1 m (Prod A B L) ->
+    [ Γ2 |- n :- A ] -> P Γ2 n A ->
+    merge Γ1 Γ2 Γ ->
+    P Γ (App m n) B.[n/].
+  Hypothesis ih_u_Lolli_App : forall Γ1 Γ2 Γ A B m n,
+    pure Γ2 ->
+    [ Γ1 |- m :- Lolli A B U ] -> P Γ1 m (Lolli A B U) ->
+    [ Γ2 |- n :- A ] -> P Γ2 n A ->
+    merge Γ1 Γ2 Γ ->
+    P Γ (App m n) B.[n/].
+  Hypothesis ih_l_Lolli_App : forall Γ1 Γ2 Γ A B m n,
+    [ Γ1 |- m :- Lolli A B L ] -> P Γ1 m (Lolli A B L) ->
+    [ Γ2 |- n :- A ] -> P Γ2 n A ->
+    merge Γ1 Γ2 Γ ->
+    P Γ (App m n) B.[n/].
+  Hypothesis ih_s_Ind : forall Γ A s Cs l,
     arity s A ->
     List.Forall (constr 0 s) Cs ->
-    pure Gamma ->
-    [ Gamma |- A :- Sort U l ] -> P Gamma A (Sort U l) ->
-    List.Forall (fun C => [ A +u Gamma |- C :- Sort U l ]) Cs ->
-      List.Forall (fun C => P (A +u Gamma) C (Sort U l)) Cs ->
-    P Gamma (Ind A Cs s) A.
-  Hypothesis ih_s_Constr : forall Gamma A s i C Cs,
+    pure Γ ->
+    [ Γ |- A :- Sort U l ] -> P Γ A (Sort U l) ->
+    List.Forall (fun C => [ A +u Γ |- C :- Sort U l ]) Cs ->
+      List.Forall (fun C => P (A +u Γ) C (Sort U l)) Cs ->
+    P Γ (Ind A Cs s) A.
+  Hypothesis ih_s_Constr : forall Γ A s i C Cs,
     let I := Ind A Cs s in
     iget i Cs C ->
-    pure Gamma ->
-    [ Gamma |- I :- A ] -> P Gamma I A ->
-    P Gamma (Constr i I) C.[I/].
-  Hypothesis ih_s_Case : forall Gamma1 Gamma2 Gamma A Q s s' Fs Cs m ms,
+    pure Γ ->
+    [ Γ |- I :- A ] -> P Γ I A ->
+    P Γ (Constr i I) C.[I/].
+  Hypothesis ih_s_Case : forall Γ1 Γ2 Γ A Q s s' Fs Cs m ms,
     let I := Ind A Cs s in
     arity s A ->
-    merge Gamma1 Gamma2 Gamma ->
-    [ Gamma1 |- m :- spine I ms ] -> P Gamma1 m (spine I ms) ->
-    [ re Gamma2 |- Q :- arity1 s' A ] -> P (re Gamma2) Q (arity1 s' A) ->
+    merge Γ1 Γ2 Γ ->
+    [ Γ1 |- m :- spine I ms ] -> P Γ1 m (spine I ms) ->
+    [ re Γ2 |- Q :- arity1 s' A ] -> P (re Γ2) Q (arity1 s' A) ->
     All2 (fun F C =>
       constr 0 s C /\
-      [ Gamma2 |- F :- case I Q C ]) Fs Cs ->
+      [ Γ2 |- F :- case I Q C ]) Fs Cs ->
     All2 (fun F C =>
       constr 0 s C /\
-      P Gamma2 F (case I Q C)) Fs Cs ->
-    P Gamma (Case m Q Fs) (spine Q ms).
-  Hypothesis ih_s_DCase : forall Gamma1 Gamma2 Gamma A Q s Fs Cs m ms,
+      P Γ2 F (case I Q C)) Fs Cs ->
+    P Γ (Case m Q Fs) (spine Q ms).
+  Hypothesis ih_s_DCase : forall Γ1 Γ2 Γ A Q s Fs Cs m ms,
     let I := Ind A Cs U in
     arity U A ->
-    pure Gamma1 ->
-    merge Gamma1 Gamma2 Gamma ->
-    [ Gamma1 |- m :- spine I ms ] -> P Gamma1 m (spine I ms) ->
-    [ re Gamma2 |- Q :- arity2 s I A ] -> P (re Gamma2) Q (arity2 s I A) ->
+    pure Γ1 ->
+    merge Γ1 Γ2 Γ ->
+    [ Γ1 |- m :- spine I ms ] -> P Γ1 m (spine I ms) ->
+    [ re Γ2 |- Q :- arity2 s I A ] -> P (re Γ2) Q (arity2 s I A) ->
     All2i (fun i F C =>
       constr 0 U C /\
-      [ Gamma2 |- F :- (dcase I Q (Constr i I) C) ]) 0 Fs Cs ->
+      [ Γ2 |- F :- (dcase I Q (Constr i I) C) ]) 0 Fs Cs ->
     All2i (fun i F C =>
       constr 0 U C /\
-      P Gamma2 F (dcase I Q (Constr i I) C)) 0 Fs Cs ->
-    P Gamma (DCase m Q Fs) (App (spine Q ms) m).
-  Hypothesis ih_u_Fix : forall Gamma A m l,
-    pure Gamma ->
-    [ Gamma |- A :- Sort U l ] -> P Gamma A (Sort U l) ->
-    [ A +u Gamma |- m :- A.[ren (+1)] ] -> P (A +u Gamma) m A.[ren (+1)] ->
-    P Gamma (Fix A m) A.
-  Hypothesis ih_s_Conv : forall Gamma A B m s l,
+      P Γ2 F (dcase I Q (Constr i I) C)) 0 Fs Cs ->
+    P Γ (DCase m Q Fs) (App (spine Q ms) m).
+  Hypothesis ih_u_Fix : forall Γ A m l,
+    pure Γ ->
+    [ Γ |- A :- Sort U l ] -> P Γ A (Sort U l) ->
+    [ A +u Γ |- m :- A.[ren (+1)] ] -> P (A +u Γ) m A.[ren (+1)] ->
+    P Γ (Fix A m) A.
+  Hypothesis ih_s_Conv : forall Γ A B m s l,
     A <: B ->
-    [ re Gamma |- B :- Sort s l ] -> P (re Gamma) B (Sort s l) ->
-    [ Gamma |- m :- A ] -> P Gamma m A ->
-    P Gamma m B.
+    [ re Γ |- B :- Sort s l ] -> P (re Γ) B (Sort s l) ->
+    [ Γ |- m :- A ] -> P Γ m A ->
+    P Γ m B.
 
   Fixpoint has_type_nested_ind 
-    Gamma m A (pf : [ Gamma |- m :- A ]) : P Gamma m A.
+    Γ m A (pf : [ Γ |- m :- A ]) : P Γ m A.
   Proof.
     case pf; intros.
     apply ih_u_Sort; eauto.
@@ -406,8 +406,8 @@ Section has_type_nested_ind.
       apply (
         fix fold Cs 
           (pf : List.Forall 
-            (fun C => [ A0 +u Gamma0 |- C :- Sort U l]) Cs) :
-          List.Forall (fun C => P (A0 +u Gamma0) C (Sort U l)) Cs
+            (fun C => [ A0 +u Γ0 |- C :- Sort U l]) Cs) :
+          List.Forall (fun C => P (A0 +u Γ0) C (Sort U l)) Cs
         :=
           match pf with
           | List.Forall_nil => List.Forall_nil _
@@ -420,10 +420,10 @@ Section has_type_nested_ind.
         fix fold Fs Cs
           (pf : All2 (fun F C => 
             constr 0 s C /\
-            [ Gamma2 |- F :- case I Q C ]) Fs Cs) :
+            [ Γ2 |- F :- case I Q C ]) Fs Cs) :
           All2 (fun F C => 
             constr 0 s C /\
-            P Gamma2 F (case I Q C)) Fs Cs
+            P Γ2 F (case I Q C)) Fs Cs
         :=
           match pf with
           | All2_nil => All2_nil _
@@ -435,17 +435,17 @@ Section has_type_nested_ind.
         fix fold n Fs Cs
           (pf : All2i (fun i F C => 
             constr 0 U C /\
-            [ Gamma2 |- F :- dcase I Q (Constr i I) C ]) n Fs Cs) :
+            [ Γ2 |- F :- dcase I Q (Constr i I) C ]) n Fs Cs) :
           All2i (fun i F C => 
             constr 0 U C /\
-            P Gamma2 F (dcase I Q (Constr i I) C)) n Fs Cs
+            P Γ2 F (dcase I Q (Constr i I) C)) n Fs Cs
         :=
           match pf in 
             All2i _ n Fs Cs
           return
             All2i (fun i F C => 
               constr 0 U C /\
-              P Gamma2 F (dcase I Q (Constr i I) C)) n Fs Cs
+              P Γ2 F (dcase I Q (Constr i I) C)) n Fs Cs
           with
           | All2i_nil _ => All2i_nil _ _
           | All2i_cons _ _ _ _ _ (conj h1 h2) pfTl =>
@@ -456,24 +456,24 @@ Section has_type_nested_ind.
   Qed.
 End has_type_nested_ind.
 
-Lemma u_Prod_max Gamma A B s l1 l2 :
-  pure Gamma ->
-  [ Gamma |- A :- U @ l1 ] ->
-  [ A +u Gamma |- B :- s @ l2 ] ->
-  [ Gamma |- Prod A B U :- U @ (maxn l1 l2) ].
+Lemma u_Prod_max Γ A B s l1 l2 :
+  pure Γ ->
+  [ Γ |- A :- U @ l1 ] ->
+  [ A +u Γ |- B :- s @ l2 ] ->
+  [ Γ |- Prod A B U :- U @ (maxn l1 l2) ].
 Proof.
   move=>p tyA tyB.
   have lt1 : l1 <= maxn l1 l2.
     by apply: leq_maxl.
   have lt2 : l2 <= maxn l1 l2.
     by apply: leq_maxr.
-  have tyA' : [ Gamma |- A :- U @ (maxn l1 l2) ].
+  have tyA' : [ Γ |- A :- U @ (maxn l1 l2) ].
     apply: s_Conv.
     apply: sub_Sort.
     apply: lt1.
     constructor. apply: re_pure.
     apply: tyA.
-  have tyB' : [ A +u Gamma |- B :- s @ (maxn l1 l2) ].
+  have tyB' : [ A +u Γ |- B :- s @ (maxn l1 l2) ].
     apply: s_Conv.
     apply: sub_Sort.
     apply: lt2.
@@ -482,24 +482,24 @@ Proof.
   apply: u_Prod; eauto.
 Qed.
 
-Lemma l_Prod_max Gamma A B s l1 l2 :
-  pure Gamma ->
-  [ Gamma |- A :- L @ l1 ] ->
-  [ +n Gamma |- B :- s @ l2 ] ->
-  [ Gamma |- Prod A B L :- U @ (maxn l1 l2) ].
+Lemma l_Prod_max Γ A B s l1 l2 :
+  pure Γ ->
+  [ Γ |- A :- L @ l1 ] ->
+  [ +n Γ |- B :- s @ l2 ] ->
+  [ Γ |- Prod A B L :- U @ (maxn l1 l2) ].
 Proof.
   move=>p tyA tyB.
   have lt1 : l1 <= maxn l1 l2.
     by apply: leq_maxl.
   have lt2 : l2 <= maxn l1 l2.
     by apply: leq_maxr.
-  have tyA' : [ Gamma |- A :- L @ (maxn l1 l2) ].
+  have tyA' : [ Γ |- A :- L @ (maxn l1 l2) ].
     apply: s_Conv.
     apply: sub_Sort.
     apply: lt1.
     constructor. apply: re_pure.
     apply: tyA.
-  have tyB' : [ +n Gamma |- B :- s @ (maxn l1 l2) ].
+  have tyB' : [ +n Γ |- B :- s @ (maxn l1 l2) ].
     apply: s_Conv.
     apply: sub_Sort.
     apply: lt2.
@@ -508,24 +508,24 @@ Proof.
   apply: l_Prod; eauto.
 Qed.
 
-Lemma u_Lolli_max Gamma A B s l1 l2 :
-  pure Gamma ->
-  [ Gamma |- A :- U @ l1 ] ->
-  [ A +u Gamma |- B :- s @ l2 ] ->
-  [ Gamma |- Lolli A B U :- L @ (maxn l1 l2) ].
+Lemma u_Lolli_max Γ A B s l1 l2 :
+  pure Γ ->
+  [ Γ |- A :- U @ l1 ] ->
+  [ A +u Γ |- B :- s @ l2 ] ->
+  [ Γ |- Lolli A B U :- L @ (maxn l1 l2) ].
 Proof.
   move=>p tyA tyB.
   have lt1 : l1 <= maxn l1 l2.
     by apply: leq_maxl.
   have lt2 : l2 <= maxn l1 l2.
     by apply: leq_maxr.
-  have tyA' : [ Gamma |- A :- U @ (maxn l1 l2) ].
+  have tyA' : [ Γ |- A :- U @ (maxn l1 l2) ].
     apply: s_Conv.
     apply: sub_Sort.
     apply: lt1.
     constructor. apply: re_pure.
     apply: tyA.
-  have tyB' : [ A +u Gamma |- B :- s @ (maxn l1 l2) ].
+  have tyB' : [ A +u Γ |- B :- s @ (maxn l1 l2) ].
     apply: s_Conv.
     apply: sub_Sort.
     apply: lt2.
@@ -534,24 +534,24 @@ Proof.
   apply: u_Lolli; eauto.
 Qed.
 
-Lemma l_Lolli_max Gamma A B s l1 l2 :
-  pure Gamma ->
-  [ Gamma |- A :- L @ l1 ] ->
-  [ +n Gamma |- B :- s @ l2 ] ->
-  [ Gamma |- Lolli A B L :- L @ (maxn l1 l2) ].
+Lemma l_Lolli_max Γ A B s l1 l2 :
+  pure Γ ->
+  [ Γ |- A :- L @ l1 ] ->
+  [ +n Γ |- B :- s @ l2 ] ->
+  [ Γ |- Lolli A B L :- L @ (maxn l1 l2) ].
 Proof.
   move=>p tyA tyB.
   have lt1 : l1 <= maxn l1 l2.
     by apply: leq_maxl.
   have lt2 : l2 <= maxn l1 l2.
     by apply: leq_maxr.
-  have tyA' : [ Gamma |- A :- L @ (maxn l1 l2) ].
+  have tyA' : [ Γ |- A :- L @ (maxn l1 l2) ].
     apply: s_Conv.
     apply: sub_Sort.
     apply: lt1.
     constructor. apply: re_pure.
     apply: tyA.
-  have tyB' : [ +n Gamma |- B :- s @ (maxn l1 l2) ].
+  have tyB' : [ +n Γ |- B :- s @ (maxn l1 l2) ].
     apply: s_Conv.
     apply: sub_Sort.
     apply: lt2.
@@ -563,25 +563,25 @@ Qed.
 Inductive context_ok : context term -> Prop :=
 | nil_ok :
   [ nil |- ]
-| u_ok Gamma A l :
-  [ Gamma |- ] ->
-  [ re Gamma |- A :- Sort U l ] ->
-  [ A +u Gamma |- ]
-| l_ok Gamma A l :
-  [ Gamma |- ] ->
-  [ re Gamma |- A :- Sort L l ] ->
-  [ A +l Gamma |- ]
-| n_ok Gamma :
-  [ Gamma |- ] ->
-  [ +n Gamma |- ]
-where "[ Gamma |- ]" := (context_ok Gamma).
+| u_ok Γ A l :
+  [ Γ |- ] ->
+  [ re Γ |- A :- Sort U l ] ->
+  [ A +u Γ |- ]
+| l_ok Γ A l :
+  [ Γ |- ] ->
+  [ re Γ |- A :- Sort L l ] ->
+  [ A +l Γ |- ]
+| n_ok Γ :
+  [ Γ |- ] ->
+  [ +n Γ |- ]
+where "[ Γ |- ]" := (context_ok Γ).
 
-Lemma re_ok Gamma :
-  [ Gamma |- ] ->
-  [ re Gamma |- ].
+Lemma re_ok Γ :
+  [ Γ |- ] ->
+  [ re Γ |- ].
 Proof with eauto using context_ok.
   elim...
-  move{Gamma}=> Gamma A l wf1 wf2 ty //=.
+  move{Γ}=> Γ A l wf1 wf2 ty //=.
   apply: u_ok...
   rewrite <-re_re...
 Qed.

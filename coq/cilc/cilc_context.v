@@ -12,84 +12,84 @@ Definition elem T := option (T * sort).
 
 Definition context T := seq (elem T).
 
-Notation "m +u Gamma" := (Some (m, U) :: Gamma) (at level 30).
-Notation "m +l Gamma" := (Some (m, L) :: Gamma) (at level 30).
-Notation "m +{ s } Gamma" := (Some (m, s) :: Gamma) (at level 30).
-Notation "+n Gamma" := (None :: Gamma) (at level 30).
+Notation "m +u Γ" := (Some (m, U) :: Γ) (at level 30).
+Notation "m +l Γ" := (Some (m, L) :: Γ) (at level 30).
+Notation "m +{ s } Γ" := (Some (m, s) :: Γ) (at level 30).
+Notation "+n Γ" := (None :: Γ) (at level 30).
 
 Inductive merge T : context T -> context T -> context T -> Prop :=
 | merge_nil :
   merge nil nil nil
-| merge_left Gamma1 Gamma2 Gamma m : 
-  merge Gamma1 Gamma2 Gamma ->
-  merge (m +u Gamma1) (m +u Gamma2) (m +u Gamma)
-| merge_right1 Gamma1 Gamma2 Gamma m :
-  merge Gamma1 Gamma2 Gamma ->
-  merge (m +l Gamma1) (+n Gamma2) (m +l Gamma)
-| merge_right2 Gamma1 Gamma2 Gamma m :
-  merge Gamma1 Gamma2 Gamma ->
-  merge (+n Gamma1) (m +l Gamma2) (m +l Gamma)
-| merge_null Gamma1 Gamma2 Gamma :
-  merge Gamma1 Gamma2 Gamma ->
-  merge (+n Gamma1) (+n Gamma2) (+n Gamma).
+| merge_left Γ1 Γ2 Γ m : 
+  merge Γ1 Γ2 Γ ->
+  merge (m +u Γ1) (m +u Γ2) (m +u Γ)
+| merge_right1 Γ1 Γ2 Γ m :
+  merge Γ1 Γ2 Γ ->
+  merge (m +l Γ1) (+n Γ2) (m +l Γ)
+| merge_right2 Γ1 Γ2 Γ m :
+  merge Γ1 Γ2 Γ ->
+  merge (+n Γ1) (m +l Γ2) (m +l Γ)
+| merge_null Γ1 Γ2 Γ :
+  merge Γ1 Γ2 Γ ->
+  merge (+n Γ1) (+n Γ2) (+n Γ).
 
 Inductive pure T : context T -> Prop :=
 | pure_nil :
   pure nil
-| pure_u Gamma m : 
-  pure Gamma ->
-  pure (m +u Gamma)
-| pure_n Gamma : 
-  pure Gamma ->
-  pure (+n Gamma).
+| pure_u Γ m : 
+  pure Γ ->
+  pure (m +u Γ)
+| pure_n Γ : 
+  pure Γ ->
+  pure (+n Γ).
 
 Inductive hasU {T} `{Ids T} `{Subst T} : 
   context T -> var -> T -> Prop :=
-| hasU_O m Gamma :
-  pure Gamma ->
-  hasU (m +u Gamma) 0 m.[ren (+1)]
-| hasU_S Gamma v m n : 
-  hasU Gamma v m ->
-  hasU (n +u Gamma) v.+1 m.[ren (+1)]
-| hasU_N Gamma v m : 
-  hasU Gamma v m ->
-  hasU (+n Gamma) v.+1 m.[ren (+1)].
+| hasU_O m Γ :
+  pure Γ ->
+  hasU (m +u Γ) 0 m.[ren (+1)]
+| hasU_S Γ v m n : 
+  hasU Γ v m ->
+  hasU (n +u Γ) v.+1 m.[ren (+1)]
+| hasU_N Γ v m : 
+  hasU Γ v m ->
+  hasU (+n Γ) v.+1 m.[ren (+1)].
 
 Inductive hasL {T} `{Ids T} `{Subst T} :
   context T -> var -> T -> Prop :=
-| hasL_O m Gamma :
-  pure Gamma ->
-  hasL (m +l Gamma) 0 m.[ren (+1)]
-| hasL_S Gamma v m n :
-  hasL Gamma v m ->
-  hasL (n +u Gamma) v.+1 m.[ren (+1)]
-| hasL_N Gamma v m :
-  hasL Gamma v m ->
-  hasL (+n Gamma) v.+1 m.[ren (+1)].
+| hasL_O m Γ :
+  pure Γ ->
+  hasL (m +l Γ) 0 m.[ren (+1)]
+| hasL_S Γ v m n :
+  hasL Γ v m ->
+  hasL (n +u Γ) v.+1 m.[ren (+1)]
+| hasL_N Γ v m :
+  hasL Γ v m ->
+  hasL (+n Γ) v.+1 m.[ren (+1)].
 
-Fixpoint re T (Gamma : context T) : context T :=
-  match Gamma with
-  | Some (m, U) :: Gamma => Some (m, U) :: re Gamma
-  | _ :: Gamma => None :: re Gamma
+Fixpoint re T (Γ : context T) : context T :=
+  match Γ with
+  | Some (m, U) :: Γ => Some (m, U) :: re Γ
+  | _ :: Γ => None :: re Γ
   | _ => nil
   end.
 
-Lemma merge_sym T (Gamma1 Gamma2 Gamma : context T) : 
-  merge Gamma1 Gamma2 Gamma -> merge Gamma2 Gamma1 Gamma.
+Lemma merge_sym T (Γ1 Γ2 Γ : context T) : 
+  merge Γ1 Γ2 Γ -> merge Γ2 Γ1 Γ.
 Proof.
   induction 1; intros; constructor; eauto.
 Qed.
 
-Lemma merge_pure T (Gamma : context T) :
-  pure Gamma -> merge Gamma Gamma Gamma.
+Lemma merge_pure T (Γ : context T) :
+  pure Γ -> merge Γ Γ Γ.
 Proof.
   induction 1; constructor; eauto.
 Qed.
 
-Lemma merge_re1 T (Gamma : context T) :
-  merge (re Gamma) Gamma Gamma.
+Lemma merge_re1 T (Γ : context T) :
+  merge (re Γ) Γ Γ.
 Proof.
-  induction Gamma.
+  induction Γ.
   { simpl; constructor. }
   { destruct a.
     destruct p.
@@ -100,10 +100,10 @@ Proof.
     constructor; eauto. }
 Qed.
 
-Lemma merge_re2 T (Gamma : context T) :
-  merge Gamma (re Gamma) Gamma.
+Lemma merge_re2 T (Γ : context T) :
+  merge Γ (re Γ) Γ.
 Proof.
-  induction Gamma.
+  induction Γ.
   { simpl; constructor. }
   { destruct a.
     destruct p.
@@ -114,19 +114,19 @@ Proof.
     constructor; eauto. }
 Qed.
 
-Lemma merge_pure_inv T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma -> 
-  pure Gamma -> 
-  pure Gamma1 /\ pure Gamma2.
+Lemma merge_pure_inv T (Γ1 Γ2 Γ : context T) :
+  merge Γ1 Γ2 Γ -> 
+  pure Γ -> 
+  pure Γ1 /\ pure Γ2.
 Proof.
   induction 1; intros; constructor; eauto; 
   try solve[inv H0; constructor; firstorder].
 Qed.
 
-Lemma merge_pure1 T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma -> 
-  pure Gamma1 -> 
-  Gamma = Gamma2.
+Lemma merge_pure1 T (Γ1 Γ2 Γ : context T) :
+  merge Γ1 Γ2 Γ -> 
+  pure Γ1 -> 
+  Γ = Γ2.
 Proof.
   induction 1; intros; eauto; try solve[inv H0].
   { inv H0.
@@ -137,10 +137,10 @@ Proof.
     rewrite IHmerge; eauto. }
 Qed.
 
-Lemma merge_pure2 T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma -> 
-  pure Gamma2 -> 
-  Gamma = Gamma1.
+Lemma merge_pure2 T (Γ1 Γ2 Γ : context T) :
+  merge Γ1 Γ2 Γ -> 
+  pure Γ2 -> 
+  Γ = Γ1.
 Proof.
   induction 1; intros; eauto; try solve[inv H0].
   { inv H0.
@@ -151,11 +151,11 @@ Proof.
     rewrite IHmerge; eauto. }
 Qed.
 
-Lemma merge_pure_pure T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma -> 
-  pure Gamma1 ->
-  pure Gamma2 ->
-  pure Gamma.
+Lemma merge_pure_pure T (Γ1 Γ2 Γ : context T) :
+  merge Γ1 Γ2 Γ -> 
+  pure Γ1 ->
+  pure Γ2 ->
+  pure Γ.
 Proof.
   induction 1; intros; eauto.
   { inv H0; inv H1.
@@ -166,11 +166,11 @@ Proof.
     constructor; eauto. }
 Qed.
 
-Lemma merge_pure_eq T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma -> 
-  pure Gamma1 -> 
-  pure Gamma2 -> 
-  Gamma1 = Gamma2.
+Lemma merge_pure_eq T (Γ1 Γ2 Γ : context T) :
+  merge Γ1 Γ2 Γ -> 
+  pure Γ1 -> 
+  pure Γ2 -> 
+  Γ1 = Γ2.
 Proof.
   induction 1; intros; eauto.
   { inv H0; inv H1.
@@ -181,9 +181,9 @@ Proof.
     rewrite IHmerge; eauto. }
 Qed.
 
-Lemma merge_re_re T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma -> 
-  re Gamma1 = re Gamma /\ re Gamma2 = re Gamma.
+Lemma merge_re_re T (Γ1 Γ2 Γ : context T) :
+  merge Γ1 Γ2 Γ -> 
+  re Γ1 = re Γ /\ re Γ2 = re Γ.
 Proof.
   induction 1; simpl; intros; eauto; firstorder.
   { rewrite H0; eauto. }
@@ -196,10 +196,10 @@ Proof.
   { rewrite H1; eauto. }
 Qed.
 
-Lemma merge_re_re_re T (Gamma : context T) : 
-  merge (re Gamma) (re Gamma) (re Gamma).
+Lemma merge_re_re_re T (Γ : context T) : 
+  merge (re Γ) (re Γ) (re Γ).
 Proof.
-  induction Gamma; intros.
+  induction Γ; intros.
   { constructor. }
   { destruct a.
     { destruct p.
@@ -209,33 +209,33 @@ Proof.
     { constructor; eauto. } }
 Qed.
 
-Lemma re_re T (Gamma : context T) :
-  re Gamma = re (re Gamma).
+Lemma re_re T (Γ : context T) :
+  re Γ = re (re Γ).
 Proof.
-  induction Gamma.
+  induction Γ.
   { simpl.
     reflexivity. }
   { case a; intros; simpl.
     { case p; intros; simpl.
       case s; intros; simpl.
-      { rewrite <- IHGamma; eauto. }
-      { rewrite <- IHGamma; eauto. } }
-    { rewrite <- IHGamma; eauto. } }
+      { rewrite <- IHΓ; eauto. }
+      { rewrite <- IHΓ; eauto. } }
+    { rewrite <- IHΓ; eauto. } }
 Qed.
 
-Lemma pure_re T (Gamma : context T) :
-  pure Gamma -> Gamma = re Gamma.
+Lemma pure_re T (Γ : context T) :
+  pure Γ -> Γ = re Γ.
 Proof.
-  induction Gamma; intros.
+  induction Γ; intros.
   { eauto. }
   { inv H; simpl.
-    { rewrite <- IHGamma; eauto. }
-    { rewrite <- IHGamma; eauto. } }
+    { rewrite <- IHΓ; eauto. }
+    { rewrite <- IHΓ; eauto. } }
 Qed.
 
-Lemma re_pure T (Gamma : context T) : pure (re Gamma).
+Lemma re_pure T (Γ : context T) : pure (re Γ).
 Proof.
-  induction Gamma; intros.
+  induction Γ; intros.
   { constructor. }
   { destruct a; simpl. 
     { destruct p; simpl. 
@@ -245,8 +245,8 @@ Proof.
     { constructor; eauto. } }
 Qed.
 
-Lemma hasU_re {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasU Gamma x A -> hasU (re Gamma) x A.
+Lemma hasU_re {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  hasU Γ x A -> hasU (re Γ) x A.
 Proof.
   induction 1; simpl.
   { constructor.
@@ -255,31 +255,31 @@ Proof.
   { constructor; eauto. }
 Qed.
 
-Lemma hasL_re {T} `{Ids T} `{Subst T} (Gamma : context T) :
-  forall x A, ~hasL (re Gamma) x A.
+Lemma hasL_re {T} `{Ids T} `{Subst T} (Γ : context T) :
+  forall x A, ~hasL (re Γ) x A.
 Proof.
-  induction Gamma; unfold not; intros.
+  induction Γ; unfold not; intros.
   { simpl in H1. inv H1. }
   { destruct a; inv H1. 
     { destruct p; inv H2. 
       destruct s; inv H4. } 
     { destruct p; inv H2. 
       destruct s; inv H4. 
-      eapply IHGamma; eauto. }
+      eapply IHΓ; eauto. }
     { destruct p; inv H2. 
       destruct s; inv H4. 
-      eapply IHGamma; eauto. }
-    { eapply IHGamma; eauto. } }
+      eapply IHΓ; eauto. }
+    { eapply IHΓ; eauto. } }
 Qed.
 
-Lemma hasU_pure {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasU Gamma x A -> pure Gamma.
+Lemma hasU_pure {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  hasU Γ x A -> pure Γ.
 Proof.
   induction 1; simpl; constructor; eauto.
 Qed.
 
-Lemma hasL_pure {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasL Gamma x A -> ~pure Gamma.
+Lemma hasL_pure {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  hasL Γ x A -> ~pure Γ.
 Proof.
   induction 1; simpl; intro h. 
   { inv h. }
@@ -287,8 +287,8 @@ Proof.
   { inv h; eauto. }
 Qed.
 
-Lemma hasU_x {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasU Gamma x A -> forall B, hasU Gamma x B -> A = B.
+Lemma hasU_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  hasU Γ x A -> forall B, hasU Γ x B -> A = B.
 Proof.
   induction 1; intros.
   { inv H2; eauto. }
@@ -298,8 +298,8 @@ Proof.
     apply IHhasU in H5. rewrite H5; eauto. }
 Qed.
 
-Lemma hasL_x {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasL Gamma x A -> forall B, hasL Gamma x B -> A = B.
+Lemma hasL_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  hasL Γ x A -> forall B, hasL Γ x B -> A = B.
 Proof.
   induction 1; intros.
   { inv H2; eauto. }
@@ -309,8 +309,8 @@ Proof.
     apply IHhasL in H5. rewrite H5; eauto. }
 Qed.
 
-Lemma hasU_hasL {T} `{Ids T} `{Subst T} (Gamma : context T) x A :
-  hasU Gamma x A -> forall B, ~hasL Gamma x B.
+Lemma hasU_hasL {T} `{Ids T} `{Subst T} (Γ : context T) x A :
+  hasU Γ x A -> forall B, ~hasL Γ x B.
 Proof.
   induction 1; unfold not; intros.
   { inv H2. }
@@ -318,12 +318,12 @@ Proof.
   { inv H2; apply IHhasU in H5; eauto. }
 Qed.
 
-Lemma merge_split1 T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  forall Delta1 Delta2,
-    merge Delta1 Delta2 Gamma1 ->
-    exists Delta,
-      merge Delta1 Gamma2 Delta /\ merge Delta Delta2 Gamma.
+Lemma merge_split1 T (Γ1 Γ2 Γ : context T) :
+  merge Γ1 Γ2 Γ ->
+  forall Δ1 Δ2,
+    merge Δ1 Δ2 Γ1 ->
+    exists Δ,
+      merge Δ1 Γ2 Δ /\ merge Δ Δ2 Γ.
 Proof.
   induction 1; intros.
   { inv H.
@@ -355,12 +355,12 @@ Proof.
     repeat constructor; eauto. }
 Qed.
 
-Lemma merge_split2 T (Gamma1 Gamma2 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma ->
-  forall Delta1 Delta2,
-    merge Delta1 Delta2 Gamma1 ->
-    exists Delta,
-      merge Delta2 Gamma2 Delta /\ merge Delta1 Delta Gamma.
+Lemma merge_split2 T (Γ1 Γ2 Γ : context T) :
+  merge Γ1 Γ2 Γ ->
+  forall Δ1 Δ2,
+    merge Δ1 Δ2 Γ1 ->
+    exists Δ,
+      merge Δ2 Γ2 Δ /\ merge Δ1 Δ Γ.
 Proof.
   induction 1; intros.
   { inv H.
@@ -392,29 +392,29 @@ Proof.
     repeat constructor; eauto. }
 Qed.
 
-Lemma merge_merge T (Gamma1 Gamma2 Gamma3 Gamma4 Gamma : context T) :
-  merge Gamma1 Gamma2 Gamma3 ->
-  merge Gamma3 Gamma4 Gamma ->
-  exists Gamma5,
-    merge Gamma1 Gamma4 Gamma5 /\
-    merge Gamma5 Gamma2 Gamma.
+Lemma merge_merge T (Γ1 Γ2 Γ3 Γ4 Γ : context T) :
+  merge Γ1 Γ2 Γ3 ->
+  merge Γ3 Γ4 Γ ->
+  exists Γ5,
+    merge Γ1 Γ4 Γ5 /\
+    merge Γ5 Γ2 Γ.
 Proof with eauto using merge.
   move=> mg. 
-  elim: mg Gamma4 Gamma=>{Gamma1 Gamma2 Gamma3}; intros.
+  elim: mg Γ4 Γ=>{Γ1 Γ2 Γ3}; intros.
   { inv H.
     exists nil... }
   { inv H1.
-    move: (H0 _ _ H6)=>{H0}[Gamma7[mg1 mg2]].
-    exists (m +u Gamma7)... }
+    move: (H0 _ _ H6)=>{H0}[Γ7[mg1 mg2]].
+    exists (m +u Γ7)... }
   { inv H1.
-    move: (H0 _ _ H6)=>{H0}[Gamma7[mg1 mg2]].
-    exists (m +l Gamma7)... }
+    move: (H0 _ _ H6)=>{H0}[Γ7[mg1 mg2]].
+    exists (m +l Γ7)... }
   { inv H1.
-    move: (H0 _ _ H6)=>{H0}[Gamma7[mg1 mg2]].
-    exists (+n Gamma7)... }
+    move: (H0 _ _ H6)=>{H0}[Γ7[mg1 mg2]].
+    exists (+n Γ7)... }
   { inv H1.
-    { move: (H0 _ _ H3)=>{H3}[Gamma7[mg1 mg2]].
-      exists (m +l Gamma7)... }
-    { move: (H0 _ _ H3)=>{H3}[Gamma7[mg1 mg2]].
-      exists (+n Gamma7)... } }
+    { move: (H0 _ _ H3)=>{H3}[Γ7[mg1 mg2]].
+      exists (m +l Γ7)... }
+    { move: (H0 _ _ H3)=>{H3}[Γ7[mg1 mg2]].
+      exists (+n Γ7)... } }
 Qed.

@@ -72,11 +72,11 @@ Proof.
   apply: rev_nil; eauto.
 Qed.
 
-Lemma has_type_Lam_False Gamma A B C s l :
-  [ Gamma |- Lam A B U :- C ] -> C <: s @ l -> False.
+Lemma has_type_Lam_False Γ A B C s l :
+  [ Γ |- Lam A B U :- C ] -> C <: s @ l -> False.
 Proof.
   move e1:(Lam A B U)=> m ty.
-  move: Gamma m C ty A B s l e1.
+  move: Γ m C ty A B s l e1.
   apply: has_type_nested_ind; intros; 
   try (discriminate || solve[exfalso; solve_sub]).
   subst.
@@ -84,12 +84,12 @@ Proof.
   apply: sub_trans; eauto.
 Qed.
 
-Lemma has_type_Ind_False Gamma X Cs A B C r s t l :
-  [ Gamma |- Ind X Cs s :- C ] -> C <: Prod A B r ->
-  [ Gamma |- Ind X Cs s :- t @ l ] -> False.
+Lemma has_type_Ind_False Γ X Cs A B C r s t l :
+  [ Γ |- Ind X Cs s :- C ] -> C <: Prod A B r ->
+  [ Γ |- Ind X Cs s :- t @ l ] -> False.
 Proof.
   move e:(Ind X Cs s)=>I ty.
-  move: Gamma I C ty X Cs A B r s t l e.
+  move: Γ I C ty X Cs A B r s t l e.
   apply: has_type_nested_ind; try discriminate; intros.
   - inv e.
     apply s_Ind_invX in H7. firstorder.
@@ -125,17 +125,17 @@ Ltac solve_spine :=
     rewrite spine_spine'_rev in H; solve_spine'
   end.
 
-Lemma active_respine Gamma I Cs A Q C n r s t l :
+Lemma active_respine Γ I Cs A Q C n r s t l :
   active n C ->
   arity s A ->
   (I n = Ind A Cs s) ->
-  [ re Gamma |- I n :- A ] ->
-  [ re Gamma |- Q :- arity1 t A ] ->
-  [ re Gamma |- C.[I] :- r @ l ] ->
+  [ re Γ |- I n :- A ] ->
+  [ re Γ |- Q :- arity1 t A ] ->
+  [ re Γ |- C.[I] :- r @ l ] ->
   exists s l,
-    [ re Gamma |- respine Q C.[I] :- s @ l ].
+    [ re Γ |- respine Q C.[I] :- s @ l ].
 Proof.
-  elim: C Gamma I Cs A Q n r s t l; simpl; intros;
+  elim: C Γ I Cs A Q n r s t l; simpl; intros;
   match goal with
   | [ H : active _ _ |- _ ] => 
     try solve [inv H; exfalso; solve_spine]
@@ -151,7 +151,7 @@ Proof.
       eauto.
       apply: H4. } }
   { specialize
-    (@H0 (A.[I] +{s} Gamma) (up I) 
+    (@H0 (A.[I] +{s} Γ) (up I) 
       Cs..[up (ren (+1))] A0.[ren (+1)] Q.[ren (+1)] n.+1).
     inv H1; try solve[exfalso; solve_spine]; destruct s. 
     { move: (u_Lolli_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
@@ -159,9 +159,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] s0.
         asimpl. rewrite H3. autosubst.
-      have h3 : [ A.[I] +u re Gamma |- up I n.+1 :- A0.[ren (+1)] ].
+      have h3 : [ A.[I] +u re Γ |- up I n.+1 :- A0.[ren (+1)] ].
         asimpl. apply: eweakeningU; eauto.
-      have h4 : [ A.[I] +u re Gamma |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)] ].
+      have h4 : [ A.[I] +u re Γ |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)] ].
         apply: eweakeningU; eauto.
         erewrite arity1_ren; eauto.
       move: (@H0 s' s0 t l1 H12 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -173,9 +173,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] s0.
         asimpl. rewrite H3. autosubst.
-      have h3 : [ +n re Gamma |- up I n.+1 :- A0.[ren (+1)] ].
+      have h3 : [ +n re Γ |- up I n.+1 :- A0.[ren (+1)] ].
         asimpl. apply: eweakeningN; eauto.
-      have h4 : [ +n re Gamma |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)] ].
+      have h4 : [ +n re Γ |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)] ].
         apply: eweakeningN; eauto.
         erewrite arity1_ren; eauto.
       move: (@H0 s' s0 t l1 H12 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -187,9 +187,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] s0.
         asimpl. rewrite H3. autosubst.
-      have h3 : [ A.[I] +u re Gamma |- up I n.+1 :- A0.[ren (+1)] ].
+      have h3 : [ A.[I] +u re Γ |- up I n.+1 :- A0.[ren (+1)] ].
         asimpl. apply: eweakeningU; eauto.
-      have h4 : [ A.[I] +u re Gamma |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)] ].
+      have h4 : [ A.[I] +u re Γ |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)] ].
         apply: eweakeningU; eauto.
         erewrite arity1_ren; eauto.
       move: (@H0 s' s0 t l1 H12 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -201,9 +201,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] s0.
         asimpl. rewrite H3. autosubst.
-      have h3 : [ +n re Gamma |- up I n.+1 :- A0.[ren (+1)] ].
+      have h3 : [ +n re Γ |- up I n.+1 :- A0.[ren (+1)] ].
         asimpl. apply: eweakeningN; eauto.
-      have h4 : [ +n re Gamma |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)] ].
+      have h4 : [ +n re Γ |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)] ].
         apply: eweakeningN; eauto.
         erewrite arity1_ren; eauto.
       move: (@H0 s' s0 t l1 H12 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -220,27 +220,27 @@ Proof.
     rewrite spine_subst in H6; simpl in H6.
     rewrite H3.
     rewrite H3 in H6.
-    have p : pure (re Gamma).
+    have p : pure (re Γ).
       apply: re_pure.
     move: (s_Ind_spine_inv p H2 H6)=>[s0[l0 tySp]].
     move: (arity1_spine t tySp H2 p)=>{}tySp.
-    move: (merge_re_re_re Gamma)=>mg.
+    move: (merge_re_re_re Γ)=>mg.
     move: (App_arity_spine H5 tySp mg)=>tyQ.
     rewrite respine_spine_Ind.
     exists t. exists l0; eauto. }
 Qed.
 
-Lemma constr_respine Gamma I Cs A Q C n r s t l :
+Lemma constr_respine Γ I Cs A Q C n r s t l :
   constr n s C ->
   arity s A ->
   (I n = Ind A Cs s) ->
-  [ re Gamma |- I n :- A ] ->
-  [ re Gamma |- Q :- arity1 t A ] ->
-  [ re Gamma |- C.[I] :- r @ l ] ->
+  [ re Γ |- I n :- A ] ->
+  [ re Γ |- Q :- arity1 t A ] ->
+  [ re Γ |- C.[I] :- r @ l ] ->
   exists s l,
-    [ re Gamma |- respine Q C.[I] :- s @ l ].
+    [ re Γ |- respine Q C.[I] :- s @ l ].
 Proof.
-  elim: C Gamma I Cs A Q n r s t l; simpl; intros;
+  elim: C Γ I Cs A Q n r s t l; simpl; intros;
   match goal with
   | [ H : constr _ _ _ |- _ ] => 
     try solve [inv H; exfalso; solve_spine]
@@ -255,7 +255,7 @@ Proof.
       apply: H2.
       eauto.
       apply: H4. } }
-  { specialize (@H0 (A.[I] +{s} Gamma) (up I) 
+  { specialize (@H0 (A.[I] +{s} Γ) (up I) 
       Cs..[up (ren (+1))] A0.[ren (+1)] Q.[ren (+1)] n.+1).
     inv H1; try solve[exfalso; solve_spine].
     { move: (u_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
@@ -263,9 +263,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U).
         asimpl. rewrite H3. autosubst.
-      have h3 : [A.[I] +u re Gamma |- up I n.+1 :- A0.[ren (+1)]].
+      have h3 : [A.[I] +u re Γ |- up I n.+1 :- A0.[ren (+1)]].
         asimpl. apply: eweakeningU; eauto.
-      have h4 : [A.[I] +u re Gamma |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
+      have h4 : [A.[I] +u re Γ |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
         apply: eweakeningU; eauto.
         erewrite arity1_ren; eauto.
       move: (@H0 s' U t l1 H13 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -277,9 +277,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U).
         asimpl. rewrite H3. autosubst.
-      have h3 : [A.[I] +u re Gamma |- up I n.+1 :- A0.[ren (+1)]].
+      have h3 : [A.[I] +u re Γ |- up I n.+1 :- A0.[ren (+1)]].
         asimpl. apply: eweakeningU; eauto.
-      have h4 : [A.[I] +u re Gamma |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
+      have h4 : [A.[I] +u re Γ |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
         apply: eweakeningU; eauto.
         erewrite arity1_ren; eauto.
       move: (@H0 s' U t l1 H13 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -291,9 +291,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] L).
         asimpl. rewrite H3. autosubst.
-      have h3 : [A.[I] +u re Gamma |- up I n.+1 :- A0.[ren (+1)]].
+      have h3 : [A.[I] +u re Γ |- up I n.+1 :- A0.[ren (+1)]].
         asimpl. apply: eweakeningU; eauto.
-      have h4 : [A.[I] +u re Gamma |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
+      have h4 : [A.[I] +u re Γ |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
         apply: eweakeningU; eauto.
         erewrite arity1_ren; eauto.
       move: (@H0 s' L t l1 H13 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -305,9 +305,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] L).
         asimpl. rewrite H3. autosubst.
-      have h3 : [ re (A.[I] +l Gamma) |- up I n.+1 :- A0.[ren (+1)]].
+      have h3 : [ re (A.[I] +l Γ) |- up I n.+1 :- A0.[ren (+1)]].
         asimpl. apply: eweakeningN; eauto.
-      have h4 : [ re (A.[I] +l Gamma) |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
+      have h4 : [ re (A.[I] +l Γ) |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
         apply: eweakeningN; eauto.
         erewrite arity1_ren; eauto.
       move: (active_respine H13 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -319,9 +319,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] L).
         asimpl. rewrite H3. autosubst.
-      have h3 : [A.[I] +u re Gamma |- up I n.+1 :- A0.[ren (+1)]].
+      have h3 : [A.[I] +u re Γ |- up I n.+1 :- A0.[ren (+1)]].
         asimpl. apply: eweakeningU; eauto.
-      have h4 : [A.[I] +u re Gamma |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
+      have h4 : [A.[I] +u re Γ |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
         apply: eweakeningU; eauto.
         erewrite arity1_ren; eauto.
       move: (@H0 s' L t l1 H13 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -333,9 +333,9 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] L).
         asimpl. rewrite H3. autosubst.
-      have h3 : [ re (A.[I] +l Gamma) |- up I n.+1 :- A0.[ren (+1)]].
+      have h3 : [ re (A.[I] +l Γ) |- up I n.+1 :- A0.[ren (+1)]].
         asimpl. apply: eweakeningN; eauto.
-      have h4 : [ re (A.[I] +l Gamma) |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
+      have h4 : [ re (A.[I] +l Γ) |- Q.[ren (+1)] :- arity1 t A0.[ren (+1)]].
         apply: eweakeningN; eauto.
         erewrite arity1_ren; eauto.
       move: (active_respine H13 h1 h2 h3 h4 tyB)=>[s[l0 tySp]].
@@ -352,28 +352,28 @@ Proof.
     rewrite spine_subst in H6; simpl in H6.
     rewrite H3.
     rewrite H3 in H6.
-    have p : pure (re Gamma).
+    have p : pure (re Γ).
       apply: re_pure.
     move: (s_Ind_spine_inv p H2 H6)=>[s0[l0 tySp]].
     move: (arity1_spine t tySp H2 p)=>{}tySp.
-    move: (merge_re_re_re Gamma)=> mg.
+    move: (merge_re_re_re Γ)=> mg.
     move: (App_arity_spine H5 tySp mg)=>tyQ.
     rewrite respine_spine_Ind.
     exists t. exists l0; eauto. }
 Qed.
 
-Lemma constr_drespine Gamma I Cs A Q C c n s r l :
+Lemma constr_drespine Γ I Cs A Q C c n s r l :
   constr n U C ->
   arity U A ->
   (I n = Ind A Cs U) ->
-  [ re Gamma |- I n :- A ] ->
-  [ re Gamma |- Q :- arity2 s (Ind A Cs U) A ] ->
-  [ re Gamma |- C.[I] :- r @ l ] ->
-  [ re Gamma |- c :- C.[I] ] ->
+  [ re Γ |- I n :- A ] ->
+  [ re Γ |- Q :- arity2 s (Ind A Cs U) A ] ->
+  [ re Γ |- C.[I] :- r @ l ] ->
+  [ re Γ |- c :- C.[I] ] ->
   exists s l,
-    [ re Gamma |- drespine Q c C.[I] :- s @ l ].
+    [ re Γ |- drespine Q c C.[I] :- s @ l ].
 Proof.
-  elim: C Gamma I Cs A Q c n s r l; simpl; intros;
+  elim: C Γ I Cs A Q c n s r l; simpl; intros;
   match goal with
   | [ H : constr _ _ _ |- _ ] => 
     try solve [inv H; exfalso; solve_spine]
@@ -393,7 +393,7 @@ Proof.
       apply: H2.
       eauto.
       apply: H4. } }
-  { specialize (@H0 (A.[I] +{s} Gamma) (up I) 
+  { specialize (@H0 (A.[I] +{s} Γ) (up I) 
     Cs..[up (ren (+1))] A0.[ren (+1)] Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) n.+1).
     inv H1; try solve[exfalso; solve_spine].
     { move: (u_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
@@ -401,25 +401,25 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U).
         asimpl. rewrite H3. autosubst.
-      have h3 : [A.[I] +u re Gamma |- up I n.+1 :- A0.[ren (+1)]].
+      have h3 : [A.[I] +u re Γ |- up I n.+1 :- A0.[ren (+1)]].
         asimpl. apply: eweakeningU; eauto.
-      have h4 : [A.[I] +u re Gamma |- Q.[ren (+1)] :- 
+      have h4 : [A.[I] +u re Γ |- Q.[ren (+1)] :- 
         arity2 s0 (Ind A0 Cs U).[ren (+1)] A0.[ren (+1)]].
         apply: eweakeningU; eauto.
         erewrite arity2_ren; eauto.
-      have h5 : [A.[I] +u re Gamma |- c.[ren (+1)] :- 
+      have h5 : [A.[I] +u re Γ |- c.[ren (+1)] :- 
         (Prod A.[I] B.[up I] U).[ren (+1)]].
         apply: eweakeningU; eauto.
       asimpl in h5.
-      have h6 : [A.[I] +u re Gamma |- ids 0 :- A.[I].[ren (+1)]].
+      have h6 : [A.[I] +u re Γ |- ids 0 :- A.[I].[ren (+1)]].
         apply: u_Var.
         constructor.
         apply: re_pure.
       asimpl in h6.
-      have pr : pure (A.[I] +u re Gamma).
+      have pr : pure (A.[I] +u re Γ).
         constructor.
         apply: re_pure.
-      pose proof (merge_re_re_re (A.[I] +u Gamma)).
+      pose proof (merge_re_re_re (A.[I] +u Γ)).
       simpl in H1.
       have h7 := u_Prod_App pr h5 h6 H1.
       asimpl in h7.
@@ -432,25 +432,25 @@ Proof.
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U).
         asimpl. rewrite H3. autosubst.
-      have h3 : [A.[I] +u re Gamma |- up I n.+1 :- A0.[ren (+1)]].
+      have h3 : [A.[I] +u re Γ |- up I n.+1 :- A0.[ren (+1)]].
         asimpl. apply: eweakeningU; eauto.
-      have h4 : [A.[I] +u re Gamma |- Q.[ren (+1)] :- 
+      have h4 : [A.[I] +u re Γ |- Q.[ren (+1)] :- 
         arity2 s0 (Ind A0 Cs U).[ren (+1)] A0.[ren (+1)]].
         apply: eweakeningU; eauto.
         erewrite arity2_ren; eauto.
-      have h5 : [A.[I] +u re Gamma |- c.[ren (+1)] :- 
+      have h5 : [A.[I] +u re Γ |- c.[ren (+1)] :- 
         (Prod A.[I] B.[up I] U).[ren (+1)]].
         apply: eweakeningU; eauto.
       asimpl in h5.
-      have h6 : [A.[I] +u re Gamma |- ids 0 :- A.[I].[ren (+1)]].
+      have h6 : [A.[I] +u re Γ |- ids 0 :- A.[I].[ren (+1)]].
         apply: u_Var.
         constructor.
         apply: re_pure.
       asimpl in h6.
-      have pr : pure (A.[I] +u re Gamma).
+      have pr : pure (A.[I] +u re Γ).
         constructor.
         apply: re_pure.
-      pose proof (merge_re_re_re (A.[I] +u Gamma)).
+      pose proof (merge_re_re_re (A.[I] +u Γ)).
       simpl in H1.
       have h7 := u_Prod_App pr h5 h6 H1.
       asimpl in h7.
@@ -472,12 +472,12 @@ Proof.
     rewrite H3.
     rewrite H3 in H6.
     rewrite H3 in H7.
-    have p : pure (re Gamma).
+    have p : pure (re Γ).
       apply: re_pure.
     move: (s_Ind_spine_inv p H2 H6)=>[s0[l0 tySp]].
     move: (s_Ind_spine p H6)=>tyI.
     move: (arity2_spine s tySp H2 p tyI)=>{}tySp.
-    move: (merge_re_re_re Gamma)=> mg.
+    move: (merge_re_re_re Γ)=> mg.
     move: (App_arity_spine H5 tySp mg)=>tyQ.
     rewrite respine_spine_Ind.
     exists s. exists l0. 

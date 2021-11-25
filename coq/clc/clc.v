@@ -22,23 +22,23 @@ Notation "m +l Γ" := (Some (m, L) :: Γ) (at level 30).
 Notation "m +{ s } Γ" := (Some (m, s) :: Γ) (at level 30).
 Notation "□ Γ" := (None :: Γ) (at level 30).
 
-Reserved Notation "[ Γ₁ ‡ Γ₂ ‡ Γ ]".
+Reserved Notation "[ Γ1 ‡ Γ2 ‡ Γ ]".
 Inductive merge T : context T -> context T -> context T -> Prop :=
 | merge_nil :
   [ nil ‡ nil ‡ nil ]
-| merge_left Γ₁ Γ₂ Γ m : 
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-  [ m +u Γ₁ ‡ m +u Γ₂ ‡ m +u Γ ] 
-| merge_right1 Γ₁ Γ₂ Γ m :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-  [ m +l Γ₁ ‡ □ Γ₂ ‡ m +l Γ ]
-| merge_right2 Γ₁ Γ₂ Γ m :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-  [ □ Γ₁ ‡ m +l Γ₂ ‡ m +l Γ ]
-| merge_null Γ₁ Γ₂ Γ :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-  [ □ Γ₁ ‡ □ Γ₂ ‡ □ Γ ]
-where "[ Γ₁ ‡ Γ₂ ‡ Γ ]" := (merge Γ₁ Γ₂ Γ).
+| merge_left Γ1 Γ2 Γ m : 
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
+  [ m +u Γ1 ‡ m +u Γ2 ‡ m +u Γ ] 
+| merge_right1 Γ1 Γ2 Γ m :
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
+  [ m +l Γ1 ‡ □ Γ2 ‡ m +l Γ ]
+| merge_right2 Γ1 Γ2 Γ m :
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
+  [ □ Γ1 ‡ m +l Γ2 ‡ m +l Γ ]
+| merge_null Γ1 Γ2 Γ :
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
+  [ □ Γ1 ‡ □ Γ2 ‡ □ Γ ]
+where "[ Γ1 ‡ Γ2 ‡ Γ ]" := (merge Γ1 Γ2 Γ).
 
 Reserved Notation "[ Γ ]".
 
@@ -90,8 +90,8 @@ Fixpoint re T (Γ : context T) : context T :=
 
 Notation "% Γ" := (re Γ) (at level 30).
 
-Lemma merge_sym T (Γ₁ Γ₂ Γ : context T) : 
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₂ ‡ Γ₁ ‡ Γ ].
+Lemma merge_sym T (Γ1 Γ2 Γ : context T) : 
+  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ2 ‡ Γ1 ‡ Γ ].
 Proof.
   induction 1; intros; constructor; eauto.
 Qed.
@@ -130,8 +130,8 @@ Proof.
     constructor; eauto.
 Qed.
 
-Lemma merge_pure_inv T (Γ₁ Γ₂ Γ : context T) :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ ] -> [ Γ₁ ] /\ [ Γ₂ ].
+Lemma merge_pure_inv T (Γ1 Γ2 Γ : context T) :
+  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ ] -> [ Γ1 ] /\ [ Γ2 ].
 Proof.
   induction 1; intros; constructor; eauto.
   - inv H0.
@@ -148,8 +148,8 @@ Proof.
     constructor; firstorder.
 Qed.
 
-Lemma merge_pure1 T (Γ₁ Γ₂ Γ : context T) :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₁ ] -> Γ = Γ₂.
+Lemma merge_pure1 T (Γ1 Γ2 Γ : context T) :
+  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ1 ] -> Γ = Γ2.
 Proof.
   induction 1; intros; eauto.
   - inv H0.
@@ -161,8 +161,8 @@ Proof.
     rewrite IHmerge; eauto.
 Qed.
 
-Lemma merge_pure2 T (Γ₁ Γ₂ Γ : context T) :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₂ ] -> Γ = Γ₁.
+Lemma merge_pure2 T (Γ1 Γ2 Γ : context T) :
+  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ2 ] -> Γ = Γ1.
 Proof.
   induction 1; intros; eauto.
   - inv H0.
@@ -174,8 +174,8 @@ Proof.
     rewrite IHmerge; eauto.
 Qed.
 
-Lemma merge_pure_pure T (Γ₁ Γ₂ Γ : context T) :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₁ ] -> [ Γ₂ ] -> [ Γ ].
+Lemma merge_pure_pure T (Γ1 Γ2 Γ : context T) :
+  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ1 ] -> [ Γ2 ] -> [ Γ ].
 Proof.
   induction 1; intros; eauto.
   - inv H0; inv H1.
@@ -186,8 +186,8 @@ Proof.
     constructor; eauto.
 Qed.
 
-Lemma merge_pure_eq T (Γ₁ Γ₂ Γ : context T) :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> [ Γ₁ ] -> [ Γ₂ ] -> Γ₁ = Γ₂.
+Lemma merge_pure_eq T (Γ1 Γ2 Γ : context T) :
+  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ1 ] -> [ Γ2 ] -> Γ1 = Γ2.
 Proof.
   induction 1; intros; eauto.
   - inv H0; inv H1.
@@ -198,8 +198,8 @@ Proof.
     rewrite IHmerge; eauto.
 Qed.
 
-Lemma merge_re_re T (Γ₁ Γ₂ Γ : context T) :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> %Γ₁ = %Γ /\ %Γ₂ = %Γ.
+Lemma merge_re_re T (Γ1 Γ2 Γ : context T) :
+  [ Γ1 ‡ Γ2 ‡ Γ ] -> %Γ1 = %Γ /\ %Γ2 = %Γ.
 Proof.
   induction 1; simpl; intros; eauto; firstorder.
   rewrite H0; eauto.
@@ -342,12 +342,12 @@ Proof.
   inv H2; apply IHhasU in H5; eauto.
 Qed.
 
-Lemma merge_split1 T (Γ₁ Γ₂ Γ : context T) :
-  [ Γ₁ ‡ Γ₂ ‡ Γ] ->
-  forall Δ₁ Δ₂,
-    [ Δ₁ ‡ Δ₂ ‡ Γ₁ ] ->
+Lemma merge_split1 T (Γ1 Γ2 Γ : context T) :
+  [ Γ1 ‡ Γ2 ‡ Γ] ->
+  forall Δ1 Δ2,
+    [ Δ1 ‡ Δ2 ‡ Γ1 ] ->
     exists Δ,
-      [ Δ₁ ‡ Γ₂ ‡ Δ ] /\ [ Δ ‡ Δ₂ ‡ Γ ].
+      [ Δ1 ‡ Γ2 ‡ Δ ] /\ [ Δ ‡ Δ2 ‡ Γ ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -379,12 +379,12 @@ Proof.
     repeat constructor; eauto.
 Qed.
 
-Lemma merge_split2 T (Γ₁ Γ₂ Γ : context T) :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-  forall Δ₁ Δ₂,
-    [ Δ₁ ‡ Δ₂ ‡ Γ₁ ] ->
+Lemma merge_split2 T (Γ1 Γ2 Γ : context T) :
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
+  forall Δ1 Δ2,
+    [ Δ1 ‡ Δ2 ‡ Γ1 ] ->
     exists Δ,
-      [ Δ₂ ‡ Γ₂ ‡ Δ ] /\ [ Δ₁ ‡ Δ ‡ Γ ].
+      [ Δ2 ‡ Γ2 ‡ Δ ] /\ [ Δ1 ‡ Δ ‡ Γ ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -1185,27 +1185,27 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ %Γ |- Lolli A B s :- Sort t l ] ->
   [ A +{s} Γ |- n :- B ] ->
   [ Γ |- Lam n :- Lolli A B s ]
-| u_prod_app Γ₁ Γ₂ Γ A B m n :
-  [ Γ₂ ] ->
-  [ Γ₁ |- m :- Prod A B U ] ->
-  [ Γ₂ |- n :- A ] ->
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+| u_prod_app Γ1 Γ2 Γ A B m n :
+  [ Γ2 ] ->
+  [ Γ1 |- m :- Prod A B U ] ->
+  [ Γ2 |- n :- A ] ->
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
   [ Γ |- App m n :- B.[n/] ]
-| l_prod_app Γ₁ Γ₂ Γ  A B m n :
-  [ Γ₁ |- m :- Prod A B L ] ->
-  [ Γ₂ |- n :- A ] ->
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+| l_prod_app Γ1 Γ2 Γ  A B m n :
+  [ Γ1 |- m :- Prod A B L ] ->
+  [ Γ2 |- n :- A ] ->
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
   [ Γ |- App m n :- B.[n/] ]
-| u_lolli_app Γ₁ Γ₂ Γ A B m n :
-  [ Γ₂ ] ->
-  [ Γ₁ |- m :- Lolli A B U ] ->
-  [ Γ₂ |- n :- A ] ->
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+| u_lolli_app Γ1 Γ2 Γ A B m n :
+  [ Γ2 ] ->
+  [ Γ1 |- m :- Lolli A B U ] ->
+  [ Γ2 |- n :- A ] ->
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
   [ Γ |- App m n :- B.[n/] ]
-| l_lolli_app Γ₁ Γ₂ Γ  A B m n :
-  [ Γ₁ |- m :- Lolli A B L ] ->
-  [ Γ₂ |- n :- A ] ->
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+| l_lolli_app Γ1 Γ2 Γ  A B m n :
+  [ Γ1 |- m :- Lolli A B L ] ->
+  [ Γ2 |- n :- A ] ->
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
   [ Γ |- App m n :- B.[n/] ]
 | conversion Γ A B m s l :
   A <: B ->
@@ -1646,10 +1646,10 @@ Inductive agree_subst :
   [ Δ |- σ -| Γ ] ->
   [ %Δ |- n :- A.[σ] ] ->
   [ Δ |- n .: σ -| A +u Γ ]
-| agree_subst_wkL Δ₁ Δ₂ Δ σ Γ n A :
-  merge Δ₁ Δ₂ Δ ->
-  [ Δ₁ |- σ -| Γ ] ->
-  [ Δ₂ |- n :- A.[σ] ] ->
+| agree_subst_wkL Δ1 Δ2 Δ σ Γ n A :
+  merge Δ1 Δ2 Δ ->
+  [ Δ1 |- σ -| Γ ] ->
+  [ Δ2 |- n :- A.[σ] ] ->
   [ Δ |- n .: σ -| A +l Γ ]
 | agree_subst_wkN Δ σ Γ n :
   [ Δ |- σ -| Γ ] ->
@@ -1810,10 +1810,10 @@ Qed.
 
 Lemma merge_agree_subst_inv Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
-  forall Γ₁ Γ₂,
-    [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-    exists Δ₁ Δ₂,
-      [ Δ₁ ‡ Δ₂ ‡ Δ ] /\ [ Δ₁ |- σ -| Γ₁ ] /\ [ Δ₂ |- σ -| Γ₂ ].
+  forall Γ1 Γ2,
+    [ Γ1 ‡ Γ2 ‡ Γ ] ->
+    exists Δ1 Δ2,
+      [ Δ1 ‡ Δ2 ‡ Δ ] /\ [ Δ1 |- σ -| Γ1 ] /\ [ Δ2 |- σ -| Γ2 ].
 Proof.
   intros H.
   dependent induction H; intros.
@@ -1880,7 +1880,7 @@ Proof.
     exists x0.
     repeat constructor; eauto.
   - inv H2.
-    assert (merge (A +u Γ₁0) (A +u Γ₂0) (A +u Γ)).
+    assert (merge (A +u Γ10) (A +u Γ20) (A +u Γ)).
     apply merge_left; eauto.
     specialize (IHagree_subst _ _ H2).
     first_order.
@@ -1894,7 +1894,7 @@ Proof.
     eapply agree_subst_convU; eauto.
     rewrite H9; eauto.
   - inv H3.
-    + assert (merge (A +l Γ₁0) (□ Γ₂0) (A +l Γ)).
+    + assert (merge (A +l Γ10) (□ Γ20) (A +l Γ)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -1906,7 +1906,7 @@ Proof.
       eapply agree_subst_convL; eauto.
       rewrite H9; eauto.
       rewrite H11; eauto.
-    + assert (merge (□ Γ₁0) (A +l Γ₂0) (A +l Γ)).
+    + assert (merge (□ Γ10) (A +l Γ20) (A +l Γ)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -2007,12 +2007,12 @@ Proof.
     apply IHhas_type2; eauto.
 Qed.
 
-Lemma substitutionU Γ₁ m A B :
-  [ A +u Γ₁ |- m :- B ] ->
-  forall Γ₂ Γ n,
-    [ Γ₂ ] ->
-    [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
-    [ Γ₂ |- n :- A ] -> 
+Lemma substitutionU Γ1 m A B :
+  [ A +u Γ1 |- m :- B ] ->
+  forall Γ2 Γ n,
+    [ Γ2 ] ->
+    [ Γ1 ‡ Γ2 ‡ Γ ] -> 
+    [ Γ2 |- n :- A ] -> 
     [ Γ |- m.[n/] :- B.[n/] ].
 Proof.
   intros.
@@ -2030,11 +2030,11 @@ Proof.
   rewrite <- pure_re; eauto.
 Qed.
 
-Lemma substitutionN Γ₁ m A B :
-  [ □ Γ₁ |- m :- B ] ->
-  forall Γ₂ n,
-    [ Γ₂ |- n :- A ] -> 
-    [ Γ₁ |- m.[n/] :- B.[n/] ].
+Lemma substitutionN Γ1 m A B :
+  [ □ Γ1 |- m :- B ] ->
+  forall Γ2 n,
+    [ Γ2 |- n :- A ] -> 
+    [ Γ1 |- m.[n/] :- B.[n/] ].
 Proof.
   intros.
   eapply substitution.
@@ -2043,11 +2043,11 @@ Proof.
   apply agree_subst_refl.
 Qed.
 
-Lemma substitutionL Γ₁ m A B :
-  [ A +l Γ₁ |- m :- B ] ->
-  forall Γ₂ Γ n,
-    [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
-    [ Γ₂ |- n :- A ] -> 
+Lemma substitutionL Γ1 m A B :
+  [ A +l Γ1 |- m :- B ] ->
+  forall Γ2 Γ n,
+    [ Γ1 ‡ Γ2 ‡ Γ ] -> 
+    [ Γ2 |- n :- A ] -> 
     [ Γ |- m.[n/] :- B.[n/] ].
 Proof.
   intros.
@@ -2255,10 +2255,10 @@ Proof.
     eapply lolli_lam_invX; eauto.
 Qed.
 
-Lemma merge_context_ok_inv Γ Γ₁ Γ₂ :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
+Lemma merge_context_ok_inv Γ Γ1 Γ2 :
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
   [ Γ |- ] ->
-  [ Γ₁ |- ] /\ [ Γ₂ |- ].
+  [ Γ1 |- ] /\ [ Γ2 |- ].
 Proof.
   induction 1; intros.
   - repeat constructor.
@@ -2290,7 +2290,7 @@ Proof.
     inv H2; split; constructor; eauto.
 Qed.
 
-Theorem propagation Γ m A : 
+Theorem validity Γ m A : 
   [ Γ |- ] ->
   [ Γ |- m :- A ] ->
   exists s l, [ %Γ |- A :- Sort s l ].
@@ -2332,7 +2332,7 @@ Proof.
     exists x3; exists x4.
     replace (Sort x3 x4) with ((Sort x3 x4).[n/]) by autosubst.
     eapply substitutionU; eauto.
-    replace (Γ₂) with (%Γ₁).
+    replace (Γ2) with (%Γ1).
     apply merge_re_re_re.
     apply pure_re in H0.
     rewrite H0.
@@ -2351,7 +2351,7 @@ Proof.
     exists x3; exists x4.
     replace (Sort x3 x4) with ((Sort x3 x4).[n/]) by autosubst.
     eapply substitutionU; eauto.
-    replace (Γ₂) with (re Γ₁).
+    replace (Γ2) with (re Γ1).
     apply merge_re_re_re.
     apply pure_re in H0.
     rewrite H0.
@@ -2378,7 +2378,7 @@ Lemma has_propL_false Γ m :
   [ Γ |- ] -> [ Γ |- m :- Sort L None ] -> False.
 Proof.
   intros.
-  apply propagation in H0; eauto. 
+  apply validity in H0; eauto. 
   first_order.
   apply propL_false in H0; eauto.
 Qed.
@@ -2472,7 +2472,7 @@ Proof.
       eapply lolli_lam; eauto.
   - pose proof (merge_context_ok_inv H1 H). inv H3.
     inv H2.
-    + pose proof (propagation H4 H0_); first_order.
+    + pose proof (validity H4 H0_); first_order.
       eapply substitutionU; eauto.
       eapply prod_lam_inv in H0_; eauto.
     + specialize (IHhas_type1 H4 _ H8).
@@ -2482,7 +2482,7 @@ Proof.
       apply conv_beta.
       apply conv1i; eauto.
       apply conv_sub in H2.
-      pose proof (propagation H4 H0_); first_order.
+      pose proof (validity H4 H0_); first_order.
       apply u_prod_inv in H3; first_order.
       assert ([%Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
       eapply substitutionU; eauto.
@@ -2494,7 +2494,7 @@ Proof.
       eapply u_prod_app; eauto.
   - pose proof (merge_context_ok_inv H0 H). inv H2.
     inv H1.
-    + pose proof (propagation H3 H0_); first_order.
+    + pose proof (validity H3 H0_); first_order.
       eapply substitutionL; eauto.
       eapply prod_lam_inv in H0_; eauto.
     + specialize (IHhas_type1 H3 _ H7).
@@ -2504,7 +2504,7 @@ Proof.
       apply conv_beta.
       apply conv1i; eauto.
       apply conv_sub in H1.
-      pose proof (propagation H3 H0_); first_order.
+      pose proof (validity H3 H0_); first_order.
       apply l_prod_inv in H2; first_order.
       assert ([%Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
       eapply substitutionN; eauto.
@@ -2514,7 +2514,7 @@ Proof.
       eapply l_prod_app; eauto.
   - pose proof (merge_context_ok_inv H1 H). inv H3.
     inv H2.
-    + pose proof (propagation H4 H0_); first_order.
+    + pose proof (validity H4 H0_); first_order.
       eapply substitutionU; eauto.
       eapply lolli_lam_inv in H0_; eauto.
     + specialize (IHhas_type1 H4 _ H8).
@@ -2524,7 +2524,7 @@ Proof.
       apply conv_beta.
       apply conv1i; eauto.
       apply conv_sub in H2.
-      pose proof (propagation H4 H0_); first_order.
+      pose proof (validity H4 H0_); first_order.
       apply u_lolli_inv in H3; first_order.
       assert ([%Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
       eapply substitutionU; eauto.
@@ -2536,7 +2536,7 @@ Proof.
       eapply u_lolli_app; eauto.
   - pose proof (merge_context_ok_inv H0 H). inv H2.
     inv H1.
-    + pose proof (propagation H3 H0_); first_order.
+    + pose proof (validity H3 H0_); first_order.
       eapply substitutionL; eauto.
       eapply lolli_lam_inv in H0_; eauto.
     + specialize (IHhas_type1 H3 _ H7).
@@ -2546,7 +2546,7 @@ Proof.
       apply conv_beta.
       apply conv1i; eauto.
       apply conv_sub in H1.
-      pose proof (propagation H3 H0_); first_order.
+      pose proof (validity H3 H0_); first_order.
       apply l_lolli_inv in H2; first_order.
       assert ([%Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
       eapply substitutionN; eauto.
@@ -2786,11 +2786,11 @@ Proof.
   pose proof (IHisN _ _ H2); eauto.
 Qed.
 
-Lemma isL_merge_inv Γ₁ Γ₂ Γ :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
+Lemma isL_merge_inv Γ1 Γ2 Γ :
+  [ Γ1 ‡ Γ2 ‡ Γ ] -> 
     forall i, [ i ∈ Γ ] -> 
-      ([ i ∈ Γ₁ ] /\ [ i ∉ Γ₂ ]) \/
-      ([ i ∈ Γ₂ ] /\ [ i ∉ Γ₁ ]).
+      ([ i ∈ Γ1 ] /\ [ i ∉ Γ2 ]) \/
+      ([ i ∈ Γ2 ] /\ [ i ∉ Γ1 ]).
 Proof.
   intro H.
   dependent induction H; intros.
@@ -2819,10 +2819,10 @@ Proof.
     + right; repeat constructor; eauto.
 Qed.
 
-Lemma isN_merge_inv Γ₁ Γ₂ Γ :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] -> 
+Lemma isN_merge_inv Γ1 Γ2 Γ :
+  [ Γ1 ‡ Γ2 ‡ Γ ] -> 
     forall i, [ i ∉ Γ ] -> 
-      [ i ∉ Γ₁ ] /\ [ i ∉ Γ₂ ].
+      [ i ∉ Γ1 ] /\ [ i ∉ Γ2 ].
 Proof.
   intro H.
   dependent induction H; intros.
@@ -2962,7 +2962,7 @@ Proof.
   intros.
   exists (Lam (App m.[ren (+1)] (Var 0))).
   destruct s.
-  - pose proof (propagation H0 H1); first_order. 
+  - pose proof (validity H0 H1); first_order. 
     apply u_lolli_inv in H2; first_order.
     assert ([ Γ |- Prod A B U :- Sort U x2 ]).
     destruct x2.
@@ -2990,7 +2990,7 @@ Proof.
     apply merge_pure; eauto.
     pose proof (u_lolli_app H8 H7 H6 H9).
     asimpl in H10; eauto.
-  - pose proof (propagation H0 H1); first_order. 
+  - pose proof (validity H0 H1); first_order. 
     apply l_lolli_inv in H2; first_order.
     assert ([ Γ |- Prod A B L :- Sort U x2 ]).
     destruct x2.
@@ -3022,7 +3022,7 @@ Proof.
   intros.
   exists (Lam (App m.[ren (+1)] (Var 0))).
   destruct s.
-  - pose proof (propagation H H0); first_order. 
+  - pose proof (validity H H0); first_order. 
     apply u_prod_inv in H1; first_order.
     destruct x1; destruct x2.
     + assert ([ %Γ |- Lolli A B U :- L @ n ]).
@@ -3096,7 +3096,7 @@ Proof.
       apply re_ok; eauto.
       rewrite <- pure_re; eauto.
       apply re_pure.
-  - pose proof (propagation H H0); first_order. 
+  - pose proof (validity H H0); first_order. 
     apply l_prod_inv in H1; first_order.
     destruct x1; destruct x2.
     + assert ([ %Γ |- Lolli A B L :- L @ n ]).
@@ -3328,12 +3328,12 @@ Qed.
 Inductive agree_wk : 
   CC.context CC.term -> CC.context CC.term -> Prop :=
 | agree_wk_nil : agree_wk nil nil
-| agree_wk_s Γ₁ Γ₂ e :
-  agree_wk Γ₁ Γ₂ ->
-  agree_wk (e :: Γ₁) (e :: Γ₂)
-| agree_wk_n Γ₁ Γ₂ A :
-  agree_wk Γ₁ Γ₂ ->
-  agree_wk (□ Γ₁) (A +: Γ₂).
+| agree_wk_s Γ1 Γ2 e :
+  agree_wk Γ1 Γ2 ->
+  agree_wk (e :: Γ1) (e :: Γ2)
+| agree_wk_n Γ1 Γ2 A :
+  agree_wk Γ1 Γ2 ->
+  agree_wk (□ Γ1) (A +: Γ2).
 
 Lemma agree_wk_refl Γ : agree_wk Γ Γ.
 Proof.
@@ -3342,11 +3342,11 @@ Proof.
   - constructor; eauto.
 Qed.
 
-Lemma agree_wk_has Γ₁ Γ₂ :
-  agree_wk Γ₁ Γ₂ ->
+Lemma agree_wk_has Γ1 Γ2 :
+  agree_wk Γ1 Γ2 ->
   forall x A,
-    [ x :- A ∈ Γ₁ ] -> 
-    [ x :- A ∈ Γ₂ ].
+    [ x :- A ∈ Γ1 ] -> 
+    [ x :- A ∈ Γ2 ].
 Proof.
   intro H.
   dependent induction H; simpl; intros; eauto.
@@ -3365,19 +3365,19 @@ Proof.
     constructor; eauto.
 Qed.
 
-Lemma agree_wk_merge_inv Γ₁ Γ₂ Γ :
-  [ Γ₁ ‡ Γ₂ ‡ Γ ] ->
-  agree_wk [[ Γ₁ ]] [[ Γ ]] /\
-  agree_wk [[ Γ₂ ]] [[ Γ ]].
+Lemma agree_wk_merge_inv Γ1 Γ2 Γ :
+  [ Γ1 ‡ Γ2 ‡ Γ ] ->
+  agree_wk [[ Γ1 ]] [[ Γ ]] /\
+  agree_wk [[ Γ2 ]] [[ Γ ]].
 Proof with eauto using agree_wk.
   intro H.
   dependent induction H; simpl; firstorder...
 Qed.
 
-Lemma wk_ok Γ₁ m A : 
-  [ Γ₁ |- m :- A ] ->
-  forall Γ₂, agree_wk Γ₁ Γ₂ ->
-    [ Γ₂ |- m :- A ].
+Lemma wk_ok Γ1 m A : 
+  [ Γ1 |- m :- A ] ->
+  forall Γ2, agree_wk Γ1 Γ2 ->
+    [ Γ2 |- m :- A ].
 Proof.
   intro H.
   dependent induction H; simpl; intros; subst.
