@@ -314,7 +314,7 @@ ALLNATIVEFILES = \
 	$(OBJFILES:.o=.cmi) \
 	$(OBJFILES:.o=.cmx) \
 	$(OBJFILES:.o=.cmxs)
-# trick: wildcard filters out non-eξsting files, so that `install` doesn't show
+# trick: wildcard filters out non-existing files, so that `install` doesn't show
 # warnings and `clean` doesn't pass to rm a list of files that is too long for
 # the shell.
 NATIVEFILES = $(wildcard $(ALLNATIVEFILES))
@@ -528,8 +528,8 @@ beautify: $(BEAUTYFILES)
 
 install:
 	$(HIDE)code=0; for f in $(FILESTOINSTALL); do\
-	 if ! [ -f "$$f" ]; then >&2 echo $$f does not eξst; code=1; fi \
-	done; eξt $$code
+	 if ! [ -f "$$f" ]; then >&2 echo $$f does not exist; code=1; fi \
+	done; exit $$code
 	$(HIDE)for f in $(FILESTOINSTALL); do\
 	 df="`$(COQMKFILE) -destination-of "$$f" $(COQLIBS)`";\
 	 if [ "$$?" != "0" -o -z "$$df" ]; then\
@@ -771,7 +771,7 @@ endif
 
 .SECONDARY: $(ALLDFILES)
 
-redir_if_ok = > "$@" || ( RV=$$?; rm -f "$@"; eξt $$RV )
+redir_if_ok = > "$@" || ( RV=$$?; rm -f "$@"; exit $$RV )
 
 GENMLFILES:=$(MLGFILES:.mlg=.ml)
 $(addsuffix .d,$(ALLSRCFILES)): $(GENMLFILES)
