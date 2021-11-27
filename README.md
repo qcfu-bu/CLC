@@ -9,6 +9,6 @@ The Calculus of Inductive Linear Constructions (CILC, pronounced /silk/) is an e
 ## Structure of Repository
 
 * coq
-    * clc : Coq development for the Calculus of Linear Constructions.
+    * clc : Coq development for the core Calculus of Linear Constructions.
     * cilc : Coq development for the Calculus of Inductive Linear Constructions.
 * src : Source code for CILC prototype implementation and various experiments.
