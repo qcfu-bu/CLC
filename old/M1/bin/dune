@@ -1,6 +1,0 @@
-(executable
- (public_name M1)
- (name main)
- (libraries M1)
- (flags
-  (:standard -rectypes)))

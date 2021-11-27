@@ -1,4 +1,0 @@
-(executable
- (public_name M8)
- (name main)
- (libraries M8))
