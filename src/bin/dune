@@ -1,0 +1,4 @@
+(executable
+ (public_name cilc)
+ (name main)
+ (libraries cilc))
