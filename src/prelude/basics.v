@@ -1,87 +1,87 @@
-Inductive Eq (A : U) (x : A) : A -> U :=
-| refl : Eq A x x.
+Inductive eq (A : U) (x : A) : A -> U :=
+| refl : eq A x x.
 
-Definition Eq_trans
+Definition eq_trans
   (A : U)
   (x y z : A)
-  (e1 : Eq A x y)
-  (e2 : Eq A y z) :
-  Eq A x z
+  (e1 : eq A x y)
+  (e2 : eq A y z) :
+  eq A x z
 :=
-  match e2 in Eq _ _ y return Eq A x y with
+  match e2 in eq _ _ y return eq A x y with
   | refl => e1
   end.
 
-Definition Eq_sym 
+Definition eq_sym 
   (A : U) 
   (x y : A) 
-  (e : Eq A x y) :
-  Eq A y x
+  (e : eq A x y) :
+  eq A y x
 :=
-  match e in Eq _ _ y return Eq A y x with
+  match e in eq _ _ y return eq A y x with
   | refl => refl
   end.
 
-Definition TyInd 
+Definition u_ind 
   (A : U) 
   (x y : A)
   (P : A -> U) 
-  (e : Eq A x y)
+  (e : eq A x y)
   (f : P x) :
   P y
 := 
-  match e in Eq _ _ y return P y with
+  match e in eq _ _ y return P y with
   | refl => f
   end.
 
-Definition LnInd 
+Definition l_ind 
   (A : U) 
   (x y : A)
   (P : A -> L) 
-  (e : Eq A x y)
+  (e : eq A x y)
   (f : P x) :
   P y
 := 
-  match e in Eq _ _ y return P y with
+  match e in eq _ _ y return P y with
   | refl => f
   end.
 
-Inductive Unit : U :=
-| tt : Unit.
+Inductive unit : U :=
+| tt : unit.
 
-Inductive Base : L :=
-| ll : Base.
+Inductive base : L :=
+| ll : base.
 
-Inductive Nat : U :=
-| O : Nat
-| S : Nat -> Nat.
+Inductive nat : U :=
+| O : nat
+| S : nat -> nat.
 
-Fixpoint add (m n : Nat) : Nat :=
+Fixpoint add (m n : nat) : nat :=
   match m with
   | O => n
   | S m => S (add m n)
   end.
 
-Inductive Bool : U :=
-| true : Bool
-| false : Bool.
+Inductive bool : U :=
+| true : bool
+| false : bool.
 
-Inductive Sigma (A : U) (F : A -> U) : U :=
-| pair : (x : A) -> F x -> Sigma A F.
+Inductive sigma (A : U) (F : A -> U) : U :=
+| pair : (x : A) -> F x -> sigma A F.
 
-Inductive Tensor (A : L) (B : L) : L :=
-| tpair : A -> B -> Tensor A B.
+Inductive tensor (A : L) (B : L) : L :=
+| tpair : A -> B -> tensor A B.
 
-Inductive FTensor (A : U) (F : A -> L) : L :=
-| fpair : (x : A) -> F x -> FTensor A F.
+Inductive ftensor (A : U) (F : A -> L) : L :=
+| fpair : (x : A) -> F x -> ftensor A F.
 
-Axiom unsafeC : (A : L) -> A -> Unit.
+Axiom unsafeC : (A : L) -> A -> unit.
 Axiom unsafeP : (A : L) -> A.
 
-Definition Loc : U := Nat.
+Definition Loc : U := nat.
 Axiom PtsTo : Loc -> U -> L.
-Definition Ptr (A : U) : L := FTensor Loc (fun l => PtsTo l A).
+Definition Ptr (A : U) : L := ftensor Loc (fun l => PtsTo l A).
 Axiom New  : (A : U) -> A -> Ptr A.
-Axiom Free : (A : U) -> Ptr A -> Unit.
-Axiom Get  : (A : U) -> (l : Loc) -> PtsTo l A -> FTensor A (fun _ => PtsTo l A).
+Axiom Free : (A : U) -> Ptr A -> unit.
+Axiom Get  : (A : U) -> (l : Loc) -> PtsTo l A -> ftensor A (fun _ => PtsTo l A).
 Axiom Set  : (A : U) -> (B : U) -> B -> (l : Loc) -> PtsTo l A -> PtsTo l B.

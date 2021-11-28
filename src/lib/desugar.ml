@@ -148,9 +148,9 @@ and desugar_dcons ctx dcons =
 
 and desugar_pscope ctx pscope =
   match pscope with
-  | PBase tscope ->
+  | Pbase tscope ->
     let tscope = desugar_tscope ctx tscope in
-    Terms._PBase tscope
+    Terms._Pbase tscope
   | PBind (v, t, pscope) ->
     let t = desugar ctx t in
     let x = Terms.mk (Name.string_of v) in
@@ -160,9 +160,9 @@ and desugar_pscope ctx pscope =
 
 and desugar_tscope ctx tscope =
   match tscope with
-  | TBase t ->
+  | Tbase t ->
     let t = desugar ctx t in
-    Terms._TBase t
+    Terms._Tbase t
   | TBind (v, t, tscope) ->
     let t = desugar ctx t in
     let x = Terms.mk (Name.string_of v) in

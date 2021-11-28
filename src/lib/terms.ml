@@ -12,13 +12,13 @@ type t =
   | Meta   of Meta.t
   | Ann    of t * t
   | Sort   of sort
-  | Arrow of t * tbinder
-  | Lolli of t * tbinder
+  | Arrow  of t * tbinder
+  | Lolli  of t * tbinder
   | Lambda of tbinder
-  | Fix    of tbinder
   | App    of t * t
   | LetIn  of t * tbinder
-  (* data *)
+  (* inductive *)
+  | Fix    of tbinder
   | TCons  of Id.t * t list
   | DCons  of Id.t * t list
   | Match  of t * motive option
@@ -41,10 +41,10 @@ type tcons =
 and dcons =
   DConstr of Id.t * pscope
 and pscope = 
-  | PBase of tscope
+  | Pbase of tscope
   | PBind of t * psbinder
 and tscope =
-  | TBase of t
+  | Tbase of t
   | TBind of t * tsbinder
 and psbinder = (t, pscope) binder
 and tsbinder = (t, tscope) binder
@@ -308,7 +308,7 @@ let rec pp_top fmt = function
       Id.pp id pp_pscope ts pp_dcons cs pp_top tp
 
 and pp_pscope fmt = function
-  | PBase t -> fprintf fmt ": %a" pp_tscope t
+  | Pbase t -> fprintf fmt ": %a" pp_tscope t
   | PBind (ty, b) ->
     let x, b = unbind b in
     if (name_of x = "_") 
@@ -317,7 +317,7 @@ and pp_pscope fmt = function
       pp_v x pp ty pp_pscope b
     
 and pp_tscope fmt = function
-  | TBase t -> fprintf fmt "%a" pp t
+  | Tbase t -> fprintf fmt "%a" pp t
   | TBind (ty, b) ->
     let x, b = unbind b in
     if (name_of x = "_") 
@@ -377,10 +377,10 @@ let _Axiom id = box_apply (fun t -> Axiom (id, t))
 let _TConstr id = box_apply2 (fun ts dc -> TConstr (id, ts, dc))
 let _DConstr id = box_apply (fun ts -> DConstr (id, ts))
 
-let _PBase = box_apply (fun t -> PBase t)
+let _Pbase = box_apply (fun t -> Pbase t)
 let _PBind = box_apply2 (fun t b -> PBind (t, b))
 let _PBnd ty1 ty2 = _PBind ty1 (bind_var __ ty2)
-let _TBase = box_apply (fun t -> TBase t)
+let _Tbase = box_apply (fun t -> Tbase t)
 let _TBind = box_apply2 (fun t b -> TBind (t, b))
 let _TBnd ty1 ty2 = _TBind ty1 (bind_var __ ty2)
 

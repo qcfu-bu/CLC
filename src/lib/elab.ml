@@ -97,7 +97,7 @@ and infer v_ctx id_ctx eqns mmap t =
       infer_pscope v_ctx id_ctx eqns mmap ts pscope)
     | DCons (id, ts) -> (
       match find_dcons id id_ctx with
-      | DConstr (_, PBase tscope) ->
+      | DConstr (_, Pbase tscope) ->
         infer_tscope v_ctx id_ctx eqns mmap ts tscope
       | _ -> failwith (asprintf "infer DCons(%a)" Terms.pp t))
     | Match (t, mot, pbs) -> (
@@ -160,7 +160,7 @@ and check v_ctx id_ctx eqns mmap t ty =
           (fun pscope t ->
             match pscope with
             | PBind (ty, pb) -> subst pb (Ann (t, ty))
-            | PBase _ -> pscope) pscope ts'
+            | Pbase _ -> pscope) pscope ts'
       in
       let ty', eqns, mmap = infer_pscope v_ctx id_ctx eqns mmap ts pscope in
       ((ty, ty') :: eqns, mmap)
@@ -190,7 +190,7 @@ and infer_pscope v_ctx id_ctx eqns mmap ts pscope =
   | t :: ts, PBind (ty, pscope) ->
     let eqns, mmap = check v_ctx id_ctx eqns mmap t ty in
     infer_pscope v_ctx id_ctx eqns mmap ts (subst pscope (Ann (t, ty)))
-  | ts, PBase tscope -> 
+  | ts, Pbase tscope -> 
     infer_tscope v_ctx id_ctx eqns mmap ts tscope
   | _ ->
     failwith 
@@ -202,7 +202,7 @@ and infer_tscope v_ctx id_ctx eqns mmap ts tscope =
   | t :: ts, TBind (ty, tscope) ->
     let eqns, mmap = check v_ctx id_ctx eqns mmap t ty in
     infer_tscope v_ctx id_ctx eqns mmap ts (subst tscope (Ann (t, ty)))
-  | [], TBase ty -> (ty, eqns, mmap)
+  | [], Tbase ty -> (ty, eqns, mmap)
   | _ ->
     failwith 
       (asprintf "infer_tscope(%a; %d)" 
@@ -231,7 +231,7 @@ and coverage v_ctx id_ctx eqns mmap pbs ds ts =
     | PBind (ty, pscope), t :: ts ->
       let pscope = subst pscope (Ann (t, ty)) in
       arity_pscope v_ctx eqns mmap pscope ts xs
-    | PBase tscope, _ -> arity_tscope v_ctx eqns mmap tscope xs
+    | Pbase tscope, _ -> arity_tscope v_ctx eqns mmap tscope xs
     | _ -> failwith "arity_pscope"
   and arity_tscope v_ctx eqns mmap tscope xs = 
     match tscope, xs with
@@ -241,7 +241,7 @@ and coverage v_ctx id_ctx eqns mmap pbs ds ts =
       let tscope = subst tscope (Var x) in
       let v_ctx, ty, xsrt, eqns, mmap = arity_tscope v_ctx eqns mmap tscope xs in
       (v_ctx, ty, (x, srt) :: xsrt, eqns, mmap)
-    | TBase ty, [] -> (v_ctx, ty, [], eqns, mmap)
+    | Tbase ty, [] -> (v_ctx, ty, [], eqns, mmap)
     | _ -> failwith "arity_tscope"
   in
   match pbs with
@@ -331,7 +331,7 @@ let rec elab_top v_ctx id_ctx eqns mmap top =
 
 and check_pscope v_ctx id_ctx eqns mmap pscope srt =
   match pscope with
-  | PBase tscope -> check_tscope v_ctx id_ctx eqns mmap tscope srt
+  | Pbase tscope -> check_tscope v_ctx id_ctx eqns mmap tscope srt
   | PBind (t, pscope) ->
     let x, pscope = unbind pscope in
     let srt', eqns, mmap = infer_sort v_ctx id_ctx eqns mmap t in
@@ -340,7 +340,7 @@ and check_pscope v_ctx id_ctx eqns mmap pscope srt =
 
 and check_tscope v_ctx id_ctx eqns mmap tscope srt =
   match tscope with
-  | TBase t ->
+  | Tbase t ->
     let srt', eqns, mmap = infer_sort v_ctx id_ctx eqns mmap t in
     assert_msg (cmp_sort srt' srt)
       (asprintf "check_tscope(srt := %a; srt' :=%a)" pp_s srt pp_s srt');
@@ -353,7 +353,7 @@ and check_tscope v_ctx id_ctx eqns mmap tscope srt =
 
 and param_pscope pscope id xs =
   match pscope with
-  | PBase tscope ->
+  | Pbase tscope ->
     param_tscope tscope id (List.rev xs)
   | PBind (_, pscope) ->
     let x, pscope = unbind pscope in
@@ -373,7 +373,7 @@ and param_tscope tscope id xs =
       failwith (asprintf "param_tscope(%a; ??)" pp_v x)
   in
   match tscope with
-  | TBase ty -> (
+  | Tbase ty -> (
     match ty with
     | TCons (id', ts) ->
       assert_msg (Id.equal id id')

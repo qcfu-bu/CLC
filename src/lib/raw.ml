@@ -13,10 +13,10 @@ type t =
   | Arrow of v * t * t
   | Lolli of v * t * t
   | Lambda of p * t
-  | Fix    of v * t
   | App    of t * t
   | LetIn  of p * t * t
-  (* data *)
+  (* inductive *)
+  | Fix    of v * t
   | TCons  of Id.t * t list
   | DCons  of Id.t * t list
   | Match  of t * motive option 
@@ -33,10 +33,10 @@ type tcons =
 and dcons = 
   DConstr of Id.t * pscope 
 and pscope =
-  | PBase of tscope
+  | Pbase of tscope
   | PBind of v * t * pscope
 and tscope = 
-  | TBase of t
+  | Tbase of t
   | TBind of v * t * tscope
 
 type top =
@@ -151,7 +151,7 @@ let rec pp_top fmt = function
       Id.pp id pp_pscope ts pp_dcons cs pp_top tp
 
 and pp_pscope fmt = function
-  | PBase t -> fprintf fmt ": %a" pp_tscope t
+  | Pbase t -> fprintf fmt ": %a" pp_tscope t
   | PBind (x, ty, b) ->
     if (Name.string_of x = "_") 
     then fprintf fmt "@[%a@;<1 2>%a@]" pp ty pp_pscope b
@@ -159,7 +159,7 @@ and pp_pscope fmt = function
       pp_v x pp ty pp_pscope b
     
 and pp_tscope fmt = function
-  | TBase t -> fprintf fmt "%a" pp t
+  | Tbase t -> fprintf fmt "%a" pp t
   | TBind (x, ty, b) ->
     if (Name.string_of x = "_") 
     then fprintf fmt "@[(%a) ->@;<1 2>%a@]" pp ty pp_tscope b

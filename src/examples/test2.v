@@ -18,7 +18,7 @@ Fixpoint append (A : U) :
       append _ t ls2 (fun res => k (_cons_ h res))
     end.
 
-Fixpoint len (A : U) (ls : list A) : G Nat :=
+Fixpoint len (A : U) (ls : list A) : G nat :=
   match ls with
   | nil => g 0
   | cons h t => 
@@ -26,12 +26,12 @@ Fixpoint len (A : U) (ls : list A) : G Nat :=
     g (x + 1)
   end.
 
-Definition ls1 : list Nat := 
+Definition ls1 : list nat := 
   cons 1 (cons 2 (cons 3 nil)).
 
-Definition ls2 : list Nat := 
+Definition ls2 : list nat := 
   cons 4 (cons 5 (cons 6 nil)).
 
-Definition main : Nat := 
+Definition main : nat := 
   let ls := append _ ls1 ls2 (fun x => x) in
   let g x := len _ ls in x.

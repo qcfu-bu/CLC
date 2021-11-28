@@ -402,8 +402,8 @@ and resolve_dcons mmap dcons =
 
 and resolve_pscope mmap pscope =
   match pscope with
-  | PBase tscope -> 
-    _PBase (resolve_tscope mmap tscope)
+  | Pbase tscope -> 
+    _Pbase (resolve_tscope mmap tscope)
   | PBind (t, b) ->
     let x, ub = unbind b in
     let t = resolve mmap t in
@@ -413,9 +413,9 @@ and resolve_pscope mmap pscope =
 
 and resolve_tscope mmap tscope =
   match tscope with
-  | TBase t ->
+  | Tbase t ->
     let t = resolve mmap t in
-    _TBase (lift t)
+    _Tbase (lift t)
   | TBind (t, b) ->
     let x, ub = unbind b in
     let t = resolve mmap t in

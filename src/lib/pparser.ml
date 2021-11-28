@@ -378,7 +378,7 @@ and datype_parser () =
   let ts = 
     List.fold_right (fun (xs, t) ts -> 
       List.fold_right (fun x ts -> 
-        PBind (x, t, ts)) xs ts) ps (PBase ts)
+        PBind (x, t, ts)) xs ts) ps (Pbase ts)
   in
   let id = Id.set_arity id (List.length ps + n) in
   let* _ = kw ":=" in
@@ -398,7 +398,7 @@ and constr_parser ps () =
   let ts = 
     List.fold_right (fun (xs, t) ts -> 
       List.fold_right (fun x ts ->
-        PBind (x, t, ts)) xs ts) ps (PBase ts)
+        PBind (x, t, ts)) xs ts) ps (Pbase ts)
   in
   let id = Id.set_arity id n in
   let* _, id_ctx = get_user_state in
@@ -411,7 +411,7 @@ and tscope_parser () =
     | Arrow (x, ty, t) ->
       let ts, n = tscope_of_t t in
       (TBind (x, ty, ts), n + 1)
-    | _ -> (TBase t, 0)
+    | _ -> (Tbase t, 0)
   in
   let* t = t_parser () in
   return (tscope_of_t t)

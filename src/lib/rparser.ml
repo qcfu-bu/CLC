@@ -138,7 +138,7 @@ and p_ftensor_parser () =
   let* _ = kw "|" in
   let* p2 = p_parser () in
   let* _ = kw "]" in
-  return (PTCons (_FTensor, [p1; p2]))
+  return (PTCons (_ftensor, [p1; p2]))
 
 and p_pair_parser () =
   let* _ = kw "(" in
@@ -180,10 +180,10 @@ and p0_parser () =
 and p_parser () =
   let prod_parser =
    (let* _ = kw "*" in
-    return (fun p1 p2 -> PTCons (_Sigma, [p1; p2])))
+    return (fun p1 p2 -> PTCons (_sigma, [p1; p2])))
     <|>
    (let* _ = kw "^" in
-    return (fun p1 p2 -> PTCons (_Tensor, [p1; p2])))
+    return (fun p1 p2 -> PTCons (_tensor, [p1; p2])))
   in
   chain_left1 (p0_parser ()) prod_parser
 
@@ -327,7 +327,7 @@ and sigma_parser () =
   let* _ = kw "|" in
   let* ty2 = t_parser () in
   let* _ = kw ")" in
-  return (TCons (_Sigma, [ty1; Lambda (PVar x, ty2)]))
+  return (TCons (_sigma, [ty1; Lambda (PVar x, ty2)]))
 
 and ftensor_parser () =
   let* _ = kw "[" in
@@ -337,7 +337,7 @@ and ftensor_parser () =
   let* _ = kw "|" in
   let* ty2 = t_parser () in
   let* _ = kw "]" in
-  return (TCons (_FTensor, [ty1; Lambda (PVar x, ty2)]))
+  return (TCons (_ftensor, [ty1; Lambda (PVar x, ty2)]))
 
 and fprod_parser () =
   let* _ = kw "[" in
@@ -345,7 +345,7 @@ and fprod_parser () =
   let* _ = kw "|" in
   let* ty2 = t_parser () in
   let* _ = kw "]" in
-  return (TCons (_FTensor, [ty1; Lambda (PVar Name.__, ty2)]))
+  return (TCons (_ftensor, [ty1; Lambda (PVar Name.__, ty2)]))
 
 and pair_parser () =
   let* _ = kw "(" in
@@ -424,10 +424,10 @@ and t3_parser () =
   let prod_parser =
    (let* _ = kw "*" in
     let p = PVar Name.__ in
-    return (fun ty1 ty2 -> TCons (_Sigma, [ty1; Lambda (p, ty2)])))
+    return (fun ty1 ty2 -> TCons (_sigma, [ty1; Lambda (p, ty2)])))
     <|>
    (let* _ = kw "^" in
-    return (fun ty1 ty2 -> TCons (_Tensor, [ty1; ty2])))
+    return (fun ty1 ty2 -> TCons (_tensor, [ty1; ty2])))
   in
   chain_left1 (t2_parser ()) prod_parser
 
@@ -534,7 +534,7 @@ and datype_parser () =
   let ts = 
     List.fold_right (fun (xs, t) ts -> 
       List.fold_right (fun x ts -> 
-        PBind (x, t, ts)) xs ts) ps (PBase ts)
+        PBind (x, t, ts)) xs ts) ps (Pbase ts)
   in
   let id = Id.set_arity id (List.length ps + n) in
   let* _ = kw ":=" in
@@ -554,7 +554,7 @@ and constr_parser ps () =
   let ts = 
     List.fold_right (fun (xs, t) ts -> 
       List.fold_right (fun x ts ->
-        PBind (x, t, ts)) xs ts) ps (PBase ts)
+        PBind (x, t, ts)) xs ts) ps (Pbase ts)
   in
   let id = Id.set_arity id n in
   let* _, id_ctx = get_user_state in
@@ -567,7 +567,7 @@ and tscope_parser () =
     | Arrow (x, ty, t) ->
       let ts, n = tscope_of_t t in
       (TBind (x, ty, ts), n + 1)
-    | _ -> (TBase t, 0)
+    | _ -> (Tbase t, 0)
   in
   let* t = t_parser () in
   return (tscope_of_t t)
