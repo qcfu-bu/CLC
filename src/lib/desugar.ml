@@ -19,18 +19,18 @@ let rec desugar (ctx : ctx) t =
     let xs = List.map Terms._Var xs in
     Terms._App' (Terms._Meta x) xs
   | Ann (t1, t2) -> Terms._Ann (desugar ctx t1) (desugar ctx t2)
-  | Type -> Terms._Type
-  | Linear -> Terms._Linear
-  | TyProd (v, t1, t2) -> 
+  | U -> Terms._U
+  | L -> Terms._L
+  | Arrow (v, t1, t2) -> 
     let x = Terms.mk (Name.string_of v) in
     let t1 = desugar ctx t1 in
     let ctx = NMap.add v x ctx in
-    Terms._TyProd t1 (bind_var x (desugar ctx t2))
-  | LnProd (v, t1, t2) -> 
+    Terms._Arrow t1 (bind_var x (desugar ctx t2))
+  | Lolli (v, t1, t2) -> 
     let x = Terms.mk (Name.string_of v) in
     let t1 = desugar ctx t1 in
     let ctx = NMap.add v x ctx in
-    Terms._LnProd t1 (bind_var x (desugar ctx t2))
+    Terms._Lolli t1 (bind_var x (desugar ctx t2))
   | Lambda (p, t) -> (
     match p with
     | PVar v ->

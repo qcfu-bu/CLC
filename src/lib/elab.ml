@@ -9,13 +9,13 @@ open Unify
 
 let cmp_sort t1 t2 =
   match t1, t2 with
-  | Type, Linear -> false
+  | U, L -> false
   | _ -> true
 
 let min_sort t1 t2 = 
   match t1 with
-  | Type -> t2
-  | Linear -> t1
+  | U -> t2
+  | L -> t1
 
 let rec infer_sort v_ctx id_ctx eqns mmap ty =
   let srt, eqns, mmap = infer v_ctx id_ctx eqns mmap ty in
@@ -38,8 +38,8 @@ and infer v_ctx id_ctx eqns mmap t =
     | Var x -> (
       let ty, srt = find x v_ctx in
       match srt with
-      | Type -> (ty, eqns, mmap)
-      | Linear -> (ty, eqns, mmap))
+      | U -> (ty, eqns, mmap)
+      | L -> (ty, eqns, mmap))
     | Meta _ -> failwith "infer Meta"
     | Ann (t, ty) -> (
       let _, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
@@ -54,27 +54,27 @@ and infer v_ctx id_ctx eqns mmap t =
         (ty, eqns, mmap))
     | Sort srt -> (
       match srt with
-      | Type -> (Sort Type, eqns, mmap)
-      | Linear -> (Sort Type, eqns, mmap))
-    | TyProd (ty, b) ->
+      | U -> (Sort U, eqns, mmap)
+      | L -> (Sort U, eqns, mmap))
+    | Arrow (ty, b) ->
       let x, ub = unbind b in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
       let _, eqns, mmap = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub in
-      (Sort Type, eqns, mmap)
-    | LnProd (ty, b) ->
+      (Sort U, eqns, mmap)
+    | Lolli (ty, b) ->
       let x, ub = unbind b in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
       let _, eqns, mmap = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub in
-      (Sort Linear, eqns, mmap)
+      (Sort L, eqns, mmap)
     | Lambda _ -> failwith (asprintf "infer Lambda(%a)" Terms.pp t)
     | Fix _ -> failwith (asprintf "infer Fix(%a)" Terms.pp t)
     | App (t1, t2) -> (
       let ty1, eqns, mmap = infer v_ctx id_ctx eqns mmap t1 in
       match whnf ty1 with
-      | TyProd (ty, b) ->
+      | Arrow (ty, b) ->
         let eqns, mmap = check v_ctx id_ctx eqns mmap t2 ty in
         (subst b t2, eqns, mmap)
-      | LnProd (ty, b) ->
+      | Lolli (ty, b) ->
         let eqns, mmap = check v_ctx id_ctx eqns mmap t2 ty in
         (subst b t2, eqns, mmap)
       | _ -> failwith (asprintf "@[infer App(t :=@;<1 2>%a)@]" Terms.pp t))
@@ -85,7 +85,7 @@ and infer v_ctx id_ctx eqns mmap t =
       let t = resolve mmap t in
       let ty1 = resolve mmap ty1 in
       let ty2, eqns, mmap = 
-        if srt = Type then
+        if srt = U then
           infer v_ctx id_ctx eqns mmap (subst b t)
         else
           let x, ub = unbind b in
@@ -133,11 +133,11 @@ and check v_ctx id_ctx eqns mmap t ty =
   | Lambda b -> (
     let x, ub1 = unbind b in
     match whnf ty with
-    | TyProd (ty, b2) ->
+    | Arrow (ty, b2) ->
       let ub2 = subst b2 (Var x) in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
       check (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub1 ub2
-    | LnProd (ty, b2) ->
+    | Lolli (ty, b2) ->
       let ub2 = subst b2 (Var x) in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
       check (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub1 ub2
@@ -280,7 +280,7 @@ and check_motive cover id_ctx eqns mmap mot srt =
   match cover with
   | (v_ctx, t, ty, b, _) :: cover ->
     let mot' =
-      if srt = Type then subst mot t
+      if srt = U then subst mot t
       else (
         assert_msg (not (binder_occur mot)) "check_motive";
         snd (unbind mot))
@@ -300,7 +300,7 @@ let rec elab_top v_ctx id_ctx eqns mmap top =
     let t = resolve mmap t in
     let ty1 = resolve mmap ty1 in
     let id_ctx, mmap =
-      if srt = Type then
+      if srt = U then
         elab_top v_ctx id_ctx eqns mmap (subst top t)
       else
         let x, top = unbind top in
@@ -312,14 +312,14 @@ let rec elab_top v_ctx id_ctx eqns mmap top =
     (id_ctx, mmap)
   | Datype (tcs, top) -> (
     let TConstr (id, pscope, dcs) = tcs in
-    let eqns, mmap = check_pscope v_ctx id_ctx eqns mmap pscope Type in
+    let eqns, mmap = check_pscope v_ctx id_ctx eqns mmap pscope U in
     let mmap = unify mmap eqns in
     let pscope = unbox (resolve_pscope mmap pscope) in
     let id_ctx = IdMap.add id (TConstr (id, pscope, [])) id_ctx in
     let eqns, mmap =
       List.fold_left
         (fun (eqns, mmap) (DConstr (_, pscope)) ->
-          let eqns, mmap = check_pscope v_ctx id_ctx eqns mmap pscope Type in
+          let eqns, mmap = check_pscope v_ctx id_ctx eqns mmap pscope U in
           param_pscope pscope id [];
           (eqns, mmap))
         (eqns, mmap) dcs

@@ -12,8 +12,8 @@ let keywords = SSet.of_list [
   "Fixpoint";
   "Inductive";
   "Axiom";
-  "Type";
-  "Linear";
+  "U";
+  "L";
   "fun";
   "fix";
   "let";
@@ -132,9 +132,9 @@ and p_parser ?is_type:(p=false) () =
   ])
 
 let rec sort_parser () = 
-  (let* _ = kw "Type" in return Type)
+  (let* _ = kw "U" in return U)
   <|>
-  (let* _ = kw "Linear" in return Linear)
+  (let* _ = kw "L" in return L)
 
 
 and tyProd_parser () =
@@ -148,7 +148,7 @@ and tyProd_parser () =
   let* b = t_parser () in
   let tyProd = 
     List.fold_right
-      (fun x b -> TyProd (x, ty, b)) xs b
+      (fun x b -> Arrow (x, ty, b)) xs b
   in
   let* _ = set_user_state ctx in
   return (tyProd)
@@ -160,11 +160,11 @@ and lnProd_parser () =
   let* _ = kw ":" in
   let* ty = t_parser () in
   let* _ = kw ")" in
-  let* _ = kw ">>" in
+  let* _ = kw "-o" in
   let* b = t_parser () in
   let lnProd = 
     List.fold_right
-      (fun x b -> LnProd (x, ty, b)) xs b
+      (fun x b -> Lolli (x, ty, b)) xs b
   in
   let* _ = set_user_state ctx in
   return (lnProd)
@@ -292,11 +292,11 @@ and t2_parser () =
 and t3_parser () =
   let arrow_parser () =
     let* _ = kw "->" in
-    return (fun ty1 ty2 -> TyProd (Name.__, ty1, ty2))
+    return (fun ty1 ty2 -> Arrow (Name.__, ty1, ty2))
   in
   let lolli_parser () =
-    let* _ = kw ">>" in
-    return (fun ty1 ty2 -> LnProd (Name.__, ty1, ty2))
+    let* _ = kw "-o" in
+    return (fun ty1 ty2 -> Lolli (Name.__, ty1, ty2))
   in
   chain_right1 (t2_parser ())
     (arrow_parser () <|> lolli_parser ())
@@ -329,7 +329,7 @@ let rec definition_parser () =
   let ty =
     List.fold_right (fun (xs, ty) acc -> 
         List.fold_right (fun x acc -> 
-          TyProd (x, ty, acc)) xs acc) ps ty 
+          Arrow (x, ty, acc)) xs acc) ps ty 
   in
   let* _ = kw ":=" in
   let* t = t_parser () in
@@ -353,7 +353,7 @@ and fixpoint_parser () =
   let ty =
     List.fold_right (fun (xs, ty) acc -> 
       List.fold_right (fun x acc -> 
-        TyProd (x, ty, acc)) xs acc) ps ty 
+        Arrow (x, ty, acc)) xs acc) ps ty 
   in
   let* _ = kw ":=" in
   let* t = t_parser () in
@@ -408,7 +408,7 @@ and constr_parser ps () =
 and tscope_parser () =  
   let rec tscope_of_t t =
     match t with
-    | TyProd (x, ty, t) ->
+    | Arrow (x, ty, t) ->
       let ts, n = tscope_of_t t in
       (TBind (x, ty, ts), n + 1)
     | _ -> (TBase t, 0)

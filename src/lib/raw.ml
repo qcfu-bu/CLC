@@ -8,10 +8,10 @@ type t =
   | Var    of v
   | Meta   of Meta.t
   | Ann    of t * t
-  | Type
-  | Linear
-  | TyProd of v * t * t
-  | LnProd of v * t * t
+  | U
+  | L
+  | Arrow of v * t * t
+  | Lolli of v * t * t
   | Lambda of p * t
   | Fix    of v * t
   | App    of t * t
@@ -75,17 +75,17 @@ and pp fmt t =
     fprintf fmt "%a" Meta.pp x
   | Ann (s, t) -> 
     fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp s pp t
-  | Type -> fprintf fmt "Type"
-  | Linear -> fprintf fmt "Linear"
-  | TyProd (x, ty, b) -> 
+  | U -> fprintf fmt "U"
+  | L -> fprintf fmt "L"
+  | Arrow (x, ty, b) -> 
     if (Name.string_of x = "_") 
     then fprintf fmt "@[%a ->@;<1 2>%a@]" pp ty pp b
     else fprintf fmt "@[@[(%a :@;<1 2>%a) ->@]@;<1 2>%a@]"
       pp_v x pp ty pp b
-  | LnProd (x, ty, b) -> 
+  | Lolli (x, ty, b) -> 
     if (Name.string_of x = "_") 
-    then fprintf fmt "@[%a >>@;<1 2>%a@]" pp ty pp b
-    else fprintf fmt "@[@[(%a :@;<1 2>%a) >>@]@;<1 2>%a@]"
+    then fprintf fmt "@[%a -o@;<1 2>%a@]" pp ty pp b
+    else fprintf fmt "@[@[(%a :@;<1 2>%a) -o@]@;<1 2>%a@]"
       pp_v x pp ty pp b
   | Lambda (x, b) ->
     let ps, b = spine b in

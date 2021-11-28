@@ -8,13 +8,13 @@ open Equality
 
 let cmp_sort t1 t2 =
   match t1, t2 with
-  | Type, Linear -> false
+  | U, L -> false
   | _ -> true
 
 let min_sort t1 t2 = 
   match t1 with
-  | Type -> t2
-  | Linear -> t1
+  | U -> t2
+  | L -> t1
 
 let rec infer_sort v_ctx id_ctx ty =
   let t, ctx = infer v_ctx id_ctx ty in
@@ -35,8 +35,8 @@ and infer v_ctx id_ctx t =
         printf "%a" Context.pp v_ctx; raise e
     in
     match srt with
-    | Type -> (ty, VarMap.empty)
-    | Linear -> (ty, VarMap.singleton x ty))
+    | U -> (ty, VarMap.empty)
+    | L -> (ty, VarMap.singleton x ty))
   | Meta _ -> failwith "infer Meta"
   | Ann (t, ty) -> (
     match t with
@@ -50,35 +50,51 @@ and infer v_ctx id_ctx t =
       (ty, ctx))
   | Sort srt -> (
     match srt with
-    | Type -> (Sort Type, VarMap.empty)
-    | Linear -> (Sort Type, VarMap.empty))
-  | TyProd (ty, b) ->
+    | U -> (Sort U, VarMap.empty)
+    | L -> (Sort U, VarMap.empty))
+  | Arrow (ty, b) ->
     let x, ub = unbind b in
     let srt = infer_sort v_ctx id_ctx ty in
     let _ = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx ub in
-    (Sort Type, VarMap.empty)
-  | LnProd (ty, b) ->
+    (Sort U, VarMap.empty)
+  | Lolli (ty, b) ->
     let x, ub = unbind b in
     let srt = infer_sort v_ctx id_ctx ty in
     let _ = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx ub in
-    (Sort Linear, VarMap.empty)
+    (Sort L, VarMap.empty)
   | Lambda _ -> failwith (asprintf "infer Lambda(%a)" Terms.pp t)
   | Fix _ -> failwith (asprintf "infer Fix(%a)" Terms.pp t)
   | App (t1, t2) -> (
     let ty1, ctx1 = infer v_ctx id_ctx t1 in
     match whnf ty1 with
-    | TyProd (ty, b) ->
+    | Arrow (ty, b) -> 
+      let srt = infer_sort v_ctx id_ctx ty in
       let ctx2 = check v_ctx id_ctx t2 ty in
+      let _ = 
+        match srt with
+        | U -> 
+          assert_msg (VarMap.is_empty ctx2) 
+            (asprintf "non-clean context App(%a)" Terms.pp t2)
+        | L -> ()
+      in
       (subst b t2, merge ctx1 ctx2)
-    | LnProd (ty, b) ->
+    | Lolli (ty, b) ->
+      let srt = infer_sort v_ctx id_ctx ty in
       let ctx2 = check v_ctx id_ctx t2 ty in
+      let _ =
+        match srt with
+        | U -> 
+          assert_msg (VarMap.is_empty ctx2) 
+            (asprintf "non-clean context App(%a)" Terms.pp t2)
+        | L -> ()
+      in
       (subst b t2, merge ctx1 ctx2)
     | _ -> failwith (asprintf "@[infer App(t :=@;<1 2>%a)@]" Terms.pp t))
   | LetIn (t, b) -> (
     let ty1, ctx1 = infer v_ctx id_ctx t in
     let srt = infer_sort v_ctx id_ctx ty1 in
     let ty2, ctx2 =
-      if srt = Type && VarMap.is_empty ctx1 then
+      if srt = U && VarMap.is_empty ctx1 then
         infer v_ctx id_ctx (subst b t)
       else
         let x, ub = unbind b in
@@ -140,7 +156,7 @@ and check v_ctx id_ctx t ty =
   | Lambda b -> (
     let x, ub1 = unbind b in
     match whnf ty with
-    | TyProd (ty, b2) ->
+    | Arrow (ty, b2) ->
       let ub2 = subst b2 (Var x) in
       let srt = infer_sort v_ctx id_ctx ty in
       let ctx = check (VarMap.add x (ty, srt) v_ctx) id_ctx ub1 ub2 in
@@ -148,7 +164,7 @@ and check v_ctx id_ctx t ty =
       assert_msg (VarMap.is_empty ctx) 
         (asprintf "@[check Lambda(@;<1 2>t := %a;@;<1 2>ty := %a)@.%a@]" 
           Terms.pp t Terms.pp ty Context.pp' ctx); ctx
-    | LnProd (ty, b2) ->
+    | Lolli (ty, b2) ->
       let ub2 = subst b2 (Var x) in
       let srt = infer_sort v_ctx id_ctx ty in
       let ctx = check (VarMap.add x (ty, srt) v_ctx) id_ctx ub1 ub2 in
@@ -332,7 +348,7 @@ and check_motive cover id_ctx mot srt =
   match cover with
   | (v_ctx, t, ty, b, xsrt) :: cover ->
     let mot' =
-      if srt = Type then subst mot t
+      if srt = U then subst mot t
       else (
         assert_msg (not (binder_occur mot)) "check_motive";
         snd (unbind mot))
@@ -354,7 +370,7 @@ let rec infer_top v_ctx id_ctx top =
     let ty1, ctx1 = infer v_ctx id_ctx t in
     let srt = infer_sort v_ctx id_ctx ty1 in
     let ctx2, id_ctx =
-      if srt = Type && VarMap.is_empty ctx1 then
+      if srt = U && VarMap.is_empty ctx1 then
         let x, _ = unbind top in
         let v_ctx = VarMap.add x (ty1, srt) v_ctx in
         infer_top v_ctx id_ctx (subst top t)
@@ -369,11 +385,11 @@ let rec infer_top v_ctx id_ctx top =
   | Datype (tcs, top) -> (
     match tcs with
     | TConstr (id, pscope, dcs) ->
-      check_pscope v_ctx id_ctx pscope Type;
+      check_pscope v_ctx id_ctx pscope U;
       let id_ctx = IdMap.add id (TConstr (id, pscope, [])) id_ctx in
       List.iter
         (fun (DConstr (_, pscope)) ->
-          check_pscope v_ctx id_ctx pscope Type;
+          check_pscope v_ctx id_ctx pscope U;
           param_pscope pscope id []) dcs;
       let id_ctx = IdMap.add id (TConstr (id, pscope, dcs)) id_ctx in
       infer_top v_ctx id_ctx top)

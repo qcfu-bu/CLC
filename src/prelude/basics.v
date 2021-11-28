@@ -1,8 +1,8 @@
-Inductive Eq (A : Type) (x : A) : A -> Type :=
+Inductive Eq (A : U) (x : A) : A -> U :=
 | refl : Eq A x x.
 
 Definition Eq_trans
-  (A : Type)
+  (A : U)
   (x y z : A)
   (e1 : Eq A x y)
   (e2 : Eq A y z) :
@@ -13,7 +13,7 @@ Definition Eq_trans
   end.
 
 Definition Eq_sym 
-  (A : Type) 
+  (A : U) 
   (x y : A) 
   (e : Eq A x y) :
   Eq A y x
@@ -23,9 +23,9 @@ Definition Eq_sym
   end.
 
 Definition TyInd 
-  (A : Type) 
+  (A : U) 
   (x y : A)
-  (P : A -> Type) 
+  (P : A -> U) 
   (e : Eq A x y)
   (f : P x) :
   P y
@@ -35,9 +35,9 @@ Definition TyInd
   end.
 
 Definition LnInd 
-  (A : Type) 
+  (A : U) 
   (x y : A)
-  (P : A -> Linear) 
+  (P : A -> L) 
   (e : Eq A x y)
   (f : P x) :
   P y
@@ -46,13 +46,13 @@ Definition LnInd
   | refl => f
   end.
 
-Inductive Unit : Type :=
+Inductive Unit : U :=
 | tt : Unit.
 
-Inductive Base : Linear :=
+Inductive Base : L :=
 | ll : Base.
 
-Inductive Nat : Type :=
+Inductive Nat : U :=
 | O : Nat
 | S : Nat -> Nat.
 
@@ -62,26 +62,26 @@ Fixpoint add (m n : Nat) : Nat :=
   | S m => S (add m n)
   end.
 
-Inductive Bool : Type :=
+Inductive Bool : U :=
 | true : Bool
 | false : Bool.
 
-Inductive Sigma (A : Type) (F : A -> Type) : Type :=
+Inductive Sigma (A : U) (F : A -> U) : U :=
 | pair : (x : A) -> F x -> Sigma A F.
 
-Inductive Tensor (A : Linear) (B : Linear) : Linear :=
+Inductive Tensor (A : L) (B : L) : L :=
 | tpair : A -> B -> Tensor A B.
 
-Inductive FTensor (A : Type) (F : A -> Linear) : Linear :=
+Inductive FTensor (A : U) (F : A -> L) : L :=
 | fpair : (x : A) -> F x -> FTensor A F.
 
-Axiom unsafeC : (A : Linear) -> A -> Unit.
-Axiom unsafeP : (A : Linear) -> A.
+Axiom unsafeC : (A : L) -> A -> Unit.
+Axiom unsafeP : (A : L) -> A.
 
-Definition Loc : Type := Nat.
-Axiom PtsTo : Loc -> Type -> Linear.
-Definition Ptr (A : Type) : Linear := FTensor Loc (fun l => PtsTo l A).
-Axiom New  : (A : Type) -> A -> Ptr A.
-Axiom Free : (A : Type) -> Ptr A -> Unit.
-Axiom Get  : (A : Type) -> (l : Loc) -> PtsTo l A -> FTensor A (fun _ => PtsTo l A).
-Axiom Set  : (A : Type) -> (B : Type) -> B -> (l : Loc) -> PtsTo l A -> PtsTo l B.
+Definition Loc : U := Nat.
+Axiom PtsTo : Loc -> U -> L.
+Definition Ptr (A : U) : L := FTensor Loc (fun l => PtsTo l A).
+Axiom New  : (A : U) -> A -> Ptr A.
+Axiom Free : (A : U) -> Ptr A -> Unit.
+Axiom Get  : (A : U) -> (l : Loc) -> PtsTo l A -> FTensor A (fun _ => PtsTo l A).
+Axiom Set  : (A : U) -> (B : U) -> B -> (l : Loc) -> PtsTo l A -> PtsTo l B.

@@ -9,9 +9,9 @@ let rec aeq t1 t2 =
   | Ann (t1, ty1), Ann (t2, ty2) ->
     aeq t1 t2 && aeq ty1 ty2
   | Sort t1, Sort t2 -> t1 = t2
-  | TyProd (t1, b1), TyProd (t2, b2) ->
+  | Arrow (t1, b1), Arrow (t2, b2) ->
     aeq t1 t2 && eq_binder aeq b1 b2
-  | LnProd (t1, b1), LnProd (t2, b2) ->
+  | Lolli (t1, b1), Lolli (t2, b2) ->
     aeq t1 t2 && eq_binder aeq b1 b2
   | Lambda b1, Lambda b2 -> 
     eq_binder aeq b1 b2
@@ -39,8 +39,8 @@ let rec whnf t =
   | Meta _ -> t
   | Ann (t, _) -> whnf t
   | Sort _ -> t
-  | TyProd _ -> t
-  | LnProd _ -> t
+  | Arrow _ -> t
+  | Lolli _ -> t
   | Lambda _ -> t
   | Fix _ -> t
   | App (t1, t2) -> (
@@ -78,14 +78,14 @@ let rec nf t =
   | Meta _ -> t
   | Ann (t, _) -> nf t
   | Sort _ -> t
-  | TyProd (t, b) ->
+  | Arrow (t, b) ->
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
-    TyProd (nf t, b)
-  | LnProd (t, b) ->
+    Arrow (nf t, b)
+  | Lolli (t, b) ->
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
-    LnProd (nf t, b)
+    Lolli (nf t, b)
   | Lambda b ->
     let x, b = unbind b in
     let b = unbox (bind_var x (lift (nf b))) in
@@ -135,9 +135,9 @@ let rec equal t1 t2 =
     | Ann (t1, ty1), Ann (t2, ty2) ->
       equal t1 t2 && equal ty1 ty2
     | Sort srt1, Sort srt2 -> srt1 = srt2
-    | TyProd (t1, b1), TyProd (t2, b2) ->
+    | Arrow (t1, b1), Arrow (t2, b2) ->
       equal t1 t2 && eq_binder equal b1 b2
-    | LnProd (t1, b1), LnProd (t2, b2) ->
+    | Lolli (t1, b1), Lolli (t2, b2) ->
       equal t1 t2 && eq_binder equal b1 b2
     | Lambda pb1, Lambda pb2 ->
       eq_binder equal pb1 pb2

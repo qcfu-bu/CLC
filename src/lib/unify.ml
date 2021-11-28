@@ -47,12 +47,12 @@ let rec fv ctx t =
   | Ann (t, ty) ->
     VarSet.union (fv ctx t) (fv ctx ty)
   | Sort _ -> VarSet.empty
-  | TyProd (ty, b) ->
+  | Arrow (ty, b) ->
     let x, ub = unbind b in
     let fv1 = fv ctx ty in
     let fv2 = fv (VarSet.add x ctx) ub in
     VarSet.union fv1 fv2
-  | LnProd (ty, b) ->
+  | Lolli (ty, b) ->
     let x, ub = unbind b in
     let fv1 = fv ctx ty in
     let fv2 = fv (VarSet.add x ctx) ub in
@@ -107,10 +107,10 @@ let rec occurs x t =
   | Ann (t, ty) ->
     occurs x t || occurs x ty
   | Sort _ -> false
-  | TyProd (t, b) ->
+  | Arrow (t, b) ->
     let _, ub = unbind b in
     occurs x t || occurs x ub
-  | LnProd (t, b) ->
+  | Lolli (t, b) ->
     let _, ub = unbind b in
     occurs x t || occurs x ub
   | Lambda b ->
@@ -163,12 +163,12 @@ let rec simpl eqn =
       if t1 = t2 
       then []
       else failwith (asprintf "%a != %a" pp_s t1 pp_s t2)
-    | TyProd (ty1, b1), TyProd (ty2, b2) ->
+    | Arrow (ty1, b1), Arrow (ty2, b2) ->
       let _, ub1, ub2 = unbind2 b1 b2 in
       let eqn1 = simpl (ty1, ty2) in
       let eqn2 = simpl (ub1, ub2) in
       eqn1 @ eqn2
-    | LnProd (ty1, b1), LnProd (ty2, b2) ->
+    | Lolli (ty1, b1), Lolli (ty2, b2) ->
       let _, ub1, ub2 = unbind2 b1 b2 in
       let eqn1 = simpl (ty1, ty2) in
       let eqn2 = simpl (ub1, ub2) in
@@ -311,18 +311,18 @@ let rec resolve mmap t =
     | Ann (t, ty) ->
       Ann (resolve mmap t, resolve mmap ty)
     | Sort _ -> t
-    | TyProd (ty, b) ->
+    | Arrow (ty, b) ->
       let x, ub = unbind b in
       let ty = resolve mmap ty in
       let ub = resolve mmap ub in
       let b = unbox (bind_var x (lift ub)) in
-      TyProd (ty, b)
-    | LnProd (ty, b) ->
+      Arrow (ty, b)
+    | Lolli (ty, b) ->
       let x, ub = unbind b in
       let ty = resolve mmap ty in
       let ub = resolve mmap ub in
       let b = unbox (bind_var x (lift ub)) in
-      LnProd (ty, b)
+      Lolli (ty, b)
     | Lambda b ->
       let x, ub = unbind b in
       let ub = resolve mmap ub in

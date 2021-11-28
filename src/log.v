@@ -4,8 +4,8 @@ elab ok
 resolve ok
 tcheck ok
 --------------------------------------------------------------------------------
-Inductive Eq_0 (A_19262 : Type) (x_19263 : A_19262) : (A_19262) -> Type :=
-| refl_1 (A_19265 : Type)
+Inductive Eq_0 (A_19262 : U) (x_19263 : A_19262) : (A_19262) -> U :=
+| refl_1 (A_19265 : U)
            (x_19266 : A_19265) : (Eq_0 A_19265 x_19266 x_19266).
 
 Definition Eq_trans_19267 :=
@@ -15,7 +15,7 @@ Definition Eq_trans_19267 :=
       with
       | (refl_1 ) => e1_19272
       end) :
-    (A_19278 : Type) ->
+    (A_19278 : U) ->
       (x_19279 : A_19278) ->
         (y_19280 : A_19278) ->
           (z_19281 : A_19278) ->
@@ -30,7 +30,7 @@ Definition Eq_sym_19284 :=
       with
       | (refl_1 ) => refl_1
       end) :
-    (A_19293 : Type) ->
+    (A_19293 : U) ->
       (x_19294 : A_19293) ->
         (y_19295 : A_19293) ->
           (e_19296 : (Eq_0 A_19293 x_19294 y_19295)) ->
@@ -43,10 +43,10 @@ Definition TyInd_19297 :=
       with
       | (refl_1 ) => f_19303
       end) :
-    (A_19308 : Type) ->
+    (A_19308 : U) ->
       (x_19309 : A_19308) ->
         (y_19310 : A_19308) ->
-          (P_19311 : (A_19308) -> Type) ->
+          (P_19311 : (A_19308) -> U) ->
             (e_19313 : (Eq_0 A_19308 x_19309 y_19310)) ->
               (f_19314 : (P_19311) x_19309) -> (P_19311) y_19310).
 
@@ -57,20 +57,20 @@ Definition LnInd_19315 :=
       with
       | (refl_1 ) => f_19321
       end) :
-    (A_19326 : Type) ->
+    (A_19326 : U) ->
       (x_19327 : A_19326) ->
         (y_19328 : A_19326) ->
-          (P_19329 : (A_19326) -> Linear) ->
+          (P_19329 : (A_19326) -> L) ->
             (e_19331 : (Eq_0 A_19326 x_19327 y_19328)) ->
               (f_19332 : (P_19329) x_19327) -> (P_19329) y_19328).
 
-Inductive Unit_2 : Type :=
+Inductive Unit_2 : U :=
 | tt_3 : Unit_2.
 
-Inductive Base_4 : Linear :=
+Inductive Base_4 : L :=
 | ll_5 : Base_4.
 
-Inductive Nat_6 : Type :=
+Inductive Nat_6 : U :=
 | O_7 : Nat_6
 | S_8 : (Nat_6) -> Nat_6.
 
@@ -82,75 +82,75 @@ Definition add_19334 :=
       end) :
     (m_19339 : Nat_6) -> (n_19340 : Nat_6) -> Nat_6).
 
-Inductive Bool_9 : Type :=
+Inductive Bool_9 : U :=
 | true_10 : Bool_9
 | false_11 : Bool_9.
 
-Inductive Sigma_12 (A_19341 : Type) (F_19342 : (A_19341) -> Type) : Type :=
-| pair_13 (A_19344 : Type)
-            (F_19345 : (A_19344) -> Type)
+Inductive Sigma_12 (A_19341 : U) (F_19342 : (A_19341) -> U) : U :=
+| pair_13 (A_19344 : U)
+            (F_19345 : (A_19344) -> U)
               : (x_19347 : A_19344) ->
                   ((F_19345) x_19347) -> (Sigma_12 A_19344 F_19345).
 
-Inductive Tensor_14 (A_19349 : Linear) (B_19350 : Linear) : Linear :=
-| tpair_15 (A_19351 : Linear)
-             (B_19352 : Linear)
+Inductive Tensor_14 (A_19349 : L) (B_19350 : L) : L :=
+| tpair_15 (A_19351 : L)
+             (B_19352 : L)
                : (A_19351) -> (B_19352) -> (Tensor_14 A_19351 B_19352).
 
-Inductive FTensor_16 (A_19355 : Type)
-                       (F_19356 : (A_19355) -> Linear) : Linear :=
-| fpair_17 (A_19358 : Type)
-             (F_19359 : (A_19358) -> Linear)
+Inductive FTensor_16 (A_19355 : U)
+                       (F_19356 : (A_19355) -> L) : L :=
+| fpair_17 (A_19358 : U)
+             (F_19359 : (A_19358) -> L)
                : (x_19361 : A_19358) ->
                    ((F_19359) x_19361) -> (FTensor_16 A_19358 F_19359).
 
-Axiom unsafeC_19363 : (A_19364 : Linear) -> (A_19364) -> Unit_2.
+Axiom unsafeC_19363 : (A_19364 : L) -> (A_19364) -> Unit_2.
 
-Axiom unsafeP_19366 : (A_19367 : Linear) -> A_19367.
+Axiom unsafeP_19366 : (A_19367 : L) -> A_19367.
 
-Definition Loc_19368 := ((Nat_6) : Type).
+Definition Loc_19368 := ((Nat_6) : U).
 
-Axiom PtsTo_19369 : (Loc_19368) -> (Type) -> Linear.
+Axiom PtsTo_19369 : (Loc_19368) -> (U) -> L.
 
 Definition Ptr_19372 :=
   ((fun A_19373 =>
       (FTensor_16 Loc_19368 fun l_19374 => ((PtsTo_19369) l_19374) A_19373)) :
-    (A_19375 : Type) -> Linear).
+    (A_19375 : U) -> L).
 
-Axiom New_19376 : (A_19377 : Type) -> (A_19377) -> (Ptr_19372) A_19377.
+Axiom New_19376 : (A_19377 : U) -> (A_19377) -> (Ptr_19372) A_19377.
 
-Axiom Free_19379 : (A_19380 : Type) -> ((Ptr_19372) A_19380) -> Unit_2.
+Axiom Free_19379 : (A_19380 : U) -> ((Ptr_19372) A_19380) -> Unit_2.
 
 Axiom Get_19382 :
-  (A_19383 : Type) ->
+  (A_19383 : U) ->
     (l_19384 : Loc_19368) ->
       (((PtsTo_19369) l_19384) A_19383) ->
         (FTensor_16 A_19383 fun __19386 => ((PtsTo_19369) l_19384) A_19383).
 
 Axiom Set_19387 :
-  (A_19388 : Type) ->
-    (B_19389 : Type) ->
+  (A_19388 : U) ->
+    (B_19389 : U) ->
       (B_19389) ->
         (l_19391 : Loc_19368) ->
           (((PtsTo_19369) l_19391) A_19388) ->
             ((PtsTo_19369) l_19391) B_19389.
 
-Axiom ptsto_19393 : (A_19394 : Type) -> (Nat_6) -> (A_19394) -> Linear.
+Axiom ptsto_19393 : (A_19394 : U) -> (Nat_6) -> (A_19394) -> L.
 
 Axiom new_19397 :
-  (A_19398 : Type) ->
+  (A_19398 : U) ->
     (x_19399 : A_19398) ->
       (FTensor_16
         Nat_6 fun l_19400 => (((ptsto_19393) A_19398) l_19400) x_19399).
 
 Axiom free_19401 :
-  (A_19402 : Type) ->
+  (A_19402 : U) ->
     (l_19403 : Nat_6) ->
       (x_19404 : A_19402) ->
         ((((ptsto_19393) A_19402) l_19403) x_19404) -> Unit_2.
 
 Axiom get_19406 :
-  (A_19407 : Type) ->
+  (A_19407 : U) ->
     (l_19408 : Nat_6) ->
       (x_19409 : A_19407) ->
         ((((ptsto_19393) A_19407) l_19408) x_19409) ->
@@ -159,8 +159,8 @@ Axiom get_19406 :
               fun __19412 => (((ptsto_19393) A_19407) l_19408) x_19409).
 
 Axiom set_19413 :
-  (A_19414 : Type) ->
-    (B_19415 : Type) ->
+  (A_19414 : U) ->
+    (B_19415 : U) ->
       (l_19416 : Nat_6) ->
         (x_19417 : A_19414) ->
           ((((ptsto_19393) A_19414) l_19416) x_19417) ->

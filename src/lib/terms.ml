@@ -3,8 +3,8 @@ open Format
 open Names
 
 type sort =
-  | Type
-  | Linear
+  | U
+  | L
 
 type t =
   (* functional *)
@@ -12,8 +12,8 @@ type t =
   | Meta   of Meta.t
   | Ann    of t * t
   | Sort   of sort
-  | TyProd of t * tbinder
-  | LnProd of t * tbinder
+  | Arrow of t * tbinder
+  | Lolli of t * tbinder
   | Lambda of tbinder
   | Fix    of tbinder
   | App    of t * t
@@ -201,8 +201,8 @@ and pp_ps fmt = function
 
 and pp_s fmt t =
   match t with
-  | Type -> fprintf fmt "Type"
-  | Linear -> fprintf fmt "Linear"
+  | U -> fprintf fmt "U"
+  | L -> fprintf fmt "L"
 
 and pp fmt t = 
   let rec pp_aux fmt =
@@ -224,17 +224,17 @@ and pp fmt t =
   | Ann (s, t) -> 
     fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp s pp t
   | Sort t -> fprintf fmt "%a" pp_s t
-  | TyProd (ty, b) -> 
+  | Arrow (ty, b) -> 
     let x, b = unbind b in
     if (name_of x = "_") 
     then fprintf fmt "@[(%a) ->@;<1 2>%a@]" pp ty pp b
     else fprintf fmt "@[@[(%a :@;<1 2>%a) ->@]@;<1 2>%a@]"
       pp_v x pp ty pp b
-  | LnProd (ty, b) -> 
+  | Lolli (ty, b) -> 
     let x, b = unbind b in
     if (name_of x = "_") 
-    then fprintf fmt "@[(%a) >>@;<1 2>%a@]" pp ty pp b
-    else fprintf fmt "@[@[(%a :@;<1 2>%a) >>@]@;<1 2>%a@]"
+    then fprintf fmt "@[(%a) -o@;<1 2>%a@]" pp ty pp b
+    else fprintf fmt "@[@[(%a :@;<1 2>%a) -o@]@;<1 2>%a@]"
       pp_v x pp ty pp b
   | Lambda b ->
     let x, b = unbind b in
@@ -354,14 +354,14 @@ let _Var = box_var
 let _Meta m = box (Meta m)
 let _Ann = box_apply2 (fun t ty -> Ann (t, ty))
 let _Sort t = box (Sort t)
-let _Type = box (Sort Type)
-let _Linear = box (Sort Linear)
-let _TyProd = box_apply2 (fun ty b -> TyProd (ty, b))
-let _LnProd = box_apply2 (fun ty b -> LnProd (ty, b))
-let _Arrow ty1 ty2 = _TyProd ty1 (bind_var __ ty2)
-let _Arrow' tys ty = 
-  List.fold_right (fun ty acc -> _Arrow ty acc) tys ty
-let _Lolli ty1 ty2 = _LnProd ty1 (bind_var __ ty2)
+let _U = box (Sort U)
+let _L = box (Sort L)
+let _Arrow = box_apply2 (fun ty b -> Arrow (ty, b))
+let _Lolli = box_apply2 (fun ty b -> Lolli (ty, b))
+let _Arrow0 ty1 ty2 = _Arrow ty1 (bind_var __ ty2)
+let _Arrow1 tys ty = 
+  List.fold_right (fun ty acc -> _Arrow0 ty acc) tys ty
+let _Lolli0 ty1 ty2 = _Lolli ty1 (bind_var __ ty2)
 let _Lambda = box_apply (fun pb -> Lambda pb)
 let _Lambda' xs ub =
   List.fold_right (fun x acc -> _Lambda (bind_var x acc)) xs ub
@@ -412,8 +412,8 @@ let rec lift t =
   | Meta x -> _Meta x
   | Ann (t, ty) -> _Ann (lift t) (lift ty)
   | Sort t -> _Sort t
-  | TyProd (ty, b) -> _TyProd (lift ty) (box_binder lift b)
-  | LnProd (ty, b) -> _LnProd (lift ty) (box_binder lift b)
+  | Arrow (ty, b) -> _Arrow (lift ty) (box_binder lift b)
+  | Lolli (ty, b) -> _Lolli (lift ty) (box_binder lift b)
   | Lambda pb -> _Lambda (box_binder lift pb)
   | Fix b -> _Fix (box_binder lift b)
   | App (t1, t2) -> _App (lift t1) (lift t2)

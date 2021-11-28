@@ -1,12 +1,12 @@
 
 
-Axiom ptsto : (A : Type) -> Nat -> A -> Linear.
+Axiom ptsto : (A : U) -> Nat -> A -> L.
 
-Axiom new  : (A : Type) -> (x : A) -> [l : Nat | ptsto _ l x].
-Axiom free : (A : Type) -> (l : Nat) -> (x : A) -> ptsto _ l x -> Unit.
-Axiom get  : (A : Type) -> (l : Nat) -> (x : A) -> ptsto _ l x -> 
+Axiom new  : (A : U) -> (x : A) -> [l : Nat | ptsto _ l x].
+Axiom free : (A : U) -> (l : Nat) -> (x : A) -> ptsto _ l x -> Unit.
+Axiom get  : (A : U) -> (l : Nat) -> (x : A) -> ptsto _ l x -> 
   [(y : A | Eq _ x y) | ptsto _ l x].
-Axiom set  : (A B : Type) -> (l : Nat) -> (x : A) -> ptsto _ l x ->
+Axiom set  : (A B : U) -> (l : Nat) -> (x : A) -> ptsto _ l x ->
   (y : B) -> ptsto _ l y.
 
 Definition main : Unit := 

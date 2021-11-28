@@ -21,8 +21,8 @@ let find x ctx =
 
 let remove x ctx srt =
   match srt with
-  | Type -> ctx
-  | Linear ->
+  | U -> ctx
+  | L ->
     if VarMap.exists (fun y _ -> eq_vars x y) ctx
     then VarMap.remove x ctx
     else failwith ("unused variable:" ^ name_of x)

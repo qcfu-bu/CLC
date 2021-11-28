@@ -1,15 +1,15 @@
-Inductive session : Type :=
-| SEND : Type -> session -> session
-| RECV : Type -> session -> session
+Inductive session : U :=
+| SEND : U -> session -> session
+| RECV : U -> session -> session
 | END : session.
 
-Axiom channel : session -> Linear.
+Axiom channel : session -> L.
 Axiom open : (ss : session) -> channel ss.
 Axiom close : channel END -> Unit.
-Axiom send : (A : Type) -> A -> (ss : session) -> channel (SEND A ss) -> channel ss.
-Axiom recv : (A : Type) -> (ss : session) -> channel (RECV A ss) -> [A | channel ss].
+Axiom send : (A : U) -> A -> (ss : session) -> channel (SEND A ss) -> channel ss.
+Axiom recv : (A : U) -> (ss : session) -> channel (RECV A ss) -> [A | channel ss].
 
-Inductive ilist (A : Type) : Nat -> Type :=
+Inductive ilist (A : U) : Nat -> U :=
 | nil  : ilist A 0
 | cons : A -> (n : Nat) -> ilist A n -> ilist A (S n).
 
