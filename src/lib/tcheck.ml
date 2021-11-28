@@ -241,7 +241,15 @@ and check v_ctx id_ctx t ty =
 and infer_pscope v_ctx id_ctx ts pscope =
   match ts, pscope with
   | t :: ts, PBind (ty, pscope) ->
+    let srt = infer_sort v_ctx id_ctx ty in
     let ctx1 = check v_ctx id_ctx t ty in
+    let _ =
+      match srt with
+      | U -> 
+        assert_msg (VarMap.is_empty ctx1) 
+          (asprintf "non-clean context pscope(%a)" Terms.pp t)
+      | L -> ()
+    in
     let ty, ctx2 =
       infer_pscope v_ctx id_ctx ts (subst pscope (Ann (t, ty)))
     in
@@ -255,7 +263,15 @@ and infer_pscope v_ctx id_ctx ts pscope =
 and infer_tscope v_ctx id_ctx ts tscope =
   match ts, tscope with
   | t :: ts, TBind (ty, tscope) ->
+    let srt = infer_sort v_ctx id_ctx ty in
     let ctx1 = check v_ctx id_ctx t ty in
+    let _ =
+      match srt with
+      | U -> 
+        assert_msg (VarMap.is_empty ctx1) 
+          (asprintf "non-clean context tscope(%a)" Terms.pp t)
+      | L -> ()
+    in
     let ty, ctx2 = 
       infer_tscope v_ctx id_ctx ts (subst tscope (Ann (t, ty)))
     in
