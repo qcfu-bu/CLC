@@ -4,38 +4,36 @@ open Util
 open Names
 open Terms
 open Equality
+open Exceptions
 
-module VarSet = Set.Make(
-  struct
-    type t = Terms.t var
-    let compare = compare_vars
-  end)
+module VarSet = Set.Make (struct
+  type t = Terms.t var
 
-module MetaMap = Map.Make(Meta)
+  let compare = compare_vars
+end)
+
+module MetaMap = Map.Make (Meta)
 
 let union m1 m2 =
   MetaMap.union
     (fun _ (x, ord1) (y, ord2) ->
-      if ord1 < ord2
-      then Some (y, ord2)
-      else Some (x, ord1))
-  m1 m2
+      if ord1 < ord2 then
+        Some (y, ord2)
+      else
+        Some (x, ord1))
+    m1 m2
 
-let pp_set fmt s =
-  VarSet.iter (fun x ->
-    fprintf fmt "%a " pp_v x) s
+let pp_set fmt s = VarSet.iter (fun x -> fprintf fmt "%a " pp_v x) s
 
 let pp_mmap fmt m =
-  MetaMap.iter 
-    (fun x (t, _) ->
-      fprintf fmt "%a := %a@." Meta.pp x Terms.pp t) 
-    m
+  MetaMap.iter (fun x (t, _) -> fprintf fmt "%a := %a@." Meta.pp x Terms.pp t) m
 
 let pp_eqn n fmt eqns =
-  List.iter (fun (t1, t2) ->
-    fprintf fmt "eqn%d := %a ?= %a@." n Terms.pp (whnf t1) Terms.pp (whnf t2);
-    fprintf fmt "-------------------------------------------------------@.") 
-  eqns
+  List.iter
+    (fun (t1, t2) ->
+      fprintf fmt "eqn%d := %a ?= %a@." n Terms.pp (whnf t1) Terms.pp (whnf t2);
+      fprintf fmt "-------------------------------------------------------@.")
+    eqns
 
 let rec fv ctx t =
   match t with
@@ -44,8 +42,7 @@ let rec fv ctx t =
     | Some _ -> VarSet.empty
     | None -> VarSet.singleton x)
   | Meta _ -> VarSet.empty
-  | Ann (t, ty) ->
-    VarSet.union (fv ctx t) (fv ctx ty)
+  | Ann (t, ty) -> VarSet.union (fv ctx t) (fv ctx ty)
   | Sort _ -> VarSet.empty
   | Arrow (ty, b) ->
     let x, ub = unbind b in
@@ -63,49 +60,53 @@ let rec fv ctx t =
   | Fix b ->
     let x, ub = unbind b in
     fv (VarSet.add x ctx) ub
-  | App (t1, t2) ->
-    VarSet.union (fv ctx t1) (fv ctx t2)
+  | App (t1, t2) -> VarSet.union (fv ctx t1) (fv ctx t2)
   | LetIn (t, b) ->
     let x, ub = unbind b in
     let fv1 = fv ctx t in
     let fv2 = fv (VarSet.add x ctx) ub in
     VarSet.union fv1 fv2
-  | TCons (_, ts) ->
+  | Ind (_, ts) ->
     let ctxs = List.map (fv ctx) ts in
     List.fold_left VarSet.union VarSet.empty ctxs
-  | DCons (_, ts) ->
+  | Constr (_, ts) ->
     let ctxs = List.map (fv ctx) ts in
     List.fold_left VarSet.union VarSet.empty ctxs
   | Match (t, mot, pbs) -> (
     let fv1 = fv ctx t in
-    let fv2 = 
-      List.fold_left 
+    let fv2 =
+      List.fold_left
         (fun acc pb ->
           let p, ub = unbind_p pb in
           let xs = list_of_p p in
           let ctx = VarSet.union ctx (VarSet.of_list xs) in
           VarSet.union acc (fv ctx ub))
-      VarSet.empty pbs
+        VarSet.empty pbs
     in
     let res = VarSet.union fv1 fv2 in
     match mot with
-    | Some mot ->
-      let x, pb = unbind mot in
-      let p, ub = unbind_p pb in
-      let xs = list_of_p p  in
-      let ctx = VarSet.add x ctx in
+    | Mot0 -> res
+    | Mot1 mt ->
+      let p, ub = unbind_p mt in
+      let xs = list_of_p p in
       let ctx = VarSet.union ctx (VarSet.of_list xs) in
       let fv3 = fv ctx ub in
       VarSet.union res fv3
-    | None -> res)
+    | Mot2 mt ->
+      let x, pb = unbind mt in
+      let p, ub = unbind_p pb in
+      let xs = list_of_p p in
+      let ctx = VarSet.add x ctx in
+      let ctx = VarSet.union ctx (VarSet.of_list xs) in
+      let fv3 = fv ctx ub in
+      VarSet.union res fv3)
   | Axiom (_, ty) -> fv ctx ty
 
 let rec occurs x t =
   match t with
   | Var _ -> false
   | Meta y -> Meta.equal x y
-  | Ann (t, ty) ->
-    occurs x t || occurs x ty
+  | Ann (t, ty) -> occurs x t || occurs x ty
   | Sort _ -> false
   | Arrow (t, b) ->
     let _, ub = unbind b in
@@ -119,50 +120,53 @@ let rec occurs x t =
   | Fix b ->
     let _, ub = unbind b in
     occurs x ub
-  | App (t1, t2) ->
-    occurs x t1 || occurs x t2
+  | App (t1, t2) -> occurs x t1 || occurs x t2
   | LetIn (t, b) ->
     let _, ub = unbind b in
     occurs x t || occurs x ub
-  | TCons (_, ts) ->
-    List.fold_left (fun acc t -> acc || occurs x t) false ts
-  | DCons (_, ts) ->
-    List.fold_left (fun acc t -> acc || occurs x t) false ts
+  | Ind (_, ts) -> List.fold_left (fun acc t -> acc || occurs x t) false ts
+  | Constr (_, ts) -> List.fold_left (fun acc t -> acc || occurs x t) false ts
   | Match (t, mot, pbs) -> (
     let ts = List.map (fun pb -> snd (unbind_p pb)) pbs in
     if occurs x t || List.fold_left (fun acc t -> acc || occurs x t) false ts
-    then true
+    then
+      true
     else
       match mot with
-      | Some mot ->
-        let _, mot = unbind mot in
-        let _, mot = unbind_p mot in
-        occurs x mot
-      | None -> false)
+      | Mot0 -> false
+      | Mot1 mt ->
+        let _, mt = unbind_p mt in
+        occurs x mt
+      | Mot2 mt ->
+        let _, mt = unbind mt in
+        let _, mt = unbind_p mt in
+        occurs x mt)
   | Axiom (_, ty) -> occurs x ty
 
 let rec simpl eqn =
   let t1, t2 = eqn in
-  if equal t1 t2 then []
+  if equal t1 t2 then
+    []
   else
     let t1 = whnf t1 in
     let t2 = whnf t2 in
     let h1, sp1 = spine t1 in
     let h2, sp2 = spine t2 in
-    match h1, h2 with
+    match (h1, h2) with
     | Var x1, Var x2 ->
-      if eq_vars x1 x2 
-      then 
-        List.fold_left (fun acc (t1, t2) ->
-          acc @ simpl (t1, t2))
-        [] (Util.zip sp1 sp2)
-      else failwith (asprintf "%a != %a" pp_v x1 pp_v x2)
+      if eq_vars x1 x2 then
+        List.fold_left
+          (fun acc (t1, t2) -> acc @ simpl (t1, t2))
+          [] (Util.zip sp1 sp2)
+      else
+        failwith (asprintf "%a != %a" pp_v x1 pp_v x2)
     | Meta _, _ -> [ eqn ]
     | _, Meta _ -> [ (t2, t1) ]
     | Sort t1, Sort t2 ->
-      if t1 = t2 
-      then []
-      else failwith (asprintf "%a != %a" pp_s t1 pp_s t2)
+      if t1 = t2 then
+        []
+      else
+        raise (UnificationFailure (Sort t1, Sort t2))
     | Arrow (ty1, b1), Arrow (ty2, b2) ->
       let _, ub1, ub2 = unbind2 b1 b2 in
       let eqn1 = simpl (ty1, ty2) in
@@ -184,91 +188,89 @@ let rec simpl eqn =
       let eqn1 = simpl (t1, t2) in
       let eqn2 = simpl (ub1, ub2) in
       eqn1 @ eqn2
-    | TCons (id1, ts1), TCons (id2, ts2) ->
-      if Id.equal id1 id2
-      then
+    | Ind (id1, ts1), Ind (id2, ts2) ->
+      if Id.equal id1 id2 then
         List.fold_left
-          (fun acc (t1, t2) ->
-            acc @ simpl (t1, t2))
-        [] (Util.zip ts1 ts2)
-      else 
-        failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
-    | DCons (id1, ts1), DCons (id2, ts2) ->
-      if Id.equal id1 id2
-      then
+          (fun acc (t1, t2) -> acc @ simpl (t1, t2))
+          [] (Util.zip ts1 ts2)
+      else
+        raise (UnificationFailure (t1, t2))
+    | Constr (id1, ts1), Constr (id2, ts2) ->
+      if Id.equal id1 id2 then
         List.fold_left
-          (fun acc (t1, t2) ->
-            acc @ simpl (t1, t2))
-        [] (Util.zip ts1 ts2)
-      else 
-        failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
+          (fun acc (t1, t2) -> acc @ simpl (t1, t2))
+          [] (Util.zip ts1 ts2)
+      else
+        raise (UnificationFailure (t1, t2))
     | Match (t1, mot1, ps1), Match (t2, mot2, ps2) ->
       let eqn1 = simpl (t1, t2) in
-      let eqn2 = 
-        match mot1, mot2 with
-        | Some mot1, Some mot2 ->
-          let _, pb1, pb2 = unbind2 mot1 mot2 in
+      let eqn2 =
+        match (mot1, mot2) with
+        | Mot0, Mot0 -> []
+        | Mot1 mt1, Mot1 mt2 ->
+          let _, ub1, ub2 = unbind_p2 mt1 mt2 in
+          simpl (ub1, ub2)
+        | Mot2 mt1, Mot2 mt2 ->
+          let _, pb1, pb2 = unbind2 mt1 mt2 in
           let _, ub1, ub2 = unbind_p2 pb1 pb2 in
           simpl (ub1, ub2)
-        | None, None -> []
-        | _ -> failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
+        | _ -> raise (UnificationFailure (t1, t2))
       in
       let eqn3 =
-        List.fold_left 
+        List.fold_left
           (fun acc (pb1, pb2) ->
-            let _, ub1, ub2 = unbind_p2 pb1 pb2 in 
+            let _, ub1, ub2 = unbind_p2 pb1 pb2 in
             acc @ simpl (ub1, ub2))
           [] (Util.zip ps1 ps2)
       in
       eqn1 @ eqn2 @ eqn3
     | Axiom (id1, ty1), Axiom (id2, ty2) ->
-      if Id.equal id1 id2
-      then 
+      if Id.equal id1 id2 then
         let eqn1 = simpl (ty1, ty2) in
         let eqn2 =
-          List.fold_left (fun acc (t1, t2) ->
-            acc @ simpl (t1, t2))
-          [] (Util.zip sp1 sp2)
+          List.fold_left
+            (fun acc (t1, t2) -> acc @ simpl (t1, t2))
+            [] (Util.zip sp1 sp2)
         in
         eqn1 @ eqn2
-      else failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
-    | _ -> 
-      printf "%a != %a@." Terms.pp t1 Terms.pp t2;
-      failwith "unfication failure"
+      else
+        failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
+    | _ -> raise (UnificationFailure (t1, t2))
 
 let solve eqn =
-  let strip sp = 
-    List.map (
-      fun t ->
+  let strip sp =
+    List.map
+      (fun t ->
         match t with
         | Var x -> x
-        | _ -> mk "") sp
+        | _ -> mk "")
+      sp
   in
   let t1, t2 = eqn in
   let t1 = whnf t1 in
   let t2 = whnf t2 in
   let h1, sp1 = spine t1 in
   let h2, sp2 = spine t2 in
-  match h1, h2 with
+  match (h1, h2) with
   | Meta x1, Meta x2 ->
     let xs = strip sp1 in
     let ys = strip sp2 in
-    let ctx = VarSet.inter (VarSet.of_list xs) (VarSet.of_list xs) in
+    let ctx = VarSet.inter (VarSet.of_list xs) (VarSet.of_list ys) in
     let zs = List.map _Var (VarSet.elements ctx) in
-    let xs = 
-      List.map 
+    let xs =
+      List.map
         (fun x ->
           match VarSet.find_opt x ctx with
           | Some _ -> x
-          | None -> mk "") 
+          | None -> mk "")
         xs
-    in 
-    let ys = 
-      List.map 
+    in
+    let ys =
+      List.map
         (fun x ->
           match VarSet.find_opt x ctx with
           | Some _ -> x
-          | None -> mk "") 
+          | None -> mk "")
         ys
     in
     let t = _Meta (Meta.mk ()) in
@@ -280,20 +282,16 @@ let solve eqn =
     let res = MetaMap.add x2 (t2, 0) res in
     res
   | Meta x, _ ->
-    assert_msg (not (occurs x t2))
-      (asprintf "%a occurs in %a" Meta.pp x Terms.pp t2);
+    raise_cond (not (occurs x t2)) (OccursCheckFailure (x, t2));
     let xs = strip sp1 in
     let ctx' = fv VarSet.empty t2 in
-    if VarSet.subset ctx' (VarSet.of_list xs)
-    then 
+    if VarSet.subset ctx' (VarSet.of_list xs) then
       let t = unbox (_Lambda' xs (lift t2)) in
       MetaMap.singleton x (t, 1)
-    else 
-      failwith 
-        (asprintf "cannot unify %a = %a" Meta.pp x Terms.pp t2)
-  | _ -> 
-    failwith (asprintf "non-simpl equation(%a == %a)" 
-      Terms.pp t1 Terms.pp t2)
+    else
+      failwith (asprintf "cannot unify %a = %a" Meta.pp x Terms.pp t2)
+  | _ ->
+    failwith (asprintf "non-simpl equation(%a == %a)" Terms.pp t1 Terms.pp t2)
 
 let rec resolve mmap t =
   let h, sp = spine t in
@@ -304,12 +302,12 @@ let rec resolve mmap t =
       let sp = List.map lift sp in
       let t = unbox (_App' (lift h) sp) in
       resolve mmap (whnf t)
-    with _ ->  t)
+    with
+    | _ -> t)
   | _ -> (
     match t with
     | Var _ -> t
-    | Ann (t, ty) ->
-      Ann (resolve mmap t, resolve mmap ty)
+    | Ann (t, ty) -> Ann (resolve mmap t, resolve mmap ty)
     | Sort _ -> t
     | Arrow (ty, b) ->
       let x, ub = unbind b in
@@ -343,67 +341,70 @@ let rec resolve mmap t =
       let ub = resolve mmap ub in
       let b = unbox (bind_var x (lift ub)) in
       LetIn (t, b)
-    | TCons (id, ts) ->
+    | Ind (id, ts) ->
       let ts = List.map (resolve mmap) ts in
-      TCons (id, ts)
-    | DCons (id, ts) ->
+      Ind (id, ts)
+    | Constr (id, ts) ->
       let ts = List.map (resolve mmap) ts in
-      DCons (id, ts)
+      Constr (id, ts)
     | Match (t, mot, pbs) ->
       let t = resolve mmap t in
-      let mot = 
+      let mot =
         match mot with
-        | Some mot -> 
-          let x, pb = unbind mot in
+        | Mot0 -> Mot0
+        | Mot1 mt ->
+          let p, ub = unbind_p mt in
+          let ub = resolve mmap ub in
+          let mt = bind_p p (lift ub) in
+          Mot1 (unbox mt)
+        | Mot2 mt ->
+          let x, pb = unbind mt in
           let p, ub = unbind_p pb in
           let ub = resolve mmap ub in
-          let mot = bind_var x (bind_p p (lift ub)) in
-          Some (unbox mot)
-        | None -> None
+          let mt = bind_var x (bind_p p (lift ub)) in
+          Mot2 (unbox mt)
       in
       let pbs =
-        List.map 
+        List.map
           (fun pb ->
-            let p, ub = unbind_p pb in 
+            let p, ub = unbind_p pb in
             let ub = resolve mmap ub in
             unbox (bind_p p (lift ub)))
           pbs
       in
-      Match (t, mot, pbs) 
-    | Axiom (id, ty) ->
-      Axiom (id, resolve mmap ty)
+      Match (t, mot, pbs)
+    | Axiom (id, ty) -> Axiom (id, resolve mmap ty)
     | _ -> failwith "meta-head")
 
 let rec resolve_top mmap top =
   match top with
-  | Empty -> _Empty
+  | Main t ->
+    let t = resolve mmap t in
+    _Main (lift t)
   | Define (t, b) ->
     let x, ub = unbind b in
     let t = resolve mmap t in
     let ub = resolve_top mmap ub in
     let b = bind_var x ub in
     _Define (lift t) b
-  | Datype (tcons, tp) ->
-    let tcons = resolve_tcons mmap tcons in
+  | Datype (ind, tp) ->
+    let ind = resolve_ind mmap ind in
     let tp = resolve_top mmap tp in
-    _Datype tcons tp
+    _Datype ind tp
 
-and resolve_tcons mmap tcons =
-  let TConstr (id, pscope, dcons) = tcons in
-  let pscope = resolve_pscope mmap pscope in
-  let dcons = List.map (resolve_dcons mmap) dcons in
-  let dcons = box_list dcons in
-  _TConstr id pscope dcons
+and resolve_ind mmap ind =
+  let ty = resolve_pscope mmap ind.ty in
+  let cs = List.map (resolve_constr mmap) ind.cs in
+  let cs = box_list cs in
+  _ind ind.id ty cs
 
-and resolve_dcons mmap dcons = 
-  let DConstr (id, pscope) = dcons in
-  let pscope = resolve_pscope mmap pscope in
-  _DConstr id pscope
+and resolve_constr mmap constr =
+  let ty = resolve_pscope mmap constr.ty in
+  _constr constr.id ty
 
 and resolve_pscope mmap pscope =
   match pscope with
-  | Pbase tscope -> 
-    _Pbase (resolve_tscope mmap tscope)
+  | PBase tscope -> _PBase (resolve_tscope mmap tscope)
   | PBind (t, b) ->
     let x, ub = unbind b in
     let t = resolve mmap t in
@@ -413,9 +414,9 @@ and resolve_pscope mmap pscope =
 
 and resolve_tscope mmap tscope =
   match tscope with
-  | Tbase t ->
+  | TBase t ->
     let t = resolve mmap t in
-    _Tbase (lift t)
+    _TBase (lift t)
   | TBind (t, b) ->
     let x, ub = unbind b in
     let t = resolve mmap t in
@@ -428,14 +429,8 @@ let rec unify mmap eqns =
   | [] -> mmap
   | eqns ->
     let mmaps = List.map solve eqns in
-    let mmap = 
-      List.fold_left 
-        (fun acc mmap -> union acc mmap) 
-        mmap mmaps
-    in
+    let mmap = List.fold_left (fun acc mmap -> union acc mmap) mmap mmaps in
     let eqns =
-      List.map (fun (t1, t2) -> 
-        (resolve mmap t1, resolve mmap t2))
-      eqns
+      List.map (fun (t1, t2) -> (resolve mmap t1, resolve mmap t2)) eqns
     in
     unify mmap eqns

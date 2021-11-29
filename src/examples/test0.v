@@ -76,4 +76,3 @@ Definition silly (m n : nat) (pf : lt m n) (a : Array Just0 n) : Array Just0 n :
   a.
 
 Definition main : unit := ().
-

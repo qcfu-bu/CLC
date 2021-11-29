@@ -1,6 +1,5 @@
-
 let rec zip ls1 ls2 =
-  match ls1, ls2 with
+  match (ls1, ls2) with
   | x1 :: ls1, x2 :: ls2 -> (x1, x2) :: zip ls1 ls2
   | [], [] -> []
   | _ -> failwith "zip unequal length"
@@ -12,9 +11,4 @@ let rec unzip ls =
     (x :: xs, y :: ys)
   | [] -> ([], [])
 
-let assert_msg cond msg = 
-  if cond then ()
-  else (prerr_endline msg; assert false)
-
-let failwith msg =
-  (prerr_endline msg; assert false)
+let raise_cond cond exn = if not cond then raise exn

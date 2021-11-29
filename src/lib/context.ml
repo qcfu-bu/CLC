@@ -1,79 +1,109 @@
 open Bindlib
-open Util
-open Format
 open Names
 open Terms
+open Util
+open Format
 
-module VarMap = Map.Make(
-  struct
-    type t = Terms.t var
-    let compare = compare_vars
-  end)
+(* typing context *)
+module VarMap = Map.Make (struct
+  type t = Terms.t var
 
-module IdMap = Map.Make(Id)
+  let compare = compare_vars
+end)
 
-type v_ctx = (t * sort) VarMap.t
-type id_ctx = tcons IdMap.t
+(* inductive definitions *)
+module IdMap = Map.Make (Id)
 
-let find x ctx =
-  try VarMap.find x ctx
-  with _ -> failwith (asprintf "cannot find: %a" pp_v x)
+type ctx = ty VarMap.t
+
+type v_ctx = (ty * sort) VarMap.t
+
+type id_ctx = ind IdMap.t
+
+exception UnboundVarExn of Terms.t var
+
+exception UnboundIdExn of Id.t
+
+exception UnusedVarExn of Terms.t var
+
+exception MergeDuplicationExn of ctx * ctx
+
+let find_var x ctx =
+  try VarMap.find x ctx with
+  | _ -> raise (UnboundVarExn x)
+
+let find_id id ctx =
+  try IdMap.find id ctx with
+  | _ -> raise (UnboundIdExn id)
 
 let remove x ctx srt =
   match srt with
   | U -> ctx
   | L ->
-    if VarMap.exists (fun y _ -> eq_vars x y) ctx
-    then VarMap.remove x ctx
-    else failwith ("unused variable:" ^ name_of x)
+    if VarMap.exists (fun y _ -> eq_vars x y) ctx then
+      VarMap.remove x ctx
+    else
+      raise (UnusedVarExn x)
 
-let equal ctx1 ctx2 = 
-  VarMap.equal (fun _ _ -> true) ctx1 ctx2
+let equal ctx1 ctx2 = VarMap.equal (fun _ _ -> true) ctx1 ctx2
 
 let merge ctx1 ctx2 =
   VarMap.merge
     (fun _ x1 x2 ->
-      match x1, x2 with 
-      | Some _, Some _ -> failwith "merge duplication"
+      match (x1, x2) with
+      | Some _, Some _ -> raise (MergeDuplicationExn (ctx1, ctx2))
       | Some _, None -> x1
       | None, Some _ -> x2
       | None, None -> None)
     ctx1 ctx2
 
-let find_dcons id ctx =
+let find_constr id ctx =
   let opt =
-    IdMap.fold 
-      (fun _ (TConstr (_, _, ds)) acc -> 
+    IdMap.fold
+      (fun _ ind acc ->
         match acc with
         | Some _ -> acc
-        | _ ->
+        | None ->
           List.fold_left
-            (fun acc (DConstr (id', _) as d) -> 
-              match acc with 
+            (fun acc constr ->
+              match acc with
               | Some _ -> acc
-              | _ ->
-                if Id.equal id id'
-                then Some d
-                else None)
-            None ds)
+              | None ->
+                if Id.equal id constr.id then
+                  Some constr
+                else
+                  None)
+            None ind.cs)
       ctx None
-    in 
-    match opt with
-    | Some d -> d
-    | None -> failwith (asprintf "find_dcons(%a)" Id.pp id)
+  in
+  match opt with
+  | Some constr -> constr
+  | None -> raise (UnboundIdExn id)
 
 let pp fmt ctx =
   let pp_aux fmt ctx =
-    VarMap.iter (fun x (t, srt) -> 
-      fprintf fmt "@[<v 0>@;<0 2>@[%a :%a@;<1 2>(%a)@]@]@?" 
-        pp_v x pp_s srt Terms.pp t) ctx
+    VarMap.iter
+      (fun x (t, srt) ->
+        fprintf fmt "@[<v 0>@;<0 2>@[%a :%a@;<1 2>(%a)@]@]@?" pp_v x pp_s srt
+          Terms.pp t)
+      ctx
   in
   fprintf fmt "@[<hv>{@?@[%a@;<1 0>@]}@]@?" pp_aux ctx
 
 let pp' fmt ctx =
   let pp_aux fmt ctx =
-    VarMap.iter (fun x t -> 
-      fprintf fmt "@[<v 0>@;<0 2>@[%a :@;<1 2>(%a)@]@]@?" 
-        pp_v x Terms.pp t) ctx
+    VarMap.iter
+      (fun x t ->
+        fprintf fmt "@[<v 0>@;<0 2>@[%a :@;<1 2>(%a)@]@]@?" pp_v x Terms.pp t)
+      ctx
   in
   fprintf fmt "@[<hv>{@?@[%a@;<1 0>@]}@]@?" pp_aux ctx
+
+let _ =
+  Printexc.register_printer (function
+    | UnboundVarExn x -> Some (asprintf "UnboundVarExn (%a)" pp_v x)
+    | UnboundIdExn id -> Some (asprintf "UnboundIdExn (%a)" Id.pp id)
+    | UnusedVarExn x -> Some (asprintf "UnusedVarExn (%a)" pp_v x)
+    | MergeDuplicationExn (ctx1, ctx2) ->
+      Some (asprintf "MergeDuplicationExn (%a, %a)" pp' ctx1 pp' ctx2)
+    | _ -> None)

@@ -1,30 +1,18 @@
 open Bindlib
 open Format
-open Util
 open Names
 open Terms
 open Context
 open Equality
 open Unify
-
-let cmp_sort t1 t2 =
-  match t1, t2 with
-  | U, L -> false
-  | _ -> true
-
-let min_sort t1 t2 = 
-  match t1 with
-  | U -> t2
-  | L -> t1
+open Util
+open Exceptions
 
 let rec infer_sort v_ctx id_ctx eqns mmap ty =
-  let srt, eqns, mmap = infer v_ctx id_ctx eqns mmap ty in
-  match whnf srt with
+  let t, eqns, mmap = infer v_ctx id_ctx eqns mmap ty in
+  match whnf t with
   | Sort srt -> (srt, eqns, mmap)
-  | _ ->
-    failwith 
-      (asprintf "infer_sort(ty := %a; sort := %a)"
-        Terms.pp ty Terms.pp srt)
+  | _ -> raise (UnexpectedTypeExn (ty, t))
 
 and infer v_ctx id_ctx eqns mmap t =
   let h, _ = spine t in
@@ -36,11 +24,11 @@ and infer v_ctx id_ctx eqns mmap t =
   | _ -> (
     match t with
     | Var x -> (
-      let ty, srt = find x v_ctx in
+      let ty, srt = find_var x v_ctx in
       match srt with
       | U -> (ty, eqns, mmap)
       | L -> (ty, eqns, mmap))
-    | Meta _ -> failwith "infer Meta"
+    | Meta x -> raise (InferMetaExn x)
     | Ann (t, ty) -> (
       let _, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
       match t with
@@ -49,7 +37,7 @@ and infer v_ctx id_ctx eqns mmap t =
         let b = unbox (bind_var x (lift (Ann (ub, ty)))) in
         let eqns, mmap = check v_ctx id_ctx eqns mmap (LetIn (t, b)) ty in
         (ty, eqns, mmap)
-      | _ -> 
+      | _ ->
         let eqns, mmap = check v_ctx id_ctx eqns mmap t ty in
         (ty, eqns, mmap))
     | Sort srt -> (
@@ -59,15 +47,19 @@ and infer v_ctx id_ctx eqns mmap t =
     | Arrow (ty, b) ->
       let x, ub = unbind b in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
-      let _, eqns, mmap = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub in
+      let _, eqns, mmap =
+        infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub
+      in
       (Sort U, eqns, mmap)
     | Lolli (ty, b) ->
       let x, ub = unbind b in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
-      let _, eqns, mmap = infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub in
+      let _, eqns, mmap =
+        infer_sort (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub
+      in
       (Sort L, eqns, mmap)
-    | Lambda _ -> failwith (asprintf "infer Lambda(%a)" Terms.pp t)
-    | Fix _ -> failwith (asprintf "infer Fix(%a)" Terms.pp t)
+    | Lambda _ -> (Meta (Meta.mk ()), eqns, mmap)
+    | Fix _ -> (Meta (Meta.mk ()), eqns, mmap)
     | App (t1, t2) -> (
       let ty1, eqns, mmap = infer v_ctx id_ctx eqns mmap t1 in
       match whnf ty1 with
@@ -77,54 +69,54 @@ and infer v_ctx id_ctx eqns mmap t =
       | Lolli (ty, b) ->
         let eqns, mmap = check v_ctx id_ctx eqns mmap t2 ty in
         (subst b t2, eqns, mmap)
-      | _ -> failwith (asprintf "@[infer App(t :=@;<1 2>%a)@]" Terms.pp t))
-    | LetIn (t, b) -> (
+      | _ -> raise (InferAppExn t))
+    | LetIn (t, b) ->
       let ty1, eqns, mmap = infer v_ctx id_ctx eqns mmap t in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty1 in
       let mmap = unify mmap eqns in
       let t = resolve mmap t in
       let ty1 = resolve mmap ty1 in
-      let ty2, eqns, mmap = 
+      let ty2, eqns, mmap =
         if srt = U then
           infer v_ctx id_ctx eqns mmap (subst b t)
         else
           let x, ub = unbind b in
-          infer (VarMap.add x (ty1, srt) v_ctx) id_ctx eqns mmap ub 
+          infer (VarMap.add x (ty1, srt) v_ctx) id_ctx eqns mmap ub
       in
-      (ty2, eqns, mmap))
-    | TCons (id, ts) -> (
-      let TConstr (_, pscope, _) = IdMap.find id id_ctx in
-      infer_pscope v_ctx id_ctx eqns mmap ts pscope)
-    | DCons (id, ts) -> (
-      match find_dcons id id_ctx with
-      | DConstr (_, Pbase tscope) ->
-        infer_tscope v_ctx id_ctx eqns mmap ts tscope
-      | _ -> failwith (asprintf "infer DCons(%a)" Terms.pp t))
+      (ty2, eqns, mmap)
+    | Ind (id, ts) ->
+      let ind = find_id id (id_ctx : id_ctx) in
+      infer_pscope v_ctx id_ctx eqns mmap ts ind.ty
+    | Constr (id, ts) ->
+      let constr = find_constr id id_ctx in
+      infer_pscope v_ctx id_ctx eqns mmap ts constr.ty
     | Match (t, mot, pbs) -> (
-      let ty, eqns, mmap  = infer v_ctx id_ctx eqns mmap t in
+      let ty, eqns, mmap = infer v_ctx id_ctx eqns mmap t in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
       let ty = whnf ty in
       match ty with
-      | TCons (id, ts) -> (
-        let TConstr (_, _, ds) = IdMap.find id id_ctx in
-        let cover, eqns, mmap = coverage v_ctx id_ctx eqns mmap pbs ds ts in
+      | Ind (id, ts) -> (
+        let ind = find_id id id_ctx in
+        let cover, eqns, mmap = coverage v_ctx id_ctx eqns mmap pbs ind.cs ts in
         match mot with
-        | Some mot -> (
-          let ty' = subst_p (subst mot t) ty in
-          let eqns, mmap = check_motive cover id_ctx eqns mmap mot srt in
-          (ty', eqns, mmap))
-        | None -> (
+        | Mot0 -> (
           let ts, eqns, mmap = infer_cover cover id_ctx eqns mmap in
           match ts with
-          | [] -> failwith "infer Match2"
+          | [] -> raise (InferMatchMotiveFailedExn (t, ty))
           | t :: ts ->
-            let eqns =
-              List.fold_left (fun acc t' -> (t, t') :: acc) eqns ts
-            in
-            (t, eqns, mmap)))
-      | _ -> failwith "infer Match5")
+            let eqns = List.fold_left (fun acc t' -> (t, t') :: acc) eqns ts in
+            (t, eqns, mmap))
+        | Mot1 mt ->
+          let ty' = subst_p mt ty in
+          let eqns, mmap = check_motive cover id_ctx eqns mmap mot srt in
+          (ty', eqns, mmap)
+        | Mot2 mt ->
+          let ty' = subst_p (subst mt t) ty in
+          let eqns, mmap = check_motive cover id_ctx eqns mmap mot srt in
+          (ty', eqns, mmap))
+      | _ -> raise (InferMatchNonInductiveExn t))
     | Axiom (_, ty) ->
-      let _, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in 
+      let _, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
       (ty, eqns, mmap))
 
 and check v_ctx id_ctx eqns mmap t ty =
@@ -136,130 +128,132 @@ and check v_ctx id_ctx eqns mmap t ty =
     | Arrow (ty, b2) ->
       let ub2 = subst b2 (Var x) in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
-      check (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub1 ub2
+      let v_ctx = VarMap.add x (ty, srt) v_ctx in
+      check v_ctx id_ctx eqns mmap ub1 ub2
     | Lolli (ty, b2) ->
       let ub2 = subst b2 (Var x) in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
-      check (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub1 ub2
-    | _ -> failwith "check Lambda")
+      let v_ctx = VarMap.add x (ty, srt) v_ctx in
+      check v_ctx id_ctx eqns mmap ub1 ub2
+    | _ -> raise (UnexpectedTypeExn (t, ty)))
   | Fix b ->
     let x, ub = unbind b in
     let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
-    check (VarMap.add x (ty, srt) v_ctx) id_ctx eqns mmap ub ty
+    let v_ctx = VarMap.add x (ty, srt) v_ctx in
+    check v_ctx id_ctx eqns mmap ub ty
   | LetIn (t, b) ->
     let x, ub = unbind b in
     let b = unbox (bind_var x (lift (Ann (ub, ty)))) in
     let ty', eqns, mmap = infer v_ctx id_ctx eqns mmap (LetIn (t, b)) in
     ((ty, ty') :: eqns, mmap)
-  | DCons (id, ts) -> (
+  | Constr (id, ts) -> (
     match whnf ty with
-    | TCons (_, ts') ->
-      let DConstr (_, pscope) = find_dcons id id_ctx in
+    | Ind (_, ts') ->
+      let constr = find_constr id id_ctx in
       let pscope =
         List.fold_left
           (fun pscope t ->
             match pscope with
             | PBind (ty, pb) -> subst pb (Ann (t, ty))
-            | Pbase _ -> pscope) pscope ts'
+            | PBase _ -> pscope)
+          constr.ty ts'
       in
       let ty', eqns, mmap = infer_pscope v_ctx id_ctx eqns mmap ts pscope in
       ((ty, ty') :: eqns, mmap)
     | _ ->
       let ty', eqns, mmap = infer v_ctx id_ctx eqns mmap t in
-      ((ty, ty') :: eqns), mmap)
+      ((ty, ty') :: eqns, mmap))
   | Match (t, mot, pbs) -> (
     match mot with
-    | Some _ ->
-      let ty', eqns, mmap = infer v_ctx id_ctx eqns mmap (Match (t, mot, pbs)) in
-      ((ty, ty') :: eqns, mmap)
-    | None ->
+    | Mot0 -> (
       let ty1, eqns, mmap = infer v_ctx id_ctx eqns mmap t in
       let ty1 = whnf ty1 in
       match ty1 with
-      | TCons (id, ts) ->
-        let TConstr (_, _, ds) = IdMap.find id id_ctx in
-        let cover, eqns, mmap = coverage v_ctx id_ctx eqns mmap pbs ds ts in
+      | Ind (id, ts) ->
+        let ind = find_id id id_ctx in
+        let cover, eqns, mmap = coverage v_ctx id_ctx eqns mmap pbs ind.cs ts in
         check_cover cover id_ctx eqns mmap ty
-      | _ -> failwith "check Match")
+      | _ -> raise (CheckMatchNonInductiveExn t))
+    | _ ->
+      let ty', eqns, mmap =
+        infer v_ctx id_ctx eqns mmap (Match (t, mot, pbs))
+      in
+      ((ty, ty') :: eqns, mmap))
   | _ ->
     let ty', eqns, mmap = infer v_ctx id_ctx eqns mmap t in
     ((ty, ty') :: eqns, mmap)
 
 and infer_pscope v_ctx id_ctx eqns mmap ts pscope =
-  match ts, pscope with
+  match (ts, pscope) with
   | t :: ts, PBind (ty, pscope) ->
     let eqns, mmap = check v_ctx id_ctx eqns mmap t ty in
     infer_pscope v_ctx id_ctx eqns mmap ts (subst pscope (Ann (t, ty)))
-  | ts, Pbase tscope -> 
-    infer_tscope v_ctx id_ctx eqns mmap ts tscope
-  | _ ->
-    failwith 
-      (asprintf "infer_pscope(%a; %d)" 
-        pp_pscope pscope (List.length ts))
+  | ts, PBase tscope -> infer_tscope v_ctx id_ctx eqns mmap ts tscope
+  | _ -> raise (InferPscopeUnevenLength (pscope, List.length ts))
 
 and infer_tscope v_ctx id_ctx eqns mmap ts tscope =
-  match ts, tscope with
+  match (ts, tscope) with
   | t :: ts, TBind (ty, tscope) ->
     let eqns, mmap = check v_ctx id_ctx eqns mmap t ty in
     infer_tscope v_ctx id_ctx eqns mmap ts (subst tscope (Ann (t, ty)))
-  | [], Tbase ty -> (ty, eqns, mmap)
-  | _ ->
-    failwith 
-      (asprintf "infer_tscope(%a; %d)" 
-        pp_tscope tscope (List.length ts))
+  | [], TBase ty -> (ty, eqns, mmap)
+  | _ -> raise (InferTscopeUnevenLength (tscope, List.length ts))
 
 and coverage v_ctx id_ctx eqns mmap pbs ds ts =
+  let rec t_of_p = function
+    | PVar x -> Var x
+    | PInd (id, ps) -> Ind (id, List.map t_of_p ps)
+    | PConstr (id, ps) -> Constr (id, List.map t_of_p ps)
+  in
   let rec strip = function
     | PVar x -> x
-    | _ -> failwith "strip"
+    | p -> raise (CoverageStripExn p)
   and find id = function
-    | (DConstr (id', _) as d) :: ds ->
-      if Id.equal id id'
-      then (d, ds)
+    | constr :: cs ->
+      if Id.equal id constr.id then
+        (constr, cs)
       else
-        let (d', ds') = find id ds in
-        (d', d :: ds')
-    | _ -> failwith "find"
-  and t_of_p = function
-    | PVar x -> Var x
-    | PTCons (id, ps) ->
-      TCons (id, List.map t_of_p ps)
-    | PDCons (id, ps) ->
-      DCons (id, List.map t_of_p ps)
+        let c, cs = find id cs in
+        (c, constr :: cs)
+    | _ -> raise (UnboundIdExn id)
   and arity_pscope v_ctx eqns mmap pscope ts xs =
-    match pscope, ts with
+    match (pscope, ts) with
     | PBind (ty, pscope), t :: ts ->
       let pscope = subst pscope (Ann (t, ty)) in
       arity_pscope v_ctx eqns mmap pscope ts xs
-    | Pbase tscope, _ -> arity_tscope v_ctx eqns mmap tscope xs
-    | _ -> failwith "arity_pscope"
-  and arity_tscope v_ctx eqns mmap tscope xs = 
-    match tscope, xs with
+    | PBase tscope, _ -> arity_tscope v_ctx eqns mmap tscope xs
+    | _ -> raise (CoverageArityPscopeExn (pscope, ts))
+  and arity_tscope v_ctx eqns mmap tscope xs =
+    match (tscope, xs) with
     | TBind (ty, tscope), x :: xs ->
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty in
       let v_ctx = VarMap.add x (ty, srt) v_ctx in
       let tscope = subst tscope (Var x) in
-      let v_ctx, ty, xsrt, eqns, mmap = arity_tscope v_ctx eqns mmap tscope xs in
+      let v_ctx, ty, xsrt, eqns, mmap =
+        arity_tscope v_ctx eqns mmap tscope xs
+      in
       (v_ctx, ty, (x, srt) :: xsrt, eqns, mmap)
-    | Tbase ty, [] -> (v_ctx, ty, [], eqns, mmap)
-    | _ -> failwith "arity_tscope"
+    | TBase ty, [] -> (v_ctx, ty, [], eqns, mmap)
+    | _ -> raise (CoverageArityTscopeExn (tscope, xs))
   in
   match pbs with
   | pb :: pbs -> (
     let p, ub = unbind_p pb in
     match p with
-    | PDCons (id, ps) ->
+    | PConstr (id, ps) ->
       let xs = List.map strip ps in
       let t = t_of_p p in
-      let DConstr (_, pscope), ds = find id ds in
-      let v_ctx, ty, xsrt, eqns, mmap = arity_pscope v_ctx eqns mmap pscope ts xs in
+      let constr, ds = find id ds in
+      let v_ctx, ty, xsrt, eqns, mmap =
+        arity_pscope v_ctx eqns mmap constr.ty ts xs
+      in
       let ds, eqns, mmap = coverage v_ctx id_ctx eqns mmap pbs ds ts in
       ((v_ctx, t, ty, ub, xsrt) :: ds, eqns, mmap)
-    | _ -> failwith "coverage")
+    | _ -> raise (CoverageExn (pb :: pbs)))
   | [] -> (
     match ds with
     | [] -> ([], eqns, mmap)
-    | _ -> failwith "coverage")
+    | _ -> raise (CoverageExn pbs))
 
 and infer_cover cover id_ctx eqns mmap =
   match cover with
@@ -277,22 +271,24 @@ and check_cover cover id_ctx eqns mmap ty =
   | _ -> (eqns, mmap)
 
 and check_motive cover id_ctx eqns mmap mot srt =
-  match cover with
-  | (v_ctx, t, ty, b, _) :: cover ->
-    let mot' =
-      if srt = U then subst mot t
-      else (
-        assert_msg (not (binder_occur mot)) "check_motive";
-        snd (unbind mot))
-    in
-    let mot' = subst_p mot' ty in
-    let eqns, mmap = check v_ctx id_ctx eqns mmap b mot' in
+  match (mot, srt, cover) with
+  | Mot0, _, _ -> raise (CheckMotive mot)
+  | Mot1 mt, _, (v_ctx, t, ty, b, _) :: cover ->
+    let mt = subst_p mt ty in
+    let eqns, mmap = check v_ctx id_ctx eqns mmap b mt in
+    check_motive cover id_ctx eqns mmap mot srt
+  | Mot2 mt, U, (v_ctx, t, ty, b, _) :: cover ->
+    let mt = subst_p (subst mt t) ty in
+    let eqns, mmap = check v_ctx id_ctx eqns mmap b mt in
     check_motive cover id_ctx eqns mmap mot srt
   | _ -> (eqns, mmap)
 
 let rec elab_top v_ctx id_ctx eqns mmap top =
   match top with
-  | Empty -> (id_ctx, mmap)
+  | Main t ->
+    let ty, eqns, mmap = infer v_ctx id_ctx eqns mmap t in
+    let mmap = unify mmap eqns in
+    (id_ctx, mmap)
   | Define (t, top) ->
     let ty1, eqns, mmap = infer v_ctx id_ctx eqns mmap t in
     let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty1 in
@@ -310,28 +306,37 @@ let rec elab_top v_ctx id_ctx eqns mmap top =
         (id_ctx, mmap)
     in
     (id_ctx, mmap)
-  | Datype (tcs, top) -> (
-    let TConstr (id, pscope, dcs) = tcs in
-    let eqns, mmap = check_pscope v_ctx id_ctx eqns mmap pscope U in
+  | Datype (ind, top) ->
+    let eqns, mmap = check_pscope v_ctx id_ctx eqns mmap ind.ty U in
     let mmap = unify mmap eqns in
-    let pscope = unbox (resolve_pscope mmap pscope) in
-    let id_ctx = IdMap.add id (TConstr (id, pscope, [])) id_ctx in
+    let ty = unbox (resolve_pscope mmap ind.ty) in
+    let id_ctx = IdMap.add ind.id { id = ind.id; ty; cs = [] } id_ctx in
     let eqns, mmap =
       List.fold_left
-        (fun (eqns, mmap) (DConstr (_, pscope)) ->
-          let eqns, mmap = check_pscope v_ctx id_ctx eqns mmap pscope U in
-          param_pscope pscope id [];
+        (fun (eqns, mmap) constr ->
+          let eqns, mmap = check_pscope v_ctx id_ctx eqns mmap constr.ty U in
+          param_pscope constr.ty ind.id [];
           (eqns, mmap))
-        (eqns, mmap) dcs
+        (eqns, mmap) ind.cs
     in
     let mmap = unify mmap eqns in
-    let dcs = List.map (fun x -> unbox (resolve_dcons mmap x)) dcs in
-    let id_ctx = IdMap.add id (TConstr (id, pscope, dcs)) id_ctx in
-    elab_top v_ctx id_ctx eqns mmap top)
+    let cs = List.map (fun x -> unbox (resolve_constr mmap x)) ind.cs in
+    let id_ctx = IdMap.add ind.id { id = ind.id; ty; cs } id_ctx in
+    elab_top v_ctx id_ctx eqns mmap top
+
+and cmp_sort t1 t2 =
+  match (t1, t2) with
+  | U, L -> false
+  | _ -> true
+
+and min_sort t1 t2 =
+  match t1 with
+  | U -> t2
+  | L -> t1
 
 and check_pscope v_ctx id_ctx eqns mmap pscope srt =
   match pscope with
-  | Pbase tscope -> check_tscope v_ctx id_ctx eqns mmap tscope srt
+  | PBase tscope -> check_tscope v_ctx id_ctx eqns mmap tscope srt
   | PBind (t, pscope) ->
     let x, pscope = unbind pscope in
     let srt', eqns, mmap = infer_sort v_ctx id_ctx eqns mmap t in
@@ -340,10 +345,9 @@ and check_pscope v_ctx id_ctx eqns mmap pscope srt =
 
 and check_tscope v_ctx id_ctx eqns mmap tscope srt =
   match tscope with
-  | Tbase t ->
+  | TBase t ->
     let srt', eqns, mmap = infer_sort v_ctx id_ctx eqns mmap t in
-    assert_msg (cmp_sort srt' srt)
-      (asprintf "check_tscope(srt := %a; srt' :=%a)" pp_s srt pp_s srt');
+    raise_cond (cmp_sort srt' srt) (CheckTscopeExn (t, srt', srt));
     (eqns, mmap)
   | TBind (t, tscope) ->
     let x, tscope = unbind tscope in
@@ -353,41 +357,32 @@ and check_tscope v_ctx id_ctx eqns mmap tscope srt =
 
 and param_pscope pscope id xs =
   match pscope with
-  | Pbase tscope ->
-    param_tscope tscope id (List.rev xs)
+  | PBase tscope -> param_tscope tscope id (List.rev xs)
   | PBind (_, pscope) ->
     let x, pscope = unbind pscope in
     param_pscope pscope id (x :: xs)
 
 and param_tscope tscope id xs =
   let rec param xs ts =
-    match xs, ts with
+    match (xs, ts) with
     | [], _ -> ()
     | x :: xs, Var t :: ts ->
-      assert_msg (eq_vars x t)
-        (asprintf "param_tscope(%a; %a" pp_v x pp_v t);
+      raise_cond (eq_vars x t) (ParamTscopeParamExn (x :: xs, Var t :: ts));
       param xs ts
-    | x :: _, t :: _ ->
-      failwith (asprintf "param_tscope(%a; %a)" pp_v x Terms.pp t)
-    | x :: _, [] ->
-      failwith (asprintf "param_tscope(%a; ??)" pp_v x)
+    | x :: _, t :: _ -> raise (ParamTscopeParamExn (xs, ts))
+    | x :: _, [] -> raise (ParamTscopeParamExn (xs, ts))
   in
   match tscope with
-  | Tbase ty -> (
+  | TBase ty -> (
     match ty with
-    | TCons (id', ts) ->
-      assert_msg (Id.equal id id')
-        (asprintf "param_tscope(%a)" Terms.pp ty);
+    | Ind (id', ts) ->
+      raise_cond (Id.equal id id') (ParamTscopeExn ty);
       param xs ts
-    | _ ->
-      failwith
-        (asprintf "param_tscope(%a)" Terms.pp ty))
+    | _ -> raise (ParamTscopeExn ty))
   | TBind (_, tscope) ->
     let _, tscope = unbind tscope in
     param_tscope tscope id xs
 
 let elab top =
-  let _, mmap = 
-    elab_top VarMap.empty IdMap.empty [] MetaMap.empty top 
-  in
+  let _, mmap = elab_top VarMap.empty IdMap.empty [] MetaMap.empty top in
   mmap

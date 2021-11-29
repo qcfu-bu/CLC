@@ -3,11 +3,11 @@ open Util
 open Terms
 open Equality
 
+exception MissingMainExn
+
 let rec eval = function
-  | Empty -> failwith "missing main"
+  | Main t -> nf t
   | Define (t, tp) ->
-    let x, _ = unbind tp in
     let t = nf t in
-    if (name_of x = "main") then nf t
-    else eval (subst tp t)
+    eval (subst tp t)
   | Datype (_, tp) -> eval tp

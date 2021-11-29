@@ -1,5 +1,3 @@
-
-
 Axiom ptsto : (A : U) -> nat -> A -> L.
 
 Axiom new  : (A : U) -> (x : A) -> [l : nat | ptsto _ l x].
