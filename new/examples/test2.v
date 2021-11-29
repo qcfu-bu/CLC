@@ -1,7 +1,3 @@
-
-Inductive Box (A : U) : L :=
-| box : A -> Box A.
-
 Inductive list (A : U) : L :=
 | nil : list A
 | cons : A -> list A -> list A.
@@ -18,12 +14,10 @@ Fixpoint append (A : U) :
       append _ t ls2 (fun res => k (_cons_ h res))
     end.
 
-Fixpoint len (A : U) (ls : list A) : Box nat :=
+Fixpoint free (A : U) (ls : list A) : unit :=
   match ls with
-  | nil => box 0
-  | cons h t => 
-    let box x := len _ t in
-    box (x + 1)
+  | nil => ()
+  | cons h t => free _ t
   end.
 
 Definition ls1 : list nat := 
@@ -34,4 +28,4 @@ Definition ls2 : list nat :=
 
 Definition main : unit := 
   let ls := append _ ls1 ls2 (fun x => x) in
-  let box x := len _ ls in ().
+  free _ ls.
