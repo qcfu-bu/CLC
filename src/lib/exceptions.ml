@@ -4,7 +4,11 @@ open Terms
 open Context
 open Format
 
+exception ParseFailure of string
+
 exception UnificationFailure of t * t
+
+exception ResolveFailure of t
 
 exception OccursCheckFailure of Meta.t * t
 
@@ -56,6 +60,7 @@ exception CheckTscopeExn of ty * sort * sort
 
 let _ =
   Printexc.register_printer (function
+    | ParseFailure s -> Some s
     | UnificationFailure (t1, t2) ->
       Some (asprintf "UnificationFailure (%a, %a)" Terms.pp t1 Terms.pp t2)
     | OccursCheckFailure (x, t) ->

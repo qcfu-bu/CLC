@@ -4,6 +4,7 @@ open Util
 open Names
 open Basics
 open Raw
+open Exceptions
 module SMap = Map.Make (String)
 module SSet = Set.Make (String)
 
@@ -615,10 +616,10 @@ let parse s =
   let top, ctx = basic in
   match parse_string (ws () >> top_parser ()) s ctx with
   | Success t -> append_top top t
-  | Failed (s, _) -> failwith s
+  | Failed (s, _) -> raise (ParseFailure s)
 
 let parse_ch ch =
   let top, ctx = basic in
   match parse_channel (ws () >> top_parser ()) ch ctx with
   | Success t -> append_top top t
-  | Failed (s, _) -> failwith s
+  | Failed (s, _) -> raise (ParseFailure s)

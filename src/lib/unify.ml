@@ -159,7 +159,7 @@ let rec simpl eqn =
           (fun acc (t1, t2) -> acc @ simpl (t1, t2))
           [] (Util.zip sp1 sp2)
       else
-        failwith (asprintf "%a != %a" pp_v x1 pp_v x2)
+        raise (UnificationFailure (h1, h2))
     | Meta _, _ -> [ eqn ]
     | _, Meta _ -> [ (t2, t1) ]
     | Sort t1, Sort t2 ->
@@ -234,7 +234,7 @@ let rec simpl eqn =
         in
         eqn1 @ eqn2
       else
-        failwith (asprintf "%a != %a" Terms.pp t1 Terms.pp t2)
+        raise (UnificationFailure (t1, t2))
     | _ -> raise (UnificationFailure (t1, t2))
 
 let solve eqn =
@@ -289,9 +289,8 @@ let solve eqn =
       let t = unbox (_Lambda' xs (lift t2)) in
       MetaMap.singleton x (t, 1)
     else
-      failwith (asprintf "cannot unify %a = %a" Meta.pp x Terms.pp t2)
-  | _ ->
-    failwith (asprintf "non-simpl equation(%a == %a)" Terms.pp t1 Terms.pp t2)
+      raise (UnificationFailure (t1, t2))
+  | _ -> raise (UnificationFailure (t1, t2))
 
 let rec resolve mmap t =
   let h, sp = spine t in
@@ -374,7 +373,7 @@ let rec resolve mmap t =
       in
       Match (t, mot, pbs)
     | Axiom (id, ty) -> Axiom (id, resolve mmap ty)
-    | _ -> failwith "meta-head")
+    | _ -> raise (ResolveFailure t))
 
 let rec resolve_top mmap top =
   match top with

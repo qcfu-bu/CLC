@@ -3,6 +3,7 @@ open MParser
 open Util
 open Names
 open Raw
+open Exceptions
 module SMap = Map.Make (String)
 module SSet = Set.Make (String)
 
@@ -431,4 +432,4 @@ let parse ch =
   let ctx = (SMap.empty, SMap.empty) in
   match parse_channel (ws >> top_parser ()) ch ctx with
   | Success t -> t
-  | Failed (s, _) -> failwith s
+  | Failed (s, _) -> raise (ParseFailure s)
