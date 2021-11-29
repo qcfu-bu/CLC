@@ -4,6 +4,7 @@ open Util
 open Names
 open Terms
 open Equality
+open Exceptions
 
 module VarSet = Set.Make (struct
   type t = Terms.t var
@@ -12,10 +13,6 @@ module VarSet = Set.Make (struct
 end)
 
 module MetaMap = Map.Make (Meta)
-
-exception UnificationFailure of t * t
-
-exception OccursCheckFailure of Meta.t * t
 
 let union m1 m2 =
   MetaMap.union

@@ -34,7 +34,6 @@ let _ =
       let _ = printf "----------------------------------------@." in
       printf "%a@." Terms.pp (eval top)
     with
-    | UnboundIdExn id -> printf "UnboundIdExn (%a)@." Names.Id.pp id
     | NonPureContextExn (ctx, n) ->
       printf "NonPureContextExn (%a, %d)@." Context.pp' ctx n
     | UnexpectedTypeExn (ty1, ty2) ->

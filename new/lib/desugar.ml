@@ -2,15 +2,18 @@ open Bindlib
 open Util
 open Names
 open Raw
+open Format
 module NMap = Map.Make (Name)
 
 type ctx = Terms.t var NMap.t
+
+exception DesugarFind of v
 
 exception DesugarEmpty
 
 let find x ctx =
   try NMap.find x ctx with
-  | _ -> failwith (Format.asprintf "cannot find(%a)" Name.pp x)
+  | _ -> raise (DesugarFind x)
 
 let rec desugar (ctx : ctx) t =
   match t with
@@ -167,3 +170,8 @@ and desugar_tscope ctx tscope =
     Terms._TBind t (bind_var x tscope)
 
 let desugar top = unbox (desugar_top NMap.empty top)
+
+let _ =
+  Printexc.register_printer (function
+    | DesugarFind v -> Some (asprintf "DesugarFind (%a)" Raw.pp_v v)
+    | _ -> None)

@@ -230,6 +230,15 @@ and eq_binder_p f pb1 pb2 =
 
 and pp_v fmt x = fprintf fmt "%s_%d" (name_of x) (uid_of x)
 
+and pp_vs fmt xs =
+  let rec pp_aux fmt xs =
+    match xs with
+    | [ x ] -> fprintf fmt "%a" pp_v x
+    | x :: xs -> fprintf fmt "%a; %a" pp_v x pp_aux xs
+    | [] -> ()
+  in
+  fprintf fmt "[ %a ]" pp_aux xs
+
 and pp_p fmt = function
   | PVar x -> fprintf fmt "%a" pp_v x
   | PInd (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps ps

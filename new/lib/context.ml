@@ -26,7 +26,7 @@ exception UnboundIdExn of Id.t
 
 exception UnusedVarExn of Terms.t var
 
-exception MergeDuplicationExn
+exception MergeDuplicationExn of ctx * ctx
 
 let find_var x ctx =
   try VarMap.find x ctx with
@@ -51,7 +51,7 @@ let merge ctx1 ctx2 =
   VarMap.merge
     (fun _ x1 x2 ->
       match (x1, x2) with
-      | Some _, Some _ -> raise MergeDuplicationExn
+      | Some _, Some _ -> raise (MergeDuplicationExn (ctx1, ctx2))
       | Some _, None -> x1
       | None, Some _ -> x2
       | None, None -> None)
@@ -98,3 +98,12 @@ let pp' fmt ctx =
       ctx
   in
   fprintf fmt "@[<hv>{@?@[%a@;<1 0>@]}@]@?" pp_aux ctx
+
+let _ =
+  Printexc.register_printer (function
+    | UnboundVarExn x -> Some (asprintf "UnboundVarExn (%a)" pp_v x)
+    | UnboundIdExn id -> Some (asprintf "UnboundIdExn (%a)" Id.pp id)
+    | UnusedVarExn x -> Some (asprintf "UnusedVarExn (%a)" pp_v x)
+    | MergeDuplicationExn (ctx1, ctx2) ->
+      Some (asprintf "MergeDuplicationExn (%a, %a)" pp' ctx1 pp' ctx2)
+    | _ -> None)
