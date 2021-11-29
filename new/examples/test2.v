@@ -14,6 +14,14 @@ Fixpoint append (A : U) :
       append _ t ls2 (fun res => k (_cons_ h res))
     end.
 
+Fixpoint len (A : U) (ls : list A) : [ nat | list A ] :=
+  match ls with
+  | nil => [ 0 , nil ]
+  | cons hd tl =>
+    let [ n, tl ] := len _ tl in
+    [ n + 1, cons hd tl ]
+  end.
+
 Fixpoint free (A : U) (ls : list A) : unit :=
   match ls with
   | nil => ()
@@ -28,4 +36,5 @@ Definition ls2 : list nat :=
 
 Definition main : unit := 
   let ls := append _ ls1 ls2 (fun x => x) in
+  let [ n, ls ] := len _ ls in
   free _ ls.

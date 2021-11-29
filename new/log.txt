@@ -3,66 +3,66 @@ desugar ok
 elab ok
 resolve ok
 main({
-  ls2_2451 : ((list_25 nat_6))
-  ls1_2450 : ((list_25 nat_6))
+  ls2_3356 : ((list_25 nat_6))
+  ls1_3355 : ((list_25 nat_6))
 })
 
 tcheck ok
 --------------------------------------------------------------------------------
-Inductive eq_0 (A_2495 : U) (x_2496 : A_2495) : (A_2495) -> U :=
-| refl_1 (A_2498 : U) (x_2499 : A_2498) : (eq_0 A_2498 x_2499 x_2499).
+Inductive eq_0 (A_3467 : U) (x_3468 : A_3467) : (A_3467) -> U :=
+| refl_1 (A_3470 : U) (x_3471 : A_3470) : (eq_0 A_3470 x_3471 x_3471).
 
-Definition eq_trans_2500 :=
-  ((fun A_2501 x_2502 y_2503 z_2504 e1_2505 e2_2506 =>
-      match e2_2506 in (eq_0 __2507 __2508 y_2509) return
-        (eq_0 A_2501 x_2502 y_2509)
+Definition eq_trans_3472 :=
+  ((fun A_3473 x_3474 y_3475 z_3476 e1_3477 e2_3478 =>
+      match e2_3478 in (eq_0 __3479 __3480 y_3481) return
+        (eq_0 A_3473 x_3474 y_3481)
       with
-      | (refl_1 ) => e1_2505
+      | (refl_1 ) => e1_3477
       end) :
-    (A_2510 : U) ->
-      (x_2511 : A_2510) ->
-        (y_2512 : A_2510) ->
-          (z_2513 : A_2510) ->
-            (e1_2514 : (eq_0 A_2510 x_2511 y_2512)) ->
-              (e2_2515 : (eq_0 A_2510 y_2512 z_2513)) ->
-                (eq_0 A_2510 x_2511 z_2513)).
+    (A_3482 : U) ->
+      (x_3483 : A_3482) ->
+        (y_3484 : A_3482) ->
+          (z_3485 : A_3482) ->
+            (e1_3486 : (eq_0 A_3482 x_3483 y_3484)) ->
+              (e2_3487 : (eq_0 A_3482 y_3484 z_3485)) ->
+                (eq_0 A_3482 x_3483 z_3485)).
 
-Definition eq_sym_2516 :=
-  ((fun A_2517 x_2518 y_2519 e_2520 =>
-      match e_2520 in (eq_0 __2521 __2522 y_2523) return
-        (eq_0 A_2517 y_2523 x_2518)
+Definition eq_sym_3488 :=
+  ((fun A_3489 x_3490 y_3491 e_3492 =>
+      match e_3492 in (eq_0 __3493 __3494 y_3495) return
+        (eq_0 A_3489 y_3495 x_3490)
       with
       | (refl_1 ) => refl_1
       end) :
-    (A_2524 : U) ->
-      (x_2525 : A_2524) ->
-        (y_2526 : A_2524) ->
-          (e_2527 : (eq_0 A_2524 x_2525 y_2526)) ->
-            (eq_0 A_2524 y_2526 x_2525)).
+    (A_3496 : U) ->
+      (x_3497 : A_3496) ->
+        (y_3498 : A_3496) ->
+          (e_3499 : (eq_0 A_3496 x_3497 y_3498)) ->
+            (eq_0 A_3496 y_3498 x_3497)).
 
-Definition u_ind_2528 :=
-  ((fun A_2529 x_2530 y_2531 P_2532 e_2533 f_2534 =>
-      match e_2533 in (eq_0 __2535 __2536 y_2537) return (P_2532) y_2537 with
-      | (refl_1 ) => f_2534
+Definition u_ind_3500 :=
+  ((fun A_3501 x_3502 y_3503 P_3504 e_3505 f_3506 =>
+      match e_3505 in (eq_0 __3507 __3508 y_3509) return (P_3504) y_3509 with
+      | (refl_1 ) => f_3506
       end) :
-    (A_2538 : U) ->
-      (x_2539 : A_2538) ->
-        (y_2540 : A_2538) ->
-          (P_2541 : (A_2538) -> U) ->
-            (e_2543 : (eq_0 A_2538 x_2539 y_2540)) ->
-              (f_2544 : (P_2541) x_2539) -> (P_2541) y_2540).
+    (A_3510 : U) ->
+      (x_3511 : A_3510) ->
+        (y_3512 : A_3510) ->
+          (P_3513 : (A_3510) -> U) ->
+            (e_3515 : (eq_0 A_3510 x_3511 y_3512)) ->
+              (f_3516 : (P_3513) x_3511) -> (P_3513) y_3512).
 
-Definition l_ind_2545 :=
-  ((fun A_2546 x_2547 y_2548 P_2549 e_2550 f_2551 =>
-      match e_2550 in (eq_0 __2552 __2553 y_2554) return (P_2549) y_2554 with
-      | (refl_1 ) => f_2551
+Definition l_ind_3517 :=
+  ((fun A_3518 x_3519 y_3520 P_3521 e_3522 f_3523 =>
+      match e_3522 in (eq_0 __3524 __3525 y_3526) return (P_3521) y_3526 with
+      | (refl_1 ) => f_3523
       end) :
-    (A_2555 : U) ->
-      (x_2556 : A_2555) ->
-        (y_2557 : A_2555) ->
-          (P_2558 : (A_2555) -> L) ->
-            (e_2560 : (eq_0 A_2555 x_2556 y_2557)) ->
-              (f_2561 : (P_2558) x_2556) -> (P_2558) y_2557).
+    (A_3527 : U) ->
+      (x_3528 : A_3527) ->
+        (y_3529 : A_3527) ->
+          (P_3530 : (A_3527) -> L) ->
+            (e_3532 : (eq_0 A_3527 x_3528 y_3529)) ->
+              (f_3533 : (P_3530) x_3528) -> (P_3530) y_3529).
 
 Inductive unit_2 : U :=
 | tt_3 : unit_2.
@@ -74,100 +74,115 @@ Inductive nat_6 : U :=
 | O_7 : nat_6
 | S_8 : (nat_6) -> nat_6.
 
-Definition add_2563 :=
-  ((fix add_2564 m_2565 n_2566 =>
-      match m_2565 with
-      | (O_7 ) => n_2566
-      | (S_8 m_2567) => (S_8 ((add_2564) m_2567) n_2566)
+Definition add_3535 :=
+  ((fix add_3536 m_3537 n_3538 =>
+      match m_3537 with
+      | (O_7 ) => n_3538
+      | (S_8 m_3539) => (S_8 ((add_3536) m_3539) n_3538)
       end) :
-    (m_2568 : nat_6) -> (n_2569 : nat_6) -> nat_6).
+    (m_3540 : nat_6) -> (n_3541 : nat_6) -> nat_6).
 
 Inductive bool_9 : U :=
 | true_10 : bool_9
 | false_11 : bool_9.
 
-Inductive sigma_12 (A_2570 : U) (F_2571 : (A_2570) -> U) : U :=
-| pair_13 (A_2573 : U)
-            (F_2574 : (A_2573) -> U)
-              : (x_2576 : A_2573) ->
-                  ((F_2574) x_2576) -> (sigma_12 A_2573 F_2574).
+Inductive sigma_12 (A_3542 : U) (F_3543 : (A_3542) -> U) : U :=
+| pair_13 (A_3545 : U)
+            (F_3546 : (A_3545) -> U)
+              : (x_3548 : A_3545) ->
+                  ((F_3546) x_3548) -> (sigma_12 A_3545 F_3546).
 
-Inductive tensor_14 (A_2578 : L) (B_2579 : L) : L :=
-| tpair_15 (A_2580 : L)
-             (B_2581 : L) : (A_2580) -> (B_2581) -> (tensor_14 A_2580 B_2581).
+Inductive tensor_14 (A_3550 : L) (B_3551 : L) : L :=
+| tpair_15 (A_3552 : L)
+             (B_3553 : L) : (A_3552) -> (B_3553) -> (tensor_14 A_3552 B_3553).
 
-Inductive ftensor_16 (A_2584 : U) (F_2585 : (A_2584) -> L) : L :=
-| fpair_17 (A_2587 : U)
-             (F_2588 : (A_2587) -> L)
-               : (x_2590 : A_2587) ->
-                   ((F_2588) x_2590) -> (ftensor_16 A_2587 F_2588).
+Inductive ftensor_16 (A_3556 : U) (F_3557 : (A_3556) -> L) : L :=
+| fpair_17 (A_3559 : U)
+             (F_3560 : (A_3559) -> L)
+               : (x_3562 : A_3559) ->
+                   ((F_3560) x_3562) -> (ftensor_16 A_3559 F_3560).
 
-Axiom unsafeC_2592 : (A_2593 : L) -> (A_2593) -> unit_2.
+Axiom unsafeC_3564 : (A_3565 : L) -> (A_3565) -> unit_2.
 
-Axiom unsafeP_2595 : (A_2596 : L) -> A_2596.
+Axiom unsafeP_3567 : (A_3568 : L) -> A_3568.
 
-Definition Loc_2597 := ((nat_6) : U).
+Definition Loc_3569 := ((nat_6) : U).
 
-Axiom PtsTo_2598 : (Loc_2597) -> (U) -> L.
+Axiom PtsTo_3570 : (Loc_3569) -> (U) -> L.
 
-Definition Ptr_2601 :=
-  ((fun A_2602 =>
-      (ftensor_16 Loc_2597 fun l_2603 => ((PtsTo_2598) l_2603) A_2602)) :
-    (A_2604 : U) -> L).
+Definition Ptr_3573 :=
+  ((fun A_3574 =>
+      (ftensor_16 Loc_3569 fun l_3575 => ((PtsTo_3570) l_3575) A_3574)) :
+    (A_3576 : U) -> L).
 
-Axiom New_2605 : (A_2606 : U) -> (A_2606) -> (Ptr_2601) A_2606.
+Axiom New_3577 : (A_3578 : U) -> (A_3578) -> (Ptr_3573) A_3578.
 
-Axiom Free_2608 : (A_2609 : U) -> ((Ptr_2601) A_2609) -> unit_2.
+Axiom Free_3580 : (A_3581 : U) -> ((Ptr_3573) A_3581) -> unit_2.
 
-Axiom Get_2611 :
-  (A_2612 : U) ->
-    (l_2613 : Loc_2597) ->
-      (((PtsTo_2598) l_2613) A_2612) ->
-        (ftensor_16 A_2612 fun __2615 => ((PtsTo_2598) l_2613) A_2612).
+Axiom Get_3583 :
+  (A_3584 : U) ->
+    (l_3585 : Loc_3569) ->
+      (((PtsTo_3570) l_3585) A_3584) ->
+        (ftensor_16 A_3584 fun __3587 => ((PtsTo_3570) l_3585) A_3584).
 
-Axiom Set_2616 :
-  (A_2617 : U) ->
-    (B_2618 : U) ->
-      (B_2618) ->
-        (l_2620 : Loc_2597) ->
-          (((PtsTo_2598) l_2620) A_2617) -> ((PtsTo_2598) l_2620) B_2618.
+Axiom Set_3588 :
+  (A_3589 : U) ->
+    (B_3590 : U) ->
+      (B_3590) ->
+        (l_3592 : Loc_3569) ->
+          (((PtsTo_3570) l_3592) A_3589) -> ((PtsTo_3570) l_3592) B_3590.
 
-Inductive list_25 (A_2622 : U) : L :=
-| nil_26 (A_2623 : U) : (list_25 A_2623)
-| cons_27 (A_2624 : U) : (A_2624) -> ((list_25 A_2624)) -> (list_25 A_2624).
+Inductive list_25 (A_3594 : U) : L :=
+| nil_26 (A_3595 : U) : (list_25 A_3595)
+| cons_27 (A_3596 : U) : (A_3596) -> ((list_25 A_3596)) -> (list_25 A_3596).
 
-Definition append_2627 :=
-  ((fix append_2628 A_2629 ls1_2630 ls2_2631 k_2632 =>
-      match ls1_2630 with
-      | (nil_26 ) => (k_2632) ls2_2631
-      | (cons_27 h_2633 t_2634) =>
-        let _cons__2635 :=
-          ((fun h_2636 t_2637 => (cons_27 h_2636 t_2637)) :
-            (A_2629) -o ((list_25 A_2629)) -o (list_25 A_2629))
+Definition append_3599 :=
+  ((fix append_3600 A_3601 ls1_3602 ls2_3603 k_3604 =>
+      match ls1_3602 with
+      | (nil_26 ) => (k_3604) ls2_3603
+      | (cons_27 h_3605 t_3606) =>
+        let _cons__3607 :=
+          ((fun h_3608 t_3609 => (cons_27 h_3608 t_3609)) :
+            (A_3601) -o ((list_25 A_3601)) -o (list_25 A_3601))
         in
-        ((((append_2628) A_2629) t_2634) ls2_2631)
-          fun res_2640 => (k_2632) ((_cons__2635) h_2633) res_2640
+        ((((append_3600) A_3601) t_3606) ls2_3603)
+          fun res_3612 => (k_3604) ((_cons__3607) h_3605) res_3612
       end) :
-    (A_2641 : U) ->
-      ((list_25 A_2641)) -o
-        ((list_25 A_2641)) -o
-          (((list_25 A_2641)) -o (list_25 A_2641)) -o (list_25 A_2641)).
+    (A_3613 : U) ->
+      ((list_25 A_3613)) -o
+        ((list_25 A_3613)) -o
+          (((list_25 A_3613)) -o (list_25 A_3613)) -o (list_25 A_3613)).
 
-Definition free_2646 :=
-  ((fix free_2647 A_2648 ls_2649 =>
-      match ls_2649 with
+Definition len_3618 :=
+  ((fix len_3619 A_3620 ls_3621 =>
+      match ls_3621 with
+      | (nil_26 ) => (fpair_17 O_7 nil_26)
+      | (cons_27 hd_3622 tl_3623) =>
+        let x_3624 := ((len_3619) A_3620) tl_3623 in
+        match x_3624 with
+        | (fpair_17 n_3625 tl_3626) =>
+          (fpair_17 ((add_3535) n_3625) (S_8 O_7) (cons_27 hd_3622 tl_3626))
+        end
+      end) :
+    (A_3627 : U) ->
+      (ls_3628 : (list_25 A_3627)) ->
+        (ftensor_16 nat_6 fun __3629 => (list_25 A_3627))).
+
+Definition free_3630 :=
+  ((fix free_3631 A_3632 ls_3633 =>
+      match ls_3633 with
       | (nil_26 ) => tt_3
-      | (cons_27 h_2650 t_2651) => ((free_2647) A_2648) t_2651
+      | (cons_27 h_3634 t_3635) => ((free_3631) A_3632) t_3635
       end) :
-    (A_2652 : U) -> (ls_2653 : (list_25 A_2652)) -> unit_2).
+    (A_3636 : U) -> (ls_3637 : (list_25 A_3636)) -> unit_2).
 
-Definition ls1_2654 :=
+Definition ls1_3638 :=
   (((cons_27 (S_8 O_7)
                (cons_27 (S_8 (S_8 O_7))
                           (cons_27 (S_8 (S_8 (S_8 O_7))) nil_26)))) :
     (list_25 nat_6)).
 
-Definition ls2_2655 :=
+Definition ls2_3639 :=
   (((cons_27 (S_8 (S_8 (S_8 (S_8 O_7))))
                (cons_27 (S_8 (S_8 (S_8 (S_8 (S_8 O_7)))))
                           (cons_27 (S_8 (S_8 (S_8 (S_8 (S_8 (S_8 O_7))))))
@@ -175,8 +190,12 @@ Definition ls2_2655 :=
     (list_25 nat_6)).
 
 Definition main :=
-  ((let ls_2656 :=
-      ((((append_2627) nat_6) ls1_2654) ls2_2655) fun x_2657 => x_2657
-    in ((free_2646) nat_6) ls_2656) : unit_2).
+  ((let ls_3640 :=
+      ((((append_3599) nat_6) ls1_3638) ls2_3639) fun x_3641 => x_3641
+    in
+    let x_3642 := ((len_3618) nat_6) ls_3640 in
+    match x_3642 with
+    | (fpair_17 n_3643 ls_3644) => ((free_3630) nat_6) ls_3644
+    end) : unit_2).
 --------------------------------------------------------------------------------
 tt_3
