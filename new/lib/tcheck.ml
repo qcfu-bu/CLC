@@ -339,7 +339,6 @@ let rec infer_top v_ctx id_ctx top =
   match top with
   | Main t ->
     let ctx = check v_ctx id_ctx t (Ind (_unit, [])) in
-    let _ = Format.printf "main(%a)@.@." pp' ctx in
     (ctx, id_ctx)
   | Define (t, top) ->
     let ty1, ctx1 = infer v_ctx id_ctx t in

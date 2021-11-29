@@ -2,11 +2,6 @@ parse ok
 desugar ok
 elab ok
 resolve ok
-main({
-  ls2_3356 : ((list_25 nat_6))
-  ls1_3355 : ((list_25 nat_6))
-})
-
 tcheck ok
 --------------------------------------------------------------------------------
 Inductive eq_0 (A_3467 : U) (x_3468 : A_3467) : (A_3467) -> U :=
