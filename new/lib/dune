@@ -1,0 +1,3 @@
+(library
+ (name cilc)
+ (libraries bindlib mparser))
