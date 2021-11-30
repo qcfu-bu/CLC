@@ -1,10 +1,15 @@
 open Bindlib
 open Names
+open Raw
 open Terms
 open Context
 open Format
 
 exception ParseFailure of string
+
+exception DesugarFind of v
+
+exception DesugarEmpty
 
 exception UnificationFailure of t * t
 
@@ -61,6 +66,7 @@ exception CheckTscopeExn of ty * sort * sort
 let _ =
   Printexc.register_printer (function
     | ParseFailure s -> Some s
+    | DesugarFind v -> Some (asprintf "DesugarFind (%a)" Raw.pp_v v)
     | UnificationFailure (t1, t2) ->
       Some (asprintf "UnificationFailure (%a, %a)" Terms.pp t1 Terms.pp t2)
     | OccursCheckFailure (x, t) ->

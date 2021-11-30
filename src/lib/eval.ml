@@ -3,8 +3,6 @@ open Util
 open Terms
 open Equality
 
-exception MissingMainExn
-
 let rec eval = function
   | Main t -> nf t
   | Define (t, tp) ->
