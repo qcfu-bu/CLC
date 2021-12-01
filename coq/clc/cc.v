@@ -6,6 +6,8 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * The Standard Calulus of Constructions Omega. *)
+
 Definition context T := seq (option T).
 
 Notation "m +: Γ" := (Some m :: Γ) (at level 30).

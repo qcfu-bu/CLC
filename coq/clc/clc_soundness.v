@@ -8,6 +8,10 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * Subject Reduction of CLC 
+
+  Well-typed CLC terms always reduce to well-types terms of the same type. *)
+
 Theorem subject_reduction Γ m A :
   [ Γ |- ] ->
   [ Γ |- m :- A ] ->
@@ -224,6 +228,11 @@ Proof.
   - eapply IHhas_type2; eauto.
     eapply sub_trans; eauto.
 Qed.
+
+(** * Progress of CLC 
+
+  Well-typed CLC terms under an empty context never get stuck.
+  They are either values or could reduce. *)
 
 Theorem progress m A :
   [ nil |- m :- A ] -> value m \/ exists n, step m n.

@@ -9,6 +9,9 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** isL is a judgment asserting that variable x within
+  context Γ has linear type. *)
+
 Reserved Notation "[ x ∈ Γ ]".
 Inductive isL : context term -> nat -> Prop :=
 | isL_O Γ A :
@@ -21,6 +24,9 @@ Inductive isL : context term -> nat -> Prop :=
   [ i.+1 ∈ □ Γ ]
 where "[ x ∈ Γ ]" := (isL Γ x).
 
+(** isN is a judgment asserting that De Brujin indice x 
+  within context Γ corresponds to an empty slot. *)
+
 Reserved Notation "[ x ∉ Γ ]".
 Inductive isN : context term -> nat -> Prop :=
 | isN_O Γ :
@@ -32,6 +38,9 @@ Inductive isN : context term -> nat -> Prop :=
   [ i ∉ Γ ] ->
   [ i.+1 ∉ □ Γ ]
 where "[ x ∉ Γ ]" := (isN Γ x).
+
+(** occurs is a function that counts the number of occurences
+  a given variable appears within a term. *)
 
 Fixpoint occurs (i : nat) (m : term) : nat :=
   match m with
@@ -160,6 +169,11 @@ Proof.
   - inv H0; firstorder; constructor; firstorder.
 Qed.
 
+(** * Narity
+  
+  A variable that does not occur in the context of a 
+  well-typed term does not occur in the term at all. *)
+
 Lemma narity Γ m A :
   [ Γ |- m :- A ] -> 
     forall i, [ i ∉ Γ ] -> occurs i m = 0.
@@ -201,6 +215,11 @@ Proof.
     rewrite IHhas_type1; eauto.
   - apply IHhas_type2; eauto.
 Qed.
+
+(** * Linearity
+
+  For a well-typed term, linear variables in the context
+  occurs exactly once within the term itself. *)
 
 Theorem linearity Γ m A :
   [ Γ |- m :- A ] -> 
@@ -274,6 +293,11 @@ Proof.
   - apply IHhas_type2; eauto.
 Qed.
 
+(** * Promotion 
+
+  A well-typed linear function under a pure context can
+  be promoted to a non-linear function using eta-expansion. *)
+
 Theorem promotion Γ m A B s :
   [ Γ ] ->
   [ Γ |- ] ->
@@ -334,6 +358,11 @@ Proof.
     pose proof (l_lolli_app H7 H6 H8).
     asimpl in H9; eauto.
 Qed.
+
+(** * Promotion 
+
+  A well-typed non-linear function can be used in-place of a
+  linear function using eta-expansion. *)
   
 Theorem dereliction Γ m A B s :
   [ Γ |- ] ->

@@ -8,6 +8,8 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * Inversion Lemmas for CLC typing. *)
+
 Ltac solve_sub :=
   match goal with
   | [ H : _ <: _ |- _ ] =>

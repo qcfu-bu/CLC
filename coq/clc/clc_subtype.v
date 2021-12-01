@@ -6,6 +6,8 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * Subtyping of CLC Types *)
+
 Notation "s @ l" := (Sort s (Some l)) (at level 30).
 
 Inductive sub1 : term -> term -> Prop :=

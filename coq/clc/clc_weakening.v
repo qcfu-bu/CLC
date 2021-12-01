@@ -7,6 +7,13 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * Weakening for the Non-linear Fragment of CLC 
+  
+  Weaknening for non-linear types is admissible in CLC.
+  To prove this, we first define an agree_ren ξ Γ Γ' judgment
+  that relates two contexts Γ and Γ' if Γ' can be obtained
+  by some renaming Γ using ξ. *)
+
 Inductive agree_ren : (var -> var) ->
   context term -> context term -> Prop :=
 | agree_ren_nil ξ :
@@ -26,6 +33,8 @@ Inductive agree_ren : (var -> var) ->
 | agree_ren_wkN Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   agree_ren ((+1) ∘ ξ) (Γ) (□ Γ').
+
+(** Various basic lemmas on agree_ren. *)
 
 Lemma agree_ren_refl Γ :
   agree_ren id Γ Γ.
@@ -143,6 +152,15 @@ Proof.
     apply IHagree_ren; eauto.
 Qed.
 
+(** merge_agree_ren_inv states that if two contexts Γ and Γ'
+  agree under renaming ξ, then for all ways Γ can be split
+  into mergeable contexts Γ1 and Γ2, there exists a way to
+  split Γ' into Γ1' and Γ2' such that Γ1 agrees with Γ1' on ξ
+  and Γ2 agrees with Γ2' on ξ. 
+ 
+  This lemma is used in the application case to split the context
+  obtained by merging the function context and argument context. *)
+
 Lemma merge_agree_ren_inv Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   forall Γ1 Γ2,
@@ -191,6 +209,10 @@ Proof.
     exists (□ x0).
     repeat constructor; eauto.
 Qed.
+
+(** If two contexts Γ and Γ' agree on renaming ξ, 
+  then uniformingly renaming context, term and type yeilds
+  a well-formed typing judgment. *)
 
 Lemma rename_ok Γ m A :
   [ Γ |- m :- A ] ->
@@ -351,6 +373,9 @@ Proof.
     apply agree_ren_refl.
 Qed.
 
+(** Weakening for non-linear variables can be derived as a corollary
+  of renaming. *)
+
 Lemma weakeningU Γ m A B :
   [ Γ |- m :- A ] ->
   [ B +u Γ |- m.[ren (+1)] :- A.[ren (+1)] ].
@@ -361,6 +386,8 @@ Proof.
   apply agree_ren_wkU.
   apply agree_ren_refl.
 Qed.
+
+(** Adding empty De Brujin slots in the context is also admissible. *)
 
 Lemma weakeningN Γ m A :
   [ Γ |- m :- A ] ->

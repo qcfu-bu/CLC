@@ -6,6 +6,11 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * AST of the Calculus of Linear Constructions
+
+  Variable bindings use De Bruijn provided by the Autosubst library
+  for capture avoiding substitutions. *)
+
 Inductive term : Type :=
 | Var   (x : var)
 | Sort  (s : sort) (l : option nat)
@@ -14,10 +19,14 @@ Inductive term : Type :=
 | Lam   (n : {bind term})
 | App   (m n : term).
 
+(** Derive basic sigma calculus lemmas using Autosubst. *)
+
 Instance Ids_term : Ids term. derive. Defined.
 Instance Rename_term : Rename term. derive. Defined.
 Instance Subst_term : Subst term. derive. Defined.
 Instance substLemmas_term : SubstLemmas term. derive. Qed.
+
+(** Definition of values used by the progress theorem. *)
 
 Inductive value : term -> Prop :=
 | value_sort srt l  : value (Sort srt l)
@@ -25,6 +34,8 @@ Inductive value : term -> Prop :=
 | value_prod A B s  : value (Prod A B s)
 | value_lolli A B s : value (Lolli A B s)
 | value_lam n       : value (Lam n).
+
+(** Single-step reduction relation. *)
 
 Reserved Notation "m ~> n" (at level 30).
 Inductive step : term -> term -> Prop :=
@@ -52,6 +63,12 @@ Inductive step : term -> term -> Prop :=
   n ~> n' ->
   App m n ~> App m n'
 where "m ~> n" := (step m n).
+
+(** Multi-step reduction is defined as the transitive reflexive
+    closure of single-step reduction. 
+      
+    Two terms are definitionally equal if they are joinable by 
+    multi-step reduction. *)
 
 Notation red := (star step).
 Notation "m ~>* n" := (red m n) (at level 30).

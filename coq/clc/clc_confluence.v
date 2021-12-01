@@ -6,6 +6,11 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * Confluence Property of CLC 
+
+    The confluence of CLC reductions is proven through the parallel
+    reduction proof techique. *)
+
 Inductive pstep : term -> term -> Prop :=
 | pstep_var x :
   pstep (Var x) (Var x)
@@ -239,6 +244,10 @@ Ltac first_order :=
   | [ |- _ /\ _ ] => split
   end.
 
+(** Differ standard method of using rho triangle to prove parallel 
+    reduction possessing the diamond property, we prove the
+    diamond property directly by induction. *)
+
 Lemma pstep_diamond m m1 :
   pstep m m1 ->
   forall m2, pstep m m2 ->
@@ -289,6 +298,9 @@ Proof with eauto using pstep_refl, star.
   apply pstep_red; eauto.
 Qed.
 
+(** Using the diamond property of parallel reductions, we can 
+    prove that CLC has confluence. *)
+
 Theorem confluence :
   confluent step.
 Proof with eauto using step, star.
@@ -314,6 +326,9 @@ Proof.
   apply confluence.
 Qed.
 Hint Resolve church_rosser.
+
+(** Various lemmas on renaming, reduction and conversion
+  dervied from confluence. *)
 
 Lemma sort_ren_inv s l v xi :
   Sort s l = v.[ren xi] -> v = Sort s l.
@@ -484,6 +499,8 @@ Proof.
   inv H2; eauto using join_conv.
   inv H2; eauto.
 Qed.
+
+(** Tactics for refuting obviously wrong conversions. *)
 
 Ltac red_inv m H :=
   match m with

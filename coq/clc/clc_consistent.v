@@ -10,6 +10,14 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * Consistency of CLC 
+
+  The consistency of CLC can be proven as an erasure of CLC into
+  CCω which is known to be consistent. Erasure of linear annotations
+  in well-typed CLC terms yield well-type CCω terms. Erasure also
+  preserves reduction, so strong normalization of CLC can be proved 
+  in a straightforward manner. *)
+
 Fixpoint erase (m : clc_ast.term) : term :=
   match m with
   | clc_ast.Var x => Var x

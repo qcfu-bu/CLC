@@ -8,6 +8,10 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * Validity of CLC types 
+
+  Types of well-typed terms are themselves well-sorted. *)
+
 Lemma merge_context_ok_inv Γ Γ1 Γ2 :
   [ Γ1 ‡ Γ2 ‡ Γ ] ->
   [ Γ |- ] ->

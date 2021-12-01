@@ -8,6 +8,15 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * Typed Substitution Lemma of CLC 
+
+  The substitution lemma for CLC corresponds to cut elimination
+  of linear logic. Due to rejection of weakening and contraction
+  for linear variables, the contexts of substitution must be 
+  precisely tracked at all times. This is accomplished by the
+  agree_subst Δ σ Γ relation. Morally, this is similar to the
+  agree_ren relation used for the proof of weakening. *)
+
 Reserved Notation "[ Δ |- σ -| Γ ]".
 
 Inductive agree_subst :
@@ -47,6 +56,8 @@ Inductive agree_subst :
   [ Δ |- σ -| A +l Γ ] ->
   [ Δ |- σ -| B +l Γ ]
 where "[ Δ |- σ -| Γ ]" := (agree_subst Δ σ Γ).
+
+(** Various lemmas on agree_subst. *)
 
 Lemma agree_subst_pure Δ σ Γ :
   [ Δ |- σ -| Γ ] -> pure Γ -> pure Δ.
@@ -189,6 +200,13 @@ Proof.
     apply IHagree_subst.
 Qed.
 
+(** When two contexts Δ and Γ agree on substition σ,
+  if Γ could be split into two mergeable contexts Γ1 and Γ2,
+  then there exists a way to split Δ into two mergeable
+  contexts Δ1 and Δ2 such that Δ1 agrees with Γ1 on σ and
+  Δ2 agrees with Γ2. Again, this is morally similar to the
+  proof for weakening. *)
+
 Lemma merge_agree_subst_inv Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
   forall Γ1 Γ2,
@@ -301,6 +319,10 @@ Proof.
       rewrite H12; eauto.
 Qed.
 
+(** The general substitution lemma. When contexts Δ and Γ agree on some
+  generalized substitution σ, substituting σ uniformly for context,
+  term and type yields a well-formed typing judgment. *)
+
 Lemma substitution Γ m A :
   [ Γ |- m :- A ] ->
   forall Δ σ,
@@ -388,6 +410,9 @@ Proof.
     apply IHhas_type2; eauto.
 Qed.
 
+(** Specialization of the general substitution lemma to a single
+  non-linear variable. *)
+
 Lemma substitutionU Γ1 m A B :
   [ A +u Γ1 |- m :- B ] ->
   forall Γ2 Γ n,
@@ -411,6 +436,9 @@ Proof.
   rewrite <- pure_re; eauto.
 Qed.
 
+(** Specialization of the general substitution lemma to a single
+  empty context slot. *)
+
 Lemma substitutionN Γ1 m A B :
   [ □ Γ1 |- m :- B ] ->
   forall Γ2 n,
@@ -423,6 +451,9 @@ Proof.
   apply agree_subst_wkN; eauto.
   apply agree_subst_refl.
 Qed.
+
+(** Specialization of the general substitution lemma to a single
+  linear variable. *)
 
 Lemma substitutionL Γ1 m A B :
   [ A +l Γ1 |- m :- B ] ->
@@ -437,6 +468,8 @@ Proof.
   eapply agree_subst_wkL; asimpl; eauto.
   apply agree_subst_refl.
 Qed.
+
+(** Context conversions is now derivable as a corollary of substitution. *)
 
 Lemma context_convU Γ m A B C l :
   B === A -> 

@@ -7,6 +7,8 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * Typing Rules of CLC *)
+
 Notation 𝐏 := (Sort U None).
 Reserved Notation "[ Γ |- ]".
 Reserved Notation "[ Γ |- m :- A ]".

@@ -6,6 +6,13 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(** * CLC Contexts 
+
+  For De Brujin indices to resolve correctly with linear variables,
+  contexts may contain empty slots. These empty slots are not used
+  to type free variables, instead they are used to ensure De Brujin
+  indices are the proper distance from their type binding. *)
+
 Inductive sort : Type := U | L.
 
 Definition elem T := option (T * sort).
@@ -16,6 +23,11 @@ Notation "m +u Γ" := (Some (m, U) :: Γ) (at level 30).
 Notation "m +l Γ" := (Some (m, L) :: Γ) (at level 30).
 Notation "m +{ s } Γ" := (Some (m, s) :: Γ) (at level 30).
 Notation "□ Γ" := (None :: Γ) (at level 30).
+
+(** Two contexts can be merged together if their non-linear variables
+  coincide and their linear variables do not overlap. Since merge
+  is only defined for non-overlapping linear variables, the
+  contraction rule is no longer available for linear variables. *)
 
 Reserved Notation "[ Γ1 ‡ Γ2 ‡ Γ ]".
 Inductive merge T : context T -> context T -> context T -> Prop :=
@@ -35,6 +47,9 @@ Inductive merge T : context T -> context T -> context T -> Prop :=
   [ □ Γ1 ‡ □ Γ2 ‡ □ Γ ]
 where "[ Γ1 ‡ Γ2 ‡ Γ ]" := (merge Γ1 Γ2 Γ).
 
+(** A context is considered pure if it does not contain linear
+  variables. *)
+
 Reserved Notation "[ Γ ]".
 
 Inductive pure T : context T -> Prop :=
@@ -47,6 +62,9 @@ Inductive pure T : context T -> Prop :=
   [ Γ ] ->
   [ □ Γ ]
 where "[ Γ ]" := (pure Γ).
+
+(** A variable with non-linear type is found within a pure 
+  context. *)
 
 Reserved Notation "[ x :u A ∈ Γ ]".
 Inductive hasU {T} `{Ids T} `{Subst T} : 
@@ -62,6 +80,11 @@ Inductive hasU {T} `{Ids T} `{Subst T} :
   [ v.+1 :u m.[ren (+1)] ∈ □ Γ ]
 where "[ x :u A ∈ Γ ]" := (hasU Γ x A).
 
+(** A variable is the only variable with linear type within
+  some context. All other variables have non-linear type. 
+  This prevents linear variables from being freely assumed,  
+  preventing the weakening rule for linear types. *)
+
 Reserved Notation "[ x :l A ∈ Γ ]".
 Inductive hasL {T} `{Ids T} `{Subst T} :
   context T -> var -> T -> Prop :=
@@ -76,6 +99,9 @@ Inductive hasL {T} `{Ids T} `{Subst T} :
   [ v.+1 :l m.[ren (+1)] ∈ □ Γ ]
 where "[ x :l A ∈ Γ ]" := (hasL Γ x A).
 
+(** Context restriction is a filter that removes all linear
+  variables from a context. *)
+
 Fixpoint re T (Γ : context T) : context T :=
   match Γ with
   | Some (m, U) :: Γ => Some (m, U) :: re Γ
@@ -84,6 +110,8 @@ Fixpoint re T (Γ : context T) : context T :=
   end.
 
 Notation "% Γ" := (re Γ) (at level 30).
+
+(** Various properties that CLC contexts possess. *)
 
 Lemma merge_sym T (Γ1 Γ2 Γ : context T) : 
   [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ2 ‡ Γ1 ‡ Γ ].
