@@ -94,7 +94,7 @@ This paper presents a new linear dependent type system --- The Calculus of Linea
 
 The presence of both linear and dependent types enables CLC to write specifications that faithfully encode the usage of resources. The previous example of monetary transaction can be refined using an indexed linear type family $Money : \mathbb{N} \rightarrow L$ as follows.
 \begin{equation*}
-  (x \ltype Money\ 5) \rightarrow (Camels + Marlboro)
+  (x \ltype Money\ 5) \rightarrow (Camels \oplus Marlboro)
 \end{equation*}
 This new specification for the transaction demands a payment of 5 units of money, and the customer be relieved of their ownership after the transaction finishes, effectively preventing the contradiction of having your cake and eating it too.
 
