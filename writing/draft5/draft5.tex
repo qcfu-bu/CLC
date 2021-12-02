@@ -1041,8 +1041,7 @@ We first postulate five state axioms. These axioms could be viewed as an interfa
 \end{definition}
 Due to the fact that $(l \mapsto_A m)$ is an abstract linear type, proofs of this type can not be duplicated and may only be consumed by other state axioms. This is the same non-sharing principle that empowers Separation Logic. Unlike Separation Logic, $(l \mapsto_A m)$ itself is a first-class object in CILC, meaning that it can be the result of computation (large eliminations), input to computations, stored in data structures, etc.
 
-\subsection{Internalization of Effect Laws}
-The combination of linear types and dependent types within the state axioms enable the internalization of the so called "effect laws" for state, where these laws are now provable theorems within the CLC framework.
+The combination of linear types and dependent types within the state axioms enable the internalization of the so called "effect laws" for state, where these laws are now provable theorems within the CILC framework.
 
 \begin{enumerate}
   \item Performing $\get$ twice on the same address will produce two terms that are provably equal.
@@ -1059,9 +1058,9 @@ Figure \ref{law1} is an excerpt taken from our implementation. It demonstrates t
   let [ yeq, c ] := get _ _ _ c in
   let ( x, pf1 ) := xeq in
   let ( y, pf2 ) := yeq in
-  let pf1 := Eq_sym _ _ _ pf1 in
-  let pf : Eq _ x y := 
-    Eq_trans _ _ _ _ pf1 pf2 
+  let pf1 := eq_sym _ _ _ pf1 in
+  let pf : eq _ x y := 
+    eq_trans _ _ _ _ pf1 pf2 
   in free _ _ _ c.
   \end{minted}
   \label{law1}
@@ -1077,7 +1076,7 @@ Figure \ref{law2} demonstrates the internalization of Law 2. Again, implicit par
   let c := set _ _ _ _ c 2 in
   let [ zeq, c ] := get _ _ _ c in
   let ( z, pf1 ) := zeq in
-  let pf : Eq _ 2 z := pf1 in
+  let pf : eq _ 2 z := pf1 in
   free _ _ _ c.
   \end{minted}
   \label{law2}
@@ -1085,7 +1084,7 @@ Figure \ref{law2} demonstrates the internalization of Law 2. Again, implicit par
 \end{figure}
 
 \subsection{Protocol Enforcement}
-The inclusion of dependent types and linear types in CILC makes it extremely expressive when encoding communication protocols. By indexing each channel with a protocol, CLC can enforce communication on a channel to strictly adhere to its specified protocol.
+The inclusion of dependent types and linear types in CILC makes it extremely expressive when encoding communication protocols. By indexing each channel with a protocol, CILC can enforce communication on a channel to strictly adhere to its specified protocol.
 
 In Figure \ref{session}, we declare an inductive \texttt{session} type for specifying protocols. Intuitively, the \texttt{session}  forms a stack of possible operations executed in a protocol. The $\SEND$ constructor takes in a non-linear type $A$ and a session $ss$ as its argument, indicating that after sending a message of type $A$, the protocol progresses to stage $ss$. Likewise, the $\RECV$ constructor takes in a non-linear type $A$ and a session $ss$ as its argument, indicating that after receiving a message of type $A$, the protocol progresses to stage $ss$. Finally, the $\END$ constructor indicates that the protocol has finished and communication is over.
 
@@ -1152,7 +1151,6 @@ Dependent types also allows for more precise specifications of protocols themsel
   \label{communication}
   \Description{}
 \end{figure}
-
 
 \section{Related Work}
 Linear types are a class of type systems inspired by Girard' substructural Linear Logic \cite{girard}. Girard notices that the weakening and contraction rules of Classical Logic when restricted carefully, give rise to a new logical foundation for reasoning about resource. Wadler \cite{wadler1990,wadler1991} then applies an analogous restriction to variable usage in simple type theory, leading to the development of linear type theory where terms respect resources. A term calculus for linear type theory was later realized by Abramsky \cite{abramsky1993}. Benton \cite{benton1994} investigates the ramifications of the ! exponential in linear term calculi, decomposing it to adjoint connectives $F$ and $G$ that map between linear and non-linear judgments. Programming languages \cite{l3,ats,linear-haskell} featuring linear types have also been implemented, allowing programmers to write resource safe software in practical applications.
