@@ -1152,14 +1152,37 @@ Dependent types also allows for more precise specifications of protocols themsel
   \Description{}
 \end{figure}
 
+\subsection{Mutable Data}
+Figure \ref{list} presents a CPS append function for linear lists. In the \texttt{cons} case, the constructor is opened, exposing its data element \texttt{h} and tail list \texttt{t}. Instead of de-allocating the memory of \texttt{cons}, it is bound to the variable \texttt{_cons_} of linear type $A \multimap list\ A \multimap list\ A$. Each \texttt{_cons_} is applied exactly once to reconstruct a list using the memory of the original, thus mutating the original list in-place. Also notice that the continuation $k$ is of linear type $(list\ A \multimap list\ A)$, indicating that $k$ must be applied exactly once. Using linear types for continuations is surprisingly accurate as control-flow itself is a linear concept.
+
+\begin{figure}[h]
+  \caption{Linear Lists}
+  \begin{minted}{coq}
+  Inductive list (A : U) : L :=
+  | nil : list A
+  | cons : A -> list A -> list A.
+  
+  Fixpoint append (A : U) : list A -o 
+    list A -o (list A -o list A) -o list A 
+  :=
+    fun ls1 ls2 k =>
+      match ls1 with
+      | nil => k ls2
+      | (cons h t) as _cons_ =>
+        append _ t ls2 
+          (fun res => k (_cons_ h res))
+      end.
+  \end{minted}
+  \label{list}
+  \Description{}
+\end{figure}
+
 \section{Related Work}
 Linear types are a class of type systems inspired by Girard' substructural Linear Logic \cite{girard}. Girard notices that the weakening and contraction rules of Classical Logic when restricted carefully, give rise to a new logical foundation for reasoning about resource. Wadler \cite{wadler1990,wadler1991} then applies an analogous restriction to variable usage in simple type theory, leading to the development of linear type theory where terms respect resources. A term calculus for linear type theory was later realized by Abramsky \cite{abramsky1993}. Benton \cite{benton1994} investigates the ramifications of the ! exponential in linear term calculi, decomposing it to adjoint connectives $F$ and $G$ that map between linear and non-linear judgments. Programming languages \cite{l3,ats,linear-haskell} featuring linear types have also been implemented, allowing programmers to write resource safe software in practical applications.
 
 Over the years, work has been done to enrich linear type theories with dependent types. Cervesato and Pfenning extend the Edinburgh Logical Framework with linear types \cite{lf,llf}, being the first to demonstrate that dependent types and linear types can coexist within a type theory. V\'{a}k\'{a}r \cite{vakar14} presents a linear dependent type theory, with syntax and semantics drawing inspiration from DILL \cite{dill}.  Krishnaswami et al. present a dependent linear type theory \cite{neel15} based on Benton's earlier work on mixed linear and non-linear calculus, demonstrating the ability to internalize imperative programming in the style of Hoare Type Theory \cite{htt}. Luo et al. \cite{luo} introduce the property of essential linearity and a mixed linear/non-linear context, describing the first type theory that allows types to depend on linear terms. Based on initial ideas of McBride \cite{nothing}, Atkey's Quantitative Type Theory (QTT) \cite{qtt} uses semi-ring annotations to track variable occurrence, simulating irrelevance, linear and affine types within a unified framework. The Idris 2 programming language \cite{idris2} implements QTT as its core type system.
 
 \section{Future Work}
-The integration of linear types and dependent types opens the door to many topics for research, both in theory and in its applications.
-
 On the theoretical side, we intend to investigate the semantic models of CLC. In early versions of CLC, an impredicative $Prop$ universe sat at the bottom of the universe hierarchy. This has since been removed due to the additional difficulty of working with $Prop$ in the soundness proof of CILC. We believe that these difficulties are not intrinsic and $Prop$ could be added back with careful proof work.
 
 On the application side, we intend to bolster our implementation with more features such as compilation to executable binary, making it a full-featured theorem prover/programming language. We aim to fully verify the typechecking algorithm employed by the current implementation. The unification algorithm used for implicit argument resolution is extremely ad-hoc, as the problem of unification for linear types has been not thoroughly studied, we hope to improve this situation as well.
