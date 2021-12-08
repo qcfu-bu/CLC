@@ -214,13 +214,13 @@ An auxiliary judgment $\pure{\Gamma}$ is defined to assert that a context $\Gamm
 
     \inferrule
     { \Gamma\ \vdash \\
-      \overline{\Gamma} \vdash A \utype U_i }
+      \overline{\Gamma} \vdash A : U_i }
     { \Gamma, x \utype A \vdash }
     \rname{Wf-U}
 
     \inferrule
     { \Gamma\ \vdash \\
-      \overline{\Gamma} \vdash A \utype L_k }
+      \overline{\Gamma} \vdash A : L_i }
     { \Gamma, x \ltype A\ \vdash }
     \rname{Wf-L}
 
@@ -231,7 +231,7 @@ An auxiliary judgment $\pure{\Gamma}$ is defined to assert that a context $\Gamm
 
     \inferrule
     { \pure{\Gamma} \\
-      \Gamma \vdash A \utype U }
+      \Gamma \vdash A : U_i }
     { \pure{\Gamma, x \utype A} }
     \rname{Pure-U}
 
