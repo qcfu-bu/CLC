@@ -31,7 +31,7 @@ exception InferLambdaExn of t
 
 exception InferFixExn of t
 
-exception InferAppExn of t
+exception InferAppExn of t * ty
 
 exception InferMatchNonInductiveExn of t
 
@@ -82,7 +82,8 @@ let _ =
     | InferMetaExn x -> Some (asprintf "InferMetaExn (%a)" Meta.pp x)
     | InferLambdaExn t -> Some (asprintf "InferLambdaExn (%a)" Terms.pp t)
     | InferFixExn t -> Some (asprintf "InferFixExn (%a)" Terms.pp t)
-    | InferAppExn t -> Some (asprintf "InferAppExn (%a)" Terms.pp t)
+    | InferAppExn (t, ty) ->
+      Some (asprintf "InferAppExn (%a, %a)" Terms.pp t Terms.pp ty)
     | InferMatchNonInductiveExn t ->
       Some (asprintf "InferMatchNonInductiveExn (%a)" Terms.pp t)
     | InferMatchLinearMotiveExn (t, ty) ->

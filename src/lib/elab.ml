@@ -69,7 +69,7 @@ and infer v_ctx id_ctx eqns mmap t =
       | Lolli (ty, b) ->
         let eqns, mmap = check v_ctx id_ctx eqns mmap t2 ty in
         (subst b t2, eqns, mmap)
-      | _ -> raise (InferAppExn t))
+      | _ -> raise (InferAppExn (t, nf ty1)))
     | LetIn (t, b) ->
       let ty1, eqns, mmap = infer v_ctx id_ctx eqns mmap t in
       let srt, eqns, mmap = infer_sort v_ctx id_ctx eqns mmap ty1 in

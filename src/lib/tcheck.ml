@@ -68,7 +68,7 @@ and infer v_ctx id_ctx t =
         | L -> true)
         (NonPureContextExn (ctx2, 2));
       (subst b t2, merge ctx1 ctx2)
-    | _ -> raise (InferAppExn t))
+    | _ -> raise (InferAppExn (t, nf ty1)))
   | LetIn (t, b) ->
     let ty1, ctx1 = infer v_ctx id_ctx t in
     let srt = infer_sort v_ctx id_ctx ty1 in
