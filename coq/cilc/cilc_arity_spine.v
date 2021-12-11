@@ -24,19 +24,19 @@ Inductive arity_spine :
   pure Γ ->
   [ Γ |- A :- Sort s l ] ->
   arity_spine Γ A nil A
-| arity_spine_u_Prod_cons Γ1 Γ2 Γ hd tl A B B' l :
+| arity_spine_u_Arrow_cons Γ1 Γ2 Γ hd tl A B B' l :
   pure Γ1 ->
-  [ Γ1 |- Prod A B U :- Sort U l ] ->
+  [ Γ1 |- Arrow A B U :- Sort U l ] ->
   [ Γ1 |- hd :- A ] ->
   merge Γ1 Γ2 Γ ->
   arity_spine Γ2 B.[hd/] tl B' ->
-  arity_spine Γ (Prod A B U) (hd :: tl) B'
-| arity_spine_l_Prod_cons Γ1 Γ2 Γ hd tl A B B' l :
-  [ re Γ1 |- Prod A B L :- Sort U l ] ->
+  arity_spine Γ (Arrow A B U) (hd :: tl) B'
+| arity_spine_l_Arrow_cons Γ1 Γ2 Γ hd tl A B B' l :
+  [ re Γ1 |- Arrow A B L :- Sort U l ] ->
   [ Γ1 |- hd :- A ] ->
   merge Γ1 Γ2 Γ ->
   arity_spine Γ2 B.[hd/] tl B' ->
-  arity_spine Γ (Prod A B L) (hd :: tl) B'
+  arity_spine Γ (Arrow A B L) (hd :: tl) B'
 | arity_spine_u_Lolli_cons Γ1 Γ2 Γ hd tl A B B' l :
   pure Γ1 ->
   [ Γ1 |- Lolli A B U :- Sort L l ] ->
@@ -61,24 +61,24 @@ Proof.
   move=> Γ2 A s l p tyA Γ1 Γ m tyM mg.
     move: (merge_pure2 mg p)=>->//=.
   move=> Γ1 Γ2 Γ hd tl A B B' l p 
-    tyProd tyHd mg tySp ih Γ1' Γ2' m tyM mg'.
+    tyArrow tyHd mg tySp ih Γ1' Γ2' m tyM mg'.
     move: (merge_pure1 mg p)=>e.
     move: (merge_re_re mg)=>[e1 e2].
     move: (merge_re_re mg')=>[e1' e2'].
     rewrite e in mg'.
     apply: ih; eauto.
-    apply: u_Prod_App; eauto.
+    apply: u_Arrow_App; eauto.
     move: (merge_re2 Γ1').
     rewrite e1'.
     rewrite <- e2'.
     rewrite <- e1.
     rewrite <- pure_re; eauto.
   move=> Γ1 Γ2 Γ hd tl A B B' l 
-    tyProd tyHd mg tySp ih Γ1' Γ2' m tyM mg'.
+    tyArrow tyHd mg tySp ih Γ1' Γ2' m tyM mg'.
     move: (merge_sym mg')=>{}mg'.
     move: (merge_merge mg mg')=>[ΓX[mg1 mg2]].
     apply: ih; eauto.
-    apply: l_Prod_App; eauto.
+    apply: l_Arrow_App; eauto.
     apply: merge_sym; eauto.
   move=> Γ1 Γ2 Γ hd tl A B B' l p 
     tyLolli tyHd mg tySp ih Γ1' Γ2' m tyM mg'.
@@ -127,7 +127,7 @@ Proof.
     move: (H3 s s' t l sb H7)=>[t' ty].
     exists U.
     move: H4=>/sub_Sort_inv[_ lte].
-    apply: u_Prod; eauto.
+    apply: u_Arrow; eauto.
     apply: s_Conv.
     apply: sub_Sort; eauto.
     constructor.
@@ -160,7 +160,7 @@ Proof.
       apply: sub_Sort; eauto.
     have sb2 : U @ l.+1 <: U @ l0.
       apply: sub_Sort; eauto.
-    apply: u_Prod; eauto.
+    apply: u_Arrow; eauto.
     apply: s_Conv.
     apply: sb1.
     constructor. apply re_pure.
@@ -174,13 +174,13 @@ Proof.
     have ty0 : [ A0 +u Γ0 |- Var 0 :- A0.[ren (+1)] ].
       apply: u_Var.
       constructor; eauto.
-    have //=tyIw : [ A0 +u Γ0 |- I.[ren (+1)] :- (Prod A0 B0 U).[ren (+1)] ].
+    have //=tyIw : [ A0 +u Γ0 |- I.[ren (+1)] :- (Arrow A0 B0 U).[ren (+1)] ].
       apply: eweakeningU; eauto.
     have p2 : pure (A0 +u Γ0) by constructor.
     have mg : merge (A0 +u Γ0) (A0 +u Γ0) (A0 +u Γ0).
       constructor.
       apply: merge_pure; eauto.
-    move: (u_Prod_App p2 tyIw ty0 mg); asimpl=> tyIx.
+    move: (u_Arrow_App p2 tyIw ty0 mg); asimpl=> tyIx.
     move: (H3 s t l _ sb H8 tyIx)=>[t' ty].
     exists U.
     move: H4=>/sub_Sort_inv[_ lt].
@@ -189,7 +189,7 @@ Proof.
     apply: s_Conv.
     apply: sbx.
     constructor. apply: re_pure.
-    apply: u_Prod; eauto.
+    apply: u_Arrow; eauto.
   apply: H3; eauto.
     apply: sub_trans; eauto.
 Qed.
@@ -207,7 +207,7 @@ Proof.
     apply: arity_spine_nil; eauto.
     constructor; eauto.
   move=> Γ1 Γ2 Γ hd tl A B B' l _
-    tyProd tyHd mg sp ih s0 l0 e t a p'; subst.
+    tyArrow tyHd mg sp ih s0 l0 e t a p'; subst.
     inv a=>//=.
     move: (merge_pure_inv mg p')=>[p1 p2].
     move: (merge_pure1 mg p1)=>e1.
@@ -217,11 +217,11 @@ Proof.
     have a : arity s' B.[hd/].
       apply: arity_subst; eauto.
     move: (ih s0 l0 e t a)=> h.
-    apply u_Prod_inv in tyProd; firstorder.
+    apply u_Arrow_inv in tyArrow; firstorder.
     have sb : x @ x0 <: x @ x0 by eauto.
     move: (arity_arity1_ok t H1 sb H0)=>[t' ty].
-    apply: arity_spine_u_Prod_cons; eauto.
-    apply: u_Prod; eauto.
+    apply: arity_spine_u_Arrow_cons; eauto.
+    apply: u_Arrow; eauto.
     erewrite arity1_subst; eauto.
   intros. inv H4.
   intros. inv H5.
@@ -234,7 +234,7 @@ Lemma arity2_spine Γ ms I A s t l :
   pure Γ ->
   [ Γ |- I :- A ] ->
   arity_spine Γ 
-    (arity2 t I A) ms (Prod (spine I ms) (Sort t l) U).
+    (arity2 t I A) ms (Arrow (spine I ms) (Sort t l) U).
 Proof.
   move e:(Sort s l)=> n tsp. 
   elim: tsp I s l e t=>//={Γ n A ms}.
@@ -243,7 +243,7 @@ Proof.
     have sb : U @ l0 <: U @ l0.+1.
       by apply: sub_Sort.
     apply: arity_spine_nil; eauto.
-    apply: u_Prod.
+    apply: u_Arrow.
     apply: p.
     apply: s_Conv.
     apply: sb.
@@ -253,7 +253,7 @@ Proof.
     constructor; eauto.
     constructor; eauto.
   move=> Γ1 Γ2 Γ hd tl A B B' l p
-    tyProd tyHd mg sp ih I s0 l0 e t a p' tyI; subst.
+    tyArrow tyHd mg sp ih I s0 l0 e t a p' tyI; subst.
     inv a=>//=.
     move: (merge_pure_inv mg p')=>[p1 p2].
     move: (merge_pure1 mg p1)=>e1.
@@ -263,13 +263,13 @@ Proof.
     have a : arity U B.[hd/].
       apply: arity_subst; eauto.
     have ty : [ Γ1 |- App I hd :- B.[hd/] ].
-      apply: u_Prod_App; eauto.
+      apply: u_Arrow_App; eauto.
     move: (ih (App I hd) s0 l0 e t a p ty)=> h.
-    apply u_Prod_inv in tyProd; firstorder.
+    apply u_Arrow_inv in tyArrow; firstorder.
     have sb : x @ x0 <: x @ x0 by eauto.
     have pA : pure (A +u Γ1).
       constructor; eauto.
-    have //=tyI' : [ A +u Γ1 |- I.[ren (+1)] :- (Prod A B U).[ren (+1)] ].
+    have //=tyI' : [ A +u Γ1 |- I.[ren (+1)] :- (Arrow A B U).[ren (+1)] ].
       apply: eweakeningU; eauto.
     have ty0 : [ A +u Γ1 |- Var 0 :- A.[ren (+1)] ].
       apply: u_Var.
@@ -277,10 +277,10 @@ Proof.
     have mgA : merge (A +u Γ1) (A +u Γ1) (A +u Γ1).
       constructor.
       apply: merge_pure; eauto.
-    move: (u_Prod_App pA tyI' ty0 mgA); asimpl=>{pA}tyApp.
+    move: (u_Arrow_App pA tyI' ty0 mgA); asimpl=>{pA}tyApp.
     move: (arity_arity2_ok t H1 sb H0 tyApp)=>[t' ty'].
-    apply: arity_spine_u_Prod_cons; eauto.
-    apply: u_Prod; eauto.
+    apply: arity_spine_u_Arrow_cons; eauto.
+    apply: u_Arrow; eauto.
     erewrite arity2_subst; asimpl; eauto.
   intros. inv H4.
   intros. inv H5.
@@ -295,21 +295,21 @@ Ltac solve_Ind_spine' :=
     induction ms; simpl; intros; discriminate
   end.
 
-Lemma arity_spine_u_Prod_rcons Γ1 Γ2 Γ A B C n ms :
-  arity_spine Γ1 A ms (Prod B C U) ->
+Lemma arity_spine_u_Arrow_rcons Γ1 Γ2 Γ A B C n ms :
+  arity_spine Γ1 A ms (Arrow B C U) ->
   pure Γ2 ->
   [ Γ2 |- n :- B ] ->
   merge Γ1 Γ2 Γ ->
   arity_spine Γ A (rcons ms n) C.[n/].
 Proof.
-  move e:(Prod B C U)=> T sp.
+  move e:(Arrow B C U)=> T sp.
   elim: sp Γ2 Γ B C n e=>{Γ1 A ms T}; intros; subst.
   - rewrite /rcons.
-    move: (u_Prod_inv H0)=>[s'[l1'[l2'[tyB [tyC sb]]]]].
+    move: (u_Arrow_inv H0)=>[s'[l1'[l2'[tyB [tyC sb]]]]].
     move: (merge_pure1 H3 H)=>e1.
     move: (merge_pure2 H3 H1)=>e2.
     destruct s.
-    apply: arity_spine_u_Prod_cons.
+    apply: arity_spine_u_Arrow_cons.
       apply: H.
       apply: H0.
       rewrite<-e2. rewrite e1; eauto.
@@ -321,7 +321,7 @@ Proof.
   - move: (merge_pure1 H2 H)=>e1.
     move: (merge_pure2 H7 H5)=>e2.
     subst.
-    apply: arity_spine_u_Prod_cons.
+    apply: arity_spine_u_Arrow_cons.
     apply: H.
     apply: H0.
     apply: H1.
@@ -329,7 +329,7 @@ Proof.
     apply: H4; eauto.
   - move: (merge_sym H1)=>mg.
     move: (merge_merge mg H6)=>[Γ4[mg1 mg2]].
-    apply: arity_spine_l_Prod_cons; eauto.
+    apply: arity_spine_l_Arrow_cons; eauto.
     apply: merge_sym; eauto.
   - move: (merge_pure1 H2 H)=>e1.
     move: (merge_pure2 H7 H5)=>e2.
@@ -346,19 +346,19 @@ Proof.
     apply: merge_sym; eauto.
 Qed.
 
-Lemma arity_spine_l_Prod_rcons Γ1 Γ2 Γ A B C n ms :
-  arity_spine Γ1 A ms (Prod B C L) ->
+Lemma arity_spine_l_Arrow_rcons Γ1 Γ2 Γ A B C n ms :
+  arity_spine Γ1 A ms (Arrow B C L) ->
   [ Γ2 |- n :- B ] ->
   merge Γ1 Γ2 Γ ->
   arity_spine Γ A (rcons ms n) C.[n/].
 Proof.
-  move e:(Prod B C L)=> T sp.
+  move e:(Arrow B C L)=> T sp.
   elim: sp Γ2 Γ B C n e=>{Γ1 A ms T}; intros; subst.
   - rewrite /rcons.
-    move: (l_Prod_inv H0)=>[s'[l1'[l2'[tyB [tyC sb]]]]].
+    move: (l_Arrow_inv H0)=>[s'[l1'[l2'[tyB [tyC sb]]]]].
     move: (merge_re_re H2)=>[e1 e2].
     destruct s.
-    apply: arity_spine_l_Prod_cons.
+    apply: arity_spine_l_Arrow_cons.
       2:{ apply: H1. }
       rewrite e2. rewrite<-e1.
       rewrite <-pure_re; eauto.
@@ -368,11 +368,11 @@ Proof.
     exfalso. apply: sub_Sort_False1; eauto.
   - move: (merge_sym H2)=>mg.
     move: (merge_merge mg H6)=>[Γ4[mg1 mg2]].
-    apply: arity_spine_u_Prod_cons; eauto.
+    apply: arity_spine_u_Arrow_cons; eauto.
     apply: merge_sym; eauto.
   - move: (merge_sym H1)=>mg.
     move: (merge_merge mg H5)=>[Γ4[mg1 mg2]].
-    apply: arity_spine_l_Prod_cons; eauto.
+    apply: arity_spine_l_Arrow_cons; eauto.
     apply: merge_sym; eauto.
   - move: (merge_sym H2)=>mg.
     move: (merge_merge mg H6)=>[Γ4[mg1 mg2]].
@@ -410,7 +410,7 @@ Proof.
   - move: (merge_pure1 H2 H)=>e1.
     move: (merge_pure2 H7 H5)=>e2.
     subst.
-    apply: arity_spine_u_Prod_cons.
+    apply: arity_spine_u_Arrow_cons.
     apply: H.
     apply: H0.
     apply: H1.
@@ -418,7 +418,7 @@ Proof.
     apply: H4; eauto.
   - move: (merge_sym H1)=>mg.
     move: (merge_merge mg H6)=>[Γ4[mg1 mg2]].
-    apply: arity_spine_l_Prod_cons; eauto.
+    apply: arity_spine_l_Arrow_cons; eauto.
     apply: merge_sym; eauto.
   - move: (merge_pure1 H2 H)=>e1.
     move: (merge_pure2 H7 H5)=>e2.
@@ -457,11 +457,11 @@ Proof.
       apply: arity_spine_nil; eauto.
   - move: (merge_sym H2)=>mg.
     move: (merge_merge mg H6)=>[Γ4[mg1 mg2]].
-    apply: arity_spine_u_Prod_cons; eauto.
+    apply: arity_spine_u_Arrow_cons; eauto.
     apply: merge_sym; eauto.
   - move: (merge_sym H1)=>mg.
     move: (merge_merge mg H5)=>[Γ4[mg1 mg2]].
-    apply: arity_spine_l_Prod_cons; eauto.
+    apply: arity_spine_l_Arrow_cons; eauto.
     apply: merge_sym; eauto.
   - move: (merge_sym H2)=>mg.
     move: (merge_merge mg H6)=>[Γ4[mg1 mg2]].
@@ -497,8 +497,8 @@ Proof.
     move: (H1 _ _ _ _ p1 a eInd)=>[A'[s'[t'[l'[a'[ty [sp sb]]]]]]].
     inv a'.
     exfalso; solve_sub.
-    move: sb=>/sub_Prod_inv[e[sb _]].
-    move: ty=>/u_Prod_inv[x[lx[_[tyA1[tyB1 _]]]]].
+    move: sb=>/sub_Arrow_inv[e[sb _]].
+    move: ty=>/u_Arrow_inv[x[lx[_[tyA1[tyB1 _]]]]].
     exists B1.[n/]. exists x. exists t'. exists lx.
     have tyN : [ Γ1 |- n :- A1 ].
       apply: s_Conv.
@@ -510,7 +510,7 @@ Proof.
     replace (x @ lx) with (x @ lx).[n/] by autosubst.
     apply: substitutionU; eauto.
     rewrite rev_cons.
-    apply: arity_spine_u_Prod_rcons; eauto.
+    apply: arity_spine_u_Arrow_rcons; eauto.
     apply: sub_subst; eauto.
   move: e; destruct ms.
     rewrite /rev/catrev=>//=.
@@ -523,8 +523,8 @@ Proof.
     move: (H0 _ _ _ _ p1 a eInd)=>[A'[s'[t'[l'[a'[ty [sp sb]]]]]]].
     inv a'.
     exfalso; solve_sub.
-    move: sb=>/sub_Prod_inv[e[sb _]].
-    move: ty=>/u_Prod_inv[x[lx[_[tyA1[tyB1 _]]]]].
+    move: sb=>/sub_Arrow_inv[e[sb _]].
+    move: ty=>/u_Arrow_inv[x[lx[_[tyA1[tyB1 _]]]]].
     exists B1.[n/]. exists x. exists t'. exists lx.
     have tyN : [ Γ1 |- n :- A1 ].
       apply: s_Conv.
@@ -536,7 +536,7 @@ Proof.
     replace (x @ lx) with (x @ lx).[n/] by autosubst.
     apply: substitutionU; eauto.
     rewrite rev_cons.
-    apply: arity_spine_u_Prod_rcons; eauto.
+    apply: arity_spine_u_Arrow_rcons; eauto.
     apply: sub_subst; eauto.
   move: e; destruct ms.
     rewrite /rev/catrev=>//=.

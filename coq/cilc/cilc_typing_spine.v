@@ -16,17 +16,17 @@ Inductive typing_spine :
   A <: B ->
   [ Γ |- B :- Sort s l ] ->
   typing_spine Γ A nil B
-| typing_spine_u_Prod_cons Γ1 Γ2 Γ hd tl T A B B' l :
+| typing_spine_u_Arrow_cons Γ1 Γ2 Γ hd tl T A B B' l :
   pure Γ1 ->
-  T <: Prod A B U ->
-  [ Γ1 |- Prod A B U :- Sort U l ] ->
+  T <: Arrow A B U ->
+  [ Γ1 |- Arrow A B U :- Sort U l ] ->
   [ Γ1 |- hd :- A ] ->
   merge Γ1 Γ2 Γ ->
   typing_spine Γ2 B.[hd/] tl B' ->
   typing_spine Γ T (hd :: tl) B'
-| typing_spine_l_Prod_cons Γ1 Γ2 Γ hd tl T A B B' l :
-  T <: Prod A B L ->
-  [ re Γ1 |- Prod A B L :- Sort U l ] ->
+| typing_spine_l_Arrow_cons Γ1 Γ2 Γ hd tl T A B B' l :
+  T <: Arrow A B L ->
+  [ re Γ1 |- Arrow A B L :- Sort U l ] ->
   [ Γ1 |- hd :- A ] ->
   merge Γ1 Γ2 Γ ->
   typing_spine Γ2 B.[hd/] tl B' ->
@@ -53,13 +53,13 @@ Proof.
   move=>a. elim: a=>{Γ A ms B}.
   move=> Γ A s l p tyA.
     apply: typing_spine_nil; eauto.
-  move=> Γ1 Γ2 Γ hd tl A B B' l p tyProd tyHd mg a tySp.
-    apply: typing_spine_u_Prod_cons; eauto.
-  move=> Γ1 Γ2 Γ hd tl A B B' l tyProd tyHd mg a tySp.
-    apply: typing_spine_l_Prod_cons; eauto.
+  move=> Γ1 Γ2 Γ hd tl A B B' l p tyArrow tyHd mg a tySp.
+    apply: typing_spine_u_Arrow_cons; eauto.
+  move=> Γ1 Γ2 Γ hd tl A B B' l tyArrow tyHd mg a tySp.
+    apply: typing_spine_l_Arrow_cons; eauto.
   move=> Γ1 Γ2 Γ hd tl A B B' l p tyLolli tyHd mg a tySp.
     apply: typing_spine_u_Lolli_cons; eauto.
-  move=> Γ1 Γ2 Γ hd tl A B B' l tyProd tyHd mg a tySp.
+  move=> Γ1 Γ2 Γ hd tl A B B' l tyArrow tyHd mg a tySp.
     apply: typing_spine_l_Lolli_cons; eauto.
 Qed.
 
@@ -77,13 +77,13 @@ Proof.
     rewrite e1. rewrite<-e2. 
     rewrite<-pure_re; eauto. }
   { move=> Γ1 Γ2 Γ hd tl T A B B' l p sb
-    tyProd tyHd mg tySp ih Γ1' Γ2' m tyM mg'.
+    tyArrow tyHd mg tySp ih Γ1' Γ2' m tyM mg'.
     move: (merge_pure1 mg p)=>e.
     move: (merge_re_re mg)=>[e1 e2].
     move: (merge_re_re mg')=>[e1' e2'].
     rewrite e in mg'.
     apply: ih; eauto.
-    apply: u_Prod_App; eauto.
+    apply: u_Arrow_App; eauto.
     apply: s_Conv; eauto.
     rewrite e1'. rewrite<-e2'.
     rewrite<-e1. rewrite<-pure_re; eauto.
@@ -93,12 +93,12 @@ Proof.
     rewrite <-e1.
     rewrite <-pure_re; eauto. }
   { move=> Γ1 Γ2 Γ hd tl T A B B' l sb
-    tyProd tyHd mg tySp ih Γ1' Γ2' m tyM mg'.
+    tyArrow tyHd mg tySp ih Γ1' Γ2' m tyM mg'.
     move: (merge_sym mg')=>{}mg'.
     move: (merge_merge mg mg')=>[ΓX[mg1 mg2]].
     move: (merge_re_re mg1)=>[e1 e2].
     apply: ih; eauto.
-    apply: l_Prod_App; eauto.
+    apply: l_Arrow_App; eauto.
     apply: s_Conv.
     apply: sb.
     2:{ apply: tyM. }
@@ -134,21 +134,21 @@ Proof.
     apply: merge_sym; eauto. }
 Qed.
 
-Lemma typing_spine_u_Prod_rcons Γ1 Γ2 Γ A B C n ms :
-  typing_spine Γ1 A ms (Prod B C U) ->
+Lemma typing_spine_u_Arrow_rcons Γ1 Γ2 Γ A B C n ms :
+  typing_spine Γ1 A ms (Arrow B C U) ->
   pure Γ2 ->
   [ Γ2 |- n :- B ] ->
   merge Γ1 Γ2 Γ ->
   typing_spine Γ A (rcons ms n) C.[n/].
 Proof.
-  move e:(Prod B C U)=> T sp.
+  move e:(Arrow B C U)=> T sp.
   elim: sp Γ2 Γ B C n e=>{Γ1 A ms T}; intros; subst.
   { rewrite /rcons.
-    move: (u_Prod_inv H1)=>[s'[l1'[l2'[tyB [tyC sb]]]]].
+    move: (u_Arrow_inv H1)=>[s'[l1'[l2'[tyB [tyC sb]]]]].
     move: (merge_pure1 H4 H)=>e1.
     move: (merge_pure2 H4 H2)=>e2.
     destruct s.
-    { apply: typing_spine_u_Prod_cons; eauto.
+    { apply: typing_spine_u_Arrow_cons; eauto.
       rewrite<-e1. rewrite e2; eauto.
       apply: merge_sym; eauto.
       move: (substitutionU tyC H3 H2 H4)=>//=tyCN.
@@ -158,7 +158,7 @@ Proof.
   { move: (merge_pure1 H3 H)=>e1.
     move: (merge_pure2 H8 H6)=>e2.
     subst.
-    apply: typing_spine_u_Prod_cons.
+    apply: typing_spine_u_Arrow_cons.
     apply: H.
     apply: H0.
     apply: H1.
@@ -167,7 +167,7 @@ Proof.
     apply: H5; eauto. }
   { move: (merge_sym H2)=>mg.
     move: (merge_merge mg H7)=>[Γ4[mg1 mg2]].
-    apply: typing_spine_l_Prod_cons; eauto.
+    apply: typing_spine_l_Arrow_cons; eauto.
     apply: merge_sym; eauto. }
   { move: (merge_pure1 H3 H)=>e1.
     move: (merge_pure2 H8 H6)=>e2.
@@ -185,19 +185,19 @@ Proof.
     apply: merge_sym; eauto. }
 Qed.
 
-Lemma typing_spine_l_Prod_rcons Γ1 Γ2 Γ A B C n ms :
-  typing_spine Γ1 A ms (Prod B C L) ->
+Lemma typing_spine_l_Arrow_rcons Γ1 Γ2 Γ A B C n ms :
+  typing_spine Γ1 A ms (Arrow B C L) ->
   [ Γ2 |- n :- B ] ->
   merge Γ1 Γ2 Γ ->
   typing_spine Γ A (rcons ms n) C.[n/].
 Proof.
-  move e:(Prod B C L)=> T sp.
+  move e:(Arrow B C L)=> T sp.
   elim: sp Γ2 Γ B C n e=>{Γ1 A ms T}; intros; subst.
   { rewrite /rcons.
-    move: (l_Prod_inv H1)=>[s'[l1'[l2'[tyB [tyC sb]]]]].
+    move: (l_Arrow_inv H1)=>[s'[l1'[l2'[tyB [tyC sb]]]]].
     move: (merge_re_re H3)=>[e1 e2].
     destruct s.
-    { apply: typing_spine_l_Prod_cons.
+    { apply: typing_spine_l_Arrow_cons.
       3:{ apply: H2. }
       apply: H0.
       rewrite e2. rewrite<-e1.
@@ -208,11 +208,11 @@ Proof.
     { exfalso. apply: sub_Sort_False1; eauto. } }
   { move: (merge_sym H3)=>mg.
     move: (merge_merge mg H7)=>[Γ4[mg1 mg2]].
-    apply: typing_spine_u_Prod_cons; eauto.
+    apply: typing_spine_u_Arrow_cons; eauto.
     apply: merge_sym; eauto. }
   { move: (merge_sym H2)=>mg.
     move: (merge_merge mg H6)=>[Γ4[mg1 mg2]].
-    apply: typing_spine_l_Prod_cons; eauto.
+    apply: typing_spine_l_Arrow_cons; eauto.
     apply: merge_sym; eauto. }
   { move: (merge_sym H3)=>mg.
     move: (merge_merge mg H7)=>[Γ4[mg1 mg2]].
@@ -248,7 +248,7 @@ Proof.
   { move: (merge_pure1 H3 H)=>e1.
     move: (merge_pure2 H8 H6)=>e2.
     subst.
-    apply: typing_spine_u_Prod_cons.
+    apply: typing_spine_u_Arrow_cons.
     apply: H.
     apply: H0.
     apply: H1.
@@ -257,7 +257,7 @@ Proof.
     apply: H5; eauto. }
   { move: (merge_sym H2)=>mg.
     move: (merge_merge mg H7)=>[Γ4[mg1 mg2]].
-    apply: typing_spine_l_Prod_cons; eauto.
+    apply: typing_spine_l_Arrow_cons; eauto.
     apply: merge_sym; eauto. }
   { move: (merge_pure1 H3 H)=>e1.
     move: (merge_pure2 H8 H6)=>e2.
@@ -298,11 +298,11 @@ Proof.
       apply: typing_spine_nil; eauto. } }
   { move: (merge_sym H3)=>mg.
     move: (merge_merge mg H7)=>[Γ4[mg1 mg2]].
-    apply: typing_spine_u_Prod_cons; eauto.
+    apply: typing_spine_u_Arrow_cons; eauto.
     apply: merge_sym; eauto. }
   { move: (merge_sym H2)=>mg.
     move: (merge_merge mg H6)=>[Γ4[mg1 mg2]].
-    apply: typing_spine_l_Prod_cons; eauto.
+    apply: typing_spine_l_Arrow_cons; eauto.
     apply: merge_sym; eauto. }
   { move: (merge_sym H3)=>mg.
     move: (merge_merge mg H7)=>[Γ4[mg1 mg2]].
@@ -325,22 +325,22 @@ Proof.
     apply: typing_spine_nil; eauto.
     apply: sub_trans; eauto.
   move=> Γ1 Γ2 Γ hd tl T A B B' l p sb
-    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    tyArrow tyHd mg tySp ih C s l' sb' tyC.
     move: (merge_re_re mg)=>[e1 e2].
-    apply: typing_spine_u_Prod_cons; eauto.
+    apply: typing_spine_u_Arrow_cons; eauto.
     apply: sub_trans; eauto.
   move=> Γ1 Γ2 Γ hd tl T A B B' l sb
-    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    tyArrow tyHd mg tySp ih C s l' sb' tyC.
     move: (merge_re_re mg)=>[e1 e2].
-    apply: typing_spine_l_Prod_cons; eauto.
+    apply: typing_spine_l_Arrow_cons; eauto.
     apply: sub_trans; eauto.
   move=> Γ1 Γ2 Γ hd tl T A B B' l p sb
-    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    tyArrow tyHd mg tySp ih C s l' sb' tyC.
     move: (merge_re_re mg)=>[e1 e2].
     apply: typing_spine_u_Lolli_cons; eauto.
     apply: sub_trans; eauto.
   move=> Γ1 Γ2 Γ hd tl T A B B' l sb
-    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    tyArrow tyHd mg tySp ih C s l' sb' tyC.
     move: (merge_re_re mg)=>[e1 e2].
     apply: typing_spine_l_Lolli_cons; eauto.
     apply: sub_trans; eauto.
@@ -358,25 +358,25 @@ Proof.
     apply: sub_trans; eauto.
     rewrite <-pure_re in tyC; eauto.
   move=> Γ1 Γ2 Γ hd tl T A B B' l p sb
-    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    tyArrow tyHd mg tySp ih C s l' sb' tyC.
     move: (merge_re_re mg)=>[e1 e2].
-    apply: typing_spine_u_Prod_cons; eauto.
+    apply: typing_spine_u_Arrow_cons; eauto.
     apply: ih; eauto.
     rewrite e2; eauto.
   move=> Γ1 Γ2 Γ hd tl T A B B' l sb
-    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    tyArrow tyHd mg tySp ih C s l' sb' tyC.
     move: (merge_re_re mg)=>[e1 e2].
-    apply: typing_spine_l_Prod_cons; eauto.
+    apply: typing_spine_l_Arrow_cons; eauto.
     apply: ih; eauto.
     rewrite e2; eauto.
   move=> Γ1 Γ2 Γ hd tl T A B B' l p sb
-    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    tyArrow tyHd mg tySp ih C s l' sb' tyC.
     move: (merge_re_re mg)=>[e1 e2].
     apply: typing_spine_u_Lolli_cons; eauto.
     apply: ih; eauto.
     rewrite e2; eauto.
   move=> Γ1 Γ2 Γ hd tl T A B B' l sb
-    tyProd tyHd mg tySp ih C s l' sb' tyC.
+    tyArrow tyHd mg tySp ih C s l' sb' tyC.
     move: (merge_re_re mg)=>[e1 e2].
     apply: typing_spine_l_Lolli_cons; eauto.
     apply: ih; eauto.
@@ -408,7 +408,7 @@ Proof.
     rewrite /rev/catrev.
     repeat split.
     apply: merge_pure; eauto.
-    apply: u_Prod; eauto.
+    apply: u_Arrow; eauto.
     apply: typing_spine_nil; eauto.
     apply: u_Sort; eauto. }
   { move=> Γ A B s l p tyA ihA tyB ihB m ms wf sp.
@@ -418,7 +418,7 @@ Proof.
     rewrite /rev/catrev.
     repeat split.
     apply: merge_pure; eauto.
-    apply: l_Prod; eauto.
+    apply: l_Arrow; eauto.
     apply: typing_spine_nil; eauto.
     apply: u_Sort; eauto. }
   { move=> Γ A B s l p tyA ihA tyB ihB m ms wf sp.
@@ -461,9 +461,9 @@ Proof.
     apply: l_Var; eauto.
     apply: typing_spine_nil; eauto.
     apply: re_pure; eauto. }
-  { move=> Γ n A B s t l p tyProd ihProd tyN ihN m ms wf sp.
+  { move=> Γ n A B s t l p tyArrow ihArrow tyN ihN m ms wf sp.
     destruct ms; try discriminate. simpl in sp; subst.
-    exists Γ. exists Γ. exists (Prod A B s).
+    exists Γ. exists Γ. exists (Arrow A B s).
     repeat split.
     apply: merge_pure; eauto.
     apply: u_Lam; eauto.
@@ -482,7 +482,7 @@ Proof.
     { subst.
       move: (merge_pure2 mg p)=>e; subst.
       move: (merge_re_re mg)=>[e1 e2].
-      move: (u_Prod_App p tyM tyN mg)=>tyApp.
+      move: (u_Arrow_App p tyM tyN mg)=>tyApp.
       move: (validity wf tyApp)=>[s[l tyBN]].
       rewrite /rev/catrev.
       exists Γ1. exists Γ2. exists (B.[n/]).
@@ -502,12 +502,12 @@ Proof.
       apply: merge_sym; eauto.
       apply: tyM'.
       rewrite rev_cons.
-      apply: typing_spine_u_Prod_rcons; eauto. } }
+      apply: typing_spine_u_Arrow_rcons; eauto. } }
   { move=> Γ1 Γ2 Γ A B m n tyM ihM tyN ihN mg m' ms wf sp.
     move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
     destruct ms; simpl in sp.
     { subst.
-      move: (l_Prod_App tyM tyN mg)=>tyApp.
+      move: (l_Arrow_App tyM tyN mg)=>tyApp.
       move: (validity wf tyApp)=>[s[l tyBN]].
       rewrite /rev/catrev.
       exists Γ. exists (re Γ). exists (B.[n/]).
@@ -525,7 +525,7 @@ Proof.
       apply: merge_sym; eauto.
       apply: tyM'.
       rewrite rev_cons.
-      apply: typing_spine_l_Prod_rcons; eauto. } } 
+      apply: typing_spine_l_Arrow_rcons; eauto. } } 
   { move=> Γ1 Γ2 Γ A B m n p tyM ihM tyN ihN mg m' ms wf sp.
     move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
     destruct ms; simpl in sp.
@@ -637,7 +637,7 @@ Proof.
     move: (arity2_spine s tySp a pr tyInd)=>{tySp}/arity_typing_spine tySp.
     move: (App_typing_spine tyQ tySp mg')=>{}tySp.
     rewrite <-e2 in tySp.
-    move: (u_Prod_App pr tySp tyM' mg')=>tyApp.
+    move: (u_Arrow_App pr tySp tyM' mg')=>tyApp.
     rewrite /rev/catrev.
     exists Γ. exists (re Γ). exists (App (spine Q ms) m).
     repeat split; eauto.

@@ -279,9 +279,9 @@ Proof.
     apply: constr_UPos; eauto.
     apply: noccurs_step; eauto.
   move=> x A B n c ih C' st. inv st.
-    apply: constr_UProd; eauto.
+    apply: constr_UArrow; eauto.
     apply: noccurs_step; eauto.
-    apply: constr_UProd; eauto.
+    apply: constr_UArrow; eauto.
   move=> x A B p c ih n C' st. inv st.
     apply: constr_LPos1; eauto.
     apply: pos_step; eauto.
@@ -294,13 +294,13 @@ Proof.
     apply: active_step; eauto.
     apply: noccurs_step; eauto.
   move=> x A B n c ih C' st. inv st.
-    apply: constr_LProd1; eauto.
+    apply: constr_LArrow1; eauto.
     apply: noccurs_step; eauto.
-    apply: constr_LProd1; eauto.
+    apply: constr_LArrow1; eauto.
   move=> x A B n a C' st. inv st.
-    apply: constr_LProd2; eauto.
+    apply: constr_LArrow2; eauto.
     apply: noccurs_step; eauto.
-    apply: constr_LProd2; eauto.
+    apply: constr_LArrow2; eauto.
     apply: active_step; eauto.
 Qed.
 
@@ -533,7 +533,7 @@ Proof.
       have e : A' === A.
         apply: conv_sym.
         apply: conv1; eauto.
-      apply: u_Prod; eauto.
+      apply: u_Arrow; eauto.
       apply: context_convU.
       apply: e.
       rewrite <- pure_re; eauto.
@@ -542,17 +542,17 @@ Proof.
       apply: u_ok; eauto.
       rewrite <- pure_re; eauto.
       move: (ihB wf _ H3)=>tyB'.
-      apply: u_Prod; eauto. } }
+      apply: u_Arrow; eauto. } }
   { move=> Γ A B s l p tyA ihA tyB ihB wf n st. inv st.
     { move: (ihA wf _ H3)=>tyA'.
       have e : A' === A.
         apply: conv_sym.
         apply: conv1; eauto.
-      apply: l_Prod; eauto. }
+      apply: l_Arrow; eauto. }
     { have {}wf : [ +n Γ |- ].
       apply: n_ok; eauto.
       move: (ihB wf _ H3)=>tyB'.
-      apply: l_Prod; eauto. } }
+      apply: l_Arrow; eauto. } }
   { move=> Γ A B s l p tyA ihA tyB ihB wf n st. inv st.
     { move: (ihA wf _ H3)=>tyA'.
       have e : A' === A.
@@ -579,10 +579,10 @@ Proof.
       apply: l_Lolli; eauto. } }
   { move=> Γ x A hA wf n st. inv st. }
   { move=> Γ x A hA wf n st. inv st. }
-  { move=> Γ n A B s t l p tyProd ihProd tyN ihN wf n' st. inv st.
-    { have stProd : step (Prod A B s) (Prod A' B s).
+  { move=> Γ n A B s t l p tyArrow ihArrow tyN ihN wf n' st. inv st.
+    { have stArrow : step (Arrow A B s) (Arrow A' B s).
       by constructor.
-      move: (ihProd wf _ stProd)=>tyProd'.
+      move: (ihArrow wf _ stArrow)=>tyArrow'.
       apply: s_Conv.
         apply: conv_sub. 
         apply: conv_sym. 
@@ -593,24 +593,24 @@ Proof.
         apply: conv_sym.
         apply: conv1; eauto.
       destruct s.
-        move: tyProd=>/u_Prod_inv[_[lA[_[tyA _]]]].
+        move: tyArrow=>/u_Arrow_inv[_[lA[_[tyA _]]]].
           apply: context_convU.
           apply: e.
           rewrite <- pure_re; eauto.
           apply: tyN.
-        move: tyProd=>/l_Prod_inv[_[lA[_[tyA _]]]].
+        move: tyArrow=>/l_Arrow_inv[_[lA[_[tyA _]]]].
           apply: context_convL.
           apply: e.
           rewrite <- pure_re; eauto.
           apply: tyN. }
     { destruct s.
-      move: (u_Prod_inv tyProd)=>[_[lA[_[tyA _]]]].
+      move: (u_Arrow_inv tyArrow)=>[_[lA[_[tyA _]]]].
         have {}wf : [ A +u Γ |- ].
           apply: u_ok; eauto.
           rewrite <- pure_re; eauto.
         move: (ihN wf _ H3)=>tyM'.
         apply: u_Lam; eauto.
-      move: (l_Prod_inv tyProd)=>[_[lA[_[tyA _]]]].
+      move: (l_Arrow_inv tyArrow)=>[_[lA[_[tyA _]]]].
         have {}wf : [ A+l Γ |- ].
           apply: l_ok; eauto.
           rewrite <- pure_re; eauto.
@@ -659,12 +659,12 @@ Proof.
     move: (ihN wf2)=>{}ihN.
     move: (merge_re_re mg)=>[e1 e2].
     move: (pure_re p)=> e3.
-    move: (validity wf1 tyM)=>[s[l tyProd]].
+    move: (validity wf1 tyM)=>[s[l tyArrow]].
     inv st.
     { move: (ihM _ H2)=>{H2}ihM.
-      apply: u_Prod_App; eauto. }
+      apply: u_Arrow_App; eauto. }
     { move: (ihN _ H2)=>{}ihN.
-      move: (u_Prod_inv tyProd)=>[sB[lB[_ [_ [tyB _]]]]].
+      move: (u_Arrow_inv tyArrow)=>[sB[lB[_ [_ [tyB _]]]]].
       have //={}tyB : [ re Γ1 |- B.[n/] :- (sB @ lB).[n/] ].
         apply: substitutionU; eauto.
         rewrite e3 e2 e1.
@@ -677,20 +677,20 @@ Proof.
       apply: conv_sub.
       apply: e.
       rewrite <- e1; eauto.
-      apply: u_Prod_App; eauto. }
-    { move: (u_Lam_inv tyProd tyM)=>tyM0.
+      apply: u_Arrow_App; eauto. }
+    { move: (u_Lam_inv tyArrow tyM)=>tyM0.
       apply: substitutionU; eauto. } }
   { move=> Γ1 Γ2 Γ A B m n tyM ihM tyN ihN mg wf n' st.
     move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
     move: (ihM wf1)=>{}ihM.
     move: (ihN wf2)=>{}ihN.
     move: (merge_re_re mg)=>[e1 e2].
-    move: (validity wf1 tyM)=>[s[l tyProd]].
+    move: (validity wf1 tyM)=>[s[l tyArrow]].
     inv st.
     { move: (ihM _ H2)=>{H2}ihM.
-      apply: l_Prod_App; eauto. }
+      apply: l_Arrow_App; eauto. }
     { move: (ihN _ H2)=>{}ihN.
-      move: (l_Prod_inv tyProd)=>[sB[lB[_ [_ [tyB _]]]]].
+      move: (l_Arrow_inv tyArrow)=>[sB[lB[_ [_ [tyB _]]]]].
       have //={}tyB : [ re Γ1 |- B.[n/] :- (sB @ lB).[n/] ].
         apply: substitutionN; eauto.
       have e : B.[n'0/] === B.[n/].
@@ -701,8 +701,8 @@ Proof.
       apply: conv_sub.
       apply: e.
       rewrite <- e1; eauto.
-      apply: l_Prod_App; eauto. }
-    { move: (u_Lam_inv tyProd tyM)=>tyM0.
+      apply: l_Arrow_App; eauto. }
+    { move: (u_Lam_inv tyArrow tyM)=>tyM0.
       apply: substitutionL; eauto. } }
   { move=> Γ1 Γ2 Γ A B m n p tyM ihM tyN ihN mg wf n' st.
     move: (merge_context_ok_inv mg wf)=>[wf1 wf2].
@@ -936,7 +936,7 @@ Proof.
       have {}tyM : [ re Γ1 |- m :- spine I ms ].
         rewrite<-pure_re; eauto.
       rewrite<-e2 in tySQ.
-      move: (u_Prod_App pr tySQ tyM mg')=>//=tyApp.
+      move: (u_Arrow_App pr tySQ tyM mg')=>//=tyApp.
       apply: s_Conv; eauto.
       apply: s_DCase; eauto.
       rewrite<-pure_re; eauto.
@@ -958,7 +958,7 @@ Proof.
       have {}tyM : [ re Γ1 |- m :- spine I ms ].
         rewrite<-pure_re; eauto.
       have mg' := merge_re_re_re Γ1.
-      move: (u_Prod_App pr tySp tyM mg')=>//=tyApp.
+      move: (u_Arrow_App pr tySp tyM mg')=>//=tyApp.
       apply: s_Conv.
       apply: conv_sub. apply: conv_sym. apply: conv1.
       apply: step_AppL; eauto.
@@ -1036,7 +1036,7 @@ Proof.
       have h4 : [ Γ4 |- Constr i I :- C.[I/] ].
         constructor; eauto.
         rewrite<-pure_re in tyInd; eauto.
-      have //=h5 := u_Prod_App p tySQ tyM mg4.
+      have //=h5 := u_Arrow_App p tySQ tyM mg4.
       apply: s_Conv.
       apply: h3.
       rewrite<-e1.

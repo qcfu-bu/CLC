@@ -328,7 +328,7 @@ Proof.
     asimpl. apply: ih. exact: n_ren_up.
     asimpl. apply: noccurs_ren; eauto. apply n_ren0.
   move=> x A B nA cB ih ξ n=>//=.
-    apply: constr_UProd.
+    apply: constr_UArrow.
     apply: noccurs_ren; eauto.
     asimpl. apply: ih. exact: n_ren_up.
   move=> x A B pA cB ih no ξ n=>//=.
@@ -342,11 +342,11 @@ Proof.
     asimpl. apply: active_ren; eauto. exact: n_ren_up.
     asimpl. apply: noccurs_ren; eauto. exact: n_ren0.
   move=> x A B nA c ih ξ n=>//=.
-    apply: constr_LProd1.
+    apply: constr_LArrow1.
     exact: noccurs_ren.
     asimpl. apply: ih. exact: n_ren_up.
   move=> x A B nA c ξ n=>//=.
-    apply: constr_LProd2.
+    apply: constr_LArrow2.
     exact: noccurs_ren.
     asimpl. apply: active_ren; eauto. exact: n_ren_up.
 Qed.
@@ -691,9 +691,9 @@ Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
   move=> Γ s l pu Γ' ξ ag.
     apply: u_Sort...
   move=> Γ A B s l pu tyA ihA tyB ihB Γ' ξ ag; asimpl.
-    apply: u_Prod...
+    apply: u_Arrow...
   move=> Γ A B s l pu tyA ihA tyB ihB Γ' ξ ag; asimpl.
-    apply: l_Prod...
+    apply: l_Arrow...
   move=> Γ A B s l pu tyA ihA tyB ihB Γ' ξ ag; asimpl.
     apply: u_Lolli...
   move=> Γ A B s l pu tyA ihA tyB ihB Γ' ξ ag; asimpl.
@@ -717,7 +717,7 @@ Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
     replace (B.[n.[ren ξ] .: ren ξ]) 
       with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
     move: (agree_ren_pure ag2 pu)=> {} pu.
-    apply: u_Prod_App...
+    apply: u_Arrow_App...
     replace (ren (upren ξ)) with (up (ren ξ)) by autosubst.
     apply: ih1...
   move=> Γ1 Γ2 Γ A B m n ty1 ih1 ty2 ih2 mg Γ' ξ ag.
@@ -725,7 +725,7 @@ Proof with eauto using agree_ren, agree_ren_pure, agree_ren_re_re.
     move: (merge_agree_ren_inv ag mg)=>[Γ1'[Γ2'[mg'[ag1 ag2]]]].
     replace (B.[n.[ren ξ] .: ren ξ]) 
       with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
-    apply: l_Prod_App...
+    apply: l_Arrow_App...
     replace (ren (upren ξ)) with (up (ren ξ)) by autosubst.
     apply: ih1...
   move=> Γ1 Γ2 Γ A B m n pu ty1 ih1 ty2 ih2 mg Γ' ξ ag.

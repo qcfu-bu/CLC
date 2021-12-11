@@ -9,14 +9,14 @@ Unset Printing Implicit Defensive.
 
 Inductive arity (s : sort) : term -> Prop :=
 | arity_Sort l : arity s (Sort s l)
-| arity_Prod A B :
-  arity s B -> arity s (Prod A B U).
+| arity_Arrow A B :
+  arity s B -> arity s (Arrow A B U).
 
 Inductive noccurs : var -> term -> Prop :=
 | noccurs_Var x y : ~x = y -> noccurs x (Var y)
 | noccurs_Sort x s l : noccurs x (Sort s l)
-| noccurs_Prod x A B s :
-  noccurs x A -> noccurs x.+1 B -> noccurs x (Prod A B s)
+| noccurs_Arrow x A B s :
+  noccurs x A -> noccurs x.+1 B -> noccurs x (Arrow A B s)
 | noccurs_Lolli x A B s :
   noccurs x A -> noccurs x.+1 B -> noccurs x (Lolli A B s)
 | noccurs_Lam x A m s :
@@ -40,8 +40,8 @@ Section noccurs_ind_nested.
   Variable P : var -> term -> Prop.
   Hypothesis ih_Var : forall x y, ~x = y -> P x (Var y).
   Hypothesis ih_Sort : forall x s l, P x (Sort s l).
-  Hypothesis ih_Prod : forall x A B s,
-    noccurs x A -> P x A -> noccurs x.+1 B -> P x.+1 B -> P x (Prod A B s).
+  Hypothesis ih_Arrow : forall x A B s,
+    noccurs x A -> P x A -> noccurs x.+1 B -> P x.+1 B -> P x (Arrow A B s).
   Hypothesis ih_Lolli : forall x A B s,
     noccurs x A -> P x A -> noccurs x.+1 B -> P x.+1 B -> P x (Lolli A B s).
   Hypothesis ih_Lam : forall x A m s,
@@ -81,7 +81,7 @@ Section noccurs_ind_nested.
     case no; intros.
     apply ih_Var; eauto.
     apply ih_Sort; eauto.
-    apply ih_Prod; eauto.
+    apply ih_Arrow; eauto.
     apply ih_Lolli; eauto.
     apply ih_Lam; eauto.
     apply ih_App; eauto.
@@ -95,7 +95,7 @@ End noccurs_ind_nested.
 
 Inductive pos : var -> term -> Prop :=
 | pos_X x ms : List.Forall (noccurs x) ms -> pos x (spine (Var x) ms)
-| pos_Prod x A B s : noccurs x A -> pos x.+1 B -> pos x (Prod A B s)
+| pos_Arrow x A B s : noccurs x A -> pos x.+1 B -> pos x (Arrow A B s)
 | pos_Lolli x A B s : noccurs x A -> pos x.+1 B -> pos x (Lolli A B s).
 
 Inductive active : var -> term -> Prop :=
@@ -109,39 +109,39 @@ Inductive constr : var -> sort -> term -> Prop :=
 | constr_X x s ms : 
   List.Forall (noccurs x) ms -> constr x s (spine (Var x) ms)
 | constr_UPos x A B :
-  pos x A -> constr x.+1 U B -> noccurs 0 B -> constr x U (Prod A B U)
-| constr_UProd x A B :
-  noccurs x A -> constr x.+1 U B -> constr x U (Prod A B U)
+  pos x A -> constr x.+1 U B -> noccurs 0 B -> constr x U (Arrow A B U)
+| constr_UArrow x A B :
+  noccurs x A -> constr x.+1 U B -> constr x U (Arrow A B U)
 | constr_LPos1 x A B :
-  pos x A-> constr x.+1 L B -> noccurs 0 B -> constr x L (Prod A B U)
+  pos x A-> constr x.+1 L B -> noccurs 0 B -> constr x L (Arrow A B U)
 | constr_LPos2 x A B :
-  pos x A -> active x.+1 B -> noccurs 0 B -> constr x L (Prod A B L)
-| constr_LProd1 x A B :
-  noccurs x A -> constr x.+1 L B -> constr x L (Prod A B U)
-| constr_LProd2 x A B :
-  noccurs x A -> active x.+1 B -> constr x L (Prod A B L).
+  pos x A -> active x.+1 B -> noccurs 0 B -> constr x L (Arrow A B L)
+| constr_LArrow1 x A B :
+  noccurs x A -> constr x.+1 L B -> constr x L (Arrow A B U)
+| constr_LArrow2 x A B :
+  noccurs x A -> active x.+1 B -> constr x L (Arrow A B L).
 
 Notation prop := (Sort U None).
 
 Fixpoint arity1 (s : sort) (A : term) : term :=
   match A with
   | Sort _ l => Sort s l
-  | Prod A B t =>
-    Prod A (arity1 s B) t
+  | Arrow A B t =>
+    Arrow A (arity1 s B) t
   | _ => A
   end.
 
 Fixpoint arity2 (s : sort) (I : term) (A : term) : term :=
   match A with
-  | Sort _ l => Prod I (Sort s l) U
-  | Prod A B t =>
-    Prod A (arity2 s (App I.[ren (+1)] (Var 0)) B) t
+  | Sort _ l => Arrow I (Sort s l) U
+  | Arrow A B t =>
+    Arrow A (arity2 s (App I.[ren (+1)] (Var 0)) B) t
   | _ => A
   end.
 
 Fixpoint respine hd sp : term :=
   match sp with
-  | Prod A B s => Lolli A (respine hd.[ren (+1)] B) s
+  | Arrow A B s => Lolli A (respine hd.[ren (+1)] B) s
   | Lolli A B s => Lolli A (respine hd.[ren (+1)] B) s
   | App m n => App (respine hd m) n
   | _ => hd
@@ -149,7 +149,7 @@ Fixpoint respine hd sp : term :=
 
 Fixpoint drespine hd c sp : term :=
   match sp with
-  | Prod A B s => 
+  | Arrow A B s => 
     Lolli A (drespine hd.[ren (+1)] (App c.[ren (+1)] (Var 0)) B) s
   | _ => App (respine hd sp) c
   end.
@@ -167,16 +167,16 @@ Inductive has_type : context term -> term -> term -> Prop :=
 | u_Sort Γ s l : 
   pure Γ ->
   [ Γ |- s @ l :- U @ l.+1 ]
-| u_Prod Γ A B s l :
+| u_Arrow Γ A B s l :
   pure Γ ->
   [ Γ |- A :- U @ l ] ->
   [ A +u Γ |- B :- s @ l ] ->
-  [ Γ |- Prod A B U :- U @ l ]
-| l_Prod Γ A B s l :
+  [ Γ |- Arrow A B U :- U @ l ]
+| l_Arrow Γ A B s l :
   pure Γ ->
   [ Γ |- A :- L @ l ] ->
   [ +n Γ |- B :- s @ l ] ->
-  [ Γ |- Prod A B L :- U @ l ]
+  [ Γ |- Arrow A B L :- U @ l ]
 | u_Lolli Γ A B s l :
   pure Γ ->
   [ Γ |- A :- U @ l ] ->
@@ -195,21 +195,21 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Γ |- Var x :- A ]
 | u_Lam Γ n A B s t l :
   pure Γ ->
-  [ Γ |- Prod A B s :- t @ l ] ->
+  [ Γ |- Arrow A B s :- t @ l ] ->
   [ A +{s} Γ |- n :- B ] ->
-  [ Γ |- Lam A n s :- Prod A B s ]
+  [ Γ |- Lam A n s :- Arrow A B s ]
 | l_Lam Γ n A B s t l :
   [ re Γ |- Lolli A B s :- t @ l ] ->
   [ A +{s} Γ |- n :- B ] ->
   [ Γ |- Lam A n s :- Lolli A B s ]
-| u_Prod_App Γ1 Γ2 Γ A B m n :
+| u_Arrow_App Γ1 Γ2 Γ A B m n :
   pure Γ2 ->
-  [ Γ1 |- m :- Prod A B U ] ->
+  [ Γ1 |- m :- Arrow A B U ] ->
   [ Γ2 |- n :- A ] ->
   merge Γ1 Γ2 Γ ->
   [ Γ |- App m n :- B.[n/] ]
-| l_Prod_App Γ1 Γ2 Γ  A B m n :
-  [ Γ1 |- m :- Prod A B L ] ->
+| l_Arrow_App Γ1 Γ2 Γ  A B m n :
+  [ Γ1 |- m :- Arrow A B L ] ->
   [ Γ2 |- n :- A ] ->
   merge Γ1 Γ2 Γ ->
   [ Γ |- App m n :- B.[n/] ]
@@ -274,16 +274,16 @@ Section has_type_nested_ind.
   Variable P : context term -> term -> term -> Prop.
   Hypothesis ih_u_Sort : forall Γ s l, 
     pure Γ -> P Γ (s @ l) (U @ l.+1).
-  Hypothesis ih_u_Prod : forall Γ A B s l,
+  Hypothesis ih_u_Arrow : forall Γ A B s l,
     pure Γ ->
     [ Γ |- A :- U @ l ] -> P Γ A (U @ l) ->
     [ A +u Γ |- B :- s @ l ] -> P (A +u Γ) B (s @ l) ->
-    P Γ (Prod A B U) (U @ l).
-  Hypothesis ih_l_Prod : forall Γ A B s l,
+    P Γ (Arrow A B U) (U @ l).
+  Hypothesis ih_l_Arrow : forall Γ A B s l,
     pure Γ ->
     [ Γ |- A :- L @ l] -> P Γ A (L @ l) ->
     [ +n Γ |- B :- s @ l ] -> P (+n Γ) B (s @ l) ->
-    P Γ (Prod A B L) (U @ l).
+    P Γ (Arrow A B L) (U @ l).
   Hypothesis ih_u_Lolli : forall Γ A B s l,
     pure Γ ->
     [ Γ |- A :- U @ l ] -> P Γ A (U @ l) ->
@@ -300,25 +300,25 @@ Section has_type_nested_ind.
     hasL Γ x A -> P Γ (Var x) A.
   Hypothesis ih_u_Lam : forall Γ n A B s t l,
     pure Γ ->
-    [ Γ |- Prod A B s :- Sort t l ] -> 
-      P Γ (Prod A B s) (Sort t l) ->
+    [ Γ |- Arrow A B s :- Sort t l ] -> 
+      P Γ (Arrow A B s) (Sort t l) ->
     [ A +{s} Γ |- n :- B ] -> 
       P (A +{s} Γ) n B ->
-    P Γ (Lam A n s) (Prod A B s).
+    P Γ (Lam A n s) (Arrow A B s).
   Hypothesis ih_l_Lam : forall Γ n A B s t l,
     [ re Γ |- Lolli A B s :- Sort t l ] -> 
       P (re Γ) (Lolli A B s) (Sort t l) ->
     [ A +{s} Γ |- n :- B ] ->
       P (A +{s} Γ) n B ->
     P Γ (Lam A n s) (Lolli A B s).
-  Hypothesis ih_u_Prod_App : forall Γ1 Γ2 Γ A B m n,
+  Hypothesis ih_u_Arrow_App : forall Γ1 Γ2 Γ A B m n,
     pure Γ2 ->
-    [ Γ1 |- m :- Prod A B U ] -> P Γ1 m (Prod A B U) ->
+    [ Γ1 |- m :- Arrow A B U ] -> P Γ1 m (Arrow A B U) ->
     [ Γ2 |- n :- A ] -> P Γ2 n A ->
     merge Γ1 Γ2 Γ ->
     P Γ (App m n) B.[n/].
-  Hypothesis ih_l_Prod_App : forall Γ1 Γ2 Γ A B m n,
-    [ Γ1 |- m :- Prod A B L ] -> P Γ1 m (Prod A B L) ->
+  Hypothesis ih_l_Arrow_App : forall Γ1 Γ2 Γ A B m n,
+    [ Γ1 |- m :- Arrow A B L ] -> P Γ1 m (Arrow A B L) ->
     [ Γ2 |- n :- A ] -> P Γ2 n A ->
     merge Γ1 Γ2 Γ ->
     P Γ (App m n) B.[n/].
@@ -390,16 +390,16 @@ Section has_type_nested_ind.
   Proof.
     case pf; intros.
     apply ih_u_Sort; eauto.
-    eapply ih_u_Prod; eauto.
-    eapply ih_l_Prod; eauto.
+    eapply ih_u_Arrow; eauto.
+    eapply ih_l_Arrow; eauto.
     eapply ih_u_Lolli; eauto.
     eapply ih_l_Lolli; eauto.
     apply ih_u_Var; eauto.
     apply ih_l_Var; eauto.
     eapply ih_u_Lam; eauto.
     eapply ih_l_Lam; eauto.
-    eapply ih_u_Prod_App; eauto.
-    eapply ih_l_Prod_App; eauto.
+    eapply ih_u_Arrow_App; eauto.
+    eapply ih_l_Arrow_App; eauto.
     eapply ih_u_Lolli_App; eauto.
     eapply ih_l_Lolli_App; eauto.
     eapply ih_s_Ind; eauto.
@@ -456,11 +456,11 @@ Section has_type_nested_ind.
   Qed.
 End has_type_nested_ind.
 
-Lemma u_Prod_max Γ A B s l1 l2 :
+Lemma u_Arrow_max Γ A B s l1 l2 :
   pure Γ ->
   [ Γ |- A :- U @ l1 ] ->
   [ A +u Γ |- B :- s @ l2 ] ->
-  [ Γ |- Prod A B U :- U @ (maxn l1 l2) ].
+  [ Γ |- Arrow A B U :- U @ (maxn l1 l2) ].
 Proof.
   move=>p tyA tyB.
   have lt1 : l1 <= maxn l1 l2.
@@ -479,14 +479,14 @@ Proof.
     apply: lt2.
     constructor. apply: re_pure.
     apply: tyB.
-  apply: u_Prod; eauto.
+  apply: u_Arrow; eauto.
 Qed.
 
-Lemma l_Prod_max Γ A B s l1 l2 :
+Lemma l_Arrow_max Γ A B s l1 l2 :
   pure Γ ->
   [ Γ |- A :- L @ l1 ] ->
   [ +n Γ |- B :- s @ l2 ] ->
-  [ Γ |- Prod A B L :- U @ (maxn l1 l2) ].
+  [ Γ |- Arrow A B L :- U @ (maxn l1 l2) ].
 Proof.
   move=>p tyA tyB.
   have lt1 : l1 <= maxn l1 l2.
@@ -505,7 +505,7 @@ Proof.
     apply: lt2.
     constructor. apply: re_pure.
     apply: tyB.
-  apply: l_Prod; eauto.
+  apply: l_Arrow; eauto.
 Qed.
 
 Lemma u_Lolli_max Γ A B s l1 l2 :

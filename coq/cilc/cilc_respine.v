@@ -85,7 +85,7 @@ Proof.
 Qed.
 
 Lemma has_type_Ind_False Γ X Cs A B C r s t l :
-  [ Γ |- Ind X Cs s :- C ] -> C <: Prod A B r ->
+  [ Γ |- Ind X Cs s :- C ] -> C <: Arrow A B r ->
   [ Γ |- Ind X Cs s :- t @ l ] -> False.
 Proof.
   move e:(Ind X Cs s)=>I ty.
@@ -258,7 +258,7 @@ Proof.
   { specialize (@H0 (A.[I] +{s} Γ) (up I) 
       Cs..[up (ren (+1))] A0.[ren (+1)] Q.[ren (+1)] n.+1).
     inv H1; try solve[exfalso; solve_spine].
-    { move: (u_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
+    { move: (u_Arrow_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
       have h1 : arity U A0.[ren (+1)].
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U).
@@ -272,7 +272,7 @@ Proof.
       exists L. exists (maxn l1 l0).
       apply: u_Lolli_max; eauto.
       apply: re_pure. }
-    { move: (u_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
+    { move: (u_Arrow_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
       have h1 : arity U A0.[ren (+1)].
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U).
@@ -286,7 +286,7 @@ Proof.
       exists L. exists (maxn l1 l0).
       apply: u_Lolli_max; eauto.
       apply: re_pure. }
-    { move: (u_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
+    { move: (u_Arrow_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
       have h1 : arity L A0.[ren (+1)].
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] L).
@@ -300,7 +300,7 @@ Proof.
       exists L. exists (maxn l1 l0).
       apply: u_Lolli_max; eauto.
       apply: re_pure. }
-    { move: (l_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
+    { move: (l_Arrow_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
       have h1 : arity L A0.[ren (+1)].
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] L).
@@ -314,7 +314,7 @@ Proof.
       exists L. exists (maxn l1 l0).
       apply: l_Lolli_max; eauto.
       apply: re_pure. }
-    { move: (u_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
+    { move: (u_Arrow_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
       have h1 : arity L A0.[ren (+1)].
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] L).
@@ -328,7 +328,7 @@ Proof.
       exists L. exists (maxn l1 l0).
       apply: u_Lolli_max; eauto.
       apply: re_pure. }
-    { move: (l_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
+    { move: (l_Arrow_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
       have h1 : arity L A0.[ren (+1)].
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] L).
@@ -383,7 +383,7 @@ Proof.
     { exists s. exists l0. rewrite H1; simpl; simpl in H3.
       rewrite H1 in H5.
       replace (s @ l0) with (s @ l0).[c/] by eauto.
-      apply: u_Prod_App; eauto.
+      apply: u_Arrow_App; eauto.
       apply: re_pure.
       apply: merge_re_re_re. }
     { rewrite H1 in H2.
@@ -396,7 +396,7 @@ Proof.
   { specialize (@H0 (A.[I] +{s} Γ) (up I) 
     Cs..[up (ren (+1))] A0.[ren (+1)] Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) n.+1).
     inv H1; try solve[exfalso; solve_spine].
-    { move: (u_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
+    { move: (u_Arrow_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
       have h1 : arity U A0.[ren (+1)].
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U).
@@ -408,7 +408,7 @@ Proof.
         apply: eweakeningU; eauto.
         erewrite arity2_ren; eauto.
       have h5 : [A.[I] +u re Γ |- c.[ren (+1)] :- 
-        (Prod A.[I] B.[up I] U).[ren (+1)]].
+        (Arrow A.[I] B.[up I] U).[ren (+1)]].
         apply: eweakeningU; eauto.
       asimpl in h5.
       have h6 : [A.[I] +u re Γ |- ids 0 :- A.[I].[ren (+1)]].
@@ -421,13 +421,13 @@ Proof.
         apply: re_pure.
       pose proof (merge_re_re_re (A.[I] +u Γ)).
       simpl in H1.
-      have h7 := u_Prod_App pr h5 h6 H1.
+      have h7 := u_Arrow_App pr h5 h6 H1.
       asimpl in h7.
       move: (@H0 s0 s' l1 H13 h1 h2 h3 h4 tyB h7)=>[s[l0 tySp]].
       exists L. exists (maxn l1 l0).
       apply: u_Lolli_max; eauto.
       apply: re_pure. }
-    { move: (u_Prod_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
+    { move: (u_Arrow_inv H6)=>[s'[l1[l2[tyA[tyB sb]]]]].
       have h1 : arity U A0.[ren (+1)].
         apply: arity_ren; eauto.
       have h2 : (up I n.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U).
@@ -439,7 +439,7 @@ Proof.
         apply: eweakeningU; eauto.
         erewrite arity2_ren; eauto.
       have h5 : [A.[I] +u re Γ |- c.[ren (+1)] :- 
-        (Prod A.[I] B.[up I] U).[ren (+1)]].
+        (Arrow A.[I] B.[up I] U).[ren (+1)]].
         apply: eweakeningU; eauto.
       asimpl in h5.
       have h6 : [A.[I] +u re Γ |- ids 0 :- A.[I].[ren (+1)]].
@@ -452,7 +452,7 @@ Proof.
         apply: re_pure.
       pose proof (merge_re_re_re (A.[I] +u Γ)).
       simpl in H1.
-      have h7 := u_Prod_App pr h5 h6 H1.
+      have h7 := u_Arrow_App pr h5 h6 H1.
       asimpl in h7.
       move: (@H0 s0 s' l1 H13 h1 h2 h3 h4 tyB h7)=>[s[l0 tySp]].
       exists L. exists (maxn l1 l0).
@@ -482,5 +482,5 @@ Proof.
     rewrite respine_spine_Ind.
     exists s. exists l0. 
     replace (s @ l0) with (s @ l0).[c/] by eauto.
-    apply: u_Prod_App; eauto. }
+    apply: u_Arrow_App; eauto. }
 Qed.

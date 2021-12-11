@@ -72,14 +72,14 @@ Proof.
     apply: H.
 Qed.
 
-Lemma u_Prod_inv Γ A B C :
-  [ Γ |- Prod A B U :- C ] ->
+Lemma u_Arrow_inv Γ A B C :
+  [ Γ |- Arrow A B U :- C ] ->
   exists s l l',
     [ Γ |- A :- Sort U l ] /\ 
     [ A +u Γ |- B :- Sort s l ] /\
     Sort U l' <: C.
 Proof.
-  move e:(Prod A B U)=> n ty. elim: ty A B e =>//={Γ n}.
+  move e:(Arrow A B U)=> n ty. elim: ty A B e =>//={Γ n}.
   move=> Γ A B s l p tyA _ tyB _ A' B' [->->].
     exists s. 
     exists l.
@@ -94,14 +94,14 @@ Proof.
     apply: sub_trans; eauto.
 Qed.
 
-Lemma l_Prod_inv Γ A B C :
-  [ Γ |- Prod A B L :- C ] ->
+Lemma l_Arrow_inv Γ A B C :
+  [ Γ |- Arrow A B L :- C ] ->
   exists s l l',
     [ Γ |- A :- Sort L l ] /\ 
     [ +n Γ |- B :- Sort s l ] /\
     Sort U l' <: C.
 Proof.
-  move e:(Prod A B L)=> n ty. elim: ty A B e=>//={Γ n}.
+  move e:(Arrow A B L)=> n ty. elim: ty A B e=>//={Γ n}.
   move=> Γ A B s l p tyA ihA tyB ihB A' B' [->->].
     exists s.
     exists l.
@@ -161,27 +161,27 @@ Qed.
 
 Lemma u_Lam_invX Γ A0 A1 B C s0 s1 m t l :
   [ Γ |- Lam A0 m s0 :- C ] ->
-  (C <: Prod A1 B s1 /\ [ re (A1 +{s1} Γ) |- B :- Sort t l ]) ->
+  (C <: Arrow A1 B s1 /\ [ re (A1 +{s1} Γ) |- B :- Sort t l ]) ->
   [ A1 +{s1} Γ |- m :- B ].
 Proof.
   move e:(Lam A0 m s0)=> n ty. 
   elim: ty A0 A1 B s0 s1 t l e=>{Γ C n}; intros; try discriminate.
   inv e. inv H4.
-    move: (sub_Prod_inv H5)=>[_[sb e]]; subst.
+    move: (sub_Arrow_inv H5)=>[_[sb e]]; subst.
     move: (pure_re H)=> e.
     rewrite e in H0.
     destruct s1.
-    move: H0=>/u_Prod_inv[s[l1[l2[tyA [tyB _]]]]].
+    move: H0=>/u_Arrow_inv[s[l1[l2[tyA [tyB _]]]]].
       apply: s_Conv; eauto.
-      move: H5=>/sub_Prod_inv[eA _].
+      move: H5=>/sub_Arrow_inv[eA _].
       apply: context_convU.
       apply: conv_sym.
       apply: eA.
       apply tyA.
       apply: H2.
-    move: H0=>/l_Prod_inv[s[l1[l2[tyA [tyB _]]]]].
+    move: H0=>/l_Arrow_inv[s[l1[l2[tyA [tyB _]]]]].
       apply: s_Conv; eauto.
-      move: H5=>/sub_Prod_inv[eA _].
+      move: H5=>/sub_Arrow_inv[eA _].
       apply: context_convL.
       apply: conv_sym.
       apply: eA.
@@ -228,14 +228,14 @@ Proof.
 Qed.
 
 Lemma u_Lam_inv Γ A0 A1 B s0 s1 m t l :
-  [ re Γ |- Prod A1 B s1 :- Sort t l ] ->
-  [ Γ |- Lam A0 m s0 :- Prod A1 B s1 ] ->
+  [ re Γ |- Arrow A1 B s1 :- Sort t l ] ->
+  [ Γ |- Lam A0 m s0 :- Arrow A1 B s1 ] ->
   [ A1 +{s1} Γ |- m :- B ].
 Proof.
   destruct s1.
-  move=> /u_Prod_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
+  move=> /u_Arrow_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
     apply: u_Lam_invX; eauto.
-  move=> /l_Prod_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
+  move=> /l_Arrow_inv=>[[s[l1[l2[tyA [tyB _]]]]] ty].
     apply: u_Lam_invX; eauto.
 Qed.
 

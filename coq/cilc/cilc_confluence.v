@@ -37,11 +37,11 @@ Inductive pstep : term -> term -> Prop :=
   pstep m m' ->
   pstep n n' ->
   pstep (App (Lam A m s) n) (m'.[n'/])
-| pstep_Prod A A' s B B' :
+| pstep_Arrow A A' s B B' :
   pstep A A' ->
   pstep B B' ->
-  pstep (Prod A B s) 
-        (Prod A' B' s)
+  pstep (Arrow A B s) 
+        (Arrow A' B' s)
 | pstep_Lolli A A' s B B' :
   pstep A A' ->
   pstep B B' ->
@@ -100,9 +100,9 @@ Section pstep_ind_nested.
   Hypothesis ih_Beta :
     forall A m m' n n' s, pstep m m' -> P m m' -> pstep n n' -> P n n' ->
       P (App (Lam A m s) n) m'.[n'/].
-  Hypothesis ih_Prod :
+  Hypothesis ih_Arrow :
     forall A A' B B' s, pstep A A' -> P A A' -> pstep B B' -> P B B' ->
-      P (Prod A B s) (Prod A' B' s).
+      P (Arrow A B s) (Arrow A' B' s).
   Hypothesis ih_Lolli :
     forall A A' B B' s, pstep A A' -> P A A' -> pstep B B' -> P B B' ->
       P (Lolli A B s) (Lolli A' B' s).
@@ -159,7 +159,7 @@ Section pstep_ind_nested.
     apply ih_Lam; eauto.
     apply ih_App; eauto.
     apply ih_Beta; eauto.
-    apply ih_Prod; eauto.
+    apply ih_Arrow; eauto.
     apply ih_Lolli; eauto.
     apply ih_Ind; eauto.
     apply ih_Constr; eauto.
@@ -381,12 +381,12 @@ Proof.
   apply: (star_hom ((Lam A2)^~ s)) B=> x y. exact: step_LamR. 
 Qed.
 
-Lemma red_Prod A1 A2 B1 B2 s :
-  red A1 A2 -> red B1 B2 -> red (Prod A1 B1 s) (Prod A2 B2 s).
+Lemma red_Arrow A1 A2 B1 B2 s :
+  red A1 A2 -> red B1 B2 -> red (Arrow A1 B1 s) (Arrow A2 B2 s).
 Proof.
-  move=> A B. apply: (star_trans (Prod A2 B1 s)).
-  apply: (star_hom ((Prod^~ B1)^~ s)) A=> x y. exact: step_ProdL.
-  apply: (star_hom ((Prod A2)^~ s)) B => x y. exact: step_ProdR.
+  move=> A B. apply: (star_trans (Arrow A2 B1 s)).
+  apply: (star_hom ((Arrow^~ B1)^~ s)) A=> x y. exact: step_ArrowL.
+  apply: (star_hom ((Arrow A2)^~ s)) B => x y. exact: step_ArrowR.
 Qed.
 
 Lemma red_Lolli A1 A2 B1 B2 s :
@@ -548,7 +548,7 @@ Proof.
 Qed.
 
 Hint Resolve 
-  red_App red_Lam red_Prod red_Lolli 
+  red_App red_Lam red_Arrow red_Lolli 
   red_Ind red_Constr red_Case red_DCase red_Fix
   red_ls red_subst sred_up 
 : red_congr.
@@ -581,14 +581,14 @@ Proof.
   apply: (conv_hom ((Lam A2)^~ s)) B=> x y. exact: step_LamR.
 Qed.
 
-Lemma conv_Prod A1 A2 s B1 B2 :
-  A1 === A2 -> B1 === B2 -> Prod A1 B1 s === Prod A2 B2 s.
+Lemma conv_Arrow A1 A2 s B1 B2 :
+  A1 === A2 -> B1 === B2 -> Arrow A1 B1 s === Arrow A2 B2 s.
 Proof.
   move=> A B.
-  apply: (conv_trans (Prod A2 B1 s)).
-  apply: (conv_hom ((Prod^~ B1)^~ s)) A => x y ps.
+  apply: (conv_trans (Arrow A2 B1 s)).
+  apply: (conv_hom ((Arrow^~ B1)^~ s)) A => x y ps.
     by constructor.
-  apply: (conv_hom ((Prod A2)^~ s)) B => x y ps.
+  apply: (conv_hom ((Arrow A2)^~ s)) B => x y ps.
     by constructor.
 Qed.
 
@@ -759,7 +759,7 @@ Proof.
 Qed.
 
 Hint Resolve 
-  conv_App conv_Lam conv_Prod conv_Lolli 
+  conv_App conv_Lam conv_Arrow conv_Lolli 
   conv_Ind conv_Constr conv_Case conv_DCase conv_Fix
   conv_ls conv_subst sconv_up 
 : conv_congr.
@@ -1164,7 +1164,7 @@ Proof.
   move=> A A' B B' s pA ihA pB ihB t p. inv p.
     move: H3=> /ihA [Ax [pAx1 pAx2]].
     move: H4=> /ihB [Bx [pBx1 pBx2]].
-    exists (Prod Ax Bx s)...
+    exists (Arrow Ax Bx s)...
   move=> A A' B B' s pA ihA pB ihB t p. inv p.
     move: H3=> /ihA [Ax [pAx1 pAx2]].
     move: H4=> /ihB [Bx [pBx1 pBx2]].
@@ -1289,12 +1289,12 @@ Proof.
   inv st; eauto.
 Qed.
 
-Lemma red_Prod_inv A B s x :
-  red (Prod A B s) x -> 
+Lemma red_Arrow_inv A B s x :
+  red (Arrow A B s) x -> 
   exists A' B',
     red A A' /\
     red B B' /\
-    x = Prod A' B' s.
+    x = Arrow A' B' s.
 Proof.
   elim; eauto.
   move=> y z rd [A'[B'[rA[rB e]]]] st; subst.
@@ -1381,13 +1381,13 @@ Proof.
   move: H0=> /red_Sort_inv [->->]; eauto.
 Qed.
 
-Lemma Prod_inj A A' B B' s s' :
-  Prod A B s === Prod A' B' s' ->
+Lemma Arrow_inj A A' B B' s s' :
+  Arrow A B s === Arrow A' B' s' ->
   A === A' /\ B === B' /\ s = s'.
 Proof.
   move=> /church_rosser h. inv h.
-  move: H=> /red_Prod_inv[Ax[Bx[rA[rB e]]]]; subst.
-  move: H0=> /red_Prod_inv[Ax'[Bx'[rA'[rB' [e1 e2]]]]] ->; subst.
+  move: H=> /red_Arrow_inv[Ax[Bx[rA[rB e]]]]; subst.
+  move: H0=> /red_Arrow_inv[Ax'[Bx'[rA'[rB' [e1 e2]]]]] ->; subst.
   firstorder; eauto using join_conv.
 Qed.
 
@@ -1532,7 +1532,7 @@ Ltac red_inv m H :=
   match m with
   | Var    => apply red_Var_inv in H
   | Sort   => apply red_Sort_inv in H
-  | Prod   => apply red_Prod_inv in H
+  | Arrow   => apply red_Arrow_inv in H
   | Lolli  => apply red_Lolli_inv in H
   | Lam    => apply red_Lam_inv in H
   | Ind    => apply red_Ind_inv in H

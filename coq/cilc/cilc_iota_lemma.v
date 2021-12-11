@@ -214,7 +214,7 @@ Proof.
     move: H=>/red_spine'_Ind[Ax[Csx[msx[e _]]]].
     exfalso; solve_spine'. }
   { move: c=>/church_rosser h. inv h.
-    move: H0=>/red_Prod_inv[Ax[Bx[_[_ e]]]]; subst.
+    move: H0=>/red_Arrow_inv[Ax[Bx[_[_ e]]]]; subst.
     move: H=>/red_spine'_Ind[Ay[Csy[msy[e _]]]].
     exfalso; solve_spine'. }
   { move: c=>/church_rosser h. inv h.
@@ -240,9 +240,9 @@ Ltac solve_sub_spine_trans H1 H2 :=
   have x := conv_trans _ H1 H2;
   have h := church_rosser x; inv h;
   match goal with
-  | [ H1 : red (Prod _ _ _) ?x,
+  | [ H1 : red (Arrow _ _ _) ?x,
       H2 : red (spine (Ind _ _ _) _) ?x |- _ ] =>
-    move: H1=>/red_Prod_inv; firstorder; subst;
+    move: H1=>/red_Arrow_inv; firstorder; subst;
     move: H2=>/red_spine_Ind; firstorder; subst;
     solve_spine
   | [ H1 : red (Lolli _ _ _) ?x,
@@ -254,10 +254,10 @@ Ltac solve_sub_spine_trans H1 H2 :=
 
 Ltac solve_sub_spine' :=
   match goal with
-  | [ H : spine (Ind _ _ _ ) _ === Prod _ _ _ |- _ ] =>
+  | [ H : spine (Ind _ _ _ ) _ === Arrow _ _ _ |- _ ] =>
     let h := fresh "h" in
     have h := church_rosser H; inv h
-  | [ H : Prod _ _ _ === spine (Ind _ _ _ ) _ |- _ ] =>
+  | [ H : Arrow _ _ _ === spine (Ind _ _ _ ) _ |- _ ] =>
     let h := fresh "h" in
     have h := church_rosser H; inv h
   | [ H : Lolli _ _ _ === spine (Ind _ _ _ ) _ |- _ ] =>
@@ -269,9 +269,9 @@ Ltac solve_sub_spine' :=
   | _ => solve_conv
   end;
   match goal with
-  | [ H1 : red (Prod _ _ _) ?x,
+  | [ H1 : red (Arrow _ _ _) ?x,
       H2 : red (spine (Ind _ _ _) _) ?x |- _ ] =>
-    move: H1=>/red_Prod_inv; firstorder; subst;
+    move: H1=>/red_Arrow_inv; firstorder; subst;
     move: H2=>/red_spine_Ind; firstorder; subst;
     solve_spine
   | [ H1 : red (Lolli _ _ _) ?x,
@@ -283,9 +283,9 @@ Ltac solve_sub_spine' :=
 
 Ltac solve_sub_spine :=
   match goal with
-  | [ H : spine (Ind _ _ _ ) _ <: Prod _ _ _ |- _ ] =>
+  | [ H : spine (Ind _ _ _ ) _ <: Arrow _ _ _ |- _ ] =>
     move: H=>[_ _ []]; intros
-  | [ H : Prod _ _ _ <: spine (Ind _ _ _ ) _ |- _ ] =>
+  | [ H : Arrow _ _ _ <: spine (Ind _ _ _ ) _ |- _ ] =>
     move: H=>[_ _ []]; intros
   | [ H : spine (Ind _ _ _ ) _ <: Lolli _ _ _ |- _ ] =>
     move: H=>[_ _ []]; intros
@@ -295,13 +295,13 @@ Ltac solve_sub_spine :=
   end;
   try match goal with
   | [ H1 : spine (Ind _ _ _) _ === ?x,
-      H2 : ?x === Prod _ _ _ |- _ ] =>
+      H2 : ?x === Arrow _ _ _ |- _ ] =>
     solve_sub_spine_trans H1 H2
   | [ H1 : spine (Ind _ _ _) _ === ?x,
       H2 : ?x === Lolli _ _ _ |- _ ] =>
     solve_sub_spine_trans H1 H2
   | [ H1 : ?x === spine (Ind _ _ _) _,
-      H2 : Prod _ _ _ === ?x |- _ ] =>
+      H2 : Arrow _ _ _ === ?x |- _ ] =>
     solve_sub_spine_trans H2 H1
   | [ H1 : ?x === spine (Ind _ _ _) _,
       H2 : Lolli _ _ _ === ?x |- _ ] =>
@@ -402,13 +402,13 @@ Proof.
     rewrite H1.
     apply: typing_spine_Ind_Ind; eauto. }
   { simpl in H3. inv H3; try solve [exfalso; solve_sub_spine].
-    { move: H6=>/sub_Prod_inv; firstorder.
+    { move: H6=>/sub_Arrow_inv; firstorder.
       have sb : B.[up I].[hd/] <: B0.[hd/].
         apply: sub_subst; eauto.
       asimpl in sb.
       have e : (hd .: I) x.+1 = Ind A0 Cs U.
         asimpl; eauto.
-      move: (u_Prod_inv H7)=>[s[l1[l2[tyA[tyB _]]]]].
+      move: (u_Arrow_inv H7)=>[s[l1[l2[tyA[tyB _]]]]].
       have mg : merge Γ1 Γ1 Γ1.
         by apply: merge_pure.
       move: (merge_re_re H9)=>[e1 e2].
@@ -418,16 +418,16 @@ Proof.
       rewrite e1 in tyB. rewrite<-e2 in tyB.
       move: (typing_spine_strengthen H10 sb tyB)=>tySp.
       move: (H1 Γ2 (hd .: I) A0 A' Cs Cs' s' tl ms' tySp); eauto. }
-    { move: H5=>/sub_Prod_inv; firstorder. 
+    { move: H5=>/sub_Arrow_inv; firstorder. 
       discriminate. } }
   { simpl in H2. inv H2; try solve [exfalso; solve_sub_spine].
-    { move: H5=>/sub_Prod_inv; firstorder.
+    { move: H5=>/sub_Arrow_inv; firstorder.
       have sb : B.[up I].[hd/] <: B0.[hd/].
         apply: sub_subst; eauto.
       asimpl in sb.
       have e : (hd .: I) x.+1 = Ind A0 Cs U.
         asimpl; eauto.
-      move: (u_Prod_inv H6)=>[s[l1[l2[tyA[tyB _]]]]].
+      move: (u_Arrow_inv H6)=>[s[l1[l2[tyA[tyB _]]]]].
       have mg : merge Γ1 Γ1 Γ1.
         by apply: merge_pure.
       move: (merge_re_re H8)=>[e1 e2].
@@ -437,16 +437,16 @@ Proof.
       rewrite e1 in tyB. rewrite<-e2 in tyB.
       move: (typing_spine_strengthen H9 sb tyB)=>tySp.
       move: (H1 Γ2 (hd .: I) A0 A' Cs Cs' s' tl ms' tySp); eauto. }
-    { move: H4=>/sub_Prod_inv; firstorder.
+    { move: H4=>/sub_Arrow_inv; firstorder.
       discriminate. } }
   { simpl in H3. inv H3; try solve [exfalso; solve_sub_spine].
-    { move: H6=>/sub_Prod_inv; firstorder.
+    { move: H6=>/sub_Arrow_inv; firstorder.
       have sb : B.[up I].[hd/] <: B0.[hd/].
         apply: sub_subst; eauto.
       asimpl in sb.
       have e : (hd .: I) x.+1 = Ind A0 Cs L.
         asimpl; eauto.
-      move: (u_Prod_inv H7)=>[s[l1[l2[tyA[tyB _]]]]].
+      move: (u_Arrow_inv H7)=>[s[l1[l2[tyA[tyB _]]]]].
       have mg : merge Γ1 Γ1 Γ1.
         by apply: merge_pure.
       move: (merge_re_re H9)=>[e1 e2].
@@ -456,31 +456,31 @@ Proof.
       rewrite e1 in tyB. rewrite<-e2 in tyB.
       move: (typing_spine_strengthen H10 sb tyB)=>tySp.
       move: (H1 Γ2 (hd .: I) A0 A' Cs Cs' s' tl ms' tySp); eauto. }
-    { move: H5=>/sub_Prod_inv; firstorder. 
+    { move: H5=>/sub_Arrow_inv; firstorder. 
       discriminate. } }
   { simpl in H2. inv H2; try solve [exfalso; solve_sub_spine].
-    { move: H5=>/sub_Prod_inv; firstorder.
+    { move: H5=>/sub_Arrow_inv; firstorder.
       discriminate. }
-    { move: H4=>/sub_Prod_inv; firstorder.
+    { move: H4=>/sub_Arrow_inv; firstorder.
       have sb : B.[up I].[hd/] <: B0.[hd/].
         apply: sub_subst; eauto.
       asimpl in sb.
       have e : (hd .: I) x.+1 = Ind A0 Cs L.
         asimpl; eauto.
-      move: (l_Prod_inv H5)=>[s[l1[l2[tyA[tyB _]]]]].
+      move: (l_Arrow_inv H5)=>[s[l1[l2[tyA[tyB _]]]]].
       move: (merge_re_re H7)=>[e1 e2].
       move: (substitutionN tyB H6)=>//={}tyB.
       rewrite e1 in tyB. rewrite<-e2 in tyB.
       move: (typing_spine_strengthen H8 sb tyB)=>tySp.
       move: (typing_spine_active_Ind H0 tySp e); eauto. } }
   { simpl in H2. inv H2; try solve [exfalso; solve_sub_spine].
-    { move: H5=>/sub_Prod_inv; firstorder.
+    { move: H5=>/sub_Arrow_inv; firstorder.
       have sb : B.[up I].[hd/] <: B0.[hd/].
         apply: sub_subst; eauto.
       asimpl in sb.
       have e : (hd .: I) x.+1 = Ind A0 Cs L.
         asimpl; eauto.
-      move: (u_Prod_inv H6)=>[s[l1[l2[tyA[tyB _]]]]].
+      move: (u_Arrow_inv H6)=>[s[l1[l2[tyA[tyB _]]]]].
       have mg : merge Γ1 Γ1 Γ1.
         by apply: merge_pure.
       move: (merge_re_re H8)=>[e1 e2].
@@ -490,18 +490,18 @@ Proof.
       rewrite e1 in tyB. rewrite<-e2 in tyB.
       move: (typing_spine_strengthen H9 sb tyB)=>tySp.
       move: (H1 Γ2 (hd .: I) A0 A' Cs Cs' s' tl ms' tySp); eauto. }
-    { move: H4=>/sub_Prod_inv; firstorder.
+    { move: H4=>/sub_Arrow_inv; firstorder.
       discriminate. } }
   { simpl in H1. inv H1; try solve [exfalso; solve_sub_spine].
-    { move: H4=>/sub_Prod_inv; firstorder.
+    { move: H4=>/sub_Arrow_inv; firstorder.
       discriminate. }
-    { move: H3=>/sub_Prod_inv; firstorder.
+    { move: H3=>/sub_Arrow_inv; firstorder.
       have sb : B.[up I].[hd/] <: B0.[hd/].
         apply: sub_subst; eauto.
       asimpl in sb.
       have e : (hd .: I) x.+1 = Ind A0 Cs L.
         asimpl; eauto.
-      move: (l_Prod_inv H4)=>[s[l1[l2[tyA[tyB _]]]]].
+      move: (l_Arrow_inv H4)=>[s[l1[l2[tyA[tyB _]]]]].
       move: (merge_re_re H6)=>[e1 e2].
       move: (substitutionN tyB H5)=>//={}tyB.
       rewrite e1 in tyB. rewrite<-e2 in tyB.
@@ -527,7 +527,7 @@ Qed.
 
 Lemma typing_spine_Ind_Q2 Γ A Q Cs ms1 ms2 ms c s l :
   typing_spine Γ (spine (Ind A Cs U) ms1) ms (spine (Ind A Cs U) ms2) ->
-  [ re Γ |- spine Q ms2 :- Prod (spine (Ind A Cs U) ms2) (s @ l) U ] ->
+  [ re Γ |- spine Q ms2 :- Arrow (spine (Ind A Cs U) ms2) (s @ l) U ] ->
   [ re Γ |- c :- spine (Ind A Cs U) ms1 ] ->
   typing_spine Γ (App (spine Q ms1) c) ms (App (spine Q ms2) (spine c ms)).
 Proof.
@@ -541,7 +541,7 @@ Proof.
   have tyC : [ Γ |- c :- spine (Ind A0 Cs U) ms2 ].
     apply: s_Conv; eauto.
     rewrite<-pure_re; eauto.
-  have //=h1 := u_Prod_App H H2 tyC mg.
+  have //=h1 := u_Arrow_App H H2 tyC mg.
   apply: typing_spine_nil; eauto.
   move: H0=>/sub_spine_Ind[_ a2].
   apply: conv_sub.
@@ -813,10 +813,10 @@ Proof.
     apply: typing_spine_Ind_Q1; eauto. }
   { rewrite H4 in H3. 
     inv H3; try solve[exfalso; solve_sub_spine].
-    { apply sub_Prod_inv in H11; firstorder.
+    { apply sub_Arrow_inv in H11; firstorder.
       move: (merge_re_re H14)=>[e1 e2].
-      move: (u_Prod_inv H12); firstorder.
-      move: (u_Prod_inv H6); firstorder.
+      move: (u_Arrow_inv H12); firstorder.
+      move: (u_Arrow_inv H6); firstorder.
       move: (s_Ind_inv H7); firstorder.
       have a : arity U A0.[ren (+1)].
       { apply: arity_ren; eauto. }
@@ -874,13 +874,13 @@ Proof.
         { rewrite e2; eauto. }
         { rewrite e2; eauto. }
         { rewrite e2; eauto. } } }
-    { apply sub_Prod_inv in H10; firstorder; discriminate. } }
+    { apply sub_Arrow_inv in H10; firstorder; discriminate. } }
   { rewrite H3 in H2. 
     inv H2; try solve[exfalso; solve_sub_spine].
-    { apply sub_Prod_inv in H10; firstorder.
+    { apply sub_Arrow_inv in H10; firstorder.
       move: (merge_re_re H13)=>[e1 e2].
-      move: (u_Prod_inv H11); firstorder.
-      move: (u_Prod_inv H5); firstorder.
+      move: (u_Arrow_inv H11); firstorder.
+      move: (u_Arrow_inv H5); firstorder.
       move: (s_Ind_inv H6); firstorder.
       have a : arity U A0.[ren (+1)].
       { apply: arity_ren; eauto. }
@@ -938,13 +938,13 @@ Proof.
         { rewrite e2; eauto. }
         { rewrite e2; eauto. }
         { rewrite e2; eauto. } } }
-    { apply sub_Prod_inv in H9; firstorder; discriminate. } }
+    { apply sub_Arrow_inv in H9; firstorder; discriminate. } }
   { rewrite H4 in H3. 
     inv H3; try solve[exfalso; solve_sub_spine].
-    { apply sub_Prod_inv in H11; firstorder.
+    { apply sub_Arrow_inv in H11; firstorder.
       move: (merge_re_re H14)=>[e1 e2].
-      move: (u_Prod_inv H12); firstorder.
-      move: (u_Prod_inv H6); firstorder.
+      move: (u_Arrow_inv H12); firstorder.
+      move: (u_Arrow_inv H6); firstorder.
       move: (s_Ind_inv H7); firstorder.
       have a : arity L A0.[ren (+1)].
       { apply: arity_ren; eauto. }
@@ -1002,14 +1002,14 @@ Proof.
         { rewrite e2; eauto. }
         { rewrite e2; eauto. }
         { rewrite e2; eauto. } } }
-    { apply sub_Prod_inv in H10; firstorder; discriminate. } }
+    { apply sub_Arrow_inv in H10; firstorder; discriminate. } }
   { rewrite H3 in H2. 
     inv H2; try solve[exfalso; solve_sub_spine].
-    { apply sub_Prod_inv in H10; firstorder; discriminate. }
-    { apply sub_Prod_inv in H9; firstorder.
+    { apply sub_Arrow_inv in H10; firstorder; discriminate. }
+    { apply sub_Arrow_inv in H9; firstorder.
       move: (merge_re_re H12)=>[e1 e2].
-      move: (l_Prod_inv H10); firstorder.
-      move: (l_Prod_inv H5); firstorder.
+      move: (l_Arrow_inv H10); firstorder.
+      move: (l_Arrow_inv H5); firstorder.
       move: (s_Ind_inv H6); firstorder.
       have a : arity L A0.[ren (+1)].
       { apply: arity_ren; eauto. }
@@ -1056,10 +1056,10 @@ Proof.
         { rewrite e2; eauto. } } } }
   { rewrite H3 in H2. 
     inv H2; try solve[exfalso; solve_sub_spine].
-    { apply sub_Prod_inv in H10; firstorder.
+    { apply sub_Arrow_inv in H10; firstorder.
       move: (merge_re_re H13)=>[e1 e2].
-      move: (u_Prod_inv H11); firstorder.
-      move: (u_Prod_inv H5); firstorder.
+      move: (u_Arrow_inv H11); firstorder.
+      move: (u_Arrow_inv H5); firstorder.
       move: (s_Ind_inv H6); firstorder.
       have a : arity L A0.[ren (+1)].
       { apply: arity_ren; eauto. }
@@ -1117,14 +1117,14 @@ Proof.
         { rewrite e2; eauto. }
         { rewrite e2; eauto. }
         { rewrite e2; eauto. } } }
-    { apply sub_Prod_inv in H9; firstorder; discriminate. } }
+    { apply sub_Arrow_inv in H9; firstorder; discriminate. } }
   { rewrite H2 in H1. 
     inv H1; try solve[exfalso; solve_sub_spine].
-    { apply sub_Prod_inv in H9; firstorder; discriminate. }
-    { apply sub_Prod_inv in H8; firstorder.
+    { apply sub_Arrow_inv in H9; firstorder; discriminate. }
+    { apply sub_Arrow_inv in H8; firstorder.
       move: (merge_re_re H11)=>[e1 e2].
-      move: (l_Prod_inv H9); firstorder.
-      move: (l_Prod_inv H4); firstorder.
+      move: (l_Arrow_inv H9); firstorder.
+      move: (l_Arrow_inv H4); firstorder.
       move: (s_Ind_inv H5); firstorder.
       have a : arity L A0.[ren (+1)].
       { apply: arity_ren; eauto. }
@@ -1180,7 +1180,7 @@ Lemma typing_spine_constr2 Γ A Cs C I Q ms1 ms2 c s t1 t2 l1 l2 n :
   [ re Γ |- c :- C.[I] ] ->
   [ re Γ |- Ind A Cs U :- A ] ->
   [ re Γ |- Q :- arity2 s (Ind A Cs U) A ] ->
-  [ re Γ |- spine Q ms2 :- Prod (spine (Ind A Cs U) ms2) (t2 @ l2) U ] ->
+  [ re Γ |- spine Q ms2 :- Arrow (spine (Ind A Cs U) ms2) (t2 @ l2) U ] ->
   typing_spine Γ 
     (drespine Q c C.[I]) ms1 (App (spine Q ms2) (spine c ms1)).
 Proof.
@@ -1199,10 +1199,10 @@ Proof.
     apply: typing_spine_Ind_Q2; eauto. }
   { rewrite H4 in H3. 
     inv H3; try solve[exfalso; solve_sub_spine].
-    { apply sub_Prod_inv in H12; firstorder.
+    { apply sub_Arrow_inv in H12; firstorder.
       move: (merge_re_re H15)=>[e1 e2].
-      move: (u_Prod_inv H13); firstorder.
-      move: (u_Prod_inv H6); firstorder.
+      move: (u_Arrow_inv H13); firstorder.
+      move: (u_Arrow_inv H6); firstorder.
       move: (s_Ind_inv H8); firstorder.
       have a : arity U A0.[ren (+1)].
       { apply: arity_ren; eauto. }
@@ -1244,7 +1244,7 @@ Proof.
       have h13 : pure (A1 +u re Γ).
       { constructor. apply: re_pure. }
       have h14 : [ A1 +u re Γ |- c.[ren (+1)] :- 
-        (Prod A.[I] B.[up I] U).[ren (+1)] ].
+        (Arrow A.[I] B.[up I] U).[ren (+1)] ].
       { apply: eweakeningU; eauto. }
       asimpl in h14.
       have h15 : [ A1 +u re Γ |- ids 0 :- A.[I].[ren (+1)] ].
@@ -1256,7 +1256,7 @@ Proof.
         apply: re_pure. }
       asimpl in h15.
       have h16 := merge_re_re_re (A1 +u Γ).
-      have h17 := u_Prod_App h13 h14 h15 h16.
+      have h17 := u_Arrow_App h13 h14 h15 h16.
       asimpl in h17.
       pose proof
       (@constr_drespine (A1 +u Γ) (up I) Cs..[up (ren (+1))] A0.[ren (+1)]
@@ -1277,7 +1277,7 @@ Proof.
         asimpl.
         apply: H1; eauto.
         { replace B.[hd .: I] with B.[up I].[hd/] by autosubst.
-          apply: u_Prod_App.
+          apply: u_Arrow_App.
           2:{ apply: H7. }
           2:{ apply: s_Conv. 
               apply: conv_sub.
@@ -1291,13 +1291,13 @@ Proof.
         { rewrite e2; eauto. }
         { rewrite e2; eauto. }
         { rewrite e2; eauto. } } }
-    { apply sub_Prod_inv in H11; firstorder; discriminate. } }
+    { apply sub_Arrow_inv in H11; firstorder; discriminate. } }
   { rewrite H3 in H2. 
     inv H2; try solve[exfalso; solve_sub_spine].
-    { apply sub_Prod_inv in H11; firstorder.
+    { apply sub_Arrow_inv in H11; firstorder.
       move: (merge_re_re H14)=>[e1 e2].
-      move: (u_Prod_inv H12); firstorder.
-      move: (u_Prod_inv H5); firstorder.
+      move: (u_Arrow_inv H12); firstorder.
+      move: (u_Arrow_inv H5); firstorder.
       move: (s_Ind_inv H7); firstorder.
       have a : arity U A0.[ren (+1)].
       { apply: arity_ren; eauto. }
@@ -1339,7 +1339,7 @@ Proof.
       have h13 : pure (A1 +u re Γ).
       { constructor. apply: re_pure. }
       have h14 : [ A1 +u re Γ |- c.[ren (+1)] :- 
-        (Prod A.[I] B.[up I] U).[ren (+1)] ].
+        (Arrow A.[I] B.[up I] U).[ren (+1)] ].
       { apply: eweakeningU; eauto. }
       asimpl in h14.
       have h15 : [ A1 +u re Γ |- ids 0 :- A.[I].[ren (+1)] ].
@@ -1351,7 +1351,7 @@ Proof.
         apply: re_pure. }
       asimpl in h15.
       have h16 := merge_re_re_re (A1 +u Γ).
-      have h17 := u_Prod_App h13 h14 h15 h16.
+      have h17 := u_Arrow_App h13 h14 h15 h16.
       asimpl in h17.
       pose proof
       (@constr_drespine (A1 +u Γ) (up I) Cs..[up (ren (+1))] A0.[ren (+1)]
@@ -1372,7 +1372,7 @@ Proof.
         asimpl.
         apply: H1; eauto.
         { replace B.[hd .: I] with B.[up I].[hd/] by autosubst.
-          apply: u_Prod_App.
+          apply: u_Arrow_App.
           2:{ apply: H6. }
           2:{ apply: s_Conv. 
               apply: conv_sub.
@@ -1386,5 +1386,5 @@ Proof.
         { rewrite e2; eauto. }
         { rewrite e2; eauto. }
         { rewrite e2; eauto. } } }
-    { apply sub_Prod_inv in H10; firstorder; discriminate. } }
+    { apply sub_Arrow_inv in H10; firstorder; discriminate. } }
 Qed.

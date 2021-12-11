@@ -9,7 +9,7 @@ Unset Printing Implicit Defensive.
 Inductive term : Type :=
 | Var    (x : var)
 | Sort   (s : sort) (l : nat)
-| Prod   (A : term) (B : {bind term}) (s : sort)
+| Arrow   (A : term) (B : {bind term}) (s : sort)
 | Lolli  (A : term) (B : {bind term}) (s : sort)
 | Lam    (A : term) (m : {bind term}) (s : sort)
 | App    (m n : term)
@@ -23,7 +23,7 @@ Section term_ind_nested.
   Variable P : term -> Prop.
   Hypothesis ih_Var : forall x, P (Var x).
   Hypothesis ih_Sort : forall s l, P (Sort s l).
-  Hypothesis ih_Prod : forall A B s, P A -> P B -> P (Prod A B s).
+  Hypothesis ih_Arrow : forall A B s, P A -> P B -> P (Arrow A B s).
   Hypothesis ih_Lolli : forall A B s, P A -> P B -> P (Lolli A B s).
   Hypothesis ih_Lam : forall A m s, P A -> P m -> P (Lam A m s).
   Hypothesis ih_App : forall m n, P m -> P n -> P (App m n).
@@ -46,7 +46,7 @@ Section term_ind_nested.
     case m; intros.
     apply ih_Var.
     apply ih_Sort.
-    apply ih_Prod; eauto.
+    apply ih_Arrow; eauto.
     apply ih_Lolli; eauto.
     apply ih_Lam; eauto.
     apply ih_App; eauto.
@@ -99,12 +99,12 @@ Inductive step : term -> term -> Prop :=
   step (App m n) (App m n')
 | step_Beta A m n s :
   step (App (Lam A m s) n) m.[n/]
-| step_ProdL A A' B s :
+| step_ArrowL A A' B s :
   step A A' ->
-  step (Prod A B s) (Prod A' B s)
-| step_ProdR A B B' s :
+  step (Arrow A B s) (Arrow A' B s)
+| step_ArrowR A B B' s :
   step B B' ->
-  step (Prod A B s) (Prod A B' s)
+  step (Arrow A B s) (Arrow A B' s)
 | step_LolliL A A' B s :
   step A A' ->
   step (Lolli A B s) (Lolli A' B s)
@@ -172,10 +172,10 @@ Section step_ind_nested.
     forall m n n', step n n' -> P n n' -> P (App m n) (App m n').
   Hypothesis ih_Beta : 
     forall A m n s, P (App (Lam A m s) n) m.[n/].
-  Hypothesis ih_ProdL :
-    forall A A' B s, step A A' -> P A A' -> P (Prod A B s) (Prod A' B s).
-  Hypothesis ih_ProdR :
-    forall A B B' s, step B B' -> P B B' -> P (Prod A B s) (Prod A B' s).
+  Hypothesis ih_ArrowL :
+    forall A A' B s, step A A' -> P A A' -> P (Arrow A B s) (Arrow A' B s).
+  Hypothesis ih_ArrowR :
+    forall A B B' s, step B B' -> P B B' -> P (Arrow A B s) (Arrow A B' s).
   Hypothesis ih_LolliL :
     forall A A' B s, step A A' -> P A A' -> P (Lolli A B s) (Lolli A' B s).
   Hypothesis ih_LolliR :
@@ -228,8 +228,8 @@ Section step_ind_nested.
     apply ih_AppL; eauto.
     apply ih_AppR; eauto.
     apply ih_Beta; eauto.
-    apply ih_ProdL; eauto.
-    apply ih_ProdR; eauto.
+    apply ih_ArrowL; eauto.
+    apply ih_ArrowR; eauto.
     apply ih_LolliL; eauto.
     apply ih_LolliR; eauto.
     apply ih_IndA; eauto.

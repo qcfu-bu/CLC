@@ -60,14 +60,14 @@ Proof.
     exists U. apply: hasU_ok; eauto. }
   { move=> Γ x A h wf.
     exists L. apply: hasL_ok; eauto. }
-  { move=> Γ n A B s t l p tyProd _ _ _ _.
+  { move=> Γ n A B s t l p tyArrow _ _ _ _.
     exists t. exists l.
     rewrite <- pure_re; eauto. }
   { move=> Γ1 Γ2 Γ A B m n p tyM ihM tyN ihN mg wf.
     move: (merge_pure2 mg p)=>->.
     move: (merge_re_re mg)=>[e1 e2].
     have [wf1 wf2] := merge_context_ok_inv mg wf.
-    move: (ihM wf1)=>{ihM}[s[l /u_Prod_inv[s'[l'[_[tyA [tyB _]]]]]]].
+    move: (ihM wf1)=>{ihM}[s[l /u_Arrow_inv[s'[l'[_[tyA [tyB _]]]]]]].
     exists s'. exists l'.
     replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
     apply: substitutionU; eauto.
@@ -78,7 +78,7 @@ Proof.
   { move=> Γ1 Γ2 Γ A B m n tyM ihM tyN ihN mg wf.
     move: (merge_re_re mg)=>[e1 e2].
     have [wf1 wf2] := merge_context_ok_inv mg wf.
-    move: (ihM wf1)=>{ihM}[s[l /l_Prod_inv[s'[l'[_[tyA [tyB _]]]]]]].
+    move: (ihM wf1)=>{ihM}[s[l /l_Arrow_inv[s'[l'[_[tyA [tyB _]]]]]]].
     exists s'. exists l'.
     replace (Sort s' l') with (Sort s' l').[n/] by autosubst.
     apply: substitutionN; eauto.
@@ -144,7 +144,7 @@ Proof.
     move: (App_arity_spine tyQ sp mg1)=>tySp.
     exists s. exists lx.
     replace (s @ lx) with (s @ lx).[m/] by autosubst.
-    apply: u_Prod_App; eauto.
+    apply: u_Arrow_App; eauto.
     rewrite <- pure_re; eauto.
     rewrite e1. apply: merge_re_re_re. }
   { move=> Γ A m l p tyA ihA tyM ihM wf.
