@@ -29,12 +29,12 @@ Ltac solve_sub :=
   | _ => solve_conv
   end.
 
-Lemma u_prod_inv Γ A B s :
-  [ Γ |- Prod A B U :- s ] -> 
+Lemma u_arrow_inv Γ A B s :
+  [ Γ |- Arrow A B U :- s ] -> 
   exists s l,
     [ Γ |- A :- Sort U l ] /\ [ A +u Γ |- B :- Sort s l ].
 Proof.
-  move e:(Prod A B U) => n tp. elim: tp A B e => //{Γ n s}.
+  move e:(Arrow A B U) => n tp. elim: tp A B e => //{Γ n s}.
   move=> Γ A B l0 p tp1 _ tp2 _ A0 B0 [->->].
     exists U.
     exists l0; firstorder.
@@ -48,12 +48,12 @@ Proof.
     exists (Some l0); firstorder.
 Qed.
 
-Lemma l_prod_inv Γ A B s :
-  [ Γ |- Prod A B L :- s ] -> 
+Lemma l_arrow_inv Γ A B s :
+  [ Γ |- Arrow A B L :- s ] -> 
   exists s l,
     [ Γ |- A :- Sort L l ] /\ [ □ Γ |- B :- Sort s l ].
 Proof.
-  move e:(Prod A B L) => n tp. elim: tp A B e => //{Γ n s}.
+  move e:(Arrow A B L) => n tp. elim: tp A B e => //{Γ n s}.
   move=> Γ A B s l0 p tp1 ih1 tp2 ih2 A0 B0 [->->].
     exists s.
     exists (Some l0); firstorder.
@@ -81,26 +81,26 @@ Proof.
     exists (Some l0); firstorder.
 Qed.
 
-Lemma prod_lam_invX Γ n C :
-  [ Γ |- Lam n :- C ] -> 
-  forall A B s t l, 
-    (C <: Prod A B s /\ [ %(A +{s} Γ) |- B :- Sort t l ]) ->
-    [ A +{s} Γ |- n :- B ].
+Lemma arrow_lam_invX Γ A0 n s0 C :
+  [ Γ |- Lam A0 n s0 :- C ] -> 
+  forall A1 B s1 t l, 
+    (C <: Arrow A1 B s1 /\ [ %(A1 +{s1} Γ) |- B :- Sort t l ]) ->
+    [ A1 +{s1} Γ |- n :- B ].
 Proof.
   intros.
   dependent induction H; firstorder.
-  - pose proof (sub_prod_inv H2).
+  - pose proof (sub_arrow_inv H2).
     first_order; subst.
     pose proof (pure_re H).
     rewrite H6 in H0.
-    destruct s0.
-    + apply u_prod_inv in H0; first_order.
+    destruct s1.
+    + apply u_arrow_inv in H0; first_order.
       eapply conversion; eauto.
       eapply context_convU.
       apply conv_sym; apply H4.
       apply H0.
       apply H1.
-    + apply l_prod_inv in H0; first_order.
+    + apply l_arrow_inv in H0; first_order.
       eapply conversion; eauto.
       eapply context_convL.
       apply conv_sym; apply H4.
@@ -113,18 +113,18 @@ Proof.
     apply H3.
 Qed.
 
-Lemma lolli_lam_invX Γ n C :
-  [ Γ |- Lam n :- C ] -> 
-  forall A B s t l, 
-    (C <: Lolli A B s /\ [ %(A +{s} Γ) |- B :- Sort t l ]) ->
-    [ A +{s} Γ |- n :- B ].
+Lemma lolli_lam_invX Γ A0 n s0 C :
+  [ Γ |- Lam A0 n s0 :- C ] -> 
+  forall A1 B s1 t l, 
+    (C <: Lolli A1 B s1 /\ [ %(A1 +{s1} Γ) |- B :- Sort t l ]) ->
+    [ A1 +{s1} Γ |- n :- B ].
 Proof.
   intros.
   dependent induction H; firstorder.
   - exfalso; solve_sub.
   - pose proof (sub_lolli_inv H1).
     first_order; subst.
-    destruct s0.
+    destruct s1.
     + apply u_lolli_inv in H; first_order.
       eapply conversion; eauto.
       eapply context_convU.
@@ -143,26 +143,26 @@ Proof.
     apply H3.
 Qed.
 
-Lemma prod_lam_inv Γ n A B s t l :
-  [ %Γ |- Prod A B s :- Sort t l ] ->
-  [ Γ |- Lam n :- Prod A B s ] -> 
-  [ A +{s} Γ |- n :- B ].
+Lemma arrow_lam_inv Γ n A0 A1 B s0 s1 t l :
+  [ %Γ |- Arrow A1 B s1 :- Sort t l ] ->
+  [ Γ |- Lam A0 n s0 :- Arrow A1 B s1 ] -> 
+  [ A1 +{s1} Γ |- n :- B ].
 Proof.
   intros.
-  destruct s.
-  - apply u_prod_inv in H; inv H; firstorder.
-    eapply prod_lam_invX; eauto.
-  - apply l_prod_inv in H; inv H; firstorder.
-    eapply prod_lam_invX; eauto.
+  destruct s1.
+  - apply u_arrow_inv in H; inv H; firstorder.
+    eapply arrow_lam_invX; eauto.
+  - apply l_arrow_inv in H; inv H; firstorder.
+    eapply arrow_lam_invX; eauto.
 Qed.
 
-Lemma lolli_lam_inv Γ n A B s t l :
-  [ %Γ |- Lolli A B s:- Sort t l ] ->
-  [ Γ |- Lam n :- Lolli A B s ] -> 
-  [ A +{s} Γ |- n :- B ].
+Lemma lolli_lam_inv Γ n A0 A1 B s0 s1 t l :
+  [ %Γ |- Lolli A1 B s1 :- Sort t l ] ->
+  [ Γ |- Lam A0 n s0 :- Lolli A1 B s1 ] -> 
+  [ A1 +{s1} Γ |- n :- B ].
 Proof.
   intros.
-  destruct s.
+  destruct s1.
   - apply u_lolli_inv in H; inv H; firstorder.
     eapply lolli_lam_invX; eauto.
   - apply l_lolli_inv in H; inv H; firstorder.

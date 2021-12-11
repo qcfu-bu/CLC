@@ -85,7 +85,7 @@ Proof.
   - pose proof (merge_pure2 H1 H0).
     pose proof (merge_re_re H1). inv H3.
     apply merge_context_ok_inv in H1; eauto. first_order.
-    apply u_prod_inv in H2. first_order.
+    apply u_arrow_inv in H2. first_order.
     exists x3; exists x4.
     replace (Sort x3 x4) with ((Sort x3 x4).[n/]) by autosubst.
     eapply substitutionU; eauto.
@@ -96,7 +96,7 @@ Proof.
     rewrite H5; eauto.
   - pose proof (merge_re_re H0). inv H1.
     apply merge_context_ok_inv in H0; eauto. first_order.
-    eapply l_prod_inv in H5. first_order.
+    eapply l_arrow_inv in H5. first_order.
     exists x3; exists x4.
     replace (Sort x3 x4) with ((Sort x3 x4).[n/]) by autosubst.
     eapply substitutionN; eauto.

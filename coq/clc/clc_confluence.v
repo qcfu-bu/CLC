@@ -16,22 +16,23 @@ Inductive pstep : term -> term -> Prop :=
   pstep (Var x) (Var x)
 | pstep_sort srt l :
   pstep (Sort srt l) (Sort srt l)
-| pstep_lam n n' : 
+| pstep_lam A A' n n' s : 
+  pstep A A' -> 
   pstep n n' -> 
-  pstep (Lam n) (Lam n')
+  pstep (Lam A n s) (Lam A' n' s)
 | pstep_app m m' n n' :
   pstep m m' ->
   pstep n n' ->
   pstep (App m n) (App m' n')
-| pstep_beta m m' n n' :
+| pstep_beta A m m' n n' s :
   pstep m m' ->
   pstep n n' ->
-  pstep (App (Lam m) n) (m'.[n'/])
-| pstep_prod A A' s B B' :
+  pstep (App (Lam A m s) n) (m'.[n'/])
+| pstep_arrow A A' s B B' :
   pstep A A' ->
   pstep B B' ->
-  pstep (Prod A B s) 
-        (Prod A' B' s)
+  pstep (Arrow A B s) 
+        (Arrow A' B' s)
 | pstep_lolli A A' s B B' :
   pstep A A' ->
   pstep B B' ->
@@ -44,7 +45,7 @@ Definition sred σ τ :=
 Lemma step_subst σ m n : m ~> n -> m.[σ] ~> n.[σ].
 Proof.
   move=> st. elim: st σ => /={m n}; eauto using step.
-  move=> m n σ. 
+  move=> A m n s σ. 
   replace (m.[n/].[σ]) with (m.[up σ].[n.[σ]/]).
   apply step_beta. autosubst.
 Qed.
@@ -57,15 +58,20 @@ Proof.
   - apply: star_hom B => x y. exact: step_appR.
 Qed.
 
-Lemma red_lam s1 s2 : s1 ~>* s2 -> Lam s1 ~>* Lam s2.
-Proof. apply: star_hom => x y. exact: step_lam. Qed.
+Lemma red_lam A1 A2 m1 m2 s : 
+  A1 ~>* A2 -> m1 ~>* m2 -> Lam A1 m1 s ~>* Lam A2 m2 s.
+Proof. 
+  move=> A B. apply: (star_trans (Lam A2 m1 s)).
+  - apply: (star_hom ((Lam^~ m1)^~ s)) A => x y. exact: step_lamL.
+  - apply: (star_hom ((Lam A2)^~ s)) B => x y. exact: step_lamR.
+Qed.
 
-Lemma red_prod A1 A2 B1 B2 s :
-  A1 ~>* A2 -> B1 ~>* B2 -> Prod A1 B1 s ~>* Prod A2 B2 s.
+Lemma red_arrow A1 A2 B1 B2 s :
+  A1 ~>* A2 -> B1 ~>* B2 -> Arrow A1 B1 s ~>* Arrow A2 B2 s.
 Proof.
-  move=> A B. apply: (star_trans (Prod A2 B1 s)).
-  - apply: (star_hom ((Prod^~ B1)^~ s)) A => x y. exact: step_prodL.
-  - apply: (star_hom ((Prod A2)^~ s)) B => x y. exact: step_prodR.
+  move=> A B. apply: (star_trans (Arrow A2 B1 s)).
+  - apply: (star_hom ((Arrow^~ B1)^~ s)) A => x y. exact: step_arrowL.
+  - apply: (star_hom ((Arrow A2)^~ s)) B => x y. exact: step_arrowR.
 Qed.
 
 Lemma red_lolli A1 A2 B1 B2 s :
@@ -90,7 +96,7 @@ Qed.
 Lemma sred_up σ τ : sred σ τ -> sred (up σ) (up τ).
 Proof. move=> A [|n] //=. asimpl. apply: red_subst. exact: A. Qed.
 
-Hint Resolve red_app red_lam red_prod red_lolli sred_up : red_congr.
+Hint Resolve red_app red_lam red_arrow red_lolli sred_up : red_congr.
 
 Lemma red_compat σ τ s : sred σ τ -> red s.[σ] s.[τ].
 Proof. elim: s σ τ => *; asimpl; eauto with red_congr. Qed.
@@ -98,16 +104,23 @@ Proof. elim: s σ τ => *; asimpl; eauto with red_congr. Qed.
 Definition sconv (σ τ : var -> term) :=
   forall x, σ x === τ x.
 
-Lemma conv_lam s1 s2 : s1 === s2 -> Lam s1 === Lam s2.
-Proof. apply: conv_hom => x y. exact: step_lam. Qed.
-
-Lemma conv_prod A A' s B B' :
-  A === A' -> B === B' -> Prod A B s === Prod A' B' s.
+Lemma conv_lam A1 A2 m1 m2 s : 
+  A1 === A2 -> m1 === m2 -> Lam A1 m1 s === Lam A2 m2 s.
 Proof.
-  move=> conv1 conv2. apply: (conv_trans (Prod A' B s)).
-  - apply: (conv_hom ((Prod^~ B)^~ s)) conv1 => x y ps.
+  move=> conv1 conv2. apply: (conv_trans (Lam A2 m1 s)).
+  - apply: (conv_hom ((Lam^~ m1)^~ s)) conv1 => x y ps.
     constructor; eauto.
-  - apply: (conv_hom ((Prod A')^~ s)) conv2 => x y ps.
+  - apply: (conv_hom ((Lam A2)^~ s)) conv2 => x y ps.
+    constructor; eauto.
+Qed.
+
+Lemma conv_arrow A A' s B B' :
+  A === A' -> B === B' -> Arrow A B s === Arrow A' B' s.
+Proof.
+  move=> conv1 conv2. apply: (conv_trans (Arrow A' B s)).
+  - apply: (conv_hom ((Arrow^~ B)^~ s)) conv1 => x y ps.
+    constructor; eauto.
+  - apply: (conv_hom ((Arrow A')^~ s)) conv2 => x y ps.
     constructor; eauto.
 Qed.
 
@@ -147,7 +160,7 @@ Lemma conv_compat σ τ s :
   sconv σ τ -> s.[σ] === s.[τ].
 Proof.
   elim: s σ τ => *; asimpl; eauto using
-    conv_app, conv_lam, conv_prod, conv_lolli, sconv_up.
+    conv_app, conv_lam, conv_arrow, conv_lolli, sconv_up.
 Qed.
 
 Lemma conv_beta s t1 t2 : t1 === t2 -> s.[t1/] === s.[t2/].
@@ -166,7 +179,7 @@ Qed.
 Lemma pstep_red s t : pstep s t -> s ~>* t.
 Proof.
   elim=> {s t} //=; eauto with red_congr.
-  move=> m m' n n' p1 r1 p2 r2. eapply starES. by econstructor.
+  move=> A m m' n n' s p1 r1 p2 r2. eapply starES. by econstructor.
   apply: (star_trans (m'.[n.:Var])). exact: red_subst.
   by apply: red_compat => -[|].
 Qed.
@@ -180,7 +193,7 @@ Proof with eauto using pstep, pstep_refl.
   - asimpl.
     specialize (IHpstep1 (up σ)).
     specialize (IHpstep2 σ).
-    pose proof (pstep_beta IHpstep1 IHpstep2).
+    pose proof (pstep_beta A.[σ] s IHpstep1 IHpstep2).
     asimpl in H1; eauto.
 Qed.
 
@@ -209,7 +222,7 @@ Proof with eauto 6 using pstep, psstep_up.
   - pose proof (psstep_up H1).
     pose proof (IHpstep1 _ _ H2).
     pose proof (IHpstep2 _ _ H1).
-    pose proof (pstep_beta H3 H4).
+    pose proof (pstep_beta A.[σ] s H3 H4).
     asimpl in H5; eauto.
 Qed.
 
@@ -252,35 +265,37 @@ Lemma pstep_diamond m m1 :
   pstep m m1 ->
   forall m2, pstep m m2 ->
     exists m', pstep m1 m' /\ pstep m2 m'.
-Proof with eauto using pstep.
+Proof with eauto using pstep, pstep_refl.
   intros.
   dependent induction H.
   - inv H0. exists (Var x)...
   - inv H0. exists (Sort srt l)...
-  - inv H0. apply (IHpstep) in H2. first_order. exists (Lam x)...
+  - inv H1. 
+    apply (IHpstep1) in H6. apply (IHpstep2) in H7. first_order.
+    exists (Lam x0 x s)...
   - inv H1.
     + apply (IHpstep1) in H4. apply (IHpstep2) in H6. first_order.
       exists (App x0 x)...
     + inv H. 
-      assert (pstep (Lam m0) (Lam m'0))...
+      assert (pstep (Lam A m0 s) (Lam A' m'0 s))...
       apply (IHpstep1) in H.  apply (IHpstep2) in H6. first_order.
       inv H.
-      inv H3.
+      inv H2.
       exists (n'2.[x0/]). split.
       apply pstep_beta...
       apply pstep_compat_beta...
   - inv H1.
     + inv H4.
-      apply IHpstep1 in H2. apply IHpstep2 in H6. first_order.
+      apply IHpstep1 in H8. apply IHpstep2 in H6. first_order.
       exists (x.[x0/]). split.
       * apply pstep_compat_beta...
       * apply pstep_beta...
-    + apply IHpstep1 in H4. apply IHpstep2 in H6. first_order.
+    + apply IHpstep1 in H7. apply IHpstep2 in H8. first_order.
       exists (x0.[x/]). split.
       * apply pstep_compat_beta...
       * apply pstep_compat_beta...
   - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
-    first_order. exists (Prod x0 x s)...
+    first_order. exists (Arrow x0 x s)...
   - inv H1. apply (IHpstep1) in H6. apply (IHpstep2) in H7.
     first_order. exists (Lolli x0 x s)...
 Qed.
@@ -330,55 +345,6 @@ Hint Resolve church_rosser.
 (** Various lemmas on renaming, reduction and conversion
   dervied from confluence. *)
 
-Lemma sort_ren_inv s l v xi :
-  Sort s l = v.[ren xi] -> v = Sort s l.
-Proof.
-  induction v; asimpl; try discriminate; eauto.
-Qed.
-
-Lemma var_ren_inv x v xi :
-  Var x = v.[ren xi] -> exists n, v = Var n.
-Proof.
-  induction v; asimpl; try discriminate; eauto.
-Qed.
-
-Lemma prod_ren_inv A B s v xi :
-  Prod A B s = v.[ren xi] -> 
-  exists A B s, v = Prod A B s.
-Proof.
-  induction v; asimpl; try discriminate; eauto 6.
-Qed.
-
-Lemma lolli_ren_inv A B s v xi :
-  Lolli A B s = v.[ren xi] -> 
-  exists A B s, v = Lolli A B s.
-Proof.
-  induction v; asimpl; try discriminate; eauto 6.
-Qed.
-
-Lemma lam_ren_inv m v xi :
-  Lam m = v.[ren xi] -> exists n, v = Lam n.
-Proof.
-  induction v; asimpl; try discriminate; eauto.
-Qed.
-
-Lemma value_rename xi A :
-  value A <-> value A.[ren xi].
-Proof.
-  split.
-  induction 1; asimpl; constructor.
-  intros.
-  dependent induction H.
-  apply sort_ren_inv in x; subst.
-  constructor.
-  apply var_ren_inv in x.
-  inv x.
-  constructor.
-  apply prod_ren_inv in x; first_order; subst; constructor.
-  apply lolli_ren_inv in x; first_order; subst; constructor.
-  apply lam_ren_inv in x; inv x; constructor.
-Qed.
-
 Lemma red_sort_inv s l A :
   red (Sort s l) A -> A = (Sort s l).
 Proof.
@@ -387,12 +353,12 @@ Proof.
   inv H0; eauto.
 Qed.
 
-Lemma red_prod_inv A B s x :
-  red (Prod A B s) x -> 
+Lemma red_arrow_inv A B s x :
+  red (Arrow A B s) x -> 
   exists A' B',
     red A A' /\
     red B B' /\
-    x = Prod A' B' s.
+    x = Arrow A' B' s.
 Proof.
   induction 1.
   - exists A.
@@ -445,17 +411,17 @@ Proof.
   inv H0; eauto.
 Qed.
 
-Lemma red_lam_inv m n :
-  red (Lam m) n ->
-  exists m',
-    red m m' /\ n = Lam m'.
+Lemma red_lam_inv A m n s :
+  red (Lam A m s) n ->
+  exists A' m',
+    red A A' /\ red m m' /\ n = Lam A' m' s.
 Proof.
   induction 1.
-  - exists m; repeat constructor.
+  - exists A. exists m; repeat constructor.
   - first_order; subst.
     inv H0.
-    exists m'.
-    repeat constructor; eauto using star.
+    exists A'. exists x0. repeat constructor; eauto using star.
+    exists x. exists m'. repeat constructor; eauto using star.
 Qed.
 
 Lemma sort_inj s1 s2 l1 l2 :
@@ -470,15 +436,15 @@ Proof.
   first_order; subst; inv H1; eauto.
 Qed.
 
-Lemma prod_inj A A' B B' s s' :
-  Prod A B s === Prod A' B' s' ->
+Lemma arrow_inj A A' B B' s s' :
+  Arrow A B s === Arrow A' B' s' ->
   A === A' /\ B === B' /\ s = s'.
 Proof.
   intros.
   apply church_rosser in H.
   inv H.
-  apply red_prod_inv in H0.
-  apply red_prod_inv in H1.
+  apply red_arrow_inv in H0.
+  apply red_arrow_inv in H1.
   first_order; subst.
   inv H2; eauto using join_conv.
   inv H2; eauto using join_conv.
@@ -506,7 +472,7 @@ Ltac red_inv m H :=
   match m with
   | Var   => apply red_var_inv in H
   | Sort  => apply red_sort_inv in H
-  | Prod => apply red_prod_inv in H
+  | Arrow => apply red_arrow_inv in H
   | Lolli => apply red_lolli_inv in H
   | Lam   => apply red_lam_inv in H
   end.

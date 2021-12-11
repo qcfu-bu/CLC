@@ -24,17 +24,17 @@ Inductive has_type : context term -> term -> term -> Prop :=
   [ Γ ] ->
   [ Γ |- A :- Sort U l ] ->
   [ A +u Γ |- B :- 𝐏 ] ->
-  [ Γ |- Prod A B U :- 𝐏 ]
-| u_prod Γ A B s l :
+  [ Γ |- Arrow A B U :- 𝐏 ]
+| u_arrow Γ A B s l :
   [ Γ ] ->
   [ Γ |- A :- U @ l ] ->
   [ A +u Γ |- B :- s @ l ] ->
-  [ Γ |- Prod A B U :- U @ l ]
-| l_prod Γ A B s l :
+  [ Γ |- Arrow A B U :- U @ l ]
+| l_arrow Γ A B s l :
   [ Γ ] ->
   [ Γ |- A :- L @ l ] ->
   [ □ Γ |- B :- s @ l ] ->
-  [ Γ |- Prod A B L :- U @ l ]
+  [ Γ |- Arrow A B L :- U @ l ]
 | u_lolli Γ A B s l :
   [ Γ ] ->
   [ Γ |- A :- U @ l ] ->
@@ -51,23 +51,23 @@ Inductive has_type : context term -> term -> term -> Prop :=
 | l_var Γ x A :
   [ x :l A ∈ Γ ] ->
   [ Γ |- Var x :- A ]
-| prod_lam Γ n A B s t l :
+| arrow_lam Γ n A B s t l :
   [ Γ ] ->
-  [ Γ |- Prod A B s :- Sort t l ] ->
+  [ Γ |- Arrow A B s :- Sort t l ] ->
   [ A +{s} Γ |- n :- B ] ->
-  [ Γ |- Lam n :- Prod A B s ]
+  [ Γ |- Lam A n s :- Arrow A B s ]
 | lolli_lam Γ n A B s t l :
   [ %Γ |- Lolli A B s :- Sort t l ] ->
   [ A +{s} Γ |- n :- B ] ->
-  [ Γ |- Lam n :- Lolli A B s ]
-| u_prod_app Γ1 Γ2 Γ A B m n :
+  [ Γ |- Lam A n s :- Lolli A B s ]
+| u_arrow_app Γ1 Γ2 Γ A B m n :
   [ Γ2 ] ->
-  [ Γ1 |- m :- Prod A B U ] ->
+  [ Γ1 |- m :- Arrow A B U ] ->
   [ Γ2 |- n :- A ] ->
   [ Γ1 ‡ Γ2 ‡ Γ ] ->
   [ Γ |- App m n :- B.[n/] ]
-| l_prod_app Γ1 Γ2 Γ  A B m n :
-  [ Γ1 |- m :- Prod A B L ] ->
+| l_arrow_app Γ1 Γ2 Γ  A B m n :
+  [ Γ1 |- m :- Arrow A B L ] ->
   [ Γ2 |- n :- A ] ->
   [ Γ1 ‡ Γ2 ‡ Γ ] ->
   [ Γ |- App m n :- B.[n/] ]

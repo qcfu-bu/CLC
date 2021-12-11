@@ -1,0 +1,173 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+
+% packages
+\usepackage{graphicx}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mdwtab}
+\usepackage{syntax}
+\usepackage{stmaryrd}
+\usepackage{mathtools}
+\usepackage{mathpartir}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{tikz-cd}
+\usepackage{enumitem}
+\usepackage{minted}
+
+\setlist[itemize]{leftmargin=1.6em}
+\renewcommand{\syntleft}{}
+\renewcommand{\syntright}{}
+\setlength{\grammarparsep}{7pt}
+\setlength{\grammarindent}{7em}
+\newcommand{\indalt}[1][2]{\\\hspace*{-0.2em}\textbar\quad}
+\newcommand{\rname}[1]{\textsc{\footnotesize #1}}
+\newcommand{\pure}[1]{|#1|}
+\newcommand{\refl}{\text{refl}}
+\newcommand{\letin}[3]{\ $\text{let }#1\text{ := }#2\text{ in }#3$\ }
+\newcommand{\ind}[1]{\text{Ind}_{#1}}
+\newcommand{\constr}{\text{Constr}}
+\newcommand{\case}{\text{Case}}
+\newcommand{\dcase}{\text{DCase}}
+\newcommand{\fix}{\text{Fix }}
+\newcommand{\sep}{\text{ | }}
+\newcommand{\unit}{\text{unit}}
+\newcommand{\new}{\text{new}}
+\newcommand{\free}{\text{free}}
+\newcommand{\get}{\text{get}}
+\newcommand{\set}{\text{set}}
+\newcommand{\session}{\text{session}}
+\newcommand{\channel}{\text{channel}}
+\newcommand{\open}{\text{open}}
+\newcommand{\close}{\text{close}}
+\newcommand{\send}{\text{send}}
+\newcommand{\recv}{\text{recv}}
+\newcommand{\SEND}{\texttt{SEND}}
+\newcommand{\RECV}{\texttt{RECV}}
+\newcommand{\END}{\texttt{END}}
+\newcommand{\utype}{:_{\scriptscriptstyle U}}
+\newcommand{\ltype}{:_{\scriptscriptstyle L}}
+\newcommand{\stype}[1]{:_#1}
+\newcommand{\step}{\leadsto}
+\newcommand{\pstep}{\leadsto_p}
+\newcommand{\mrg}[3]{#1\ddagger#2\ddagger#3}
+\newcommand{\erase}[1]{\llbracket #1 \rrbracket}
+\newcommand{\lift}[1]{\llparenthesis #1 \rrparenthesis}
+\newcommand{\lrangle}[1]{\langle #1 \rangle}
+\newcommand{\ucons}{constructor_{\scriptscriptstyle U}}
+\newcommand{\lcons}{constructor_{\scriptscriptstyle L}}
+\newcommand{\scons}{constructor_{s}}
+\newcommand{\inl}{\text{inl}}
+\newcommand{\inr}{\text{inr}}
+
+
+\title{The Calculus of Linear Constructions --- Technical Report}
+\author{Qiancheng Fu}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+This extended report is meant to accompany our paper of the same title. Here, we describe the meta-theory of CILC and their proofs in detail. All the results presented here have been formalized and proven correct in the Coq Proof Assistant.
+
+\section{Syntax of CLC \texttt{(clc_ast.v)}}
+\begin{figure}[H]
+  \begin{grammar}
+    <$i$> := 0 | 1 | 2 ... \phantom{* |} \hspace*{2.4em} universe levels
+
+    <$s, t$> ::= $U$ | $L$ \phantom{| $x$} \hspace*{4.6em} sorts
+
+    <$m, n, A, B, M$> ::= $U_i$ | $L_i$ | $x$ \hspace*{3em} expressions
+    \indalt $(x :_s A) \rightarrow B$
+    \indalt $(x :_s A) \multimap B$
+    \indalt $\lambda x :_s A. n$
+    \indalt $m\ n$
+  \end{grammar}
+\end{figure}
+
+\section{Reduction and Equality of CLC \texttt{(clc_ast.v)}}
+\begin{figure}[H]
+  \begin{mathpar}
+    \inferrule
+    { m_1 \step^* n \\ m_2 \step^* n }
+    { m_1 \equiv m_2 : A }
+    \rname{Join}
+
+    \inferrule
+    {  }
+    { (\lambda x \stype{s}A.m)\ n \step m[n/x] }
+    \rname{Step-$\beta$}
+
+    \inferrule
+    { A \step A' }
+    { \lambda x \stype{s}A.m \step \lambda x \stype{s}A' .m }
+    \rname{Step-$\lambda$L}
+
+    \inferrule
+    { m \step m' }
+    { \lambda x \stype{s}A.m \step \lambda x \stype{s}A.m' }
+    \rname{Step-$\lambda$R}
+
+    \inferrule
+    { A \pstep A' }
+    { (x \stype{s} A) \rightarrow B \step (x \stype{s} A') \rightarrow B }
+    \rname{Step-L$\rightarrow$}
+
+    \inferrule
+    { B \pstep B' }
+    { (x \stype{s} A) \rightarrow B \step (x \stype{s} A) \rightarrow B' }
+    \rname{Step-R$\rightarrow$}
+
+    \inferrule
+    { A \pstep A' }
+    { (x \stype{s} A) \multimap B \step (x \stype{s} A') \multimap B }
+    \rname{Step-L$\multimap$}
+
+    \inferrule
+    { B \pstep B' }
+    { (x \stype{s} A) \multimap B \step (x \stype{s} A) \multimap B' }
+    \rname{Step-R$\multimap$}
+
+    \inferrule
+    { m \step m' }
+    { m\ n \step m'\ n }
+    \rname{Step-AppL}
+
+    \inferrule
+    { n \step n' }
+    { m\ n \step m\ n' }
+    \rname{Step-AppR}
+  \end{mathpar}
+  \label{red}
+\end{figure}
+
+\section{Confluence of CLC \texttt{(clc_confluence.v)}}
+
+\subsection{Parallel Reduction}
+To prove the confluence property of CLC, we employ the standard technique utilizing parallel reductions.
+
+\begin{figure}[H]
+  \begin{mathpar}
+    \inferrule
+    { }
+    { x \pstep x }
+    \rname{Pstep-Var}
+
+    \inferrule
+    { }
+    { s_i \pstep s_i }
+    \rname{Pstep-Sort}
+
+    \inferrule
+    { m \pstep m' }
+    { }
+  \end{mathpar}
+  \label{pred}
+\end{figure}
+
+\end{document}

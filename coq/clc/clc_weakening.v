@@ -234,13 +234,13 @@ Proof.
     constructor; eauto.
   - asimpl.
     pose proof (agree_ren_pure H2 H).
-    eapply u_prod; eauto.
+    eapply u_arrow; eauto.
     replace (s @ l) with ((s @ l).[ren (upren ξ)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
   - asimpl.
     pose proof (agree_ren_pure H2 H).
-    eapply l_prod; eauto.
+    eapply l_arrow; eauto.
     replace (s @ l) with ((s @ l).[ren (upren ξ)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
@@ -262,7 +262,7 @@ Proof.
   - replace (ids (ξ x)) with (Var (ξ x)) by autosubst.
     apply l_var.
     eapply agree_ren_hasL; eauto.
-  - eapply prod_lam.
+  - eapply arrow_lam.
     eapply agree_ren_pure; eauto.
     apply IHhas_type1; eauto.
     asimpl.
@@ -280,13 +280,13 @@ Proof.
     replace (B.[n.[ren ξ] .: ren ξ]) 
       with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
     pose proof (agree_ren_pure H6 H).
-    eapply u_prod_app; eauto.
+    eapply u_arrow_app; eauto.
   - asimpl.
     pose proof (merge_agree_ren_inv H2 H1).
     first_order. asimpl in IHhas_type1.
     replace (B.[n.[ren ξ] .: ren ξ]) 
       with (B.[ren (upren ξ)].[n.[ren ξ]/]) by autosubst.
-    eapply l_prod_app; eauto.
+    eapply l_arrow_app; eauto.
   - asimpl.
     pose proof (merge_agree_ren_inv H3 H2).
     first_order. asimpl in IHhas_type1.

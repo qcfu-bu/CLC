@@ -343,12 +343,12 @@ Proof.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
     pose proof (agree_subst_u A H2).
     specialize (IHhas_type2 _ _ H3).
-    eapply u_prod; simpl; eauto.
+    eapply u_arrow; simpl; eauto.
     eapply agree_subst_pure; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
     pose proof (agree_subst_n H2).
     specialize (IHhas_type2 _ _ H3).
-    eapply l_prod; simpl; eauto.
+    eapply l_arrow; simpl; eauto.
     eapply agree_subst_pure; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
     pose proof (agree_subst_u A H2).
@@ -366,11 +366,11 @@ Proof.
     destruct s.
     + pose proof (agree_subst_u A H2).
       specialize (IHhas_type2 _ _ H3).
-      eapply prod_lam; eauto.
+      eapply arrow_lam; eauto.
       eapply agree_subst_pure; eauto.
     + pose proof (agree_subst_l A H2).
       specialize (IHhas_type2 _ _ H3).
-      eapply prod_lam; eauto.
+      eapply arrow_lam; eauto.
       eapply agree_subst_pure; eauto.
   - pose proof (agree_subst_re_re H1).
     specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
@@ -385,12 +385,12 @@ Proof.
     pose proof (merge_agree_subst_inv H3 H2).
     first_order.
     pose proof (agree_subst_pure H6 H).
-    pose proof (u_prod_app H7 IHhas_type1 IHhas_type2 H4).
+    pose proof (u_arrow_app H7 IHhas_type1 IHhas_type2 H4).
     asimpl in H8; eauto.
   - asimpl.
     pose proof (merge_agree_subst_inv H2 H1).
     first_order.
-    pose proof (l_prod_app IHhas_type1 IHhas_type2 H3).
+    pose proof (l_arrow_app IHhas_type1 IHhas_type2 H3).
     asimpl in H6; eauto.
   - asimpl.
     pose proof (merge_agree_subst_inv H3 H2).

@@ -18,9 +18,9 @@ Inductive sub1 : term -> term -> Prop :=
 | sub1_sort s l1 l2 : 
   l1 <= l2 -> 
   sub1 (s @ l1) (s @ l2)
-| sub1_prod A B1 B2 s : 
+| sub1_arrow A B1 B2 s : 
   sub1 B1 B2 -> 
-  sub1 (Prod A B1 s) (Prod A B2 s)
+  sub1 (Arrow A B1 s) (Arrow A B2 s)
 | sub1_lolli A B1 B2 s : 
   sub1 B1 B2 -> 
   sub1 (Lolli A B1 s) (Lolli A B2 s).
@@ -64,12 +64,12 @@ Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
     apply: sub_sort. subst.
     exact: leq_trans leq _.
   - inv sb2; try (exfalso; solve_conv)...
-    move: conv => /prod_inj[conv1 [conv2 ->]].
+    move: conv => /arrow_inj[conv1 [conv2 ->]].
     move: (ih _ _ conv2 H) => {ih} sub. inv sub.
     eapply SubI. 
-    eapply sub1_prod... 
-    eapply conv_prod... 
-    exact: conv_prod.
+    eapply sub1_arrow... 
+    eapply conv_arrow... 
+    exact: conv_arrow.
   - inv sb2; try (exfalso; solve_conv)...
     move: conv => /lolli_inj[conv1 [conv2 ->]].
     move: (ih _ _ conv2 H) => {ih} sub. inv sub.
@@ -115,20 +115,20 @@ Proof.
   - move=> *. exfalso; solve_conv.
 Qed.
 
-Lemma sub_prod_inv A1 A2 s1 s2 B1 B2 :
-  Prod A1 B1 s1 <: Prod A2 B2 s2 -> 
+Lemma sub_arrow_inv A1 A2 s1 s2 B1 B2 :
+  Arrow A1 B1 s1 <: Arrow A2 B2 s2 -> 
   A1 === A2 /\ B1 <: B2 /\ s1 = s2.
 Proof.
   move=> [A' B' []].
   - move=> C c1 c2. 
-    have{c1 c2}/prod_inj[c1 [c2 ->]]: 
-      Prod A1 B1 s1 === Prod A2 B2 s2.
+    have{c1 c2}/arrow_inj[c1 [c2 ->]]: 
+      Arrow A1 B1 s1 === Arrow A2 B2 s2.
      exact: conv_trans c2.
     firstorder=>//. exact: conv_sub.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
-  - move=> A B0 B3 s sb /prod_inj[c1 [c2 <-]]. 
-    move=> /prod_inj[c3 [c4 ->]]. 
+  - move=> A B0 B3 s sb /arrow_inj[c1 [c2 <-]]. 
+    move=> /arrow_inj[c3 [c4 ->]]. 
     firstorder.
     exact: conv_trans c3. exact: SubI sb c2 c4.
   - move=> *. exfalso; solve_conv.

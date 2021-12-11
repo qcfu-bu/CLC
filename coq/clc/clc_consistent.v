@@ -22,9 +22,9 @@ Fixpoint erase (m : clc_ast.term) : term :=
   match m with
   | clc_ast.Var x => Var x
   | clc_ast.Sort _ l => Sort l
-  | clc_ast.Prod A B _ => Prod (erase A) (erase B)
-  | clc_ast.Lolli A B _ => Prod (erase A) (erase B)
-  | clc_ast.Lam n => Lam (erase n)
+  | clc_ast.Arrow A B _ => Arrow (erase A) (erase B)
+  | clc_ast.Lolli A B _ => Arrow (erase A) (erase B)
+  | clc_ast.Lam A n s => Lam (erase A) (erase n)
   | clc_ast.App m n => App (erase m) (erase n)
   end.
 
@@ -63,7 +63,7 @@ Proof.
   induction m; intros; asimpl; eauto.
   - rewrite IHm IHm0; eauto.
   - rewrite IHm IHm0; eauto.
-  - rewrite IHm; eauto.
+  - rewrite IHm IHm0; eauto.
   - rewrite IHm1 IHm2; eauto.
 Qed.
 
@@ -89,7 +89,8 @@ Proof.
   - rewrite <- (IHm σ); eauto.
     rewrite <- (IHm0 (up σ)); eauto.
     apply erase_subst_up; eauto.
-  - rewrite <- (IHm (up σ)); eauto.
+  - rewrite <- (IHm σ); eauto.
+    rewrite <- (IHm0 (up σ)); eauto.
     apply erase_subst_up; eauto.
   - rewrite <- (IHm1 σ); eauto.
     rewrite <- (IHm2 σ); eauto.
@@ -165,7 +166,7 @@ Proof.
     apply conv_sub in c1.
     apply conv_sub in c2.
     apply erase_sub1 in H.
-    assert (sub1 (Prod [|A0|] [|B1|]) (Prod [|A0|] [|B2|])).
+    assert (sub1 (Arrow [|A0|] [|B1|]) (Arrow [|A0|] [|B2|])).
     constructor; eauto.
     apply sub1_sub in H0.
     eapply sub_trans; eauto.
@@ -175,7 +176,7 @@ Proof.
     apply conv_sub in c1.
     apply conv_sub in c2.
     apply erase_sub1 in H.
-    assert (sub1 (Prod [|A0|] [|B1|]) (Prod [|A0|] [|B2|])).
+    assert (sub1 (Arrow [|A0|] [|B1|]) (Arrow [|A0|] [|B2|])).
     constructor; eauto.
     apply sub1_sub in H0.
     eapply sub_trans; eauto.
@@ -258,7 +259,7 @@ Proof.
   - apply t_axiom.
   - eapply ty_prop; eauto.
     apply IHhas_type2; constructor; eauto.
-  - apply ty_prod.
+  - apply ty_arrow.
     apply IHhas_type1; eauto.
     apply IHhas_type2; constructor; eauto.
   - pose proof (agree_wk_has H0 H).
@@ -300,13 +301,13 @@ Proof.
   - apply p_axiom.  
   - apply t_axiom.  
   - eapply ty_prop; eauto.
-  - apply ty_prod; eauto.
-  - apply ty_prod; eauto.
+  - apply ty_arrow; eauto.
+  - apply ty_arrow; eauto.
     eapply wk_ok; eauto; simpl.
     constructor.
     apply agree_wk_refl.
-  - apply ty_prod; eauto.
-  - apply ty_prod; eauto.
+  - apply ty_arrow; eauto.
+  - apply ty_arrow; eauto.
     eapply wk_ok; eauto; simpl.
     constructor.
     apply agree_wk_refl.
@@ -377,8 +378,8 @@ Fixpoint lift (m : term) : clc_ast.term :=
   | Var x => clc_ast.Var x
   | Sort n => clc_ast.Sort U n
   | App m n => clc_ast.App (lift m) (lift n)
-  | Lam m => clc_ast.Lam (lift m)
-  | Prod m n => clc_ast.Prod (lift m) (lift n) U
+  | Lam A m => clc_ast.Lam (lift A) (lift m) U
+  | Arrow m n => clc_ast.Arrow (lift m) (lift n) U
   end.
 
 Fixpoint lift_context
@@ -411,7 +412,7 @@ Lemma lift_ren_com m :
 Proof.
   induction m; intros; asimpl; eauto.
   - rewrite IHm1 IHm2; eauto.
-  - rewrite IHm; eauto.
+  - rewrite IHm IHm0; eauto.
   - rewrite IHm IHm0; eauto.
 Qed.
 
@@ -434,6 +435,7 @@ Proof.
   - erewrite IHm1; eauto.
     erewrite IHm2; eauto.
   - erewrite IHm; eauto.
+    erewrite IHm0; eauto.
     apply lift_subst_up; eauto.
   - erewrite IHm; eauto.
     erewrite IHm0; eauto.
@@ -519,8 +521,8 @@ Proof.
     apply lift_sub1 in H.
     assert 
       (clc_subtype.sub1 
-        (clc_ast.Prod {|A0|} {|B1|} U) 
-        (clc_ast.Prod {|A0|} {|B2|} U)).
+        (clc_ast.Arrow {|A0|} {|B1|} U) 
+        (clc_ast.Arrow {|A0|} {|B2|} U)).
     constructor; eauto.
     apply clc_subtype.sub1_sub in H0.
     eapply clc_subtype.sub_trans; eauto.

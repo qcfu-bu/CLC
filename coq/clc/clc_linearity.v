@@ -46,9 +46,9 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   match m with
   | Var x => if x == i then 1 else 0
   | Sort _ _ => 0
-  | Prod A B _ => occurs i A + occurs (i.+1) B
+  | Arrow A B _ => occurs i A + occurs (i.+1) B
   | Lolli A B _ => occurs i A + occurs (i.+1) B
-  | Lam m => occurs (i.+1) m
+  | Lam A m _ => occurs i A + occurs (i.+1) m
   | App m n => occurs i m + occurs i n
   end.
 
@@ -92,6 +92,18 @@ Proof.
   exfalso. eapply isL_pure; eauto.
   inv H0.
   pose proof (IHisL _ _ H2); eauto.
+Qed.
+
+Lemma isN_re Γ i : [ i ∉ Γ ] -> [ i ∉ %Γ ].
+Proof.
+  induction 1; simpl; try constructor; eauto.
+  destruct s; constructor; eauto.
+Qed.
+
+Lemma isL_isN Γ i : [ i ∈ Γ ] -> [ i ∉ %Γ ].
+Proof.
+  induction 1; simpl; try constructor; eauto.
+  destruct s; constructor; eauto.
 Qed.
 
 Lemma isN_hasU Γ i :
@@ -178,8 +190,7 @@ Lemma narity Γ m A :
   [ Γ |- m :- A ] -> 
     forall i, [ i ∉ Γ ] -> occurs i m = 0.
 Proof.
-  intro H.
-  dependent induction H; simpl; intros.
+  induction 1; simpl; intros.
   - eauto.
   - eauto.
   - rewrite IHhas_type1; eauto.
@@ -201,9 +212,24 @@ Proof.
     rewrite H1; eauto.
   - pose proof (isN_hasL H0 H).
     rewrite H1; eauto.
-  - apply IHhas_type2.
+  - pose proof (IHhas_type1 _ H2).
+    simpl in H3.
+    assert (occurs i A = 0).
+    { destruct (occurs i.+1 B).
+      rewrite addn0 in H3; eauto.
+      destruct (occurs i A); discriminate. }
+    rewrite H4.
+    rewrite IHhas_type2; eauto.
     constructor; eauto.
-  - apply IHhas_type2.
+  - pose proof (isN_re H1).
+    pose proof (IHhas_type1 _ H2).
+    simpl in H3.
+    assert (occurs i A = 0).
+    { destruct (occurs i.+1 B).
+      rewrite addn0 in H3; eauto.
+      destruct (occurs i A); discriminate. }
+    rewrite H4.
+    rewrite IHhas_type2; eauto.
     constructor; eauto.
   - pose proof (isN_merge_inv H2 H3). inv H4.
     rewrite IHhas_type1; eauto.
@@ -240,7 +266,15 @@ Proof.
     rewrite eqn_refl; eauto.
   - exfalso. eapply isL_pure; eauto.
   - simpl.
-    apply IHhas_type2.
+    pose proof (isL_isN H1).
+    eapply narity in H; eauto.
+    simpl in H.
+    assert (occurs i A = 0).
+    { destruct (occurs i.+1 B).
+      rewrite addn0 in H; eauto.
+      destruct (occurs i A); discriminate. }
+    rewrite H3.
+    rewrite IHhas_type2; eauto.
     constructor; eauto.
   - pose proof (isL_merge_inv H2 H3).
     firstorder; simpl.
@@ -302,16 +336,16 @@ Theorem promotion Γ m A B s :
   [ Γ ] ->
   [ Γ |- ] ->
   [ Γ |- m :- Lolli A B s ] ->
-  exists m, [ Γ |- m :- Prod A B s ].
+  exists m, [ Γ |- m :- Arrow A B s ].
 Proof.
   intros.
-  exists (Lam (App m.[ren (+1)] (Var 0))).
+  exists (Lam A (App m.[ren (+1)] (Var 0)) s).
   destruct s.
   - pose proof (validity H0 H1); first_order. 
     apply u_lolli_inv in H2; first_order.
-    assert ([ Γ |- Prod A B U :- Sort U x2 ]).
+    assert ([ Γ |- Arrow A B U :- Sort U x2 ]).
     destruct x2.
-    + eapply u_prod; eauto.
+    + eapply u_arrow; eauto.
       rewrite <- pure_re in H2; eauto.
       rewrite <- pure_re in H3; eauto.
     + destruct x1.
@@ -322,7 +356,7 @@ Proof.
       inv H3.
       rewrite <- pure_re; eauto.
       eapply u_ok; eauto.
-    eapply prod_lam; eauto.
+    eapply arrow_lam; eauto.
     assert ([ 0 :u A.[ren (+1)] ∈ A +u Γ ]).
     apply hasU_O; eauto.
     assert ([ A +u Γ |- Var 0 :- A.[ren (+1)] ]).
@@ -337,15 +371,15 @@ Proof.
     asimpl in H10; eauto.
   - pose proof (validity H0 H1); first_order. 
     apply l_lolli_inv in H2; first_order.
-    assert ([ Γ |- Prod A B L :- Sort U x2 ]).
+    assert ([ Γ |- Arrow A B L :- Sort U x2 ]).
     destruct x2.
-    + eapply l_prod; eauto.
+    + eapply l_arrow; eauto.
       rewrite <- pure_re in H2; eauto.
       rewrite <- pure_re in H3; eauto.
     + apply has_propL_false in H2.
       inv H2.
       rewrite <- pure_re; eauto.
-    eapply prod_lam; eauto.
+    eapply arrow_lam; eauto.
     assert ([ 0 :l A.[ren (+1)] ∈ A +l Γ ]).
     apply hasL_O; eauto.
     assert ([ A +l Γ |- Var 0 :- A.[ren (+1)] ]).
@@ -366,14 +400,14 @@ Qed.
   
 Theorem dereliction Γ m A B s :
   [ Γ |- ] ->
-  [ Γ |- m :- Prod A B s ] ->
+  [ Γ |- m :- Arrow A B s ] ->
   exists m, [ Γ |- m :- Lolli A B s ].
 Proof.
   intros.
-  exists (Lam (App m.[ren (+1)] (Var 0))).
+  exists (Lam A (App m.[ren (+1)] (Var 0)) s).
   destruct s.
   - pose proof (validity H H0); first_order. 
-    apply u_prod_inv in H1; first_order.
+    apply u_arrow_inv in H1; first_order.
     destruct x1; destruct x2.
     + assert ([ %Γ |- Lolli A B U :- L @ n ]).
       eapply u_lolli; eauto.
@@ -392,7 +426,7 @@ Proof.
       assert ([ A +u Γ ‡ A +u %Γ ‡ A +u Γ]).
       constructor.
       apply merge_re2.
-      pose proof (u_prod_app H7 H6 H5 H8).
+      pose proof (u_arrow_app H7 H6 H5 H8).
       asimpl in H9; eauto.
     + assert ([ %Γ |- Lolli A B U :- L @ 0 ]).
       assert (𝐏 <: U @ 0).
@@ -419,7 +453,7 @@ Proof.
       assert ([ A +u Γ ‡ A +u %Γ ‡ A +u Γ]).
       constructor.
       apply merge_re2.
-      pose proof (u_prod_app H7 H6 H5 H8).
+      pose proof (u_arrow_app H7 H6 H5 H8).
       asimpl in H9; eauto.
     + assert ([ %Γ |- Lolli A B U :- L @ n ]).
       eapply u_lolli; eauto.
@@ -438,7 +472,7 @@ Proof.
       assert ([ A +u Γ ‡ A +u %Γ ‡ A +u Γ]).
       constructor.
       apply merge_re2.
-      pose proof (u_prod_app H7 H6 H5 H8).
+      pose proof (u_arrow_app H7 H6 H5 H8).
       asimpl in H9; eauto.
     + apply has_propL_false in H2.
       inv H2.
@@ -447,7 +481,7 @@ Proof.
       rewrite <- pure_re; eauto.
       apply re_pure.
   - pose proof (validity H H0); first_order. 
-    apply l_prod_inv in H1; first_order.
+    apply l_arrow_inv in H1; first_order.
     destruct x1; destruct x2.
     + assert ([ %Γ |- Lolli A B L :- L @ n ]).
       eapply l_lolli; eauto.
@@ -463,8 +497,8 @@ Proof.
       assert ([ □ Γ ‡ A +l %Γ ‡ A +l Γ]).
       constructor.
       apply merge_re2.
-      pose proof (l_prod_app).
-      pose proof (l_prod_app H6 H5 H7).
+      pose proof (l_arrow_app).
+      pose proof (l_arrow_app H6 H5 H7).
       asimpl in H9; eauto.
     + apply has_propL_false in H1.
       inv H1.
@@ -483,7 +517,7 @@ Proof.
       assert ([ □ Γ ‡ A +l %Γ ‡ A +l Γ]).
       constructor.
       apply merge_re2.
-      pose proof (l_prod_app H6 H5 H7).
+      pose proof (l_arrow_app H6 H5 H7).
       asimpl in H8; eauto.
     + apply has_propL_false in H2.
       inv H2.

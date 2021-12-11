@@ -14,9 +14,9 @@ Unset Printing Implicit Defensive.
 Inductive term : Type :=
 | Var   (x : var)
 | Sort  (s : sort) (l : option nat)
-| Prod  (A : term) (B : {bind term}) (s : sort)
+| Arrow (A : term) (B : {bind term}) (s : sort)
 | Lolli (A : term) (B : {bind term}) (s : sort)
-| Lam   (n : {bind term})
+| Lam   (A : term) (n : {bind term}) (s : sort)
 | App   (m n : term).
 
 (** Derive basic sigma calculus lemmas using Autosubst. *)
@@ -31,25 +31,28 @@ Instance substLemmas_term : SubstLemmas term. derive. Qed.
 Inductive value : term -> Prop :=
 | value_sort srt l  : value (Sort srt l)
 | value_var x       : value (Var x)
-| value_prod A B s  : value (Prod A B s)
+| value_arrow A B s : value (Arrow A B s)
 | value_lolli A B s : value (Lolli A B s)
-| value_lam n       : value (Lam n).
+| value_lam A n s   : value (Lam A n s).
 
 (** Single-step reduction relation. *)
 
 Reserved Notation "m ~> n" (at level 30).
 Inductive step : term -> term -> Prop :=
-| step_beta m n :
-  (App (Lam m) n) ~> m.[n/]
-| step_lam m m' :
-  m ~> m' ->
-  Lam m ~> Lam m'
-| step_prodL A A' B s :
+| step_beta A m n s :
+  (App (Lam A m s) n) ~> m.[n/]
+| step_lamL A A' m s :
   A ~> A' ->
-  Prod A B s ~> Prod A' B s
-| step_prodR A B B' s :
+  Lam A m s ~> Lam A' m s
+| step_lamR A m m' s :
+  m ~> m' ->
+  Lam A m s ~> Lam A m' s
+| step_arrowL A A' B s :
+  A ~> A' ->
+  Arrow A B s ~> Arrow A' B s
+| step_arrowR A B B' s :
   B ~> B' ->
-  Prod A B s ~> Prod A B' s
+  Arrow A B s ~> Arrow A B' s
 | step_lolliL A A' B s :
   A ~> A' ->
   Lolli A B s ~> Lolli A' B s
