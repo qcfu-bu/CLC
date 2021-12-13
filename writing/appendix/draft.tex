@@ -19,12 +19,18 @@
 \usepackage{enumitem}
 \usepackage{minted}
 
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
 \setlist[itemize]{leftmargin=1.6em}
 \renewcommand{\syntleft}{}
 \renewcommand{\syntright}{}
-\setlength{\grammarparsep}{7pt}
-\setlength{\grammarindent}{7em}
-\newcommand{\indalt}[1][2]{\\\hspace*{-0.2em}\textbar\quad}
+\setlength{\grammarparsep}{15pt}
+\setlength{\grammarindent}{10em}
+\newcommand{\indalt}[1][2]{\\\hspace*{-1.2em}\textbar\quad}
 \newcommand{\rname}[1]{\textsc{\footnotesize #1}}
 \newcommand{\pure}[1]{|#1|}
 \newcommand{\refl}{\text{refl}}
@@ -51,8 +57,9 @@
 \newcommand{\END}{\texttt{END}}
 \newcommand{\utype}{:_{\scriptscriptstyle U}}
 \newcommand{\ltype}{:_{\scriptscriptstyle L}}
-\newcommand{\stype}[1]{:_#1}
+\newcommand{\stype}[1]{:_{#1}}
 \newcommand{\step}{\leadsto}
+\newcommand{\red}{\leadsto^*}
 \newcommand{\pstep}{\leadsto_p}
 \newcommand{\mrg}[3]{#1\ddagger#2\ddagger#3}
 \newcommand{\erase}[1]{\llbracket #1 \rrbracket}
@@ -78,11 +85,11 @@ This extended report is meant to accompany our paper of the same title. Here, we
 \section{Syntax of CLC \texttt{(clc_ast.v)}}
 \begin{figure}[H]
   \begin{grammar}
-    <$i$> := 0 | 1 | 2 ... \phantom{* |} \hspace*{2.4em} universe levels
+    <$i$> ::= 0 | 1 | 2 ... \phantom{* |} \hspace*{2.4em} universe levels
 
     <$s, t$> ::= $U$ | $L$ \phantom{| $x$} \hspace*{4.6em} sorts
 
-    <$m, n, A, B, M$> ::= $U_i$ | $L_i$ | $x$ \hspace*{3em} expressions
+    <$m, n, A, B, M$> ::= $U_i$ | $L_i$ | $x$ \hspace*{4em} expressions
     \indalt $(x :_s A) \rightarrow B$
     \indalt $(x :_s A) \multimap B$
     \indalt $\lambda x :_s A. n$
@@ -94,7 +101,7 @@ This extended report is meant to accompany our paper of the same title. Here, we
 \begin{figure}[H]
   \begin{mathpar}
     \inferrule
-    { m_1 \step^* n \\ m_2 \step^* n }
+    { m_1 \red n \\ m_2 \red n }
     { m_1 \equiv m_2 : A }
     \rname{Join}
 
@@ -156,18 +163,453 @@ To prove the confluence property of CLC, we employ the standard technique utiliz
     \inferrule
     { }
     { x \pstep x }
-    \rname{Pstep-Var}
+    \rname{PStep-Var}
 
     \inferrule
     { }
     { s_i \pstep s_i }
-    \rname{Pstep-Sort}
+    \rname{PStep-Sort}
 
     \inferrule
-    { m \pstep m' }
-    { }
+    { A \pstep A' \\ m \pstep m' }
+    { \lambda x \stype{s} A.m \pstep \lambda x \stype{s} A'.m' }
+    \rname{PStep-$\lambda$}
+
+    \inferrule
+    { m \pstep m' \\ n \pstep n' }
+    { m\ n \pstep m'\ n' }
+    \rname{PStep-App}
+
+    \inferrule
+    { m \pstep m' \\ n \pstep n'}
+    { (\lambda x \stype{s} A.m)\ n \pstep m'[n'/x] }
+    \rname{PStep-$\beta$}
+
+    \inferrule
+    { A \pstep A' \\ B \pstep B' }
+    { (x \stype{s} A) \rightarrow B \pstep (x \stype{s} A') \rightarrow B' }
+    \rname{PStep$\rightarrow$}
+
+    \inferrule
+    { A \pstep A' \\ B \pstep B' }
+    { (x \stype{s} A) \multimap B \pstep (x \stype{s} A') \multimap B' }
+    \rname{PStep$\multimap$}
   \end{mathpar}
   \label{pred}
 \end{figure}
+
+\subsection{Reduction Lemmas}
+Here, we prove some simple lemmas concerning $\step$, $\red$ and substitution.
+
+\begin{definition}
+  For a term $m$ and a map $\sigma$ from variables to terms, let $m[\sigma]$ be the term obtained by applying $\sigma$ uniformly to all free variables in $m$.
+\end{definition}
+
+\begin{definition}
+  For maps $\sigma, \tau$ from variables to terms, we say that $\sigma$ reduces to $\tau$ if for any variable $x$ there exists a reduction $(\sigma\ x) \red (\tau\ x)$. We write $\sigma \red \tau$ when it is clear from context that $\sigma, \tau$ are maps and not terms.
+\end{definition}
+
+\begin{lemma}\label{stepsubst}
+  For terms $m, n$ and a map $\sigma$ from variables to terms, if there exist a step $m \step n$, then there exists a step $m[\sigma] \step n[\sigma]$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \step n$.
+\end{proof}
+
+\begin{lemma}\label{redapp}
+  For terms $m_1, m_2, n_1, n_2$, if these exists reductions $m_1 \red m_2$ and $n_1 \red n_2$, then there exists reduction $(m_1\ n_1) \red (m_2\ n_2)$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\red$ and applying rules \rname{Step-AppL}, \rname{Step-AppR}.
+\end{proof}
+
+\begin{lemma}\label{redlam}
+  For terms $A_1, A_2, m_1, m_2$ and sort $s$, if there exists reductions $A_1 \red A_2$ and $m_1 \red m_2$, then there exists reduction $\lambda x \stype{s}A_1.m_1 \red \lambda x \stype{s}A_2.m_2$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\red$ and applying rules \rname{Step-$\lambda$L}, \rname{Step-$\lambda$R}.
+\end{proof}
+
+\begin{lemma}\label{redarrow}
+  For terms $A_1, A_2, B_1, B_2$ and sort $s$, if there exists reductions $A_1 \red A_2$ and $B_1 \red B_2$, then there exists reduction $(x \stype{s}A_1) \rightarrow B_1 \red (x \stype{s} A_2) \rightarrow B_2$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\red$ and applying rules \rname{Step-L$\rightarrow$}, \rname{Step-R$\rightarrow$}.
+\end{proof}
+
+\begin{lemma}\label{redlolli}
+  For terms $A_1, A_2, B_1, B_2$ and sort $s$, if there exists reductions $A_1 \red A_2$ and $B_1 \red B_2$, then there exists reduction $(x \stype{s}A_1) \multimap B_1 \red (x \stype{s} A_2) \multimap B_2$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\red$ and applying rules \rname{Step-L$\multimap$}, \rname{Step-R$\multimap$}.
+\end{proof}
+
+\begin{lemma}\label{redsubst}
+  For terms $m, n$ and a map $\sigma$ from variables to terms, if there exist a reduction $m \red n$, then there exists a reduction $m[\sigma] \red n[\sigma]$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\red$, the transitivity of $\red$ and Lemma \ref{stepsubst}.
+\end{proof}
+
+\begin{lemma}\label{redcompat}
+  For maps $\sigma, \tau$ from variables to terms, if there is a map reduction $\sigma \red \tau$, then for any term $m$ these is a reduction $m[\sigma] \red m[\tau]$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $m$, applying Lemmas \ref{redapp}, \ref{redlam}, \ref{redarrow}, \ref{redlolli}.
+\end{proof}
+
+\subsection{Equality Lemmas}
+Here, we prove some simple lemmas concerning $\red$, $\equiv$ and substitution.
+
+\begin{definition}
+  For maps $\sigma, \tau$ from variables to terms, we say that $\sigma$ is equal to $\tau$ if for any variable $x$ there exists an equality $(\sigma\ x) \equiv (\tau\ x)$. We write $\sigma \equiv \tau$ when it is clear from context that $\sigma, \tau$ are maps and not terms.
+\end{definition}
+
+\begin{lemma}\label{convhom}
+  For any map $f$ from terms to terms, if for any terms $m, n$ such that $m \step n$ implies $f\ m \equiv f\ n$, then for any terms $m, n$ equality $m \equiv n$ implies $f\ m \equiv f\ n$.
+\end{lemma}
+\begin{proof}
+  By the properties of the transitive reflexive closure $\red$ and that $\equiv$ is an equivalence relation.
+\end{proof}
+
+\begin{lemma}\label{convapp}
+  For terms $m_1, m_2, n_1, n_2$, if there exists equalities $m_1 \equiv m_2$ and $n_1 \equiv n_2$, then there exists equality $(m_1\ n_1) \equiv (m_2\ n_2)$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\equiv$ and applying rules \rname{Join}, \rname{Step-AppL}, \rname{Step-AppR}.
+\end{proof}
+
+\begin{lemma}\label{convlam}
+  For terms $A_1, A_2, m_1, m_2$ and sort $s$, if there exists equalities $A_1 \equiv A_2$ and $m_1 \equiv m_2$, then there exists equality $\lambda x \stype{s} A_1.m_1 \equiv \lambda x \stype{s} A_2.m_2$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\equiv$ and applying rules \rname{Join}, \rname{Step-$\lambda$L}, \rname{Step-$\lambda$R}.
+\end{proof}
+
+\begin{lemma}\label{convarrow}
+  For terms $A_1, A_2, B_1, B_2$ and sort $s$, if there exists equalities $A_1 \equiv A_2$ and $B_1 \equiv B_2$, then there exists equality $(x \stype{s} A_1) \rightarrow B_1 \equiv (x \stype{s} A_2) \rightarrow B_2$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\equiv$ and applying rules \rname{Join}, \rname{Step-L$\rightarrow$}, \rname{Step-R$\rightarrow$}.
+\end{proof}
+
+\begin{lemma}\label{convlolli}
+  For terms $A_1, A_2, B_1, B_2$ and sort $s$, if there exists equalities $A_1 \equiv A_2$ and $B_1 \equiv B_2$, then there exists equality $(x \stype{s} A_1) \multimap B_1 \equiv (x \stype{s} A_2) \multimap B_2$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\equiv$ and applying rules \rname{Join}, \rname{Step-L$\multimap$}, \rname{Step-R$\multimap$}.
+\end{proof}
+
+\begin{lemma}
+  For terms $m, n$ and map $\sigma$ from variables to terms, if there is equality $m \equiv n$, then there is equality $m[\sigma] \equiv n[\sigma]$.
+\end{lemma}
+\begin{proof}
+  By Lemmas \ref{convhom} and \ref{stepsubst}.
+\end{proof}
+
+\begin{lemma}\label{convcompat}
+  For maps $\sigma, \tau$ from variables to terms and term $m$, if these is map equality $\sigma \equiv \tau$, then there is equality $m[\sigma] \equiv m[\tau]$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $m$, applying Lemmas \ref{convapp}, \ref{convlam}, \ref{convarrow}, \ref{convlolli}.
+\end{proof}
+
+\begin{lemma}
+  For terms $m_1, m_2, n$, if there is equality $m_1 \equiv m_2$, then there is equality $n[m_1/x] \equiv n[m_2/x]$ for any variable $x \in FV(n)$.
+\end{lemma}
+\begin{proof}
+  This is a special case of Lemma \ref{convcompat} where $\sigma$ maps $x$ to $m_1$ and $\tau$ maps $x$ to $m_2$.
+\end{proof}
+
+\subsection{Parallel Reduction Lemmas}
+
+\begin{definition}\label{psstep}
+  For maps $\sigma, \tau$ from variables to terms, we say $\sigma$ parallel reduces to $\tau$ if for any variable $x$ there exists a parallel reduction $(\sigma\ x) \pstep (\tau\ x)$. We write $\sigma \pstep \tau$ when it is clear from context that $\sigma, \tau$ are maps and not terms.
+\end{definition}
+
+\begin{lemma}\label{psteprefl}
+  For any term $m$, there exists a reflexive parallel reduction $m \pstep m$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $m$.
+\end{proof}
+
+\begin{lemma}
+  For any map $\sigma$ from variables to terms, there exists a reflexive parallel map reduction $\sigma \pstep \sigma$.
+\end{lemma}
+\begin{proof}
+  By Definition \ref{psstep} and Lemma \ref{psteprefl}.
+\end{proof}
+
+\begin{lemma}\label{steppstep}
+  For any terms $m, n$, if there exists step $m \step n$, then there exists a parallel reduction $m \pstep n$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \step n$ and Lemma \ref{psteprefl}.
+\end{proof}
+
+\begin{lemma}\label{pstepred}
+  For terms $m, n$, if there exists parallel reduction $m \pstep n$, then there exists a reduction $m \red n$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \pstep n$, utilizing the transitive property of $\red$ and Lemmas \ref{redapp}, \ref{redlam}, \ref{redarrow}, \ref{redlolli}, \ref{redsubst}, \ref{redcompat}.
+\end{proof}
+
+\begin{lemma}
+  For terms $m, n$ and map $\sigma$ from variables to terms, if there exists parallel reduction $m \pstep n$, there exists parallel reduction $m[\sigma] \pstep n[\sigma]$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \pstep n$ and Lemma \ref{psteprefl}.
+\end{proof}
+
+\begin{lemma}\label{pstepcompat}
+  For terms $m, n$ and maps $\sigma, \tau$ from variables to terms, if there exists parallel reduction $m \pstep n$ and parallel map reduction $\sigma \pstep \tau$, there exists parallel reduction $m[\sigma] \pstep n[\tau]$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \pstep n$.
+\end{proof}
+
+\begin{lemma}
+  For terms $m_1, m_2, n$, if there is parallel reduction $m_1 \pstep m_2$, then there is parallel reduction $n[m_1/x] \pstep n[m_2/x]$ for any variable $x \in FV(n)$.
+\end{lemma}
+\begin{proof}
+  By Lemma \ref{psteprefl}, this is a special case of Lemma \ref{pstepcompat} where $\sigma$ maps $x$ to $m_1$ and $\tau$ maps $x$ to $m_2$.
+\end{proof}
+
+\subsection{Confluence Theorem}
+We first show that $\pstep$ satisfies the diamond property. Using the diamond property, we ultimately prove the confluence theorem.
+
+\begin{lemma}\label{diamond}
+  CLC term reduction has the diamond property. For terms $m, m_1, m_2$, if there are parallel reductions $m \pstep m_1$ and $m \pstep m_2$, then there exists term $m'$ such that $m_1 \pstep m'$ and $m_2 \pstep m'$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \pstep m_1$. Each case in the induction specializes $m$ appearing in $m \pstep m_2$, allowing one to invert its derivation in a syntax directed way and apply the induction hypothesis. The difficult cases are due to \rname{PStep-$\beta$} as it concerns substitution, so Lemma \ref{pstepcompat} is used to push these cases through.
+\end{proof}
+
+\begin{lemma}\label{strip}
+  Strip lemma. For terms $m, m_1, m_2$, if there is parallel reduction $m \pstep m_1$ and reduction $m \red m_2$, then there exists term $m'$ such that $m_1 \red m'$ and $m_2 \pstep m'$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \pstep m_1$, utilizing transitivity of $\red$ and Lemmas \ref{steppstep}, \ref{pstepred}, \ref{diamond}.
+\end{proof}
+
+\begin{theorem}
+  CLC term reduction is confluent. For terms $m, m_1, m_2$, if there are reductions $m \red m_1$ and $m \red m_2$, then there exists term $m'$ such that $m_1 \red m'$ and $m_2 \red m'$.
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $m \red m_1$, utilizing transitivity of $\red$ and Lemmas \ref{steppstep}, \ref{pstepred}, \ref{strip}.
+\end{proof}
+
+\subsection{Corollaries of Confluence}
+The following results are all corollaries of confluence, proven using a combination of induction, transitivity and confluence. These corollaries allow us to refute false reductions and equalities in future proofs.
+
+\begin{corollary}
+  For a universe $s_i$ and term $m$, if there is reduction $s_i \red m$, then $m = s_i$.
+\end{corollary}
+
+\begin{corollary}
+  For variable $x$ and term $m$, if there is reduction $x \red m$, then $m = x$.
+\end{corollary}
+
+\begin{corollary}
+  For terms $A, B, m$ and sort $s$, if there is reduction $(x \stype{s} A) \rightarrow B \red m$, then there exists $A', B'$ such that there are reductions $A \red A'$, $B \red B'$ and $m = (x \stype{s} A') \rightarrow B'$.
+\end{corollary}
+
+\begin{corollary}
+  For terms $A, B, m$ and sort $s$, if there is reduction $(x \stype{s} A) \multimap B \red m$, then there exists $A', B'$ such that there are reductions $A \red A'$, $B \red B'$ and $m = (x \stype{s} A') \multimap B'$.
+\end{corollary}
+
+\begin{corollary}
+  For terms $A, m, n$ and sort $s$, if there is reduction $\lambda x \stype{s} A.m \red n$, then there exists $A',m'$ such that there are reductions $A \red A'$, $m \red m'$ and $n = \lambda x \stype{s} A'.m'$.
+\end{corollary}
+
+\begin{corollary}
+  For sorts $s, t$ and levels $i, j$, if there is equality $s_i \equiv t_j$, then there is $s = t$ and $i = j$.
+\end{corollary}
+
+\begin{corollary}
+  For terms $A_1, A_2, B_1, B_2$ and sorts $s, t$, if there is equality $(x \stype{s} A_1) \rightarrow B_1 \equiv (x \stype{t} A_2) \rightarrow B_2$, then there are equalities $A_1 \equiv A_2$, $B_1 \equiv B_2$ and $s = t$.
+\end{corollary}
+
+\begin{corollary}
+  For terms $A_1, A_2, B_1, B_2$ and sorts $s, t$, if there is equality $(x \stype{s} A_1) \multimap B_1 \equiv (x \stype{t} A_2) \multimap B_2$, then there are equalities $A_1 \equiv A_2$, $B_1 \equiv B_2$ and $s = t$.
+\end{corollary}
+
+\section{Context of CLC \texttt{(clc_context.v)}}
+Contexts of CLC are of the form $x_1 \stype{s_1} A_1, x_2 \stype{s_2} A_2, ... x_k \stype{s_k} A_k$ where each free variable $x_i$ is assigned a type $A_i$ and sort $s_i$. Contexts will be referred to by meta variables $\Gamma$ and $\Delta$.
+
+\begin{figure}[h]
+  \begin{mathpar}
+    \inferrule
+    { }
+    { \epsilon \vdash }
+    \rname{Wf-$\epsilon$}
+
+    \inferrule
+    { \Gamma\ \vdash \\
+      \overline{\Gamma} \vdash A : U_i }
+    { \Gamma, x \utype A \vdash }
+    \rname{Wf-U}
+
+    \inferrule
+    { \Gamma\ \vdash \\
+      \overline{\Gamma} \vdash A : L_i }
+    { \Gamma, x \ltype A\ \vdash }
+    \rname{Wf-L}
+    \\
+
+    \inferrule
+    { }
+    { \pure{\epsilon} }
+    \rname{Pure-$\epsilon$}
+
+    \inferrule
+    { \pure{\Gamma} \\
+      \Gamma \vdash A : U_i }
+    { \pure{\Gamma, x \utype A} }
+    \rname{Pure-U}
+    \\
+
+    \inferrule
+    { }
+    { \mrg{\epsilon}{\epsilon}{\epsilon} }
+    \rname{Merge-$\epsilon$}
+
+    \inferrule
+    { \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+    { \mrg{\Gamma_1, x \utype A}
+      {\Gamma_2, x \utype A}
+      {\Gamma, x \utype A} }
+    \rname{Merge-U}
+    \\
+
+    \inferrule
+    { \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\
+      x \notin \Gamma_2 }
+    { \mrg{\Gamma_1, x \ltype A}
+      {\Gamma_2}
+      {\Gamma, x \ltype A} }
+    \rname{Merge-L1}
+
+    \inferrule
+    { \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\
+      x \notin \Gamma_1 }
+    { \mrg{\Gamma_1}
+      {\Gamma_2, x \ltype A}
+      {\Gamma, x \ltype A} }
+    \rname{Merge-L2}
+  \end{mathpar}
+  \label{structural}
+\end{figure}
+
+\subsection{Merge Lemmas}
+Since weakening and contraction rules will not be allowed on restricted variables, it is necessary to have lemmas that enable the manipulation of contexts.
+
+\begin{lemma}\label{mergesym}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, then there is $\mrg{\Gamma_2}{\Gamma_1}{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}\label{mergepure}
+  For any context $\Gamma$, if there is $\pure{\Gamma}$, then there is $\mrg{\Gamma}{\Gamma}{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\pure{\Gamma}$.
+\end{proof}
+
+\begin{lemma}\label{mergere1}
+  For any context $\Gamma$, there is $\mrg{\overline{\Gamma}}{\Gamma}{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$.
+\end{proof}
+
+\begin{lemma}\label{mergere2}
+  For any context $\Gamma$, there is $\mrg{\Gamma}{\overline{\Gamma}}{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$.
+\end{proof}
+
+\begin{lemma}\label{mergepureinv}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\pure{\Gamma}$, then there is $\pure{\Gamma_1}$ and $\pure{\Gamma_2}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}\label{mergepure1}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$ , if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\pure{\Gamma_1}$, then there is $\Gamma = \Gamma_2$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}\label{mergepure2}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$ , if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\pure{\Gamma_2}$, then there is $\Gamma = \Gamma_1$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}\label{mergepurepure}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, and also $\pure{\Gamma_1}$, $\pure{\Gamma_2}$, then there is $\pure{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}\label{mergepureeq}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, and also $\pure{\Gamma_1}$, $\pure{\Gamma_2}$, then there is $\Gamma_1 = \Gamma_2$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}\label{mergerere}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, then there is $\overline{\Gamma_1} = \overline{\Gamma}$ and $\overline{\Gamma_2} = \overline{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}\label{mergererere}
+  For any context $\Gamma$, there is $\mrg{\overline{\Gamma}}{\overline{\Gamma}}{\overline{\Gamma}}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$.
+\end{proof}
+
+\begin{lemma}\label{mergesplit1}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma, \Delta_1, \Delta_2$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\mrg{\Delta_1}{\Delta_2}{\Gamma_1}$, then there exists $\Delta$ such that $\mrg{\Delta_1}{\Gamma_2}{\Delta}$ and $\mrg{\Delta}{\Delta_2}{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\subsection{Restriction and Purity Lemmas}
+
+\begin{lemma}\label{rere}
+  For any context $\Gamma$, there is $\overline{\Gamma} = \overline{\overline{\Gamma}}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$.
+\end{proof}
+
+\begin{lemma}\label{purere}
+  For any context $\Gamma$, if there is $\pure{\Gamma}$, then there is $\Gamma = \overline{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$.
+\end{proof}
+
+\begin{lemma}\label{repure}
+  For any context $\Gamma$ , there is $\pure{\overline{\Gamma}}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$.
+\end{proof}
 
 \end{document}
