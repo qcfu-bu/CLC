@@ -80,7 +80,7 @@
 \tableofcontents
 
 \section{Introduction}
-This extended report is meant to accompany our paper of the same title. Here, we describe the meta-theory of CILC and their proofs in detail. All the results presented here have been formalized and proven correct in the Coq Proof Assistant.
+This extended report is meant to accompany our paper of the same title. Here, we describe the meta-theory of CLC and CILC and their proofs in detail. All the results presented here have been formalized and proven correct in the Coq Proof Assistant.
 
 \section{Syntax of CLC \texttt{(clc_ast.v)}}
 \begin{figure}[H]
@@ -300,7 +300,7 @@ Here, we prove some simple lemmas concerning $\red$, $\equiv$ and substitution.
   By transitivity of $\equiv$ and applying rules \rname{Join}, \rname{Step-L$\multimap$}, \rname{Step-R$\multimap$}.
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}\label{convsubst}
   For terms $m, n$ and map $\sigma$ from variables to terms, if there is equality $m \equiv n$, then there is equality $m[\sigma] \equiv n[\sigma]$.
 \end{lemma}
 \begin{proof}
@@ -403,35 +403,35 @@ We first show that $\pstep$ satisfies the diamond property. Using the diamond pr
 \subsection{Corollaries of Confluence}
 The following results are all corollaries of confluence, proven using a combination of induction, transitivity and confluence. These corollaries allow us to refute false reductions and equalities in future proofs.
 
-\begin{corollary}
+\begin{corollary}\label{redsortinv}
   For a universe $s_i$ and term $m$, if there is reduction $s_i \red m$, then $m = s_i$.
 \end{corollary}
 
-\begin{corollary}
+\begin{corollary}\label{redvarinv}
   For variable $x$ and term $m$, if there is reduction $x \red m$, then $m = x$.
 \end{corollary}
 
-\begin{corollary}
+\begin{corollary}\label{redarrowinv}
   For terms $A, B, m$ and sort $s$, if there is reduction $(x \stype{s} A) \rightarrow B \red m$, then there exists $A', B'$ such that there are reductions $A \red A'$, $B \red B'$ and $m = (x \stype{s} A') \rightarrow B'$.
 \end{corollary}
 
-\begin{corollary}
+\begin{corollary}\label{redlolliinv}
   For terms $A, B, m$ and sort $s$, if there is reduction $(x \stype{s} A) \multimap B \red m$, then there exists $A', B'$ such that there are reductions $A \red A'$, $B \red B'$ and $m = (x \stype{s} A') \multimap B'$.
 \end{corollary}
 
-\begin{corollary}
+\begin{corollary}\label{redlaminv}
   For terms $A, m, n$ and sort $s$, if there is reduction $\lambda x \stype{s} A.m \red n$, then there exists $A',m'$ such that there are reductions $A \red A'$, $m \red m'$ and $n = \lambda x \stype{s} A'.m'$.
 \end{corollary}
 
-\begin{corollary}
+\begin{corollary}\label{sortinj}
   For sorts $s, t$ and levels $i, j$, if there is equality $s_i \equiv t_j$, then there is $s = t$ and $i = j$.
 \end{corollary}
 
-\begin{corollary}
+\begin{corollary}\label{arrowinj}
   For terms $A_1, A_2, B_1, B_2$ and sorts $s, t$, if there is equality $(x \stype{s} A_1) \rightarrow B_1 \equiv (x \stype{t} A_2) \rightarrow B_2$, then there are equalities $A_1 \equiv A_2$, $B_1 \equiv B_2$ and $s = t$.
 \end{corollary}
 
-\begin{corollary}
+\begin{corollary}\label{lolliinj}
   For terms $A_1, A_2, B_1, B_2$ and sorts $s, t$, if there is equality $(x \stype{s} A_1) \multimap B_1 \equiv (x \stype{t} A_2) \multimap B_2$, then there are equalities $A_1 \equiv A_2$, $B_1 \equiv B_2$ and $s = t$.
 \end{corollary}
 
@@ -502,7 +502,7 @@ Contexts of CLC are of the form $x_1 \stype{s_1} A_1, x_2 \stype{s_2} A_2, ... x
   \label{structural}
 \end{figure}
 
-\subsection{Merge Lemmas}
+\subsection{Merge Lemmas}\label{mergeprop}
 Since weakening and contraction rules will not be allowed on restricted variables, it is necessary to have lemmas that enable the manipulation of contexts.
 
 \begin{lemma}\label{mergesym}
@@ -582,13 +582,6 @@ Since weakening and contraction rules will not be allowed on restricted variable
   By induction on the structure of $\Gamma$.
 \end{proof}
 
-\begin{lemma}\label{mergesplit1}
-  For contexts $\Gamma_1, \Gamma_2, \Gamma, \Delta_1, \Delta_2$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\mrg{\Delta_1}{\Delta_2}{\Gamma_1}$, then there exists $\Delta$ such that $\mrg{\Delta_1}{\Gamma_2}{\Delta}$ and $\mrg{\Delta}{\Delta_2}{\Gamma}$.
-\end{lemma}
-\begin{proof}
-  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
-\end{proof}
-
 \subsection{Restriction and Purity Lemmas}
 
 \begin{lemma}\label{rere}
@@ -610,6 +603,568 @@ Since weakening and contraction rules will not be allowed on restricted variable
 \end{lemma}
 \begin{proof}
   By induction on the structure of $\Gamma$.
+\end{proof}
+
+\begin{lemma}\label{hasure}
+  For any context $\Gamma$, variable $x$ and type $A$, if there is $x \utype A \in \Gamma$, then there is $x \utype A \in \overline{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $x \utype A \in \Gamma$.
+\end{proof}
+
+\begin{lemma}\label{haslre}
+  For any context $\Gamma$, variable $x$ and type $A$, there is $x \ltype A \notin \overline{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$.
+\end{proof}
+
+\begin{lemma}\label{mergesplit1}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma, \Delta_1, \Delta_2$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\mrg{\Delta_1}{\Delta_2}{\Gamma_1}$, then there exists $\Delta$ such that $\mrg{\Delta_1}{\Gamma_2}{\Delta}$ and $\mrg{\Delta}{\Delta_2}{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma, \Delta_1, \Delta_2$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\mrg{\Delta_1}{\Delta_2}{\Gamma_1}$, then there exists $\Delta$ such that $\mrg{\Delta_2}{\Gamma_2}{\Delta}$ and $\mrg{\Delta_1}{\Delta}{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\section{Subtyping of CLC \texttt{(clc_subtype.v)}}
+
+The cumulativity relation ($\preceq$) is the smallest binary relation over terms such that
+\begin{enumerate}
+  \item $\preceq$ is a partial order with respect to equality.
+        \begin{enumerate}
+          \item If $A \equiv B$, then $A \preceq B$.
+          \item If $A \preceq B$ and $B \preceq A$, then $A \equiv B$.
+          \item If $A \preceq B$ and $B \preceq C$, then $A \preceq B$.
+        \end{enumerate}
+  \item $U_0 \preceq U_1 \preceq U_2 \preceq \cdots$
+  \item $L_0 \preceq L_1 \preceq L_2 \preceq \cdots$
+  \item If $A_1 \equiv A_2$ and $B_1 \preceq B_2$, \\ then
+        $(x \stype{s} A_1) \rightarrow B_1 \preceq (x \stype{s} A_2) \rightarrow B_2$
+  \item If $A_1 \equiv A_2$ and $B_1 \preceq B_2$, \\ then
+        $(x \stype{s} A_1) \multimap B_1 \preceq (x \stype{s} A_2) \multimap B_2$
+\end{enumerate}
+
+\noindent
+Here, we give an inductive definition of the cumulativity relation ($\preceq$) that is suitable for writing proofs.
+
+\begin{mathpar}
+  \inferrule
+  { }
+  { A \prec A }
+  \rname{$\prec$-Refl}
+
+  \inferrule
+  { i_1 \leq i_2 }
+  { s_{i_1} \prec s_{i_2} }
+  \rname{$\prec$-Sort}
+
+  \inferrule
+  { B_1 \prec B_2 }
+  { (x \stype{s} A) \rightarrow B_1 \prec (x \stype{s} A) \rightarrow B_2 }
+  \rname{$\prec$$\rightarrow$}
+
+  \inferrule
+  { B_1 \prec B_2 }
+  { (x \stype{s} A) \multimap B_1 \prec (x \stype{s} A) \multimap B_2 }
+  \rname{$\prec$$\multimap$}
+
+  \inferrule
+  { A' \prec B' \\ A \equiv A' \\ B \equiv B' }
+  { A \preceq B }
+  \rname{$\prec$-$\preceq$}
+\end{mathpar}
+
+\subsection{Subtyping Lemmas}
+
+\begin{lemma}\label{sub1sub}
+  For terms $A, B$, if there is $A \prec B$, then there is $A \preceq B$.
+\end{lemma}
+\begin{proof}
+  By \rname{$\prec$-$\preceq$} and the reflexivity of equality $\equiv$.
+\end{proof}
+
+\begin{lemma}\label{sub1conv}
+  For terms $A, B, C$, if there is $A \prec B$ and $B \equiv C$, then there is $A \preceq C$.
+\end{lemma}
+\begin{proof}
+  By \rname{$\prec$-$\preceq$} and the transitivity of equality $\equiv$.
+\end{proof}
+
+\begin{lemma}\label{convsub1}
+  For terms $A, B, C$, if there is $A \equiv B$ and $B \prec C$, then there is $A \preceq C$.
+\end{lemma}
+\begin{proof}
+  By \rname{$\prec$-$\preceq$} and the transitivity of equality $\equiv$.
+\end{proof}
+
+\begin{lemma}\label{convsub}
+  For terms $A, B$, if there is $A \equiv B$, then there is $A \preceq B$.
+\end{lemma}
+\begin{proof}
+  By Lemma \ref{convsub1} and \rname{$\prec$-Refl}.
+\end{proof}
+
+\begin{lemma}\label{subrefl}
+  For term $A$, there is $A \preceq A$.
+\end{lemma}
+\begin{proof}
+  By Lemma \ref{sub1sub} and \rname{$\prec$-Refl}.
+\end{proof}
+
+\begin{lemma}\label{subprop}
+  For natural numbers $i, j$ and sort $s$ such that $i \leq j$, there is $s_i \preceq s_j$.
+\end{lemma}
+\begin{proof}
+  By Lemma \ref{sub1sub} and \rname{$\prec$-Sort}.
+\end{proof}
+
+\begin{lemma}\label{sub1trans}
+  For terms $A, B, C, D$, if there is $A \prec B$, $B \equiv C$ and $C \prec D$, then there is $A \preceq D$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $A \prec B$, definition of $\prec$ and Lemmas \ref{sub1sub}, \ref{sub1conv}, \ref{convsub1}.
+\end{proof}
+
+\begin{lemma}
+  For terms $A, B, C$, if there is $A \preceq B$ and $B \preceq C$, then there is $A \preceq C$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\equiv$, rule \rname{$\prec$-$\preceq$} and Lemma \ref{sub1trans}.
+\end{proof}
+
+\begin{lemma}
+  For sorts $s, t$ and natural numbers $i, j$, if there is $s_i \preceq t_j$, then there is $s = t$ and $i \leq j$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\equiv$ and Corollary \ref{sortinj}.
+\end{proof}
+
+\begin{lemma}
+  For terms $A_1, A_2, B_1, B_2$ and sorts $s, t$, if there is $(x \stype{s} A_1) \rightarrow B_1 \preceq (x \stype{t} A_2) \rightarrow B_2$, then there is $A_1 \equiv A_2$ and $B_1 \preceq B_2$ and $s = t$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\equiv$ and Corollary \ref{arrowinj}.
+\end{proof}
+
+\begin{lemma}
+  For terms $A_1, A_2, B_1, B_2$ and sorts $s, t$, if there is $(x \stype{s} A_1) \multimap B_1 \preceq (x \stype{t} A_2) \multimap B_2$, then there is $A_1 \equiv A_2$ and $B_1 \preceq B_2$ and $s = t$.
+\end{lemma}
+\begin{proof}
+  By transitivity of $\equiv$ and Corollary \ref{lolliinj}.
+\end{proof}
+
+\begin{lemma}\label{sub1subst}
+  For terms $A, B$  and map $\sigma$ from variables to terms, if there is $A \prec B$, then there is $A[\sigma] \prec B[\sigma]$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $A \prec B$ and the definition of $\prec$.
+\end{proof}
+
+\begin{lemma}
+  For terms $A, B$ and map $\sigma$ from variables to terms, if there is $A \preceq B$, then there is $A[\sigma] \preceq B[\sigma]$.
+\end{lemma}
+\begin{proof}
+  By rule \rname{$\prec$-$\preceq$} and Lemmas \ref{convsubst}, \ref{sub1subst}.
+\end{proof}
+
+\section{Typing of CLC \texttt{(clc_typing.v)}}
+
+The following rules define well-formed contexts.
+\begin{mathpar}
+  \inferrule
+  { }
+  { \epsilon \vdash }
+  \rname{$\epsilon$-Ok}
+
+  \inferrule
+  { \Gamma \vdash \\
+    \overline{\Gamma} \vdash A : U_i }
+  { \Gamma, x \utype A \vdash }
+  \rname{U-Ok}
+
+  \inferrule
+  { \Gamma \vdash \\
+    \overline{\Gamma} \vdash A : L_i }
+  { \Gamma, x \ltype A \vdash }
+  \rname{L-Ok}
+\end{mathpar}
+
+\noindent
+The typing rules of CLC are presented below.
+\begin{mathpar}
+  \inferrule
+  { \pure{\Gamma} }
+  { \Gamma \vdash s_i : U_{i+1} }
+  \rname{Sort-Axiom}
+
+  \inferrule
+  { \pure{\Gamma} \\
+    \Gamma \vdash A : U_i \\
+    \Gamma, x \utype A \vdash B : s_i }
+  { \Gamma \vdash (x \utype A) \rightarrow B : U_i }
+  \rname{U$\rightarrow$}
+
+  \inferrule
+  { \pure{\Gamma} \\
+    \Gamma \vdash A : L_i \\
+    \Gamma \vdash B : s_i \\
+    x \notin \Gamma }
+  { \Gamma \vdash (x \ltype A) \rightarrow B : U_i }
+  \rname{L$\rightarrow$}
+
+  \inferrule
+  { \pure{\Gamma} \\
+    \Gamma \vdash A : U_i \\
+    \Gamma, x \utype A \vdash B : s_i }
+  { \Gamma \vdash (x \utype A) \multimap B : L_i }
+  \rname{U$\multimap$}
+
+  \inferrule
+  { \pure{\Gamma} \\
+    \Gamma \vdash A : L_i \\
+    \Gamma \vdash B : s_i \\
+    x \notin \Gamma }
+  { \Gamma \vdash (x \ltype A) \multimap B : L_i }
+  \rname{L$\multimap$}
+
+  \inferrule
+  { \pure{\Gamma_1, \Gamma_2} }
+  { \Gamma_1, x \utype A, \Gamma_2 \vdash x : A }
+  \rname{U-Var}
+
+  \inferrule
+  { \pure{\Gamma_1, \Gamma_2} }
+  { \Gamma_1, x \ltype A, \Gamma_2 \vdash x : A }
+  \rname{L-Var}
+
+  \inferrule
+  { \pure{\Gamma} \\
+    \Gamma \vdash (x \stype{s} A) \rightarrow B : t_i \\
+    \Gamma, x \stype{s} A \vdash n : B }
+  { \Gamma \vdash \lambda x \stype{s} A . n : (x \stype{s} A) \rightarrow B }
+  \rname{$\lambda$$\rightarrow$}
+
+  \inferrule
+  { \overline{\Gamma} \vdash (x \stype{s} A) \multimap B : t_i \\
+    \Gamma, x \stype{s} A \vdash n : B }
+  { \Gamma \vdash \lambda x \stype{s} A . n : (x \stype{s} A) \multimap B }
+  \rname{$\lambda$$\multimap$}
+
+  \inferrule
+  { \Gamma_1 \vdash m : (x \utype A) \rightarrow B \\
+    \pure{\Gamma_2} \\
+    \Gamma_2 \vdash n : A \\
+    \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+  { \Gamma \vdash m\ n : B[n/x] }
+  \rname{App-U$\rightarrow$}
+
+  \inferrule
+  { \Gamma_1 \vdash m : (x \ltype A) \rightarrow B \\
+    \Gamma_2 \vdash n : A \\
+    \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+  { \Gamma \vdash m\ n : B[n/x] }
+  \rname{App-L$\rightarrow$}
+\end{mathpar}
+
+\begin{mathpar}
+  \inferrule
+  { \Gamma_1 \vdash m : (x \utype A) \multimap B \\
+    \pure{\Gamma_2} \\
+    \Gamma_2 \vdash n : A \\
+    \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+  { \Gamma \vdash m\ n : B[n/x] }
+  \rname{App-U$\multimap$}
+
+  \inferrule
+  { \Gamma_1 \vdash m : (x \ltype A) \multimap B \\
+    \Gamma_2 \vdash n : A \\
+    \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
+  { \Gamma \vdash m\ n : B[n/x] }
+  \rname{App-L$\multimap$}
+
+  \inferrule
+  { \Gamma \vdash m : A \\
+    \overline{\Gamma} \vdash B : s_i \\ A \preceq B }
+  { \Gamma \vdash m : B }
+  \rname{Conversion}
+\end{mathpar}
+
+\section{Inversion Lemmas of CLC \texttt{(clc_inversion.v)}}
+
+\begin{lemma}\label{uarrowinv}
+  For any context $\Gamma$ and terms $A, B, s$, if there is $\Gamma \vdash (x \utype A) \rightarrow B : s$, then there exists sort $t$ and natural number $i$ such that $\Gamma \vdash A : U_i$ and $\Gamma, x \utype A \vdash B : t_i$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash (x \utype A) \rightarrow B : s$.
+\end{proof}
+
+\begin{lemma}\label{larrowinv}
+  For any context $\Gamma$ and terms $A, B, s$, if there is $\Gamma \vdash (x \ltype A)\rightarrow B : s$, then there exists sort $t$ and natural number $i$ such that $\Gamma \vdash A : L_i$ and $\Gamma \vdash B : t_i$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash (x \ltype A) \rightarrow B : s$.
+\end{proof}
+
+\begin{lemma}\label{ulolliinv}
+  For any context $\Gamma$ and terms $A, B, s$, if there is $\Gamma \vdash (x \utype A) \multimap B : s$, then there exists sort $t$ and natural number $i$ such that $\Gamma \vdash A : U_i$ and $\Gamma, x \utype A \vdash B : t_i$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash (x \utype A) \multimap B : s$.
+\end{proof}
+
+\begin{lemma}\label{llolliinv}
+  For any context $\Gamma$ and terms $A, B, s$, if there is $\Gamma \vdash (x \ltype A)\multimap B : s$, then there exists sort $t$ and natural number $i$ such that $\Gamma \vdash A : L_i$ and $\Gamma \vdash B : t_i$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash (x \ltype A) \multimap B : s$.
+\end{proof}
+
+\begin{lemma}\label{arrowlaminvx}
+  For any context $\Gamma$, terms $A, n, C$ and sort $s$, if there is $\Gamma \vdash \lambda x \stype{s} A . n : C$, then for all terms $A', B$, sorts $s', t$ and natural number $i$ such that $C \preceq (x \stype{s'} A') \rightarrow B$ and $\overline{\Gamma, x \stype{s'} A'} \vdash B : t_i$, there is $\Gamma, x \stype{s'} A' \vdash n : B$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \lambda x \stype{s} A . n : C$ and Lemmas \ref{uarrowinv}, \ref{larrowinv}.
+\end{proof}
+
+\begin{lemma}\label{lollilaminvx}
+  For any context $\Gamma$, terms $A, n, C$ and sort $s$, if there is $\Gamma \vdash \lambda x \stype{s} A . n : C$, then for all terms $A', B$, sorts $s', t$ and natural number $i$ such that $C \preceq (x \stype{s'} A') \multimap B$ and $\overline{\Gamma, x \stype{s'} A'} \vdash B : t_i$, there is $\Gamma, x \stype{s'} A' \vdash n : B$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \lambda x \stype{s} A . n : C$ and Lemmas \ref{ulolliinv}, \ref{llolliinv}.
+\end{proof}
+
+\begin{lemma}\label{arrowlaminv}
+  For any context $\Gamma$, terms $A, A', B, n$, sorts $s, s', t$ and natural number $i$, if there is $\overline{\Gamma} \vdash (x \stype{s'} A') \rightarrow B : t_i$ and $\Gamma \vdash \lambda x \stype{s} A . n : (x \stype{s'} A') \rightarrow B$, then there is $\Gamma, x \stype{s'} A' \vdash n : B$.
+\end{lemma}
+\begin{proof}
+  Direct consequence of Lemmas \ref{uarrowinv}, \ref{larrowinv} and \ref{arrowlaminvx}.
+\end{proof}
+
+\begin{lemma}\label{lollilaminv}
+  For any context $\Gamma$, terms $A, A', B, n$, sorts $s, s', t$ and natural number $i$, if there is $\overline{\Gamma} \vdash (x \stype{s'} A') \multimap B : t_i$ and $\Gamma \vdash \lambda x \stype{s} A . n : (x \stype{s'} A') \multimap B$, then there is $\Gamma, x \stype{s'} A' \vdash n : B$.
+\end{lemma}
+\begin{proof}
+  Direct consequence of Lemmas \ref{ulolliinv}, \ref{llolliinv} and \ref{lollilaminvx}.
+\end{proof}
+
+\section{Weakening Lemmas of CLC \texttt{(clc_weakening.v)}}
+
+Weakening for non-linear types is admissible in CLC. To prove this, we first define an $agreeR$ relation between two contexts $\Gamma, \Gamma'$ and a mapping $\xi$ from variables to variables.
+
+\begin{mathpar}
+  \inferrule
+  { }
+  { agreeR\ \xi\ \epsilon\ \epsilon }
+  \rname{agreeR-$\epsilon$}
+
+  \inferrule
+  { agreeR\ \xi\ \Gamma\ \Gamma' \\
+    x \notin FV(\Gamma) \cup FV(\Gamma') }
+  { agreeR\ (\xi \cup (x, x))\ (\Gamma, x \utype A) (\Gamma', x \utype A[\xi]) }
+  \rname{agreeR-U}
+
+  \inferrule
+  { agreeR\ \xi\ \Gamma\ \Gamma' \\
+    x \notin FV(\Gamma) \cup FV(\Gamma') }
+  { agreeR\ (\xi \cup (x, x))\ (\Gamma, x \ltype A) (\Gamma', x \ltype A[\xi]) }
+  \rname{agreeR-L}
+
+  \inferrule
+  { agreeR\ \xi\ \Gamma\ \Gamma' \\
+    x \notin FV(\Gamma) \cup FV(\Gamma') }
+  { agreeR\ \xi\ \Gamma\ (\Gamma', x \utype A) }
+  \rname{agreeR-wk}
+\end{mathpar}
+
+\subsection{Properties of $agreeR$}\label{agreeRprop}
+
+\begin{lemma}\label{agreerenrefl}
+  For any context $\Gamma$ and the identity map $id$ from variables to variables, $agreeR\ id\ \Gamma\ \Gamma$ is always true.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$ and the definition of $agreeR$.
+\end{proof}
+
+\begin{lemma}\label{agreerenpure}
+  For contexts $\Gamma, \Gamma'$ and mapping $\xi$, if there is $agreeR\ \xi\ \Gamma\ \Gamma'$ and $\pure{\Gamma}$, then there is $\pure{\Gamma'}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $agreeR\ \xi\ \Gamma\ \Gamma'$.
+\end{proof}
+
+\begin{lemma}\label{agreerenrere}
+  For contexts $\Gamma, \Gamma'$ and mapping $\xi$, if there is $agreeR\ \xi\ \Gamma\ \Gamma'$, then there is $agreeR\ \xi\ \pure{\Gamma}\ \pure{\Gamma'}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $agreeR\ \xi\ \Gamma\ \Gamma'$.
+\end{proof}
+
+\subsection{Weakening Theorem}
+
+\begin{lemma}\label{mergeagreereninv}
+  For contexts $\Gamma, \Gamma', \Gamma_1, \Gamma_2$ and mapping $\xi$, if there is $agreeR\ \xi\ \Gamma\ \Gamma'$ and $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, then there exists $\Gamma_1', \Gamma_2'$ such that $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, and $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $agreeR\ \xi\ \Gamma\ \Gamma'$ and lemmas in Section \ref{agreeRprop}.
+\end{proof}
+
+\begin{lemma}\label{renaming}
+  For context $\Gamma, \Gamma'$, terms $m, A$ and mapping $\xi$, if there is $\Gamma \vdash m : A$ and $agreeR\ \xi\ \Gamma\ \Gamma'$, then there is $\Gamma' \vdash m[\xi] : A[\xi]$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash m : A$. We shall only discuss the application case in detail, as the other cases are proven by application of the induction hypothesis and the lemmas in Section \ref{agreeRprop}.
+  \begin{itemize}
+    \item For the \rname{App-U$\rightarrow$} case, Lemma \ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there is $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$ and $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. From $\pure{\Gamma_2}$ and Lemma \ref{agreerenpure} we know that there is $\pure{\Gamma_2'}$. At this point, the induction hypothesis allows us to apply \rname{App-U$\rightarrow$} to prove the goal.
+    \item For the \rname{App-L$\rightarrow$} case, Lemma \ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there is $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$ and $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. At this point, the induction hypothesis allows us to apply \rname{App-L$\rightarrow$} to prove the goal.
+    \item For the \rname{App-U$\multimap$} case, Lemma \ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there is $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$ and $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. From $\pure{\Gamma_2}$ and Lemma \ref{agreerenpure} we know that there is $\pure{\Gamma_2'}$. At this point, the induction hypothesis allows us to apply \rname{App-U$\multimap$} to prove the goal.
+    \item For the \rname{App-L$\multimap$} case, Lemma \ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there is $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$ and $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. At this point, the induction hypothesis allows us to apply \rname{App-L$\multimap$} to prove the goal.
+  \end{itemize}
+\end{proof}
+
+\begin{theorem}
+  Weakening is admissible for CLC variables of non-linear type. For context $\Gamma$ and terms $m, A, B$, if there is $\Gamma \vdash m : A$, then there is $\Gamma, x \utype B \vdash m : A$.
+\end{theorem}
+\begin{proof}
+  Using \rname{agreeR-wk} and Lemma \ref{agreerenrefl} a proof of $agreeR\ id\ \Gamma\ (\Gamma, x \utype B)$ can be constructed. Then by Lemma \ref{renaming}, the theorem can be proven.
+\end{proof}
+
+\section{Substitution Lemmas of CLC \texttt{(clc_substitution.v)}}
+
+Similar to the proof of weakening, we first define an $agreeS$ relation between two contexts $\Gamma, \Delta$ and a mapping $\sigma$ from variables to terms.
+
+\begin{mathpar}
+  \inferrule
+  { }
+  { agreeS\ \sigma\ \epsilon\ \epsilon }
+  \rname{agreeS-$\epsilon$}
+
+  \inferrule
+  { agreeS\ \sigma\ \Delta\ \Gamma \\
+    x \notin FV(\Delta) \cup FV(\Gamma) }
+  { agreeS\ (\sigma \cup (x, x))\ (\Delta, x \utype A[\sigma])\ (\Gamma, x \utype A) }
+  \rname{agreeS-U}
+
+  \inferrule
+  { agreeS\ \sigma\ \Delta\ \Gamma \\
+    x \notin FV(\Delta) \cup FV(\Gamma) }
+  { agreeS\ (\sigma \cup (x, x))\ (\Delta, x \ltype A[\sigma])\ (\Gamma, x \ltype A) }
+  \rname{agreeS-L}
+
+  \inferrule
+  { agreeS\ \sigma\ \Delta\ \Gamma \\
+    \overline{\Delta} \vdash n : A[\sigma] \\
+    x \notin FV(\Delta) \cup FV(\Gamma) }
+  { agreeS\ (\sigma \cup (x, n))\ \Delta\ (\Gamma, x \utype A) }
+  \rname{agreeS-wkU}
+
+  \inferrule
+  { \mrg{\Delta_1}{\Delta_2}{\Delta} \\
+    agreeS\ \sigma\ \Delta_1\ \Gamma \\
+    \Delta_2 \vdash n : A[\sigma] \\
+    x \notin FV(\Delta) \cup FV(\Gamma) }
+  { agreeS\ (\sigma \cup (x, n))\ \Delta\ (\Gamma, x \ltype A) }
+  \rname{agreeS-wkL}
+\end{mathpar}
+
+\begin{mathpar}
+  \inferrule
+  { A \preceq B \\
+    \overline{\Delta} \vdash B[\sigma] : U_i \\
+    agreeS\ \sigma\ \Delta\ (\Gamma, x \utype A) }
+  { agreeS\ \sigma\ \Delta\ (\Gamma, x \utype B) }
+  \rname{agreeS-convU}
+
+  \inferrule
+  { A \preceq B \\
+    \overline{\Delta} \vdash B[\sigma] : L_i \\
+    \overline{\Gamma} \vdash B : L_i \\
+    agreeS\ \sigma\ \Delta\ (\Gamma, x \ltype A) }
+  { agreeS\ \sigma\ \Delta\ (\Gamma, x \ltype B) }
+  \rname{agreeS-convL}
+\end{mathpar}
+
+\subsection{Properties of $agreeS$}\label{agreeSprop}
+
+\begin{lemma}\label{agreesubstrefl}
+  For any context $\Gamma$ and identity mapping id, there is $agreeS\ id\ \Gamma\ \Gamma$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$.
+\end{proof}
+
+\begin{lemma}\label{agreesubstrere}
+  For contexts $\Delta, \Gamma$ and mapping $\sigma$, if there is $agreeS\ \sigma\ \Delta\ \Gamma$, then there is $agreeS\ \sigma\ \overline{\Delta}\ \overline{\Gamma}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $agreeS\ \sigma\ \Delta\ \Gamma$.
+\end{proof}
+
+\subsection{Substitution Lemma}
+
+\begin{lemma}\label{mergeagreesubstinv}
+  For contexts $\Delta, \Gamma, \Gamma_1, \Gamma_2$ and mapping $\sigma$, if there is $agreeS\ \sigma\ \Delta\ \Gamma$ and $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, then there exists contexts $\Delta_1, \Delta_2$ such that $\mrg{\Delta_1}{\Delta_2}{\Delta}$ and $agreeS\ \sigma\ \Delta_1\ \Gamma_1$ and $agreeS\ \sigma\ \Delta_2\ \Gamma_2$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $agreeS\ \sigma\ \Delta\ \Gamma$ and lemmas in Section \ref{agreeSprop}.
+\end{proof}
+
+\begin{lemma}
+  Generalized Substitution Lemma. For context $\Gamma, \Delta$, terms $m, A$ and mapping $\sigma$, if there is $\Gamma \vdash m : A$ and $agreeS\ \sigma\ \Delta\ \Gamma$, then there is $\Delta \vdash m[\sigma] : A[\sigma]$.
+\end{lemma}
+\begin{proof}
+  The proof proceeds by induction on the derivation of $\Gamma \vdash m : A$. Similar to the proof of Lemma \ref{renaming}, the interesting cases are the application cases where Lemma \ref{mergeagreesubstinv} must be utilized to split the $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ judgments for use in the induction hypothesis.
+\end{proof}
+
+\subsection{Corollaries of Substitution}
+
+\begin{corollary}\label{substitutionu}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$ and terms $A, B, m, n$, if there is $\Gamma_1, x \utype A \vdash m : B$ and $\pure{\Gamma_2}$ and $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma_2 \vdash n : A$, then there is $\Gamma \vdash m[n/x]: B[n/x]$.
+\end{corollary}
+
+\begin{corollary}\label{substitutionl}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$ and terms $A, B, m, n$, if there is $\Gamma_1, x \ltype A \vdash m : B$ and $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma_2 \vdash n : A$, then there is $\Gamma \vdash m[n/x]: B[n/x]$.
+\end{corollary}
+
+\begin{corollary}\label{contextconvu}
+  For context $\Gamma$, terms $m, A, B, C$ and natural number $i$, if there is $B \equiv A$ and $\overline{\Gamma} \vdash A : U_i$ and $\Gamma, x \utype A \vdash m : C$, then there is $\Gamma, x \utype B \vdash m : C$.
+\end{corollary}
+
+\begin{corollary}\label{contextconvl}
+  For context $\Gamma$, terms $m, A, B, C$ and natural number $i$, if there is $B \equiv A$ and $\overline{\Gamma} \vdash A : L_i$ and $\Gamma, x \ltype A \vdash m : C$, then there is $\Gamma, x \ltype B \vdash m : C$.
+\end{corollary}
+
+\section{Typing Validity of CLC \texttt{(clc_validity.v)}}
+
+In this section, we prove that the types of all CLC terms are themselves well-sorted.
+
+\begin{lemma}\label{mergecontextokinv}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma \vdash$, then there is $\Gamma_1 \vdash$ and $\Gamma_2 \vdash$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and the properties of $\mrg{\_}{\_}{\_}$ discussed in Section \ref{mergeprop}.
+\end{proof}
+
+\begin{theorem}\label{validity}
+  The validity of typing theorem. For any context $\Gamma$ and terms $m, A$, if there is $\Gamma \vdash$ and $\Gamma \vdash m : A$, then there exists sort $s$ and natural number $i$ such that $\overline{\Gamma} \vdash A : s_i$.
+\end{theorem}
+
+\section{Subject Reduction of CLC \texttt{(clc_soundness.v)}}
+
+\begin{theorem}
+  For any context $\Gamma$ and terms $m, n, A$, if $\Gamma \vdash$ and $\Gamma \vdash m : A$ and $m \step n$, then there is $\Gamma \vdash n : A$.
+\end{theorem}
+\begin{proof}
+  The proof proceeds by induction on the derivation of $\Gamma \vdash m : A$. The interesting cases are the application cases which we shall discuss in detail.
+  \begin{itemize}
+    \item For the \rname{App-U$\rightarrow$} case,
+  \end{itemize}
 \end{proof}
 
 \end{document}
