@@ -61,7 +61,7 @@
 \newcommand{\step}{\leadsto}
 \newcommand{\red}{\leadsto^*}
 \newcommand{\pstep}{\leadsto_p}
-\newcommand{\mrg}[3]{#1\ddagger#2\ddagger#3}
+\newcommand{\mrg}[3]{merge\ {#1}\ {#2}\ {#3}}
 \newcommand{\erase}[1]{\llbracket #1 \rrbracket}
 \newcommand{\lift}[1]{\llparenthesis #1 \rrparenthesis}
 \newcommand{\lrangle}[1]{\langle #1 \rangle}
@@ -73,7 +73,7 @@
 
 
 \title{The Calculus of Linear Constructions --- Technical Report}
-\author{Anonymous Submission}
+\author{Anonymous Author(s)}
 
 \begin{document}
 \maketitle
@@ -477,26 +477,26 @@ Contexts of CLC are of the form $x_1 \stype{s_1} A_1, x_2 \stype{s_2} A_2, ... x
 
     \inferrule
     { \mrg{\Gamma_1}{\Gamma_2}{\Gamma} }
-    { \mrg{\Gamma_1, x \utype A}
-      {\Gamma_2, x \utype A}
-      {\Gamma, x \utype A} }
+    { \mrg{(\Gamma_1, x \utype A)}
+      {(\Gamma_2, x \utype A)}
+      {(\Gamma, x \utype A)} }
     \rname{Merge-U}
     \\
 
     \inferrule
     { \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\
       x \notin \Gamma_2 }
-    { \mrg{\Gamma_1, x \ltype A}
+    { \mrg{(\Gamma_1, x \ltype A)}
       {\Gamma_2}
-      {\Gamma, x \ltype A} }
+      {(\Gamma, x \ltype A)} }
     \rname{Merge-L1}
 
     \inferrule
     { \mrg{\Gamma_1}{\Gamma_2}{\Gamma} \\
       x \notin \Gamma_1 }
     { \mrg{\Gamma_1}
-      {\Gamma_2, x \ltype A}
-      {\Gamma, x \ltype A} }
+      {(\Gamma_2, x \ltype A)}
+      {(\Gamma, x \ltype A)} }
     \rname{Merge-L2}
   \end{mathpar}
   \label{structural}
@@ -1148,7 +1148,7 @@ In this section, we prove that the types of all CLC terms are themselves well-so
   For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma \vdash$, then there is $\Gamma_1 \vdash$ and $\Gamma_2 \vdash$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and the properties of $\mrg{\_}{\_}{\_}$ discussed in Section \ref{mergeprop}.
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and the properties of $merge$ discussed in Section \ref{mergeprop}.
 \end{proof}
 
 \begin{theorem}\label{validity}
