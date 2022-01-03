@@ -73,14 +73,14 @@
 
 
 \title{The Calculus of Linear Constructions --- Technical Report}
-\author{Qiancheng Fu}
+\author{Anonymous Submission}
 
 \begin{document}
 \maketitle
 \tableofcontents
 
 \section{Introduction}
-This extended report is meant to accompany our paper of the same title. Here, we describe the meta-theory of CLC and CILC and their proofs in detail. All the results presented here have been formalized and proven correct in the Coq Proof Assistant.
+This extended report is meant to accompany our paper of the same title. Here, we describe the meta-theory of CLC and its proofs in detail. All the results presented here have been formalized and proven correct in the Coq Proof Assistant.
 
 \section{Syntax of CLC \texttt{(clc_ast.v)}}
 \begin{figure}[H]
@@ -633,7 +633,7 @@ Since weakening and contraction rules will not be allowed on restricted variable
   By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
 \end{proof}
 
-\section{Subtyping of CLC \texttt{(clc_subtype.v)}}
+\section{Subtyping of CLC \texttt{(clc_subtype.v)}}\label{subtyping}
 
 The cumulativity relation ($\preceq$) is the smallest binary relation over terms such that
 \begin{enumerate}
@@ -1163,8 +1163,239 @@ In this section, we prove that the types of all CLC terms are themselves well-so
 \begin{proof}
   The proof proceeds by induction on the derivation of $\Gamma \vdash m : A$. The interesting cases are the application cases which we shall discuss in detail.
   \begin{itemize}
-    \item For the \rname{App-U$\rightarrow$} case,
+    \item For the \rname{App-U$\rightarrow$} case, from assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\pure{\Gamma_2}$ and Lemmas \ref{mergepure2}, \ref{mergerere}, we can conclude that $\overline{\Gamma_1} = \overline{\Gamma}$ and $\overline{\Gamma_2} = \overline{\Gamma}$. Applying Lemma \ref{mergecontextokinv} to assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma \vdash$ obtains $\Gamma_1 \vdash$ and $\Gamma_2 \vdash$. Now by the induction hypothesis, we can conclude there exists sorts $s, t$ and natural numbers $i, j$ such that there are $\overline{\Gamma_1} \vdash (x \utype A) \rightarrow B : s_i$ and $\overline{\Gamma_2} \vdash A : t_j$. Applying Lemma \ref{uarrowinv} to assumption $\overline{\Gamma_1} \vdash (x \utype A) \rightarrow B : s_i$ allows us to derive $\overline{\Gamma_1} \vdash A : U_{i'}$ and $\overline{\Gamma_1}, x \utype A \vdash B : s'_{j'}$ where $s'$ is a sort and $i', j'$ are natural numbers. The goal can finally be proven by applying the substitution Lemma \ref{substitutionu} on assumptions $\Gamma_2 \vdash n : A$ and $\overline{\Gamma_1}, x \utype A \vdash B : s'_{j'}$.
+    \item For the \rname{App-L$\rightarrow$} case, from assumption $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and Lemmas \ref{mergerere}, we can conclude that $\overline{\Gamma_1} = \overline{\Gamma}$ and $\overline{\Gamma_2} = \overline{\Gamma}$. Applying Lemma \ref{mergecontextokinv} to assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma \vdash$ obtains $\Gamma_1 \vdash$ and $\Gamma_2 \vdash$. Now by the induction hypothesis, we can conclude that there exists sorts $s, t$ and natural numbers $i, j$ such that there are $\overline{\Gamma_1} \vdash (x \ltype A) \rightarrow B : s_i$ and $\overline{\Gamma_2} \vdash A : t_j$. Applying Lemma \ref{larrowinv} to assumption $\overline{\Gamma_1} \vdash (x \ltype A) \rightarrow B : s_i$ allows us to derive $\overline{\Gamma_1} \vdash A : L_{i'}$ and $\overline{\Gamma_1} \vdash B : s'_{j'}$. Due to the fact that variable $x$ is not a free variable in $B$, the substitution occurring in goal $\exists s \in sort, i \in \mathbb{N}, \overline{\Gamma} \vdash B[n/x] : s_i$ is trivial, thus the judgment $\overline{\Gamma_1} \vdash B : s'_{j'}$ that we have proven shows the existence of the goal.
+    \item For the \rname{App-U$\multimap$} case, the proof is similar to the \rname{App-U$\rightarrow$} case, the only difference is that the inversion lemmas used correspond to $\multimap$ instead of $\rightarrow$.
+    \item For the \rname{App-L$\multimap$} case, the proof is similar to the \rname{App-L$\rightarrow$} case, the only difference is that the inversion lemmas used correspond to $\multimap$ instead of $\rightarrow$.
   \end{itemize}
 \end{proof}
+
+\section{Linearity Theorems of CLC \texttt{(clc_linearity.v)}}
+
+\subsection{Linearity}
+
+We introduce a meta-function $occurs$ that counts the number of times a given variable occurs in a term.
+
+\begin{align*}
+  occurs\ x\ y                               & =
+  \begin{dcases}
+    1 & x =_\alpha y    \\
+    0 & x \neq_\alpha y
+  \end{dcases}                                                \\
+  occurs\ x\ s_i                             & = 0                           \\
+  occurs\ x\ ((y \stype{s} A) \rightarrow B) & = occurs\ x\ A + occurs\ x\ B \\
+  occurs\ x\ ((y \stype{s} A) \multimap B)   & = occurs\ x\ A + occurs\ x\ B \\
+  occurs\ x\ (\lambda x \stype{s} A.n)       & = occurs\ x\ A + occurs\ x\ n \\
+  occurs\ x\ (m\ n)                          & = occurs\ x\ m + occurs\ x\ n
+\end{align*}
+
+\begin{lemma}\label{islmergeinv}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, then for any variable with linear type $x \in \Gamma$ there is $x \in \Gamma_1$ and $x \notin \Gamma_2$ or $x \in \Gamma_2$ and $x \notin \Gamma_1$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}
+  For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there is $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, then for any variable $x \notin \Gamma$ there is $x \notin \Gamma_1$ and $x \notin \Gamma_2$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$.
+\end{proof}
+
+\begin{lemma}\label{narity}
+  For context $\Gamma$, terms $m, A$, if there is $\Gamma \vdash m : A$, then for any variable $x \notin \Gamma$ there is $occurs\ x\ m = 0$
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash m : A$.
+\end{proof}
+
+\begin{theorem}\label{linearity}
+  Linearity. For context $\Gamma$, terms $m, A$, if there is $\Gamma \vdash m : A$, then for any variable with linear type $x \in \Gamma$ there is $occurs\ x\ m = 1$.
+\end{theorem}
+\begin{proof}
+  The proof proceeds by induction on the derivation of $\Gamma \vdash m : A$, we will discuss the application cases in detail.
+  \begin{itemize}
+    \item For case \rname{App-U$\rightarrow$}, by assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $(x \ltype A) \in \Gamma$ and Lemma \ref{islmergeinv} we can conclude that $x \in \Gamma_1$ and $x \notin \Gamma_2$ or $x \in \Gamma_2$ and $x \notin \Gamma_1$. In both cases, applying the induction hypothesis and Lemma \ref{narity} proves the goal.
+    \item For case \rname{App-L$\rightarrow$}, the proof is the same as \rname{App-U$\rightarrow$}.
+    \item For case \rname{App-U$\multimap$}, the proof is the same as \rname{App-U$\rightarrow$}.
+    \item For case \rname{App-L$\multimap$}, the proof is the same as \rname{App-U$\rightarrow$}.
+  \end{itemize}
+\end{proof}
+
+\subsection{Promotion}
+\begin{theorem}\label{promotion}
+  Promotion. For context $\Gamma$, terms $m, A, B$ and sort $s$, if there is $\pure{\Gamma}$ and $\Gamma \vdash$ and $\Gamma \vdash m : (x \stype{s} A) \multimap B$, then there exists term $n$ such that $\Gamma \vdash n : (x \stype{s} A) \rightarrow B$.
+\end{theorem}
+\begin{proof}
+  Set $n = \lambda x \stype{s} A. (m\ x)$. The proof proceeds by case analysis on the sort $s$.
+  \begin{itemize}
+    \item If $s = U$, then we may apply Theorem \ref{validity} to assumption $\Gamma \vdash m : (x \utype A) \multimap B$ to show that there exists sort $t$ and natural number $i$ such that there is $\overline{\Gamma} \vdash (x \utype A) \multimap B : t_i$. Now applying Lemma \ref{ulolliinv} to $\overline{\Gamma} \vdash (x \utype A) \multimap B : t_i$ shows that there exists sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma}, x \utype A \vdash B : t'_{i'}$. Now by \rname{U$\rightarrow$} and Lemma \ref{purere} the goal is proven.
+    \item If $s = L$, then we may apply Theorem \ref{validity} to assumption $\Gamma \vdash m : (x \ltype A) \multimap B$ to show that there exists sort $t$ and natural number $i$ such that $\overline{\Gamma} \vdash (x \ltype A) \multimap B : t_i$. Now applying Lemma \ref{llolliinv} to $\overline{\Gamma} \vdash (x \ltype A) \multimap B : t_i$ shows that there exists sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma} \vdash B : t'_{i'}$. Now by \rname{L$\rightarrow$} and Lemma \ref{purere} the goal is proven.
+  \end{itemize}
+\end{proof}
+
+\subsection{Dereliction}
+
+\begin{theorem}
+  Dereliction. For context $\Gamma$, terms $m, A, B$ and sort $s$, if there is $\Gamma \vdash$ and $\Gamma \vdash m : (x \stype{s} A) \rightarrow B$, then there exists term $n$ such that $\Gamma \vdash n : (x \stype{s} A) \multimap B$.
+\end{theorem}
+\begin{proof}
+  Set $n = \lambda x \stype{s} A . (m\ x)$. The proof proceeds by case analysis on the sort $s$.
+  \begin{itemize}
+    \item If $s = U$, then we may apply Theorem \ref{validity} to $\Gamma \vdash m : (x \utype A) \rightarrow B$ showing that there exists sort $t$ and natural number $i$ such that there is $\overline{\Gamma} \vdash (x \utype A) \rightarrow B : t_i$. Now applying Lemma \ref{uarrowinv} to $\overline{\Gamma} \vdash (x \utype A)\rightarrow B : t_i$ shows that there exists sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma}, x \utype A \vdash B : t'_{i'}$. By \rname{U$\multimap$} and Lemma \ref{repure} we can prove $\overline{\Gamma} \vdash (x \utype A) \multimap B : L_{i'}$. By rule \rname{$\lambda$$\multimap$}, the rest of the goal can be proven in a straightforward manner.
+    \item If $s = L$, then we may apply Theorem \ref{validity} to $\Gamma \vdash m : (x \ltype A) \rightarrow B$ showing that there exists sort $t$ and natural number $i$ such that there is $\overline{\Gamma} \vdash (x \ltype A) \rightarrow B : t_i$. Now applying Lemma \ref{larrowinv} to $\overline{\Gamma} \vdash (x \ltype A)\rightarrow B : t_i$ shows that there exists sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma} \vdash B : t'_{i'}$. By \rname{L$\multimap$} and Lemma \ref{repure} we can prove $\overline{\Gamma} \vdash (x \ltype A) \multimap B : L_{i'}$. By rule \rname{$\lambda$$\multimap$}, the rest of the goal can be proven in a straightforward manner.
+  \end{itemize}
+\end{proof}
+
+\section{Logical Consistency of CLC \texttt{clc_consistent.v}}
+
+\subsection{Strong Normalization}
+
+The proof of the logical consistency of CLC proceeds by construction of a reduction preserving erasure from CLC to CC$\omega$. As CC$\omega$ is consistent, CLC must be consistent as well.
+
+The erasure procedure is recursively defined as follows.
+\begin{align*}
+  \erase{x}                             & = x                                     \\
+  \erase{U_i}                           & = Type_i                                \\
+  \erase{L_i}                           & = Type_i                                \\
+  \erase{(x \stype{s} A) \rightarrow B} & = (x : \erase{A}) \rightarrow \erase{B} \\
+  \erase{(x \stype{s} A) \multimap B}   & = (x : \erase{A}) \rightarrow \erase{B} \\
+  \erase{\lambda x\stype{s}A.n}         & = \lambda x : \erase{A}.\erase{n}       \\
+  \erase{m\ n}                          & = \erase{m}\ \erase{n}
+\end{align*}
+
+With slight overloading of notation, we define erasure for CLC contexts recursively.
+
+\begin{align*}
+  \erase{\epsilon}              & = \epsilon                      \\
+  \erase{\Gamma, x \stype{s} A} & = \erase{\Gamma}, x : \erase{A}
+\end{align*}
+
+\begin{lemma}
+  For CLC term $m$, map $\sigma$ from variables to CLC terms, map $\tau$ from variables to CC$\omega$ terms, if for all variables $x$ there is $\erase{\sigma\ x} = \tau\ x$, then $\erase{m[\sigma]} = \erase{m}[\tau]$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of term $m$.
+\end{proof}
+
+For the following lemmas, we will index relations and judgments with subscript CLC or CC$\omega$ to emphasize the language it is defined over.
+
+\begin{lemma}\label{erasestep}
+  For any CLC terms $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \step_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \step_{\scriptscriptstyle \text{CLC}} n$.
+\end{proof}
+
+\begin{lemma}
+  For any CLC terms $m$ and $n$, if there is $m \equiv_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \equiv_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \equiv_{\scriptscriptstyle \text{CLC}} n$ and Lemma \ref{erasestep}.
+\end{proof}
+
+\begin{lemma}\label{erasesub1}
+  For any CLC terms $m$ and $n$, if there is $m \prec_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \prec_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \prec_{\scriptscriptstyle \text{CLC}} n$.
+\end{proof}
+
+\begin{lemma}
+  For any CLC terms $m$ and $n$, if there is $m \preceq_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \preceq_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+\end{lemma}
+\begin{proof}
+  By case analysis on the derivation of $m \preceq_{\scriptscriptstyle \text{CLC}} n$ and the properties of subtyping proven in Section \ref{subtyping}.
+\end{proof}
+
+\begin{theorem}\label{embedding}
+  Embedding. For any CLC context $\Gamma$ and CLC terms $m, A$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CLC}} m : A$, then there is $\erase{\Gamma} \vdash_{\scriptscriptstyle \text{CC$\omega$}} \erase{m} : \erase{A}$.
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash_{\scriptscriptstyle \text{CLC}} m : A$.
+\end{proof}
+
+\begin{corollary}\label{embeddingcontext}
+  For any CLC context $\Gamma$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CLC}}$, then there is $\erase{\Gamma} \vdash_{\scriptscriptstyle \text{CC$\omega$}}$.
+\end{corollary}
+\begin{proof}
+  Direct consequence of applying Theorem \ref{embedding} to all types in context $\Gamma$.
+\end{proof}
+
+\begin{theorem}
+  Strong normalization of CLC.
+\end{theorem}
+\begin{proof}
+  Suppose there exists a well-typed CLC term $m$ with an infinite sequence of reductions. Theorem \ref{embedding} shows that there must exist some term $\erase{m}$ that is well-typed in CC$\omega$. Additionally, this infinite sequence of reductions on $m$ can be translated in CC$\omega$ step-wise by Lemma \ref{erasestep}. This shows that we have constructed a non-normalizing CC$\omega$ term $\erase{m}$, which a contradiction to the strong normalization property of CC$\omega$, thus CLC must be strongly normalizing as well.
+\end{proof}
+
+\subsection{Embedding of CC$\omega$}
+To show that CLC is compatible with the predicative fragment of CC$\omega$, we construct a lifting procedure that lifts CC$\omega$ terms into CLC in a straightforward way.
+\begin{align*}
+  \lift{x}                     & = x                                        \\
+  \lift{Type_i}                & = U_i                                      \\
+  \lift{(x : A) \rightarrow B} & = (x \utype \lift{A}) \rightarrow \lift{B} \\
+  \lift{\lambda x : A.n}       & = \lambda x\utype\lift{A}.\lift{n}         \\
+  \lift{m\ n}                  & = \lift{m}\ \lift{n}
+\end{align*}
+
+With slight overloading of notation, we define lifting for CC$\omega$ recursively.
+\begin{align*}
+  \lift{\epsilon}      & = \epsilon                         \\
+  \lift{\Gamma, x : A} & = \lift{\Gamma}, x \utype \lift{A}
+\end{align*}
+
+\begin{lemma}
+  For CC$\omega$ context $\Gamma$, there is $\pure{\lift{\Gamma}}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $\Gamma$.
+\end{proof}
+
+\begin{lemma}
+  For CC$\omega$ term $m$, map $\sigma$ from variables to CC$\omega$ terms, map $\tau$ from variable to CLC terms, if for all variables $x$ there is $\lift{\sigma\ x} = \tau\ x$, then $\lift{m[\sigma]} = \lift{m}[\tau]$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of term $m$.
+\end{proof}
+For the following lemmas, we will index relations and judgments with subscript CLC of CC$\omega$ to emphasize the language it is defined over.
+
+\begin{lemma}\label{liftstep}
+  For any CC$\omega$ terms $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CC$\omega$}} n$, then there is $\lift{m} \step_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \step_{\scriptscriptstyle \text{CC$\omega$}} n$.
+\end{proof}
+
+\begin{lemma}
+  For any CC$\omega$ terms $m$ and $n$, if there is $m \equiv_{\scriptscriptstyle \text{CC$\omega$}} n$, then there is $\lift{m} \equiv_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \equiv_{\scriptscriptstyle \text{CC$\omega$}} n$ and Lemma \ref{liftstep}.
+\end{proof}
+
+\begin{lemma}\label{liftsub1}
+  For any CC$\omega$ terms $m$ and $n$, if there is $m \prec_{\scriptscriptstyle \text{CC$\omega$}} n$, then there is $\lift{m} \prec_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \prec_{\scriptscriptstyle \text{CC$\omega$}} n$.
+\end{proof}
+
+\begin{lemma}
+  For any CC$\omega$ terms $m$ and $n$, if there is $m \preceq_{\scriptscriptstyle \text{CC$\omega$}} n$, then there is $\lift{m} \preceq_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+\end{lemma}
+\begin{proof}
+  By case analysis on the derivation of $m \preceq_{\scriptscriptstyle \text{CC$\omega$}} n$ and the properties of subtyping proven in Section \ref{subtyping}.
+\end{proof}
+
+\begin{theorem}\label{lifting}
+  Lifting. For any CC$\omega$ context $\Gamma$ and CC$\omega$ terms $m, A$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CC$\omega$}} m : A$, then there is $\lift{\Gamma} \vdash_{\scriptscriptstyle \text{CLC}} \lift{m} : \lift{A}$.
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash_{\scriptscriptstyle \text{CC$\omega$}} m : A$.
+\end{proof}
+
+
 
 \end{document}
