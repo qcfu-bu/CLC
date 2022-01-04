@@ -35,28 +35,20 @@ Lemma u_arrow_inv Γ A B s :
     [ Γ |- A :- Sort U l ] /\ [ A +u Γ |- B :- Sort s l ].
 Proof.
   move e:(Arrow A B U) => n tp. elim: tp A B e => //{Γ n s}.
-  move=> Γ A B l0 p tp1 _ tp2 _ A0 B0 [->->].
-    exists U.
-    exists l0; firstorder.
-    destruct l0; eauto.
-    assert (𝐏 <: U @ n).
-    apply sub_prop.
-    eapply conversion; eauto.
-    constructor; apply re_pure.
   move=> Γ A B s l0 p tp1 ih1 tp2 ih2 A0 B0 [->->].
     exists s.
-    exists (Some l0); firstorder.
+    exists l0; firstorder.
 Qed.
 
 Lemma l_arrow_inv Γ A B s :
   [ Γ |- Arrow A B L :- s ] -> 
   exists s l,
-    [ Γ |- A :- Sort L l ] /\ [ □ Γ |- B :- Sort s l ].
+    [ Γ |- A :- Sort L l ] /\ [ +n Γ |- B :- Sort s l ].
 Proof.
   move e:(Arrow A B L) => n tp. elim: tp A B e => //{Γ n s}.
   move=> Γ A B s l0 p tp1 ih1 tp2 ih2 A0 B0 [->->].
     exists s.
-    exists (Some l0); firstorder.
+    exists l0; firstorder.
 Qed.
 
 Lemma u_lolli_inv Γ A B s :
@@ -67,24 +59,24 @@ Proof.
   move e:(Lolli A B U) => n tp. elim: tp A B e => //{Γ n s}.
   move=> Γ A B s l0 p tp1 ih1 tp2 ih2 A0 B0 [->->].
     exists s.
-    exists (Some l0); firstorder.
+    exists l0; firstorder.
 Qed.
 
 Lemma l_lolli_inv Γ A B s :
   [ Γ |- Lolli A B L :- s ] -> 
   exists s l,
-    [ Γ |- A :- Sort L l ] /\ [ □ Γ |- B :- Sort s l ].
+    [ Γ |- A :- Sort L l ] /\ [ +n Γ |- B :- Sort s l ].
 Proof.
   move e:(Lolli A B L) => n tp. elim: tp A B e => //{Γ n s}.
   move=> Γ A B s l0 p tp1 ih1 tp2 ih2 A0 B0 [->->].
     exists s.
-    exists (Some l0); firstorder.
+    exists l0; firstorder.
 Qed.
 
 Lemma arrow_lam_invX Γ A0 n s0 C :
   [ Γ |- Lam A0 n s0 :- C ] -> 
   forall A1 B s1 t l, 
-    (C <: Arrow A1 B s1 /\ [ %(A1 +{s1} Γ) |- B :- Sort t l ]) ->
+    (C <: Arrow A1 B s1 /\ [ re (A1 +{s1} Γ) |- B :- Sort t l ]) ->
     [ A1 +{s1} Γ |- n :- B ].
 Proof.
   intros.
@@ -116,7 +108,7 @@ Qed.
 Lemma lolli_lam_invX Γ A0 n s0 C :
   [ Γ |- Lam A0 n s0 :- C ] -> 
   forall A1 B s1 t l, 
-    (C <: Lolli A1 B s1 /\ [ %(A1 +{s1} Γ) |- B :- Sort t l ]) ->
+    (C <: Lolli A1 B s1 /\ [ re (A1 +{s1} Γ) |- B :- Sort t l ]) ->
     [ A1 +{s1} Γ |- n :- B ].
 Proof.
   intros.
@@ -144,7 +136,7 @@ Proof.
 Qed.
 
 Lemma arrow_lam_inv Γ n A0 A1 B s0 s1 t l :
-  [ %Γ |- Arrow A1 B s1 :- Sort t l ] ->
+  [ re Γ |- Arrow A1 B s1 :- Sort t l ] ->
   [ Γ |- Lam A0 n s0 :- Arrow A1 B s1 ] -> 
   [ A1 +{s1} Γ |- n :- B ].
 Proof.
@@ -157,7 +149,7 @@ Proof.
 Qed.
 
 Lemma lolli_lam_inv Γ n A0 A1 B s0 s1 t l :
-  [ %Γ |- Lolli A1 B s1 :- Sort t l ] ->
+  [ re Γ |- Lolli A1 B s1 :- Sort t l ] ->
   [ Γ |- Lam A0 n s0 :- Lolli A1 B s1 ] -> 
   [ A1 +{s1} Γ |- n :- B ].
 Proof.

@@ -8,13 +8,11 @@ Unset Printing Implicit Defensive.
 
 (** * Subtyping of CLC Types *)
 
-Notation "s @ l" := (Sort s (Some l)) (at level 30).
+Notation "s @ l" := (Sort s l) (at level 30).
 
 Inductive sub1 : term -> term -> Prop :=
 | sub1_refl A : 
   sub1 A A
-| sub1_prop s l : 
-  sub1 (Sort s None) (s @ l)
 | sub1_sort s l1 l2 : 
   l1 <= l2 -> 
   sub1 (s @ l1) (s @ l2)
@@ -41,9 +39,6 @@ Lemma sub_refl A : A <: A.
 Proof. apply: sub1_sub. exact: sub1_refl. Qed.
 Hint Resolve sub_refl.
 
-Lemma sub_prop s n : Sort s None <: s @ n.
-Proof. exact/sub1_sub/sub1_prop. Qed.
-
 Lemma sub_sort s n m : n <= m -> s @ n <: s @ m.
 Proof. move=> leq. exact/sub1_sub/sub1_sort. Qed.
 
@@ -52,15 +47,11 @@ Lemma sub1_trans A B C D :
 Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
   move=> sb. elim: sb C D => {A B}
     [ A C D 
-    | s l C D conv sb
     | s l1 l2 leq C D conv sb
     | A B1 B2 s sb1 ih C D conv sb2
     | A B1 B2 s sb1 ih C D conv sb2 ]...
   - inv sb; try (exfalso; solve_conv)...
-    move: conv => /sort_inj [->[eq]].
-    apply: sub_prop.
-  - inv sb; try (exfalso; solve_conv)...
-    move: conv => /sort_inj [->[eq]].
+    move: conv => /sort_inj [->eq].
     apply: sub_sort. subst.
     exact: leq_trans leq _.
   - inv sb2; try (exfalso; solve_conv)...
@@ -87,20 +78,6 @@ Proof.
   exact: conv_trans c5. exact: conv_trans c4.
 Qed.
 
-Lemma sub_prop_inv s1 s2 :
-  Sort s1 None <: Sort s2 None -> s1 = s2.
-Proof.
-  move=> [s1' s2' []].
-  - move=> A c1 c2.
-    have{c1 c2}/sort_inj[s l]: Sort s1 None === Sort s2 None.
-     exact: conv_trans c2.
-     exact: s.
-  - move=> s l /sort_inj[-> _] /sort_inj[-> _] => //.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-  - move=> *. exfalso; solve_conv.
-Qed.
-
 Lemma sub_sort_inv s1 s2 l1 l2 :
   s1 @ l1 <: s2 @ l2 -> s1 = s2 /\ l1 <= l2.
 Proof.
@@ -109,8 +86,7 @@ Proof.
     have{c1 c2}/sort_inj[s l]: s1 @ l1 === s2 @ l2.
      exact: conv_trans c2.
     inv l=> //.
-  - move=> s l0 /sort_inj[_ h] => //.
-  - move=> s l0 l3 leq /sort_inj[->[->]] /sort_inj[<-[<-]] => //.
+  - move=> s l0 l3 leq /sort_inj[->->] /sort_inj[<-<-] => //.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
 Qed.
@@ -125,7 +101,6 @@ Proof.
       Arrow A1 B1 s1 === Arrow A2 B2 s2.
      exact: conv_trans c2.
     firstorder=>//. exact: conv_sub.
-  - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
   - move=> A B0 B3 s sb /arrow_inj[c1 [c2 <-]]. 
     move=> /arrow_inj[c3 [c4 ->]]. 
@@ -144,7 +119,6 @@ Proof.
       Lolli A1 B1 s1 === Lolli A2 B2 s2.
      exact: conv_trans c2.
     firstorder=>//. exact: conv_sub.
-  - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
   - move=> *. exfalso; solve_conv.
   - move=> A B0 B3 s sb /lolli_inj[c1 [c2 <-]]. 

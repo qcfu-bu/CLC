@@ -34,7 +34,7 @@ Fixpoint erase_context
   match Γ with
   | Some (t, U) :: Γ => erase t +: erase_context Γ
   | Some (t, L) :: Γ => erase t +: erase_context Γ
-  | None :: Γ => □ erase_context Γ
+  | None :: Γ => +n erase_context Γ
   | nil => nil
   end.
 
@@ -147,16 +147,7 @@ Proof.
     apply erase_conv in c2. simpl in c2.
     apply conv_sub in c1.
     apply conv_sub in c2.
-    assert (sub1 𝐏 (𝐔 l)).
-    constructor; eauto.
-    apply sub1_sub in H.
-    eapply sub_trans. eauto.
-    eapply sub_trans; eauto.
-  - apply erase_conv in c1. simpl in c1.
-    apply erase_conv in c2. simpl in c2.
-    apply conv_sub in c1.
-    apply conv_sub in c2.
-    assert (sub1 (𝐔 l1) (𝐔 l2)).
+    assert (sub1 (Sort l1) (Sort l2)).
     constructor; eauto.
     apply sub1_sub in H0.
     eapply sub_trans; eauto.
@@ -184,7 +175,7 @@ Proof.
 Qed.
 
 Lemma hasU_erase Γ x A :
-  [ x :u A ∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
+  hasU Γ x A -> has [[ Γ ]] x [| A |].
 Proof.
   intros.
   dependent induction H; asimpl; firstorder;
@@ -192,7 +183,7 @@ Proof.
 Qed.
 
 Lemma hasL_erase Γ x A :
-  [ x :l A ∈ Γ ] -> [ x :- [| A |] ∈ [[ Γ ]] ].
+  hasL Γ x A -> has [[ Γ ]] x [| A |].
 Proof.
   intros.
   dependent induction H; asimpl; firstorder;
@@ -207,7 +198,7 @@ Inductive agree_wk :
   agree_wk (e :: Γ1) (e :: Γ2)
 | agree_wk_n Γ1 Γ2 A :
   agree_wk Γ1 Γ2 ->
-  agree_wk (□ Γ1) (A +: Γ2).
+  agree_wk (+n Γ1) (A +: Γ2).
 
 Lemma agree_wk_refl Γ : agree_wk Γ Γ.
 Proof.
@@ -219,8 +210,8 @@ Qed.
 Lemma agree_wk_has Γ1 Γ2 :
   agree_wk Γ1 Γ2 ->
   forall x A,
-    [ x :- A ∈ Γ1 ] -> 
-    [ x :- A ∈ Γ2 ].
+    has Γ1 x A -> 
+    has Γ2 x A.
 Proof.
   intro H.
   dependent induction H; simpl; intros; eauto.
@@ -229,7 +220,7 @@ Proof.
 Qed.
 
 Lemma agree_wk_re Γ :
-  agree_wk [[ %Γ ]] [[ Γ ]].
+  agree_wk [[ re Γ ]] [[ Γ ]].
 Proof.
   induction Γ.
   - simpl; constructor.
@@ -240,7 +231,7 @@ Proof.
 Qed.
 
 Lemma agree_wk_merge_inv Γ1 Γ2 Γ :
-  [ Γ1 ‡ Γ2 ‡ Γ ] ->
+  merge Γ1 Γ2 Γ ->
   agree_wk [[ Γ1 ]] [[ Γ ]] /\
   agree_wk [[ Γ2 ]] [[ Γ ]].
 Proof with eauto using agree_wk.
@@ -255,10 +246,7 @@ Lemma wk_ok Γ1 m A :
 Proof.
   intro H.
   dependent induction H; simpl; intros; subst.
-  - apply p_axiom.
   - apply t_axiom.
-  - eapply ty_prop; eauto.
-    apply IHhas_type2; constructor; eauto.
   - apply ty_arrow.
     apply IHhas_type1; eauto.
     apply IHhas_type2; constructor; eauto.
@@ -277,7 +265,7 @@ Proof.
 Qed.
 
 Lemma erase_re Γ m A :
-  [ [[ %Γ ]] |- m :- A ] ->
+  [ [[ re Γ ]] |- m :- A ] ->
   [ [[ Γ ]] |- m :- A ].
 Proof.
   intro H.
@@ -298,9 +286,7 @@ Theorem embedding Γ m A :
 Proof.
   intro H.
   dependent induction H; asimpl.
-  - apply p_axiom.  
   - apply t_axiom.  
-  - eapply ty_prop; eauto.
   - apply ty_arrow; eauto.
   - apply ty_arrow; eauto.
     eapply wk_ok; eauto; simpl.
@@ -387,14 +373,14 @@ Fixpoint lift_context
 : clc_context.context clc_ast.term :=
   match Γ with
   | Some t :: Γ => lift t +u lift_context Γ
-  | None :: Γ => □ lift_context Γ
+  | None :: Γ => +n lift_context Γ
   | nil => nil
   end.
 
 Notation "{| m |}" := (lift m).
 Notation "{{ Γ }}" := (lift_context Γ).
 
-Lemma lift_pure Γ : [{{Γ}}].
+Lemma lift_pure Γ : pure {{Γ}}.
 Proof.
   induction Γ.
   constructor.
@@ -500,15 +486,6 @@ Proof.
     apply lift_conv in c2. simpl in c2.
     apply clc_subtype.conv_sub in c1.
     apply clc_subtype.conv_sub in c2.
-    assert (clc_subtype.sub1 clc_typing.𝐏 (U @ l)).
-    constructor; eauto.
-    apply clc_subtype.sub1_sub in H.
-    eapply clc_subtype.sub_trans. eauto.
-    eapply clc_subtype.sub_trans; eauto.
-  - apply lift_conv in c1. simpl in c1.
-    apply lift_conv in c2. simpl in c2.
-    apply clc_subtype.conv_sub in c1.
-    apply clc_subtype.conv_sub in c2.
     assert (clc_subtype.sub1 (U @ l1) (U @ l2)).
     constructor; eauto.
     apply clc_subtype.sub1_sub in H0.
@@ -530,7 +507,7 @@ Proof.
 Qed.
 
 Lemma lift_hasU Γ x A :
-  [ x :- A ∈ Γ ] -> [ x :u {|A|} ∈ {{Γ}} ].
+  has Γ x A -> hasU {{Γ}} x {|A|}.
 Proof.
   intros.
   dependent induction H; simpl.
@@ -550,10 +527,6 @@ Proof.
   intro H.
   dependent induction H; simpl.
   - constructor.
-    apply lift_pure.
-  - constructor.
-    apply lift_pure.
-  - econstructor; eauto.
     apply lift_pure.
   - econstructor; eauto.
     apply lift_pure.

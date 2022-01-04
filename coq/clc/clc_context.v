@@ -22,82 +22,73 @@ Definition context T := seq (elem T).
 Notation "m +u Γ" := (Some (m, U) :: Γ) (at level 30).
 Notation "m +l Γ" := (Some (m, L) :: Γ) (at level 30).
 Notation "m +{ s } Γ" := (Some (m, s) :: Γ) (at level 30).
-Notation "□ Γ" := (None :: Γ) (at level 30).
+Notation "+n Γ" := (None :: Γ) (at level 30).
 
 (** Two contexts can be merged together if their non-linear variables
   coincide and their linear variables do not overlap. Since merge
   is only defined for non-overlapping linear variables, the
   contraction rule is no longer available for linear variables. *)
 
-Reserved Notation "[ Γ1 ‡ Γ2 ‡ Γ ]".
 Inductive merge T : context T -> context T -> context T -> Prop :=
 | merge_nil :
-  [ nil ‡ nil ‡ nil ]
+  merge nil nil nil
 | merge_left Γ1 Γ2 Γ m : 
-  [ Γ1 ‡ Γ2 ‡ Γ ] ->
-  [ m +u Γ1 ‡ m +u Γ2 ‡ m +u Γ ] 
+  merge Γ1 Γ2 Γ ->
+  merge (m +u Γ1) (m +u Γ2) (m +u Γ)
 | merge_right1 Γ1 Γ2 Γ m :
-  [ Γ1 ‡ Γ2 ‡ Γ ] ->
-  [ m +l Γ1 ‡ □ Γ2 ‡ m +l Γ ]
+  merge Γ1 Γ2 Γ ->
+  merge (m +l Γ1) (+n Γ2) (m +l Γ)
 | merge_right2 Γ1 Γ2 Γ m :
-  [ Γ1 ‡ Γ2 ‡ Γ ] ->
-  [ □ Γ1 ‡ m +l Γ2 ‡ m +l Γ ]
+  merge Γ1 Γ2 Γ ->
+  merge (+n Γ1) (m +l Γ2) (m +l Γ)
 | merge_null Γ1 Γ2 Γ :
-  [ Γ1 ‡ Γ2 ‡ Γ ] ->
-  [ □ Γ1 ‡ □ Γ2 ‡ □ Γ ]
-where "[ Γ1 ‡ Γ2 ‡ Γ ]" := (merge Γ1 Γ2 Γ).
+  merge Γ1 Γ2 Γ ->
+  merge (+n Γ1) (+n Γ2) (+n Γ).
 
 (** A context is considered pure if it does not contain linear
   variables. *)
 
-Reserved Notation "[ Γ ]".
-
 Inductive pure T : context T -> Prop :=
 | pure_nil :
-  [ nil ]
+  pure nil
 | pure_u Γ m : 
-  [ Γ ] ->
-  [ m +u Γ ]
+  pure Γ ->
+  pure (m +u Γ)
 | pure_n Γ : 
-  [ Γ ] ->
-  [ □ Γ ]
-where "[ Γ ]" := (pure Γ).
+  pure Γ ->
+  pure (+n Γ).
 
 (** A variable with non-linear type is found within a pure 
   context. *)
 
-Reserved Notation "[ x :u A ∈ Γ ]".
 Inductive hasU {T} `{Ids T} `{Subst T} : 
   context T -> var -> T -> Prop :=
 | hasU_O m Γ :
-  [ Γ ] ->
-  [ 0 :u m.[ren (+1)] ∈ m +u Γ ]
+  pure Γ ->
+  hasU (m +u Γ) 0 m.[ren (+1)]
 | hasU_S Γ v m n : 
-  [ v :u m ∈ Γ ] ->
-  [ v.+1 :u m.[ren (+1)] ∈ n +u Γ ]
+  hasU Γ v m ->
+  hasU (n +u Γ) v.+1 m.[ren (+1)]
 | hasU_N Γ v m : 
-  [ v :u m ∈ Γ ] ->
-  [ v.+1 :u m.[ren (+1)] ∈ □ Γ ]
-where "[ x :u A ∈ Γ ]" := (hasU Γ x A).
+  hasU Γ v m ->
+  hasU (+n Γ) v.+1 m.[ren (+1)].
 
 (** A variable is the only variable with linear type within
   some context. All other variables have non-linear type. 
   This prevents linear variables from being freely assumed,  
   preventing the weakening rule for linear types. *)
 
-Reserved Notation "[ x :l A ∈ Γ ]".
 Inductive hasL {T} `{Ids T} `{Subst T} :
   context T -> var -> T -> Prop :=
 | hasL_O m Γ :
-  [ Γ ] ->
-  [ 0 :l m.[ren (+1)] ∈ m +l Γ ]
+  pure Γ ->
+  hasL (m +l Γ) 0 m.[ren (+1)]
 | hasL_S Γ v m n :
-  [ v :l m ∈ Γ ] ->
-  [ v.+1 :l m.[ren (+1)] ∈ n +u Γ ]
+  hasL Γ v m ->
+  hasL (n +u Γ) v.+1 m.[ren (+1)]
 | hasL_N Γ v m :
-  [ v :l m ∈ Γ ] ->
-  [ v.+1 :l m.[ren (+1)] ∈ □ Γ ]
-where "[ x :l A ∈ Γ ]" := (hasL Γ x A).
+  hasL Γ v m ->
+  hasL (+n Γ) v.+1 m.[ren (+1)].
 
 (** Context restriction is a filter that removes all linear
   variables from a context. *)
@@ -109,24 +100,22 @@ Fixpoint re T (Γ : context T) : context T :=
   | _ => nil
   end.
 
-Notation "% Γ" := (re Γ) (at level 30).
-
 (** Various properties that CLC contexts possess. *)
 
 Lemma merge_sym T (Γ1 Γ2 Γ : context T) : 
-  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ2 ‡ Γ1 ‡ Γ ].
+  merge Γ1 Γ2 Γ -> merge Γ2 Γ1 Γ.
 Proof.
   induction 1; intros; constructor; eauto.
 Qed.
 
 Lemma merge_pure T (Γ : context T) :
-  [ Γ ] -> [ Γ ‡ Γ ‡ Γ ].
+  pure Γ -> merge Γ Γ Γ.
 Proof.
   induction 1; constructor; eauto.
 Qed.
 
 Lemma merge_re1 T (Γ : context T) :
-  [ %Γ ‡ Γ ‡ Γ ].
+  merge (re Γ) Γ Γ.
 Proof.
   induction Γ.
   - simpl; constructor.
@@ -140,7 +129,7 @@ Proof.
 Qed.
 
 Lemma merge_re2 T (Γ : context T) :
-  [ Γ ‡ %Γ ‡ Γ ].
+  merge Γ (re Γ) Γ.
 Proof.
   induction Γ.
   - simpl; constructor.
@@ -154,7 +143,7 @@ Proof.
 Qed.
 
 Lemma merge_pure_inv T (Γ1 Γ2 Γ : context T) :
-  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ ] -> [ Γ1 ] /\ [ Γ2 ].
+  merge Γ1 Γ2 Γ -> pure Γ -> pure Γ1 /\ pure Γ2.
 Proof.
   induction 1; intros; constructor; eauto.
   - inv H0.
@@ -172,7 +161,7 @@ Proof.
 Qed.
 
 Lemma merge_pure1 T (Γ1 Γ2 Γ : context T) :
-  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ1 ] -> Γ = Γ2.
+  merge Γ1 Γ2 Γ -> pure Γ1 -> Γ = Γ2.
 Proof.
   induction 1; intros; eauto.
   - inv H0.
@@ -185,7 +174,7 @@ Proof.
 Qed.
 
 Lemma merge_pure2 T (Γ1 Γ2 Γ : context T) :
-  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ2 ] -> Γ = Γ1.
+  merge Γ1 Γ2 Γ -> pure Γ2 -> Γ = Γ1.
 Proof.
   induction 1; intros; eauto.
   - inv H0.
@@ -198,7 +187,7 @@ Proof.
 Qed.
 
 Lemma merge_pure_pure T (Γ1 Γ2 Γ : context T) :
-  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ1 ] -> [ Γ2 ] -> [ Γ ].
+  merge Γ1 Γ2 Γ -> pure Γ1 -> pure Γ2 -> pure Γ.
 Proof.
   induction 1; intros; eauto.
   - inv H0; inv H1.
@@ -210,7 +199,7 @@ Proof.
 Qed.
 
 Lemma merge_pure_eq T (Γ1 Γ2 Γ : context T) :
-  [ Γ1 ‡ Γ2 ‡ Γ ] -> [ Γ1 ] -> [ Γ2 ] -> Γ1 = Γ2.
+  merge Γ1 Γ2 Γ -> pure Γ1 -> pure Γ2 -> Γ1 = Γ2.
 Proof.
   induction 1; intros; eauto.
   - inv H0; inv H1.
@@ -222,7 +211,7 @@ Proof.
 Qed.
 
 Lemma merge_re_re T (Γ1 Γ2 Γ : context T) :
-  [ Γ1 ‡ Γ2 ‡ Γ ] -> %Γ1 = %Γ /\ %Γ2 = %Γ.
+  merge Γ1 Γ2 Γ -> re Γ1 = re Γ /\ re Γ2 = re Γ.
 Proof.
   induction 1; simpl; intros; eauto; firstorder.
   rewrite H0; eauto.
@@ -236,7 +225,7 @@ Proof.
 Qed.
 
 Lemma merge_re_re_re T (Γ : context T) : 
-  [ %Γ ‡ %Γ ‡ %Γ ].
+  merge (re Γ) (re Γ) (re Γ).
 Proof.
   induction Γ; intros.
   constructor.
@@ -249,7 +238,7 @@ Proof.
 Qed.
 
 Lemma re_re T (Γ : context T) :
-  %Γ = %(%Γ).
+  re Γ = re (re Γ).
 Proof.
   induction Γ.
   - simpl.
@@ -263,7 +252,7 @@ Proof.
 Qed.
 
 Lemma pure_re T (Γ : context T) :
-  [ Γ ] -> Γ = %Γ.
+  pure Γ -> Γ = re Γ.
 Proof.
   induction Γ; intros.
   - eauto.
@@ -272,7 +261,7 @@ Proof.
     rewrite <- IHΓ; eauto.
 Qed.
 
-Lemma re_pure T (Γ : context T) : [ %Γ ].
+Lemma re_pure T (Γ : context T) : pure (re Γ).
 Proof.
   induction Γ; intros.
   constructor.
@@ -285,7 +274,7 @@ Proof.
 Qed.
 
 Lemma hasU_re {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :u A ∈ Γ ] -> [ x :u A ∈ %Γ ].
+  hasU Γ x A -> hasU (re Γ) x A.
 Proof.
   induction 1; simpl.
   - constructor.
@@ -295,7 +284,7 @@ Proof.
 Qed.
 
 Lemma hasL_re {T} `{Ids T} `{Subst T} (Γ : context T) :
-  forall x A, ~[ x :l A ∈ %Γ ].
+  forall x A, ~hasL (re Γ) x A.
 Proof.
   induction Γ; unfold not; intros.
   - simpl in H1. inv H1.
@@ -312,13 +301,13 @@ Proof.
 Qed.
 
 Lemma hasU_pure {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :u A ∈ Γ ] -> [ Γ ].
+  hasU Γ x A -> pure Γ.
 Proof.
   induction 1; simpl; constructor; eauto.
 Qed.
 
 Lemma hasL_pure {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :l A ∈ Γ ] -> ~[ Γ ].
+  hasL Γ x A -> ~pure Γ.
 Proof.
   induction 1; simpl; intro h. 
   inv h.
@@ -327,10 +316,7 @@ Proof.
 Qed.
 
 Lemma hasU_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :u A ∈ Γ ] ->
-  forall B,
-    [ x :u B ∈ Γ ] ->
-    A = B.
+  hasU Γ x A -> forall B, hasU Γ x B -> A = B.
 Proof.
   induction 1; intros.
   inv H2; eauto.
@@ -341,10 +327,7 @@ Proof.
 Qed.
 
 Lemma hasL_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :l A ∈ Γ ] ->
-  forall B,
-    [ x :l B ∈ Γ ] ->
-    A = B.
+  hasL Γ x A -> forall B, hasL Γ x B -> A = B.
 Proof.
   induction 1; intros.
   inv H2; eauto.
@@ -355,9 +338,7 @@ Proof.
 Qed.
 
 Lemma hasU_hasL {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :u A ∈ Γ ] ->
-  forall B,
-    ~ [ x :l B ∈ Γ ].
+  hasU Γ x A -> forall B, ~hasL Γ x B.
 Proof.
   induction 1; unfold not; intros.
   inv H2.
@@ -366,11 +347,11 @@ Proof.
 Qed.
 
 Lemma merge_split1 T (Γ1 Γ2 Γ : context T) :
-  [ Γ1 ‡ Γ2 ‡ Γ] ->
+  merge Γ1 Γ2 Γ ->
   forall Δ1 Δ2,
-    [ Δ1 ‡ Δ2 ‡ Γ1 ] ->
+    merge Δ1 Δ2 Γ1 ->
     exists Δ,
-      [ Δ1 ‡ Γ2 ‡ Δ ] /\ [ Δ ‡ Δ2 ‡ Γ ].
+      merge Δ1 Γ2 Δ /\ merge Δ Δ2 Γ.
 Proof.
   induction 1; intros.
   - inv H.
@@ -388,7 +369,7 @@ Proof.
       repeat constructor; eauto.
     + specialize (IHmerge _ _ H4).
       firstorder.
-      exists (□ x).
+      exists (+n x).
       repeat constructor; eauto.
   - inv H0.
     specialize (IHmerge _ _ H4).
@@ -398,16 +379,16 @@ Proof.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (□ x).
+    exists (+n x).
     repeat constructor; eauto.
 Qed.
 
 Lemma merge_split2 T (Γ1 Γ2 Γ : context T) :
-  [ Γ1 ‡ Γ2 ‡ Γ ] ->
+  merge Γ1 Γ2 Γ ->
   forall Δ1 Δ2,
-    [ Δ1 ‡ Δ2 ‡ Γ1 ] ->
+    merge Δ1 Δ2 Γ1 ->
     exists Δ,
-      [ Δ2 ‡ Γ2 ‡ Δ ] /\ [ Δ1 ‡ Δ ‡ Γ ].
+      merge Δ2 Γ2 Δ /\ merge Δ1 Δ Γ.
 Proof.
   induction 1; intros.
   - inv H.
@@ -421,7 +402,7 @@ Proof.
   - inv H0.
     + specialize (IHmerge _ _ H4).
       firstorder.
-      exists (□ x).
+      exists (+n x).
       repeat constructor; eauto.
     + specialize (IHmerge _ _ H4).
       firstorder.
@@ -435,6 +416,6 @@ Proof.
   - inv H0.
     specialize (IHmerge _ _ H4).
     firstorder.
-    exists (□ x).
+    exists (+n x).
     repeat constructor; eauto.
 Qed.

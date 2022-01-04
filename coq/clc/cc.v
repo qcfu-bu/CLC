@@ -11,25 +11,21 @@ Unset Printing Implicit Defensive.
 Definition context T := seq (option T).
 
 Notation "m +: Γ" := (Some m :: Γ) (at level 30).
-Notation "□ Γ" := (None :: Γ) (at level 30).
+Notation "+n Γ" := (None :: Γ) (at level 30).
 
-Reserved Notation "[ x :- A ∈ Γ ]".
 Inductive has {T} `{Ids T} `{Subst T} : 
   context T -> var -> T -> Prop :=
 | has_O m Γ :
-  [ 0 :- m.[ren (+1)] ∈ m +: Γ ]
+  has (m +: Γ) 0 m.[ren (+1)]
 | has_S Γ v m n : 
-  [ v :- m ∈ Γ ] ->
-  [ v.+1 :- m.[ren (+1)] ∈ n +: Γ ]
+  has Γ v m ->
+  has (n +: Γ) v.+1 m.[ren (+1)]
 | has_N Γ v m : 
-  [ v :- m ∈ Γ ] ->
-  [ v.+1 :- m.[ren (+1)] ∈ □ Γ ]
-where "[ x :- A ∈ Γ ]" := (has Γ x A).
+  has Γ v m ->
+  has (+n Γ) v.+1 m.[ren (+1)].
 
 Lemma has_x {T} `{Ids T} `{Subst T} (Γ : context T) x A :
-  [ x :- A ∈ Γ ] ->
-  forall B,
-    [ x :- B ∈ Γ ] -> A = B.
+  has Γ x A -> forall B, has Γ x B -> A = B.
 Proof.
   induction 1; intros.
   inv H1; eauto.
@@ -41,7 +37,7 @@ Qed.
   
 Inductive term : Type :=
 | Var   (x : var)
-| Sort  (n : option nat)
+| Sort  (n : nat)
 | App   (s t : term)
 | Lam   (s : term) (t : {bind term})
 | Arrow (s : term) (t : {bind term}).
@@ -380,13 +376,9 @@ Proof.
   inv H4; eauto using join_conv.
 Qed.
 
-Notation 𝐔 l := (Sort (Some l)).
-Notation 𝐏 := (Sort None).
-
 Inductive sub1 : term ->term -> Prop :=
 | sub1_refl A : sub1 A A
-| sub1_prop l : sub1 𝐏 (𝐔 l)
-| sub1_sort l1 l2 : l1 <= l2 -> sub1 (𝐔 l1) (𝐔 l2)
+| sub1_sort l1 l2 : l1 <= l2 -> sub1 (Sort l1) (Sort l2)
 | sub1_arrow A B1 B2 : sub1 B1 B2 -> sub1 (Arrow A B1) (Arrow A B2).
 
 CoInductive sub (A B : term) : Prop :=
@@ -404,27 +396,21 @@ Lemma sub_refl A : A <: A.
 Proof. apply: sub1_sub. exact: sub1_refl. Qed.
 Hint Resolve sub_refl.
 
-Lemma sub_prop l : 𝐏 <: 𝐔 l.
-Proof. exact/sub1_sub/sub1_prop. Qed.
-
-Lemma sub_sort l1 l2 : l1 <= l2 -> 𝐔 l1 <: 𝐔 l2.
+Lemma sub_sort l1 l2 : l1 <= l2 -> Sort l1 <: Sort l2.
 Proof. move=> leq. exact/sub1_sub/sub1_sort. Qed.
 
 Lemma sub1_trans A B C D :
   sub1 A B -> B === C -> sub1 C D -> A <: D.
 Proof with eauto using sub1, sub1_sub, sub1_conv, conv_sub1.
   move=> sb. elim: sb C D => {A B}
-  [A C D |n C D conv sb
+  [A C D
   |n m leq C D conv sb
   |A B1 B2 sb1 ih C D conv sb2]...
-  - inv sb... exfalso; solve_conv.
   - inv sb...
-    + exfalso; solve_conv.
     + apply: sub_sort. move: conv => /sort_inv [eqn]. subst.
       exact: leq_trans leq _.
     + exfalso; solve_conv.
   - inv sb2...
-    + exfalso; solve_conv.
     + exfalso; solve_conv.
     + move: conv => /arrow_inv[conv1 conv2].
       move: (ih _ _ conv2 H) => {ih} sub. inv sub.
@@ -449,20 +435,14 @@ Reserved Notation "[ Γ |- ]".
 Reserved Notation "[ Γ |- s :- A ]".
 
 Inductive has_type : context term -> term -> term -> Prop :=
-| p_axiom Γ :
-  [ Γ |- 𝐏 :- 𝐔 0 ]
 | t_axiom Γ l :
-  [ Γ |- 𝐔 l :- 𝐔 l.+1 ]
-| ty_prop Γ A B n :
-  [ Γ |- A :- Sort n ] ->
-  [ A +: Γ |- B :- 𝐏 ] ->
-  [ Γ |- Arrow A B :- 𝐏 ]
+  [ Γ |- Sort l :- Sort l.+1 ]
 | ty_arrow Γ A B l :
-  [ Γ |- A :- 𝐔 l ] ->
-  [ A +: Γ |- B :- 𝐔 l ] ->
-  [ Γ |- Arrow A B :- 𝐔 l ]
+  [ Γ |- A :- Sort l ] ->
+  [ A +: Γ |- B :- Sort l ] ->
+  [ Γ |- Arrow A B :- Sort l ]
 | ty_var Γ x A :
-  [ x :- A ∈ Γ ] ->
+  has Γ x A ->
   [ Γ |- Var x :- A ]
 | ty_lam Γ A B s n :
   [ Γ |- Arrow A B :- Sort n ] ->
@@ -488,7 +468,7 @@ Inductive context_ok : context term -> Prop :=
   [ A +: Γ |- ]
 | n_ok Γ :
   [ Γ |- ] ->
-  [ □ Γ |- ]
+  [ +n Γ |- ]
 where "[ Γ |- ]" := (context_ok Γ).
 
 Notation "[ Γ |- s ]" := (exists n, [ Γ |- s :- Sort n ]).
@@ -502,7 +482,7 @@ Inductive agree_ren : (var -> var) ->
   agree_ren (upren ξ) (m +: Γ) (m.[ren ξ] +: Γ')
 | agree_ren_n Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
-  agree_ren (upren ξ) (□ Γ) (□ Γ')
+  agree_ren (upren ξ) (+n Γ) (+n Γ')
 | agree_ren_wk Γ Γ' ξ m :
   agree_ren ξ Γ Γ' ->
   agree_ren ((+1) ∘ ξ) (Γ) (m :: Γ').
@@ -518,8 +498,8 @@ Proof.
       by autosubst.
     rewrite H.
     constructor; eauto.
-    assert (agree_ren id (□ Γ) (□ Γ)
-      = agree_ren (upren id) (□ Γ) (□ Γ))
+    assert (agree_ren id (+n Γ) (+n Γ)
+      = agree_ren (upren id) (+n Γ) (+n Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.
@@ -528,8 +508,8 @@ Qed.
 Lemma agree_ren_has Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   forall x A,
-    [ x :- A ∈ Γ ] ->
-    [ ξ x :- A.[ren ξ] ∈ Γ' ].
+    has Γ x A ->
+    has Γ' (ξ x) A.[ren ξ].
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
@@ -562,16 +542,10 @@ Lemma rename_ok Γ m A :
 Proof.
   intros H.
   induction H; simpl; intros.
-  - apply p_axiom; assumption.
   - apply t_axiom; assumption.
   - asimpl.
-    eapply ty_prop; eauto.
-    replace 𝐏 with (𝐏.[ren (upren ξ)]) by autosubst.
-    apply IHhas_type2.
-    constructor; eauto.
-  - asimpl.
     apply ty_arrow; eauto.
-    replace (𝐔 l) with ((𝐔 l).[ren (upren ξ)]) by autosubst.
+    replace (Sort l) with ((Sort l).[ren (upren ξ)]) by autosubst.
     apply IHhas_type2.
     constructor; eauto.
   - replace (ids (ξ x)) with (Var (ξ x)) by autosubst.

@@ -21,19 +21,6 @@ Proof.
   dependent induction H0.
   - inv H1.
   - inv H1.
-  - inv H1.
-    + specialize (IHhas_type1 H _ H6).
-      eapply prop; eauto.
-      eapply context_convU.
-      eapply conv1i; eauto.
-      rewrite <- pure_re; eauto.
-      eauto.
-    + assert ([A +u Γ |-]).
-      eapply u_ok; eauto.
-      rewrite <-pure_re; eauto.
-      specialize (IHhas_type2 H1 _ H6).
-      eapply prop; eauto.
-  - inv H1.
     + specialize (IHhas_type1 H _ H6).
       eapply u_arrow; eauto.
       eapply context_convU.
@@ -47,7 +34,7 @@ Proof.
   - inv H1.
     + specialize (IHhas_type1 H _ H6).
       eapply l_arrow; eauto.
-    + assert ([□ Γ |-]).
+    + assert ([+n Γ |-]).
       eapply n_ok; eauto.
       specialize (IHhas_type2 H1 _ H6).
       eapply l_arrow; eauto.
@@ -65,7 +52,7 @@ Proof.
   - inv H1.
     + specialize (IHhas_type1 H _ H6).
       eapply l_lolli; eauto.
-    + assert ([□ Γ |-]).
+    + assert ([+n Γ |-]).
       eapply n_ok; eauto.
       specialize (IHhas_type2 H1 _ H6).
       eapply l_lolli; eauto.
@@ -178,7 +165,7 @@ Proof.
       apply conv_sub in H2.
       pose proof (validity H4 H0_); first_order.
       apply u_arrow_inv in H3; first_order.
-      assert ([%Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
+      assert ([re Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
       eapply substitutionU; eauto.
       pose proof (pure_re H0).
       pose proof (merge_re_re H1). inv H9.
@@ -200,7 +187,7 @@ Proof.
       apply conv_sub in H1.
       pose proof (validity H3 H0_); first_order.
       apply l_arrow_inv in H2; first_order.
-      assert ([%Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
+      assert ([re Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
       eapply substitutionN; eauto.
       pose proof (merge_re_re H0). inv H6.
       rewrite <-H8; eauto.
@@ -220,7 +207,7 @@ Proof.
       apply conv_sub in H2.
       pose proof (validity H4 H0_); first_order.
       apply u_lolli_inv in H3; first_order.
-      assert ([%Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
+      assert ([re Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
       eapply substitutionU; eauto.
       pose proof (pure_re H0).
       pose proof (merge_re_re H1). inv H9.
@@ -242,7 +229,7 @@ Proof.
       apply conv_sub in H1.
       pose proof (validity H3 H0_); first_order.
       apply l_lolli_inv in H2; first_order.
-      assert ([%Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
+      assert ([re Γ |- B.[n/] :- (Sort x1 x2).[n/] ]).
       eapply substitutionN; eauto.
       pose proof (merge_re_re H0). inv H6.
       rewrite <-H8; eauto.

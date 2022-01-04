@@ -31,10 +31,10 @@ Inductive agree_subst :
   [ A.[σ] +l Δ |- up σ -| A +l Γ ]
 | agree_subst_n Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
-  [ □ Δ |- up σ -| □ Γ ]
+  [ +n Δ |- up σ -| +n Γ ]
 | agree_subst_wkU Δ σ Γ n A :
   [ Δ |- σ -| Γ ] ->
-  [ %Δ |- n :- A.[σ] ] ->
+  [ re Δ |- n :- A.[σ] ] ->
   [ Δ |- n .: σ -| A +u Γ ]
 | agree_subst_wkL Δ1 Δ2 Δ σ Γ n A :
   merge Δ1 Δ2 Δ ->
@@ -43,16 +43,16 @@ Inductive agree_subst :
   [ Δ |- n .: σ -| A +l Γ ]
 | agree_subst_wkN Δ σ Γ n :
   [ Δ |- σ -| Γ ] ->
-  [ Δ |- n .: σ -| □ Γ ]
+  [ Δ |- n .: σ -| +n Γ ]
 | agree_subst_convU Δ σ Γ A B l :
   A <: B ->
-  [ %Δ |- B.[ren (+1)].[σ] :- Sort U l ] ->
+  [ re Δ |- B.[ren (+1)].[σ] :- Sort U l ] ->
   [ Δ |- σ -| A +u Γ ] ->
   [ Δ |- σ -| B +u Γ ]
 | agree_subst_convL Δ σ Γ A B l :
   A <: B ->
-  [ %Δ |- B.[ren (+1)].[σ] :- Sort L l ] ->
-  [ %Γ |- B :- Sort L l ] ->
+  [ re Δ |- B.[ren (+1)].[σ] :- Sort L l ] ->
+  [ re Γ |- B :- Sort L l ] ->
   [ Δ |- σ -| A +l Γ ] ->
   [ Δ |- σ -| B +l Γ ]
 where "[ Δ |- σ -| Γ ]" := (agree_subst Δ σ Γ).
@@ -100,7 +100,7 @@ Qed.
 Lemma agree_subst_hasU Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
   forall x A,
-    [ x :u A ∈ Γ ] -> 
+    hasU Γ x A ->
     [ Δ |- σ x :- A.[σ] ].
 Proof.
   induction 1; intros.
@@ -123,7 +123,7 @@ Proof.
   - inv H2.
   - inv H0; asimpl; eauto.
   - inv H2.
-    + assert [ 0 :u A.[ren (+1)] ∈ A +u Γ].
+    + assert (hasU (A +u Γ) 0 A.[ren (+1)]).
       constructor; eauto.
       eapply conversion.
       eapply sub_subst.
@@ -138,7 +138,7 @@ Qed.
 Lemma agree_subst_hasL Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
   forall x A,
-    [ x :l A ∈ Γ ] -> 
+    hasL Γ x A ->
     [ Δ |- σ x :- A.[σ] ].
 Proof.
   induction 1; intros.
@@ -166,7 +166,7 @@ Proof.
     apply IHagree_subst.
     constructor; eauto.
   - inv H3.
-    assert [ 0 :l A.[ren (+1)] ∈ A +l Γ ].
+    assert (hasL (A +l Γ) 0 A.[ren (+1)]).
     constructor; eauto.
     eapply conversion.
     apply sub_subst.
@@ -177,7 +177,7 @@ Qed.
 
 Lemma agree_subst_re_re Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
-  [ %Δ |- σ -| %Γ ].
+  [ re Δ |- σ -| re Γ ].
 Proof.
   intro H.
   dependent induction H; simpl; intros; eauto.
@@ -210,9 +210,9 @@ Qed.
 Lemma merge_agree_subst_inv Δ σ Γ :
   [ Δ |- σ -| Γ ] ->
   forall Γ1 Γ2,
-    [ Γ1 ‡ Γ2 ‡ Γ ] ->
+    merge Γ1 Γ2 Γ ->
     exists Δ1 Δ2,
-      [ Δ1 ‡ Δ2 ‡ Δ ] /\ [ Δ1 |- σ -| Γ1 ] /\ [ Δ2 |- σ -| Γ2 ].
+      merge Δ1 Δ2 Δ /\ [ Δ1 |- σ -| Γ1 ] /\ [ Δ2 |- σ -| Γ2 ].
 Proof.
   intros H.
   dependent induction H; intros.
@@ -230,18 +230,18 @@ Proof.
     pose proof (IHagree_subst _ _ H4).
     first_order.
     exists (A.[σ] +l x).
-    exists (□ x0).
+    exists (+n x0).
     repeat constructor; eauto.
   - pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (□ x).
+    exists (+n x).
     exists (A.[σ] +l x0).
     repeat constructor; eauto.
   - inv H0.
     pose proof (IHagree_subst _ _ H4).
     first_order.
-    exists (□ x).
-    exists (□ x0).
+    exists (+n x).
+    exists (+n x0).
     repeat constructor; eauto.
   - inv H1.
     pose proof (IHagree_subst _ _ H5).
@@ -279,7 +279,7 @@ Proof.
     exists x0.
     repeat constructor; eauto.
   - inv H2.
-    assert [ A +u Γ0 ‡ A +u Γ3 ‡ A +u Γ ].
+    assert (merge (A +u Γ0) (A +u Γ3) (A +u Γ)).
     apply merge_left; eauto.
     specialize (IHagree_subst _ _ H2).
     first_order.
@@ -293,7 +293,7 @@ Proof.
     eapply agree_subst_convU; eauto.
     rewrite H9; eauto.
   - inv H3.
-    + assert [ A +l Γ0 ‡ □ Γ3 ‡ A +l Γ ].
+    + assert (merge (A +l Γ0) (+n Γ3) (A +l Γ)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -305,7 +305,7 @@ Proof.
       eapply agree_subst_convL; eauto.
       rewrite H9; eauto.
       rewrite H11; eauto.
-    + assert [ □ Γ0 ‡ A +l Γ3 ‡ A +l Γ ].
+    + assert (merge (+n Γ0) (A +l Γ3) (A +l Γ)).
       constructor; eauto.
       specialize (IHagree_subst _ _ H3).
       first_order.
@@ -331,14 +331,7 @@ Lemma substitution Γ m A :
 Proof.
   intros H.
   dependent induction H; asimpl; intros; eauto.
-  - apply p_axiom.
-    eapply agree_subst_pure; eauto.
   - apply s_axiom.
-    eapply agree_subst_pure; eauto.
-  - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
-    pose proof (agree_subst_u A H2).
-    specialize (IHhas_type2 _ _ H3). asimpl in IHhas_type2.
-    eapply prop; eauto.
     eapply agree_subst_pure; eauto.
   - specialize (IHhas_type1 _ _ H2). asimpl in IHhas_type1.
     pose proof (agree_subst_u A H2).
@@ -416,8 +409,8 @@ Qed.
 Lemma substitutionU Γ1 m A B :
   [ A +u Γ1 |- m :- B ] ->
   forall Γ2 Γ n,
-    [ Γ2 ] ->
-    [ Γ1 ‡ Γ2 ‡ Γ ] -> 
+    pure Γ2 ->
+    merge Γ1 Γ2 Γ -> 
     [ Γ2 |- n :- A ] -> 
     [ Γ |- m.[n/] :- B.[n/] ].
 Proof.
@@ -440,7 +433,7 @@ Qed.
   empty context slot. *)
 
 Lemma substitutionN Γ1 m A B :
-  [ □ Γ1 |- m :- B ] ->
+  [ +n Γ1 |- m :- B ] ->
   forall Γ2 n,
     [ Γ2 |- n :- A ] -> 
     [ Γ1 |- m.[n/] :- B.[n/] ].
@@ -458,7 +451,7 @@ Qed.
 Lemma substitutionL Γ1 m A B :
   [ A +l Γ1 |- m :- B ] ->
   forall Γ2 Γ n,
-    [ Γ1 ‡ Γ2 ‡ Γ ] -> 
+    merge Γ1 Γ2 Γ -> 
     [ Γ2 |- n :- A ] -> 
     [ Γ |- m.[n/] :- B.[n/] ].
 Proof.
@@ -473,7 +466,7 @@ Qed.
 
 Lemma context_convU Γ m A B C l :
   B === A -> 
-  [ %Γ |- A :- Sort U l ] ->
+  [ re Γ |- A :- U @ l ] ->
   [ A +u Γ |- m :- C ] -> 
   [ B +u Γ |- m :- C ].
 Proof.
@@ -492,7 +485,7 @@ Qed.
 
 Lemma context_convL Γ m A B C l :
   B === A -> 
-  [ %Γ |- A :- Sort L l ] ->
+  [ re Γ |- A :- L @ l ] ->
   [ A +l Γ |- m :- C ] -> 
   [ B +l Γ |- m :- C ].
 Proof.

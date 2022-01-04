@@ -26,13 +26,13 @@ Inductive agree_ren : (var -> var) ->
   agree_ren (upren ξ) (m +l Γ) (m.[ren ξ] +l Γ')
 | agree_ren_n Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
-  agree_ren (upren ξ) (□ Γ) (□ Γ')
+  agree_ren (upren ξ) (+n Γ) (+n Γ')
 | agree_ren_wkU Γ Γ' ξ m :
   agree_ren ξ Γ Γ' ->
   agree_ren ((+1) ∘ ξ) (Γ) (m +u Γ')
 | agree_ren_wkN Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
-  agree_ren ((+1) ∘ ξ) (Γ) (□ Γ').
+  agree_ren ((+1) ∘ ξ) (Γ) (+n Γ').
 
 (** Various basic lemmas on agree_ren. *)
 
@@ -54,15 +54,15 @@ Proof.
       by autosubst.
     rewrite H.
     constructor; eauto.
-    assert (agree_ren id (□ Γ) (□ Γ)
-      = agree_ren (upren id) (□ Γ) (□ Γ))
+    assert (agree_ren id (+n Γ) (+n Γ)
+      = agree_ren (upren id) (+n Γ) (+n Γ))
       by autosubst.
     rewrite H.
     constructor; eauto.
 Qed.
 
 Lemma agree_ren_pure Γ Γ' ξ :
-  agree_ren ξ Γ Γ' -> [ Γ ] -> [ Γ' ].
+  agree_ren ξ Γ Γ' -> pure Γ -> pure Γ'.
 Proof.
   induction 1; simpl; intros; eauto.
   - inv H0; eauto.
@@ -75,7 +75,7 @@ Proof.
 Qed.
 
 Lemma agree_ren_re_re Γ Γ' ξ :
-  agree_ren ξ Γ Γ' -> agree_ren ξ (%Γ) (%Γ').
+  agree_ren ξ Γ Γ' -> agree_ren ξ (re Γ) (re Γ').
 Proof.
   induction 1; simpl; constructor; eauto.
 Qed.
@@ -83,8 +83,8 @@ Qed.
 Lemma agree_ren_hasU Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   forall x A,
-    [ x :u A ∈ Γ ]  ->
-    [ ξ x :u A.[ren ξ] ∈ Γ' ].
+    hasU Γ x A ->
+    hasU Γ' (ξ x) A.[ren ξ].
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
@@ -119,8 +119,8 @@ Qed.
 Lemma agree_ren_hasL Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   forall x A,
-    [ x :l A ∈ Γ ] ->
-    [ ξ x :l A.[ren ξ] ∈ Γ' ].
+    hasL Γ x A ->
+    hasL Γ' (ξ x) A.[ren ξ].
 Proof.
   intro H2.
   dependent induction H2; simpl; intros; eauto.
@@ -164,9 +164,9 @@ Qed.
 Lemma merge_agree_ren_inv Γ Γ' ξ :
   agree_ren ξ Γ Γ' ->
   forall Γ1 Γ2,
-    [ Γ1 ‡ Γ2 ‡ Γ ] ->
+    merge Γ1 Γ2 Γ ->
     exists Γ1' Γ2',
-      [ Γ1' ‡ Γ2' ‡ Γ' ] /\
+      merge Γ1' Γ2' Γ' /\
       agree_ren ξ Γ1 Γ1' /\
       agree_ren ξ Γ2 Γ2'.
 Proof.
@@ -185,18 +185,18 @@ Proof.
     pose proof (IHagree_ren _ _ H4).
     first_order.
     exists (m.[ren ξ] +l x).
-    exists (□ x0).
+    exists (+n x0).
     repeat constructor; eauto.
     pose proof (IHagree_ren _ _ H4).
     first_order.
-    exists (□ x).
+    exists (+n x).
     exists (m.[ren ξ] +l x0).
     repeat constructor; eauto.
   - inv H0; subst.
     pose proof (IHagree_ren _ _ H4).
     first_order.
-    exists (□ x).
-    exists (□ x0).
+    exists (+n x).
+    exists (+n x0).
     repeat constructor; eauto.
   - pose proof (IHagree_ren _ _ H0).
     first_order.
@@ -205,8 +205,8 @@ Proof.
     repeat constructor; eauto.
   - pose proof (IHagree_ren _ _ H0).
     first_order.
-    exists (□ x).
-    exists (□ x0).
+    exists (+n x).
+    exists (+n x0).
     repeat constructor; eauto.
 Qed.
 
@@ -223,15 +223,7 @@ Proof.
   intros H.
   induction H; simpl; intros.
   - pose proof (agree_ren_pure H0 H).
-    apply p_axiom; assumption.
-  - pose proof (agree_ren_pure H0 H).
     apply s_axiom; assumption.
-  - asimpl.
-    pose proof (agree_ren_pure H2 H).
-    eapply prop; eauto.
-    replace 𝐏 with (𝐏.[ren (upren ξ)]) by autosubst.
-    apply IHhas_type2.
-    constructor; eauto.
   - asimpl.
     pose proof (agree_ren_pure H2 H).
     eapply u_arrow; eauto.
@@ -310,8 +302,8 @@ Qed.
 Lemma hasU_ok Γ :
   [ Γ |- ] ->
   forall x A,
-    [ x :u A ∈ Γ ] ->
-    exists l, [ %Γ |- A :- Sort U l ].
+    hasU Γ x A ->
+    exists l, [ re Γ |- A :- Sort U l ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -344,8 +336,8 @@ Qed.
 Lemma hasL_ok Γ :
   [ Γ |- ] ->
   forall x A,
-    [ x :l A ∈ Γ ] ->
-    exists l, [ %Γ |- A :- Sort L l ].
+    hasL Γ x A ->
+    exists l, [ re Γ |- A :- Sort L l ].
 Proof.
   induction 1; intros.
   - inv H.
@@ -391,7 +383,7 @@ Qed.
 
 Lemma weakeningN Γ m A :
   [ Γ |- m :- A ] ->
-  [ □ Γ |- m.[ren (+1)] :- A.[ren (+1)] ].
+  [ +n Γ |- m.[ren (+1)] :- A.[ren (+1)] ].
 Proof.
   intros.
   eapply rename_ok in H.
@@ -414,7 +406,7 @@ Lemma eweakeningN Γ m m' A A' :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
   [ Γ |- m :- A ] -> 
-  [ □ Γ |-m' :- A' ].
+  [ +n Γ |-m' :- A' ].
 Proof.  
   intros; subst.
   apply weakeningN; eauto.

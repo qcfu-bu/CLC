@@ -13,7 +13,7 @@ Unset Printing Implicit Defensive.
 
 Inductive term : Type :=
 | Var   (x : var)
-| Sort  (s : sort) (l : option nat)
+| Sort  (s : sort) (l : nat)
 | Arrow (A : term) (B : {bind term}) (s : sort)
 | Lolli (A : term) (B : {bind term}) (s : sort)
 | Lam   (A : term) (n : {bind term}) (s : sort)
