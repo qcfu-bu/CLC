@@ -1177,16 +1177,16 @@ In this section, we prove that the types of all CLC terms are themselves well-so
 We introduce a meta-function $occurs$ that counts the number of times a given variable occurs in a term.
 
 \begin{align*}
-  occurs\ x\ y                               & =
+  occurs(x, y)                               & =
   \begin{dcases}
     1 & x =_\alpha y    \\
     0 & x \neq_\alpha y
   \end{dcases}                                                \\
-  occurs\ x\ s_i                             & = 0                           \\
-  occurs\ x\ ((y \stype{s} A) \rightarrow B) & = occurs\ x\ A + occurs\ x\ B \\
-  occurs\ x\ ((y \stype{s} A) \multimap B)   & = occurs\ x\ A + occurs\ x\ B \\
-  occurs\ x\ (\lambda x \stype{s} A.n)       & = occurs\ x\ A + occurs\ x\ n \\
-  occurs\ x\ (m\ n)                          & = occurs\ x\ m + occurs\ x\ n
+  occurs(x, s_i)                             & = 0                           \\
+  occurs(x, ((y \stype{s} A) \rightarrow B)) & = occurs(x, A) + occurs(x, B) \\
+  occurs(x, ((y \stype{s} A) \multimap B))   & = occurs(x, A) + occurs(x, B) \\
+  occurs(x, (\lambda x \stype{s} A.n))       & = occurs(x, A) + occurs(x, n) \\
+  occurs(x, (m\ n))                          & = occurs(x, m) + occurs(x, n)
 \end{align*}
 
 \begin{lemma}\label{islmergeinv}
@@ -1204,14 +1204,14 @@ We introduce a meta-function $occurs$ that counts the number of times a given va
 \end{proof}
 
 \begin{lemma}\label{narity}
-  For context $\Gamma$, terms $m, A$, if there is $\Gamma \vdash m : A$, then for any variable $x \notin \Gamma$ there is $occurs\ x\ m = 0$
+  For context $\Gamma$, terms $m, A$, if there is $\Gamma \vdash m : A$, then for any variable $x \notin \Gamma$ there is $occurs(x, m) = 0$
 \end{lemma}
 \begin{proof}
   By induction on the derivation of $\Gamma \vdash m : A$.
 \end{proof}
 
 \begin{theorem}\label{linearity}
-  Linearity. For context $\Gamma$, terms $m, A$, if there is $\Gamma \vdash m : A$, then for any variable with linear type $x \in \Gamma$ there is $occurs\ x\ m = 1$.
+  Linearity. For context $\Gamma$, terms $m, A$, if there is $\Gamma \vdash m : A$, then for any variable with linear type $x \in \Gamma$ there is $occurs(x, m) = 1$.
 \end{theorem}
 \begin{proof}
   The proof proceeds by induction on the derivation of $\Gamma \vdash m : A$, we will discuss the application cases in detail.
