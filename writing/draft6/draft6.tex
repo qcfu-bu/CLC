@@ -754,7 +754,7 @@ For type $C$ and variable $X$, the judgment $\lcons(C, X)$ is inductively define
 
 Linear constructors are used for constructing linear objects that must be used once. These constructors may be applied to linear terms as restricted usage prevent duplication and enforce single usage.
 
-An unapplied linear constructor is a non-linear entity as they can be created freely ``out of thin air". However, once a linear constructor has been partially applied to a linear term, its linearity is ``activated'' in rules \rname{L-Constr-Pos-2} and \rname{L-Constr-2$\rightarrow$}, essentially forcing the rest of its arguments to be fully applied. This is to prevent partially applied constructors from duplicating linear variables.
+An unapplied linear constructor is a non-linear entity as they can be created freely ``out of thin air". However, once a linear constructor has been partially applied to a linear term, its linearity is ``activated'' in rules \rname{L-Constr-Pos-2} and \rname{L-Constr-2$\rightarrow$}, essentially forcing the rest of its arguments to be fully applied. This is to prevent partially applied constructors from duplicating its linear arguments.
 
 \begin{figure}[h]
   \caption{Linear Constructor}
