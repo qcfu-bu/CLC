@@ -33,17 +33,17 @@
 \newcommand{\dcase}{\text{DCase}}
 \newcommand{\fix}{\text{Fix }}
 \newcommand{\sep}{\text{ | }}
-\newcommand{\unit}{\text{unit}}
-\newcommand{\new}{\text{new}}
-\newcommand{\free}{\text{free}}
-\newcommand{\get}{\text{get}}
-\newcommand{\set}{\text{set}}
-\newcommand{\session}{\text{session}}
-\newcommand{\channel}{\text{channel}}
-\newcommand{\open}{\text{open}}
-\newcommand{\close}{\text{close}}
-\newcommand{\send}{\text{send}}
-\newcommand{\recv}{\text{recv}}
+\newcommand{\unit}{\texttt{unit}}
+\newcommand{\new}{\texttt{new}}
+\newcommand{\free}{\texttt{free}}
+\newcommand{\get}{\texttt{get}}
+\newcommand{\set}{\texttt{set}}
+\newcommand{\session}{\texttt{session}}
+\newcommand{\channel}{\texttt{channel}}
+\newcommand{\open}{\texttt{open}}
+\newcommand{\close}{\texttt{close}}
+\newcommand{\send}{\texttt{send}}
+\newcommand{\recv}{\texttt{recv}}
 \newcommand{\SEND}{\texttt{SEND}}
 \newcommand{\RECV}{\texttt{RECV}}
 \newcommand{\END}{\texttt{END}}
@@ -282,7 +282,7 @@ Typing judgments in CLC take on the form of $\Gamma \vdash m : A$. Intuitively, 
 \subsection{Type Formation} \label{tyformation}
 The rules for forming types are presented in Figure \ref{type}. In CLC, we forbid types from depending on linear terms similar to \cite{llf,neel15} for the same reason of avoiding philosophical troubles.
 
-The axiom rules \rname{U-Axiom}, \rname{L-Axiom} are almost standard, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the admissibility of weakening. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{U-Axiom}, \rname{L-Axiom}. From \rname{L-Axiom} we can see that the universe of linear types $L_i$ is an inhabitant of $U_{i+1}$. This is inspired by Krishnaswami et al.'s treatment of linear universes \cite{neel15}, where linear \textit{types} themselves can be used unrestrictedly.
+The axiom rules \rname{U-Axiom}, \rname{L-Axiom} are similar to standard CC$\omega$, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the weakening rule. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{U-Axiom}, \rname{L-Axiom}. From \rname{L-Axiom} we can see that the universe of linear types $L_i$ is an inhabitant of $U_{i+1}$. This is inspired by Krishnaswami et al.'s treatment of linear universes \cite{neel15}, where linear \textit{types} themselves can be used unrestrictedly.
 
 \begin{figure}[h]
   \caption{Type Formation}
@@ -1114,7 +1114,7 @@ In Definition \ref{comm}, we postulate five axioms for communication using the $
 
 The important detail to notice here is that each channel created by $\open$ is of linear type $(\channel\ ss)$ where $ss$ is some arbitrary protocol, hence must be used exactly once. However, the $\send$ and $\recv$ operations return back channels after consuming them, progressing their protocols one stage forward. Coupled with the fact that the $\close$ operation is only able to close channels whose protocols have ended, this forces channels to communicate strictly by their specified protocols.
 
-Dependent types also allows for more precise specifications of protocols themselves. A simple example would be the specification of message sizes. Figure \ref{communication} shows such an example. The inductive type \texttt{ilist} is a length indexed list. Using \texttt{ilist}, we construct a protocol \texttt{ss} that first sends two natural numbers, then receives eight natural numbers and finally sends back a boolean acknowledgement.
+Dependent types also allow for more precise specifications of protocols themselves. A simple example would be the specification of message sizes. Figure \ref{communication} shows such an example. The inductive type \texttt{ilist} is a length indexed list. Using \texttt{ilist}, we construct a protocol \texttt{ss} that first sends two natural numbers, then receives eight natural numbers and finally sends back a boolean acknowledgement.
 
 \begin{figure}[h]
   \caption{Sized Communication}
@@ -1142,7 +1142,7 @@ Dependent types also allows for more precise specifications of protocols themsel
 \end{figure}
 
 \subsection{Mutable Data}
-Figure \ref{list} presents a CPS append function for linear lists. In the \texttt{cons} case, the constructor is opened, exposing its data element \texttt{h} and tail list \texttt{t}. Instead of de-allocating the memory of \texttt{cons}, it is bound to the variable \texttt{_cons_} of linear type $A \multimap list\ A \multimap list\ A$. Each \texttt{_cons_} is applied exactly once to reconstruct a list using the memory of the original, thus mutating the original list in-place. Also notice that the continuation $k$ is of linear type $(list\ A \multimap list\ A)$, indicating that $k$ must be applied exactly once. Using linear types for continuations is surprisingly accurate as control-flow itself is a linear concept.
+Figure \ref{list} presents a CPS append function for linear lists. In the \texttt{cons} case, the constructor is opened, exposing its data element \texttt{h} and tail list \texttt{t}. Instead of de-allocating the memory of \texttt{cons}, it is bound to the variable \texttt{_cons_} of linear type $A \multimap list\ A \multimap list\ A$. Each \texttt{_cons_} is applied exactly once to reconstruct a list using the memory of the original, thus mutating the original list in-place. Also notice that the continuation $k$ is of linear type $(list\ A \multimap list\ A)$, indicating that $k$ must be applied exactly once. Using linear types for continuations is surprisingly accurate as control-flow itself cannot be freely duplicated nor discarded.
 
 \begin{figure}[h]
   \caption{Linear Lists}
@@ -1167,7 +1167,7 @@ Figure \ref{list} presents a CPS append function for linear lists. In the \textt
 \end{figure}
 
 \section{Related Work}
-Linear types are a class of type systems inspired by Girard' substructural Linear Logic \cite{girard}. Girard notices that the weakening and contraction rules of Classical Logic when restricted carefully, give rise to a new logical foundation for reasoning about resource. Wadler \cite{wadler1990,wadler1991} then applies an analogous restriction to variable usage in simple type theory, leading to the development of linear type theory where terms respect resources. A term calculus for linear type theory was later realized by Abramsky \cite{abramsky1993}. Benton \cite{benton1994} investigates the ramifications of the ! exponential in linear term calculi, decomposing it to adjoint connectives $F$ and $G$ that map between linear and non-linear judgments. Programming languages \cite{l3,ats,linear-haskell} featuring linear types have also been implemented, allowing programmers to write resource safe software in practical applications.
+Linear types are a class of type systems inspired by Girard's substructural Linear Logic \cite{girard}. Girard notices that the weakening and contraction rules of Classical Logic when restricted carefully, give rise to a new logical foundation for reasoning about resource. Wadler \cite{wadler1990,wadler1991} then applies an analogous restriction to variable usage in simple type theory, leading to the development of linear type theory where terms respect resources. A term calculus for linear type theory was later realized by Abramsky \cite{abramsky1993}. Benton \cite{benton1994} investigates the ramifications of the ! exponential in linear term calculi, decomposing it to adjoint connectives $F$ and $G$ that map between linear and non-linear judgments. Programming languages \cite{l3,ats,linear-haskell} featuring linear types have also been implemented, allowing programmers to write resource safe software in practical applications.
 
 Over the years, work has been done to enrich linear type theories with dependent types. Cervesato and Pfenning extend the Edinburgh Logical Framework with linear types \cite{lf,llf}, being the first to demonstrate that dependent types and linear types can coexist within a type theory. V\'{a}k\'{a}r \cite{vakar14} presents a linear dependent type theory, with syntax and semantics drawing inspiration from DILL \cite{dill}.  Krishnaswami et al. present a dependent linear type theory \cite{neel15} based on Benton's earlier work on mixed linear and non-linear calculus, demonstrating the ability to internalize imperative programming in the style of Hoare Type Theory \cite{htt}. Luo et al. \cite{luo} introduce the property of essential linearity and a mixed linear/non-linear context, describing the first type theory that allows types to depend on linear terms. Based on initial ideas of McBride \cite{nothing}, Atkey's Quantitative Type Theory (QTT) \cite{qtt} uses semi-ring annotations to track variable occurrence, simulating irrelevance, linear and affine types within a unified framework. The Idris 2 programming language \cite{idris2} implements QTT as its core type system.
 
