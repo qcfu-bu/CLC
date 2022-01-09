@@ -89,9 +89,9 @@ This paper presents a new linear dependent type system --- The Calculus of Linea
 
 Compared to preexisting approaches for integrating linear types and dependent types, CLC offers a ``lightweight'' approach, akin to Mazurak et al.'s work on System F \cite{mazurak}. Prior works have either utilized an explicit ! exponential or a pair of adjoint connectives to mediate between the worlds of linear and non-linear types. Our method requires neither exponential nor adjoint connectives explicitly in the syntax, allowing for a straightforward modeling of CLC in the predicative CC$\omega$, and lifting of predicative CC$\omega$ into CLC with minimal annotations needed.
 
-We further extend CLC with rules for defining inductive linear types in the style of CIC, forming the Calculus of Inductive Linear Constructions (CILC). Standard Linear Logic connectives such a $\otimes$ and $\oplus$ are definable using this generalized mechanism in a straightforward way. Through examples, we show that CILC facilitates lightweight reasoning about stateful programs and protocol enforcement.
+We further extend CLC with rules for defining inductive linear types in the style of CIC, forming the Calculus of Inductive Linear Constructions (CILC). Standard Linear Logic connectives such a $\otimes$ and $\oplus$ are definable using this generalized mechanism in a straightforward way. Through examples in Section \ref{examples}, we show that CILC facilitates lightweight reasoning about stateful programs, protocol enforcement and in-place update of data structures.
 
-We have formalized all major results in Coq and implemented a prototype in OCaml, both of which are available in the first author's Github repository.
+We have formalized all major results in Coq and implemented a prototype in OCaml. Additional examples of applications such as safe array access and quantitative reasoning are included with our implementation.
 
 \noindent \textbf{\textit{Contributions}}:
 Our contributions can be summarized as follows.
@@ -1008,7 +1008,7 @@ In Figure \ref{mconnectives}, we demonstrate how the $F$ connective of LNL$_D$ \
   \label{mconnectives}
 \end{figure}
 
-\section{Examples}
+\section{Examples}\label{examples}
 We shall write examples in the concrete syntax of our implementation. We deliberately chose to model our concrete syntax after Coq such that it would be easier for readers already familiar with Coq to adapt to our syntax.
 
 \subsection{Stateful Reasoning}
