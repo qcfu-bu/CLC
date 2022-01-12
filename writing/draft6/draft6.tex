@@ -85,18 +85,18 @@ The Calculus of Constructions (CC) is a dependent type theory introduced by Coqu
 
 However, due to its origins as a logical framework for constructive mathematics, it can be inconvenient for CC to encode and reason about resources. Users of proof assistants based on CC often need to embed external logics such as Separation Logic to provide domain-specific reasoning principles for dealing with resource. We propose an alternative solution: extend CC with linear types.
 
-This paper presents a new linear dependent type system --- The Calculus of Linear Constructions (CLC). CLC extends the predicative CC$\omega$ with linear types. CC$\omega$ itself is an extension of CC with a cumulative hierarchy of type universes. We add an extra universe sort $L$ of linear types with cumulativity parallel to the sort $U$ of non-linear types. This ultimately cumulates in the \textit{linearity} theorem, stating that all resources are used exactly once.
+This paper presents a new linear dependent type system --- the Calculus of Linear Constructions (CLC). CLC extends the predicative CC$\omega$ with linear types. CC$\omega$ itself is an extension of CC with a cumulative hierarchy of type universes. We add an extra universe sort $L$ of linear types with cumulativity parallel to the sort $U$ of non-linear types. This ultimately cumulates in the \textit{linearity} theorem, stating that all resources are used exactly once.
 
 Compared to preexisting approaches for integrating linear types and dependent types, CLC offers a ``lightweight'' approach, akin to Mazurak et al.'s work on System F \cite{mazurak}. Prior works have either utilized an explicit ! exponential or a pair of adjoint connectives to mediate between the worlds of linear and non-linear types. Our method requires neither exponential nor adjoint connectives explicitly in the syntax, allowing for a straightforward modeling of CLC in the predicative CC$\omega$, and lifting of predicative CC$\omega$ into CLC with minimal annotations needed.
 
-We further extend CLC with rules for defining inductive linear types in the style of CIC, forming the Calculus of Inductive Linear Constructions (CILC). Standard Linear Logic connectives such a $\otimes$ and $\oplus$ are definable using this generalized mechanism in a straightforward way. Through examples in Section \ref{examples}, we show that CILC facilitates lightweight reasoning about stateful programs, protocol enforcement and in-place update of data structures.
+We further extend CLC with rules for defining inductive linear types in the style of CIC, forming the Calculus of Inductive Linear Constructions (CILC). Standard Linear Logic connectives such as $\otimes$ and $\oplus$ are definable using this generalized mechanism in a straightforward way. Through examples in Section \ref{examples}, we show that CILC facilitates lightweight reasoning about stateful programs, protocol enforcement and in-place update of data structures.
 
 We have formalized all major results in Coq and implemented a prototype in OCaml. Additional examples of applications such as safe array access and quantitative reasoning are included with our implementation.
 
 \noindent \textbf{\textit{Contributions}}:
 Our contributions can be summarized as follows.
 \begin{itemize}
-  \item Fist, we describe the Calculus of Linear Constructions, an extension to the Calculus of Constructions with linear types. The integration of linear types and dependent types allows CLC to directly and precisely reason about resource.
+  \item First, we describe the Calculus of Linear Constructions, an extension to the Calculus of Constructions with linear types. The integration of linear types and dependent types allows CLC to directly and precisely reason about resource.
   \item Second, we study the meta-theory of CLC directly, showing that it satisfies the standard properties of confluence, validity and subject reduction.
   \item Next, we prove the linearity theorem, showing the tangible impact linear types have on the structure of terms. We also show that promotion and dereliction of linear logic are derivable as theorems for function types.
   \item Additionally, we observe that CLC is compatible with the predicative CC$\omega$, allowing us to construct a reduction preserving model of CLC in CC$\omega$, showing that CLC is consistent. We prove that all valid CC$\omega$ terms are valid CLC terms after adding minimal amounts of annotation.
@@ -110,7 +110,7 @@ Our contributions can be summarized as follows.
 \begin{figure}[h]
   \caption{Syntax of CLC}
   \begin{grammar}
-    <$i$> := 0 | 1 | 2 ... \phantom{* |} \hspace*{3em} universe levels
+    <$i$> ::= 0 | 1 | 2 ... \phantom{* |} \hspace*{3em} universe levels
 
     <$s, t$> ::= $U$ | $L$ \phantom{| $x$} \hspace*{4.6em} sorts
 
@@ -137,7 +137,7 @@ The syntax of the core type theory is presented in Figure \ref{syntax1}. Our typ
   \label{correspondence}
 \end{figure}
 
-A clear departure of our language from standard presentations of both linear type theory and dependent type theory is the presence of two function types: $(x :_s A) \rightarrow B$, $(x :_s A) \multimap B$. The reason for these function types is that we have built the ! exponential of linear logic implicitly into universe sorts. The sort annotation $s$ here records the universe sort of the function domain. The behavior of ! is difficult to account for even in simple linear type theories. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into universe sorts, we have limited ! to only be canonically usable. This allows us to derive the substitution lemma, and construct a direct modeling of CLC in CC$\omega$ without requiring any additional machinery for manipulating exponential.
+A clear departure of our language from standard presentations of both linear type theory and dependent type theory is the presence of two function types: $(x :_s A) \rightarrow B$, $(x :_s A) \multimap B$. The reason for these function types is that we have built the ! exponential of linear logic implicitly into universe sorts. The sort annotation $s$ here records the universe sort of the function domain. The behavior of ! is difficult to account for even in simple linear type theories. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into universe sorts, we have limited ! to only be canonically usable. This allows us to derive the substitution lemma and construct a direct modeling of CLC in CC$\omega$ without requiring any additional machinery for manipulating exponential.
 
 Figure \ref{correspondence} illustrates the correspondence between CLC functions and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (3) if the co-domain $B$ is dependent on arguments of domain $A$. We will discuss function type formation in Section \ref{tyformation} in greater detail.
 
