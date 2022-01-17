@@ -2135,34 +2135,34 @@ Similar to the proof of weakening, we first define an $agreeS$ relation between 
   \rname{agreeS-L}
 
   \inferrule
-  { agreeS\ \sigma\ \Delta\ \Gamma \\
-    \overline{\Delta} \vdash n : A[\sigma] \\
-    x \notin FV(\Delta) \cup FV(\Gamma) }
+  { x \notin FV(\Delta) \cup FV(\Gamma) \\\\
+    agreeS\ \sigma\ \Delta\ \Gamma \\
+    \overline{\Delta} \vdash n : A[\sigma] }
   { agreeS\ (\sigma \cup (x, n))\ \Delta\ (\Gamma, x \utype A) }
   \rname{agreeS-wkU}
 
   \inferrule
-  { \mrg{\Delta_1}{\Delta_2}{\Delta} \\
+  { x \notin FV(\Delta) \cup FV(\Gamma) \\
+    \mrg{\Delta_1}{\Delta_2}{\Delta} \\\\
     agreeS\ \sigma\ \Delta_1\ \Gamma \\
-    \Delta_2 \vdash n : A[\sigma] \\
-    x \notin FV(\Delta) \cup FV(\Gamma) }
+    \Delta_2 \vdash n : A[\sigma] }
   { agreeS\ (\sigma \cup (x, n))\ \Delta\ (\Gamma, x \ltype A) }
   \rname{agreeS-wkL}
 \end{mathpar}
 
 \begin{mathpar}
   \inferrule
-  { A \preceq B \\
-    \overline{\Delta} \vdash B[\sigma] : U_i \\
-    agreeS\ \sigma\ \Delta\ (\Gamma, x \utype A) }
+  { agreeS\ \sigma\ \Delta\ (\Gamma, x \utype A) \\\\
+    A \preceq B \\
+    \overline{\Delta} \vdash B[\sigma] : U_i }
   { agreeS\ \sigma\ \Delta\ (\Gamma, x \utype B) }
   \rname{agreeS-convU}
 
   \inferrule
   { A \preceq B \\
+    agreeS\ \sigma\ \Delta\ (\Gamma, x \ltype A) \\\\
     \overline{\Delta} \vdash B[\sigma] : L_i \\
-    \overline{\Gamma} \vdash B : L_i \\
-    agreeS\ \sigma\ \Delta\ (\Gamma, x \ltype A) }
+    \overline{\Gamma} \vdash B : L_i }
   { agreeS\ \sigma\ \Delta\ (\Gamma, x \ltype B) }
   \rname{agreeS-convL}
 \end{mathpar}
