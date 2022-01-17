@@ -1153,6 +1153,7 @@ We aim to fully verify the typechecking algorithm employed by the current implem
 \bibliography{../ref}
 
 \appendix
+\appendixname
 
 \section{Syntax of CLC}
 \begin{figure}[H]
@@ -2384,7 +2385,7 @@ For the following lemmas, we will index relations and judgments with subscript C
   By case analysis on the derivation of $m \preceq_{\scriptscriptstyle \text{CLC}} n$ and the properties of subtyping proven in Section \ref{subtyping}.
 \end{proof}
 
-\begin{theorem}\label{embedding}
+\begin{theorem}\label{embed}
   Embedding. For any CLC context $\Gamma$ and CLC terms $m, A$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CLC}} m : A$, then there is $\erase{\Gamma} \vdash_{\scriptscriptstyle \text{CC$\omega$}} \erase{m} : \erase{A}$.
 \end{theorem}
 \begin{proof}
@@ -2395,17 +2396,17 @@ For the following lemmas, we will index relations and judgments with subscript C
   For any CLC context $\Gamma$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CLC}}$, then there is $\erase{\Gamma} \vdash_{\scriptscriptstyle \text{CC$\omega$}}$.
 \end{corollary}
 \begin{proof}
-  Direct consequence of applying Theorem \ref{embedding} to all types in context $\Gamma$.
+  Direct consequence of applying Theorem \ref{embed} to all types in context $\Gamma$.
 \end{proof}
 
 \begin{theorem}
   Strong normalization of CLC.
 \end{theorem}
 \begin{proof}
-  Suppose there exists a well-typed CLC term $m$ with an infinite sequence of reductions. Theorem \ref{embedding} shows that there must exist some term $\erase{m}$ that is well-typed in CC$\omega$. Additionally, this infinite sequence of reductions on $m$ can be translated in CC$\omega$ step-wise by Lemma \ref{erasestep}. This shows that we have constructed a non-normalizing CC$\omega$ term $\erase{m}$, which a contradiction to the strong normalization property of CC$\omega$, thus CLC must be strongly normalizing as well.
+  Suppose there exists a well-typed CLC term $m$ with an infinite sequence of reductions. Theorem \ref{embed} shows that there must exist some term $\erase{m}$ that is well-typed in CC$\omega$. Additionally, this infinite sequence of reductions on $m$ can be translated in CC$\omega$ step-wise by Lemma \ref{erasestep}. This shows that we have constructed a non-normalizing CC$\omega$ term $\erase{m}$, which a contradiction to the strong normalization property of CC$\omega$, thus CLC must be strongly normalizing as well.
 \end{proof}
 
-\subsection{Embedding of CC$\omega$}
+\subsection{Embedding}
 To show that CLC is compatible with the predicative fragment of CC$\omega$, we construct a lifting procedure that lifts CC$\omega$ terms into CLC in a straightforward way.
 \begin{align*}
   \lift{x}                     & = x                                        \\
