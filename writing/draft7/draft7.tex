@@ -88,13 +88,13 @@ The Calculus of Constructions (CC) is a dependent type theory introduced by Coqu
 
 However, due to its origins as a logical framework for constructive mathematics, it can be inconvenient for CC to encode and reason about resource. Users of proof assistants based on CC often need to embed external logics such as Separation Logic to provide domain-specific reasoning principles for dealing with resource. We propose an alternative solution: extend CC with linear types.
 
-This paper presents a new linear dependent type system --- the Calculus of Linear Constructions (CLC). CLC extends the predicative CC$\omega$ with linear types. CC$\omega$ itself is an extension of CC with a cumulative hierarchy of type universes. We add an extra universe sort $L$ of linear types with cumulativity parallel to the sort $U$ of non-linear types. This ultimately cumulates in the \textit{linearity} theorem, stating that all resources are used exactly once.
+This paper presents a new linear dependent type system --- the Calculus of Linear Constructions (CLC). CLC extends the predicative CC$\omega$ with linear types. CC$\omega$ itself is an extension of CC with a cumulative hierarchy of type universes. We add an extra universe sort $L$ of linear types with cumulativity parallel to the sort $U$ of non-linear types. This ultimately cumulates in the \textit{linearity} theorem, stating that every resource is used exactly once.
 
-Preexisting approaches to integrating linear types and dependent types often relied on the ! exponential or separate typing judgments for linear and non-linear types. The universe sorts of CLC is enough to completely distinguish between linear and non-linear types within a single typing judgment. As a result, CLC falls much closer to its CC roots than prior works in both syntax and semantics.
+Preexisting approaches to integrating linear types and dependent types often relied on the ! exponential or separate typing judgments for linear and non-linear types. The universe sorts of CLC are enough to completely distinguish between linear and non-linear types within a single typing judgment. As a result, CLC falls much closer to its CC roots than prior works in both syntax and semantics.
 
 We further extend CLC with rules for defining inductive linear types in the style of CIC, forming the Calculus of Inductive Linear Constructions (CILC). Standard Linear Logic connectives such as $\otimes$ and $\oplus$ are definable using this generalized mechanism in a straightforward way. Connectives that mix linear and non-linear types can be constructed just as easily using CILC.
 
-Through examples in Section \ref{examples}, we show some applications of CILC such as construction of safe random access array from the first principles, protocol enforcement through inductively defined session types and in-place update of data structures.
+Through examples in Section \ref{examples}, we show some applications of CILC such as construction of safe random access array from the first principles, protocol enforcement through inductively defined session types and in-place update of data structures using continuations.
 
 We have formalized all major results in Coq and implemented a prototype in OCaml. Additional examples of applications such as provable effect laws and quantitative reasoning are included with our implementation.
 
@@ -140,14 +140,14 @@ The syntax of the core type theory is presented in Figure \ref{syntax1}. Our typ
   \label{correspondence}
 \end{figure}
 
-A clear departure of our language from standard presentations of both linear type theory and dependent type theory is the presence of two function types: $(x :_s A) \rightarrow B$, $(x :_s A) \multimap B$. The reason for these function types is that we have built the ! exponential of linear logic implicitly into universe sorts. The sort annotation $s$ here records the universe sort of the function domain. The behavior of ! is difficult to account for even in simple linear type theories. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into universe sorts, we have limited ! to only be canonically usable. This allows us to derive the substitution lemma and construct a direct modeling of CLC in CC$\omega$ without requiring any additional machinery for manipulating exponential.
+A clear departure of our language from standard presentations of both linear type theory and dependent type theory is the presence of two function types: $(x :_s A) \rightarrow B$ and $(x :_s A) \multimap B$. The reason for these function types is that we have built the ! exponential of linear logic implicitly into universe sorts. The sort annotation $s$ here records the universe sort of the function domain. The behavior of ! is difficult to account for even in simple linear type theories. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into universe sorts, we have limited ! to only be canonically usable. This allows us to derive the substitution lemma and construct a direct modeling of CLC in CC$\omega$ without requiring any additional machinery for manipulating exponential.
 
 Figure \ref{correspondence} illustrates the correspondence between CLC functions and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (3) if the co-domain $B$ is dependent on arguments of domain $A$. We will discuss function type formation in Section \ref{tyformation} in greater detail.
 
 Algorithmic type checking techniques allow users to omit writing sort indices for many situations in practice. Our implementation employs bi-directional type checking and users rarely interact with sort indices in the surface syntax.
 
 \subsection{Universes and Cumulativity}
-CLC features two sorts of universes $U$ and $L$ with level indices $0, 1, 2, \cdots$. $U_i$ and $L_i$ are the predicative universes of non-linear types and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by checking the universe to which they belong. Basically, terms with types that occur within $U_i$ are unrestricted in their usage. Terms with types that occur within $L_i$ are restricted to being used exactly once.
+CLC features two sorts of universes $U$ and $L$ with level indices $0, 1, 2, \cdots$. $U_i$ and $L_i$ are the predicative universes of non-linear types and linear types respectively. The main mechanism that CLC uses to distinguish between linear and non-linear types is by checking the universes to which they belong. Basically, terms with types that occur within $U_i$ are unrestricted in their usage. Terms with types that occur within $L_i$ are restricted to being used exactly once.
 
 In order to lift terms from lower universes to higher ones, there exists cumulativity between universe levels of the same sort. We define cumulativity as follows.
 
@@ -277,15 +277,15 @@ Typing judgments in CLC take on the form of $\Gamma \vdash m : A$. Intuitively, 
   \begin{enumerate}
     \item A \textit{type} $A$ is \textit{non-linear} under context $\Gamma$ if $\Gamma \vdash A : U_i$.
     \item A \textit{type} $A$ is \textit{linear} under context $\Gamma$ if $\Gamma \vdash A : L_k$.
-    \item A \textit{term} $m$ is \textit{unrestricted} under context $\Gamma$ if there exists non-linear type $A$, such that $\Gamma \vdash m : A$. An unrestricted term may be used any number of times.
-    \item A \textit{term} $m$ is \textit{restricted} under context $\Gamma$ if there exists linear type $A$, such that $\Gamma \vdash m : A$. A restricted term must be used exactly once.
+    \item A \textit{term} $m$ is \textit{unrestricted} under context $\Gamma$ if there exists non-linear type $A$ such that $\Gamma \vdash m : A$. An unrestricted term may be used any number of times.
+    \item A \textit{term} $m$ is \textit{restricted} under context $\Gamma$ if there exists linear type $A$ such that $\Gamma \vdash m : A$. A restricted term must be used exactly once.
   \end{enumerate}
 \end{definition}
 
 \subsection{Type Formation} \label{tyformation}
 The rules for forming types are presented in Figure \ref{type}. In CLC, we forbid types from depending on linear terms similarly to \cite{llf,neel15} for the same reason of avoiding philosophical troubles.
 
-The axiom rules \rname{U-Axiom}, \rname{L-Axiom} are similar to standard CC$\omega$, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the weakening rule. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{U-Axiom}, \rname{L-Axiom}. From \rname{L-Axiom} we can see that the universe of linear types $L_i$ is an inhabitant of $U_{i+1}$. This is inspired by Krishnaswami et al.'s treatment of linear universes \cite{neel15}, where linear \textit{types} themselves can be used unrestrictedly.
+The axiom rules \rname{U-Axiom} and \rname{L-Axiom} are similar to standard CC$\omega$, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the weakening rule. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{U-Axiom} and \rname{L-Axiom}. From \rname{L-Axiom} we can see that the universe of linear types $L_i$ is an inhabitant of $U_{i+1}$. This is inspired by Krishnaswami et al.'s treatment of linear universes \cite{neel15}, where linear \textit{types} themselves can be used unrestrictedly.
 
 \begin{figure}[h]
   \caption{Type Formation}
@@ -329,9 +329,9 @@ The axiom rules \rname{U-Axiom}, \rname{L-Axiom} are similar to standard CC$\ome
   \Description{}
 \end{figure}
 
-The \rname{U$\rightarrow$} rule is used for forming non-linear function types with non-linear domains. This is evident from the judgment $\Gamma \vdash A : U_i$. Due to the fact that $A$ is in the non-linear universe $U_i$, terms of type $A$ have unrestricted usage. The non-linearity of domain $A$ allows $B$ to depend on terms of type $A$, as seen in judgment $\Gamma, x \utype A \vdash B : s_i$. The domain $B$ itself may be non-linear or linear, since $B$'s universe $s_k$ can vary between $U_i$ and $L_i$. From the resulting judgment $\Gamma \vdash (x \utype A) \rightarrow B : U_i$, we see that the overall type is a non-linear type. The term level $\lambda$-abstractions of these types can be used unrestrictedly.
+The \rname{U$\rightarrow$} rule is used for forming non-linear function types with non-linear domains. This is evident from the judgment $\Gamma \vdash A : U_i$. Due to the fact that $A$ is in the non-linear universe $U_i$, terms of type $A$ have unrestricted usage. The non-linearity of domain $A$ allows $B$ to depend on terms of type $A$, as seen in judgment $\Gamma, x \utype A \vdash B : s_i$. The domain $B$ itself may be linear of non-linear, since $B$'s universe $s_k$ can vary between $U_i$ and $L_i$. From the resulting judgment $\Gamma \vdash (x \utype A) \rightarrow B : U_i$, we see that the overall type is a non-linear type. The term level $\lambda$-abstractions of these types can be used unrestrictedly.
 
-The \rname{L$\rightarrow$} rule is used for forming non-linear function types with linear domains. From the judgment $\Gamma \vdash A : L_i$, we see that $A$ is a linear type, and terms of type $A$ have restricted usage. Because of this, we forbid co-domain $B$ from depending on terms of type $A$, evidently in the judgment $\Gamma \vdash B : s_i$. Like \rname{U$\rightarrow$}, co-domain $B$ itself may be non-linear or linear, since $B$'s universe $s_i$ can vary between $U_i$ and $L_i$. The final resulting judgment is $\Gamma \vdash (x \ltype A) \rightarrow B : U_i$. Here, $x$ is a hypocritical unbinding variable whose only purpose is to preserve syntax uniformity. Again, the overall resulting type is non-linear, so the term level $\lambda$-abstractions of these types can be used unrestrictedly.
+The \rname{L$\rightarrow$} rule is used for forming non-linear function types with linear domains. From the judgment $\Gamma \vdash A : L_i$, we see that $A$ is a linear type, and terms of type $A$ have restricted usage. Because of this, we forbid co-domain $B$ from depending on terms of type $A$, evidently in the judgment $\Gamma \vdash B : s_i$. Like \rname{U$\rightarrow$}, co-domain $B$ itself may be linear or non-linear, since $B$'s universe $s_i$ can vary between $U_i$ and $L_i$. The final resulting judgment is $\Gamma \vdash (x \ltype A) \rightarrow B : U_i$. Here, $x$ is a hypocritical unbinding variable whose only purpose is to preserve syntax uniformity. Again, the overall resulting type is non-linear, so the term level $\lambda$-abstractions of these types can be used unrestrictedly.
 
 The \rname{U$\multimap$}, \rname{L$\multimap$} rules are similar to \rname{U$\rightarrow$}, \rname{L$\rightarrow$} in spirit. The dependency considerations for domain $A$ and co-domain $B$ are exactly the same. The main difference between \rname{U$\multimap$}, \rname{L$\multimap$} and \rname{U$\rightarrow$}, \rname{L$\rightarrow$} is the universe sort of the resulting type. The sorts of the function types formed by \rname{U$\multimap$}, \rname{L$\multimap$} are $L$, meaning they are linear function types. The term level $\lambda$-abstractions of these types must be used exactly once.
 
@@ -404,11 +404,11 @@ The rules for term formation are presented in Figure~\ref{term}.
   \Description{}
 \end{figure}
 
-The rules \rname{U-Var}, and \rname{L-Var} are used for typing free variables. The \rname{U-Var} rule asserts that free variable $x$ occurs within the context $\Gamma_1, x \utype A, \Gamma_2$ with a non-linear type $A$. The \rname{L-Var} rule asserts that free variable $x$ occurs within the context $\Gamma_1, x \ltype A, \Gamma_2$ with linear type $A$. For both rules, the side condition $\pure{\Gamma_1, \Gamma_2}$ forbids irrelevant variables of linear types from occurring within the context. This prevents another vector of weakening variables with linear type.
+The rules \rname{U-Var} and \rname{L-Var} are used for typing free variables. The \rname{U-Var} rule asserts that free variable $x$ occurs within the context $\Gamma_1, x \utype A, \Gamma_2$ with a non-linear type $A$. The \rname{L-Var} rule asserts that free variable $x$ occurs within the context $\Gamma_1, x \ltype A, \Gamma_2$ with linear type $A$. For both rules, the side condition $\pure{\Gamma_1, \Gamma_2}$ forbids irrelevant variables of linear types from occurring within the context. This prevents another vector of weakening variables with linear type.
 
 In \rname{$\lambda$$\rightarrow$}, the function type has the form $(x \stype{s} A) \rightarrow B$. Abstractions of this type can be applied an unrestricted number of times, hence cannot depend on free variables with restricted usage without possibly duplicating them. This consideration is realized by the side condition $\pure{\Gamma}$, asserting all variables in context $\Gamma$ are unrestricted. Next, the body of the abstraction $n$ is typed as $\Gamma, x \stype{s} A \vdash n : B$, where $s$ is the sort of $A$. Finally, the resulting judgment $\Gamma \vdash \lambda x.n : (x \stype{s} A) \rightarrow B$ asserts that the $\lambda$-abstraction can be used unrestrictedly.
 
-In contrast to \rname{$\lambda$$\rightarrow$}, the \rname{$\lambda$$\multimap$} rule is used for forming abstractions that must be used exactly once. Due to the fact that these abstractions must be used once, they are allowed access to restricted variables within context $\Gamma$, evidently in the judgment $\Gamma, x \stype{s} A \vdash n : B$, and lack of side condition $\pure{\Gamma}$. However, in judgment $\overline{\Gamma} \vdash (x \stype{s} A) \multimap B : L_k$ the context must be filtered, because types are not allowed to depend on restricted variables. The final resulting judgment $\Gamma \vdash \lambda x.n : (x \stype{s} A) \multimap B$ asserts that the $\lambda$-abstraction must be used exactly once.
+In contrast to \rname{$\lambda$$\rightarrow$}, the \rname{$\lambda$$\multimap$} rule is used for forming abstractions that must be used exactly once. Due to the fact that these abstractions must be used once, they are allowed access to restricted variables within context $\Gamma$, evidently in the judgment $\Gamma, x \stype{s} A \vdash n : B$ and lack of side condition $\pure{\Gamma}$. However, in judgment $\overline{\Gamma} \vdash (x \stype{s} A) \multimap B : L_k$ the context must be filtered, because types are not allowed to depend on restricted variables. The final resulting judgment $\Gamma \vdash \lambda x.n : (x \stype{s} A) \multimap B$ asserts that the $\lambda$-abstraction must be used exactly once.
 
 For \rname{App-U$\rightarrow$}, domain $A$ is a non-linear type, as seen by its annotation in $(x \utype A) \rightarrow B$. Intuitively, this tells us that $x$ may be used an arbitrary number of times within the body of $m$. Thus, the supplied argument $n$ must not depend on restricted variables in context $\Gamma_2$. Otherwise, substitution may put multiple copies of $n$ into $m$ during $\beta$-reduction, duplicating variables that should have been restricted. This justifies the side condition of $\pure{\Gamma_2}$. The contexts $\Gamma_1$ and $\Gamma_2$ are finally merged together into $\Gamma$ by the relation $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, contracting all unrestricted variables shared between $\Gamma_1$ and $\Gamma_2$.
 
@@ -487,7 +487,7 @@ All proofs have been formalized in Coq with help from the Autosubst \cite{autosu
 
 \subsubsection{Reduction and Confluence}
 
-The proof of confluence is entirely standard using parallel step technique \cite{takahashi}. The presence of linear types do not pose any complications as reductions are untyped.
+The proof of confluence is entirely standard using parallel step technique \cite{takahashi}. The presence of linear types does not pose any complications as reductions are untyped.
 
 \begin{theorem}
   The transitive reflexive closure of reduction is confluent. If $m \step^* m_1$ and $m \step^* m_2$ then there exists $m'$ such that $m_1 \step^* m'$ and $m_2 \step^* m'$.
@@ -513,7 +513,7 @@ Our design of integrating ! into universe sorts removes the need for ! manipulat
   Linear Substitution. For $\Gamma_1, x \ltype A \vdash m : B$ and $\Gamma_2 \vdash n : A$, if $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ is valid for some $\Gamma$, then $\Gamma \vdash m[n/x] : B[n/x]$.
 \end{theorem}
 
-Notice in Theorem \ref{nlsubst} of non-linear substitutions, there exists an extra condition $\pure{\Gamma_2}$ which Theorem \ref{lsubst} of linear substitutions lack. This condition ensures that linear variables do not occur within the substituted term, thus cannot be duplicated by substitution.
+Notice in Theorem \ref{nlsubst} of non-linear substitutions, there exists an extra condition $\pure{\Gamma_2}$ which Theorem \ref{lsubst} of linear substitutions lacks. This condition ensures that linear variables do not occur within the substituted term, thus cannot be duplicated by substitution.
 
 \subsubsection{Type Soundness}
 In order to prove subject reduction, we first prove the validity theorem. The main purpose of validity is to lower types down to the term level, enabling the application of various inversion lemmas.
@@ -581,7 +581,7 @@ For the following theorems, we refer to the reductions in CLC as $\step_{\script
   Embedding. If $\Gamma \vdash m \stype{s} A$ is a valid judgment in CLC, then $\erase{\Gamma} \vdash \erase{m} : \erase{A}$ is a valid judgment in CC$\omega$.
 \end{theorem}
 
-If there exists some well typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions by virtue of theorems \ref{preserve} and \ref{embedding}. This is contradictory to the strong normalization property of CC$\omega$ proven through the Girard-Tait method \cite{ecc}, so this hypothetical term does not exist in CLC.
+If there exists some well-typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions by virtue of theorems \ref{preserve} and \ref{embedding}. This is contradictory to the strong normalization property of CC$\omega$ proven through the Girard-Tait method \cite{ecc}, so this hypothetical term does not exist in CLC.
 
 \begin{theorem}
   Well-typed CLC terms are strongly normalizing.
@@ -617,7 +617,7 @@ The following theorems are proved following a similar procedure to proving the s
   Lifting. If $\Gamma \vdash m : A$ is a valid judgment in CC$\omega$, then $\lift{\Gamma} \vdash \lift{m} : \lift{A}$ is a valid judgment in CLC.
 \end{theorem}
 
-The lifting theorem shows that all valid CC$\omega$ terms are valid CLC terms if the domain of function types are annotated with sort $U$. In practice, these annotations can often be omitted if algorithmic type checking is able to infer them from context.
+The lifting theorem shows that all valid CC$\omega$ terms are valid CLC terms if the domains of function types are annotated with sort $U$. In practice, these annotations can often be omitted if algorithmic type checking is able to infer them from context.
 
 \section{The Extension to CILC}
 Although the core CLC language is extremely expressive, formally shown by Theorem \ref{lift} to be at least as expressive as the predicative CC$\omega$, the complexity of Church-style encodings to do so will quickly become unmanageable. To address this, we extend CLC with rules for defining inductive linear types in the style of CIC.
@@ -707,7 +707,7 @@ We say that $X$ occurs strictly positive in $P$ if the judgment $postive(P,X)$ i
 \subsection{Non-Linear Constructor}
 For type $C$ and variable $X$, the judgment $\ucons(C, X)$ is inductively defined over the structure of $C$ as shown in Figure \ref{nlconstr}.
 
-Non-linear constructors are used for constructing non-linear objects that may be freely used. These constructors may not applied to restricted terms as this may cause duplication.
+Non-linear constructors are used for constructing non-linear objects that may be freely used. These constructors may not be applied to restricted terms as this may cause duplication.
 
 \begin{figure}[h]
   \caption{Non-linear Constructor}
@@ -1010,7 +1010,7 @@ We first postulate five state axioms. These axioms could be viewed as an interfa
           $\set$ has the most complicated type of all the axioms presented here. Intuitively, if address $l$ is allocated and storing some term of type $A$, $\set$ may put a term type $B$ into the the store at address $l$, overwriting the original term. This is the so called "strong update" operation. The consumption of $(l \mapsto A)$ and return of $(l \mapsto B)$ accurately characterize this update process.
   \end{itemize}
 \end{definition}
-Due to the fact that $(l \mapsto A)$ is an abstract linear type, proofs of this type can not be duplicated and may only be consumed by other state axioms. This is the same non-sharing principle that empowers Separation Logic. Unlike Separation Logic, $(l \mapsto A)$ itself is a first-class object in CILC, meaning that it can be the result of computation (large eliminations), input to computations, stored in data structures, etc.
+Due to the fact that $(l \mapsto A)$ is an abstract linear type, proofs of this type can not be duplicated and may only be consumed by other state axioms. This is the same non-sharing principle that empowers Separation Logic. Unlike Separation Logic, $(l \mapsto A)$ itself is a first-class object in CILC, meaning that it can be the result of computations (large eliminations), input to computations and storage in data structures, etc.
 
 A random access array is a contiguous region of memory that can be accessed by an address pointing to the start of this region and an offset. In Figure \ref{arrv}, we declare a linear inductive $\arrv$ to track the memory used by the array. $\arrv$ is parameterized by the type $A$ of elements stored in the array and the address $l$ of the initial element. $\arrv$ also takes an additional argument of type $\mathbb{N}$ indicating the length of the array.
 
@@ -1038,7 +1038,7 @@ Definition Array (A : U) (n : ?$\mathbb{N}$?) : L :=
   \Description{}
 \end{figure}
 
-To manipulate arrays, we construct a recursive helper function whose signature is shown in Figure \ref{trav}. When given an array proof $\arrv\ A\ l\ n$, an offset $m$ and proof $pf$ such that $m < n$, $\texttt{nth}$ will return a capability $(l + m \mapsto A)$ along with a function $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$. The capability $(l + m \mapsto A)$ grants the ability to manipulate the store at offset $m$ using the state axioms. The function $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$ is constructed using the rest of $\arrv\ A\ l\ n$ not at offset $m$. Intuitively, $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$ is the original array proof with a missing capability at offset $m$ which can be restored by applying capability $(l + m \mapsto A)$.
+To manipulate arrays, we construct a recursive helper function whose signature is shown in Figure \ref{trav}. When given an array proof $\arrv\ A\ l\ n$, an offset $m$ and proof $pf$ such that $m < n$, $\texttt{nth}$ will return a capability $(l + m \mapsto A)$ along with a function $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$. The capability $(l + m \mapsto A)$ grants the ability to manipulate the store at offset $m$ using the state axioms. The function $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$ is constructed using the rest of the capabilities in $\arrv\ A\ l\ n$ that are not at offset $m$. Intuitively, $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$ is the original array proof with a missing capability at offset $m$ which can be restored by applying capability $(l + m \mapsto A)$.
 
 \begin{figure}[H]
   \caption{ArrVec Traversal}
@@ -1054,7 +1054,7 @@ Fixpoint nth
   \Description{}
 \end{figure}
 
-An indexing function can now be constructed as a wrapper for $\texttt{nth}$ as shown in Figure \ref{index}. Given an array $\texttt{Array}\ A\ n$, an offset $m$ and proof that $m < n$, $\texttt{nth}$ can be used to extract out the capability at offset $m$, allowing $\get$ to retrieve the stored value. Finally, the array proof is restored and returned alongside the indexing result. This definition of $\texttt{index}$ is safe because the proof $m < n$ ensures that accessing offsets are always within bounds.
+An indexing function can now be constructed as a wrapper for $\texttt{nth}$ as shown in Figure \ref{index}. Given an array $\texttt{Array}\ A\ n$, an offset $m$ and proof that $m < n$, $\texttt{nth}$ can be used to extract the capability at offset $m$, allowing $\get$ to retrieve the stored value. Finally, the array proof is restored and returned alongside the indexing result. This definition of $\texttt{index}$ is safe because the proof $m < n$ ensures that offsets used for indexing are always within bounds.
 
 \begin{figure}[h]
   \caption{Array Indexing}
@@ -1099,7 +1099,7 @@ In Definition \ref{comm}, we postulate five axioms for communication using the $
     \item $\textbf{open} : (ss : \session) \rightarrow \channel\ ss$ \\
           When given a protocol, $\open$ creates a channel indexed by this protocol.
     \item $\textbf{close} : \channel\ \END \rightarrow \unit$ \\
-          Once all communications specified on a given channel has finished, $\close$ will close and reclaim the channel.
+          Once all communications specified on a given channel have finished, $\close$ will close and reclaim the channel.
     \item $\textbf{send} : (A : U) \rightarrow A \rightarrow (ss : \session) \rightarrow$ \\
           \phantom{send : (A :)}
           $\channel\ (\SEND\ A\ ss) \rightarrow \channel\ ss$ \\
@@ -1112,7 +1112,7 @@ In Definition \ref{comm}, we postulate five axioms for communication using the $
   \label{comm}
 \end{definition}
 
-The important detail to notice here is that each channel created by $\open$ is of linear type $(\channel\ ss)$ where $ss$ is some arbitrary protocol, hence must be used exactly once. However, the $\send$ and $\recv$ operations return back channels after consuming them, progressing their protocols one stage forward. Coupled with the fact that the $\close$ operation is only able to close channels whose protocols have ended, this forces channels to communicate strictly by their specified protocols.
+The important detail to notice here is that each channel created by $\open$ is of linear type $(\channel\ ss)$ where $ss$ is some arbitrary protocol, hence must be used exactly once. However, the $\send$ and $\recv$ operations return channels after consuming them, progressing their protocols one stage forward. Coupled with the fact that the $\close$ operation is only able to close channels whose protocols have ended, this forces channels to communicate strictly by their specified protocols.
 
 \subsection{Mutable Data}
 Figure \ref{list} presents a CPS append function for linear lists. In the \texttt{cons} case, the constructor is opened, exposing its data element \texttt{h} and tail list \texttt{t}. Instead of de-allocating the memory of \texttt{cons}, it is bound to the variable \texttt{_cons_} of linear type $A \multimap list\ A \multimap list\ A$. Each \texttt{_cons_} is applied exactly once to reconstruct a list using the memory of the original, thus mutating the original list in-place. Also notice that the continuation $k$ is of linear type $(list\ A \multimap list\ A)$, indicating that $k$ must be applied exactly once. Using linear types for continuations is surprisingly accurate as control-flow itself cannot be freely duplicated nor discarded.
@@ -1152,6 +1152,7 @@ We aim to fully verify the typechecking algorithm employed by the current implem
 \bibliographystyle{acm}
 \bibliography{../ref}
 
+\clearpage
 \appendix
 \appendixname
 
@@ -1458,7 +1459,7 @@ We first show that $\pstep$ satisfies the diamond property. Using the diamond pr
   CLC term reduction has the diamond property. For terms $m, m_1, m_2$, if there are parallel reductions $m \pstep m_1$ and $m \pstep m_2$, then there exists term $m'$ such that $m_1 \pstep m'$ and $m_2 \pstep m'$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \pstep m_1$. Each case in the induction specializes $m$ appearing in $m \pstep m_2$, allowing one to invert its derivation in a syntax directed way and apply the induction hypothesis. The difficult cases are due to \rname{PStep-$\beta$} as it concerns substitution, so Lemma \ref{pstepcompat} is used to push these cases through.
+  By induction on the derivation of $m \pstep m_1$. Each case in the induction specializes $m$ appearing in $m \pstep m_2$, allowing one to invert its derivation in a syntax directed way and then to apply the induction hypothesis. The difficult cases are due to \rname{PStep-$\beta$} as it concerns substitution, so Lemma \ref{pstepcompat} is used to push these cases through.
 \end{proof}
 
 \begin{lemma}\label{strip}
