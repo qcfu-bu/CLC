@@ -77,35 +77,37 @@
 
 \keywords{Dependent types, linear types, inductive types, Calculus of Constructions}
 
+\def\CComg{{CC}$\omega$}
+
 \begin{document}
 \begin{abstract}
-  The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends the predicative CC$\omega$ with a hierarchy of linear universes that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, showing that it is a sound logical framework for reasoning about resource. We further extend CLC with rules for defining inductive linear types in the style of CIC, forming the Calculus of Inductive Linear Constructions (CILC). Through examples, we demonstrate that CILC facilitates correct by construction imperative programming and lightweight protocol enforcement. We have formalized and proven correct all major results in the Coq Proof Assistant.
+  The Calculus of Linear Constructions (CLC) is an extension of the Calculus of Constructions (CC) with linear types. Specifically, CLC extends the predicative \CComg with a hierarchy of linear universes that precisely controls the weakening and contraction of its term level inhabitants. We study the meta-theory of CLC, showing that it is a sound logical framework for reasoning about resources. We further extend CLC with rules for defining inductive linear types in the style of CIC, forming the Calculus of Inductive Linear Constructions (CILC). Through examples, we demonstrate that CILC facilitates correct-by-construction imperative programming and lightweight protocol enforcement. We have formalized and proven correct all the reported major results in the Coq Proof Assistant.
 \end{abstract}
 \maketitle
 
 \section{Introduction}
-The Calculus of Constructions (CC) is a dependent type theory introduced by Coquand and Huet in their landmark work \cite{cc}. In CC, types can depend on terms, allowing one to write precise specifications as types. Today, CC and its extensions CIC \cite{cic} and ECC \cite{ecc} lie at the core of popular proof assistants such as Coq \cite{coq}, Agda \cite{agda}, Lean \cite{lean} and others. These theorem provers have found great success in the fields of software verification and constructive mathematics.
+The Calculus of Constructions (CC) is a dependent type theory introduced by Coquand and Huet in their landmark work~\cite{cc}. In CC, types can depend on terms, allowing one to write precise specifications as types. Today, CC and its extensions CIC~\cite{cic} and ECC~\cite{ecc} lie at the core of popular proof assistants such as Coq~\cite{coq}, Agda~\cite{agda}, Lean~\cite{lean} and others. These theorem provers have found great success in the fields of software verification and constructive mathematics.
 
-However, due to its origins as a logical framework for constructive mathematics, it can be inconvenient for CC to encode and reason about resource. Users of proof assistants based on CC often need to embed external logics such as Separation Logic to provide domain-specific reasoning principles for dealing with resource. We propose an alternative solution: extend CC with linear types.
+However, due to its origins as a logical framework for constructive mathematics, it can be inconvenient for CC to encode and reason about resources. Users of proof assistants based on CC often need to embed external logics such as Separation Logic to provide domain-specific reasoning principles for dealing with resources. We propose an alternative solution: extend CC with linear types.
 
-This paper presents a new linear dependent type system --- the Calculus of Linear Constructions (CLC). CLC extends the predicative CC$\omega$ with linear types. CC$\omega$ itself is an extension of CC with a cumulative hierarchy of type universes. We add an extra universe sort $L$ of linear types with cumulativity parallel to the sort $U$ of non-linear types. This ultimately cumulates in the \textit{linearity} theorem, stating that every resource is used exactly once.
+This paper presents a new linear dependent type system --- the Calculus of Linear Constructions (CLC), which extends the predicative \CComg with linear types. \CComg itself is an extension of CC with a cumulative hierarchy of type universes. We add an extra universe sort $L$ of linear types with cumulativity parallel to the sort $U$ of non-linear types. This ultimately cumulates in the \textit{linearity} theorem, stating that every resource is used exactly once.
 
-Preexisting approaches to integrating linear types and dependent types often relied on the ! exponential or separate typing judgments for linear and non-linear types. The universe sorts of CLC are enough to completely distinguish between linear and non-linear types within a single typing judgment. As a result, CLC falls closer to its CC roots than prior works in both syntax and semantics.
+Preexisting approaches to integrating linear types and dependent types often relied on the ! exponential or separate typing judgments for linear and non-linear types. The universe sorts of CLC are enough to completely distinguish between linear and non-linear types within a single typing judgment. As a result, CLC falls closer to its CC roots than prior works in terms of both syntax and semantics.
 
-We further extend CLC with rules for defining inductive linear types in the style of CIC, forming the Calculus of Inductive Linear Constructions (CILC). Standard Linear Logic connectives such as $\otimes$ and $\oplus$ are definable using this generalized mechanism in a straightforward way. Connectives that mix linear and non-linear types can be constructed just as easily using CILC.
+We further extend CLC with rules for defining inductive linear types in the style of CIC, forming the Calculus of Inductive Linear Constructions (CILC). Standard Linear Logic connectives such as $\otimes$ and $\oplus$ can then be defined straightforwardly. And connectives that mix linear and non-linear types can be constructed just as easily in CILC.
 
-Through examples in Section \ref{examples}, we show some applications of CILC such as construction of safe random access array from the first principles, protocol enforcement through inductively defined session types and in-place update of data structures using continuations.
+Through examples in Section~\ref{examples}, we show some applications of CILC such as construction of safe random access array from the first principles, protocol enforcement through inductively defined session types and in-place update of data structures using continuations.
 
-We have formalized all major results in Coq and implemented a prototype in OCaml. Additional examples of applications such as provable effect laws and quantitative reasoning are included with our implementation.
+We have formalized in Coq all the major results reported here and implemented in OCaml a prototype. Additional examples of applications such as provable effect laws and quantitative reasoning are included with our implementation.
 
 \vspace{4pt}
 \noindent \textbf{\textit{Contributions}}:
 Our contributions can be summarized as follows.
 \begin{itemize}
-  \item First, we describe the Calculus of Linear Constructions, an extension to the Calculus of Constructions with linear types, enabling direct and precise reasoning about resource.
+  \item First, we describe the Calculus of Linear Constructions, an extension to the Calculus of Constructions with linear types, enabling direct and precise reasoning about resources.
   \item Second, we study the meta-theory of CLC, showing that it exhibits many desirable properties such as confluence, subject reduction and logical consistency.
   \item Furthermore, we extend CLC with rules to define inductive linear types, forming the Calculus of Inductive Linear Constructions (CILC). This is the first complete presentation of a generalized mechanism for defining inductive linear types.
-  \item All major results have been proven correct in the Coq. Our development is the first machine checked formalization of a linear dependent type theory. We have also implemented a prototype of CILC in OCaml.
+  \item All major results have been proven correct in Coq. Our development is the first machine checked formalization of a linear dependent type theory. We have also implemented a prototype of CILC in OCaml.
 \end{itemize}
 
 \section{The Language of CLC}
@@ -127,7 +129,7 @@ Our contributions can be summarized as follows.
   \label{syntax1}
 \end{figure}
 
-The syntax of the core type theory is presented in Figure \ref{syntax1}. Our type theory contains two sorts of universes $U$ and $L$. We use the meta variable $i$ to quantify over universe levels $0, 1, 2, ...$. $U_i$ and $L_i$ are the universes at level $i$ of non-linear and linear types respectively.
+The syntax of the core type theory is presented in Figure~\ref{syntax1}. Our type theory contains two sorts of universes $U$ and $L$. We use the meta variable $i$ to quantify over universe levels $0, 1, 2, ...$. $U_i$ and $L_i$ are the universes at level $i$ of non-linear and linear types respectively.
 \begin{figure}[h]
   \caption{Correspondence of CLC types and MELL implications}
   \Description{}
@@ -140,9 +142,9 @@ The syntax of the core type theory is presented in Figure \ref{syntax1}. Our typ
   \label{correspondence}
 \end{figure}
 
-A clear departure of our language from standard presentations of both linear type theory and dependent type theory is the presence of two function types: $(x :_s A) \rightarrow B$ and $(x :_s A) \multimap B$. The reason for these function types is that we have built the ! exponential of linear logic implicitly into universe sorts. The sort annotation $s$ here records the universe sort of the function domain. The behavior of ! is difficult to account for even in simple linear type theories. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma \cite{substitute}. By integrating the exponential directly into universe sorts, we have limited ! to only be canonically usable. This allows us to derive the substitution lemma and construct a direct modeling of CLC in CC$\omega$ without requiring any additional machinery for manipulating exponential.
+A clear departure of our language from standard presentations of both linear type theory and dependent type theory is the presence of two function types: $(x :_s A) \rightarrow B$ and $(x :_s A) \multimap B$. The reason for these function types is that we have built the ! exponential of linear logic implicitly into universe sorts. The sort annotation $s$ here records the universe sort of the function domain. The behavior of ! is difficult to account for even in simple linear type theories. Subtle issues arise if !! is not canonically isomorphic to !, which may invalidate the substitution lemma~\cite{substitute}. By integrating the exponential directly into universe sorts, we have limited ! to only be canonically usable. This allows us to derive the substitution lemma and construct a direct modeling of CLC in \CComg without requiring any additional machinery for manipulating exponential.
 
-Figure \ref{correspondence} illustrates the correspondence between CLC functions and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (3) if the co-domain $B$ is dependent on arguments of domain $A$. We will discuss function type formation in Section \ref{tyformation} in greater detail.
+Figure~\ref{correspondence} illustrates the correspondence between CLC functions and Multiplicative Exponential Linear Logic (MELL) implications. MELL lacks counterparts for the cases (1), (3) if the co-domain $B$ is dependent on arguments of domain $A$. We will discuss function type formation in Section~\ref{tyformation} in greater detail.
 
 Algorithmic type checking techniques allow users to omit writing sort indices for many situations in practice. Our implementation employs bi-directional type checking and users rarely interact with sort indices in the surface syntax.
 
@@ -169,7 +171,7 @@ In order to lift terms from lower universes to higher ones, there exists cumulat
   \end{enumerate}
 \end{definition}
 
-Figure \ref{universe} illustrates the structure of our universe hierarchy. Each linear universe $L_i$ has $U_{i+1}$ as its type, allowing functions to freely quantify over linear \textit{types}. However, $L_i$ cumulates to $L_{i+1}$. These two parallel threads of cumulativity prevent linear types from being transported to the non-linear universes and subsequently losing track of linearity.
+Figure~\ref{universe} illustrates the structure of our universe hierarchy. Each linear universe $L_i$ has $U_{i+1}$ as its type, allowing functions to freely quantify over linear \textit{types}. However, $L_i$ cumulates to $L_{i+1}$. These two parallel threads of cumulativity prevent linear types from being transported to the non-linear universes and subsequently losing track of linearity.
 
 \begin{figure}[h]
   \caption{The Universe Hierarchy}
@@ -194,7 +196,7 @@ The context of our language employs a mixed linear/non-linear representation in 
 
 Next, we define a $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ relation that merges two mixed contexts $\Gamma_1$, and $\Gamma_2$ into $\Gamma$, by performing contraction on shared non-linear variables. For linear variables, the $merge$ relation is defined if and only if each variable occurs uniquely in one context and not the other. This definition of $merge$ is what allows contraction for unrestricted variables whilst forbidding it for restricted ones.
 
-An auxiliary judgment $\pure{\Gamma}$ is defined to assert that a context $\Gamma$ does not contain linear variables. In other words, all variables found in $\pure{\Gamma}$ are annotated of the form $x \utype A$. The full rules for structural judgments are presented in Figure \ref{structural}.
+An auxiliary judgment $\pure{\Gamma}$ is defined to assert that a context $\Gamma$ does not contain linear variables. In other words, all variables found in $\pure{\Gamma}$ are annotated of the form $x \utype A$. The full rules for structural judgments are presented in Figure~\ref{structural}.
 
 \begin{figure}[h]
   \caption{Structural Judgments}
@@ -283,9 +285,9 @@ Typing judgments in CLC take on the form of $\Gamma \vdash m : A$. Intuitively, 
 \end{definition}
 
 \subsection{Type Formation} \label{tyformation}
-The rules for forming types are presented in Figure \ref{type}. In CLC, we forbid types from depending on linear terms similarly to \cite{llf,neel15} for the same reason of avoiding philosophical troubles.
+The rules for forming types are presented in Figure~\ref{type}. In CLC, we forbid types from depending on linear terms similarly to~\cite{llf,neel15} for the same reason of avoiding philosophical troubles.
 
-The axiom rules \rname{U-Axiom} and \rname{L-Axiom} are similar to standard CC$\omega$, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the weakening rule. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{U-Axiom} and \rname{L-Axiom}. From \rname{L-Axiom} we can see that the universe of linear types $L_i$ is an inhabitant of $U_{i+1}$. This is inspired by Krishnaswami et al.'s treatment of linear universes \cite{neel15}, where linear \textit{types} themselves can be used unrestrictedly.
+The axiom rules \rname{U-Axiom} and \rname{L-Axiom} are similar to standard \CComg, the main difference being the extra side-condition of judgment $\pure{\Gamma}$. In most presentations of dependent type theories without linear types, the universe axioms are derivable under any well-formed context $\Gamma$. Variables not pertaining to actual proofs could be introduced this way, thus giving rise to the weakening rule. To support linear types, we must restrict weakening to non-linear variables. This justifies the restriction of $\Gamma$ to contain only non-linear variables for \rname{U-Axiom} and \rname{L-Axiom}. From \rname{L-Axiom} we can see that the universe of linear types $L_i$ is an inhabitant of $U_{i+1}$. This is inspired by Krishnaswami et al.'s treatment of linear universes~\cite{neel15}, where linear \textit{types} themselves can be used unrestrictedly.
 
 \begin{figure}[h]
   \caption{Type Formation}
@@ -419,9 +421,9 @@ The rules \rname{App-U$\multimap$}, \rname{App-L$\multimap$} follow the same con
 Finally, the \rname{Conversion} rule allows judgment $\Gamma \vdash m : A$ to convert to judgment $\Gamma \vdash m : B$ if $B$ is a valid type in context $\overline{\Gamma}$. Futhermore, $A$ must be a subtype of $B$ satisfying the relation $A \preceq B$. This rule gives rise to large eliminations (compute types from terms), as computations embedded at the type level can reduce to canonical types.
 
 \subsection{Equality and Reduction} \label{reduction}
-The operational semantics and $\beta$-equality of CLC terms are presented in Figure \ref{red}, all of which are entirely standard.
+The operational semantics and $\beta$-equality of CLC terms are presented in Figure~\ref{red}, all of which are entirely standard.
 
-As we have discussed previously, the elimination of the explicit ! exponential allows CLC to maintain the standard operational semantics of CC$\omega$, whose $\beta$-reductions are very well behaved.
+As we have discussed previously, the elimination of the explicit ! exponential allows CLC to maintain the standard operational semantics of \CComg, whose $\beta$-reductions are very well behaved.
 
 \begin{figure}[h]
   \caption{Equality and Reduction}
@@ -481,13 +483,13 @@ As we have discussed previously, the elimination of the explicit ! exponential a
 \end{figure}
 
 \subsection{Meta Theory} \label{meta}
-In this section, we focus our discussion on the properties of CLC. First, we show the type soundness of CLC through the \textit{subject reduction} theorem. Next, through the \textit{linearity} theorem we illustrate how CLC can effectively control usage of resource. Furthermore, we demonstrate that the \textit{promotion} and \textit{dereliction} rules can be encoded as $\eta$-expansions. Finally, we construct a reduction preserving erasure function that maps well-typed CLC terms to well-typed CC$\omega$ terms, proving that CLC is strongly normalizing.
+In this section, we focus our discussion on the properties of CLC. First, we show the type soundness of CLC through the \textit{subject reduction} theorem. Next, through the \textit{linearity} theorem we illustrate how CLC can effectively control usage of resources. Furthermore, we demonstrate that the \textit{promotion} and \textit{dereliction} rules can be encoded as $\eta$-expansions. Finally, we construct a reduction preserving erasure function that maps well-typed CLC terms to well-typed \CComg terms, proving that CLC is strongly normalizing.
 
-All proofs have been formalized in Coq with help from the Autosubst \cite{autosubst} library. The Coq development is publicly available on the author's Github repository. To the best of our knowledge, this is the first machine checked formalization of a linear dependently type theory. We give a hand written version of the proof in an accompanying technical report.
+All proofs have been formalized in Coq with help from the Autosubst~\cite{autosubst} library. The Coq development is publicly available on the author's Github repository. To the best of our knowledge, this is the first machine checked formalization of a linear dependently type theory. We give a hand written version of the proof in an accompanying technical report.
 
 \subsubsection{Reduction and Confluence}
 
-The proof of confluence is entirely standard using parallel reduction technique \cite{takahashi}. The presence of linear types does not pose any complications as reductions are untyped.
+The proof of confluence is entirely standard using parallel reduction technique~\cite{takahashi}. The presence of linear types does not pose any complications as reductions are untyped.
 
 \begin{theorem}
   The transitive reflexive closure of reduction is confluent. If $m \step^* m_1$ and $m \step^* m_2$ then there exists $m'$ such that $m_1 \step^* m'$ and $m_2 \step^* m'$.
@@ -501,7 +503,7 @@ CLC restricts the weakening rule for variables of linear types. However, weakeni
 \end{theorem}
 
 \subsubsection{Substitution} \label{subst}
-Although the substitution lemma is regarded as a boring and bureaucratic result, it is surprisingly hard to design linear typed languages where the substitution lemma is admissible. Much of the difficulty arises during the substitution of arguments containing ! exponential. Perhaps the most famous work detailing the issues of substitution is due to Wadler \cite{substitute}. He defines intricate syntax and semantics for the unboxing of ! terms, solving the lack of substitute in Abramsky's term calculus.
+Although the substitution lemma is regarded as a boring and bureaucratic result, it is surprisingly hard to design linear typed languages where the substitution lemma is admissible. Much of the difficulty arises during the substitution of arguments containing ! exponential. Perhaps the most famous work detailing the issues of substitution is due to Wadler~\cite{substitute}. He defines intricate syntax and semantics for the unboxing of ! terms, solving the lack of substitute in Abramsky's term calculus.
 
 Our design of integrating ! into universe sorts removes the need for ! manipulating syntax and semantics. The following substitution theorems are directly proved by induction on typing derivation.
 
@@ -513,7 +515,7 @@ Our design of integrating ! into universe sorts removes the need for ! manipulat
   Linear Substitution. For $\Gamma_1, x \ltype A \vdash m : B$ and $\Gamma_2 \vdash n : A$, if $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ is valid for some $\Gamma$, then $\Gamma \vdash m[n/x] : B[n/x]$.
 \end{theorem}
 
-Notice in Theorem \ref{nlsubst} of non-linear substitutions, there exists an extra condition $\pure{\Gamma_2}$ which Theorem \ref{lsubst} of linear substitutions lacks. This condition ensures that linear variables do not occur within the substituted term, thus cannot be duplicated by substitution.
+Notice in Theorem~\ref{nlsubst} of non-linear substitutions, there exists an extra condition $\pure{\Gamma_2}$ which Theorem~\ref{lsubst} of linear substitutions lacks. This condition ensures that linear variables do not occur within the substituted term, thus cannot be duplicated by substitution.
 
 \subsubsection{Type Soundness}
 In order to prove subject reduction, we first prove the validity theorem. The main purpose of validity is to lower types down to the term level, enabling the application of various inversion lemmas.
@@ -548,7 +550,7 @@ Linear types of CLC are not obtained through packing and unpacking !, so there a
 \end{theorem}
 
 \subsubsection{Strong Normalization}
-The strong normalization theorem of CLC is proven by construction of a typing and reduction preserving erasure function from CLC to CC$\omega$. We assume familiarity with CC$\omega$ syntax here and define the erasure function as follows.
+The strong normalization theorem of CLC is proven by construction of a typing and reduction preserving erasure function from CLC to \CComg. We assume familiarity with \CComg syntax here and define the erasure function as follows.
 
 \begin{definition}
   \begin{align*}
@@ -571,24 +573,24 @@ With slight overloading of notation we define erasure for CLC contexts recursive
   \end{align*}
 \end{definition}
 
-For the following theorems, we refer to the reductions in CLC as $\step_{\scriptscriptstyle \text{CLC}}$, and the reductions in CC$\omega$ as $\step_{\scriptscriptstyle \text{CC$\omega$}}$.
+For the following theorems, we refer to the reductions in CLC as $\step_{\scriptscriptstyle \text{CLC}}$, and the reductions in \CComg as $\step_{\scriptscriptstyle \text{\CComg}}$.
 
 \begin{theorem} \label{preserve}
-  Reduction Erasure. For any CLC terms $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \step_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+  Reduction Erasure. For any CLC terms $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \step_{\scriptscriptstyle \text{\CComg}} \erase{n}$.
 \end{theorem}
 
 \begin{theorem} \label{embedding}
-  Embedding. If $\Gamma \vdash m \stype{s} A$ is a valid judgment in CLC, then $\erase{\Gamma} \vdash \erase{m} : \erase{A}$ is a valid judgment in CC$\omega$.
+  Embedding. If $\Gamma \vdash m \stype{s} A$ is a valid judgment in CLC, then $\erase{\Gamma} \vdash \erase{m} : \erase{A}$ is a valid judgment in \CComg.
 \end{theorem}
 
-If there exists some well-typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed CC$\omega$ term along with its infinite sequence of reductions by virtue of theorems \ref{preserve} and \ref{embedding}. This is contradictory to the strong normalization property of CC$\omega$ proven through the Girard-Tait method \cite{ecc}, so this hypothetical term does not exist in CLC.
+If there exists some well-typed CLC term with an infinite sequence of reductions, erasure will embed this term into a well typed \CComg term along with its infinite sequence of reductions by virtue of theorems~\ref{preserve} and~\ref{embedding}. This is contradictory to the strong normalization property of \CComg proven through the Girard-Tait method~\cite{ecc}, so this hypothetical term does not exist in CLC.
 
 \begin{theorem}
   Well-typed CLC terms are strongly normalizing.
 \end{theorem}
 
 \subsubsection{Compatibility}
-To show that CLC is compatible with the predicative CC$\omega$, we construct a function that annotates CC$\omega$ terms with sort $U$, lifting them into the non-linear fragment of CLC.
+To show that CLC is compatible with the predicative \CComg, we construct a function that annotates \CComg terms with sort $U$, lifting them into the non-linear fragment of CLC.
 
 \begin{definition}
   \begin{align*}
@@ -600,7 +602,7 @@ To show that CLC is compatible with the predicative CC$\omega$, we construct a f
   \end{align*}
 \end{definition}
 
-With slight overloading of notation, we define lifting for CC$\omega$ recursively.
+With slight overloading of notation, we define lifting for \CComg recursively.
 \begin{definition}
   \begin{align*}
     \lift{\epsilon}      & = \epsilon                         \\
@@ -610,17 +612,17 @@ With slight overloading of notation, we define lifting for CC$\omega$ recursivel
 
 The following theorems are proved following a similar procedure to proving the soundness of erasure.
 \begin{theorem}
-  Lift preserves reduction. For any CC$\omega$ term $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CC}\omega} n$, then there is $\lift{m} \step_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+  Lift preserves reduction. For any \CComg term $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CC}\omega} n$, then there is $\lift{m} \step_{\scriptscriptstyle \text{CLC}} \lift{n}$.
 \end{theorem}
 
 \begin{theorem} \label{lift}
-  Lifting. If $\Gamma \vdash m : A$ is a valid judgment in CC$\omega$, then $\lift{\Gamma} \vdash \lift{m} : \lift{A}$ is a valid judgment in CLC.
+  Lifting. If $\Gamma \vdash m : A$ is a valid judgment in \CComg, then $\lift{\Gamma} \vdash \lift{m} : \lift{A}$ is a valid judgment in CLC.
 \end{theorem}
 
-The lifting theorem shows that all valid CC$\omega$ terms are valid CLC terms if the domains of function types are annotated with sort $U$. In practice, these annotations can often be omitted if algorithmic type checking is able to infer them from context.
+The lifting theorem shows that all valid \CComg terms are valid CLC terms if the domains of function types are annotated with sort $U$. In practice, these annotations can often be omitted if algorithmic type checking is able to infer them from context.
 
 \section{The Extension to CILC}
-Although the core CLC language is extremely expressive, formally shown by Theorem \ref{lift} to be at least as expressive as the predicative CC$\omega$, the complexity of Church-style encodings to do so will quickly become unmanageable. To address this, we extend CLC with rules for defining inductive linear types in the style of CIC.
+Although the core CLC language is extremely expressive, formally shown by Theorem~\ref{lift} to be at least as expressive as the predicative \CComg, the complexity of Church-style encodings to do so will quickly become unmanageable. To address this, we extend CLC with rules for defining inductive linear types in the style of CIC.
 
 We have formalized CILC in our Coq development and proven its soundness.
 
@@ -639,10 +641,10 @@ We have formalized CILC in our Coq development and proven its soundness.
   \label{syntax2}
 \end{figure}
 
-As shown in Figure \ref{syntax2}, CILC extends CIC with syntax for the introduction and elimination of inductive types. Ind is used during the formation of new inductive types, and Constr is used for introducing their constructors. Case and DCase are non-dependent and dependent case eliminators respectively. CIC-style primitive recursion has been factored out of case eliminators in favor of a Coq-style Fix construct. The flexibility of an independent Fix construct allows for a cleaner formalization of inductive linear type elimination.
+As shown in Figure~\ref{syntax2}, CILC extends CIC with syntax for the introduction and elimination of inductive types. Ind is used during the formation of new inductive types, and Constr is used for introducing their constructors. Case and DCase are non-dependent and dependent case eliminators respectively. CIC-style primitive recursion has been factored out of case eliminators in favor of a Coq-style Fix construct. The flexibility of an independent Fix construct allows for a cleaner formalization of inductive linear type elimination.
 
 \subsection{Arity}
-For type $A$ and sort $s$, the judgment $arity(A, s)$ is inductively defined over the structure of $A$ as depicted in Figure \ref{arity}.
+For type $A$ and sort $s$, the judgment $arity(A, s)$ is inductively defined over the structure of $A$ as depicted in Figure~\ref{arity}.
 
 \begin{figure}[h]
   \caption{Arity}
@@ -678,7 +680,7 @@ For type $A$ and sort $s$, the judgment $arity(A, s)$ is inductively defined ove
 \end{definition}
 
 \subsection{Strict Positivity}
-For type $P$ and variable $X$, the judgment $postive(P, X)$ is inductively defined over the structure of $P$ as depicted in Figure \ref{positive}.
+For type $P$ and variable $X$, the judgment $postive(P, X)$ is inductively defined over the structure of $P$ as depicted in Figure~\ref{positive}.
 
 We say that $X$ occurs strictly positive in $P$ if the judgment $postive(P,X)$ is valid.
 
@@ -705,7 +707,7 @@ We say that $X$ occurs strictly positive in $P$ if the judgment $postive(P,X)$ i
 \end{figure}
 
 \subsection{Non-Linear Constructor}
-For type $C$ and variable $X$, the judgment $\ucons(C, X)$ is inductively defined over the structure of $C$ as shown in Figure \ref{nlconstr}.
+For type $C$ and variable $X$, the judgment $\ucons(C, X)$ is inductively defined over the structure of $C$ as shown in Figure~\ref{nlconstr}.
 
 Non-linear constructors are used for constructing non-linear objects that may be freely used. These constructors may not be applied to restricted terms as this may cause duplication.
 
@@ -732,7 +734,7 @@ Non-linear constructors are used for constructing non-linear objects that may be
 \end{figure}
 
 \subsection{Linear Constructor}
-For type $C$ and variable $X$, the judgment $\lcons(C, X)$ is inductively defined over the structure of $C$ as shown in Figure \ref{lconstr}.
+For type $C$ and variable $X$, the judgment $\lcons(C, X)$ is inductively defined over the structure of $C$ as shown in Figure~\ref{lconstr}.
 
 Linear constructors are used for constructing linear objects that must be used once. These constructors may be applied to linear terms as restricted usage prevents duplication and enforces single usage.
 
@@ -770,7 +772,7 @@ An unapplied linear constructor is a non-linear entity as they can be created fr
   \label{lconstr}
 \end{figure}
 
-For type $C$ and variable $X$, the judgment $activation(C, X)$ is inductively defined over the structure of $C$ as shown in Figure \ref{activation}. Intuitively, $activation(C,X)$ ensures the linearity of $C$.
+For type $C$ and variable $X$, the judgment $activation(C, X)$ is inductively defined over the structure of $C$ as shown in Figure~\ref{activation}. Intuitively, $activation(C,X)$ ensures the linearity of $C$.
 
 \begin{figure}[h]
   \caption{Activation}
@@ -795,7 +797,7 @@ For type $C$ and variable $X$, the judgment $activation(C, X)$ is inductively de
 \end{figure}
 
 \subsection{Introduction Rules}
-The formation of new inductive types and their constructors are presented in Figure \ref{ind}.
+The formation of new inductive types and their constructors are presented in Figure~\ref{ind}.
 
 \begin{figure}[h]
   \caption{Inductive Type Formation}
@@ -834,7 +836,7 @@ The formation of new inductive types and their constructors are presented in Fig
   We define the notation $C[I, P] := C\{X, Q\}[I/X, P/Q]$.
 \end{definition}
 
-The rule for non-dependent case elimination is presented in Figure \ref{case}. This elimination rule is non-dependent because the motive $Q$ may not depend on the discriminated term $m$ itself.
+The rule for non-dependent case elimination is presented in Figure~\ref{case}. This elimination rule is non-dependent because the motive $Q$ may not depend on the discriminated term $m$ itself.
 
 \begin{figure}[h]
   \caption{Non-dependent Case Elimination}
@@ -866,7 +868,7 @@ The rule for non-dependent case elimination is presented in Figure \ref{case}. T
   We define the notation $C[I, P, t] := C\{X, Q, c\}[I/X, P/Q, t/c]$.
 \end{definition}
 
-Dependent elimination of non-linear inductive objects is presented in Figure \ref{dcase}. This elimination rule is dependent because the motive $Q$ may depend on the discriminated term $m$. For this very reason, $m$ is not allowed to have linear type as doing so may transport restricted variable into types.
+Dependent elimination of non-linear inductive objects is presented in Figure~\ref{dcase}. This elimination rule is dependent because the motive $Q$ may depend on the discriminated term $m$. For this very reason, $m$ is not allowed to have linear type as doing so may transport restricted variable into types.
 
 \begin{figure}[h]
   \caption{Dependent Case Elimination}
@@ -888,7 +890,7 @@ Dependent elimination of non-linear inductive objects is presented in Figure \re
 \end{figure}
 
 \subsection{Fixpoint}
-The typing rule of fix-points presented in Figure \ref{fix} is mostly standard. A syntactic guard condition is utilized to conservatively ensure termination. The fix-point term must have non-linear type in a pure context, because recursive calls may cause duplicated usage of restricted variables.
+The typing rule of fix-points presented in Figure~\ref{fix} is mostly standard. A syntactic guard condition is utilized to conservatively ensure termination. The fix-point term must have non-linear type in a pure context, because recursive calls may cause duplicated usage of restricted variables.
 
 \begin{figure}[h]
   \caption{Fixpoint}
@@ -906,7 +908,7 @@ The typing rule of fix-points presented in Figure \ref{fix} is mostly standard. 
 \end{figure}
 
 \subsection{Extended Reduction}
-As the reduction semantics for the extended language is standard \cite{cic}, we only present the most interesting $\iota$-reduction cases.
+As the reduction semantics for the extended language is standard~\cite{cic}, we only present the most interesting $\iota$-reduction cases.
 
 \begin{figure}[h]
   \caption{$\iota$-Reductions}
@@ -936,7 +938,7 @@ As the reduction semantics for the extended language is standard \cite{cic}, we 
 Non-linear inductive types have been extensively studied since their inception. We will omit discussion of non-linear inductive types here as all inductive definitions in the predicative fragment of CIC are available in CILC.
 
 \subsection{Linear Connectives}
-In Figure \ref{lconnectives}, we demonstrate how the $\otimes$ and $\oplus$ connectives of linear logic could be defined in CILC as inductive linear types. For any term with inductive linear type, linearity will ultimately force the term to be eliminated by a Case expression.
+In Figure~\ref{lconnectives}, we demonstrate how the $\otimes$ and $\oplus$ connectives of linear logic could be defined in CILC as inductive linear types. For any term with inductive linear type, linearity will ultimately force the term to be eliminated by a Case expression.
 
 \begin{figure}[h]
   \caption{Inductively Defined Linear Connectives}
@@ -969,7 +971,7 @@ In Figure \ref{lconnectives}, we demonstrate how the $\otimes$ and $\oplus$ conn
 \end{figure}
 
 \subsection{Mixed Connectives}
-In Figure \ref{mconnectives}, we introduce a $\SigmaL$ connective. $\SigmaL$ is similar to the standard $\Sigma$ type where the type of the second component is dependent on the value of the first component. The key difference between these two type constructors is that $\Sigma$'s second component is non-linear, whereas $\SigmaL$'s second component is linear.
+In Figure~\ref{mconnectives}, we introduce a $\SigmaL$ connective. $\SigmaL$ is similar to the standard $\Sigma$ type where the type of the second component is dependent on the value of the first component. The key difference between these two type constructors is that $\Sigma$'s second component is non-linear, whereas $\SigmaL$'s second component is linear.
 
 \begin{figure}[h]
   \caption{Mixed Connective}
@@ -999,7 +1001,7 @@ We first postulate five state axioms. These axioms could be viewed as an interfa
   State axioms.
   \begin{itemize}
     \item $\mapsto\ : \mathbb{N} \rightarrow (A : U) \rightarrow L$ \\
-          The $\mapsto$ is an infix linear type constructor. It fulfills a role similar to L3's \cite{l3} memory access capability, or Separation Logic's \cite{reynolds02} points-to assertion. Intuitively, a capability $(l \mapsto A)$ is a proof that a term of non-linear type $A$ is currently stored at address $l$.
+          The $\mapsto$ is an infix linear type constructor. It fulfills a role similar to L3's~\cite{l3} memory access capability, or Separation Logic's~\cite{reynolds02} points-to assertion. Intuitively, a capability $(l \mapsto A)$ is a proof that a term of non-linear type $A$ is currently stored at address $l$.
     \item $\textbf{new} : (A : U) \rightarrow A \rightarrow \SigmaL l:\mathbb{N}.(l \mapsto A)$ \\
           $\new$ is a function that allocates a new memory cell for a term non-linear type $A$ and initializes the cell with its argument. This returns an address $l$ paired with a capability $(l \mapsto A)$.
     \item $\textbf{free} : (A : U) \rightarrow (l:\mathbb{N}) \rightarrow (l \mapsto A) \rightarrow \unit$ \\
@@ -1012,7 +1014,7 @@ We first postulate five state axioms. These axioms could be viewed as an interfa
 \end{definition}
 Due to the fact that $(l \mapsto A)$ is an abstract linear type, proofs of this type can not be duplicated and may only be consumed by other state axioms. This is the same non-sharing principle that empowers Separation Logic. Unlike Separation Logic, $(l \mapsto A)$ itself is a first-class object in CILC, meaning that it can be the result of computations (large eliminations), input to computations and storage in data structures, etc.
 
-A random access array is a contiguous region of memory that can be accessed by an address pointing to the start of this region and an offset. In Figure \ref{arrv}, we declare a linear inductive $\arrv$ to track the memory used by the array. $\arrv$ is parameterized by the type $A$ of elements stored in the array and the address $l$ of the initial element. $\arrv$ also takes an additional argument of type $\mathbb{N}$ indicating the length of the array.
+A random access array is a contiguous region of memory that can be accessed by an address pointing to the start of this region and an offset. In Figure~\ref{arrv}, we declare a linear inductive $\arrv$ to track the memory used by the array. $\arrv$ is parameterized by the type $A$ of elements stored in the array and the address $l$ of the initial element. $\arrv$ also takes an additional argument of type $\mathbb{N}$ indicating the length of the array.
 
 \begin{figure}[h]
   \caption{Proof of Arrays}
@@ -1026,7 +1028,7 @@ Inductive ArrVec (A : U) (l : ?$\mathbb{N}$?) : ?$\mathbb{N}$? ?$\rightarrow$? L
   \Description{}
 \end{figure}
 
-Notice that for the $\texttt{Cons}$ constructor, each time a proof of $(l + n \mapsto A)$ is used to extend the current $\arrv$, the next application of $\texttt{Cons}$ expects a proof of $(l + S\ n \mapsto A)$. So for some type $A$ and natural numbers $l, n$, a term of type $\arrv\ A\ l\ n$ is a proof that a contiguous region of memory starting from address $l$ can be accessed by any offset less than $n$. Arrays can now be characterized as an address $l$ paired with an array proof $\arrv\ A\ l\ n$ as shown in Figure \ref{array}.
+Notice that for the $\texttt{Cons}$ constructor, each time a proof of $(l + n \mapsto A)$ is used to extend the current $\arrv$, the next application of $\texttt{Cons}$ expects a proof of $(l + S\ n \mapsto A)$. So for some type $A$ and natural numbers $l, n$, a term of type $\arrv\ A\ l\ n$ is a proof that a contiguous region of memory starting from address $l$ can be accessed by any offset less than $n$. Arrays can now be characterized as an address $l$ paired with an array proof $\arrv\ A\ l\ n$ as shown in Figure~\ref{array}.
 
 \begin{figure}[h]
   \caption{Arrays}
@@ -1038,7 +1040,7 @@ Definition Array (A : U) (n : ?$\mathbb{N}$?) : L :=
   \Description{}
 \end{figure}
 
-To manipulate arrays, we construct a recursive helper function whose signature is shown in Figure \ref{trav}. When given an array proof $\arrv\ A\ l\ n$, an offset $m$ and proof $pf$ such that $m < n$, $\texttt{nth}$ will return a capability $(l + m \mapsto A)$ along with a function $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$. The capability $(l + m \mapsto A)$ grants the ability to manipulate the store at offset $m$ using the state axioms. The function $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$ is constructed using the rest of the capabilities in $\arrv\ A\ l\ n$ that are not at offset $m$. Intuitively, $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$ is the original array proof with a missing capability at offset $m$ which can be restored by applying capability $(l + m \mapsto A)$.
+To manipulate arrays, we construct a recursive helper function whose signature is shown in Figure~\ref{trav}. When given an array proof $\arrv\ A\ l\ n$, an offset $m$ and proof $pf$ such that $m < n$, $\texttt{nth}$ will return a capability $(l + m \mapsto A)$ along with a function $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$. The capability $(l + m \mapsto A)$ grants the ability to manipulate the store at offset $m$ using the state axioms. The function $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$ is constructed using the rest of the capabilities in $\arrv\ A\ l\ n$ that are not at offset $m$. Intuitively, $(l + m \mapsto A) \multimap \arrv\ A\ l\ n$ is the original array proof with a missing capability at offset $m$ which can be restored by applying capability $(l + m \mapsto A)$.
 
 \begin{figure}[H]
   \caption{ArrVec Traversal}
@@ -1054,7 +1056,7 @@ Fixpoint nth
   \Description{}
 \end{figure}
 
-An indexing function can now be constructed as a wrapper for $\texttt{nth}$ with its signature shown in Figure \ref{index}. Given an array $\texttt{Array}\ A\ n$, an offset $m$ and proof that $m < n$, $\texttt{nth}$ can be used to extract the capability at offset $m$, allowing $\get$ to retrieve the stored value. Finally, the array proof is restored and returned alongside the indexing result. This definition of $\texttt{index}$ is safe because the proof $m < n$ ensures that offsets used for indexing are always within bounds.
+An indexing function can now be constructed as a wrapper for $\texttt{nth}$ with its signature shown in Figure~\ref{index}. Given an array $\texttt{Array}\ A\ n$, an offset $m$ and proof that $m < n$, $\texttt{nth}$ can be used to extract the capability at offset $m$, allowing $\get$ to retrieve the stored value. Finally, the array proof is restored and returned alongside the indexing result. This definition of $\texttt{index}$ is safe because the proof $m < n$ ensures that offsets used for indexing are always within bounds.
 
 \begin{figure}[h]
   \caption{Array Indexing}
@@ -1075,7 +1077,7 @@ From our experiments with proof erasure, we observe that erasing the proof argum
 \subsection{Protocol Enforcement}
 The inclusion of dependent types and linear types in CILC makes it extremely expressive when encoding communication protocols. By indexing each channel with a protocol, CILC can enforce communication on a channel to strictly adhere to its specified protocol.
 
-In Figure \ref{session}, we declare an inductive \texttt{session} type for specifying protocols. Intuitively, the \texttt{session}  forms a stack of possible operations executed in a protocol. The $\SEND$ constructor takes in a non-linear type $A$ and a session $ss$ as its argument, indicating that after sending a message of type $A$, the protocol progresses to stage $ss$. Likewise, the $\RECV$ constructor takes in a non-linear type $A$ and a session $ss$ as its argument, indicating that after receiving a message of type $A$, the protocol progresses to stage $ss$. Finally, the $\END$ constructor indicates that the protocol has finished and communication is over.
+In Figure~\ref{session}, we declare an inductive \texttt{session} type for specifying protocols. Intuitively, the \texttt{session}  forms a stack of possible operations executed in a protocol. The $\SEND$ constructor takes in a non-linear type $A$ and a session $ss$ as its argument, indicating that after sending a message of type $A$, the protocol progresses to stage $ss$. Likewise, the $\RECV$ constructor takes in a non-linear type $A$ and a session $ss$ as its argument, indicating that after receiving a message of type $A$, the protocol progresses to stage $ss$. Finally, the $\END$ constructor indicates that the protocol has finished and communication is over.
 
 \begin{figure}[h]
   \caption{Inductive Session Type}
@@ -1089,7 +1091,7 @@ Inductive session : U :=
   \Description{}
 \end{figure}
 
-In Definition \ref{comm}, we postulate five axioms for communication using the $\session$ type. These axioms could be viewed as an interface to trusted communication libraries.
+In Definition~\ref{comm}, we postulate five axioms for communication using the $\session$ type. These axioms could be viewed as an interface to trusted communication libraries.
 
 \begin{definition}
   Communication axioms.
@@ -1115,7 +1117,7 @@ In Definition \ref{comm}, we postulate five axioms for communication using the $
 The important detail to notice here is that each channel created by $\open$ is of linear type $(\channel\ ss)$ where $ss$ is some arbitrary protocol, hence must be used exactly once. However, the $\send$ and $\recv$ operations return channels after consuming them, progressing their protocols one stage forward. Coupled with the fact that the $\close$ operation is only able to close channels whose protocols have ended, this forces channels to communicate strictly by their specified protocols.
 
 \subsection{Mutable Data}
-Figure \ref{list} presents a CPS append function for linear lists. In the \texttt{cons} case, the constructor is opened, exposing its data element \texttt{h} and tail list \texttt{t}. Instead of de-allocating the memory of \texttt{cons}, it is bound to the variable \texttt{_cons_} of linear type $A \multimap list\ A \multimap list\ A$. Each \texttt{_cons_} is applied exactly once to reconstruct a list using the memory of the original, thus mutating the original list in-place. Also notice that the continuation $k$ is of linear type $(list\ A \multimap list\ A)$, indicating that $k$ must be applied exactly once. Using linear types for continuations is surprisingly accurate as control-flow itself cannot be freely duplicated nor discarded.
+Figure~\ref{list} presents a CPS append function for linear lists. In the \texttt{cons} case, the constructor is opened, exposing its data element \texttt{h} and tail list \texttt{t}. Instead of de-allocating the memory of \texttt{cons}, it is bound to the variable \texttt{_cons_} of linear type $A \multimap list\ A \multimap list\ A$. Each \texttt{_cons_} is applied exactly once to reconstruct a list using the memory of the original, thus mutating the original list in-place. Also notice that the continuation $k$ is of linear type $(list\ A \multimap list\ A)$, indicating that $k$ must be applied exactly once. Using linear types for continuations is surprisingly accurate as control-flow itself cannot be freely duplicated nor discarded.
 
 \begin{figure}[h]
   \caption{Linear Lists}
@@ -1140,14 +1142,14 @@ Fixpoint append (A : U) : list A ?$\multimap$?
 \end{figure}
 
 \section{Related Work}
-Linear types are a class of type systems inspired by Girard's substructural Linear Logic \cite{girard}. Girard notices that the weakening and contraction rules of Classical Logic when restricted carefully, give rise to a new logical foundation for reasoning about resource. Wadler \cite{wadler1990,wadler1991} then applies an analogous restriction to variable usage in simple type theory, leading to the development of linear type theory where terms respect resource. A term calculus for linear type theory is realized by Abramsky \cite{abramsky1993}. Benton \cite{benton1994} investigates the ramifications of the ! exponential in linear term calculi, decomposing it to adjoint connectives $F$ and $G$ that map between linear and non-linear judgments. Programming languages \cite{l3,ats,linear-haskell} featuring linear types have also been implemented, allowing programmers to write resource safe software in practical applications.
+Linear types are a class of type systems inspired by Girard's substructural Linear Logic~\cite{girard}. Girard notices that the weakening and contraction rules of Classical Logic when restricted carefully, give rise to a new logical foundation for reasoning about resources. Wadler~\cite{wadler1990,wadler1991} then applies an analogous restriction to variable usage in simple type theory, leading to the development of linear type theory where terms respect resources. A term calculus for linear type theory is realized by Abramsky~\cite{abramsky1993}. Benton~\cite{benton1994} investigates the ramifications of the ! exponential in linear term calculi, decomposing it to adjoint connectives $F$ and $G$ that map between linear and non-linear judgments. Programming languages~\cite{l3,ats,linear-haskell} featuring linear types have also been implemented, allowing programmers to write resource-safe software in practical applications.
 
-Over the years, work has been done to enrich linear type theories with dependent types. Cervesato and Pfenning extend the Edinburgh Logical Framework with linear types \cite{lf,llf}, being the first to demonstrate that dependent types and linear types can coexist within a type theory. V\'{a}k\'{a}r \cite{vakar14} presents a linear dependent type theory, with syntax and semantics drawing inspiration from DILL \cite{dill}. Krishnaswami et al. present a dependent linear type theory LNL$_D$ \cite{neel15} based on Benton's earlier work on mixed linear and non-linear calculus. The inclusion of universe sorts in CLC takes inspiration from LNL$_D$ but the two theories differ in overall design. LNL$_D$ uses two typing judgments for linear and non-linear types and two adjoint connectives to mediate between these two judgments whereas CLC uses a single typing judgment without any mediating connectives. Based on initial ideas of McBride \cite{nothing}, Atkey's Quantitative Type Theory (QTT) \cite{qtt} uses semi-ring annotations to track variable occurrence, simulating irrelevance and linear and affine types within a unified framework.
+Over the years, work has been done to enrich linear type theories with dependent types. Cervesato and Pfenning extend the Edinburgh Logical Framework with linear types~\cite{lf,llf}, being the first to demonstrate that dependent types and linear types can coexist within a type theory. V\'{a}k\'{a}r~\cite{vakar14} presents a linear dependent type theory, with syntax and semantics drawing inspiration from DILL~\cite{dill}. Krishnaswami et al. present a dependent linear type theory LNL$_D$~\cite{neel15} based on Benton's earlier work on mixed linear and non-linear calculus~\cite{benton1994}. While the inclusion of universe sorts in CLC draws inspiration from LNL$_D$, they differ in their usage. In particular, LNL$_D$ uses two typing judgments for linear and non-linear types and two adjoint connectives to mediate between these two judgments, but CLC uses a single typing judgment without any mediating connectives. Based on initial ideas of McBride~\cite{nothing}, Atkey's Quantitative Type Theory (QTT)~\cite{qtt} uses semi-ring annotations to track variable occurrence, simulating irrelevance and linear and affine types within a unified framework.
 
 \section{Future Work}
 In early versions of CLC, an impredicative $Prop$ universe sat at the bottom of the universe hierarchy. This has since been removed due to the additional difficulty of working with $Prop$ in the soundness proof of CILC. We believe that these difficulties are not intrinsic and $Prop$ could be added back with careful proof work.
 
-We aim to fully verify the typechecking algorithm employed by the current implementation. The unification algorithm used for implicit argument resolution is extremely ad-hoc. As the problem of unification for linear types has not been thoroughly studied, we hope to improve this situation as well.
+Currently, the linear types of CILC allow certain effects such as the ones described in Section~\ref{examples} to coexist with dependent types. However, these effects appeal to axioms and are not intrinsic to the core type theory. We plan to investigate how and to what extent can effects be internalized in future extensions to CILC. Our goal is to strive towards a unifying language whose effects could be built using linearity as its building blocks, possessing both static provable safety and runtime efficiency.
 
 \bibliographystyle{acm}
 \bibliography{../ref}
@@ -1324,14 +1326,14 @@ Here, we prove some simple lemmas concerning $\step$, $\red$ and substitution.
   For terms $m, n$ and a map $\sigma$ from variables to terms, if there exist a reduction $m \red n$, then there exists a reduction $m[\sigma] \red n[\sigma]$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $\red$, the transitivity of $\red$ and Lemma \ref{stepsubst}.
+  By induction on the derivation of $\red$, the transitivity of $\red$ and Lemma~\ref{stepsubst}.
 \end{proof}
 
 \begin{lemma}\label{redcompat}
   For maps $\sigma, \tau$ from variables to terms, if there is a map reduction $\sigma \red \tau$, then for any term $m$ these is a reduction $m[\sigma] \red m[\tau]$.
 \end{lemma}
 \begin{proof}
-  By induction on the structure of $m$, applying Lemmas \ref{redapp}, \ref{redlam}, \ref{redarrow}, \ref{redlolli}.
+  By induction on the structure of $m$, applying Lemmas~\ref{redapp}, \ref{redlam}, \ref{redarrow}, \ref{redlolli}.
 \end{proof}
 
 \subsection{Equality Lemmas}
@@ -1380,21 +1382,21 @@ Here, we prove some simple lemmas concerning $\red$, $\equiv$ and substitution.
   For terms $m, n$ and map $\sigma$ from variables to terms, if there is equality $m \equiv n$, then there is equality $m[\sigma] \equiv n[\sigma]$.
 \end{lemma}
 \begin{proof}
-  By Lemmas \ref{convhom} and \ref{stepsubst}.
+  By Lemmas~\ref{convhom} and~\ref{stepsubst}.
 \end{proof}
 
 \begin{lemma}\label{convcompat}
   For maps $\sigma, \tau$ from variables to terms and term $m$, if these is map equality $\sigma \equiv \tau$, then there is equality $m[\sigma] \equiv m[\tau]$.
 \end{lemma}
 \begin{proof}
-  By induction on the structure of $m$, applying Lemmas \ref{convapp}, \ref{convlam}, \ref{convarrow}, \ref{convlolli}.
+  By induction on the structure of $m$, applying Lemmas~\ref{convapp}, \ref{convlam}, \ref{convarrow}, \ref{convlolli}.
 \end{proof}
 
 \begin{lemma}
   For terms $m_1, m_2, n$, if there is equality $m_1 \equiv m_2$, then there is equality $n[m_1/x] \equiv n[m_2/x]$ for any variable $x \in FV(n)$.
 \end{lemma}
 \begin{proof}
-  This is a special case of Lemma \ref{convcompat} where $\sigma$ maps $x$ to $m_1$ and $\tau$ maps $x$ to $m_2$.
+  This is a special case of Lemma~\ref{convcompat} where $\sigma$ maps $x$ to $m_1$ and $\tau$ maps $x$ to $m_2$.
 \end{proof}
 
 \subsection{Parallel Reduction Lemmas}
@@ -1414,28 +1416,28 @@ Here, we prove some simple lemmas concerning $\red$, $\equiv$ and substitution.
   For any map $\sigma$ from variables to terms, there exists a reflexive parallel map reduction $\sigma \pstep \sigma$.
 \end{lemma}
 \begin{proof}
-  By Definition \ref{psstep} and Lemma \ref{psteprefl}.
+  By Definition~\ref{psstep} and Lemma~\ref{psteprefl}.
 \end{proof}
 
 \begin{lemma}\label{steppstep}
   For any terms $m, n$, if there exists step $m \step n$, then there exists a parallel reduction $m \pstep n$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \step n$ and Lemma \ref{psteprefl}.
+  By induction on the derivation of $m \step n$ and Lemma~\ref{psteprefl}.
 \end{proof}
 
 \begin{lemma}\label{pstepred}
   For terms $m, n$, if there exists parallel reduction $m \pstep n$, then there exists a reduction $m \red n$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \pstep n$, utilizing the transitive property of $\red$ and Lemmas \ref{redapp}, \ref{redlam}, \ref{redarrow}, \ref{redlolli}, \ref{redsubst}, \ref{redcompat}.
+  By induction on the derivation of $m \pstep n$, utilizing the transitive property of $\red$ and Lemmas~\ref{redapp}, \ref{redlam}, \ref{redarrow}, \ref{redlolli}, \ref{redsubst}, \ref{redcompat}.
 \end{proof}
 
 \begin{lemma}
   For terms $m, n$ and map $\sigma$ from variables to terms, if there exists parallel reduction $m \pstep n$, there exists parallel reduction $m[\sigma] \pstep n[\sigma]$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \pstep n$ and Lemma \ref{psteprefl}.
+  By induction on the derivation of $m \pstep n$ and Lemma~\ref{psteprefl}.
 \end{proof}
 
 \begin{lemma}\label{pstepcompat}
@@ -1449,7 +1451,7 @@ Here, we prove some simple lemmas concerning $\red$, $\equiv$ and substitution.
   For terms $m_1, m_2, n$, if there is parallel reduction $m_1 \pstep m_2$, then there is parallel reduction $n[m_1/x] \pstep n[m_2/x]$ for any variable $x \in FV(n)$.
 \end{lemma}
 \begin{proof}
-  By Lemma \ref{psteprefl}, this is a special case of Lemma \ref{pstepcompat} where $\sigma$ maps $x$ to $m_1$ and $\tau$ maps $x$ to $m_2$.
+  By Lemma~\ref{psteprefl}, this is a special case of Lemma~\ref{pstepcompat} where $\sigma$ maps $x$ to $m_1$ and $\tau$ maps $x$ to $m_2$.
 \end{proof}
 
 \subsection{Confluence Theorem}
@@ -1459,21 +1461,21 @@ We first show that $\pstep$ satisfies the diamond property. Using the diamond pr
   CLC term reduction has the diamond property. For terms $m, m_1, m_2$, if there are parallel reductions $m \pstep m_1$ and $m \pstep m_2$, then there exists term $m'$ such that $m_1 \pstep m'$ and $m_2 \pstep m'$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \pstep m_1$. Each case in the induction specializes $m$ appearing in $m \pstep m_2$, allowing one to invert its derivation in a syntax directed way and then to apply the induction hypothesis. The difficult cases are due to \rname{PStep-$\beta$} as it concerns substitution, so Lemma \ref{pstepcompat} is used to push these cases through.
+  By induction on the derivation of $m \pstep m_1$. Each case in the induction specializes $m$ appearing in $m \pstep m_2$, allowing one to invert its derivation in a syntax directed way and then to apply the induction hypothesis. The difficult cases are due to \rname{PStep-$\beta$} as it concerns substitution, so Lemma~\ref{pstepcompat} is used to push these cases through.
 \end{proof}
 
 \begin{lemma}\label{strip}
   Strip lemma. For terms $m, m_1, m_2$, if there are parallel reductions $m \pstep m_1$ and $m \red m_2$, then there exists term $m'$ such that $m_1 \red m'$ and $m_2 \pstep m'$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \pstep m_1$, utilizing transitivity of $\red$ and Lemmas \ref{steppstep}, \ref{pstepred}, \ref{diamond}.
+  By induction on the derivation of $m \pstep m_1$, utilizing transitivity of $\red$ and Lemmas~\ref{steppstep}, \ref{pstepred}, \ref{diamond}.
 \end{proof}
 
 \begin{theorem}
   CLC term reduction is confluent. For terms $m, m_1, m_2$, if there are reductions $m \red m_1$ and $m \red m_2$, then there exists term $m'$ such that $m_1 \red m'$ and $m_2 \red m'$.
 \end{theorem}
 \begin{proof}
-  By induction on the derivation of $m \red m_1$, utilizing transitivity of $\red$ and Lemmas \ref{steppstep}, \ref{pstepred}, \ref{strip}.
+  By induction on the derivation of $m \red m_1$, utilizing transitivity of $\red$ and Lemmas~\ref{steppstep}, \ref{pstepred}, \ref{strip}.
 \end{proof}
 
 \subsection{Corollaries of Confluence}
@@ -1785,56 +1787,56 @@ Here, we give an inductive definition of the cumulativity relation ($\preceq$) t
   For terms $A, B$, if there is $A \equiv B$, then there is $A \preceq B$.
 \end{lemma}
 \begin{proof}
-  By Lemma \ref{convsub1} and \rname{$\prec$-Refl}.
+  By Lemma~\ref{convsub1} and \rname{$\prec$-Refl}.
 \end{proof}
 
 \begin{lemma}\label{subrefl}
   For term $A$, there is $A \preceq A$.
 \end{lemma}
 \begin{proof}
-  By Lemma \ref{sub1sub} and \rname{$\prec$-Refl}.
+  By Lemma~\ref{sub1sub} and \rname{$\prec$-Refl}.
 \end{proof}
 
 \begin{lemma}\label{subprop}
   For natural numbers $i, j$ and sort $s$ such that $i \leq j$, there is $s_i \preceq s_j$.
 \end{lemma}
 \begin{proof}
-  By Lemma \ref{sub1sub} and \rname{$\prec$-Sort}.
+  By Lemma~\ref{sub1sub} and \rname{$\prec$-Sort}.
 \end{proof}
 
 \begin{lemma}\label{sub1trans}
   For terms $A, B, C, D$, if there are $A \prec B$, $B \equiv C$ and $C \prec D$, then there is $A \preceq D$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $A \prec B$, definition of $\prec$ and Lemmas \ref{sub1sub}, \ref{sub1conv}, \ref{convsub1}.
+  By induction on the derivation of $A \prec B$, definition of $\prec$ and Lemmas~\ref{sub1sub}, \ref{sub1conv}, \ref{convsub1}.
 \end{proof}
 
 \begin{lemma}
   For terms $A, B, C$, if there are $A \preceq B$ and $B \preceq C$, then there is $A \preceq C$.
 \end{lemma}
 \begin{proof}
-  By transitivity of $\equiv$, rule \rname{$\prec$-$\preceq$} and Lemma \ref{sub1trans}.
+  By transitivity of $\equiv$, rule \rname{$\prec$-$\preceq$} and Lemma~\ref{sub1trans}.
 \end{proof}
 
 \begin{lemma}
   For sorts $s, t$ and natural numbers $i, j$, if there is $s_i \preceq t_j$, then there are $s = t$ and $i \leq j$.
 \end{lemma}
 \begin{proof}
-  By transitivity of $\equiv$ and Corollary \ref{sortinj}.
+  By transitivity of $\equiv$ and Corollary~\ref{sortinj}.
 \end{proof}
 
 \begin{lemma}
   For terms $A_1, A_2, B_1, B_2$ and sorts $s, t$, if there is $(x \stype{s} A_1) \rightarrow B_1 \preceq (x \stype{t} A_2) \rightarrow B_2$, then there are $A_1 \equiv A_2$, $B_1 \preceq B_2$ and $s = t$.
 \end{lemma}
 \begin{proof}
-  By transitivity of $\equiv$ and Corollary \ref{arrowinj}.
+  By transitivity of $\equiv$ and Corollary~\ref{arrowinj}.
 \end{proof}
 
 \begin{lemma}
   For terms $A_1, A_2, B_1, B_2$ and sorts $s, t$, if there is $(x \stype{s} A_1) \multimap B_1 \preceq (x \stype{t} A_2) \multimap B_2$, then there are $A_1 \equiv A_2$, $B_1 \preceq B_2$ and $s = t$.
 \end{lemma}
 \begin{proof}
-  By transitivity of $\equiv$ and Corollary \ref{lolliinj}.
+  By transitivity of $\equiv$ and Corollary~\ref{lolliinj}.
 \end{proof}
 
 \begin{lemma}\label{sub1subst}
@@ -1848,7 +1850,7 @@ Here, we give an inductive definition of the cumulativity relation ($\preceq$) t
   For terms $A, B$ and map $\sigma$ from variables to terms, if there is $A \preceq B$, then there is $A[\sigma] \preceq B[\sigma]$.
 \end{lemma}
 \begin{proof}
-  By rule \rname{$\prec$-$\preceq$} and Lemmas \ref{convsubst}, \ref{sub1subst}.
+  By rule \rname{$\prec$-$\preceq$} and Lemmas~\ref{convsubst}, \ref{sub1subst}.
 \end{proof}
 
 \section{Typing of CLC}
@@ -2007,28 +2009,28 @@ The typing rules of CLC are presented below.
   For any context $\Gamma$, terms $A, n, C$ and sort $s$, if there is $\Gamma \vdash \lambda x \stype{s} A . n : C$, then for all terms $A', B$, sorts $s', t$ and natural number $i$ such that $C \preceq (x \stype{s'} A') \rightarrow B$ and $\overline{\Gamma, x \stype{s'} A'} \vdash B : t_i$, there is $\Gamma, x \stype{s'} A' \vdash n : B$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $\Gamma \vdash \lambda x \stype{s} A . n : C$ and Lemmas \ref{uarrowinv}, \ref{larrowinv}.
+  By induction on the derivation of $\Gamma \vdash \lambda x \stype{s} A . n : C$ and Lemmas~\ref{uarrowinv}, \ref{larrowinv}.
 \end{proof}
 
 \begin{lemma}\label{lollilaminvx}
   For any context $\Gamma$, terms $A, n, C$ and sort $s$, if there is $\Gamma \vdash \lambda x \stype{s} A . n : C$, then for all terms $A', B$, sorts $s', t$ and natural number $i$ such that $C \preceq (x \stype{s'} A') \multimap B$ and $\overline{\Gamma, x \stype{s'} A'} \vdash B : t_i$, there is $\Gamma, x \stype{s'} A' \vdash n : B$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $\Gamma \vdash \lambda x \stype{s} A . n : C$ and Lemmas \ref{ulolliinv}, \ref{llolliinv}.
+  By induction on the derivation of $\Gamma \vdash \lambda x \stype{s} A . n : C$ and Lemmas~\ref{ulolliinv}, \ref{llolliinv}.
 \end{proof}
 
 \begin{lemma}\label{arrowlaminv}
   For any context $\Gamma$, terms $A, A', B, n$, sorts $s, s', t$ and natural number $i$, if there are $\overline{\Gamma} \vdash (x \stype{s'} A') \rightarrow B : t_i$ and $\Gamma \vdash \lambda x \stype{s} A . n : (x \stype{s'} A') \rightarrow B$, then there is $\Gamma, x \stype{s'} A' \vdash n : B$.
 \end{lemma}
 \begin{proof}
-  Direct consequence of Lemmas \ref{uarrowinv}, \ref{larrowinv} and \ref{arrowlaminvx}.
+  Direct consequence of Lemmas~\ref{uarrowinv}, \ref{larrowinv} and~\ref{arrowlaminvx}.
 \end{proof}
 
 \begin{lemma}\label{lollilaminv}
   For any context $\Gamma$, terms $A, A', B, n$, sorts $s, s', t$ and natural number $i$, if there are $\overline{\Gamma} \vdash (x \stype{s'} A') \multimap B : t_i$ and $\Gamma \vdash \lambda x \stype{s} A . n : (x \stype{s'} A') \multimap B$, then there is $\Gamma, x \stype{s'} A' \vdash n : B$.
 \end{lemma}
 \begin{proof}
-  Direct consequence of Lemmas \ref{ulolliinv}, \ref{llolliinv} and \ref{lollilaminvx}.
+  Direct consequence of Lemmas~\ref{ulolliinv}, \ref{llolliinv} and~\ref{lollilaminvx}.
 \end{proof}
 
 \section{Weakening Lemmas of CLC}
@@ -2089,19 +2091,19 @@ Weakening for non-linear types is admissible in CLC. To prove this, we first def
   For contexts $\Gamma, \Gamma', \Gamma_1, \Gamma_2$ and mapping $\xi$, if there are $agreeR\ \xi\ \Gamma\ \Gamma'$ and $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, then there exist $\Gamma_1'$ and $\Gamma_2'$ such that there are $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $agreeR\ \xi\ \Gamma\ \Gamma'$ and lemmas in Section \ref{agreeRprop}.
+  By induction on the derivation of $agreeR\ \xi\ \Gamma\ \Gamma'$ and lemmas in Section~\ref{agreeRprop}.
 \end{proof}
 
 \begin{lemma}\label{renaming}
   For context $\Gamma, \Gamma'$, terms $m, A$ and mapping $\xi$, if there are $\Gamma \vdash m : A$ and $agreeR\ \xi\ \Gamma\ \Gamma'$, then there is $\Gamma' \vdash m[\xi] : A[\xi]$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $\Gamma \vdash m : A$. We shall only discuss the application case in detail, as the other cases are proven by application of the induction hypothesis and the lemmas in Section \ref{agreeRprop}.
+  By induction on the derivation of $\Gamma \vdash m : A$. We shall only discuss the application case in detail, as the other cases are proven by application of the induction hypothesis and the lemmas in Section~\ref{agreeRprop}.
   \begin{itemize}
-    \item For the \rname{App-U$\rightarrow$} case, Lemma \ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there are $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. From $\pure{\Gamma_2}$ and Lemma \ref{agreerenpure} we know that there is $\pure{\Gamma_2'}$. At this point, the induction hypothesis allows us to apply \rname{App-U$\rightarrow$} to prove the goal.
-    \item For the \rname{App-L$\rightarrow$} case, Lemma \ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there are $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. At this point, the induction hypothesis allows us to apply \rname{App-L$\rightarrow$} to prove the goal.
-    \item For the \rname{App-U$\multimap$} case, Lemma \ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there are $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. From $\pure{\Gamma_2}$ and Lemma \ref{agreerenpure} we know that there is $\pure{\Gamma_2'}$. At this point, the induction hypothesis allows us to apply \rname{App-U$\multimap$} to prove the goal.
-    \item For the \rname{App-L$\multimap$} case, Lemma \ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there are $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. At this point, the induction hypothesis allows us to apply \rname{App-L$\multimap$} to prove the goal.
+    \item For the \rname{App-U$\rightarrow$} case, Lemma~\ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there are $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. From $\pure{\Gamma_2}$ and Lemma~\ref{agreerenpure} we know that there is $\pure{\Gamma_2'}$. At this point, the induction hypothesis allows us to apply \rname{App-U$\rightarrow$} to prove the goal.
+    \item For the \rname{App-L$\rightarrow$} case, Lemma~\ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there are $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. At this point, the induction hypothesis allows us to apply \rname{App-L$\rightarrow$} to prove the goal.
+    \item For the \rname{App-U$\multimap$} case, Lemma~\ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there are $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. From $\pure{\Gamma_2}$ and Lemma~\ref{agreerenpure} we know that there is $\pure{\Gamma_2'}$. At this point, the induction hypothesis allows us to apply \rname{App-U$\multimap$} to prove the goal.
+    \item For the \rname{App-L$\multimap$} case, Lemma~\ref{mergeagreereninv} is applied to split the context $\Gamma$ into two contexts $\Gamma_1'$ and $\Gamma_2'$ such that there are $\mrg{\Gamma_1'}{\Gamma_2'}{\Gamma'}$, $agreeR\ \xi\ \Gamma_1\ \Gamma_1'$ and $agreeR\ \xi\ \Gamma_2\ \Gamma_2'$. At this point, the induction hypothesis allows us to apply \rname{App-L$\multimap$} to prove the goal.
   \end{itemize}
 \end{proof}
 
@@ -2109,7 +2111,7 @@ Weakening for non-linear types is admissible in CLC. To prove this, we first def
   Weakening is admissible for CLC variables of non-linear type. For context $\Gamma$ and terms $m, A, B$, if there is $\Gamma \vdash m : A$, then there is $\Gamma, x \utype B \vdash m : A$.
 \end{theorem}
 \begin{proof}
-  Using \rname{agreeR-wk} and Lemma \ref{agreerenrefl} a proof of the relation $agreeR\ id\ \Gamma\ (\Gamma, x \utype B)$ can be constructed. Then by Lemma \ref{renaming}, the theorem can be proven.
+  Using \rname{agreeR-wk} and Lemma~\ref{agreerenrefl} a proof of the relation $agreeR\ id\ \Gamma\ (\Gamma, x \utype B)$ can be constructed. Then by Lemma~\ref{renaming}, the theorem can be proven.
 \end{proof}
 
 \section{Substitution Lemmas of CLC}
@@ -2189,14 +2191,14 @@ Similarly to the proof of weakening, we first define an $agreeS$ relation betwee
   For contexts $\Delta, \Gamma, \Gamma_1, \Gamma_2$ and mapping $\sigma$, if there are $agreeS\ \sigma\ \Delta\ \Gamma$ and $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$, then there exist contexts $\Delta_1, \Delta_2$ such that there are $\mrg{\Delta_1}{\Delta_2}{\Delta}$, $agreeS\ \sigma\ \Delta_1\ \Gamma_1$ and $agreeS\ \sigma\ \Delta_2\ \Gamma_2$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $agreeS\ \sigma\ \Delta\ \Gamma$ and lemmas in Section \ref{agreeSprop}.
+  By induction on the derivation of $agreeS\ \sigma\ \Delta\ \Gamma$ and lemmas in Section~\ref{agreeSprop}.
 \end{proof}
 
 \begin{lemma}
   Generalized Substitution Lemma. For context $\Gamma, \Delta$, terms $m, A$ and mapping $\sigma$, if there are $\Gamma \vdash m : A$ and $agreeS\ \sigma\ \Delta\ \Gamma$, then there is $\Delta \vdash m[\sigma] : A[\sigma]$.
 \end{lemma}
 \begin{proof}
-  The proof proceeds by induction on the derivation of $\Gamma \vdash m : A$. Similarly to the proof of Lemma \ref{renaming}, the interesting cases are the application cases where Lemma \ref{mergeagreesubstinv} must be utilized to split the $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ judgments for use in the induction hypothesis.
+  The proof proceeds by induction on the derivation of $\Gamma \vdash m : A$. Similarly to the proof of Lemma~\ref{renaming}, the interesting cases are the application cases where Lemma~\ref{mergeagreesubstinv} must be utilized to split the $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ judgments for use in the induction hypothesis.
 \end{proof}
 
 \subsection{Corollaries of Substitution}
@@ -2225,7 +2227,7 @@ In this section, we prove that the types of all CLC terms are themselves well-so
   For contexts $\Gamma_1, \Gamma_2, \Gamma$, if there are $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma \vdash$, then there are $\Gamma_1 \vdash$ and $\Gamma_2 \vdash$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and the properties of $merge$ discussed in Section \ref{mergeprop}.
+  By induction on the derivation of $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and the properties of $merge$ discussed in Section~\ref{mergeprop}.
 \end{proof}
 
 \begin{theorem}\label{valid}
@@ -2240,8 +2242,8 @@ In this section, we prove that the types of all CLC terms are themselves well-so
 \begin{proof}
   The proof proceeds by induction on the derivation of $\Gamma \vdash m : A$. The interesting cases are the application cases which we shall discuss in detail.
   \begin{itemize}
-    \item For the \rname{App-U$\rightarrow$} case, from assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\pure{\Gamma_2}$ and Lemmas \ref{mergepure2}, \ref{mergerere}, we can conclude that $\overline{\Gamma_1} = \overline{\Gamma}$ and $\overline{\Gamma_2} = \overline{\Gamma}$. Applying Lemma \ref{mergecontextokinv} to assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma \vdash$ obtains $\Gamma_1 \vdash$ and $\Gamma_2 \vdash$. Now by the induction hypothesis, we can conclude there exist sorts $s, t$ and natural numbers $i, j$ such that there are $\overline{\Gamma_1} \vdash (x \utype A) \rightarrow B : s_i$ and $\overline{\Gamma_2} \vdash A : t_j$. Applying Lemma \ref{uarrowinv} to assumption $\overline{\Gamma_1} \vdash (x \utype A) \rightarrow B : s_i$ allows us to derive $\overline{\Gamma_1} \vdash A : U_{i'}$ and $\overline{\Gamma_1}, x \utype A \vdash B : s'_{j'}$ where $s'$ is a sort and $i', j'$ are natural numbers. The goal can finally be proven by applying the substitution Lemma \ref{substitutionu} on assumptions $\Gamma_2 \vdash n : A$ and $\overline{\Gamma_1}, x \utype A \vdash B : s'_{j'}$.
-    \item For the \rname{App-L$\rightarrow$} case, from assumption $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and Lemmas \ref{mergerere}, we can conclude that $\overline{\Gamma_1} = \overline{\Gamma}$ and $\overline{\Gamma_2} = \overline{\Gamma}$. Applying Lemma \ref{mergecontextokinv} to assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma \vdash$ obtains $\Gamma_1 \vdash$ and $\Gamma_2 \vdash$. Now by the induction hypothesis, we can conclude that there exists sorts $s, t$ and natural numbers $i, j$ such that there are $\overline{\Gamma_1} \vdash (x \ltype A) \rightarrow B : s_i$ and $\overline{\Gamma_2} \vdash A : t_j$. Applying Lemma \ref{larrowinv} to assumption $\overline{\Gamma_1} \vdash (x \ltype A) \rightarrow B : s_i$ allows us to derive $\overline{\Gamma_1} \vdash A : L_{i'}$ and $\overline{\Gamma_1} \vdash B : s'_{j'}$. Due to the fact that variable $x$ is not a free variable in $B$, the substitution occurring in goal $\exists s \in sort, i \in \mathbb{N}, \overline{\Gamma} \vdash B[n/x] : s_i$ is trivial, thus the judgment $\overline{\Gamma_1} \vdash B : s'_{j'}$ that we have proven shows the existence of the goal.
+    \item For the \rname{App-U$\rightarrow$} case, from assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\pure{\Gamma_2}$ and Lemmas~\ref{mergepure2}, \ref{mergerere}, we can conclude that $\overline{\Gamma_1} = \overline{\Gamma}$ and $\overline{\Gamma_2} = \overline{\Gamma}$. Applying Lemma~\ref{mergecontextokinv} to assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma \vdash$ obtains $\Gamma_1 \vdash$ and $\Gamma_2 \vdash$. Now by the induction hypothesis, we can conclude there exist sorts $s, t$ and natural numbers $i, j$ such that there are $\overline{\Gamma_1} \vdash (x \utype A) \rightarrow B : s_i$ and $\overline{\Gamma_2} \vdash A : t_j$. Applying Lemma~\ref{uarrowinv} to assumption $\overline{\Gamma_1} \vdash (x \utype A) \rightarrow B : s_i$ allows us to derive $\overline{\Gamma_1} \vdash A : U_{i'}$ and $\overline{\Gamma_1}, x \utype A \vdash B : s'_{j'}$ where $s'$ is a sort and $i', j'$ are natural numbers. The goal can finally be proven by applying the substitution Lemma~\ref{substitutionu} on assumptions $\Gamma_2 \vdash n : A$ and $\overline{\Gamma_1}, x \utype A \vdash B : s'_{j'}$.
+    \item For the \rname{App-L$\rightarrow$} case, from assumption $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and Lemmas~\ref{mergerere}, we can conclude that $\overline{\Gamma_1} = \overline{\Gamma}$ and $\overline{\Gamma_2} = \overline{\Gamma}$. Applying Lemma~\ref{mergecontextokinv} to assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $\Gamma \vdash$ obtains $\Gamma_1 \vdash$ and $\Gamma_2 \vdash$. Now by the induction hypothesis, we can conclude that there exists sorts $s, t$ and natural numbers $i, j$ such that there are $\overline{\Gamma_1} \vdash (x \ltype A) \rightarrow B : s_i$ and $\overline{\Gamma_2} \vdash A : t_j$. Applying Lemma~\ref{larrowinv} to assumption $\overline{\Gamma_1} \vdash (x \ltype A) \rightarrow B : s_i$ allows us to derive $\overline{\Gamma_1} \vdash A : L_{i'}$ and $\overline{\Gamma_1} \vdash B : s'_{j'}$. Due to the fact that variable $x$ is not a free variable in $B$, the substitution occurring in goal $\exists s \in sort, i \in \mathbb{N}, \overline{\Gamma} \vdash B[n/x] : s_i$ is trivial, thus the judgment $\overline{\Gamma_1} \vdash B : s'_{j'}$ that we have proven shows the existence of the goal.
     \item For the \rname{App-U$\multimap$} case, the proof is similar to the \rname{App-U$\rightarrow$} case; the only difference is that the inversion lemmas used correspond to $\multimap$ instead of $\rightarrow$.
     \item For the \rname{App-L$\multimap$} case, the proof is similar to the \rname{App-L$\rightarrow$} case; the only difference is that the inversion lemmas used correspond to $\multimap$ instead of $\rightarrow$.
   \end{itemize}
@@ -2293,7 +2295,7 @@ We introduce a meta-function $occurs$ that counts the number of times a given va
 \begin{proof}
   The proof proceeds by induction on the derivation of $\Gamma \vdash m : A$, we will discuss the application cases in detail.
   \begin{itemize}
-    \item For case \rname{App-U$\rightarrow$}, by assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $(x \ltype A) \in \Gamma$ and Lemma \ref{islmergeinv} we can conclude that $x \in \Gamma_1$ and $x \notin \Gamma_2$ or $x \in \Gamma_2$ and $x \notin \Gamma_1$. In both cases, applying the induction hypothesis and Lemma \ref{narity} proves the goal.
+    \item For case \rname{App-U$\rightarrow$}, by assumptions $\mrg{\Gamma_1}{\Gamma_2}{\Gamma}$ and $(x \ltype A) \in \Gamma$ and Lemma~\ref{islmergeinv} we can conclude that $x \in \Gamma_1$ and $x \notin \Gamma_2$ or $x \in \Gamma_2$ and $x \notin \Gamma_1$. In both cases, applying the induction hypothesis and Lemma~\ref{narity} proves the goal.
     \item For case \rname{App-L$\rightarrow$}, the proof is the same as \rname{App-U$\rightarrow$}.
     \item For case \rname{App-U$\multimap$}, the proof is the same as \rname{App-U$\rightarrow$}.
     \item For case \rname{App-L$\multimap$}, the proof is the same as \rname{App-U$\rightarrow$}.
@@ -2307,8 +2309,8 @@ We introduce a meta-function $occurs$ that counts the number of times a given va
 \begin{proof}
   Set $n = \lambda x \stype{s} A. (m\ x)$. The proof proceeds by case analysis on the sort $s$.
   \begin{itemize}
-    \item If $s = U$, then we may apply Theorem \ref{valid} to assumption $\Gamma \vdash m : (x \utype A) \multimap B$ to show that there exist sort $t$ and natural number $i$ such that there is $\overline{\Gamma} \vdash (x \utype A) \multimap B : t_i$. Now applying Lemma \ref{ulolliinv} to $\overline{\Gamma} \vdash (x \utype A) \multimap B : t_i$ shows that there exist sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma}, x \utype A \vdash B : t'_{i'}$. Now by \rname{U$\rightarrow$} and Lemma \ref{purere} the goal is proven.
-    \item If $s = L$, then we may apply Theorem \ref{valid} to assumption $\Gamma \vdash m : (x \ltype A) \multimap B$ to show that there exist sort $t$ and natural number $i$ such that $\overline{\Gamma} \vdash (x \ltype A) \multimap B : t_i$. Now applying Lemma \ref{llolliinv} to $\overline{\Gamma} \vdash (x \ltype A) \multimap B : t_i$ shows that there exist sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma} \vdash B : t'_{i'}$. Now by \rname{L$\rightarrow$} and Lemma \ref{purere} the goal is proven.
+    \item If $s = U$, then we may apply Theorem~\ref{valid} to assumption $\Gamma \vdash m : (x \utype A) \multimap B$ to show that there exist sort $t$ and natural number $i$ such that there is $\overline{\Gamma} \vdash (x \utype A) \multimap B : t_i$. Now applying Lemma~\ref{ulolliinv} to $\overline{\Gamma} \vdash (x \utype A) \multimap B : t_i$ shows that there exist sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma}, x \utype A \vdash B : t'_{i'}$. Now by \rname{U$\rightarrow$} and Lemma~\ref{purere} the goal is proven.
+    \item If $s = L$, then we may apply Theorem~\ref{valid} to assumption $\Gamma \vdash m : (x \ltype A) \multimap B$ to show that there exist sort $t$ and natural number $i$ such that $\overline{\Gamma} \vdash (x \ltype A) \multimap B : t_i$. Now applying Lemma~\ref{llolliinv} to $\overline{\Gamma} \vdash (x \ltype A) \multimap B : t_i$ shows that there exist sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma} \vdash B : t'_{i'}$. Now by \rname{L$\rightarrow$} and Lemma~\ref{purere} the goal is proven.
   \end{itemize}
 \end{proof}
 
@@ -2320,8 +2322,8 @@ We introduce a meta-function $occurs$ that counts the number of times a given va
 \begin{proof}
   Set $n = \lambda x \stype{s} A . (m\ x)$. The proof proceeds by case analysis on the sort $s$.
   \begin{itemize}
-    \item If $s = U$, then we may apply Theorem \ref{valid} to $\Gamma \vdash m : (x \utype A) \rightarrow B$ showing that there exist sort $t$ and natural number $i$ such that there is $\overline{\Gamma} \vdash (x \utype A) \rightarrow B : t_i$. Now applying Lemma \ref{uarrowinv} to $\overline{\Gamma} \vdash (x \utype A)\rightarrow B : t_i$ shows that there exist sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma}, x \utype A \vdash B : t'_{i'}$. By \rname{U$\multimap$} and Lemma \ref{repure} we can prove $\overline{\Gamma} \vdash (x \utype A) \multimap B : L_{i'}$. By rule \rname{$\lambda$$\multimap$}, the rest of the goal can be proven in a straightforward manner.
-    \item If $s = L$, then we may apply Theorem \ref{valid} to $\Gamma \vdash m : (x \ltype A) \rightarrow B$ showing that there exist sort $t$ and natural number $i$ such that there is $\overline{\Gamma} \vdash (x \ltype A) \rightarrow B : t_i$. Now applying Lemma \ref{larrowinv} to $\overline{\Gamma} \vdash (x \ltype A)\rightarrow B : t_i$ shows that there exist sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma} \vdash B : t'_{i'}$. By \rname{L$\multimap$} and Lemma \ref{repure} we can prove $\overline{\Gamma} \vdash (x \ltype A) \multimap B : L_{i'}$. By rule \rname{$\lambda$$\multimap$}, the rest of the goal can be proven in a straightforward manner.
+    \item If $s = U$, then we may apply Theorem~\ref{valid} to $\Gamma \vdash m : (x \utype A) \rightarrow B$ showing that there exist sort $t$ and natural number $i$ such that there is $\overline{\Gamma} \vdash (x \utype A) \rightarrow B : t_i$. Now applying Lemma~\ref{uarrowinv} to $\overline{\Gamma} \vdash (x \utype A)\rightarrow B : t_i$ shows that there exist sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma}, x \utype A \vdash B : t'_{i'}$. By \rname{U$\multimap$} and Lemma~\ref{repure} we can prove $\overline{\Gamma} \vdash (x \utype A) \multimap B : L_{i'}$. By rule \rname{$\lambda$$\multimap$}, the rest of the goal can be proven in a straightforward manner.
+    \item If $s = L$, then we may apply Theorem~\ref{valid} to $\Gamma \vdash m : (x \ltype A) \rightarrow B$ showing that there exist sort $t$ and natural number $i$ such that there is $\overline{\Gamma} \vdash (x \ltype A) \rightarrow B : t_i$. Now applying Lemma~\ref{larrowinv} to $\overline{\Gamma} \vdash (x \ltype A)\rightarrow B : t_i$ shows that there exist sort $t'$ and natural number $i'$ such that $\overline{\Gamma} \vdash A : U_{i'}$ and $\overline{\Gamma} \vdash B : t'_{i'}$. By \rname{L$\multimap$} and Lemma~\ref{repure} we can prove $\overline{\Gamma} \vdash (x \ltype A) \multimap B : L_{i'}$. By rule \rname{$\lambda$$\multimap$}, the rest of the goal can be proven in a straightforward manner.
   \end{itemize}
 \end{proof}
 
@@ -2329,7 +2331,7 @@ We introduce a meta-function $occurs$ that counts the number of times a given va
 
 \subsection{Strong Normalization}
 
-The proof of the logical consistency of CLC proceeds by construction of a reduction preserving erasure from CLC to CC$\omega$. As CC$\omega$ is consistent, CLC must be consistent as well.
+The proof of the logical consistency of CLC proceeds by construction of a reduction preserving erasure from CLC to \CComg. As \CComg is consistent, CLC must be consistent as well.
 
 The erasure procedure is recursively defined as follows.
 \begin{align*}
@@ -2350,65 +2352,65 @@ With slight overloading of notation, we define erasure for CLC contexts recursiv
 \end{align*}
 
 \begin{lemma}
-  For CLC term $m$, map $\sigma$ from variables to CLC terms, map $\tau$ from variables to CC$\omega$ terms, if for all variables $x$ there is $\erase{\sigma\ x} = \tau\ x$, then $\erase{m[\sigma]} = \erase{m}[\tau]$.
+  For CLC term $m$, map $\sigma$ from variables to CLC terms, map $\tau$ from variables to \CComg terms, if for all variables $x$ there is $\erase{\sigma\ x} = \tau\ x$, then $\erase{m[\sigma]} = \erase{m}[\tau]$.
 \end{lemma}
 \begin{proof}
   By induction on the structure of term $m$.
 \end{proof}
 
-For the following lemmas, we will index relations and judgments with subscript CLC or CC$\omega$ to emphasize the language it is defined over.
+For the following lemmas, we will index relations and judgments with subscript CLC or \CComg to emphasize the language it is defined over.
 
 \begin{lemma}\label{erasestep}
-  For any CLC terms $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \step_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+  For any CLC terms $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \step_{\scriptscriptstyle \text{\CComg}} \erase{n}$.
 \end{lemma}
 \begin{proof}
   By induction on the derivation of $m \step_{\scriptscriptstyle \text{CLC}} n$.
 \end{proof}
 
 \begin{lemma}
-  For any CLC terms $m$ and $n$, if there is $m \equiv_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \equiv_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+  For any CLC terms $m$ and $n$, if there is $m \equiv_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \equiv_{\scriptscriptstyle \text{\CComg}} \erase{n}$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \equiv_{\scriptscriptstyle \text{CLC}} n$ and Lemma \ref{erasestep}.
+  By induction on the derivation of $m \equiv_{\scriptscriptstyle \text{CLC}} n$ and Lemma~\ref{erasestep}.
 \end{proof}
 
 \begin{lemma}\label{erasesub1}
-  For any CLC terms $m$ and $n$, if there is $m \prec_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \prec_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+  For any CLC terms $m$ and $n$, if there is $m \prec_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \prec_{\scriptscriptstyle \text{\CComg}} \erase{n}$.
 \end{lemma}
 \begin{proof}
   By induction on the derivation of $m \prec_{\scriptscriptstyle \text{CLC}} n$.
 \end{proof}
 
 \begin{lemma}
-  For any CLC terms $m$ and $n$, if there is $m \preceq_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \preceq_{\scriptscriptstyle \text{CC$\omega$}} \erase{n}$.
+  For any CLC terms $m$ and $n$, if there is $m \preceq_{\scriptscriptstyle \text{CLC}} n$, then there is $\erase{m} \preceq_{\scriptscriptstyle \text{\CComg}} \erase{n}$.
 \end{lemma}
 \begin{proof}
-  By case analysis on the derivation of $m \preceq_{\scriptscriptstyle \text{CLC}} n$ and the properties of subtyping proven in Section \ref{subtyping}.
+  By case analysis on the derivation of $m \preceq_{\scriptscriptstyle \text{CLC}} n$ and the properties of subtyping proven in Section~\ref{subtyping}.
 \end{proof}
 
 \begin{theorem}\label{embed}
-  Embedding. For any CLC context $\Gamma$ and CLC terms $m, A$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CLC}} m : A$, then there is $\erase{\Gamma} \vdash_{\scriptscriptstyle \text{CC$\omega$}} \erase{m} : \erase{A}$.
+  Embedding. For any CLC context $\Gamma$ and CLC terms $m, A$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CLC}} m : A$, then there is $\erase{\Gamma} \vdash_{\scriptscriptstyle \text{\CComg}} \erase{m} : \erase{A}$.
 \end{theorem}
 \begin{proof}
   By induction on the derivation of $\Gamma \vdash_{\scriptscriptstyle \text{CLC}} m : A$.
 \end{proof}
 
 \begin{corollary}\label{embeddingcontext}
-  For any CLC context $\Gamma$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CLC}}$, then there is $\erase{\Gamma} \vdash_{\scriptscriptstyle \text{CC$\omega$}}$.
+  For any CLC context $\Gamma$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CLC}}$, then there is $\erase{\Gamma} \vdash_{\scriptscriptstyle \text{\CComg}}$.
 \end{corollary}
 \begin{proof}
-  Direct consequence of applying Theorem \ref{embed} to all types in context $\Gamma$.
+  Direct consequence of applying Theorem~\ref{embed} to all types in context $\Gamma$.
 \end{proof}
 
 \begin{theorem}
   Strong normalization of CLC.
 \end{theorem}
 \begin{proof}
-  Suppose there exists a well-typed CLC term $m$ with an infinite sequence of reductions. Theorem \ref{embed} shows that there must exist some term $\erase{m}$ that is well-typed in CC$\omega$. Additionally, this infinite sequence of reductions on $m$ can be translated in CC$\omega$ step-wise by Lemma \ref{erasestep}. This shows that we have constructed a non-normalizing CC$\omega$ term $\erase{m}$, which a contradiction to the strong normalization property of CC$\omega$, thus CLC must be strongly normalizing as well.
+  Suppose there exists a well-typed CLC term $m$ with an infinite sequence of reductions. Theorem~\ref{embed} shows that there must exist some term $\erase{m}$ that is well-typed in \CComg. Additionally, this infinite sequence of reductions on $m$ can be translated in \CComg step-wise by Lemma~\ref{erasestep}. This shows that we have constructed a non-normalizing \CComg term $\erase{m}$, which a contradiction to the strong normalization property of \CComg, thus CLC must be strongly normalizing as well.
 \end{proof}
 
 \subsection{Embedding}
-To show that CLC is compatible with the predicative fragment of CC$\omega$, we construct a lifting procedure that lifts CC$\omega$ terms into CLC in a straightforward way.
+To show that CLC is compatible with the predicative fragment of \CComg, we construct a lifting procedure that lifts \CComg terms into CLC in a straightforward way.
 \begin{align*}
   \lift{x}                     & = x                                        \\
   \lift{Type_i}                & = U_i                                      \\
@@ -2417,60 +2419,60 @@ To show that CLC is compatible with the predicative fragment of CC$\omega$, we c
   \lift{m\ n}                  & = \lift{m}\ \lift{n}
 \end{align*}
 
-With slight overloading of notation, we define lifting for CC$\omega$ recursively.
+With slight overloading of notation, we define lifting for \CComg recursively.
 \begin{align*}
   \lift{\epsilon}      & = \epsilon                         \\
   \lift{\Gamma, x : A} & = \lift{\Gamma}, x \utype \lift{A}
 \end{align*}
 
 \begin{lemma}
-  For CC$\omega$ context $\Gamma$, there is $\pure{\lift{\Gamma}}$.
+  For \CComg context $\Gamma$, there is $\pure{\lift{\Gamma}}$.
 \end{lemma}
 \begin{proof}
   By induction on the structure of $\Gamma$.
 \end{proof}
 
 \begin{lemma}
-  For CC$\omega$ term $m$, map $\sigma$ from variables to CC$\omega$ terms, map $\tau$ from variables to CLC terms, if for all variables $x$ there is $\lift{\sigma\ x} = \tau\ x$, then $\lift{m[\sigma]} = \lift{m}[\tau]$.
+  For \CComg term $m$, map $\sigma$ from variables to \CComg terms, map $\tau$ from variables to CLC terms, if for all variables $x$ there is $\lift{\sigma\ x} = \tau\ x$, then $\lift{m[\sigma]} = \lift{m}[\tau]$.
 \end{lemma}
 \begin{proof}
   By induction on the structure of term $m$.
 \end{proof}
-For the following lemmas, we will index relations and judgments with subscript CLC or CC$\omega$ to emphasize the language it is defined over.
+For the following lemmas, we will index relations and judgments with subscript CLC or \CComg to emphasize the language it is defined over.
 
 \begin{lemma}\label{liftstep}
-  For any CC$\omega$ terms $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{CC$\omega$}} n$, then there is $\lift{m} \step_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+  For any \CComg terms $m$ and $n$, if there is $m \step_{\scriptscriptstyle \text{\CComg}} n$, then there is $\lift{m} \step_{\scriptscriptstyle \text{CLC}} \lift{n}$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \step_{\scriptscriptstyle \text{CC$\omega$}} n$.
+  By induction on the derivation of $m \step_{\scriptscriptstyle \text{\CComg}} n$.
 \end{proof}
 
 \begin{lemma}
-  For any CC$\omega$ terms $m$ and $n$, if there is $m \equiv_{\scriptscriptstyle \text{CC$\omega$}} n$, then there is $\lift{m} \equiv_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+  For any \CComg terms $m$ and $n$, if there is $m \equiv_{\scriptscriptstyle \text{\CComg}} n$, then there is $\lift{m} \equiv_{\scriptscriptstyle \text{CLC}} \lift{n}$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \equiv_{\scriptscriptstyle \text{CC$\omega$}} n$ and Lemma \ref{liftstep}.
+  By induction on the derivation of $m \equiv_{\scriptscriptstyle \text{\CComg}} n$ and Lemma~\ref{liftstep}.
 \end{proof}
 
 \begin{lemma}\label{liftsub1}
-  For any CC$\omega$ terms $m$ and $n$, if there is $m \prec_{\scriptscriptstyle \text{CC$\omega$}} n$, then there is $\lift{m} \prec_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+  For any \CComg terms $m$ and $n$, if there is $m \prec_{\scriptscriptstyle \text{\CComg}} n$, then there is $\lift{m} \prec_{\scriptscriptstyle \text{CLC}} \lift{n}$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation of $m \prec_{\scriptscriptstyle \text{CC$\omega$}} n$.
+  By induction on the derivation of $m \prec_{\scriptscriptstyle \text{\CComg}} n$.
 \end{proof}
 
 \begin{lemma}
-  For any CC$\omega$ terms $m$ and $n$, if there is $m \preceq_{\scriptscriptstyle \text{CC$\omega$}} n$, then there is $\lift{m} \preceq_{\scriptscriptstyle \text{CLC}} \lift{n}$.
+  For any \CComg terms $m$ and $n$, if there is $m \preceq_{\scriptscriptstyle \text{\CComg}} n$, then there is $\lift{m} \preceq_{\scriptscriptstyle \text{CLC}} \lift{n}$.
 \end{lemma}
 \begin{proof}
-  By case analysis on the derivation of $m \preceq_{\scriptscriptstyle \text{CC$\omega$}} n$ and the properties of subtyping proven in Section \ref{subtyping}.
+  By case analysis on the derivation of $m \preceq_{\scriptscriptstyle \text{\CComg}} n$ and the properties of subtyping proven in Section~\ref{subtyping}.
 \end{proof}
 
 \begin{theorem}\label{lifting}
-  Lifting. For any CC$\omega$ context $\Gamma$ and CC$\omega$ terms $m, A$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{CC$\omega$}} m : A$, then there is $\lift{\Gamma} \vdash_{\scriptscriptstyle \text{CLC}} \lift{m} : \lift{A}$.
+  Lifting. For any \CComg context $\Gamma$ and \CComg terms $m, A$, if there is $\Gamma \vdash_{\scriptscriptstyle \text{\CComg}} m : A$, then there is $\lift{\Gamma} \vdash_{\scriptscriptstyle \text{CLC}} \lift{m} : \lift{A}$.
 \end{theorem}
 \begin{proof}
-  By induction on the derivation of $\Gamma \vdash_{\scriptscriptstyle \text{CC$\omega$}} m : A$.
+  By induction on the derivation of $\Gamma \vdash_{\scriptscriptstyle \text{\CComg}} m : A$.
 \end{proof}
 
 \end{document}
