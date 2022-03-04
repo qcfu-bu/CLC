@@ -1,5 +1,21 @@
 # Concurrent Calculus of Linear Constructions
 
+## Sort relations
+
+Order
+```text
+≤  U  L
+U  T  T
+L  F  T
+```
+
+Addition
+```text
++  U  L
+U  U  L
+L  L  L
+```
+
 ## Core typing rules
 
 ```text
@@ -35,7 +51,7 @@
 
 ## Data typing rules
 
-```text
+```
 Γ ▹ U     Γ ⊢ A : s@i     [Γ, x :s A] ⊢ B : r@i     s + r ≤ t
 --------------------------------------------------------------
 Γ ⊢ Σt (x :s A :r B)
@@ -47,8 +63,8 @@
 Γ1 + Γ2 ⊢ ⟨m, n⟩ : Σt (x :s A :r B)
 
 
-Γ1 ⊢ m : Σt (x :s A :r B)      
-[Γ2, z :t Σt (x :s A :r B)] ⊢ C : q@i
+Γ1 ⊢ m : Σt (x :s A :r B)     Γ1 ▹ k     t ≤ k
+[Γ2, z :k Σt (x :s A :r B)] ⊢ C : q@i
 Γ2, x :s A, y :r B ⊢ N : C[⟨x, y⟩/z]
 ----------------------------------------------------------
 Γ1 + Γ2 ⊢ let ⟨x, y⟩ = m in n : C[m/z]
