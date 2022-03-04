@@ -7,3 +7,5 @@ clc_ast.v
 clc_confluence.v
 clc_subtype.v
 clc_typing.v
+clc_weakening.v
+clc_substitution.v

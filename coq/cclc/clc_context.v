@@ -130,6 +130,12 @@ Proof.
     by rewrite ih.
 Qed.
 
+Lemma merge_pureR T (Γ1 Γ2 Γ : context T) :
+  Γ1 + Γ2 => Γ -> Γ2 |> U -> Γ = Γ1.
+Proof.
+  move/merge_sym. exact: merge_pureL.
+Qed.
+
 Lemma merge_pure_pure T (Γ1 Γ2 Γ : context T) :
   Γ1 + Γ2 => Γ -> Γ1 |> U -> Γ2 |> U -> Γ |> U.
 Proof.
@@ -144,6 +150,23 @@ Proof.
   move=> Γ1 Γ2 Γ mrg ih k1 k2.
     inv k1. inv k2.
     by eauto using key.
+Qed.
+
+Lemma merge_impureL T (Γ1 Γ2 Γ : context T) :
+  Γ1 + Γ2 => Γ -> Γ1 |> L -> Γ |> L.
+Proof with eauto using key.
+  elim=>{Γ1 Γ2 Γ}...
+  move=>Γ1 Γ2 Γ m mrg ih k. inv k...
+  move=>Γ1 Γ2 Γ m mrg ih k. inv k...
+  move=>Γ1 Γ2 Γ m mrg ih k. inv k...
+  move=>Γ1 Γ2 Γ mrg ih k. inv k...
+Qed.
+
+Lemma merge_impureR T (Γ1 Γ2 Γ : context T) :
+  Γ1 + Γ2 => Γ -> Γ2 |> L -> Γ |> L.
+Proof with eauto using key.
+  move/merge_sym.
+  exact: merge_impureL.
 Qed.
 
 Lemma merge_pure_eq T (Γ1 Γ2 Γ : context T) :
