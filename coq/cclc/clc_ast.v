@@ -1,5 +1,5 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
-From Coq Require Import ssrfun Program Utf8 Classical.
+From Coq Require Import ssrfun Classical.
 Require Import AutosubstSsr ARS clc_context.
 
 Set Implicit Arguments.
@@ -9,7 +9,7 @@ Unset Printing Implicit Defensive.
 Inductive term : Type :=
 | Var (x : var)
 | Sort (s : sort) (l : nat)
-| Arrow (A : term) (B : {bind term}) (s t : sort)
+| Pi (A : term) (B : {bind term}) (s t : sort)
 | Lam (A : term) (B : {bind term}) (s t : sort)
 | App (m n : term).
 
@@ -30,12 +30,12 @@ Inductive step : term -> term -> Prop :=
 | step_lamR A m m' s t :
   m ~> m' ->
   Lam A m s t ~> Lam A m' s t
-| step_arrowL A A' B s t :
+| step_piL A A' B s t :
   A ~> A' ->
-  Arrow A B s t ~> Arrow A' B s t
-| step_arrowR A B B' s t :
+  Pi A B s t ~> Pi A' B s t
+| step_piR A B B' s t :
   B ~> B' ->
-  Arrow A B s t ~> Arrow A B' s t
+  Pi A B s t ~> Pi A B' s t
 | step_appL m m' n :
   m ~> m' ->
   App m n ~> App m' n
