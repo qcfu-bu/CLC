@@ -28,7 +28,7 @@ Inductive clc_type : context term -> term -> term -> Prop :=
   Γ ⊢ Lam A m s t : Pi A B s t
 | clc_app Γ1 Γ2 Γ A B m n s t :
   Γ2 |> s ->
-  Γ1 + Γ2 => Γ ->
+  Γ1 ∘ Γ2 => Γ ->
   Γ1 ⊢ m : Pi A B s t ->
   Γ2 ⊢ n : A ->
   Γ ⊢ App m n : B.[n/]

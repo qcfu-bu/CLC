@@ -25,7 +25,7 @@ Inductive agree_subst :
   [Δ] ⊢ n : A.[σ] ->
   Δ ⊢ n .: σ ⊣ A :U Γ
 | agree_subst_wkL Δ1 Δ2 Δ σ Γ n A :
-  Δ1 + Δ2 => Δ ->
+  Δ1 ∘ Δ2 => Δ ->
   Δ1 ⊢ σ ⊣ Γ ->
   Δ2 ⊢ n : A.[σ] ->
   Δ ⊢ n .: σ ⊣ A :L Γ
@@ -121,9 +121,9 @@ Proof with eauto using agree_subst, agree_subst_key.
 Qed.
 
 Lemma merge_agree_subst_inv Δ σ Γ1 Γ2 Γ :
-  Δ ⊢ σ ⊣ Γ -> Γ1 + Γ2 => Γ ->
+  Δ ⊢ σ ⊣ Γ -> Γ1 ∘ Γ2 => Γ ->
   exists Δ1 Δ2,
-    Δ1 + Δ2 => Δ /\ Δ1 ⊢ σ ⊣ Γ1 /\ Δ2 ⊢ σ ⊣ Γ2.
+    Δ1 ∘ Δ2 => Δ /\ Δ1 ⊢ σ ⊣ Γ1 /\ Δ2 ⊢ σ ⊣ Γ2.
 Proof with eauto 6 using merge, agree_subst, agree_subst_key.
   move=>agr. elim: agr Γ1 Γ2=>{Δ σ Γ}.
   move=>σ Γ1 Γ2 mrg. inv mrg. exists nil. exists nil...
@@ -160,7 +160,7 @@ Proof with eauto 6 using merge, agree_subst, agree_subst_key.
   { move:(ih _ _ H2)=>[G1[G2[mrg1[agr1 agr2]]]].
     exists G1. exists G2... }
   move=>Δ σ Γ A B s l sb tyB1 tyB2 agr ih Γ1 Γ2 mrg. inv mrg.
-  { have/ih[G1[G2[mrg[agr1 agr2]]]] : A :U Γ0 + A :U Γ3 => A :U Γ...
+  { have/ih[G1[G2[mrg[agr1 agr2]]]] : A :U Γ0 ∘ A :U Γ3 => A :U Γ...
     move:(merge_re_re mrg)=>[_[gd1 gd2]].
     move:(merge_re_re H2)=>[_[g0 g3]].
     exists G1. exists G2.
@@ -171,7 +171,7 @@ Proof with eauto 6 using merge, agree_subst, agree_subst_key.
     apply: agree_subst_conv...
     rewrite gd2...
     rewrite g3... }
-  { have/ih[G1[G2[mrg[agr1 agr2]]]] : A :L Γ0 + _: Γ3 => A :L Γ...
+  { have/ih[G1[G2[mrg[agr1 agr2]]]] : A :L Γ0 ∘ _: Γ3 => A :L Γ...
     move:(merge_re_re mrg)=>[_[gd1 gd2]].
     move:(merge_re_re H2)=>[_[g0 g3]].
     exists G1. exists G2.
@@ -179,7 +179,7 @@ Proof with eauto 6 using merge, agree_subst, agree_subst_key.
     apply: agree_subst_conv...
     rewrite gd1...
     rewrite g0... }
-  { have/ih[G1[G2[mrg[agr1 agr2]]]] : _: Γ0 + A :L Γ3 => A :L Γ...
+  { have/ih[G1[G2[mrg[agr1 agr2]]]] : _: Γ0 ∘ A :L Γ3 => A :L Γ...
     move:(merge_re_re mrg)=>[_[gd1 gd2]].
     move:(merge_re_re H2)=>[_[g0 g3]].
     exists G1. exists G2.
@@ -216,7 +216,7 @@ Qed.
 Lemma substitution Γ1 Γ2 Γ m n A B s :
   A :{s} Γ1 ⊢ m : B ->
   Γ2 |> s ->
-  Γ1 + Γ2 => Γ -> 
+  Γ1 ∘ Γ2 => Γ -> 
   Γ2 ⊢ n : A -> 
   Γ ⊢ m.[n/] : B.[n/].
 Proof with eauto.

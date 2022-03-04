@@ -9,7 +9,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma merge_context_ok_inv Γ Γ1 Γ2 :
-  Γ1 + Γ2 => Γ -> ok Γ -> ok Γ1 /\ ok Γ2.
+  Γ1 ∘ Γ2 => Γ -> ok Γ -> ok Γ1 /\ ok Γ2.
 Proof with eauto using ok.
   elim=>{Γ1 Γ2 Γ}...
   move=>Γ1 Γ2 Γ m mrg ih o. inv o.
@@ -59,7 +59,7 @@ Proof with eauto using clc_type, re_pure, merge_re_id.
     move:o1=>/ihm{ihm}[r1[l1 /pi_inv[r2[l2[tyA tyB]]]]].
     destruct s.
     exists r2. exists l2.
-    have {}mrg : [Γ1] + Γ2 => [Γ].
+    have {}mrg : [Γ1] ∘ Γ2 => [Γ].
       replace Γ2 with [Γ2].
       rewrite e2 e3...
       rewrite<-pure_re...

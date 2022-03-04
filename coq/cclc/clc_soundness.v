@@ -69,7 +69,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     move:(pi_inv _ _ _ _ _ _ tyP)=>[r[l[tyA tyB]]].
     move:(merge_re_re mrg)=>[e1[e2 e3]].
     destruct s.
-    { have mrg' : [Γ1] + Γ2 => [Γ].
+    { have mrg' : [Γ1] ∘ Γ2 => [Γ].
         replace Γ2 with [Γ2].
         rewrite e2 e3...
         rewrite<-pure_re...

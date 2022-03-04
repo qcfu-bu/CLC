@@ -6,34 +6,51 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Declare Scope sort_scope.
+Delimit Scope sort_scope with srt.
+Local Open Scope sort_scope.
+
 Inductive sort : Type := U | L.
+Bind Scope sort_scope with sort.
 
 Definition elem T := option (T * sort).
 Definition context T := seq (elem T).
-
 
 Notation "m :U Γ" := (Some (m, U) :: Γ) (at level 30).
 Notation "m :L Γ" := (Some (m, L) :: Γ) (at level 30).
 Notation "m :{ s } Γ" := (Some (m, s) :: Γ) (at level 30).
 Notation "_: Γ" := (None :: Γ) (at level 30).
 
-Reserved Notation "Γ1 + Γ2 => Γ" (at level 40).
+Definition sort_plus (s t : sort) :=
+  match s with
+  | U => t
+  | L => L
+  end.
+Infix "+" := sort_plus : sort_scope.
+
+Inductive sort_leq : sort -> sort -> Prop :=
+| sort_leqU s :
+  sort_leq U s
+| sort_leqL :
+  sort_leq L L.
+
+Reserved Notation "Γ1 ∘ Γ2 => Γ" (at level 40).
 Inductive merge T : context T -> context T -> context T -> Prop :=
 | merge_nil :
-  nil + nil => nil
+  nil ∘ nil => nil
 | merge_left Γ1 Γ2 Γ m : 
-  Γ1 + Γ2 => Γ ->
-  m :U Γ1 + m :U Γ2 => m :U Γ
+  Γ1 ∘ Γ2 => Γ ->
+  m :U Γ1 ∘ m :U Γ2 => m :U Γ
 | merge_right1 Γ1 Γ2 Γ m :
-  Γ1 + Γ2 => Γ ->
-  m :L Γ1 + _: Γ2 => m :L Γ
+  Γ1 ∘ Γ2 => Γ ->
+  m :L Γ1 ∘ _: Γ2 => m :L Γ
 | merge_right2 Γ1 Γ2 Γ m :
-  Γ1 + Γ2 => Γ ->
-  _: Γ1 + m :L Γ2 => m :L Γ
+  Γ1 ∘ Γ2 => Γ ->
+  _: Γ1 ∘ m :L Γ2 => m :L Γ
 | merge_null Γ1 Γ2 Γ :
-  Γ1 + Γ2 => Γ ->
-  _: Γ1 + _: Γ2 => _: Γ
-where "Γ1 + Γ2 => Γ" := (merge Γ1 Γ2 Γ).
+  Γ1 ∘ Γ2 => Γ ->
+  _: Γ1 ∘ _: Γ2 => _: Γ
+where "Γ1 ∘ Γ2 => Γ" := (merge Γ1 Γ2 Γ).
 
 Reserved Notation "Γ |> s" (at level 40).
 Inductive key T : context T -> sort -> Prop :=
@@ -70,35 +87,41 @@ Fixpoint re T (Γ : context T) : context T :=
   end.
 Notation "[ Γ ]" := (re Γ).
 
+Lemma key_impure T (Γ : context T) : Γ |> L.
+Proof with eauto using key.
+  elim: Γ...
+  move=>[[A s]|] Γ k...
+Qed.
+
 Lemma merge_sym T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ -> Γ2 + Γ1 => Γ.
+  Γ1 ∘ Γ2 => Γ -> Γ2 ∘ Γ1 => Γ.
 Proof.
   elim; move=>*; eauto using merge.
 Qed.
 
 Lemma merge_pure T (Γ : context T) :
-  Γ |> U -> Γ + Γ => Γ.
+  Γ |> U -> Γ ∘ Γ => Γ.
 Proof.
   move e:(U)=> s k.
   elim: k e; move=>//=*; eauto using merge.
 Qed.
 
 Lemma merge_reL T (Γ : context T) :
-  [Γ] + Γ => Γ.
+  [Γ] ∘ Γ => Γ.
 Proof.
   elim: Γ; eauto using merge.
   move=> [[A[|]]|] Γ mrg//=; eauto using merge.
 Qed.
 
 Lemma merge_reR T (Γ : context T) :
-  Γ + [Γ] => Γ.
+  Γ ∘ [Γ] => Γ.
 Proof.
   elim: Γ; eauto using merge.
   move=> [[A[|]]|] Γ mrg//=; eauto using merge.
 Qed.
 
 Lemma merge_pure_inv T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ -> Γ |> U -> Γ1 |> U /\ Γ2 |> U.
+  Γ1 ∘ Γ2 => Γ -> Γ |> U -> Γ1 |> U /\ Γ2 |> U.
 Proof.
   elim=>//={Γ1 Γ2 Γ}.
   move=> Γ1 Γ2 Γ A mrg1 ih mrg2.
@@ -114,7 +137,7 @@ Proof.
 Qed.
 
 Lemma merge_pureL T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ -> Γ1 |> U -> Γ = Γ2.
+  Γ1 ∘ Γ2 => Γ -> Γ1 |> U -> Γ = Γ2.
 Proof.
   elim=>//={Γ1 Γ2 Γ}.
   move=> Γ1 Γ2 Γ A mrg1 ih mrg2.
@@ -131,13 +154,13 @@ Proof.
 Qed.
 
 Lemma merge_pureR T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ -> Γ2 |> U -> Γ = Γ1.
+  Γ1 ∘ Γ2 => Γ -> Γ2 |> U -> Γ = Γ1.
 Proof.
   move/merge_sym. exact: merge_pureL.
 Qed.
 
 Lemma merge_pure_pure T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ -> Γ1 |> U -> Γ2 |> U -> Γ |> U.
+  Γ1 ∘ Γ2 => Γ -> Γ1 |> U -> Γ2 |> U -> Γ |> U.
 Proof.
   elim=>//={Γ1 Γ2 Γ}.
   move=> Γ1 Γ2 Γ A mrg ih k1 k2.
@@ -153,7 +176,7 @@ Proof.
 Qed.
 
 Lemma merge_impureL T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ -> Γ1 |> L -> Γ |> L.
+  Γ1 ∘ Γ2 => Γ -> Γ1 |> L -> Γ |> L.
 Proof with eauto using key.
   elim=>{Γ1 Γ2 Γ}...
   move=>Γ1 Γ2 Γ m mrg ih k. inv k...
@@ -163,14 +186,14 @@ Proof with eauto using key.
 Qed.
 
 Lemma merge_impureR T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ -> Γ2 |> L -> Γ |> L.
+  Γ1 ∘ Γ2 => Γ -> Γ2 |> L -> Γ |> L.
 Proof with eauto using key.
   move/merge_sym.
   exact: merge_impureL.
 Qed.
 
 Lemma merge_pure_eq T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ -> Γ1 |> U -> Γ2 |> U -> Γ1 = Γ2.
+  Γ1 ∘ Γ2 => Γ -> Γ1 |> U -> Γ2 |> U -> Γ1 = Γ2.
 Proof.
   elim=>//={Γ1 Γ2 Γ}.
   move=> Γ1 Γ2 Γ A mrg ih k1 k2.
@@ -186,7 +209,7 @@ Proof.
 Qed.
 
 Lemma merge_re_re T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ -> [Γ1] = [Γ2] /\ [Γ1] = [Γ] /\ [Γ2] = [Γ].
+  Γ1 ∘ Γ2 => Γ -> [Γ1] = [Γ2] /\ [Γ1] = [Γ] /\ [Γ2] = [Γ].
 Proof.
   elim=>//={Γ1 Γ2 Γ}.
   move=> Γ1 Γ2 Γ A mrg[->[->_]]//.
@@ -196,7 +219,7 @@ Proof.
 Qed.
 
 Lemma merge_re_id T (Γ : context T) :
-  [Γ] + [Γ] => [Γ].
+  [Γ] ∘ [Γ] => [Γ].
 Proof.
   elim: Γ; eauto using merge.
   move=> [[A[|]]|] Γ mrg; eauto using merge.
@@ -288,11 +311,11 @@ Proof.
 Qed.
 
 Lemma merge_splitL T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ ->
+  Γ1 ∘ Γ2 => Γ ->
   forall Δ1 Δ2,
-    Δ1 + Δ2 => Γ1 ->
+    Δ1 ∘ Δ2 => Γ1 ->
     exists Δ, 
-      Δ1 + Γ2 => Δ /\ Δ + Δ2 => Γ.
+      Δ1 ∘ Γ2 => Δ /\ Δ ∘ Δ2 => Γ.
 Proof.
   elim=>{Γ1 Γ2 Γ}.
   move=> Δ1 Δ2 mrg. 
@@ -325,11 +348,11 @@ Proof.
 Qed.
 
 Lemma merge_splitR T (Γ1 Γ2 Γ : context T) :
-  Γ1 + Γ2 => Γ ->
+  Γ1 ∘ Γ2 => Γ ->
   forall Δ1 Δ2,
-    Δ1 + Δ2 => Γ1 ->
+    Δ1 ∘ Δ2 => Γ1 ->
     exists Δ,
-      Δ2 + Γ2 => Δ /\ Δ1 + Δ => Γ.
+      Δ2 ∘ Γ2 => Δ /\ Δ1 ∘ Δ => Γ.
 Proof.
   elim=>{Γ1 Γ2 Γ}.
   move=> Δ1 Δ2 mrg. 
