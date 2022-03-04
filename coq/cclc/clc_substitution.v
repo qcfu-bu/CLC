@@ -233,9 +233,7 @@ Proof with eauto.
 Qed.
 
 Lemma substitutionN Γ1 Γ2 m n A B :
-  _: Γ1 |- m : B ->
-  Γ2 |- n : A ->
-  Γ1 |- m.[n/] : B.[n/].
+  _: Γ1 |- m : B -> Γ2 |- n : A -> Γ1 |- m.[n/] : B.[n/].
 Proof with eauto.
   move=>tym tyn.
   apply: esubstitution...
