@@ -47,7 +47,7 @@ Lemma lam_invX Γ A1 A2 B C m s1 s2 t1 t2 r l :
 Proof.
   move e:(Lam A1 m s1 t1)=>n tpL.
   elim: tpL A1 A2 B m s1 t1 s2 t2 r l e=>//{Γ C n}.
-  move=>Γ A B m s r t i k tyP ih tym ihm A1 A2 B0 m0
+  move=>Γ A B m s t i k tyP ih tym ihm A1 A2 B0 m0
     s1 t1 s2 t2 r0 l[e1 e2 e3 e4]/sub_pi_inv[c[sbB[e5 e6]]] tyB0; subst.
   { move:tyP=>/pi_inv[r1[l0[tyA tyB]]].
     destruct s2.

@@ -21,9 +21,9 @@ Inductive clc_type : context term -> term -> term -> Prop :=
 | clc_var Γ x A s :
   has Γ x s A ->
   Γ ⊢ Var x : A
-| clc_lam Γ A B m s r t i :
+| clc_lam Γ A B m s t i :
   Γ |> t ->
-  [Γ] ⊢ Pi A B s t : r @ i ->
+  [Γ] ⊢ Pi A B s t : t @ i ->
   A :{s} Γ ⊢ m : B ->
   Γ ⊢ Lam A m s t : Pi A B s t
 | clc_app Γ1 Γ2 Γ A B m n s t :

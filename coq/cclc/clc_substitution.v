@@ -199,7 +199,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
   { apply: clc_pi... }
   move=>Γ x A s hs Δ σ agr. asimpl.
   { apply: agree_subst_has... }
-  move=>Γ A B m s r t i k tyP ihP tym ihm Δ σ agr. asimpl.
+  move=>Γ A B m s t i k tyP ihP tym ihm Δ σ agr. asimpl.
   { apply: clc_lam... }
   move=>Γ1 Γ2 Γ A B m n s t k mrg tym ihm tyn ihn Δ σ agr. asimpl.
   { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].

@@ -134,7 +134,7 @@ Proof with eauto using clc_type, agree_ren, agree_ren_key.
   { asimpl. 
     apply: clc_var.
     apply: agree_ren_has... }
-  move=>Γ A B m s r t i k tyP ihP tym ihm Γ' ξ agr.
+  move=>Γ A B m s t i k tyP ihP tym ihm Γ' ξ agr.
   { asimpl.
     apply: clc_lam...
     move:(ihP _ _ (agree_ren_re_re agr)). 

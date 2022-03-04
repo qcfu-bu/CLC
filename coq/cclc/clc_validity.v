@@ -51,8 +51,8 @@ Proof with eauto using clc_type, re_pure, merge_re_id.
   move=>Γ x A s hs o.
     move:(has_ok o hs)=>[l tyA].
     exists s. exists l...
-  move=>Γ A B m s r t i k tyP ihP tym ihm o.
-    exists r. exists i...
+  move=>Γ A B m s t i k tyP ihP tym ihm o.
+    exists t. exists i...
   move=>Γ1 Γ2 Γ A B m n s t k mrg tym ihm tyn ihn o.
     move:(merge_context_ok_inv mrg o)=>[o1 o2].
     move:(merge_re_re mrg)=>[e1[e2 e3]].

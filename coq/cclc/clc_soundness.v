@@ -40,7 +40,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     move:(ihB _ H4)=>tyB'.
     apply: clc_pi... }
   move=>Γ x A s hs n o st. inv st.
-  move=>Γ A B m s r t i k tyP ihP tym ihm n o st. inv st.
+  move=>Γ A B m s t i k tyP ihP tym ihm n o st. inv st.
   { have st : Pi A B s t ~> Pi A' B s t...
     move:(pi_inv _ _ _ _ _ _ tyP)=>[r0[l[tyA tyB]]].
     move:(ihP _ (re_ok o) st)=>tyP'.
