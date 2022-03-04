@@ -8,40 +8,40 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Reserved Notation "Δ |- σ -| Γ" (at level 50, σ, Γ at next level).
+Reserved Notation "Δ ⊢ σ ⊣ Γ" (at level 50, σ, Γ at next level).
 
 Inductive agree_subst :
   context term -> (var -> term) -> context term -> Prop :=
 | agree_subst_nil σ :
-  nil |- σ -| nil
+  nil ⊢ σ ⊣ nil
 | agree_subst_ty Δ σ Γ s A :
-  Δ |- σ -| Γ ->
-  A.[σ] :{s} Δ |- up σ -| A :{s} Γ
+  Δ ⊢ σ ⊣ Γ ->
+  A.[σ] :{s} Δ ⊢ up σ ⊣ A :{s} Γ
 | agree_subst_n Δ σ Γ :
-  Δ |- σ -| Γ ->
-  _: Δ |- up σ -| _: Γ
+  Δ ⊢ σ ⊣ Γ ->
+  _: Δ ⊢ up σ ⊣ _: Γ
 | agree_subst_wkU Δ σ Γ n A :
-  Δ |- σ -| Γ ->
-  [Δ] |- n : A.[σ] ->
-  Δ |- n .: σ -| A :U Γ
+  Δ ⊢ σ ⊣ Γ ->
+  [Δ] ⊢ n : A.[σ] ->
+  Δ ⊢ n .: σ ⊣ A :U Γ
 | agree_subst_wkL Δ1 Δ2 Δ σ Γ n A :
   Δ1 + Δ2 => Δ ->
-  Δ1 |- σ -| Γ ->
-  Δ2 |- n : A.[σ] ->
-  Δ |- n .: σ -| A :L Γ
+  Δ1 ⊢ σ ⊣ Γ ->
+  Δ2 ⊢ n : A.[σ] ->
+  Δ ⊢ n .: σ ⊣ A :L Γ
 | agree_subst_wkN Δ σ Γ n :
-  Δ |- σ -| Γ ->
-  Δ |- n .: σ -| _: Γ
+  Δ ⊢ σ ⊣ Γ ->
+  Δ ⊢ n .: σ ⊣ _: Γ
 | agree_subst_conv Δ σ Γ A B s l :
   A <: B ->
-  [Δ] |- B.[ren (+1)].[σ] : s @ l ->
-  [Γ] |- B : s @ l ->
-  Δ |- σ -| A :{s} Γ ->
-  Δ |- σ -| B :{s} Γ
-where "Δ |- σ -| Γ" := (agree_subst Δ σ Γ).
+  [Δ] ⊢ B.[ren (+1)].[σ] : s @ l ->
+  [Γ] ⊢ B : s @ l ->
+  Δ ⊢ σ ⊣ A :{s} Γ ->
+  Δ ⊢ σ ⊣ B :{s} Γ
+where "Δ ⊢ σ ⊣ Γ" := (agree_subst Δ σ Γ).
 
 Lemma agree_subst_key Δ σ Γ s :
-  Δ |- σ -| Γ -> Γ |> s -> Δ |> s.
+  Δ ⊢ σ ⊣ Γ -> Γ |> s -> Δ |> s.
 Proof with eauto using key.
   move=>agr. elim: agr s=>{Δ σ Γ}...
   move=>Δ σ Γ s A agr ih t k. inv k...
@@ -54,17 +54,17 @@ Proof with eauto using key.
   move=>Δ σ Γ A B s l sb tyB1 tyB2 agr ih t k. inv k...
 Qed.
 
-Lemma agree_subst_refl Γ : Γ |- ids -| Γ.
+Lemma agree_subst_refl Γ : Γ ⊢ ids ⊣ Γ.
 Proof with eauto using agree_subst.
   elim: Γ...
   move=>[[A s]|] Γ agr.
-  have: A.[ids] :{s} Γ |- up ids -| A :{s} Γ... by asimpl.
-  have: _: Γ |- up ids -| _: Γ... by asimpl.
+  have: A.[ids] :{s} Γ ⊢ up ids ⊣ A :{s} Γ... by asimpl.
+  have: _: Γ ⊢ up ids ⊣ _: Γ... by asimpl.
 Qed.
 Hint Resolve agree_subst_refl.
 
 Lemma agree_subst_has Δ σ Γ x s A :
-  Δ |- σ -| Γ -> has Γ x s A -> Δ |- σ x : A.[σ].
+  Δ ⊢ σ ⊣ Γ -> has Γ x s A -> Δ ⊢ σ x : A.[σ].
 Proof with eauto using agree_subst, agree_subst_key.
   move=> agr. elim: agr x s A=>{Δ σ Γ}.
   move=>σ x s A hs. inv hs.
@@ -104,7 +104,7 @@ Proof with eauto using agree_subst, agree_subst_key.
     constructor... }
 Qed.
 
-Lemma agree_subst_re Δ σ Γ : Δ |- σ -| Γ -> [Δ] |- σ -| [Γ].
+Lemma agree_subst_re Δ σ Γ : Δ ⊢ σ ⊣ Γ -> [Δ] ⊢ σ ⊣ [Γ].
 Proof with eauto using agree_subst, agree_subst_key.
   elim=>{Δ σ Γ}...
   move=>Δ σ Γ [] A agr1 agr2//=...
@@ -121,9 +121,9 @@ Proof with eauto using agree_subst, agree_subst_key.
 Qed.
 
 Lemma merge_agree_subst_inv Δ σ Γ1 Γ2 Γ :
-  Δ |- σ -| Γ -> Γ1 + Γ2 => Γ ->
+  Δ ⊢ σ ⊣ Γ -> Γ1 + Γ2 => Γ ->
   exists Δ1 Δ2,
-    Δ1 + Δ2 => Δ /\ Δ1 |- σ -| Γ1 /\ Δ2 |- σ -| Γ2.
+    Δ1 + Δ2 => Δ /\ Δ1 ⊢ σ ⊣ Γ1 /\ Δ2 ⊢ σ ⊣ Γ2.
 Proof with eauto 6 using merge, agree_subst, agree_subst_key.
   move=>agr. elim: agr Γ1 Γ2=>{Δ σ Γ}.
   move=>σ Γ1 Γ2 mrg. inv mrg. exists nil. exists nil...
@@ -190,7 +190,7 @@ Proof with eauto 6 using merge, agree_subst, agree_subst_key.
 Qed.
 
 Lemma esubstitution Γ m A Δ σ :
-  Γ |- m : A -> Δ |- σ -| Γ -> Δ |- m.[σ] : A.[σ].
+  Γ ⊢ m : A -> Δ ⊢ σ ⊣ Γ -> Δ ⊢ m.[σ] : A.[σ].
 Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
   move=>ty. elim: ty Δ σ=>{Γ m A}.
   move=>Γ s l k Δ σ agr. asimpl.
@@ -214,11 +214,11 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
 Qed.
   
 Lemma substitution Γ1 Γ2 Γ m n A B s :
-  A :{s} Γ1 |- m : B ->
+  A :{s} Γ1 ⊢ m : B ->
   Γ2 |> s ->
   Γ1 + Γ2 => Γ -> 
-  Γ2 |- n : A -> 
-  Γ |- m.[n/] : B.[n/].
+  Γ2 ⊢ n : A -> 
+  Γ ⊢ m.[n/] : B.[n/].
 Proof with eauto.
   move=>tym k mrg tyn.
   apply: esubstitution...
@@ -233,7 +233,7 @@ Proof with eauto.
 Qed.
 
 Lemma substitutionN Γ1 Γ2 m n A B :
-  _: Γ1 |- m : B -> Γ2 |- n : A -> Γ1 |- m.[n/] : B.[n/].
+  _: Γ1 ⊢ m : B -> Γ2 ⊢ n : A -> Γ1 ⊢ m.[n/] : B.[n/].
 Proof with eauto.
   move=>tym tyn.
   apply: esubstitution...
@@ -241,10 +241,10 @@ Proof with eauto.
 Qed.
 
 Lemma strengthen Γ m A :
-  _: Γ |- m.[ren (+1)] : A.[ren (+1)] -> Γ |- m : A.
+  _: Γ ⊢ m.[ren (+1)] : A.[ren (+1)] -> Γ ⊢ m : A.
 Proof with eauto using key.
   move=>tym.
-  have ty : (nil |- U @ 0 : U @ 1).
+  have ty : (nil ⊢ U @ 0 : U @ 1).
   apply: clc_axiom...
   have := (substitutionN tym ty).
   by asimpl.
@@ -252,12 +252,10 @@ Qed.
 
 Lemma context_conv Γ m A B C s l :
   B === A -> 
-  [Γ] |- A : s @ l ->
-  A :{s} Γ |- m : C -> 
-  B :{s} Γ |- m : C.
+  [Γ] ⊢ A : s @ l -> A :{s} Γ ⊢ m : C -> B :{s} Γ ⊢ m : C.
 Proof with eauto.
   move=>conv tpA tpm.
-  cut (B :{s} Γ |- m.[ids] : C.[ids]). autosubst.
+  cut (B :{s} Γ ⊢ m.[ids] : C.[ids]). autosubst.
   apply: esubstitution...
   apply: agree_subst_conv.
   apply: conv_sub...

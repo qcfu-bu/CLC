@@ -115,7 +115,7 @@ Proof with eauto 6 using merge, agree_ren.
 Qed.
 
 Lemma rename_ok Γ Γ' m A ξ :
-  Γ |- m : A -> agree_ren ξ Γ Γ' -> Γ' |- m.[ren ξ] : A.[ren ξ].
+  Γ ⊢ m : A -> agree_ren ξ Γ Γ' -> Γ' ⊢ m.[ren ξ] : A.[ren ξ].
 Proof with eauto using clc_type, agree_ren, agree_ren_key.
   move=>ty. elim: ty Γ' ξ=>{Γ m A}.
   move=>Γ s l k Γ' ξ agr. asimpl...
@@ -159,7 +159,7 @@ Proof with eauto using clc_type, agree_ren, agree_ren_key.
 Qed.
 
 Lemma has_ok Γ x A s :
-  ok Γ -> has Γ x s A -> exists l, [Γ] |- A : s @ l.
+  ok Γ -> has Γ x s A -> exists l, [Γ] ⊢ A : s @ l.
 Proof with eauto using agree_ren, agree_ren_refl.
   move=> wf. elim: wf s x A=>{Γ}.
   move=>s x A hs. inv hs.
@@ -180,13 +180,13 @@ Proof with eauto using agree_ren, agree_ren_refl.
 Qed.
 
 Lemma weakeningU Γ m A B :
-  Γ |- m : A -> B :U Γ |- m.[ren (+1)] : A.[ren (+1)].
+  Γ ⊢ m : A -> B :U Γ ⊢ m.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using agree_ren, agree_ren_refl.
   move=>ty. apply: rename_ok...
 Qed.
 
 Lemma weakeningN Γ m A :
-  Γ |- m : A -> _: Γ |- m.[ren (+1)] : A.[ren (+1)].
+  Γ ⊢ m : A -> _: Γ ⊢ m.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using agree_ren, agree_ren_refl.
   move=>ty. apply: rename_ok...
 Qed.
@@ -194,7 +194,7 @@ Qed.
 Lemma eweakeningU Γ m m' A A' B :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  Γ |- m : A -> B :U Γ |- m' : A'.
+  Γ ⊢ m : A -> B :U Γ ⊢ m' : A'.
 Proof.  
   move=>*; subst. by apply: weakeningU.
 Qed.
@@ -202,7 +202,7 @@ Qed.
 Lemma eweakeningN Γ m m' A A' :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  Γ |- m : A -> _: Γ |- m' : A'.
+  Γ ⊢ m : A -> _: Γ ⊢ m' : A'.
 Proof.  
   move=>*; subst. by apply weakeningN.
 Qed.
