@@ -1,5 +1,5 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
-From Coq Require Import ssrfun Program Utf8 Classical.
+From Coq Require Import ssrfun Classical Utf8.
 Require Import AutosubstSsr ARS clc_context clc_ast clc_confluence.
 
 Set Implicit Arguments.

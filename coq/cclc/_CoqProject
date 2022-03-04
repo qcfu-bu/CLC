@@ -5,3 +5,5 @@ ARS.v
 clc_context.v
 clc_ast.v
 clc_confluence.v
+clc_subtype.v
+clc_typing.v
