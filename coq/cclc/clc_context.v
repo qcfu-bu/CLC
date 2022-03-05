@@ -8,7 +8,7 @@ Unset Printing Implicit Defensive.
 
 Declare Scope sort_scope.
 Delimit Scope sort_scope with srt.
-Local Open Scope sort_scope.
+Open Scope sort_scope.
 
 Inductive sort : Type := U | L.
 Bind Scope sort_scope with sort.
@@ -16,23 +16,28 @@ Bind Scope sort_scope with sort.
 Definition elem T := option (T * sort).
 Definition context T := seq (elem T).
 
-Notation "m :U Γ" := (Some (m, U) :: Γ) (at level 30).
-Notation "m :L Γ" := (Some (m, L) :: Γ) (at level 30).
-Notation "m :{ s } Γ" := (Some (m, s) :: Γ) (at level 30).
-Notation "_: Γ" := (None :: Γ) (at level 30).
+Notation "m :U Γ" := (Some (m, U) :: Γ) 
+  (at level 30, right associativity).
+Notation "m :L Γ" := (Some (m, L) :: Γ) 
+  (at level 30, right associativity).
+Notation "m :{ s } Γ" := (Some (m, s) :: Γ) 
+  (at level 30, right associativity, format "m  :{ s }  Γ").
+Notation "_: Γ" := (None :: Γ) 
+  (at level 30, right associativity).
 
 Definition sort_plus (s t : sort) :=
   match s with
   | U => t
   | L => L
   end.
-Infix "+" := sort_plus : sort_scope.
+Infix "⋅" := sort_plus (at level 30) : sort_scope.
 
 Inductive sort_leq : sort -> sort -> Prop :=
 | sort_leqU s :
   sort_leq U s
 | sort_leqL :
   sort_leq L L.
+Infix "≤" := sort_leq : sort_scope.
 
 Reserved Notation "Γ1 ∘ Γ2 => Γ" (at level 40).
 Inductive merge T : context T -> context T -> context T -> Prop :=

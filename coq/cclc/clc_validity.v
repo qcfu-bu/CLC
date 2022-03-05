@@ -67,6 +67,30 @@ Proof with eauto using clc_type, re_pure, merge_re_id.
     exists r2. exists l2.
     move:(substitutionN tyB tyn).
     by rewrite e2.
+  move=>Γ k o. exists U. exists 1...
+  move=>Γ k o. exists U. exists 0...
+  move=>Γ A B s r t i leq k tyA ihA tyB ihB o.
+    exists U. exists i.+1...
+  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg
+    tyS ihS tym ihm tyn ihn o.
+    exists t. exists i...
+  move=>Γ1 Γ2 Γ m n A mrg _ _ tyn ihn o.
+    move:(merge_context_ok_inv mrg o)=>[_/ihn[x[l tyA]]]{ihn}.
+    move:(merge_re_re mrg)=>[_[_ e]].
+    exists x. exists l.
+    by rewrite<-e.
+  move=>Γ1 Γ2 Γ A B C m n s r t k x i leq key mrg
+    tym _ tyC _ tyn _ o.
+    exists x. exists i.
+    move:(merge_re_re mrg)=>[e0[e1 e2]].
+    destruct k; simpl in tyC.
+    have mrg1:[Γ2] ∘ Γ1 => [Γ].
+    rewrite e2 (pure_re key) e1.
+    apply: merge_re_id.
+    have:=substitution tyC key mrg1 tym.
+    by asimpl.
+    have:=substitutionN tyC tym.
+    by rewrite e2.
   move=>Γ A B m s i sb tym ihm tyB ihB o.
     exists s. exists i...
 Qed.

@@ -116,20 +116,15 @@ Qed.
 
 Lemma rename_ok Γ Γ' m A ξ :
   Γ ⊢ m : A -> agree_ren ξ Γ Γ' -> Γ' ⊢ m.[ren ξ] : A.[ren ξ].
-Proof with eauto using clc_type, agree_ren, agree_ren_key.
+Proof with eauto using 
+  clc_type, agree_ren, agree_ren_key, agree_ren_re_re.
   move=>ty. elim: ty Γ' ξ=>{Γ m A}.
   move=>Γ s l k Γ' ξ agr. asimpl...
   move=>Γ A B [] r t i k tyA ihA tyB ihB Γ' ξ agr.
   { asimpl.
-    apply: clc_pi...
-    apply: ihB=>//=.
-    constructor.
-    rewrite<-!pure_re... }
+    apply: clc_pi... }
   { asimpl.
-    apply: clc_pi...
-    apply: ihB=>//=.
-    constructor.
-    rewrite<-!pure_re... }
+    apply: clc_pi... }
   move=>Γ x A s hs Γ' ξ agr.
   { asimpl. 
     apply: clc_var.
@@ -149,6 +144,54 @@ Proof with eauto using clc_type, agree_ren, agree_ren_key.
       by autosubst.
     apply: clc_app...
     asimpl in tym... }
+  move=>Γ k Γ' ξ arg. asimpl...
+  move=>Γ k Γ' ξ arg. asimpl...
+  move=>Γ A B s r t i leq k tyA ihA tyB ihB Γ' ξ agr.
+  { asimpl.
+    destruct s.
+    have:agree_ren (upren ξ) (A :U [Γ]) (A.[ren ξ] :U [Γ'])...
+    have:agree_ren (upren ξ) (_: [Γ]) (_: [Γ'])... }
+  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg 
+    tyS ihS tym ihm tyn ihn Γ' ξ agr.
+  { asimpl.
+    move:(merge_agree_ren_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
+    move:(agree_ren_key agr1 k1)=>{}k1.
+    move:(agree_ren_key agr2 k2)=>{}k2.
+    apply: clc_pair...
+    move:(ihS _ _ (agree_ren_re_re agr)). asimpl...
+    move:(ihn _ _ agr2). asimpl... }
+  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn Γ' ξ agr.
+  { asimpl.
+    move:(merge_agree_ren_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
+    move:(ihm _ _ agr1)=>{}ihm.
+    move:(ihn _ _ agr2)=>{}ihn.
+    apply: clc_letin1... }
+  move=>Γ1 Γ2 Γ A B C m n s r t k x i leq key mrg 
+    tym ihm tyC ihC tyn ihn Γ' ξ agr.
+  { asimpl.
+    move:(merge_agree_ren_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
+    move:(ihm _ _ agr1)=>{ihm}tym.
+    move:(agree_ren_key agr1 key)=>{}key.
+    have/ihn{ihn}tyn:agree_ren (upren (upren ξ)) (B :{r} A :{s} Γ2)
+      (B.[ren (upren ξ)] :{r} A.[ren ξ] :{s} G2)...
+    destruct k.
+    have/ihC{ihC}tyC:agree_ren (upren ξ) (Sigma A B s r t :U [Γ2])
+      ((Sigma A B s r t).[ren ξ] :U [G2])...
+    asimpl in tym.
+    asimpl in tyC.
+    replace B.[Pair (Var 1) (Var 0) .: ren (+2)].[ren (upren (upren ξ))]
+      with B.[ren (upren ξ)].[Pair (Var 1) (Var 0) .: ren (+2)]
+        in tyn by autosubst.
+    have:=clc_letin2 leq key mrg1 tym tyC tyn.
+    by asimpl.
+    have/ihC{ihC}tyC:agree_ren (upren ξ) (_: [Γ2]) (_: [G2])...
+    asimpl in tym.
+    asimpl in tyC.
+    replace B.[Pair (Var 1) (Var 0) .: ren (+2)].[ren (upren (upren ξ))]
+      with B.[ren (upren ξ)].[Pair (Var 1) (Var 0) .: ren (+2)]
+        in tyn by autosubst.
+    have:=clc_letin2 leq key mrg1 tym tyC tyn.
+    by asimpl. }
   move=>Γ A B m s i sb tym ihm tyB ihB Γ' ξ agr.
   { move:(ihm _ _ agr)=>{ihm}tym.
     move:(ihB _ _ (agree_ren_re_re agr))=>{ihB}tyB.

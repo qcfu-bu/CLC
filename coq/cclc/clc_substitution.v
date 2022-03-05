@@ -206,13 +206,55 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     replace B.[n.[σ] .: σ] with B.[up σ].[n.[σ]/] by autosubst.
     move:(agree_subst_key agr2 k)=>{}k.
     apply: clc_app... }
+  move=>Γ k Δ σ agr. asimpl.
+  { apply: clc_unit... }
+  move=>Γ k Δ σ agr. asimpl.
+  { apply: clc_it... }
+  move=>Γ A B s r t i mrg k tyA ihA tyB ihB Δ σ agr. asimpl.
+  { apply: clc_sigma... }
+  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg 
+    tyS ihS tym ihm tyn ihn Δ σ agr. asimpl.
+  { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
+    move:(agree_subst_key agr1 k1)=>{}k1.
+    move:(agree_subst_key agr2 k2)=>{}k2.
+    apply: clc_pair...
+    move:(ihn _ _ agr2).
+    by asimpl. }
+  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn Δ σ agr. asimpl.
+  { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
+    apply: clc_letin1... }
+  move=>Γ1 Γ2 Γ A B C m n s r t k x i leq key mrg
+    tym ihm tyC ihC tyn ihn Δ σ agr. asimpl.
+  { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
+    move:(ihm _ _ agr1)=>{ihm}tym.
+    move:(agree_subst_key agr1 key)=>{}key.
+    have/ihn{ihn}tyn: B.[up σ] :{r} A.[σ] :{s} G2 ⊢ up (up σ) ⊣
+      B :{r} A :{s} Γ2...
+    destruct k.
+    have/ihC{ihC}tyC:(Sigma A B s r t).[σ] :U [G2] ⊢ up σ ⊣
+      [Sigma A B s r t :U Γ2]...
+    asimpl in tym.
+    asimpl in tyC.
+    replace B.[Pair (Var 1) (Var 0) .: ren (+2)].[up (up σ)]
+      with B.[up σ].[Pair (Var 1) (Var 0) .: ren (+2)]
+        in tyn by autosubst.
+    have:=clc_letin2 leq key mrg1 tym tyC tyn.
+    by asimpl.
+    have/ihC{ihC}tyC:_: [G2] ⊢ up σ ⊣ [Sigma A B s r t :L Γ2]...
+    asimpl in tym.
+    asimpl in tyC.
+    replace B.[Pair (Var 1) (Var 0) .: ren (+2)].[up (up σ)]
+      with B.[up σ].[Pair (Var 1) (Var 0) .: ren (+2)]
+        in tyn by autosubst.
+    have:=clc_letin2 leq key mrg1 tym tyC tyn.
+    by asimpl. }
   move=>Γ A B m s i sb tym ihm tyB ihB Δ σ agr.
   { apply: clc_conv.
     apply: sub_subst...
     apply: ihm...
     apply: ihB... }
 Qed.
-  
+
 Lemma substitution Γ1 Γ2 Γ m n A B s :
   A :{s} Γ1 ⊢ m : B ->
   Γ2 |> s ->
