@@ -235,16 +235,16 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
       [Sigma A B s r t :U Γ2]...
     asimpl in tym.
     asimpl in tyC.
-    replace C.[Pair (Var 1) (Var 0) .: ren (+2)].[up (up σ)]
-      with C.[up σ].[Pair (Var 1) (Var 0) .: ren (+2)]
+    replace C.[Pair (Var 1) (Var 0) t .: ren (+2)].[up (up σ)]
+      with C.[up σ].[Pair (Var 1) (Var 0) t .: ren (+2)]
         in tyn by autosubst.
     have:=clc_letin2 leq key mrg1 tym tyC tyn.
     by asimpl.
     have/ihC{ihC}tyC:_: [G2] ⊢ up σ ⊣ [Sigma A B s r t :L Γ2]...
     asimpl in tym.
     asimpl in tyC.
-    replace C.[Pair (Var 1) (Var 0) .: ren (+2)].[up (up σ)]
-      with C.[up σ].[Pair (Var 1) (Var 0) .: ren (+2)]
+    replace C.[Pair (Var 1) (Var 0) t .: ren (+2)].[up (up σ)]
+      with C.[up σ].[Pair (Var 1) (Var 0) t .: ren (+2)]
         in tyn by autosubst.
     have:=clc_letin2 leq key mrg1 tym tyC tyn.
     by asimpl. }

@@ -28,7 +28,7 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | Unit => 0
   | It => 0
   | Sigma A B _ _ _ => occurs i A + occurs i.+1 B
-  | Pair m n => occurs i m + occurs i n
+  | Pair m n _ => occurs i m + occurs i n
   | LetIn1 m n => occurs i m + occurs i n
   | LetIn2 m n => occurs i m + occurs i.+2 n
   end.
@@ -211,6 +211,4 @@ Proof with eauto using of_sort.
     rewrite ihm... erewrite narity...
     rewrite ihn... erewrite narity...
 Qed.
-
-
     

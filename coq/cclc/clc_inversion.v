@@ -103,22 +103,23 @@ Proof.
   by apply: merge_pure.
 Qed.
 
-Lemma pair_invX Γ m n C :
-  Γ ⊢ Pair m n : C ->
-  forall A B s r t x l,
-    C <: Sigma A B s r t ->
-    [Γ] ⊢ Sigma A B s r t : x @ l ->
+Lemma pair_invX Γ m n t1 C :
+  Γ ⊢ Pair m n t1 : C ->
+  forall A B s r t2 x l,
+    C <: Sigma A B s r t2 ->
+    [Γ] ⊢ Sigma A B s r t2 : x @ l ->
     exists Γ1 Γ2,
+      t1 = t2 /\
       Γ1 |> s /\ 
       Γ2 |> r /\
       Γ1 ∘ Γ2 => Γ /\
       Γ1 ⊢ m : A /\ Γ2 ⊢ n : B.[m/].
 Proof.
-  move e:(Pair m n)=>v tp. elim: tp m n e=>//{Γ v C}.
+  move e:(Pair m n t1)=>v tp. elim: tp m n t1 e=>//{Γ v C}.
   move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg.
   move=>/sigma_inv[G1[G2[i0[mrg0[tyA tyB]]]]].
-  move=>_ tym _ tyn _ m0 n0 [e1 e2] A0 B0 s1 r1 t1 x l.
-  move=>/sub_sigma_inv[sbA[sbB[e3[e4 e5]]]]; subst.
+  move=>_ tym _ tyn _ m0 n0 t1 [e1 e2] e3 A0 B0 s1 r1 t2 x l.
+  move=>/sub_sigma_inv[sbA[sbB[e4[e5 e6]]]]; subst.
   move=>/sigma_inv[G3[G4[i1[mrg1[tyA0 tyB0]]]]].
   { exists Γ1. exists Γ2.
     have[_[e1 e2]]:=merge_re_re mrg.
@@ -151,10 +152,11 @@ Proof.
     apply: sub_trans; eauto. }
 Qed.
 
-Lemma pair_inv Γ m n A B s r t x i :
-  Γ ⊢ Pair m n : Sigma A B s r t ->
-  [Γ] ⊢ Sigma A B s r t : x @ i ->
+Lemma pair_inv Γ m n A B s r t1 t2 x i :
+  Γ ⊢ Pair m n t1 : Sigma A B s r t2 ->
+  [Γ] ⊢ Sigma A B s r t2 : x @ i ->
   exists Γ1 Γ2,
+    t1 = t2 /\
     Γ1 |> s /\ 
     Γ2 |> r /\
     Γ1 ∘ Γ2 => Γ /\

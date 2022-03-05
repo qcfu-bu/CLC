@@ -51,7 +51,7 @@ Inductive clc_type : context term -> term -> term -> Prop :=
   [Γ] ⊢ Sigma A B s r t : t @ i ->
   Γ1 ⊢ m : A ->
   Γ2 ⊢ n : B.[m/] ->
-  Γ ⊢ Pair m n : Sigma A B s r t
+  Γ ⊢ Pair m n t : Sigma A B s r t
 | clc_letin1 Γ1 Γ2 Γ m n A :
   Γ1 ∘ Γ2 => Γ ->
   Γ1 ⊢ m : Unit ->
@@ -63,7 +63,7 @@ Inductive clc_type : context term -> term -> term -> Prop :=
   Γ1 ∘ Γ2 => Γ ->
   Γ1 ⊢ m : Sigma A B s r t ->
   [Sigma A B s r t :{k} Γ2] ⊢ C : x @ i ->
-  B :{r} A :{s} Γ2 ⊢ n : C.[Pair (Var 1) (Var 0) .: ren (+2)] ->
+  B :{r} A :{s} Γ2 ⊢ n : C.[Pair (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ⊢ LetIn2 m n : C.[m/]
 | clc_conv Γ A B m s i :
   A <: B ->

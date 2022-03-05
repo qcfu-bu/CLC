@@ -114,7 +114,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
   move:(merge_re_re mrg)=>[e[e1 e2]].
   move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[mrg0[tyA tyB]]]]].
   move:(merge_re_re mrg0)=>[e3[e4 e5]]. inv st.
-  { move:(ihm _ o1 H2)=>{ihm ihS ihn}tym'.
+  { move:(ihm _ o1 H3)=>{ihm ihS ihn}tym'.
     rewrite<-re_invo in e4.
     rewrite<-re_invo in e5.
     apply:clc_pair...
@@ -130,7 +130,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     have:=substitution tyB k1 mrg1 tym'. asimpl...
     have:=substitutionN tyB tym'. 
     rewrite e5. rewrite<-e2... }
-  { move:(ihn _ o2 H2)=>{ihm ihS ihn}tyn'.
+  { move:(ihn _ o2 H3)=>{ihm ihS ihn}tyn'.
     apply:clc_pair... }
   move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn n0 o st.
   move:(merge_context_ok_inv mrg o)=>[o1 o2]. inv st.
@@ -174,8 +174,8 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: clc_letin2... }
   { rewrite<-re_invo in e4.
     rewrite<-re_invo in e5.
-    move:(pair_inv _ _ _ _ _ _ _ _ _ _ tym tyS)=>
-      [G3[G4[k1[k2[mrg1[tym1 tym2]]]]]].
+    move:(pair_inv _ _ _ _ _ _ _ _ _ _ _ tym tyS)=>
+      [G3[G4[->[k1[k2[mrg1[tym1 tym2]]]]]]].
     have[G[/merge_sym mrg2 /merge_sym mrg3]]:=merge_splitL mrg mrg1.
     have:=substitution2 tyn k1 k2 mrg2 mrg3 tym1 tym2.
     by asimpl. }

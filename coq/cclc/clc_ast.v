@@ -10,12 +10,12 @@ Inductive term : Type :=
 | Var    (x : var)
 | Sort   (s : sort) (l : nat)
 | Pi     (A : term) (B : {bind term}) (s t : sort)
-| Lam    (A : term) (B : {bind term}) (s t : sort)
+| Lam    (A : term) (m : {bind term}) (s t : sort)
 | App    (m n : term)
 | Unit
 | It
 | Sigma  (A : term) (B : {bind term}) (s r t : sort)
-| Pair   (m n : term)
+| Pair   (m n : term) (t : sort)
 | LetIn1 (m n : term)
 | LetIn2 (m : term) (n : {bind 2 of term}).
 
@@ -54,12 +54,12 @@ Inductive step : term -> term -> Prop :=
 | step_sigmaR A B B' s r t :
   B ~> B' ->
   Sigma A B s r t ~> Sigma A B' s r t
-| step_pairL m m' n :
+| step_pairL m m' n t :
   m ~> m' ->
-  Pair m n ~> Pair m' n
-| step_pairR m n n' :
+  Pair m n t ~> Pair m' n t
+| step_pairR m n n' t :
   n ~> n' ->
-  Pair m n ~> Pair m n'
+  Pair m n t ~> Pair m n' t
 | step_letin1L m m' n :
   m ~> m' ->
   LetIn1 m n ~> LetIn1 m' n
@@ -74,8 +74,8 @@ Inductive step : term -> term -> Prop :=
 | step_letin2R m n n' :
   n ~> n' ->
   LetIn2 m n ~> LetIn2 m n'
-| step_iota2 m1 m2 n :
-  LetIn2 (Pair m1 m2) n ~> n.[m2,m1/]
+| step_iota2 m1 m2 n t :
+  LetIn2 (Pair m1 m2 t) n ~> n.[m2,m1/]
 where "m ~> n" := (step m n).
 
 Notation red := (star step).

@@ -36,10 +36,10 @@ Inductive pstep : term -> term -> Prop :=
   pstep A A' ->
   pstep B B' ->
   pstep (Sigma A B s r t) (Sigma A' B' s r t)
-| pstep_pair m m' n n' :
+| pstep_pair m m' n n' t :
   pstep m m' ->
   pstep n n' ->
-  pstep (Pair m n) (Pair m' n')
+  pstep (Pair m n t) (Pair m' n' t)
 | pstep_letin1 m m' n n' :
   pstep m m' ->
   pstep n n' ->
@@ -51,11 +51,11 @@ Inductive pstep : term -> term -> Prop :=
   pstep m m' ->
   pstep n n' ->
   pstep (LetIn2 m n) (LetIn2 m' n')
-| pstep_iota2 m1 m1' m2 m2' n n' :
+| pstep_iota2 m1 m1' m2 m2' n n' t :
   pstep m1 m1' ->
   pstep m2 m2' ->
   pstep n n' ->
-  pstep (LetIn2 (Pair m1 m2) n) n'.[m2',m1'/].
+  pstep (LetIn2 (Pair m1 m2 t) n) n'.[m2',m1'/].
 
 Definition sred σ τ :=
   forall x : var, (σ x) ~>* (τ x).
@@ -66,7 +66,7 @@ Proof.
   move=> A m n s t σ. 
     replace (m.[n/].[σ]) with (m.[up σ].[n.[σ]/]).
     apply step_beta. autosubst.
-  move=> m1 m2 n σ.
+  move=> m1 m2 n t σ.
     replace (n.[m2,m1/].[σ]) with (n.[upn 2 σ].[m2.[σ],m1.[σ]/])
       by autosubst.
     apply: step_iota2.
@@ -110,13 +110,13 @@ Proof.
     exact: step_sigmaR.
 Qed.
 
-Lemma red_pair m m' n n' :
-  m ~>* m' -> n ~>* n' -> Pair m n ~>* Pair m' n'.
+Lemma red_pair m m' n n' t :
+  m ~>* m' -> n ~>* n' -> Pair m n t ~>* Pair m' n' t.
 Proof.
   move=>r1 r2.
-  apply: (star_trans (Pair m' n)).
-  apply: (star_hom (Pair^~ n)) r1=>x y. exact: step_pairL.
-  apply: (star_hom (Pair m')) r2=>x y. exact: step_pairR.
+  apply: (star_trans (Pair m' n t)).
+  apply: (star_hom ((Pair^~ n)^~ t)) r1=>x y. exact: step_pairL.
+  apply: (star_hom ((Pair m')^~ t)) r2=>x y. exact: step_pairR.
 Qed.
 
 Lemma red_letin1 m m' n n' :
@@ -208,13 +208,13 @@ Proof.
     exact: step_sigmaR.
 Qed.
 
-Lemma conv_pair m m' n n' :
-  m === m' -> n === n' -> Pair m n === Pair m' n'.
+Lemma conv_pair m m' n n' t :
+  m === m' -> n === n' -> Pair m n t === Pair m' n' t.
 Proof.
   move=>r1 r2.
-  apply: (conv_trans (Pair m' n)).
-  apply: (conv_hom (Pair^~ n)) r1=>x y. exact: step_pairL.
-  apply: (conv_hom (Pair m')) r2=>x y. exact: step_pairR.
+  apply: (conv_trans (Pair m' n t)).
+  apply: (conv_hom ((Pair^~ n)^~ t)) r1=>x y. exact: step_pairL.
+  apply: (conv_hom ((Pair m')^~ t)) r2=>x y. exact: step_pairR.
 Qed.
 
 Lemma conv_letin1 m m' n n' :
@@ -281,7 +281,7 @@ Proof.
     by apply: red_compat => -[|].
   move=>n n' p1 r1.
     apply: starES. by constructor. exact: r1.
-  move=>m1 m1' m2 m2' n n' p1 r1 p2 r2 pn rn.
+  move=>m1 m1' m2 m2' n n' t p1 r1 p2 r2 pn rn.
     apply: starES. by constructor.
     apply: (star_trans n'.[m2,m1/]).
     by apply: red_subst.
@@ -298,12 +298,12 @@ Proof with eauto using pstep, pstep_refl.
     specialize (ih2 σ).
     have:=pstep_beta A.[σ] s t ih1 ih2.
     by asimpl.
-  move=>m1 m1' m2 m2' n n' p1 ih1 p2 ih2 pn ihn σ.
+  move=>m1 m1' m2 m2' n n' t p1 ih1 p2 ih2 pn ihn σ.
     asimpl.
     specialize (ih1 σ).
     specialize (ih2 σ).
     specialize (ihn (upn 2 σ)).
-    have:=(pstep_iota2 ih1 ih2 ihn).
+    have:=(pstep_iota2 t ih1 ih2 ihn).
     by asimpl.
 Qed.
 
@@ -335,11 +335,11 @@ Proof with eauto 6 using pstep, psstep_up.
     have {}ih2:=ih2 _ _ pss.
     have:=pstep_beta A.[σ] s t ih1 ih2.
     by asimpl.
-  move=>m1 m1' m2 m2' n n' p1 ih1 p2 ih2 pn ihn σ τ pss.
+  move=>m1 m1' m2 m2' n n' t p1 ih1 p2 ih2 pn ihn σ τ pss.
     have {}ih1:=ih1 _ _ pss.
     have {}ih2:=ih2 _ _ pss.
     have {}ihn:=ihn _ _ (psstep_upn 2 pss).
-    have:=pstep_iota2 ih1 ih2 ihn.
+    have:=pstep_iota2 t ih1 ih2 ihn.
     by asimpl.
 Qed.
 
@@ -409,11 +409,11 @@ Proof with eauto 6 using
     have[Ax pA1 pA2]:=ihA _ H5.
     have[Bx pB1 pB2]:=ihB _ H6.
     exists (Sigma Ax Bx s r t)...
-  move=>m m' n n' pm ihm pn ihn m2 p. 
+  move=>m m' n n' t pm ihm pn ihn m2 p. 
     inv p.
-    have[mx pm1 pm2]:=ihm _ H1.
-    have[nx pn1 pn2]:=ihn _ H3.
-    exists (Pair mx nx)...
+    have[mx pm1 pm2]:=ihm _ H3.
+    have[nx pn1 pn2]:=ihn _ H4.
+    exists (Pair mx nx t)...
   move=>m m' n n' pm ihm pn ihn m2 p. 
     inv p.
     have[mx pm1 pm2]:=ihm _ H1.
@@ -435,18 +435,18 @@ Proof with eauto 6 using
     exists (LetIn2 mx nx)...
     inv pm.
     have{ihn}[nx pn1 pn2]:=ihn _ H4.
-    have{}/ihm[mx p1 p2]:pstep (Pair m1 m0) (Pair m1' m2')...
+    have{}/ihm[mx p1 p2]:pstep (Pair m1 m0 t) (Pair m1' m2' t)...
     inv p1. inv p2.
     exists (nx.[n'2,m'/])...
-  move=>m1 m1' m2 m2' n n' p1 ih1 p2 ih2 pn ihn m0 p.
+  move=>m1 m1' m2 m2' n n' p1 t ih1 p2 ih2 pn ihn m0 p.
     inv p. inv H1.
-    have[mx1 p11 p12]:=ih1 _ H2.
-    have[mx2 p21 p22]:=ih2 _ H5.
+    have[mx1 p11 p12]:=ih1 _ H5.
+    have[mx2 p21 p22]:=ih2 _ H6.
     have[nx pn1 pn2]:=ihn _ H3.
     exists (nx.[mx2,mx1/])...
-    have[mx1 p11 p12]:=ih1 _ H2.
-    have[mx2 p21 p22]:=ih2 _ H4.
-    have[nx pn1 pn2]:=ihn _ H5.
+    have[mx1 p11 p12]:=ih1 _ H4.
+    have[mx2 p21 p22]:=ih2 _ H5.
+    have[nx pn1 pn2]:=ihn _ H6.
     exists (nx.[mx2,mx1/])...
 Qed.
 
@@ -549,10 +549,10 @@ Proof.
   apply: star_trans. exact: rB. by apply: star1.
 Qed.
 
-Lemma red_pair_inv m n x :
-  Pair m n ~>* x ->
+Lemma red_pair_inv m n t x :
+  Pair m n t ~>* x ->
   exists m' n',
-    m ~>* m' /\ n ~>* n' /\ x = Pair m' n'.
+    m ~>* m' /\ n ~>* n' /\ x = Pair m' n' t.
 Proof.
   elim.
   exists m. exists n=>//.
