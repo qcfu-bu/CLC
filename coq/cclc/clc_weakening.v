@@ -179,16 +179,16 @@ Proof with eauto using
       ((Sigma A B s r t).[ren ξ] :U [G2])...
     asimpl in tym.
     asimpl in tyC.
-    replace B.[Pair (Var 1) (Var 0) .: ren (+2)].[ren (upren (upren ξ))]
-      with B.[ren (upren ξ)].[Pair (Var 1) (Var 0) .: ren (+2)]
+    replace C.[Pair (Var 1) (Var 0) .: ren (+2)].[ren (upren (upren ξ))]
+      with C.[ren (upren ξ)].[Pair (Var 1) (Var 0) .: ren (+2)]
         in tyn by autosubst.
     have:=clc_letin2 leq key mrg1 tym tyC tyn.
     by asimpl.
     have/ihC{ihC}tyC:agree_ren (upren ξ) (_: [Γ2]) (_: [G2])...
     asimpl in tym.
     asimpl in tyC.
-    replace B.[Pair (Var 1) (Var 0) .: ren (+2)].[ren (upren (upren ξ))]
-      with B.[ren (upren ξ)].[Pair (Var 1) (Var 0) .: ren (+2)]
+    replace C.[Pair (Var 1) (Var 0) .: ren (+2)].[ren (upren (upren ξ))]
+      with C.[ren (upren ξ)].[Pair (Var 1) (Var 0) .: ren (+2)]
         in tyn by autosubst.
     have:=clc_letin2 leq key mrg1 tym tyC tyn.
     by asimpl. }

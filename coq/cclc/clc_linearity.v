@@ -25,6 +25,12 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | Pi A B _ _ => occurs i A + occurs i.+1 B
   | Lam A m _ _ => occurs i A + occurs i.+1 m
   | App m n => occurs i m + occurs i n
+  | Unit => 0
+  | It => 0
+  | Sigma A B _ _ _ => occurs i A + occurs i.+1 B
+  | Pair m n => occurs i m + occurs i n
+  | LetIn1 m n => occurs i m + occurs i n
+  | LetIn2 m n => occurs i m + occurs i.+2 n
   end.
 
 Lemma of_sortL_impure Γ i : of_sort Γ i (Some L) -> ~Γ |> U.
@@ -128,14 +134,10 @@ Qed.
 
 Lemma narity Γ m A i : 
   Γ ⊢ m : A -> of_sort Γ i None -> occurs i m = 0.
-Proof with eauto using of_sort.
+Proof with eauto using of_sort, of_sortN_re.
   move=>ty. elim: ty i=>//{Γ m A}.
   move=>Γ A B s r t l k tyA ihA tyB ihB i os//=.
     rewrite ihA...
-    rewrite ihB...
-    destruct s=>//=.
-    rewrite<-pure_re...
-    rewrite<-pure_re...
   move=>Γ x A s hs i os//=.
     erewrite of_sortN_has...
   move=>Γ A B m s t l k tyP ihP tym ihm i os//=.
@@ -146,6 +148,19 @@ Proof with eauto using of_sort.
     rewrite e1 e2...
     destruct (occurs i A); discriminate.
   move=>Γ1 Γ2 Γ A B m n s t k mrg tym ihm tyn ihn i os//=.
+    move:(of_sortN_merge_inv mrg os)=>[os1 os2].
+    rewrite ihm...
+  move=>Γ A B s r t i leq k tyA ihA tyB ihB x os//=.
+    rewrite ihA...
+  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg
+    tyS ihS tym ihm tyn ihn x os//=.
+    move:(of_sortN_merge_inv mrg os)=>[os1 os2].
+    rewrite ihm...
+  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn x os//=.
+    move:(of_sortN_merge_inv mrg os)=>[os1 os2].
+    rewrite ihm...
+  move=>Γ1 Γ2 Γ A B C m n s r t k x l leq key mrg
+    tym ihm tyC ihC tyn ihn i os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
 Qed.
@@ -177,6 +192,24 @@ Proof with eauto using of_sort.
     by rewrite ihm.
     have->:=narity tym os2.
     by rewrite ihn.
+  move=>Γ k i os. exfalso. apply: of_sortL_impure; eauto.
+  move=>Γ k i os. exfalso. apply: of_sortL_impure; eauto.
+  move=>Γ A B s r t i leq k tyA ihA tyB ihB x os//=.
+    exfalso. apply: of_sortL_impure; eauto.
+  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg 
+    tyS ihS tym ihm tyn ihn x os//=.
+    have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
+    rewrite ihm... erewrite narity...
+    rewrite ihn... erewrite narity...
+  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn i os//=.
+    have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
+    rewrite ihm... erewrite narity...
+    rewrite ihn... erewrite narity...
+  move=>Γ1 Γ2 Γ A B C m n s r t k x l leq keq mrg
+    tym ihm tyC ihC tyn ihn i os//=.
+    have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
+    rewrite ihm... erewrite narity...
+    rewrite ihn... erewrite narity...
 Qed.
 
 

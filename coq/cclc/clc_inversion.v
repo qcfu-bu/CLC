@@ -90,16 +90,16 @@ Proof. move=>ty. apply: it_invX; eauto. Qed.
 
 Lemma sigma_inv Γ A B s r t x :
   Γ ⊢ Sigma A B s r t : x ->
-  exists Γ1 Γ2 t i,
+  exists Γ1 Γ2 i,
     Γ1 ∘ Γ2 => Γ /\
-    Γ1 ⊢ A : s @ i /\ [A :{s} Γ2] ⊢ B : t @ i.
+    Γ1 ⊢ A : s @ i /\ [A :{s} Γ2] ⊢ B : r @ i.
 Proof.
   move e:(Sigma A B s r t)=>m ty. 
   elim: ty A B s r t e=>//{Γ x m}.
   move=>Γ A B s r t i mrg k 
     tyA ihA tyB ihB A0 B0 s0 r0 t0 [e1 e2 e3 e4 e5]; subst.
   exists Γ. exists Γ. 
-  exists r. exists i. firstorder.
+  exists i. firstorder.
   by apply: merge_pure.
 Qed.
 
@@ -116,10 +116,10 @@ Lemma pair_invX Γ m n C :
 Proof.
   move e:(Pair m n)=>v tp. elim: tp m n e=>//{Γ v C}.
   move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg.
-  move=>/sigma_inv[G1[G2[t0[i0[mrg0[tyA tyB]]]]]].
+  move=>/sigma_inv[G1[G2[i0[mrg0[tyA tyB]]]]].
   move=>_ tym _ tyn _ m0 n0 [e1 e2] A0 B0 s1 r1 t1 x l.
   move=>/sub_sigma_inv[sbA[sbB[e3[e4 e5]]]]; subst.
-  move=>/sigma_inv[G3[G4[t2[i1[mrg1[tyA0 tyB0]]]]]].
+  move=>/sigma_inv[G3[G4[i1[mrg1[tyA0 tyB0]]]]].
   { exists Γ1. exists Γ2.
     have[_[e1 e2]]:=merge_re_re mrg.
     have[_[e3 e4]]:=merge_re_re mrg1.

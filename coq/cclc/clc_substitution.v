@@ -235,16 +235,16 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
       [Sigma A B s r t :U Γ2]...
     asimpl in tym.
     asimpl in tyC.
-    replace B.[Pair (Var 1) (Var 0) .: ren (+2)].[up (up σ)]
-      with B.[up σ].[Pair (Var 1) (Var 0) .: ren (+2)]
+    replace C.[Pair (Var 1) (Var 0) .: ren (+2)].[up (up σ)]
+      with C.[up σ].[Pair (Var 1) (Var 0) .: ren (+2)]
         in tyn by autosubst.
     have:=clc_letin2 leq key mrg1 tym tyC tyn.
     by asimpl.
     have/ihC{ihC}tyC:_: [G2] ⊢ up σ ⊣ [Sigma A B s r t :L Γ2]...
     asimpl in tym.
     asimpl in tyC.
-    replace B.[Pair (Var 1) (Var 0) .: ren (+2)].[up (up σ)]
-      with B.[up σ].[Pair (Var 1) (Var 0) .: ren (+2)]
+    replace C.[Pair (Var 1) (Var 0) .: ren (+2)].[up (up σ)]
+      with C.[up σ].[Pair (Var 1) (Var 0) .: ren (+2)]
         in tyn by autosubst.
     have:=clc_letin2 leq key mrg1 tym tyC tyn.
     by asimpl. }
@@ -272,6 +272,53 @@ Proof with eauto.
     by asimpl. }
   { apply: agree_subst_wkL...
     by asimpl. }
+Qed.
+
+Lemma substitution2 Γ1 Γ2 Γ3 Γ4 Γ m1 m2 n A B C s r :
+  B :{r} A :{s} Γ1 ⊢ n : C ->
+  Γ2 |> s ->
+  Γ3 |> r ->
+  Γ1 ∘ Γ2 => Γ4 -> Γ3 ∘ Γ4 => Γ ->
+  Γ2 ⊢ m1 : A ->
+  Γ3 ⊢ m2 : B.[m1/] ->
+  Γ ⊢ n.[m2,m1/] : C.[m2,m1/].
+Proof.
+  move=>tyn k1 k2 mrg1 mrg2 ty1 ty2.
+  apply: esubstitution.
+  exact: tyn.
+  move:(merge_re_re mrg1)=>[e0[e1 e2]].
+  move:(merge_re_re mrg2)=>[e3[e4 e5]].
+  destruct r; destruct s.
+  { apply: agree_subst_wkU.
+    apply: agree_subst_wkU.
+    have e:=merge_pureR mrg1 k1; subst.
+    have e:=merge_pureL mrg2 k2; subst.
+    eauto. asimpl.
+    rewrite<-e5. rewrite<-e2.
+    by rewrite<-pure_re.
+    rewrite<-e5. rewrite<-e3.
+    by rewrite<-pure_re. }
+  { have[G[mrg3 mrg4]]:=merge_splitR (merge_sym mrg2) mrg1. 
+    apply: agree_subst_wkU.
+    apply: agree_subst_wkL.
+    exact: mrg4. eauto.
+    have e:=merge_pureR mrg3 k2; subst.
+    by asimpl.
+    rewrite<-e4. by rewrite<-pure_re. }
+  { have[G[mrg3 mrg4]]:=merge_splitR (merge_sym mrg2) mrg1. 
+    apply: agree_subst_wkL.
+    exact: mrg4.
+    apply: agree_subst_wkU.
+    eauto. asimpl.
+    rewrite e0. by rewrite<-pure_re.
+    have e:=merge_pureL mrg3 k1; subst.
+    eauto. }
+  { apply: agree_subst_wkL.
+    apply: merge_sym.
+    exact: mrg2.
+    apply: agree_subst_wkL; eauto.
+    by asimpl.
+    eauto. }
 Qed.
 
 Lemma substitutionN Γ1 Γ2 m n A B :
