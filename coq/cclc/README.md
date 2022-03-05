@@ -69,23 +69,3 @@ L  L  L
 ----------------------------------------------------------
 Γ1 + Γ2 ⊢ let ⟨x, y⟩ = m in n : C[m/z]
 ```
-
-## Examples
-
-### Enforcement of dynamic checks
-
-```text
-a0 : Ch(?(x : pkt).(if hashCheck x then ![true] else ![false]).end!)
-
-let (n :U pkt, a1 :L Ch((if hashCheck n then ![true] else ![false]).end!)) = recv a0 in
-match hashCheck n as r return
-  (if r then ![true] else ![false]).end! -> unit
-with
-| true  => fun a2 => 
-  let a3 = send a2 [true] in
-  close a
-| false => fun a2 => 
-  let a3 = send a2 [false] in
-  close a
-end a1
-```
