@@ -17,8 +17,7 @@ Inductive term : Type :=
 | Sigma  (A : term) (B : {bind term}) (s r t : sort)
 | Pair   (m n : term) (t : sort)
 | LetIn1 (m n : term)
-| LetIn2 (m : term) (n : {bind 2 of term})
-| Ptr    (l : nat).
+| LetIn2 (m : term) (n : {bind 2 of term}).
 
 Notation "s @ l" := (Sort s l) (at level 30).
 
