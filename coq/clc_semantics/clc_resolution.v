@@ -72,7 +72,7 @@ Inductive resolve : context term -> term -> term -> Prop :=
   resolve Θ1 m m' ->
   resolve Θ2 n n' ->
   resolve Θ (LetIn2 m n) (LetIn2 m' n')
-| resovle_ptr Θ Θ' l m m' :
+| resolve_ptr Θ Θ' l m m' :
   free Θ l m Θ' ->
   resolve Θ' m m' ->
   resolve Θ (Ptr l) m'.
@@ -224,7 +224,7 @@ Proof with eauto using resolve, re_pure, merge_re_id, re_pure.
     erewrite ihm... erewrite ihn...
 Qed.
 
-Lemma free_length Θ l n Θ' : free Θ l n Θ' -> l <= length Θ. 
+Lemma free_length Θ l n Θ' : free Θ l n Θ' -> l < length Θ. 
 Proof.
   elim=>{Θ l n Θ'}.
   move=>Θ m l->//=.
@@ -257,8 +257,84 @@ Proof.
   rewrite subnn.
   rewrite subSnn=>//.
   move/free_length in H5.
-  unfold leq in H5.
-  rewrite subSnn in H5.
-  move/eqnP in H5.
-  inv H5.
+  have le :length Θ < (length Θ).+2 by eauto.
+  have h:= leq_trans H5 le.
+  unfold leq in h.
+  rewrite subSnn in h.
+  move/eqnP in h; inv h.
+Qed.
+
+Lemma free_empty Θ Θ' n : ~free (_: Θ) (length Θ) n Θ'.
+Proof.
+  elim: Θ Θ' n=>//=.
+  move=>Θ' n fr. inv fr. inv H4.
+  move=>m Θ ih Θ' n fr=>//. inv fr=>//.
+  exfalso.
+  inv H4.
+  have:(length Θ).+1 - (length Θ) = (length Θ) - (length Θ).
+  by rewrite H5.
+  rewrite subnn.
+  rewrite subSnn=>//.
+  have:(length Θ).+1 - (length Θ) = (length Θ) - (length Θ).
+  by rewrite H5.
+  rewrite subnn.
+  rewrite subSnn=>//.
+  move/free_length in H5.
+  have le :length Θ < (length Θ).+2 by eauto.
+  have h:= leq_trans H5 le.
+  unfold leq in h.
+  rewrite subSnn in h.
+  move/eqnP in h; inv h.
+Qed.
+
+Lemma free_subset Θ Θ1 Θ2 Θ' Θ1' l m n :
+  Θ1 ∘ Θ2 => Θ ->free Θ l m Θ' -> free Θ1 l n Θ1' ->  m = n /\ Θ1' ∘ Θ2 => Θ'.
+Proof with eauto 6 using merge.
+  move=>mrg. elim: mrg l m n Θ' Θ1'=>{Θ Θ1 Θ2}.
+  move=>l m n G1 G2 fr. inv fr.
+  move=>G1 G2 G m mrg ih l n x G3 G4 fr1 fr2.
+  { have[e1 e2]:=merge_length mrg.
+    inv fr1; inv fr2...
+    move/free_length in H4.
+    rewrite e1 in H4.
+    rewrite ltnn in H4. inv H4.
+    move/free_length in H4.
+    rewrite e1 in H4.
+    rewrite ltnn in H4. inv H4. 
+    have:=ih _ _ _ _ _ H4 H5.
+    firstorder... }
+  move=>G1 G2 G m mrg ih l n x G3 G4 fr1 fr2.
+  { have[e1 e2]:=merge_length mrg.
+    inv fr1; inv fr2...
+    move/free_length in H4.
+    rewrite e1 in H4.
+    rewrite ltnn in H4. inv H4.
+    move/free_length in H4.
+    rewrite e1 in H4.
+    rewrite ltnn in H4. inv H4. 
+    have:=ih _ _ _ _ _ H4 H5.
+    firstorder... }
+  move=>G1 G2 G m mrg ih l n x G3 G4 fr1 fr2.
+  { have[e1 e2]:=merge_length mrg.
+    inv fr1; inv fr2.
+    move/free_length in H4.
+    rewrite e1 in H4.
+    rewrite ltnn in H4. inv H4. 
+    have:=ih _ _ _ _ _ H4 H5.
+    firstorder... }
+  move=>G1 G2 G mrg ih l m n G3 G4 fr1 fr2.
+  { inv fr1; inv fr2... 
+    have:=ih _ _ _ _ _ H4 H5.
+    firstorder... }
+Qed.
+
+Lemma resolve_free Θ1 Θ2 Θ Θ' l m n :
+  free Θ l n Θ' -> resolve Θ1 (Ptr l) m -> Θ1 ∘ Θ2 => Θ -> 
+  exists Θ1', Θ1' ∘ Θ2 => Θ' /\ resolve Θ1' n m.
+Proof with eauto using merge.
+  intros.
+  inv H0.
+  have [e mrg]:=free_subset H1 H H3; subst.
+  exists Θ'0.
+  split...
 Qed.

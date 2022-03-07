@@ -230,10 +230,16 @@ Proof with eauto using
         rewrite e2 in h... }
       apply: red_app... } 
     { move=>{ihm ihn}.
-      inv H4.
-
-    }
-  }
+      have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
+      have[G[mrg rs]]:=resolve_free H7 H4 mrg4.
+      have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
+      exists Gx. exists Θ2. inv rs. exists (m'.[n/]).
+      have tym':=lam_inv _ _ _ _ _ _ _ _ _ _ _ tyP tym.
+      repeat split...
+      admit.
+      destruct s; apply: substitution...
+      apply: star1.
+      apply: step_beta. } }
 
 
   (* move=>Γ s l k wf Θ1 Θ2 Θ Θ' m m' A rsm rsA mrg ev.
