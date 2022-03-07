@@ -194,13 +194,6 @@ Proof with eauto 6 using
       have tym':=lam_inv _ _ _ _ _ _ _ _ _ _ _ tyP tym.
       repeat split...
       destruct s.
-      econstructor...
-      admit.
-      apply: substitution.
-      apply: tym'.
-      apply: key_nil.
-      constructor.
-      apply: tyn.
       admit.
       admit.
       apply: star1.

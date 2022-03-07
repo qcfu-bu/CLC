@@ -8,7 +8,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Theorem subject_reduction Γ m n A :
+Theorem subject_step Γ m n A :
   ok Γ -> Γ ⊢ m : A -> m ~> n -> Γ ⊢ n : A.
 Proof with eauto using clc_type, step, ok, merge_re_id.
   move=>wf tp. elim: tp n wf=>{Γ m A}.
@@ -181,4 +181,15 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     by asimpl. }
   move=>Γ A B m s i sb tym ihm tyB ihB n o st.
   { apply: clc_conv... }
+Qed.
+
+Theorem subject_reduction Γ m n A :
+  ok Γ -> Γ ⊢ m : A -> m ~>* n -> Γ ⊢ n : A.
+Proof.
+  move=>wf tym rd. elim: rd; eauto.
+  move=>y z rd ih st.
+  apply: subject_step.
+  exact: wf.
+  exact: ih.
+  exact: st.
 Qed.

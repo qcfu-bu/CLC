@@ -23,6 +23,29 @@ Ltac solve_sub :=
   | _ => solve_conv
   end.
 
+Lemma sort_inv Γ s i A : Γ ⊢ s @ i : A -> U @ i.+1 <: A.
+Proof.
+  move e:(s @ i)=>m tp.
+  elim: tp s i e=>//{Γ A m}.
+  move=>Γ s l k t i [_->]; eauto.
+  move=>Γ A B m s i sb tym ihm tyB ihB t l e; subst.
+  apply: sub_trans.
+  apply: ihm; eauto.
+  exact: sb.
+Qed.
+
+Lemma pi_invX Γ A B C s t :
+  Γ ⊢ Pi A B s t : C -> exists l, t @ l <: C.
+Proof.
+  move e:(Pi A B s t)=>m tp. elim: tp A B s t e=>//{Γ m C}.
+  move=>Γ A B s r t i k tyA ihA tyB ihB A0 B0 s0 t0[e1 e2 e3 e4].
+    subst. exists i; eauto.
+  move=>Γ A B m s i sb tym ihm tyB ihB A0 B0 s0 t e; subst.
+    have[l sb']:=ihm _ _ _ _ erefl.
+    exists l. apply: sub_trans.
+    exact: sb'. exact: sb.
+Qed.
+
 Lemma pi_inv Γ A B C s t :
   Γ ⊢ Pi A B s t : C ->
   exists r l,
@@ -76,6 +99,16 @@ Proof.
   apply: lam_invX; eauto.
 Qed.
 
+Lemma unit_inv Γ A : Γ ⊢ Unit : A -> exists i, U @ i <: A.
+Proof.
+  move e:(Unit)=>m tp. elim:tp e=>//{Γ A m}.
+  move=>Γ k _. exists 0; eauto.
+  move=>Γ A B m s i sb tym ihm tyB ihB e; subst.
+  have[l sb']:=ihm erefl.
+  exists l. apply: sub_trans.
+  exact: sb'. exact: sb.
+Qed.
+
 Lemma it_invX Γ1 A :
   Γ1 ⊢ It : A -> A <: Unit -> Γ1 |> U.
 Proof.
@@ -87,6 +120,20 @@ Qed.
 
 Lemma it_inv Γ1 : Γ1 ⊢ It : Unit -> Γ1 |> U.
 Proof. move=>ty. apply: it_invX; eauto. Qed.
+
+Lemma sigma_invX Γ A B s r t C :
+  Γ ⊢ Sigma A B s r t : C -> exists i, t @ i <: C.
+Proof.
+  move e:(Sigma A B s r t)=>m ty. 
+  elim: ty A B s r t e=>//{Γ C m}.
+  move=>Γ A B s r t i _ _ _ _ _ _ 
+    A0 B0 s0 r0 t0[e1 e2 e3 e4 e5]; subst.
+  exists i; eauto.
+  move=>Γ A B m s i sb tym ihm tyB ihB A0 B0 s0 r t e; subst.
+  have[l sb']:=ihm _ _ _ _ _ erefl.
+  exists l. apply: sub_trans.
+  exact: sb'. exact: sb.
+Qed.
 
 Lemma sigma_inv Γ A B s r t x :
   Γ ⊢ Sigma A B s r t : x ->
