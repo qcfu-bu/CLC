@@ -9,6 +9,24 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Inductive value : term -> Prop :=
+| value_sort s l :
+  value (Sort s l)
+| value_pi A B s t :
+  value (Pi A B s t)
+| value_lam A m s t :
+  value (Lam A m s t)
+| value_unit :
+  value Unit
+| value_it :
+  value It
+| value_sigma A B s r t :
+  value (Sigma A B s r t)
+| value_pair m n t :
+  value m ->
+  value n ->
+  value (Pair m n t).
+
 Inductive pad (Θ : context term) : context term -> Prop :=
 | pad_O : pad Θ Θ
 | pad_U Θ' m : pad Θ Θ' -> pad Θ (m :U Θ')
@@ -38,6 +56,7 @@ Inductive resolve : context term -> term -> term -> Prop :=
   resolve Θ B B' ->
   resolve Θ (Pi A B s t) (Pi A' B' s t)
 | resolve_lam Θ A A' m m' s t :
+  Θ |> t ->
   resolve [Θ] A A' ->
   resolve Θ m m' ->
   resolve Θ (Lam A m s t) (Lam A' m' s t)
@@ -58,6 +77,7 @@ Inductive resolve : context term -> term -> term -> Prop :=
   resolve Θ B B' ->
   resolve Θ (Sigma A B s r t) (Sigma A' B' s r t)
 | resolve_pair Θ1 Θ2 Θ m m' n n' t :
+  Θ |> t ->
   Θ1 ∘ Θ2 => Θ ->
   resolve Θ1 m m' ->
   resolve Θ2 n n' ->
@@ -159,13 +179,20 @@ Qed.
 Lemma resolve_resolved Θ m m' : resolve Θ m m' -> resolved m'.
 Proof with eauto using resolved. elim=>{Θ m m'}... Qed.
 
-Definition well_resolved Θ Γ m n A := 
-  resolve Θ m n /\ Γ ⊢ n : A.
+Inductive well_resolved : 
+  context term -> term -> term -> term -> sort -> Prop := 
+| Well_resolved Θ m n A t i :
+  resolve Θ m n -> 
+  nil ⊢ n : A -> 
+  nil ⊢ A : t @ i ->
+  well_resolved Θ m n A t.
 
 Lemma resolve_wkU Θ A A' m :
   resolve Θ A A' -> resolve (m :U Θ) A A'.
 Proof with eauto using resolve, key, merge.
   move=>rs. elim: rs m=>{Θ A A'}...
+  move=>Θ A A' B B' s []...
+  move=>Θ1 Θ2 Θ m m' n n' []...
   move=>Θ Θ' l m m' fr rs ih n.
   have{}ih:=ih n.
   econstructor...
@@ -190,8 +217,13 @@ Qed.
 Lemma resolve_type_refl Θ Γ m A : Γ ⊢ m : A -> resolve [Θ] m m.
 Proof with eauto using resolve, re_pure, merge_re_id.
   elim=>//{Γ m A}...
-  move=>Γ A B m s t i k tyP rs tym rsm.
-  constructor... inv rs. rewrite<-re_invo...
+  move=>Γ A B m s t i k tyP rsP tym rsm.
+  constructor... 
+  apply: re_sort.
+  inv rsP. rewrite<-re_invo...
+  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg tyS rsS tym rsm tyn rsn.
+  econstructor... 
+  apply: re_sort.
 Qed.
 
 Lemma resolve_type_id Θ Γ m n A : 
@@ -339,4 +371,17 @@ Proof with eauto using merge.
   split...
 Qed.
 
-Lemma
+Inductive wr_env : context term -> Prop :=
+| wr_nil : wr_env nil
+| wr_cons Θ m v A t :
+  wr_env Θ -> value m -> well_resolved Θ m v A t -> wr_env (m :{t} Θ).
+
+Lemma wr_env_free Θ Θ' m l : wr_env Θ -> free Θ l m Θ' -> value m.
+Proof.
+  move=>wr. elim: wr Θ' m l=>{Θ}.
+  move=>Θ' m l fr. inv fr.
+  move=>Θ m v A t wr ih vv wm Θ' m0 l fr.
+  inv fr=>//.
+  apply: ih.
+  exact: H4.
+Qed.

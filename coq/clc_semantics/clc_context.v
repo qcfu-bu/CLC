@@ -263,6 +263,13 @@ Proof.
   move=> [[A[|]]|] Γ k//=; eauto using key.
 Qed.
 
+Lemma re_sort T (Γ : context T) t : [Γ] |> t.
+Proof with eauto using key.
+  elim: Γ...
+  move=> [[A[|]]|] Γ k//=...
+  destruct t...
+Qed.
+
 Lemma hasU_re {T} `{Ids T} `{Subst T} (Γ : context T) x A :
   has Γ x U A -> has [Γ] x U A.
 Proof.
