@@ -103,38 +103,6 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   free Θ l (Pair (Ptr lm) (Ptr ln) t) Θ' ->
   eval Θ (LetIn2 (Ptr l) n) Θ' n.[Ptr ln,Ptr ln/].
 
-(* Lemma eval_red Θ1 Θ1' Θ2 Θ2' Θ Θ' m m' n n' :
-  resolve Θ1 m n -> Θ1 ∘ Θ2 => Θ -> eval Θ m Θ' m' ->
-  resolve Θ1' m' n' -> pad Θ2 Θ2' -> Θ1' ∘ Θ2' => Θ' ->
-  n ~>* n'.
-Proof.
-  move=>rs. elim: rs Θ1' Θ2 Θ2' Θ Θ' m' n'=>{Θ1 m n}.
-  move=>Θ x k Θ1' Θ2 Θ2' Θx Θ' m' n' mrg1 ev rs pd mrg2.
-  { inv ev. }
-  move=>Θ s l k Θ1' Θ2 Θ2' Θx Θ' m' n' mrg1 ev rs pd mrg2.
-  { inv ev. inv mrg2.
-    have[e1 e2]:=merge_length H2.
-    rewrite<-e1 in rs.
-    inv rs.
-    move/free_inv in H0; subst.
-    inv H3.
-    eauto. }
-  move=>Θ A A' B B' s t k rsA ihA rsB ihB
-   Θ1' Θ2 Θ2' Θx Θ' m' n'  mrg1 ev rs pd mrg2.
-  { inv ev. inv mrg2. inv pd.
-    have[e1 e2]:=merge_length H2.
-    rewrite<-e1 in rs.
-    inv rs.
-    have[e3 e4]:=free_inv H0; subst.
-    inv H3.
-    eauto.
-    apply: red_pi.
-    apply: ihA; eauto.
-    apply: mrg1.
-    eauto. }
-
-Admitted. *)
-
 
 Lemma eval_split Θ1 Θ2 Θ Θ' Γ m n m' A :
   ok Γ -> well_resolved Θ1 Γ m n A ->  
