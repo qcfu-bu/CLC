@@ -602,22 +602,22 @@ Proof.
   exfalso. apply: free_wr_ptr; eauto.
 Qed.
 
-Theorem resolution Θ m n A t i :
-  nil ⊢ n : A -> nil ⊢ A : t @ i -> value n ->
+Theorem resolution Θ m n A B t i :
+  nil ⊢ n : A -> A <: B -> nil ⊢ B : t @ i -> value n ->
   wr_env Θ -> resolve Θ m n -> Θ |> t.
-Proof.
-  move e:(nil)=>Γ ty. elim: ty Θ m i t e=>{Γ n A}.
-  move=>Γ s l k Θ m i t _ tyU val wr rs.
-  { move/sort_inv in tyU.
-    move:tyU=>/sub_sort_inv[<-_].
-    apply: resolve_sort_inv; eauto. }
-  move=>Γ A B s r t i k tyA _ tyB _ Θ m l' t' _ tyt val wr rs.
-  { move/sort_inv in tyt. 
-    move:tyt=>/sub_sort_inv[<-_].
-    apply: resolve_pi_inv; eauto. }
-  move=>Γ x A s hs Θ m i t _ tyA val. inv val.
-  move=>Γ A B m s t i k tyP ihP tym ihm Θ n l x _ tyP' val wr rs.
-  { move:tyP'=>/pi_invX[lx /sub_sort_inv[e _]]; subst.
+Proof with eauto using key_impure.
+  move e:(nil)=>Γ ty. elim: ty B Θ m i t e=>{Γ n A}.
+  move=>Γ s l k B Θ m i t e sb tyU val wr rs.
+  { destruct t...
+    apply: resolve_sort_inv... }
+  move=>Γ A B s r t i k tyA _ tyB _ C Θ m l' t' _ sb tyt val wr rs.
+  { destruct t'...
+    apply: resolve_pi_inv... }
+  move=>Γ x A s hs B Θ m i t _ sb tyB val. inv val.
+  move=>Γ A B m s t i k tyP ihP tym ihm C Θ n l x _ sb tyP' val wr rs.
+  { 
+    
+    destruct x...
     apply: resolve_lam_inv; eauto. }
   move=>Γ1 Γ2 Γ A B m n s t k mrg tym 
     ihm tyn ihn Θ' m0 i t0 _ tyB val. inv val.
