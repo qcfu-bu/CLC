@@ -1,4 +1,5 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
+
 From Coq Require Import ssrfun Classical Utf8.
 Require Import AutosubstSsr ARS.
 
@@ -96,6 +97,17 @@ Lemma key_impure T (Γ : context T) : Γ |> L.
 Proof with eauto using key.
   elim: Γ...
   move=>[[A s]|] Γ k...
+Qed.
+
+Lemma merge_length T (Γ1 Γ2 Γ : context T) :
+  Γ1 ∘ Γ2 => Γ -> 
+  length Γ1 = length Γ /\ length Γ2 = length Γ.
+Proof.
+  elim=>//={Γ1 Γ2 Γ}.
+  move=>Γ1 Γ2 Γ m mrg [->->]//.
+  move=>Γ1 Γ2 Γ m mrg [->->]//.
+  move=>Γ1 Γ2 Γ m mrg [->->]//.
+  move=>Γ1 Γ2 Γ mrg [->->]//.
 Qed.
 
 Lemma merge_sym T (Γ1 Γ2 Γ : context T) :
