@@ -22,20 +22,20 @@ Inductive agree_subst :
   _: Δ ⊢ up σ ⊣ _: Γ
 | agree_subst_wkU Δ σ Γ n A :
   Δ ⊢ σ ⊣ Γ ->
-  [Δ] ⊢ n : A.[σ] ->
+  [Δ] ⊢ n : A.[σ] : U ->
   Δ ⊢ n .: σ ⊣ A :U Γ
 | agree_subst_wkL Δ1 Δ2 Δ σ Γ n A :
   Δ1 ∘ Δ2 => Δ ->
   Δ1 ⊢ σ ⊣ Γ ->
-  Δ2 ⊢ n : A.[σ] ->
+  Δ2 ⊢ n : A.[σ] : L ->
   Δ ⊢ n .: σ ⊣ A :L Γ
 | agree_subst_wkN Δ σ Γ n :
   Δ ⊢ σ ⊣ Γ ->
   Δ ⊢ n .: σ ⊣ _: Γ
 | agree_subst_conv Δ σ Γ A B s l :
   A <: B ->
-  [Δ] ⊢ B.[ren (+1)].[σ] : s @ l ->
-  [Γ] ⊢ B : s @ l ->
+  [Δ] ⊢ B.[ren (+1)].[σ] : s @ l : U ->
+  [Γ] ⊢ B : s @ l : U ->
   Δ ⊢ σ ⊣ A :{s} Γ ->
   Δ ⊢ σ ⊣ B :{s} Γ
 where "Δ ⊢ σ ⊣ Γ" := (agree_subst Δ σ Γ).
@@ -64,7 +64,7 @@ Qed.
 Hint Resolve agree_subst_refl.
 
 Lemma agree_subst_has Δ σ Γ x s A :
-  Δ ⊢ σ ⊣ Γ -> has Γ x s A -> Δ ⊢ σ x : A.[σ].
+  Δ ⊢ σ ⊣ Γ -> has Γ x s A -> Δ ⊢ σ x : A.[σ] : s.
 Proof with eauto using agree_subst, agree_subst_key.
   move=> agr. elim: agr x s A=>{Δ σ Γ}.
   move=>σ x s A hs. inv hs.
@@ -189,19 +189,19 @@ Proof with eauto 6 using merge, agree_subst, agree_subst_key.
     rewrite g3... }
 Qed.
 
-Lemma esubstitution Γ m A Δ σ :
-  Γ ⊢ m : A -> Δ ⊢ σ ⊣ Γ -> Δ ⊢ m.[σ] : A.[σ].
+Lemma esubstitution Γ m A Δ s σ :
+  Γ ⊢ m : A : s -> Δ ⊢ σ ⊣ Γ -> Δ ⊢ m.[σ] : A.[σ] : s.
 Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
-  move=>ty. elim: ty Δ σ=>{Γ m A}.
+  move=>ty. elim: ty Δ σ=>{Γ m A s}.
   move=>Γ s l k Δ σ agr. asimpl.
   { apply: clc_axiom... }
   move=>Γ A B s r t i k tyA ihA tyB ihB Δ σ agr. asimpl.
   { apply: clc_pi... }
   move=>Γ x A s hs Δ σ agr. asimpl.
   { apply: agree_subst_has... }
-  move=>Γ A B m s t i k tyP ihP tym ihm Δ σ agr. asimpl.
+  move=>Γ A B m s r t i k tyP ihP tym ihm Δ σ agr. asimpl.
   { apply: clc_lam... }
-  move=>Γ1 Γ2 Γ A B m n s t k mrg tym ihm tyn ihn Δ σ agr. asimpl.
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn Δ σ agr. asimpl.
   { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
     replace B.[n.[σ] .: σ] with B.[up σ].[n.[σ]/] by autosubst.
     move:(agree_subst_key agr2 k)=>{}k.
@@ -220,7 +220,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     apply: clc_pair...
     move:(ihn _ _ agr2).
     by asimpl. }
-  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn Δ σ agr. asimpl.
+  move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn Δ σ agr. asimpl.
   { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
     apply: clc_letin1... }
   move=>Γ1 Γ2 Γ A B C m n s r t k x i leq key mrg
@@ -255,12 +255,12 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     apply: ihB... }
 Qed.
 
-Lemma substitution Γ1 Γ2 Γ m n A B s :
-  A :{s} Γ1 ⊢ m : B ->
+Lemma substitution Γ1 Γ2 Γ m n A B s t :
+  A :{s} Γ1 ⊢ m : B : t ->
   Γ2 |> s ->
   Γ1 ∘ Γ2 => Γ -> 
-  Γ2 ⊢ n : A -> 
-  Γ ⊢ m.[n/] : B.[n/].
+  Γ2 ⊢ n : A : s -> 
+  Γ ⊢ m.[n/] : B.[n/] : t.
 Proof with eauto.
   move=>tym k mrg tyn.
   apply: esubstitution...
@@ -274,14 +274,14 @@ Proof with eauto.
     by asimpl. }
 Qed.
 
-Lemma substitution2 Γ1 Γ2 Γ3 Γ4 Γ m1 m2 n A B C s r :
-  B :{r} A :{s} Γ1 ⊢ n : C ->
+Lemma substitution2 Γ1 Γ2 Γ3 Γ4 Γ m1 m2 n A B C s r t :
+  B :{r} A :{s} Γ1 ⊢ n : C : t->
   Γ2 |> s ->
   Γ3 |> r ->
   Γ1 ∘ Γ2 => Γ4 -> Γ3 ∘ Γ4 => Γ ->
-  Γ2 ⊢ m1 : A ->
-  Γ3 ⊢ m2 : B.[m1/] ->
-  Γ ⊢ n.[m2,m1/] : C.[m2,m1/].
+  Γ2 ⊢ m1 : A : s ->
+  Γ3 ⊢ m2 : B.[m1/] : r ->
+  Γ ⊢ n.[m2,m1/] : C.[m2,m1/] : t.
 Proof.
   move=>tyn k1 k2 mrg1 mrg2 ty1 ty2.
   apply: esubstitution.
@@ -321,30 +321,30 @@ Proof.
     eauto. }
 Qed.
 
-Lemma substitutionN Γ1 Γ2 m n A B :
-  _: Γ1 ⊢ m : B -> Γ2 ⊢ n : A -> Γ1 ⊢ m.[n/] : B.[n/].
+Lemma substitutionN Γ1 Γ2 m n A B s t :
+  _: Γ1 ⊢ m : B : s -> Γ2 ⊢ n : A : t -> Γ1 ⊢ m.[n/] : B.[n/] : s.
 Proof with eauto.
   move=>tym tyn.
   apply: esubstitution...
   apply: agree_subst_wkN...
 Qed.
 
-Lemma strengthen Γ m A :
-  _: Γ ⊢ m.[ren (+1)] : A.[ren (+1)] -> Γ ⊢ m : A.
+Lemma strengthen Γ m A s :
+  _: Γ ⊢ m.[ren (+1)] : A.[ren (+1)] : s -> Γ ⊢ m : A : s.
 Proof with eauto using key.
   move=>tym.
-  have ty : (nil ⊢ U @ 0 : U @ 1).
+  have ty : (nil ⊢ U @ 0 : U @ 1 : U).
   apply: clc_axiom...
   have := (substitutionN tym ty).
   by asimpl.
 Qed.
 
-Lemma context_conv Γ m A B C s l :
+Lemma context_conv Γ m A B C s t l :
   B === A -> 
-  [Γ] ⊢ A : s @ l -> A :{s} Γ ⊢ m : C -> B :{s} Γ ⊢ m : C.
+  [Γ] ⊢ A : s @ l : U -> A :{s} Γ ⊢ m : C : t -> B :{s} Γ ⊢ m : C : t.
 Proof with eauto.
   move=>conv tpA tpm.
-  cut (B :{s} Γ ⊢ m.[ids] : C.[ids]). autosubst.
+  cut (B :{s} Γ ⊢ m.[ids] : C.[ids] : t). autosubst.
   apply: esubstitution...
   apply: agree_subst_conv.
   apply: conv_sub...

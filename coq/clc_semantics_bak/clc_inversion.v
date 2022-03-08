@@ -23,56 +23,34 @@ Ltac solve_sub :=
   | _ => solve_conv
   end.
 
-Lemma sort_inv Γ s i A : Γ ⊢ s @ i : A -> U @ i.+1 <: A.
-Proof.
-  move e:(s @ i)=>m tp.
-  elim: tp s i e=>//{Γ A m}.
-  move=>Γ s l k t i [_->]; eauto.
-  move=>Γ A B m s i sb tym ihm tyB ihB t l e; subst.
-  apply: sub_trans.
-  apply: ihm; eauto.
-  exact: sb.
-Qed.
-
-Lemma pi_invX Γ A B C s t :
-  Γ ⊢ Pi A B s t : C -> exists l, t @ l <: C.
-Proof.
-  move e:(Pi A B s t)=>m tp. elim: tp A B s t e=>//{Γ m C}.
-  move=>Γ A B s r t i k tyA ihA tyB ihB A0 B0 s0 t0[e1 e2 e3 e4].
-    subst. exists i; eauto.
-  move=>Γ A B m s i sb tym ihm tyB ihB A0 B0 s0 t e; subst.
-    have[l sb']:=ihm _ _ _ _ erefl.
-    exists l. apply: sub_trans.
-    exact: sb'. exact: sb.
-Qed.
-
-Lemma pi_inv Γ A B C s t :
-  Γ ⊢ Pi A B s t : C ->
-  exists r l,
-    Γ ⊢ A : s @ l /\ 
-    match s with U => A :U Γ | L => _: Γ end ⊢ B : r @ l.
+Lemma pi_inv Γ A B C s r t1 t2 :
+  Γ ⊢ Pi A B s r t1 : C : t2 ->
+  exists l,
+    Γ ⊢ A : s @ l : U /\ t2 = U /\
+    match s with U => A :U Γ | L => _: Γ end ⊢ B : r @ l : U.
 Proof with eauto using key.
-  move e:(Pi A B s t)=>m tp.
-  elim: tp A B s t e=>//{Γ C m}.
-  move=>Γ A B s r t i k tyA ihA tyB ihB A0 B0 s0 t0[->->e _]; subst.
-  exists r. exists i.
-  split; eauto.
+  move e:(Pi A B s r t1)=>m tp.
+  elim: tp A B s r t1 e=>//{Γ C m t2}.
+  move=>Γ A B s r t i k tyA ihA tyB ihB A0 B0 s0 r0 t1
+    [e1 e2 e3 e4 e5]; subst.
+  exists i.
+  repeat split; eauto.
   destruct s.
   simpl in tyB. rewrite<-pure_re in tyB...
   simpl in tyB. rewrite<-pure_re in tyB...
 Qed.
 
-Lemma lam_invX Γ A1 A2 B C m s1 s2 t1 t2 r l :
-  Γ ⊢ Lam A1 m s1 t1 : C ->
-  C <: Pi A2 B s2 t2 ->
-  [A2 :{s2} Γ] ⊢ B : r @ l ->
-  A2 :{s2} Γ ⊢ m : B.
+Lemma lam_invX Γ A1 A2 B C m s1 s2 r t1 t2 t3 l :
+  Γ ⊢ Lam A1 m s1 t1 : C : t2 ->
+  C <: Pi A2 B s2 r t3 ->
+  [A2 :{s2} Γ] ⊢ B : r @ l : U ->
+  A2 :{s2} Γ ⊢ m : B : r.
 Proof.
   move e:(Lam A1 m s1 t1)=>n tpL.
-  elim: tpL A1 A2 B m s1 t1 s2 t2 r l e=>//{Γ C n}.
-  move=>Γ A B m s t i k tyP ih tym ihm A1 A2 B0 m0
-    s1 t1 s2 t2 r0 l[e1 e2 e3 e4]/sub_pi_inv[c[sbB[e5 e6]]] tyB0; subst.
-  { move:tyP=>/pi_inv[r1[l0[tyA tyB]]].
+  elim: tpL A1 A2 B m s1 s2 r t1 t3 l e=>//{Γ C n t2}.
+  move=>Γ A B m s r t i k tyP ihP tym ihm A1 A2 B0 m0
+    s1 s2 t2 t3 r0 l[e1 e2 e3 e4]/sub_pi_inv[c[sbB[e5[e6 e7]]]] tyB0; subst.
+  { move:tyP=>/pi_inv[l0[tyA[_ tyB]]].
     destruct s2.
     apply: clc_conv; eauto.
     apply: context_conv.
@@ -85,23 +63,23 @@ Proof.
     eauto.
     eauto. }
   move=>Γ A B m s i sb1 tym ihm tyB ihB A1 A2 B0 m0 
-    s1 t1 s2 t2 r l e sb2 tyB0; subst.
+    s1 t1 s2 t2 l e sb2 tyB0; subst.
   { apply: ihm; eauto.
     apply: sub_trans; eauto. }
 Qed.
 
-Lemma lam_inv Γ m A1 A2 B s1 s2 t1 t2 r l :
-  [Γ] ⊢ Pi A1 B s1 t1 : r @ l ->
-  Γ ⊢ Lam A2 m s2 t2 : Pi A1 B s1 t1 ->
-  A1 :{s1} Γ ⊢ m : B.
+Lemma lam_inv Γ m A1 A2 B s1 s2 r t1 t2 t3 x l :
+  [Γ] ⊢ Pi A1 B s1 r t1 : x @ l : U ->
+  Γ ⊢ Lam A2 m s2 t2 : Pi A1 B s1 r t1 : t3 ->
+  A1 :{s1} Γ ⊢ m : B : r.
 Proof.
-  move=> /pi_inv[t[i[tyA tyB]]] tyL.
+  move=> /pi_inv[i[tyA[_ tyB]]] tyL.
   apply: lam_invX; eauto.
 Qed.
 
-Lemma unit_inv Γ A : Γ ⊢ Unit : A -> exists i, U @ i <: A.
+Lemma unit_inv Γ A s : Γ ⊢ Unit : A : s -> exists i, U @ i <: A.
 Proof.
-  move e:(Unit)=>m tp. elim:tp e=>//{Γ A m}.
+  move e:(Unit)=>m tp. elim:tp e=>//{Γ A m s}.
   move=>Γ k _. exists 0; eauto.
   move=>Γ A B m s i sb tym ihm tyB ihB e; subst.
   have[l sb']:=ihm erefl.
@@ -109,20 +87,20 @@ Proof.
   exact: sb'. exact: sb.
 Qed.
 
-Lemma it_invX Γ1 A :
-  Γ1 ⊢ It : A -> A <: Unit -> Γ1 |> U.
+Lemma it_invX Γ1 A s :
+  Γ1 ⊢ It : A : s -> A <: Unit -> Γ1 |> U.
 Proof.
-  move e:(It)=>m tp. elim:tp e=>//{Γ1 m A}.
+  move e:(It)=>m tp. elim:tp e=>//{Γ1 m A s}.
   move=>Γ A B m s i sb1 tym ihm tyB ihB e sb2; subst.
   apply: ihm; eauto.
   apply: sub_trans; eauto.
 Qed.
 
-Lemma it_inv Γ1 : Γ1 ⊢ It : Unit -> Γ1 |> U.
+Lemma it_inv Γ1 s : Γ1 ⊢ It : Unit : s -> Γ1 |> U.
 Proof. move=>ty. apply: it_invX; eauto. Qed.
 
 Lemma sigma_invX Γ A B s r t C :
-  Γ ⊢ Sigma A B s r t : C -> exists i, t @ i <: C.
+  Γ ⊢ Sigma A B s r t : C : U -> exists i, t @ i <: C.
 Proof.
   move e:(Sigma A B s r t)=>m ty. 
   elim: ty A B s r t e=>//{Γ C m}.
@@ -136,10 +114,10 @@ Proof.
 Qed.
 
 Lemma sigma_inv Γ A B s r t x :
-  Γ ⊢ Sigma A B s r t : x ->
+  Γ ⊢ Sigma A B s r t : x : U ->
   exists Γ1 Γ2 i,
     Γ1 ∘ Γ2 => Γ /\
-    Γ1 ⊢ A : s @ i /\ [A :{s} Γ2] ⊢ B : r @ i.
+    Γ1 ⊢ A : s @ i : U /\ [A :{s} Γ2] ⊢ B : r @ i : U.
 Proof.
   move e:(Sigma A B s r t)=>m ty. 
   elim: ty A B s r t e=>//{Γ x m}.
@@ -150,22 +128,24 @@ Proof.
   by apply: merge_pure.
 Qed.
 
-Lemma pair_invX Γ m n t1 C :
-  Γ ⊢ Pair m n t1 : C ->
+Lemma pair_invX Γ m n t1 t3 C :
+  Γ ⊢ Pair m n t1 : C : t3 ->
   forall A B s r t2 x l,
     C <: Sigma A B s r t2 ->
-    [Γ] ⊢ Sigma A B s r t2 : x @ l ->
+    [Γ] ⊢ Sigma A B s r t2 : x @ l : U ->
     exists Γ1 Γ2,
       t1 = t2 /\
+      t2 = t3 /\
       Γ1 |> s /\ 
       Γ2 |> r /\
       Γ1 ∘ Γ2 => Γ /\
-      Γ1 ⊢ m : A /\ Γ2 ⊢ n : B.[m/].
+      Γ1 ⊢ m : A : s /\ 
+      Γ2 ⊢ n : B.[m/] : r.
 Proof.
-  move e:(Pair m n t1)=>v tp. elim: tp m n t1 e=>//{Γ v C}.
+  move e:(Pair m n t1)=>v tp. elim: tp m n t1 e=>//{Γ v C t3}.
   move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg.
   move=>/sigma_inv[G1[G2[i0[mrg0[tyA tyB]]]]].
-  move=>_ tym _ tyn _ m0 n0 t1 [e1 e2] e3 A0 B0 s1 r1 t2 x l.
+  move=>_ tym _ tyn _ m0 n0 t1 [e1 e2 e3] A0 B0 s1 r1 t2 x l.
   move=>/sub_sigma_inv[sbA[sbB[e4[e5 e6]]]]; subst.
   move=>/sigma_inv[G3[G4[i1[mrg1[tyA0 tyB0]]]]].
   { exists Γ1. exists Γ2.
@@ -186,7 +166,7 @@ Proof.
     { have mrg2:[G4] ∘ Γ1 => [Γ2].
       rewrite e4 e2 (pure_re k1) e1.
       apply: merge_re_id.
-      have {}tym:Γ1 ⊢ m : A0.
+      have {}tym:Γ1 ⊢ m : A0 : U.
       apply:clc_conv; eauto.
       rewrite e1. rewrite<-e3. rewrite<-pure_re; eauto.
       have:=substitution tyB0 k1 mrg2 tym. 
@@ -199,13 +179,15 @@ Proof.
     apply: sub_trans; eauto. }
 Qed.
 
-Lemma pair_inv Γ m n A B s r t1 t2 x i :
-  Γ ⊢ Pair m n t1 : Sigma A B s r t2 ->
-  [Γ] ⊢ Sigma A B s r t2 : x @ i ->
+Lemma pair_inv Γ m n A B s r t1 t2 t3 x i :
+  Γ ⊢ Pair m n t1 : Sigma A B s r t2 : t3 ->
+  [Γ] ⊢ Sigma A B s r t2 : x @ i : U ->
   exists Γ1 Γ2,
     t1 = t2 /\
+    t2 = t3 /\
     Γ1 |> s /\ 
     Γ2 |> r /\
     Γ1 ∘ Γ2 => Γ /\
-    Γ1 ⊢ m : A /\ Γ2 ⊢ n : B.[m/].
+    Γ1 ⊢ m : A : s /\ 
+    Γ2 ⊢ n : B.[m/] : r.
 Proof. move=>tyP tyS. apply: pair_invX; eauto. Qed.
