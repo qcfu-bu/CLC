@@ -9,41 +9,13 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Inductive cbv_step : term -> term -> Prop :=
-| cbv_appL m m' n :
-  cbv_step m m' ->
-  cbv_step (App m n) (App m' n)
-| cbv_appR m n n' :
-  value m ->
-  cbv_step (App m n) (App m n')
-| cbv_beta A m n s t :
-  value n ->
-  cbv_step (App (Lam A m s t) n) m.[n/]
-| cbv_pairL m m' n t :
-  cbv_step m m' ->
-  cbv_step (Pair m n t) (Pair m' n t)
-| cbv_pairR m n n' t :
-  value m ->
-  cbv_step n n' ->
-  cbv_step (Pair m n t) (Pair m n' t)
-| cbv_letin1 m m' n :
-  cbv_step m m' ->
-  cbv_step (LetIn1 m n) (LetIn1 m' n)
-| cbv_iota1 n :
-  cbv_step (LetIn1 It n) n
-| cbv_letin2 m m' n :
-  cbv_step m m' ->
-  cbv_step (LetIn2 m n) (LetIn2 m' n)
-| cbv_iota2 m1 m2 n t :
-  cbv_step (LetIn2 (Pair m1 m2 t) n) n.[m2,m1/].
-
 Inductive eval : context term -> term -> context term -> term -> Prop :=
 | eval_sort Θ s i l :
   l = length Θ ->
   eval Θ (Sort s i) (Sort s i :U Θ) (Ptr l)
-| eval_pi Θ A B s t l :
+| eval_pi Θ A B s r t l :
   l = length Θ ->
-  eval Θ (Pi A B s t) (Pi A B s t :U Θ) (Ptr l)
+  eval Θ (Pi A B s r t) (Pi A B s r t :U Θ) (Ptr l)
 | eval_lam Θ A m s t l :
   l = length Θ ->
   eval Θ (Lam A m s t) (Lam A m s t :{t} Θ) (Ptr l)
@@ -86,7 +58,7 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   eval Θ (LetIn2 (Ptr l) n) Θ' n.[Ptr ln,Ptr ln/].
 
 Lemma eval_split Θ1 Θ2 Θ Θ' m n m' A t :
-  well_resolved Θ1 m n A t ->  
+  well_resolved Θ1 m n A t -> wr_env Θ -> 
   Θ1 ∘ Θ2 => Θ -> eval Θ m Θ' m' ->
   exists Θ1' Θ2' n', 
     well_resolved Θ1' m' n' A t /\ 
@@ -94,51 +66,51 @@ Lemma eval_split Θ1 Θ2 Θ Θ' m n m' A t :
 Proof with eauto 6 using 
   clc_type, key, free, pad, merge, 
   well_resolved, resolve, resolve_wkU, resolve_wkN.
-  move=>{Θ1 m n A t}[Θ1 m n A t i rm]. move e:(nil)=>Γ tyn.
-  elim: tyn Θ1 Θ2 Θ Θ' m m' t i rm e=>{Γ n A}.
-  move=>Γ s l k Θ1 Θ2 Θ Θ' m m' t i rsm e tyU mrg ev; subst.
+  move=>{Θ1 m n A t}[Θ1 m n A t rm]. move e:(nil)=>Γ tyn.
+  elim: tyn Θ1 Θ2 Θ Θ' m m' rm e=>{Γ n A t}.
+  move=>Γ s l k Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
   { inv rsm; inv ev.
     exists ((s @ l) :U Θ1).
     exists ((s @ l) :U Θ2).
     exists (s @ l).
     repeat split...
-    econstructor...
-    move:mrg=>/merge_length[<-_]... }
+    econstructor.
+    move:mrg=>/merge_length[<-_]... 
+    econstructor... }
   move=>Γ A B s r t i k tyA ihA tyB ihB Θ1 Θ2 Θ Θ' 
-    m m' t0 x rsm e tyt mrg ev; subst.
+    m m' rsm e tyt mrg ev; subst.
   { inv rsm; inv ev.
-    exists ((Pi A0 B0 s t) :U Θ1).
-    exists ((Pi A0 B0 s t) :U Θ2).
-    exists (Pi A B s t).
+    exists ((Pi A0 B0 s r t) :U Θ1).
+    exists ((Pi A0 B0 s r t) :U Θ2).
+    exists (Pi A B s r t).
     repeat split...
-    econstructor...
-    move:mrg=>/merge_length[<-_]... }
-  move=>Γ x A s hs Θ1 Θ2 Θ Θ' m m' t i rsm e tyA mrg ev.
+    econstructor.
+    move:mrg=>/merge_length[<-_]... 
+    econstructor... }
+  move=>Γ x A s hs Θ1 Θ2 Θ Θ' m m' rsm e tyA mrg ev.
   { inv rsm; inv ev. }
-  move=>Γ A B m s t i k tyP ihP tym ihm 
-    Θ1 Θ2 Θ Θx n m' t0 l rsL e tyPx mrg ev.
+  move=>Γ A B m s r t i k tyP ihP tym ihm 
+    Θ1 Θ2 Θ Θx n m' rsL e tyPx mrg ev.
   { inv rsL; inv ev.
     have[<-_]:=merge_length mrg.
     destruct t.
     { exists ((Lam A0 m0 s U) :U Θ1).
       exists ((Lam A0 m0 s U) :U Θ2).
       exists (Lam A m s U).
-      repeat split... 
-      econstructor... }
+      repeat split... }
     { exists ((Lam A0 m0 s L) :L Θ1).
       exists (_: Θ2).
       exists (Lam A m s L).
-      repeat split... 
-      econstructor... } }
-  move=>Γ1 Γ2 Γ A B m n s t k mrg1 tym ihm tyn ihn
-    Θ1 Θ2 Θ Θ' x x' tx ix rx e tyBx mrg2 ev; subst.
+      repeat split... } }
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg1 tym ihm tyn ihn
+    Θ1 Θ2 Θ Θ' x x' rx e wf mrg2 ev; subst.
   { inv mrg1.
-    have[r[l tyP]]:= validity nil_ok tym.
-    have[r0[l0[tyA tyB]]]:= pi_inv _ _ _ _ _ _ tyP.
+    have[l tyP]:= validity nil_ok tym.
+    have[l0[tyA[_ tyB]]]:= pi_inv _ _ _ _ _ _ _ _ tyP.
     inv rx; inv ev.
     { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
       have[Θx1[Θx2[mx[wr[pd[mrgx rx]]]]]]:=
-        ihm _ _ _ _ _ _ _ _ H4 erefl tyP mrg4 H7.
+        ihm _ _ _ _ _ _ H4 erefl wf mrg4 H7.
       have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
       have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
       inv wr.
@@ -146,23 +118,19 @@ Proof with eauto 6 using
       exists (App mx n).
       repeat split...
       econstructor.
-      econstructor.
       exact: (merge_sym mrp1).
       eauto.
       apply: resolve_pad...
-      econstructor...
-      eauto.
       apply: red_app... }
     { have[Θx[mrg3 mrg4]]:=merge_splitL mrg2 H1.
       have{ihn}[Θx1[Θx2[nx[wr[pd[mrgx rx]]]]]]:=
-        ihn _ _ _ _ _ _ _ _ H5 erefl tyA (merge_sym mrg4) H7.
+        ihn _ _ _ _ _ _ H5 erefl wf (merge_sym mrg4) H7.
       have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
       have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
       inv wr.
       exists Θy. exists Θ2p.
       exists (App m nx).
       repeat split...
-      econstructor. 
       econstructor. 
       exact: mrp1.
       apply: resolve_pad... eauto.
@@ -191,11 +159,10 @@ Proof with eauto 6 using
       have[G[mrg rs]]:=resolve_free H7 H4 mrg4.
       have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
       exists Gx. exists Θ2. inv rs. exists (m'.[n/]).
-      have tym':=lam_inv _ _ _ _ _ _ _ _ _ _ _ tyP tym.
+      have tym':=lam_inv _ _ _ _ _ _ _ _ _ _ _ _ _ tyP tym.
       repeat split...
-      destruct s.
       admit.
-      admit.
+      apply: substitution...
       apply: star1.
       apply: step_beta. } }
 
