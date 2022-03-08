@@ -430,12 +430,12 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_pi Θ Θ' l A B s t :
-  free Θ l (Pi A B s t) Θ' -> wr_env Θ -> Θ = Θ'.
+Lemma free_wr_pi Θ Θ' l A B s r t :
+  free Θ l (Pi A B s r t) Θ' -> wr_env Θ -> Θ = Θ'.
 Proof.
-  move e:(Pi A B s t)=>m fr. elim: fr A B s t e=>//{Θ Θ' l m}.
-  move=>Θ m l e1 A B s t e2 wr; subst. inv wr.
-  move=>Θ Θ' m n l fr ih A B s t e wr; subst.
+  move e:(Pi A B s r t)=>m fr. elim: fr A B s r t e=>//{Θ Θ' l m}.
+  move=>Θ m l e1 A B s r t e2 wr; subst. inv wr.
+  move=>Θ Θ' m n l fr ih A B s r t e wr; subst.
   f_equal.
   apply: ih; eauto.
   inv wr; eauto.
@@ -516,12 +516,12 @@ Proof.
   exfalso. apply: free_wr_ptr; eauto.
 Qed.
 
-Lemma resolve_pi_inv Θ m A B s t :
-  wr_env Θ -> resolve Θ m (Pi A B s t) -> Θ |> U.
+Lemma resolve_pi_inv Θ m A B s r t :
+  wr_env Θ -> resolve Θ m (Pi A B s r t) -> Θ |> U.
 Proof.
-  move e:(Pi A B s t)=>n wr rs.
-  elim: rs A B s t wr e=>//{Θ m n}.
-  move=>Θ Θ' l m m' fr rsm ihm A B s t wr e; subst.
+  move e:(Pi A B s r t)=>n wr rs.
+  elim: rs A B s r t wr e=>//{Θ m n}.
+  move=>Θ Θ' l m m' fr rsm ihm A B s r t wr e; subst.
   destruct m; inv rsm.
   have->//:=free_wr_pi fr wr.
   exfalso. apply: free_wr_ptr; eauto.
@@ -599,57 +599,32 @@ Proof.
   exfalso. apply: free_wr_ptr; eauto.
 Qed.
 
-Theorem resolution Θ m n A B t i :
-  nil ⊢ n : A -> A <: B -> nil ⊢ B : t @ i -> value n ->
-  wr_env Θ -> resolve Θ m n -> Θ |> t.
+Theorem resolution Θ m n A t :
+  nil ⊢ n : A : t -> value n -> wr_env Θ -> resolve Θ m n -> Θ |> t.
 Proof with eauto using key_impure.
-  move e:(nil)=>Γ ty. elim: ty B Θ m i t e=>{Γ n A}.
-  move=>Γ s l k B Θ m i t e sb tyU val wr rs.
+  move e:(nil)=>Γ ty. elim: ty Θ m e=>{Γ n A t}.
+  move=>Γ s l k Θ m e val wr rs.
+  { apply: resolve_sort_inv... }
+  move=>Γ A B s r t i k tyA _ tyB _ Θ m _ val wr rs.
+  { apply: resolve_pi_inv... }
+  move=>Γ x A s hs Θ m _  val. inv val.
+  move=>Γ A B m s r t i k tyP ihP tym ihm Θ n _ val wr rs.
   { destruct t...
-    apply: resolve_sort_inv... }
-  move=>Γ A B s r t i k tyA _ tyB _ C Θ m l' t' _ sb tyt val wr rs.
-  { destruct t'...
-    apply: resolve_pi_inv... }
-  move=>Γ x A s hs B Θ m i t _ sb tyB val. inv val.
-  move=>Γ A B m s t i k tyP ihP tym ihm C Θ n l x _ sb tyP' val wr rs.
-  { 
-    
-    destruct x...
     apply: resolve_lam_inv; eauto. }
-  move=>Γ1 Γ2 Γ A B m n s t k mrg tym 
-    ihm tyn ihn Θ' m0 i t0 _ tyB val. inv val.
-  move=>Γ k Θ m i t _ tyU val wr rs.
-  { move/sort_inv in tyU.
-    move:tyU=>/sub_sort_inv[<-_].
-    apply: resolve_unit_inv; eauto. }
-  move=>Γ k Θ m i t _ tyU v wr rs.
-  { have[l /sub_sort_inv[<-_]]:=unit_inv _ _ tyU.
-    apply: resolve_it_inv; eauto. }
-  move=>Γ A B s r t i lt k 
-    tyA ihA tyB ihB Θ m l t0 _ tyt val wr rs.
-  { move/sort_inv in tyt.
-    move:tyt=>/sub_sort_inv[<-_].
-    apply: resolve_sigma_inv; eauto. }
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg tym
+    ihm tyn ihn Θ' m0 _ val. inv val.
+  move=>Γ k Θ m _ val wr rs.
+  { apply: resolve_unit_inv; eauto. }
+  move=>Γ k Θ m _ v wr rs.
+  { apply: resolve_it_inv; eauto. }
+  move=>Γ A B s r t i lt k tyA ihA tyB ihB Θ m _ val wr rs.
+  { apply: resolve_sigma_inv; eauto. }
   move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg tyS ihS 
-    tym ihm tyn ihn Θ m0 i0 t0 _ tyS' val wr rs.
-  { move/sigma_invX in tyS'.
-    move:tyS'=>[i'/sub_sort_inv[e _]]; subst.
-    apply: resolve_pair_inv; eauto. }
-  move=>Γ1 Γ2 Γ m n A _ _ _ _ _ Θ m0 i t _ _ val. inv val.
-  move=>Γ1 Γ2 Γ A B C m n s r t k x i le key mrg 
-    tym ihm tyS ihS tyn ihn Θ m0 i0 t0 _ tyC val. inv val.
-  move=>Γ A B m s i sb tym ihm tyB ihB Θ m0 i0 t e tyB' v wr rs.
-  { subst.
-    have[sA[lA tyA]]:=validity nil_ok tym.
-    rewrite<-pure_re in tyA.
-    destruct sb. destruct H.
-    admit.
-    admit.
-    admit.
-    admit.
-    constructor.
-
-  }
-  
-
- 
+    tym ihm tyn ihn Θ m0 _ val wr rs.
+  { apply: resolve_pair_inv; eauto. }
+  move=>Γ1 Γ2 Γ m n A s _ _ _ _ _ Θ m0 _ val. inv val.
+  move=>Γ1 Γ2 Γ A B C m n s r t k x i 
+    _ _ _ _ _ _ _ _ _ Θ m0 _ val. inv val.
+  move=>Γ A B m s i sb tym ihm _ _ Θ m0 e val wr rs.
+  { subst. apply: ihm... }
+Qed.
