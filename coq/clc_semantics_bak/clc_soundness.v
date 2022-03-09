@@ -111,7 +111,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     tyS ihS tym ihm tyn ihn n0 o st. 
   move:(merge_context_ok_inv mrg o)=>[o1 o2]. 
   move:(merge_re_re mrg)=>[e[e1 e2]].
-  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[mrg0[tyA tyB]]]]].
+  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[_[mrg0[tyA tyB]]]]]].
   move:(merge_re_re mrg0)=>[e3[e4 e5]]. inv st.
   { move:(ihm _ o1 H3)=>{ihm ihS ihn}tym'.
     rewrite<-re_invo in e4.
@@ -143,7 +143,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     tym ihm tyC ihC tyn ihn n0 o st.
   move:(merge_context_ok_inv mrg o)=>[o1 o2]. 
   move:(validity o1 tym)=>[l tyS].
-  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[mrg0[tyA tyB]]]]]. 
+  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[_[mrg0[tyA tyB]]]]]]. 
   move:(merge_re_re mrg)=>[e0[e1 e2]].
   move:(merge_re_re mrg0)=>[e3[e4 e5]].
   inv st.

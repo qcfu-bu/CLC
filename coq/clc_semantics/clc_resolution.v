@@ -615,9 +615,7 @@ Proof with eauto using key_impure.
     apply: resolve_pi_inv... }
   move=>Γ x A s hs B Θ m i t _ sb tyB val. inv val.
   move=>Γ A B m s t i k tyP ihP tym ihm C Θ n l x _ sb tyP' val wr rs.
-  { 
-    
-    destruct x...
+  { destruct x...
     apply: resolve_lam_inv; eauto. }
   move=>Γ1 Γ2 Γ A B m n s t k mrg tym 
     ihm tyn ihn Θ' m0 i t0 _ tyB val. inv val.

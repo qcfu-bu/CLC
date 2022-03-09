@@ -116,8 +116,10 @@ Qed.
 Lemma sigma_inv Γ A B s r t x :
   Γ ⊢ Sigma A B s r t : x : U ->
   exists Γ1 Γ2 i,
+    s ⋅ r ≤ t /\
     Γ1 ∘ Γ2 => Γ /\
-    Γ1 ⊢ A : s @ i : U /\ [A :{s} Γ2] ⊢ B : r @ i : U.
+    Γ1 ⊢ A : s @ i : U /\ 
+    [A :{s} Γ2] ⊢ B : r @ i : U.
 Proof.
   move e:(Sigma A B s r t)=>m ty. 
   elim: ty A B s r t e=>//{Γ x m}.
@@ -147,7 +149,7 @@ Proof.
   move=>/sigma_inv[G1[G2[i0[mrg0[tyA tyB]]]]].
   move=>_ tym _ tyn _ m0 n0 t1 [e1 e2 e3] A0 B0 s1 r1 t2 x l.
   move=>/sub_sigma_inv[sbA[sbB[e4[e5 e6]]]]; subst.
-  move=>/sigma_inv[G3[G4[i1[mrg1[tyA0 tyB0]]]]].
+  move=>/sigma_inv[G3[G4[i1[_[mrg1[tyA0 tyB0]]]]]].
   { exists Γ1. exists Γ2.
     have[_[e1 e2]]:=merge_re_re mrg.
     have[_[e3 e4]]:=merge_re_re mrg1.

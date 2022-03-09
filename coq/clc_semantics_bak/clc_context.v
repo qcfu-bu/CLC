@@ -189,6 +189,22 @@ Proof.
   move/merge_sym. exact: merge_pureL.
 Qed.
 
+Lemma merge_key T (Γ1 Γ2 Γ : context T) s :
+  Γ1 ∘ Γ2 => Γ -> Γ1 |> s -> Γ2 |> s -> Γ |> s.
+Proof.
+  move=>mrg. elim: mrg s=>//={Γ1 Γ2 Γ}.
+  move=>Γ1 Γ2 Γ m mrg ih [|] k1 k2. 
+    inv k1. inv k2. constructor; eauto.
+    inv k1. inv k2. constructor; eauto.
+  move=>Γ1 Γ2 Γ m mrg ih [|] k1 k2. 
+    inv k1. inv k1. inv k2. constructor; eauto.
+  move=>Γ1 Γ2 Γ m mrg ih [|] k1 k2. 
+    inv k2. inv k1. inv k2. constructor; eauto.
+  move=>Γ1 Γ2 Γ mrg ih [|] k1 k2.
+    inv k1. inv k2. constructor; eauto.
+    inv k1. inv k2. constructor; eauto.
+Qed.
+
 Lemma merge_pure_pure T (Γ1 Γ2 Γ : context T) :
   Γ1 ∘ Γ2 => Γ -> Γ1 |> U -> Γ2 |> U -> Γ |> U.
 Proof.
@@ -223,19 +239,25 @@ Proof with eauto using key.
 Qed.
 
 Lemma merge_pure_eq T (Γ1 Γ2 Γ : context T) :
-  Γ1 ∘ Γ2 => Γ -> Γ1 |> U -> Γ2 |> U -> Γ1 = Γ2.
+  Γ1 ∘ Γ2 => Γ -> Γ1 |> U -> Γ2 |> U -> Γ1 = Γ /\ Γ2 = Γ.
 Proof.
   elim=>//={Γ1 Γ2 Γ}.
   move=> Γ1 Γ2 Γ A mrg ih k1 k2.
     inv k1. inv k2.
-    by rewrite ih.
+    have[e1 e2]:=ih H0 H1.
+    split.
+    by rewrite e1.
+    by rewrite e2.
   move=> Γ1 Γ2 Γ A _ _ k.
     inv k.
   move=> Γ1 Γ2 Γ A _ _ _ k.
     inv k.
   move=> Γ1 Γ2 Γ mrg ih k1 k2.
     inv k1. inv k2.
-    by rewrite ih.
+    have[e1 e2]:=ih H0 H1.
+    split.
+    by rewrite e1.
+    by rewrite e2.
 Qed.
 
 Lemma merge_re_re T (Γ1 Γ2 Γ : context T) :
@@ -253,6 +275,13 @@ Lemma merge_re_id T (Γ : context T) :
 Proof.
   elim: Γ; eauto using merge.
   move=> [[A[|]]|] Γ mrg; eauto using merge.
+Qed.
+
+Lemma merge_re3 T  (Γ1 Γ2 Γ : context T) :
+  Γ1 ∘ Γ2 => Γ -> [Γ1] ∘ [Γ2] => [Γ].
+Proof.
+  move/merge_re_re=>[_[->->]].
+  exact:merge_re_id.
 Qed.
 
 Lemma re_invo T (Γ : context T) : [Γ] = [[Γ]].
@@ -419,4 +448,41 @@ Proof.
     move:(ih _ _ H2)=>[G[mrg2 mrg3]].
     exists (_: G).
     by eauto using merge.
+Qed.
+
+Lemma merge_distr T (Γ1 Γ2 Γ : context T) :
+  Γ1 ∘ Γ2 => Γ ->
+  forall Δ11 Δ12 Δ21 Δ22,
+    Δ11 ∘ Δ12 => Γ1 ->
+    Δ21 ∘ Δ22 => Γ2 ->
+    exists Δ1 Δ2,
+      Δ1 ∘ Δ2 => Γ /\
+      Δ11 ∘ Δ21 => Δ1 /\
+      Δ12 ∘ Δ22 => Δ2.
+Proof with eauto using merge.
+  elim=>{Γ1 Γ2 Γ}.
+  move=>D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1. inv mrg2.
+    exists nil. exists nil...
+  move=>G1 G2 G m mrg ih D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1. inv mrg2.
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (m :U D1). exists (m :U D2).
+    repeat split...
+  move=>G1 G2 G m mrg ih D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1; inv mrg2.
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (m :L D1). exists (_: D2). repeat split...
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (_: D1). exists (m :L D2). repeat split...
+  move=>G1 G2 G m mrg ih D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1; inv mrg2.
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (m :L D1). exists (_: D2). repeat split...
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (_: D1). exists (m :L D2). repeat split...
+  move=>G1 G2 G mrg ih D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1; inv mrg2.
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (_: D1). exists (_: D2). repeat split...
 Qed.
