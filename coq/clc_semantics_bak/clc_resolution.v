@@ -906,27 +906,3 @@ Proof.
   have vm:=wr_free_value H0 wr.
   apply: resolve_value; eauto.
 Qed.
-
-(* Lemma resolve_ren Θ m m' ξ :
-  resolve Θ m m' -> resolve Θ m.[ren ξ] m'.[ren ξ].
-Proof with eauto using resolve.
-  move=>rs. elim: rs ξ=>{Θ m m'}...
-  move=>Θ A A' B B' s r t k rsA ihA rsB ihB ξ.
-  { asimpl. constructor... }
-  move=>Θ A A' m m' s t k rsA ihA rsm ihm ξ.
-  { asimpl. constructor... }
-  move=>Θ A A' B B' s r t k rsA ihA rsB ihB ξ.
-  { asimpl. constructor... }
-  move=>Θ1 Θ2 Θ m m' n n' mrg rsm ihm rsn ihn ξ.
-  { have rs1:=ihm ξ.
-    have rs2:=ihn (upren (upren ξ)).
-    have :=resolve_letin2 mrg rs1 rs2.
-    by asimpl. }
-  move=>Θ Θ' l m m' fr rs ih ξ.
-  { asimpl.
-    econstructor.
-    apply: fr.
-    apply: 
-
-  } *)
-

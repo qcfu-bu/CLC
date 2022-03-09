@@ -104,19 +104,6 @@ Proof.
   move=>Γ Θ σ1 σ2 m m' agr ih k. inv k; eauto.
 Qed.
 
-(* Lemma agree_resolve_free Γ Θ σ σ' Θ' x Θ1 l m :
-  agree_resolve Γ Θ σ σ' Θ' x -> free Θ l m Θ1 -> 
-    exists Θ2, free Θ' l m Θ2.
-Proof.
-  move=>agr. elim: agr l m Θ1=>//{Γ Θ σ σ' Θ' x}.
-  move=>Γ Θ1 Θ2 Θ m m' A mrg k wr rs l m0 Θ0 fr.
-  { have[G[fr' _]]:=free_merge fr mrg.
-    exists G. exact: fr'. }
-  move=>Γ Θ1 Θ2 Θ m m' A mrg wr rs l m0 Θ0 fr.
-  { have[G[fr' _]]:=free_merge fr mrg.
-    exists G. exact: fr'. }
-Qed. *)
-
 Lemma nf_agree_resolve_var Γ Θ σ σ' i x :
   agree_resolve Γ Θ σ σ' i -> x < i -> Var x = σ x.
 Proof.
