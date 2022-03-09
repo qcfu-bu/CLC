@@ -502,10 +502,7 @@ Proof with eauto using resolve, merge_pure_pure.
     { have[wr1 wr2]:=wr_merge_inv H1 wr.
       have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
       have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg2 H1 mrg5.
-      econstructor.
-      apply: mrg6.
-      apply: ihm...
-      apply: ihn... }
+      econstructor... }
     { destruct m1; inv H0.
       have nfa:=free_wr_nf H wr.
       inv nfa.
@@ -576,35 +573,96 @@ Proof with eauto using resolve, merge_pure_pure.
   move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg1 tyS ihS tym ihm tyn ihn
     Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
   { inv rsm; asimpl.
-    { econstructor.
-      
-    
-      have[wr1 wr2]:=wr_merge_inv H1 wr.
+    { have[_[_[_[le _]]]]:=sigma_inv _ _ _ _ _ _ _ tyS.
+      have kt:=merge_key_sum mrg1 k1 k2 le.
+      have k3:=agree_resolve_key agr kt.
+      have k4:=merge_key mrg2 H2 k3.
+      have[wr1 wr2]:=wr_merge_inv H5 wr.
       have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
-      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg2 H1 mrg5.
-      econstructor.
-      apply: mrg6.
-      apply: ihm...
-      apply: ihn... }
+      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg2 H5 mrg5.
+      econstructor... }
     { destruct m1; inv H0.
-      have nfa:=free_wr_nf H wr.
-      inv nfa.
+      have[_[_[_[le _]]]]:=sigma_inv _ _ _ _ _ _ _ tyS.
+      have kt:=merge_key_sum mrg1 k1 k2 le.
+      have k3:=agree_resolve_key agr kt.
+      have nfp:=free_wr_nf H wr.
+      inv nfp.
+      have[G[fr mrg']]:=free_merge H mrg2.
+      have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
+      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg' H9 mrg5.
+      have wr':=free_wr H wr.
+      have[wr1 wr2]:=wr_merge_inv H9 wr'.
+      have kg:=merge_key mrg' H7 k3.
+      have lx:0 <= x by eauto.
+      econstructor...
+      econstructor...
+      have->:=nf_agree_resolve H3 lx agr1.
+      apply:ihm...
+      have->:=nf_agree_resolve H5 lx agr2.
+      apply:ihn...
+      exfalso. apply: free_wr_ptr; eauto. } }
+  move=>Γ1 Γ2 Γ m n A s mrg1 tym ihm tyn ihn Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
+  { inv rsm; asimpl.
+    { have[G1[G2[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
+      have[D1[D2[mrg4[mrg5 mrg6]]]]:=merge_distr mrg2 H1 mrg3.
+      have[wr1 wr2]:=wr_merge_inv H1 wr.
+      econstructor... }
+    { destruct m1; inv H0.
+      have nfp:=free_wr_nf H wr.
+      inv nfp.
       have[G[fr mrg']]:=free_merge H mrg2.
       have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
       have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg' H6 mrg5.
       have wr':=free_wr H wr.
       have[wr1 wr2]:=wr_merge_inv H6 wr'.
-      have le:0 <= x by eauto.
+      have lx:0 <= x by eauto.
       econstructor...
-      econstructor.
-      apply: mrg6.
-      have->:=nf_agree_resolve H3 le agr1.
+      econstructor...
+      have->:=nf_agree_resolve H3 lx agr1.
       apply:ihm...
-      have->:=nf_agree_resolve H4 le agr2.
+      have->:=nf_agree_resolve H4 lx agr2.
       apply:ihn...
       exfalso. apply: free_wr_ptr; eauto. } }
-
-
+  move=>Γ1 Γ2 Γ A B C m n s r t k x i le key mrg1
+    tym ihm tyC ihC tyn ihn Θ1 Θ2 Θ m0 σ σ' x0 mrg2 rsm wr agr.
+  { inv rsm; asimpl.
+    { have[G1[G2[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
+      have[D1[D2[mrg4[mrg5 mrg6]]]]:=merge_distr mrg2 H1 mrg3.
+      have[wr1 wr2]:=wr_merge_inv H1 wr.
+      econstructor... 
+      apply: ihn...
+      econstructor.
+      econstructor... }
+    { destruct m1; inv H0.
+      have nfp:=free_wr_nf H wr.
+      inv nfp.
+      have[G[fr mrg']]:=free_merge H mrg2.
+      have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
+      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg' H6 mrg5.
+      have wr':=free_wr H wr.
+      have[wr1 wr2]:=wr_merge_inv H6 wr'.
+      have lx1:0 <= x0 by eauto.
+      have lx2:1 < x0.+2 by eauto.
+      econstructor...
+      econstructor...
+      have->:=nf_agree_resolve H3 lx1 agr1.
+      apply:ihm...
+      have->:n0=n0.[up (up σ)].
+        apply: nf_agree_resolve.
+        apply: H4.
+        apply: lx2.
+        constructor.
+        constructor.
+        apply: agr2.
+      apply:ihn...
+      constructor.
+      constructor...
+      exfalso. apply: free_wr_ptr; eauto. } }
+  move=>Γ A B m s i sb tym ihm tyB ihB Θ1 Θ2 Θ m0 σ σ' x mrg rsm wr agr.
+  { apply: ihm... 
+    Unshelve.
+    all: eauto. }
+Qed.
 
       (* Lemma resolve_substL Θ1 Θ2 Θ m m' n n' A B r :
   A :L nil ⊢ m' : B : r -> 

@@ -205,6 +205,22 @@ Proof.
     inv k1. inv k2. constructor; eauto.
 Qed.
 
+Lemma merge_key_sum T (Γ1 Γ2 Γ : context T) s r t :
+  Γ1 ∘ Γ2 => Γ -> Γ1 |> s -> Γ2 |> r -> s ⋅ r ≤ t -> Γ |> t.
+Proof with eauto using key, key_impure, sort_leq.
+  move=>mrg. elim: mrg s r t=>//={Γ1 Γ2 Γ}...
+  move=>G1 G2 G m mrg ih s r t k1 k2 le.
+  { inv k1; inv k2; destruct t; inv le... }
+  move=>G1 G2 G m mrg ih s r t k1 k2 le.
+  { inv k1; inv k2; destruct t; inv le... }
+  move=>G1 G2 G m mrg ih s r t k1 k2 le.
+  { inv k1; inv k2; destruct t; inv le... 
+    destruct s. inv H1. inv H1. }
+  move=>G1 G2 G mrg ih s r t k1 k2 le.
+  { inv k1; inv k2; destruct t; inv le... 
+    destruct s; destruct r; inv H2... }
+Qed.
+
 Lemma merge_pure_pure T (Γ1 Γ2 Γ : context T) :
   Γ1 ∘ Γ2 => Γ -> Γ1 |> U -> Γ2 |> U -> Γ |> U.
 Proof.
