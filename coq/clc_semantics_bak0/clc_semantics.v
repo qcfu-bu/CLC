@@ -16,17 +16,17 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
 | eval_pi Θ A B s r t l :
   l = length Θ ->
   eval Θ (Pi A B s r t) (Pi A B s r t :U Θ) (Ptr l)
-| eval_lam Θ A m s t l :
+| eval_lam Θ m s t l :
   l = length Θ ->
-  eval Θ (Lam A m s t) (Lam A m s t :{t} Θ) (Ptr l)
+  eval Θ (Lam m s t) (Lam m s t :{t} Θ) (Ptr l)
 | eval_appL Θ Θ' m m' n :
   eval Θ m Θ' m' ->
   eval Θ (App m n) Θ' (App m' n)
 | eval_appR Θ Θ' l n n' :
   eval Θ n Θ' n' ->
   eval Θ (App (Ptr l) n) Θ' (App (Ptr l) n')
-| eval_beta Θ Θ' lf la A m s t :
-  free Θ lf (Lam A m s t) Θ' ->
+| eval_beta Θ Θ' lf la m s t :
+  free Θ lf (Lam m s t) Θ' ->
   eval Θ (App (Ptr lf) (Ptr la)) Θ' m.[Ptr la/]
 | eval_unit Θ l :
   l = length Θ ->
@@ -60,10 +60,10 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
 Inductive agree_resolve :
   context term -> context term -> (var -> term) -> 
     (var -> term) -> context term -> nat -> Prop :=
-| agree_resolve_upU Γ Θ Θ' σ σ' A A' x :
+| agree_resolve_up Γ Θ Θ' σ σ' A A' s x :
   resolve Θ A A' ->
   agree_resolve Γ Θ σ σ' Θ' x ->
-  agree_resolve (A' :U Γ) Θ (up σ) (up σ') Θ' x.+1
+  agree_resolve (A' :{s} Γ) Θ (up σ) (up σ') Θ' x.+1
 
 | agree_resolve_upN Γ Θ Θ' σ σ' x :
   agree_resolve Γ Θ σ σ' Θ' x ->
@@ -110,9 +110,8 @@ Proof.
     rewrite<-ihA; eauto.
     rewrite<-ihB; eauto.
     apply: id_ren_up; eauto. }
-  move=>i A m s t nfA ihA nfm ihm ξ idr.
+  move=>i m s t nfm ihm ξ idr.
   { asimpl.
-    rewrite<-ihA; eauto.
     rewrite<-ihm; eauto.
     apply: id_ren_up; eauto. }
   move=>i m n nfm ihm nfn ihn ξ idr.
@@ -142,7 +141,7 @@ Lemma nf_agree_resolve_var Γ Θ Θ' σ σ' i x :
   agree_resolve Γ Θ σ σ' Θ' i -> x < i -> Var x = σ x.
 Proof.
   move=>agr. elim: agr x=>//{Γ Θ Θ' σ σ' i}.
-  move=>Γ Θ Θ' σ σ' A A' x rsA agr ih [|i] le//.
+  move=>Γ Θ Θ' σ σ' A A' s x rsA agr ih [|i] le//.
   asimpl.
   have/ih<-//:i < x by eauto.
   move=>Γ Θ Θ' σ σ' x agr ih [|i] le//.
@@ -162,9 +161,8 @@ Proof with eauto using agree_resolve.
     apply: ihA. exact: le. exact: agr.
     apply: ihB. exact: le1. 
     apply: agree_resolve_upN. exact: agr.
-  move=>i A m s t nfA ihA nfm ihm Γ Θ σ σ' Θ' j le agr.
+  move=>i m s t nfm ihm Γ Θ σ σ' Θ' j le agr.
     have le1:i < j.+1 by eauto. asimpl. f_equal.
-    apply: ihA. exact: le. exact: agr.
     apply: ihm. exact: le1. 
     apply: agree_resolve_upN. exact: agr.
   move=>i m n nfm ihm nfn ihn Γ Θ σ σ' Θ' j le agr.
@@ -213,12 +211,18 @@ Proof with eauto using resolve.
     apply: ihA; eauto.
     apply: ihB; eauto.
     apply: id_ren_up; eauto. }
-  move=>Θ A A' m m' s t rsA ihA rsm ihm i ξ wr idr.
+  move=>Θ m m' s t rsm ihm i ξ wr idr.
   { asimpl.
     econstructor.
-    apply: ihA; eauto.
     apply: ihm; eauto.
     apply: id_ren_up; eauto. }
+  move=>Θ1 Θ2 Θ m m' n n' mrg rsm ihm rsn ihn i ξ wr idr.
+  { asimpl.
+    have[wr1 wr2]:=wr_merge_inv mrg wr.
+    econstructor.
+    apply: mrg.
+    apply: ihm; eauto.
+    apply: ihn; eauto. }
   move=>Θ A A' B B' s r t rsA ihA rsB ihB i ξ wr idr.
   { asimpl.
     econstructor.
@@ -254,7 +258,7 @@ Lemma agree_resolve_id Γ Θ Θ' σ σ' x i :
     wr_env Θ' -> resolve Θ' (σ x) (σ' x).
 Proof with eauto using resolve.
   move=>agr. elim: agr x=>{Γ Θ Θ' σ σ' i}.
-  move=>Γ Θ Θ' σ σ' A A' x rsA agr ih x0 wr.
+  move=>Γ Θ Θ' σ σ' A A' s x rsA agr ih x0 wr.
   { destruct x0; asimpl...
     have rsx:=ih x wr.
     apply:resolve_ren; eauto.
@@ -294,7 +298,7 @@ Proof.
     constructor.
     apply: ihA; eauto.
     have ag1:agree_resolve (A :U [Γ]) Θ (up σ) (up σ') Θ' x.+1. 
-      apply: agree_resolve_upU; eauto.
+      apply: agree_resolve_up; eauto.
       rewrite<-pure_re; eauto.
     have ag2:agree_resolve (_: [Γ]) Θ (up σ) (up σ') Θ' x.+1.
       apply: agree_resolve_upN.
@@ -322,7 +326,7 @@ Proof.
     apply: ihA; eauto.
     destruct s.
     { have agr':agree_resolve (A :U [Γ]) Θ'0 (up σ) (up σ') Θ2 x.+1.
-        apply: agree_resolve_upU; eauto.
+        apply: agree_resolve_up; eauto.
         rewrite<-pure_re; eauto.
       have->:=nf_agree_resolve H10 le1 agr'.
       apply: ihB; simpl; eauto. }
@@ -341,54 +345,57 @@ Proof.
     have//:=free_wr_var H0 wr.
     have//:=free_wr_ptr H0 wr. }
   move=>Γ A B m s r t i k tyP ihP tym ihm Θ Θ' m0 σ σ' x rsm wr agr.
-  { destruct m0; try solve[inv rsm].
+  { have[l[tyA _]]:=pi_inv _ _ _ _ _ _ _ _ tyP.
+    destruct m0; try solve[inv rsm].
     inv rsm; simpl.
     constructor.
-    have[l[tyA[_ tyB]]]:=pi_inv _ _ _ _ _ _ _ _ tyP.
-    have rsP:resolve Θ (Pi m0 B s r t) (Pi A B s r t).
-      constructor; eauto.
-      apply:resolve_type_refl; eauto.
-    have:=ihP _ _ _ _ _ _ rsP wr .
-
-    apply: ihA; eauto.
-    have ag1:agree_resolve (A :U [Γ]) Θ (up σ) (up σ') Θ' x.+1. 
-      apply: agree_resolve_upU; eauto.
-      rewrite<-pure_re; eauto.
-    have ag2:agree_resolve (_: [Γ]) Θ (up σ) (up σ') Θ' x.+1.
-      apply: agree_resolve_upN.
-      rewrite<-pure_re; eauto. 
-    apply: ihB; eauto.
-    destruct s; simpl; eauto.
-    have nfPtr:nf 0 (Ptr l) by constructor.
-    have nfPi:=resolve_wr_nfi' rs wr nfPtr.
-    asimpl.
-    inv nfPi.
-    inv rs.
-    destruct m; inv H3.
+    apply: ihm; eauto.
+    apply: agree_resolve_up; eauto.
+    apply: resolve_weaken.
+    apply: resolve_type_refl; eauto.
+    inv rsm.
+    destruct m0; inv H2.
     have nfP:=free_wr_nf H0 wr.
-    have e:=free_wr_pi H0 wr; subst.
     have[Θ2 fr]:=agree_resolve_free agr H0.
     econstructor.
     apply: fr.
     have wr':=agree_resolve_wr agr wr.
-    have e:=free_wr_pi fr wr'; subst.
-    have le0:0 <= x by eauto.
     have le1:0 < x.+1 by eauto.
     inv nfP.
     econstructor.
-    have->:=nf_agree_resolve H4 le0 agr.
-    apply: ihA; eauto.
     destruct s.
-    { have agr':agree_resolve (A :U [Γ]) Θ'0 (up σ) (up σ') Θ2 x.+1.
-        apply: agree_resolve_upU; eauto.
-        rewrite<-pure_re; eauto.
-      have->:=nf_agree_resolve H10 le1 agr'.
-      apply: ihB; simpl; eauto. }
-    { have agr':=agree_resolve_upN agr.
-      have->:=nf_agree_resolve H10 le1 agr'.
-      apply: ihB; simpl; eauto.
-      rewrite<-pure_re; eauto. }
+    { have agr':agree_resolve (A :U Γ) Θ (up σ) (up σ') Θ' x.+1.
+        apply: agree_resolve_up; eauto.
+        apply: resolve_weaken.
+        apply: resolve_type_refl; eauto.
+      have->:=nf_agree_resolve H2 le1 agr'.
+      apply:ihm; eauto. }
+    { have agr':agree_resolve (A :L Γ) Θ (up σ) (up σ') Θ' x.+1.
+        apply: agree_resolve_up; eauto.
+        apply: resolve_weaken.
+        apply: resolve_type_refl; eauto.
+      have->:=nf_agree_resolve H2 le1 agr'.
+      apply: ihm; eauto. }
     exfalso. apply: free_wr_ptr; eauto. }
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn 
+    Θ Θ' m0 σ σ' x rsm wr agr.
+  { destruct m0; try solve[inv rsm].
+    inv rsm; asimpl.
+    econstructor.
+    admit.
+    apply: ihm.
+    apply: H5.
+    admit.
+    apply: ihm.
+    apply: H3.
+    apply: wr.
+    apply: ihm.
+
+    (* subset resolve *)
+
+    apply: ihm; eauto.
+
+  }
 
 Lemma resolve_substL Θ1 Θ2 Θ m m' n n' A B r :
   A :L nil ⊢ m' : B : r -> 

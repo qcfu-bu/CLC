@@ -26,7 +26,7 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   Γ |> t ->
   [Γ] ⊢ Pi A B s r t : t @ i : U ->
   A :{s} Γ ⊢ m : B : r ->
-  Γ ⊢ Lam A m s t : Pi A B s r t : t
+  Γ ⊢ Lam m s t : Pi A B s r t : t
 | clc_app Γ1 Γ2 Γ A B m n s r t :
   Γ2 |> s ->
   Γ1 ∘ Γ2 => Γ ->

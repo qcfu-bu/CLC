@@ -14,8 +14,8 @@ Inductive value : term -> Prop :=
   value (Sort s l)
 | value_pi A B s r t :
   value (Pi A B s r t)
-| value_lam A m s t :
-  value (Lam A m s t)
+| value_lam m s t :
+  value (Lam m s t)
 | value_unit :
   value Unit
 | value_it :
@@ -50,13 +50,13 @@ Inductive resolve : context term -> term -> term -> Prop :=
   resolve Θ A A' ->
   resolve Θ B B' ->
   resolve Θ (Pi A B s r t) (Pi A' B' s r t)
-| resolve_lam Θ A A' m m' s t :
-  resolve Θ A A' ->
+| resolve_lam Θ m m' s t :
   resolve Θ m m' ->
-  resolve Θ (Lam A m s t) (Lam A' m' s t)
-| resolve_app Θ m m' n n' :
-  resolve Θ m m' ->
-  resolve Θ n n' ->
+  resolve Θ (Lam m s t) (Lam m' s t)
+| resolve_app Θ1 Θ2 Θ m m' n n' :
+  Θ1 ∘ Θ2 => Θ ->
+  resolve Θ1 m m' ->
+  resolve Θ2 n n' ->
   resolve Θ (App m n) (App m' n')
 | resolve_unit Θ :  
   resolve Θ Unit Unit
@@ -92,10 +92,9 @@ Inductive resolved : term -> Prop :=
   resolved A ->
   resolved B ->
   resolved (Pi A B s r t)
-| resolved_lam A m s t :
-  resolved A ->
+| resolved_lam m s t :
   resolved m ->
-  resolved (Lam A m s t)
+  resolved (Lam m s t)
 | resolved_app m n :
   resolved m ->
   resolved n ->
@@ -195,11 +194,9 @@ Proof with eauto using resolve_wkU, resolve_wkN.
   move=>pd. elim: pd A A'=>{Θ'}...
 Qed.
 
-Lemma resolve_type_refl Θ Γ m A s : Γ ⊢ m : A : s -> resolve Θ m m.
+Lemma resolve_type_refl Θ Γ m A s : Γ ⊢ m : A : s -> resolve [Θ] m m.
 Proof with eauto using resolve, re_pure, merge_re_id.
   elim=>//{Γ m A s}...
-  move=>Γ A B m s r t i k tyP rsP tym rsm.
-  constructor... inv rsP...
 Qed.
 
 Lemma resolve_type_id Θ Γ m n A s : 
@@ -211,10 +208,6 @@ Proof with eauto using resolve, re_pure, merge_re_id, re_pure.
     erewrite ihA... erewrite ihB...
   move=>Γ x A s hs Θ n rs. inv rs...
   move=>Γ A B m s r t i k tyP ihP tym ihm Θ n rs. inv rs.
-    have[l[tyA[_ tyB]]]:=pi_inv _ _ _ _ _ _ _ _ tyP.
-    have/ihP[->]: resolve Θ (Pi A B s r t) (Pi A' B s r t).
-    constructor...
-    apply: resolve_type_refl...
     erewrite ihm...
   move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn Θ x rs. inv rs.
     erewrite ihm... erewrite ihn...
@@ -374,6 +367,10 @@ Lemma resolve_merge_pure Θ1 Θ2 Θ A A' :
 Proof with eauto using 
   resolve, merge_pure_pure, key, resolve_wkU, resolve_wkN.
   move=>rsA. elim: rsA Θ2 Θ=>//={Θ1 A A'}...
+  move=>Θ1 Θ2 Θ m m' n n' mrg1 rsm ihm rsn ihn Θ0 Θ3 mrg2.
+  have[G[mrg3 mrg4]]:=merge_splitL mrg2 mrg1.
+  econstructor.
+  apply: mrg4. apply: ihm. apply: mrg3. eauto.
   move=>Θ Θ' l m m' fr rs ih Θ1 Θ2 mrg.
   have[G[fr' mrg']]:=free_merge fr mrg.
   econstructor.
@@ -392,10 +389,9 @@ Inductive nf : nat -> term -> Prop :=
   nf i A ->
   nf i.+1 B ->
   nf i (Pi A B s r t)
-| nf_lam i A m s t :
-  nf i A ->
+| nf_lam i m s t :
   nf i.+1 m ->
-  nf i (Lam A m s t)
+  nf i (Lam m s t)
 | nf_app i m n :
   nf i m ->
   nf i n ->
@@ -433,11 +429,10 @@ Inductive wr_env : context term -> Prop :=
   nf 1 B ->
   wr_env Θ ->
   wr_env (Pi A B s r t :U Θ)
-| wr_lam Θ A m s t :
-  nf 0 A ->
+| wr_lam Θ m s t :
   nf 1 m ->
   wr_env Θ ->
-  wr_env (Lam A m s t :{t} Θ)
+  wr_env (Lam m s t :{t} Θ)
 | wr_env_sigma Θ A B s r t :
   nf 0 A ->
   nf 1 B ->
@@ -461,9 +456,6 @@ Proof with eauto using nf.
     constructor... rewrite re_length...
   move=>Γ x A s hs.
     constructor. apply: has_length...
-  move=>Γ A B m [|]//= r t i k tyP nfP tym nfm.
-    inv nfP. constructor... rewrite re_length...
-    inv nfP. constructor... rewrite re_length...
   move=>Γ1 Γ2 Γ A B m n s r t k mrg tym nfm tyn nfn.
     have[e1 e2]:=merge_length mrg. 
     constructor... rewrite<-e1... rewrite<-e2...
@@ -487,7 +479,7 @@ Qed.
 Lemma wr_env_re Θ : wr_env Θ -> wr_env [Θ].
 Proof with eauto using wr_env.
   elim=>{Θ}...
-  move=>Θ A m s [|] nfA nfm wr ih//=...
+  move=>Θ m s [|] nfm wr ih//=...
   move=>Θ m n [|] nfm nfn wr ih//=...
 Qed.
 
@@ -521,14 +513,14 @@ Proof with eauto using wr_env.
   move=>Γ1 Γ2 Γ m mrg ih wr. inv wr.
     move:H0=>/ih[wr1 wr2]...
     move:H3=>/ih[wr1 wr2]...
-    move:H4=>/ih[wr1 wr2]...
+    move:H3=>/ih[wr1 wr2]...
     move:H3=>/ih[wr1 wr2]...
     move:H4=>/ih[wr1 wr2]...
   move=>Γ1 Γ2 Γ m mrg ih wr. inv wr.
-    move:H4=>/ih[wr1 wr2]...
+    move:H3=>/ih[wr1 wr2]...
     move:H4=>/ih[wr1 wr2]...
   move=>Γ1 Γ2 Γ m mrg ih wr. inv wr.
-    move:H4=>/ih[wr1 wr2]...
+    move:H3=>/ih[wr1 wr2]...
     move:H4=>/ih[wr1 wr2]...
   move=>Γ1 Γ2 Γ mrg ih wr. inv wr.
     move:H0=>/ih[wr1 wr2]...
@@ -556,8 +548,10 @@ Lemma resolve_wr_nfi Θ m m' i :
 Proof with eauto using nf, wr_env_re.
   move=>rs. elim: rs i=>{Θ m m'}...
   move=>Θ A A' B B' s r t rsA ihA rsB ihB i wr nfP. inv nfP...
-  move=>Θ A A' m m' s t rsA ihA rsm ihm i wr nfL. inv nfL... 
-  move=>Θ1 Θ2 Θ m m' n n' rsm ihm i wr nfA. inv nfA...
+  move=>Θ m m' s t rsm ihm i wr nfL. inv nfL... 
+  move=>Θ1 Θ2 Θ m m' n n' mrg rsm ihm rsn ihn i wr nfA. 
+    inv nfA.
+    have[wr1 wr2]:=wr_merge_inv mrg wr...
   move=>Θ A A' B B' s r t rsA ihA rsB ihB i wr nfS. inv nfS...
   move=>Θ1 Θ2 Θ m m' n n' t rsm ihm rsn ihn nfP. inv nfP...
   move=>Θ1 Θ2 Θ m m' n n' rsm ihm i wr nfL. inv nfL...
@@ -569,8 +563,10 @@ Lemma resolve_wr_nfi' Θ m m' i :
 Proof with eauto using nf, wr_env_re.
   move=>rs. elim: rs i=>{Θ m m'}...
   move=>Θ A A' B B' s r t rsA ihA rsB ihB i wr nfP. inv nfP...
-  move=>Θ A A' m m' s t rsA ihA rsm ihm i wr nfL. inv nfL... 
-  move=>Θ1 Θ2 Θ m m' n n' rsm ihm i wr nfA. inv nfA...
+  move=>Θ m m' s t rsm ihm i wr nfL. inv nfL... 
+  move=>Θ1 Θ2 Θ m m' n n' mrg rsm ihm rsn ihn i wr nfA. 
+    inv nfA.
+    have[wr1 wr2]:=wr_merge_inv mrg wr...
   move=>Θ A A' B B' s r t rsA ihA rsB ihB i wr nfS. inv nfS...
   move=>Θ1 Θ2 Θ m m' n n' t rsm ihm rsn ihn nfP. inv nfP...
   move=>Θ1 Θ2 Θ m m' n n' rsm ihm i wr nfL. inv nfL...
@@ -624,12 +620,12 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_lam Θ Θ' l A m s :
-  free Θ l (Lam A m s U) Θ' -> wr_env Θ -> Θ = Θ'.
+Lemma free_wr_lam Θ Θ' l m s :
+  free Θ l (Lam m s U) Θ' -> wr_env Θ -> Θ = Θ'.
 Proof.
-  move e:(Lam A m s U)=>n fr. elim: fr A m s e=>//{Θ Θ' l n}.
-  move=>Θ m l e1 A n s e2 wr; subst. inv wr. inv H4.
-  move=>Θ Θ' m n l fr ih A n0 s e wr; subst.
+  move e:(Lam m s U)=>n fr. elim: fr m s e=>//{Θ Θ' l n}.
+  move=>Θ m l e1 n s e2 wr; subst. inv wr. inv H3.
+  move=>Θ Θ' m n l fr ih n0 s e wr; subst.
   f_equal.
   apply: ih; eauto.
   inv wr; eauto.
@@ -675,6 +671,76 @@ Proof.
   f_equal.
   apply: ih; eauto.
   inv wr; eauto.
+Qed.
+
+Lemma merge_re_inv T (Γ1 Γ2 Γ : context T) : 
+  Γ1 ∘ Γ2 => [Γ] ->
+  exists Γ1' Γ2', Γ1' ∘ Γ2' => Γ /\ [Γ1'] = Γ1 /\ [Γ2'] = Γ2.
+Proof with eauto using merge.
+  elim:Γ Γ1 Γ2.
+  move=>Γ1 Γ2 mrg.
+  { inv mrg.
+    exists nil.
+    exists nil... }
+  move=>[[m[|]]|]//= Γ ih Γ1 Γ2 mrg.
+  { inv mrg.
+    move:H2=>/ih[G1[G2[mrg[e1 e2]]]].
+    exists (m :U G1).
+    exists (m :U G2).
+    repeat split; simpl...
+    f_equal...
+    f_equal... }
+  { inv mrg.
+    move:H2=>/ih[G1[G2[mrg[e1 e2]]]].
+    exists (m :L G1).
+    exists (_: G2).
+    repeat split; simpl...
+    f_equal...
+    f_equal... }
+  { inv mrg.
+    move:H2=>/ih[G1[G2[mrg[e1 e2]]]].
+    exists (_: G1).
+    exists (_: G2).
+    repeat split; simpl...
+    f_equal...
+    f_equal... }
+Qed.
+
+Lemma free_weaken Θ l m Θ' : free [Θ] l m Θ' -> exists Θ', free Θ l m Θ'.
+Proof.
+  elim: Θ l m Θ'.
+  move=>l m Θ' fr. inv fr.
+  move=>[[a [|]]|]/= l ih l' m Θ' fr.
+  { inv fr.
+    exists (m :U l).
+    constructor.
+    have->//:=re_length l.
+    have[G fr]:=ih _ _ _ H4.
+    exists (a :U G).
+    constructor; eauto. }
+  { inv fr.
+    have[G fr]:=ih _ _ _ H4.
+    exists (a :L G).
+    constructor; eauto. }
+  { inv fr.
+    have[G fr]:=ih _ _ _ H4.
+    exists (_: G).
+    constructor; eauto. }
+Qed.
+
+Lemma resolve_weaken Θ m m' : resolve [Θ] m m' -> resolve Θ m m'.
+Proof with eauto using resolve.
+  move e:([Θ])=>Θ0 rsm. elim: rsm Θ e=>{Θ0 m m'}...
+  move=>Θ1 Θ2 Θ m m' n n' mrg rsm ihm rsn ihn Θ0 e; subst.
+  { have[G1[G2[mrg1[e1 e2]]]]:=merge_re_inv mrg.
+    move/ihm in e1.
+    move/ihn in e2.
+    econstructor... }
+  move=>Θ Θ' l m m' fr rsm ih Θ0 e; subst.
+  { have[G fr']:=free_weaken fr.
+    econstructor.
+    apply: fr'.
+    apply: ih; eauto. }
 Qed.
 
 (* Lemma resolve_sort_inv Θ m s i :

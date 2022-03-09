@@ -23,7 +23,7 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | Var x => if x == i then 1 else 0
   | Sort _ _ => 0
   | Pi A B _ _ _ => occurs i A + occurs i.+1 B
-  | Lam A m _ _ => occurs i A + occurs i.+1 m
+  | Lam m _ _ => occurs i.+1 m
   | App m n => occurs i m + occurs i n
   | Unit => 0
   | It => 0
@@ -144,10 +144,7 @@ Proof with eauto using of_sort, of_sortN_re.
   move=>Γ A B m s r t l k tyP ihP tym ihm i os//=.
     move:(ihP _ (of_sortN_re os))=>//=e1.
     move:(ihm _ (of_sortS (Some (A, s)) os))=>e2.
-    destruct (occurs i.+1 B).
-    rewrite addn0 in e1.
-    rewrite e1 e2...
-    destruct (occurs i A); discriminate.
+    destruct (occurs i.+1 B); eauto.
   move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn i os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
@@ -180,13 +177,7 @@ Proof with eauto using of_sort.
     by rewrite eq_refl.
   move=>Γ A B m s r [|] l k tyP ihP tym ihm i os//=.
     exfalso. apply: of_sortL_impure; eauto.
-    have osN:=of_sortL_reN os.
-    have//=e:=narity tyP osN.
-    destruct (occurs i.+1 B).
-    rewrite addn0 in e.
-    rewrite e.
     erewrite ihm...
-    destruct (occurs i A); discriminate.
   move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn i os//=.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     have->:=narity tyn os2.

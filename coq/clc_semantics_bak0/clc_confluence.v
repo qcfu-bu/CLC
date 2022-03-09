@@ -11,18 +11,17 @@ Inductive pstep : term -> term -> Prop :=
   pstep (Var x) (Var x)
 | pstep_sort s l :
   pstep (s @ l) (s @ l)
-| pstep_lam A A' n n' s t : 
-  pstep A A' -> 
+| pstep_lam n n' s t : 
   pstep n n' -> 
-  pstep (Lam A n s t) (Lam A' n' s t)
+  pstep (Lam n s t) (Lam n' s t)
 | pstep_app m m' n n' :
   pstep m m' ->
   pstep n n' ->
   pstep (App m n) (App m' n')
-| pstep_beta A m m' n n' s t :
+| pstep_beta m m' n n' s t :
   pstep m m' ->
   pstep n n' ->
-  pstep (App (Lam A m s t) n) (m'.[n'/])
+  pstep (App (Lam m s t) n) (m'.[n'/])
 | pstep_pi A A' B B' s r t :
   pstep A A' ->
   pstep B B' ->
@@ -65,7 +64,7 @@ Definition sred σ τ :=
 Lemma step_subst σ m n : m ~> n -> m.[σ] ~> n.[σ].
 Proof.
   move=> st. elim: st σ=>/={m n}; eauto using step.
-  move=> A m n s t σ. 
+  move=> m n s t σ. 
     replace (m.[n/].[σ]) with (m.[up σ].[n.[σ]/]).
     apply step_beta. autosubst.
   move=> m1 m2 n t σ.
@@ -83,13 +82,10 @@ Proof.
   apply: star_hom r2. exact: step_appR.
 Qed.
 
-Lemma red_lam A A' m m' s t :
-  A ~>* A' -> m ~>* m' -> Lam A m s t ~>* Lam A' m' s t.
+Lemma red_lam m m' s t : m ~>* m' -> Lam m s t ~>* Lam m' s t.
 Proof.
-  move=> r1 r2.
-  apply: (star_trans (Lam A' m s t)).
-  apply: (star_hom (((Lam^~ m)^~ s)^~ t)) r1=>x y. exact: step_lamL.
-  apply: (star_hom (((Lam A')^~ s)^~ t)) r2=>x y. exact: step_lamR.
+  move=> r.
+  apply: (star_hom ((Lam^~ s)^~ t)) r=>x y. exact: step_lam.
 Qed.
 
 Lemma red_pi A A' B B' s r t :
@@ -181,13 +177,10 @@ Proof.
   apply: conv_hom r2. exact: step_appR.
 Qed.
 
-Lemma conv_lam A A' m m' s t :
-  A === A' -> m === m' -> Lam A m s t === Lam A' m' s t.
+Lemma conv_lam m m' s t : m === m' -> Lam m s t === Lam m' s t.
 Proof.
-  move=> r1 r2.
-  apply: (conv_trans (Lam A' m s t)).
-  apply: (conv_hom (((Lam^~ m)^~ s)^~ t)) r1=>x y. exact: step_lamL.
-  apply: (conv_hom (((Lam A')^~ s)^~ t)) r2=>x y. exact: step_lamR.
+  move=> r.
+  apply: (conv_hom ((Lam^~ s)^~ t)) r=>x y. exact: step_lam.
 Qed.
 
 Lemma conv_pi A A' B B' s r t :
@@ -277,7 +270,7 @@ Proof with eauto using pstep, pstep_refl. elim... Qed.
 Lemma pstep_red s t : pstep s t -> s ~>* t.
 Proof.
   elim=> {s t} //=; eauto with red_congr.
-  move=> A m m' n n' s t p1 r1 p2 r2. 
+  move=> m m' n n' s t p1 r1 p2 r2. 
     apply: starES. by constructor.
     apply: (star_trans (m'.[n.:Var])). exact: red_subst.
     by apply: red_compat => -[|].
@@ -294,11 +287,11 @@ Lemma pstep_subst s t σ : pstep s t -> pstep s.[σ] t.[σ].
 Proof with eauto using pstep, pstep_refl.
   move=>ps.
     elim: ps σ=>{s t}...
-  move=>A m m' n n' s t ps1 ih1 ps2 ih2 σ.
+  move=>m m' n n' s t ps1 ih1 ps2 ih2 σ.
     asimpl.
     specialize (ih1 (up σ)).
     specialize (ih2 σ).
-    have:=pstep_beta A.[σ] s t ih1 ih2.
+    have:=pstep_beta s t ih1 ih2.
     by asimpl.
   move=>m1 m1' m2 m2' n n' t p1 ih1 p2 ih2 pn ihn σ.
     asimpl.
@@ -331,11 +324,11 @@ Lemma pstep_compat s t σ τ :
   pstep s t -> psstep σ τ -> pstep s.[σ] t.[τ].
 Proof with eauto 6 using pstep, psstep_up.
   move=> ps. elim: ps σ τ=>{s t}...
-  move=> A m m' n n' s t ps1 ih1 ps2 ih2 σ τ pss.
+  move=> m m' n n' s t ps1 ih1 ps2 ih2 σ τ pss.
     asimpl.
     have {}ih1:=ih1 _ _ (psstep_up pss).
     have {}ih2:=ih2 _ _ pss.
-    have:=pstep_beta A.[σ] s t ih1 ih2.
+    have:=pstep_beta s t ih1 ih2.
     by asimpl.
   move=>m1 m1' m2 m2' n n' t p1 ih1 p2 ih2 pn ihn σ τ pss.
     have {}ih1:=ih1 _ _ pss.
@@ -375,11 +368,10 @@ Proof with eauto 6 using
   move=> s l m2 p.
     inv p.
     exists (s @ l)...
-  move=> A A' n n' s t pA ihA pn ihn m2 p.
+  move=> n n' s t pn ihn m2 p.
     inv p.
-    have[A0 pA1 pA2]:=ihA _ H4.
-    have[n0 pn1 pn2]:=ihn _ H5.
-    exists (Lam A0 n0 s t)...
+    have[n0 pn1 pn2]:=ihn _ H3.
+    exists (Lam n0 s t)...
   move=> m m' n n' pm ihm pn ihn m2 p.
     inv p.
     have[m0 pm1 pm2]:=ihm _ H1.
@@ -387,17 +379,17 @@ Proof with eauto 6 using
     exists (App m0 n0)...
     inv pm.
     have[n0 pn1 pn2]:=ihn _ H3.
-    have pL : pstep (Lam A m0 s t) (Lam A' m'0 s t)...
+    have pL : pstep (Lam m0 s t) (Lam m'0 s t)...
     have[x px1 px2]:=ihm _ pL.
     inv px1. inv px2.
     exists (n'2.[n0/])...
-  move=> A m m' n n' s t pm ihm pn ihn m2 p.
+  move=> m m' n n' s t pm ihm pn ihn m2 p.
     inv p. inv H1.
-    have[mx pm1 pm2]:=ihm _ H7.
+    have[mx pm1 pm2]:=ihm _ H5.
     have[nx pn1 pn2]:=ihn _ H3.
     exists (mx.[nx/])...
-    have[mx pm1 pm2]:=ihm _ H5.
-    have[nx pn1 pn2]:=ihn _ H6.
+    have[mx pm1 pm2]:=ihm _ H4.
+    have[nx pn1 pn2]:=ihn _ H5.
     exists (mx.[nx/])...
   move=> A A' B B' s r t pA ihA pB ihB m2 p.
     inv p.
@@ -519,17 +511,15 @@ Proof.
   inv r2.
 Qed.
 
-Lemma red_lam_inv A m x s t :
-  Lam A m s t ~>* x ->
-  exists A' m',
-    A ~>* A' /\ m ~>* m' /\ x = Lam A' m' s t.
+Lemma red_lam_inv m x s t :
+  Lam m s t ~>* x ->
+  exists m', m ~>* m' /\ x = Lam m' s t.
 Proof.
   elim.
-  exists A. exists m=>//.
-  move=>y z r1 [A'[m'[rA[rm e]]]] r2. subst.
+  exists m=>//.
+  move=>y z r1 [m'[rm e]] r2. subst.
   inv r2.
-  exists A'0. exists m'. eauto using star.
-  exists A'. exists m'0. eauto using star.
+  exists m'0. eauto using star.
 Qed.
 
 Lemma red_unit_inv m : Unit ~>* m -> m = Unit.

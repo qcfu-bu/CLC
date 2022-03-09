@@ -41,24 +41,13 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
   move=>Γ x A s hs n o st. inv st.
   move=>Γ A B m s r t i k tyP ihP tym ihm n o st.
   move:(pi_inv _ _ _ _ _ _ _ _ tyP)=>[l[tyA[_ tyB]]]. inv st.
-  { have st : Pi A B s r t ~> Pi A' B s r t...
-    move:(ihP _ (re_ok o) st)=>tyP'.
-    apply: clc_conv.
-    apply: conv_sub.
-    apply: conv1i...
-    apply: clc_lam...
-    apply: context_conv.
-    apply: conv1i...
-    exact: tyA.
-    exact: tym.
-    exact: tyP. }
   { have: ok (A :{s} Γ)... }
   move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn m0 o st.
   move:(merge_context_ok_inv mrg o)=>[o1 o2].
   move:(ihm^~ o1)=>{}ihm.
   move:(ihn^~ o2)=>{}ihn. 
   move:(validity o1 tym)=>[lP tyP]. inv st.
-  { move:(lam_inv _ _ _ _ _ _ _ _ _ _ _ _ _ tyP tym)=>tym1.
+  { move:(lam_inv _ _ _ _ _ _ _ _ _ _ _ _ tyP tym)=>tym1.
     apply: substitution... }
   { move:(ihm _ H2)=>{}ihm.
     apply: clc_app... }

@@ -173,27 +173,135 @@ Proof.
   apply: wr_merge; eauto.
 Qed.
 
-(* Lemma agree_resolve_id Γ Θ Θ' σ σ' x i s A :
-  agree_resolve Γ Θ σ σ' Θ' i -> Θ |> U ->
-    has Γ x s A -> resolve Θ' (σ x) (σ' x).
+Definition id_ren i ξ := forall x, x < i -> ξ x = x.
+
+Lemma id_ren1 : id_ren 0 (+1).
+Proof.
+  move=>x h. inv h.
+Qed.
+
+Lemma id_ren_up i ξ : id_ren i ξ -> id_ren i.+1 (upren ξ).
+Proof.
+  move=>idr x h.
+  destruct x.
+  asimpl. eauto.
+  asimpl. rewrite idr; eauto.
+Qed.
+
+Lemma nf_id_ren i m ξ : nf i m -> id_ren i ξ -> m = m.[ren ξ].
+Proof.
+  move=>nf. elim: nf ξ=>//={i m}.
+  move=>i x le ξ idr.
+  { asimpl. rewrite idr; eauto. }
+  move=>i A B s r t nfA ihA nfB ihB ξ idr.
+  { asimpl. 
+    rewrite<-ihA; eauto.
+    rewrite<-ihB; eauto.
+    apply: id_ren_up; eauto. }
+  move=>i A m s t nfA ihA nfm ihm ξ idr.
+  { asimpl.
+    rewrite<-ihA; eauto.
+    rewrite<-ihm; eauto.
+    apply: id_ren_up; eauto. }
+  move=>i m n nfm ihm nfn ihn ξ idr.
+  { rewrite<-ihm; eauto.
+    rewrite<-ihn; eauto. }
+  move=>i A B s r t nfA ihA nfB ihB ξ idr.
+  { asimpl.
+    rewrite<-ihA; eauto.
+    rewrite<-ihB; eauto.
+    apply: id_ren_up; eauto. }
+  move=>i m n t nfm ihm nfn ihn ξ idr.
+  { rewrite<-ihm; eauto.
+    rewrite<-ihn; eauto. }
+  move=>i m n nfm ihm nfn ihn ξ idr.
+  { rewrite<-ihm; eauto.
+    rewrite<-ihn; eauto. }
+  move=>i m n nfm ihm nfn ihn ξ idr.
+  { replace (upn 2 (ren ξ)) with
+      (ren (upren (upren ξ))) by autosubst.
+    rewrite<-ihm; eauto.
+    rewrite<-ihn; eauto. 
+    apply: id_ren_up.
+    apply: id_ren_up; eauto. }
+Qed.
+
+Lemma resolve_ren Θ m m' i ξ :
+  resolve Θ m m' -> wr_env Θ -> 
+    id_ren i ξ -> resolve Θ m.[ren ξ] m'.[ren ξ].
 Proof with eauto using resolve.
-  elim: i Γ Θ Θ' σ σ' x s A; intros. 
-  { inv H. 
-    destruct x; asimpl.
-    apply: resolve_merge_pure.
-    apply: H5.
-    apply: merge_sym; eauto.
-    eauto.
+  move=>rs. elim: rs i ξ=>//{Θ m m'}...
+  move=>Θ A A' B B' s r t k rsA ihA rsB ihB i ξ wr idr.
+  { asimpl.
+    econstructor; eauto.
+    apply: ihB; eauto.
+    apply: id_ren_up; eauto. }
+  move=>Θ A A' m m' s t k rsA ihA rsm ihm i ξ wr idr.
+  { asimpl.
+    econstructor; eauto.
+    apply: ihA; eauto.
+    apply: wr_env_re; eauto.
+    apply: ihm; eauto.
+    apply: id_ren_up; eauto. }
+  move=>Θ1 Θ2 Θ m m' n n' mrg rsm ihm rsn ihn i ξ wr idr.
+  { asimpl.
+    have[wr1 wr2]:=wr_merge_inv mrg wr.
+    econstructor; eauto. }
+  Admitted.
+  (* move=>Θ A A' B B' s r t rsA ihA rsB ihB i ξ wr idr.
+  { asimpl.
     econstructor.
-    apply: merge_pure_pure; eauto.
-    destruct x; asimpl.
-    apply: resolve_merge_pure.
-    apply: H4.
-    apply: merge_sym; eauto.
-    eauto.
+    apply: ihA; eauto.
+    apply: ihB; eauto.
+    apply: id_ren_up; eauto. }
+  move=>Θ m m' n n' rsm ihm rsn ihn i ξ wr idr.
+  { replace (LetIn2 m n).[ren ξ] 
+      with (LetIn2 m.[ren ξ] n.[ren (upren (upren ξ))])
+        by autosubst.
+    replace (LetIn2 m' n').[ren ξ] 
+      with (LetIn2 m'.[ren ξ] n'.[ren (upren (upren ξ))])
+        by autosubst.
     econstructor.
-    apply: merge_pure_pure; eauto.
-  } *)
+    apply: ihm; eauto.
+    apply: ihn; eauto.
+    apply: id_ren_up.
+    apply: id_ren_up; eauto. }
+  move=>Θ Θ' l m m' fr rm ih i ξ wr idr.
+  { asimpl.
+    have nf0:=free_wr_nf fr wr.
+    have nf0':=resolve_wr_nfi' rm wr nf0.
+    have le:0 <= i by eauto.
+    have nfi:=nf_weaken nf0' le.
+    have <-:=nf_id_ren nfi idr.
+    econstructor.
+    apply: fr.
+    eauto. }
+Qed. *)
+
+
+Lemma agree_resolve_id Γ Θ Θ' σ σ' x i :
+  agree_resolve Γ Θ σ σ' Θ' i ->
+    wr_env Θ' -> resolve Θ' (σ x) (σ' x).
+Proof with eauto using resolve.
+  move=>agr. elim: agr x=>{Γ Θ Θ' σ σ' i}.
+  move=>Γ Θ Θ' σ σ' A A' x k rsA agr ih x0 wr.
+  { destruct x0; asimpl...
+    constructor.
+    apply: agree_resolve_pure; eauto.
+    have rsx:=ih x wr.
+    apply:resolve_ren; eauto.
+    apply:id_ren1. }
+  move=>Γ Θ Θ' σ σ' x agr ih x0 wr.
+  { destruct x0; asimpl...
+    have rsx:=ih x wr.
+    apply:resolve_ren; eauto.
+    apply:id_ren1. }
+  move=>Γ Θ1 Θ2 Θ l m s A mrg wr1 rsP x wr2.
+  { destruct x; asimpl.
+    apply: resolve_merge_pure; eauto.
+    apply: merge_sym; eauto.
+    constructor. }
+Qed.
 
 Lemma resolve_subst Γ Θ Θ' m m' A r σ σ' x :
   Γ ⊢ m' : A : r ->

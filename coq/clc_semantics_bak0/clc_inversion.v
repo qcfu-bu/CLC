@@ -40,16 +40,16 @@ Proof with eauto using key.
   simpl in tyB. rewrite<-pure_re in tyB...
 Qed.
 
-Lemma lam_invX Γ A1 A2 B C m s1 s2 r t1 t2 t3 l :
-  Γ ⊢ Lam A1 m s1 t1 : C : t2 ->
-  C <: Pi A2 B s2 r t3 ->
-  [A2 :{s2} Γ] ⊢ B : r @ l : U ->
-  A2 :{s2} Γ ⊢ m : B : r.
+Lemma lam_invX Γ A B C m s1 s2 r t1 t2 t3 l :
+  Γ ⊢ Lam m s1 t1 : C : t2 ->
+  C <: Pi A B s2 r t3 ->
+  [A :{s2} Γ] ⊢ B : r @ l : U ->
+  A :{s2} Γ ⊢ m : B : r.
 Proof.
-  move e:(Lam A1 m s1 t1)=>n tpL.
-  elim: tpL A1 A2 B m s1 s2 r t1 t3 l e=>//{Γ C n t2}.
-  move=>Γ A B m s r t i k tyP ihP tym ihm A1 A2 B0 m0
-    s1 s2 t2 t3 r0 l[e1 e2 e3 e4]/sub_pi_inv[c[sbB[e5[e6 e7]]]] tyB0; subst.
+  move e:(Lam m s1 t1)=>n tpL.
+  elim: tpL A B m s1 s2 r t1 t3 l e=>//{Γ C n t2}.
+  move=>Γ A1 B m s r t i k tyP ihP tym ihm A2 B0 m0
+    s1 s2 t2 t3 r0 l[e1 e2 e3]/sub_pi_inv[c[sbB[e5[e6 e7]]]] tyB0; subst.
   { move:tyP=>/pi_inv[l0[tyA[_ tyB]]].
     destruct s2.
     apply: clc_conv; eauto.
@@ -68,10 +68,10 @@ Proof.
     apply: sub_trans; eauto. }
 Qed.
 
-Lemma lam_inv Γ m A1 A2 B s1 s2 r t1 t2 t3 x l :
-  [Γ] ⊢ Pi A1 B s1 r t1 : x @ l : U ->
-  Γ ⊢ Lam A2 m s2 t2 : Pi A1 B s1 r t1 : t3 ->
-  A1 :{s1} Γ ⊢ m : B : r.
+Lemma lam_inv Γ m A B s1 s2 r t1 t2 t3 x l :
+  [Γ] ⊢ Pi A B s1 r t1 : x @ l : U ->
+  Γ ⊢ Lam m s2 t2 : Pi A B s1 r t1 : t3 ->
+  A :{s1} Γ ⊢ m : B : r.
 Proof.
   move=> /pi_inv[i[tyA[_ tyB]]] tyL.
   apply: lam_invX; eauto.
