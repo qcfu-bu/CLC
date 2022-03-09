@@ -166,6 +166,22 @@ Proof.
     firstorder; eauto using key.
 Qed.
 
+Lemma pure_split T (Γ : context T) :
+  Γ |> U -> exists Γ1 Γ2, Γ1 |> U /\ Γ2 |> U /\ Γ1 ∘ Γ2 => Γ.
+Proof with eauto using merge, key.
+  move e:(U)=>s k. elim: k e=>//{Γ s}.
+  move=>s e; subst.
+    exists nil. exists nil...
+  move=>Γ m k ih _.
+    have[G1[G2[k1[k2 mrg]]]]:=ih erefl.
+    exists (m :U G1). exists (m :U G2).
+    repeat split...
+  move=>Γ s k ih e; subst.
+    have[G1[G2[k1[k2 mrg]]]]:=ih erefl.
+    exists (_: G1). exists (_: G2).
+    repeat split...
+Qed.
+
 Lemma merge_pureL T (Γ1 Γ2 Γ : context T) :
   Γ1 ∘ Γ2 => Γ -> Γ1 |> U -> Γ = Γ2.
 Proof.

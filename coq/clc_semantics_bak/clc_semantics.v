@@ -60,8 +60,10 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
 Inductive agree_resolve :
   context term -> context term -> 
     (var -> term) -> (var -> term) -> nat -> Prop :=
-| agree_resolve_nil :
-  agree_resolve nil nil ids ids 0
+| agree_resolve_nil Θ :
+  Θ |> U ->
+  wr_env Θ ->
+  agree_resolve nil Θ ids ids 0
 
 | agree_resolve_upTy Γ Θ σ σ' A x s :
   agree_resolve Γ Θ σ σ' x ->
@@ -94,6 +96,7 @@ Lemma agree_resolve_key Γ Θ σ σ' x s :
   agree_resolve Γ Θ σ σ' x -> Γ |> s -> Θ |> s.
 Proof.
   elim=>//{Γ Θ σ σ' x}.
+  move=>Θ k1 wr k2. destruct s; eauto. apply: key_impure.
   move=>Γ Θ σ σ' A x t agr ih k. inv k; eauto.
   move=>Γ Θ σ σ' x agr ih k. inv k; eauto.
   move=>Γ Θ1 Θ2 Θ σ σ' m m' A mrg k1 wr rsm agr ih k2. inv k2.
@@ -284,7 +287,7 @@ Lemma agree_resolve_id Γ Θ σ σ' x i s A :
   agree_resolve Γ Θ σ σ' i -> has Γ x s A -> resolve Θ (σ x) (σ' x).
 Proof with eauto using resolve.
   move=>agr. elim: agr x s A=>{Γ Θ σ σ' i}.
-  move=>x s A hs. inv hs.
+  move=>Θ k wr x s A hs. inv hs.
   move=>Γ Θ σ σ' A x s agr ih y t B hs.
   { inv hs; asimpl.
     constructor.
@@ -315,6 +318,10 @@ Lemma agree_resolve_re Γ Θ σ σ' x :
   agree_resolve Γ Θ σ σ' x -> agree_resolve [Γ] [Θ] σ σ' x.
 Proof with eauto using agree_resolve.
   elim=>//={Γ Θ σ σ' x}...
+  move=>Θ k wr. 
+  { constructor. 
+    apply: re_pure.
+    apply: wr_env_re... }
   move=>Γ Θ σ σ' A x [|]/= agr1 agr2...
   move=>Γ Θ1 Θ2 Θ σ σ' m m' A mrg k wr rsm agr1 agr2.
   { econstructor.
@@ -338,8 +345,11 @@ Lemma agree_resolve_merge_inv Γ1 Γ2 Γ Θ σ σ' x :
     agree_resolve Γ2 Θ2 σ σ' x.
 Proof with eauto using merge, agree_resolve.
   move=>agr. elim: agr Γ1 Γ2=>{Γ Θ σ σ' x}.
-  move=>Γ1 Γ2 mrg.
-  { inv mrg. exists nil. exists nil... }
+  move=>Θ k wr Γ1 Γ2 mrg.
+  { inv mrg. 
+    have[G1[G2[k1[k2 mrg]]]]:=pure_split k.
+    have[wr1 wr2]:=wr_merge_inv mrg wr.
+    exists G1. exists G2... }
   move=>Γ Θ σ σ' A x s agr ih Γ1 Γ2 mrg.
   { destruct s; inv mrg.
     have[D1[D2[mrg'[agr1 agr2]]]]:=ih _ _ H2.
@@ -651,51 +661,44 @@ Proof with eauto using resolve, merge_pure_pure.
     all: eauto. }
 Qed.
 
-      (* Lemma resolve_substL Θ1 Θ2 Θ m m' n n' A B r :
+Lemma resolve_substU Θ1 Θ2 Θ m m' n n' A B r :
+  A :U nil ⊢ m' : B : r -> Θ2 |> U ->
+  resolve Θ1 m m' -> resolve Θ2 n n' -> wr_env Θ ->
+  Θ1 ∘ Θ2 => Θ -> resolve Θ m.[n/] m'.[n'/].
+Proof.
+  move=>ty k rsm rsn wr mrg.
+  have[wr1 wr2]:=wr_merge_inv mrg wr.
+  have mrg':=merge_reL Θ2.
+  apply: resolve_subst.
+  exact: ty.
+  exact: mrg.
+  exact: rsm.
+  exact: wr1.
+  econstructor; eauto.
+  econstructor.
+  apply: re_pure.
+  apply: wr_env_re; eauto.
+Qed.
+
+Lemma resolve_substL Θ1 Θ2 Θ m m' n n' A B r :
   A :L nil ⊢ m' : B : r -> 
   resolve Θ1 m m' -> resolve Θ2 n n' -> wr_env Θ ->
-  merge Θ1 Θ2 Θ -> resolve Θ m.[n/] m'.[n'/].
+  Θ1 ∘ Θ2 => Θ -> resolve Θ m.[n/] m'.[n'/].
 Proof.
-  intros.
+  move=>ty rsm rsn wr mrg.
+  have[wr1 wr2]:=wr_merge_inv mrg wr.
+  have mrg':=merge_reL Θ2.
   apply: resolve_subst.
-  apply: H.
-  apply: H0.
-  admit.
+  exact: ty.
+  exact: mrg.
+  exact: rsm.
+  exact: wr1.
+  econstructor; eauto.
   econstructor.
-  apply: H3.
-  econstructor.
-  apply: H1.
+  apply: re_pure.
+  apply: wr_env_re; eauto.
+Qed.
 
-
-  move e:(A :L nil)=>Γ ty. elim: ty A e Θ1 Θ2 Θ m n n'=>{Γ r m' B};
-  intros; subst. 
-  { inv H. }
-  { inv H. }
-  { destruct x. inv H.
-    simpl.
-    inv H0.
-    simpl.
-    have->//:=merge_pureL H3 H6.
-    have[wr1 wr2]:=wr_merge_inv H3 H2.
-    destruct m0; inv H4.
-    exfalso.
-    apply: free_wr_var.
-    apply: H.
-    apply: wr1.
-    exfalso. apply: free_wr_ptr.
-    apply: H.
-    apply: wr1.
-    inv H. }
-  { inv H.
-    destruct m0; inv H4.
-    admit.
-    asimpl.
-    asimpl.
-    econstructor.
-
-  }
-  admit. *)
-  
 Lemma eval_split Θ1 Θ2 Θ Θ' m n m' A t :
   well_resolved Θ1 m n A t -> wr_env Θ -> 
   Θ1 ∘ Θ2 => Θ -> eval Θ m Θ' m' ->
@@ -833,15 +836,15 @@ Proof with eauto 6 using
       have[wf0 wf3]:=wr_merge_inv H1 wf1.
       have vn:=wr_resolve_value wf3 H5.
       have key:=resolution tyn vn wf3 H5.
+      have wr':=free_wr H7 wf.
+      have [wr1 wr2]:=wr_merge_inv mrg wr'.
       destruct s.
-      { admit. }
-      { have os:of_sort (A :L nil) 0 (Some L) by constructor.
-        have {}os:=linearity tym' os.
-
-      }
-      
-
-      admit.
+      { apply: resolve_substU...
+        apply: wr_merge...
+        apply: merge_sym... }
+      { apply: resolve_substL...
+        apply: wr_merge...
+        apply: merge_sym... }
       apply: substitution...
       apply: free_wr...
       apply: star1.
