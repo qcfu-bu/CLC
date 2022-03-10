@@ -50,12 +50,15 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
 | eval_letin1 Θ Θ' m m' n :
   eval Θ m Θ' m' ->
   eval Θ (LetIn1 m n) Θ' (LetIn1 m' n)
+| eval_letin2 Θ Θ' m m' n :
+  eval Θ m Θ' m' ->
+  eval Θ (LetIn2 m n) Θ' (LetIn2 m' n)
 | eval_iota1 Θ Θ' l n :
   free Θ l It Θ' ->
   eval Θ (LetIn1 (Ptr l) n) Θ' n
 | eval_iota2 Θ Θ' lm ln l n t :
   free Θ l (Pair (Ptr lm) (Ptr ln) t) Θ' ->
-  eval Θ (LetIn2 (Ptr l) n) Θ' n.[Ptr ln,Ptr ln/].
+  eval Θ (LetIn2 (Ptr l) n) Θ' n.[Ptr ln,Ptr lm/].
 
 Inductive agree_resolve :
   context term -> context term -> 
@@ -252,7 +255,7 @@ Proof with eauto using resolve.
     econstructor; eauto.
     apply: ihB; eauto.
     apply: id_ren_up; eauto. }
-  move=>Θ1 Θ2 Θ m m' n n' t k mrg rsm ihm rsn ihn i ξ wr dr.
+  move=>Θ1 Θ2 Θ m m' n n' t mrg rsm ihm rsn ihn i ξ wr dr.
   { asimpl.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
     econstructor; eauto. }
@@ -570,26 +573,18 @@ Proof with eauto using resolve, merge_pure_pure.
   move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg1 tyS ihS tym ihm tyn ihn
     Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
   { inv rsm; asimpl.
-    { have[_[_[_[le _]]]]:=sigma_inv _ _ _ _ _ _ _ tyS.
-      have kt:=merge_key_sum mrg1 k1 k2 le.
-      have k3:=agree_resolve_key agr kt.
-      have k4:=merge_key mrg2 H2 k3.
-      have[wr1 wr2]:=wr_merge_inv H5 wr.
+    { have[wr1 wr2]:=wr_merge_inv H4 wr.
       have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
-      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg2 H5 mrg5.
+      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg2 H4 mrg5.
       econstructor... }
     { destruct m1; inv H0.
-      have[_[_[_[le _]]]]:=sigma_inv _ _ _ _ _ _ _ tyS.
-      have kt:=merge_key_sum mrg1 k1 k2 le.
-      have k3:=agree_resolve_key agr kt.
       have nfp:=free_wr_nf H wr.
       inv nfp.
       have[G[fr mrg']]:=free_merge H mrg2.
       have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
-      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg' H9 mrg5.
+      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg' H6 mrg5.
       have wr':=free_wr H wr.
-      have[wr1 wr2]:=wr_merge_inv H9 wr'.
-      have kg:=merge_key mrg' H7 k3.
+      have[wr1 wr2]:=wr_merge_inv H6 wr'.
       have lx:0 <= x by eauto.
       econstructor...
       econstructor...
@@ -697,6 +692,56 @@ Proof.
   econstructor.
   apply: re_pure.
   apply: wr_env_re; eauto.
+Qed.
+
+Lemma resolve_subst2 Θ1 Θ2 Θ3 Θx Θ m m' n1 n1' n2 n2' A B C s t r :
+  B :{s} A :{t} nil ⊢ m' : C : r -> 
+  resolve Θ1 m m' -> 
+  resolve Θ2 n1 n1' -> Θ2 |> s ->
+  resolve Θ3 n2 n2' -> Θ3 |> t ->
+  wr_env Θ ->
+  Θ2 ∘ Θ3 => Θx -> 
+  Θ1 ∘ Θx => Θ -> 
+  resolve Θ m.[n1,n2/] m'.[n1',n2'/].
+Proof.
+  move=>ty rsm rsn1 k2 rsn2 k3 wr mrg1 mrg2.
+  have[wr1 wr2]:=wr_merge_inv mrg2 wr.
+  have[wr3 wr4]:=wr_merge_inv mrg1 wr2.
+  have mrg':=merge_reL Θ3.
+  apply: resolve_subst.
+  exact: ty.
+  exact: mrg2.
+  exact: rsm.
+  exact: wr1.
+  destruct s; destruct t.
+  { econstructor.
+    apply: merge_sym mrg1.
+    all: eauto.
+    econstructor; eauto.
+    econstructor.
+    apply: re_pure.
+    apply: wr_env_re; eauto. }
+  { econstructor.
+    apply: merge_sym mrg1.
+    all: eauto.
+    econstructor; eauto.
+    econstructor.
+    apply: re_pure.
+    apply: wr_env_re; eauto. }
+  { econstructor.
+    apply: merge_sym mrg1.
+    all: eauto.
+    econstructor; eauto.
+    econstructor.
+    apply: re_pure.
+    apply: wr_env_re; eauto. }
+  { econstructor.
+    apply: merge_sym mrg1.
+    all: eauto.
+    econstructor; eauto.
+    econstructor.
+    apply: re_pure.
+    apply: wr_env_re; eauto. }
 Qed.
 
 Lemma eval_split Θ1 Θ2 Θ Θ' m n m' A t :
@@ -884,10 +929,176 @@ Proof with eauto 6 using
     have//:=resolve_wr_nfi H8 wr1 nfB.
     have//=nfB:=nf_typing tyB.
     have//:=resolve_wr_nfi H8 wr1 nfB. }
-  admit.
-  admit.
-  admit.
-  admit.
+  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg1 tyS ihS tym ihm
+    tyn ihn Θ1 Θ2 Θ Θ' m0 m' rsP e wr mrg2 ev; subst.
+  { inv mrg1.
+    have[G1[G2[l[le[mrg3[tyA tyB]]]]]]:=
+      sigma_inv _ _ _ _ _ _ _ tyS. 
+    inv mrg3.
+    inv rsP; inv ev.
+    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H4.
+      have[Θx1[Θx2[mx[wrs[wf'[pd[mrgx rx]]]]]]]:=
+        ihm _ _ _ _ _ _ H5 erefl wr mrg4 H8.
+      have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
+      have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
+      inv wrs.
+      exists Θy. exists Θ2p.
+      exists (Pair mx n t).
+      repeat split...
+      econstructor.
+      apply: merge_sym...
+      eauto.
+      apply: resolve_pad...
+      destruct s.
+      { econstructor...
+        apply: clc_conv.
+        apply: conv_sub.
+        apply: conv_beta.
+        apply: star_conv...
+        eauto.
+        have:=substitution tyB (key_nil _ _) (merge_nil _) H0.
+        asimpl... }
+      { econstructor...
+        apply: clc_conv.
+        apply: conv_sub.
+        apply: conv_beta.
+        apply: star_conv...
+        eauto.
+        have:=substitutionN tyB H0.
+        asimpl... }
+      apply: red_pair... }
+    { have[Θx[mrg3 mrg4]]:=merge_splitL mrg2 H4.
+      have{ihn}[Θx1[Θx2[nx[wrs[wf'[pd[mrgx rx]]]]]]]:=
+        ihn _ _ _ _ _ _ H6 erefl wr (merge_sym mrg4) H8.
+      have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
+      have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
+      inv wrs.
+      exists Θy. exists Θ2p.
+      exists (Pair m nx t).
+      repeat split...
+      econstructor. 
+      exact: mrp1.
+      apply: resolve_pad... eauto.
+      apply: red_pair... }
+    { destruct t.
+      { exists (Pair (Ptr lm) (Ptr ln) U :U Θ1).
+        exists (Pair (Ptr lm) (Ptr ln) U :U Θ2).
+        exists (Pair m n U).
+        repeat split...
+        econstructor.
+        econstructor.
+        move:mrg2=>/merge_length[<-_]...
+        econstructor...
+        econstructor... }
+      { exists (Pair (Ptr lm) (Ptr ln) L :L Θ1).
+        exists (_: Θ2).
+        exists (Pair m n L).
+        repeat split...
+        econstructor.
+        econstructor.
+        move:mrg2=>/merge_length[<-_]...
+        econstructor...
+        econstructor... } } }
+  move=>Γ1 Γ2 Γ m n A s mrg1 tym ihm tyn ihn 
+    Θ1 Θ2 Θ Θ' m0 m' rsm e wr mrg2 ev; subst.
+  { inv mrg1.
+    inv rsm; inv ev.
+    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
+      have[Θx1[Θx2[mx[wrs[wf'[pd[mrgx rx]]]]]]]:=
+        ihm _ _ _ _ _ _ H4 erefl wr mrg4 H7.
+      have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
+      have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
+      inv wrs.
+      exists Θy. exists Θ2p.
+      exists (LetIn1 mx n).
+      repeat split...
+      econstructor.
+      apply: merge_sym...
+      eauto.
+      apply: resolve_pad...
+      apply: red_letin1... }
+    { move=>{ihm ihn}.
+      have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
+      have[G[mrg rs]]:=resolve_free H7 H4 mrg4.
+      have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
+      exists Gx. exists Θ2. inv rs. exists n.
+      repeat split...
+      have->:=merge_pureR mrg5 H...
+      apply: free_wr H7 wr.
+      apply: star1.
+      constructor. } }
+  move=>Γ1 Γ2 Γ A B C m n s r t k x i le key mrg1 
+    tym ihm tyC ihC tyn ihn Θ1 Θ2 Θ ϴ' m0 m' rsm e wr mrg2 ev; subst.
+  { inv mrg1.
+    inv rsm; inv ev.
+    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
+      have[Θx1[Θx2[mx[wrs[wf'[pd[mrgx rx]]]]]]]:=
+        ihm _ _ _ _ _ _ H4 erefl wr mrg4 H7.
+      have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
+      have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
+      inv wrs.
+      exists Θy. exists Θ2p.
+      exists (LetIn2 mx n).
+      repeat split...
+      econstructor.
+      apply: merge_sym...
+      eauto.
+      apply: resolve_pad...
+      destruct t; destruct k; inv le.
+      { apply: clc_conv.
+        apply: conv_sub.
+        apply: conv_beta.
+        apply: conv_sym.
+        apply: star_conv...
+        econstructor...
+        constructor.
+        have:=substitution tyC (key_nil _ _) (merge_nil _) tym.
+        asimpl... }
+      { apply: clc_conv.
+        apply: conv_sub.
+        apply: conv_beta.
+        apply: conv_sym.
+        apply: star_conv...
+        econstructor...
+        constructor.
+        have:=substitutionN tyC tym.
+        asimpl... }
+      { apply: clc_conv.
+        apply: conv_sub.
+        apply: conv_beta.
+        apply: conv_sym.
+        apply: star_conv...
+        econstructor...
+        constructor.
+        have:=substitutionN tyC tym.
+        asimpl... }
+      apply: red_letin2... }
+    { move=>{ihm ihn}.
+      have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
+      have[G[mrg rs]]:=resolve_free H7 H4 mrg4.
+      have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
+      exists Gx. exists Θ2. inv rs. exists (n.[n',m'/]).
+      have[lx tyS]:=validity (nil_ok) tym.
+      have[G1[G2[e1[e2[k1[k2[mrg7[tym' tyn']]]]]]]]:=
+        pair_inv _ _ _ _ _ _ _ _ _ _ _ _ tym tyS; subst.
+      inv mrg7.
+      have fr':=free_wr H7 wr.
+      have[wrG wrX]:=wr_merge_inv mrg fr'.
+      have[wr4 wr5]:=wr_merge_inv H6 wrG.
+      have[wr3 wr2]:=wr_merge_inv mrg3 wrX.
+      have vm:=wr_resolve_value wr4 H9.
+      have vn:=wr_resolve_value wr5 H10.
+      have key4:=resolution tym' vm wr4 H9.
+      have key5:=resolution tyn' vn wr5 H10.
+      repeat split...
+      apply: resolve_subst2...
+      apply: wr_merge...
+      apply: merge_sym...
+      have:=substitution2 tyn k1 k2 
+        (merge_nil _) (merge_nil _) tym' tyn'.
+      asimpl...
+      apply: star1.
+      apply: step_iota2. } }
   move=>Γ A B m s i sb tym ihm tyB ihB 
     Θ1 Θ2 Θ Θ' m1 m2 rsm e wr mrg ev; subst.
   { have[G1[G2[n'[wrs[wr1[pd1[mrg' st]]]]]]]:=
@@ -895,133 +1106,25 @@ Proof with eauto 6 using
     inv wrs.
     exists G1. exists G2. exists n'.
     repeat split... }
+  Qed.
 
+Theorem evaluation Θ Θ' m m' n A t :
+  wr_env Θ -> well_resolved Θ m m' A t -> eval Θ m Θ' n -> 
+    exists n', well_resolved Θ' n n' A t /\ m' ~>* n'.
+Proof.
+  move=>wr wrs ev.
+  have mrg:=merge_reR Θ.
+  have[G1[G2[n'[wrs'[wr'[pd[mrg' rd]]]]]]]:=eval_split wrs wr mrg ev.
+  have k:=pad_pure pd.
+  have e:=merge_pureR mrg' k; subst.
+  exists n'; eauto.
+Qed.
 
-  (* move=>Γ s l k wf Θ1 Θ2 Θ Θ' m m' A rsm rsA mrg ev.
-  { inv rsm; inv ev.
-    exists ((s @ l) :U Θ1).
-    exists ((s @ l) :U Θ2).
-    repeat split...
-    move:mrg=>/merge_length[<-_].
-    exists (s @ l). exists (U @ l.+1).
-    repeat split... }
-  move=>Γ A B s r t i k tyA ihA tyB ihB wf Θ1 Θ2 Θ Θ' m m' C
-    rsm rsC mrg ev.
-  { inv rsm; inv ev.
-    exists ((Pi A0 B0 s t) :U Θ1).
-    exists ((Pi A0 B0 s t) :U Θ2).
-    repeat split...
-    move:mrg=>/merge_length[<-_].
-    exists (Pi A B s t). exists (t @ i).
-    repeat split... }
-  move=>Γ x A s hs wf Θ1 Θ2 Θ Θ' m m' C rsm rsC mrg ev.
-  { inv rsm; inv ev. }
-  move=>Γ A B m s t i k tyP ihP tym ihm wf Θ1 Θ2 Θ Θx n m' C
-    rsL rsC mrg ev.
-  { inv rsL; inv ev.
-    have[<-_]:=merge_length mrg.
-    destruct t.
-    { exists ((Lam A0 m0 s U) :U Θ1).
-      exists ((Lam A0 m0 s U) :U Θ2).
-      repeat split...
-      exists (Lam A m s U). exists (Pi A B s U).
-      repeat split... }
-    { exists ((Lam A0 m0 s L) :L Θ1).
-      exists (_: Θ2).
-      repeat split...
-      exists (Lam A m s L). exists (Pi A B s L).
-      repeat split... } }
-  move=>Γ1 Γ2 Γ A B m n s t k mrg1 tym ihm tyn ihn
-    wf Θ1 Θ2 Θ Θ' x x' C rx rC mrg2 ev.
-  { have[wf1 wf2]:=merge_context_ok_inv mrg1 wf.
-    have[r[l tyP]]:= validity wf1 tym.
-    have[r0[l0[tyA tyB]]]:= pi_inv _ _ _ _ _ _ tyP.
-    inv rx; inv ev.
-    { have rP:=resolve_type_refl Θ0 tyP.
-      have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
-      have{ihm}[Θx1[Θx2[wr[pd mrgx]]]]:=
-        ihm wf1 _ _ _ _ _ _ _ H4 rP mrg4 H7.
-      have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
-      have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
-      exists Θy. exists Θ2p.
-      repeat split...
-      move:wr=>[mx[tyPx[rx1[rx2 tyx]]]].
-      exists (App mx n). exists (B.[n/]).
-      repeat split.
-      econstructor. exact: (merge_sym mrp1).
-      exact: rx1. apply: resolve_pad...
-      have[_[<-_]]:=merge_re_re mrp1.
-      apply: resolve_pad.
-      apply: pad_re...
-      have[_[_->]]:=merge_re_re H1...
-      have e:=resolve_type_id tyP rx2; subst.
-      apply: clc_app... }
-    { have rA:=resolve_type_refl Θ3 tyA.
-      have[Θx[mrg3 mrg4]]:=merge_splitL mrg2 H1.
-      have{ihn}[Θx1[Θx2[wr[pd mrgx]]]]:=
-        ihn wf2 _ _ _ _ _ _ _ H5 rA (merge_sym mrg4) H7.
-      have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
-      have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
-      exists Θy. exists Θ2p.
-      repeat split...
-      move:wr=>[nx[tyPx[rx1[rx2 tyx]]]].
-      exists (App m nx). exists (B.[nx/]).
-      repeat split.
-      econstructor. exact: mrp1.
-      apply: resolve_pad... exact: rx1.
-      have[_[<-_]]:=merge_re_re mrp1.
-      apply: resolve_pad.
-      apply: pad_re...
-      have[_[->_]]:=merge_re_re H1...
-      have:=eval_red _.
-      admit.
-      have e:=resolve_type_id tyA rx2; subst.
-      apply: clc_app... }
-
-  }
-Admitted. *)
-
-Lemma well_resolved_eval Θ Θ' Γ m m' A :
-  well_resolved Θ Γ m A -> eval Θ m Θ' m' -> well_resolved Θ' Γ m' A.
-Proof with eauto using 
-  clc_type, resolve, resolve_wkU, resolve_wkN, free.
-  move=>[n[B[rm[rA tyn]]]].
-  elim: tyn Θ Θ' m m' A rm rA=>{Γ n B}.
-  move=>Γ s l k Θ Θ' m m' A rsm rsA ev.
-  { inv rsm. inv ev.
-    exists (s @ l). exists (U @ l.+1).
-    repeat split...
-    inv ev. }
-  move=>Γ A B s r t i k tyA ihA tyB ihB Θ Θ' m m' C rs1 rs2 ev.
-  { inv rs1. inv ev.
-    exists (Pi A B s t). exists (t @ i).
-    repeat split...
-    inv ev. }
-  move=>Γ x A s hs Θ Θ' m m' C rs1 rs2 ev.
-  { inv rs1. inv ev. inv ev. }
-  move=>Γ A B m s t i k tyP ihP tym ihm Θ Θ' rs n C rs1 rs2 ev.
-  { inv rs1. inv ev.
-    exists (Lam A m s t). exists (Pi A B s t).
-    destruct t; repeat split...  
-    inv ev. }
-  move=>Γ1 Γ2 Γ A B m n s t k mrg tym ihm tyn ihn 
-    Θ Θ' n' m' C rs1 rs2 ev.
-  { inv rs1. inv ev.
-    {
-      (* { have[G1[G2[mx[rs'[pd mrg']]]]]:= *)
-      have wr:well_resolved Θ1 Γ1 m0 (Pi A B s t).
-      exists m. exists (Pi A B s t).
-      repeat split...
-      admit.
-      have[G1[G2[[mx[X[rx1[rx2 tyx]]]][pd mrg']]]]:=eval_split H7 wr H1.
-      exists (App mx n). exists (B.[n/]).
-      repeat split...
-      econstructor...
-      exact rx1.
-
-    }
-    admit.
-    inv ev.
-
-  }
-
+Theorem type_resolved m A t : 
+  nil ⊢ m : A : t -> well_resolved nil m m A t.
+Proof.
+  move=>ty.
+  constructor.
+  have//:=resolve_type_refl nil ty.
+  exact: ty.
+Qed.
