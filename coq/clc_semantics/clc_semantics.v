@@ -1110,7 +1110,7 @@ Proof with eauto 6 using
 
 Theorem evaluation Θ Θ' m m' n A t :
   wr_env Θ -> well_resolved Θ m m' A t -> eval Θ m Θ' n -> 
-    exists n', well_resolved Θ' n n' A t /\ m' ~>* n'.
+    exists n', well_resolved Θ' n n' A t /\ wr_env Θ' /\ m' ~>* n'.
 Proof.
   move=>wr wrs ev.
   have mrg:=merge_reR Θ.
