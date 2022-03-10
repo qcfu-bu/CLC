@@ -12,9 +12,9 @@ Inductive sub1 : term -> term -> Prop :=
 | sub1_sort s l1 l2 : 
   l1 <= l2 -> 
   sub1 (s @ l1) (s @ l2)
-| sub1_pi A B1 B2 s t : 
+| sub1_pi A B1 B2 s r t : 
   sub1 B1 B2 -> 
-  sub1 (Pi A B1 s t) (Pi A B2 s t)
+  sub1 (Pi A B1 s r t) (Pi A B2 s r t)
 | sub1_sigma A1 A2 B1 B2 s r t :
   sub1 A1 A2 ->
   sub1 B1 B2 ->
@@ -45,17 +45,17 @@ Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.
   move=> sb. elim: sb C D => {A B}
     [ A C D 
     | s l1 l2 leq C D conv sb
-    | A B1 B2 s t sb1 ih C D conv sb2 
+    | A B1 B2 s r t sb1 ih C D conv sb2 
     | A1 A2 B1 B2 s r t sb1 ih1 sb2 ih2 C D conv sb3 ]...
   inv sb; try (exfalso; solve_conv)...
     move: conv => /sort_inj [->eq].
     apply: sub_sort. subst.
     exact: leq_trans leq _.
   inv sb2; try (exfalso; solve_conv)...
-    move: conv => /pi_inj[conv1 [conv2[->->]]].
+    move: conv => /pi_inj[conv1 [conv2[->[->->]]]].
     move: (ih _ _ conv2 H) => {ih} sub. inv sub.
     apply: SubI. 
-    apply sub1_pi with (s := s0) (t := t0)... 
+    apply sub1_pi with (s := s0) (r := r0) (t := t0)... 
     exact: conv_pi. 
     exact: conv_pi.
   inv sb3; try (exfalso; solve_conv)...
@@ -91,18 +91,19 @@ Proof.
   move=> *. exfalso; solve_conv.
 Qed.
 
-Lemma sub_pi_inv A1 A2 s1 s2 t1 t2 B1 B2 :
-  Pi A1 B1 s1 t1 <: Pi A2 B2 s2 t2 -> 
-    A1 === A2 /\ B1 <: B2 /\ s1 = s2 /\ t1 = t2.
+Lemma sub_pi_inv A1 A2 s1 s2 r1 r2 t1 t2 B1 B2 :
+  Pi A1 B1 s1 r1 t1 <: Pi A2 B2 s2 r2 t2 -> 
+    A1 === A2 /\ B1 <: B2 /\ s1 = s2 /\ r1 = r2 /\ t1 = t2.
 Proof.
   move=> [A' B' []].
   move=> C c1 c2. 
-    have{c1 c2}/pi_inj[c1[c2[->->]]]: 
-      Pi A1 B1 s1 t1 === Pi A2 B2 s2 t2.
+    have{c1 c2}/pi_inj[c1[c2[->[->->]]]]: 
+      Pi A1 B1 s1 r1 t1 === Pi A2 B2 s2 r2 t2.
     exact: conv_trans c2.
     firstorder=>//. exact: conv_sub.
   move=> *. exfalso; solve_conv.
-  move=> A B0 B3 s t sb /pi_inj[c1[c2[<-<-]]]/pi_inj[c3[c4[->->]]]. 
+  move=> A B0 B3 s r t sb 
+    /pi_inj[c1[c2[<-[<-<-]]]]/pi_inj[c3[c4[->[->->]]]]. 
     firstorder.
     exact: conv_trans c3. exact: SubI sb c2 c4.
   move=> *. exfalso; solve_conv.

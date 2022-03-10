@@ -8,13 +8,13 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Theorem subject_step Γ m n A :
-  ok Γ -> Γ ⊢ m : A -> m ~> n -> Γ ⊢ n : A.
+Theorem subject_step Γ m n A s :
+  ok Γ -> Γ ⊢ m : A : s -> m ~> n -> Γ ⊢ n : A : s.
 Proof with eauto using clc_type, step, ok, merge_re_id.
-  move=>wf tp. elim: tp n wf=>{Γ m A}.
+  move=>wf tp. elim: tp n wf=>{Γ m A s}.
   move=>Γ s l k n o st. inv st.
   move=>Γ A B s r t i k tyA ihA tyB ihB n o st. inv st.
-  { move:(ihA _ o H4)=>tyA'.
+  { move:(ihA _ o H5)=>tyA'.
     apply: clc_pi...
     destruct s=>//=.
     apply: context_conv.
@@ -22,7 +22,6 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: conv1...
     rewrite<-re_invo.
     rewrite<-pure_re...
-    exact: tyB.
     exact: tyB. }
   { destruct s.
     have /ihB{}ihB :(ok [A :U Γ]).
@@ -31,18 +30,18 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
       apply: re_ok...
       rewrite<-re_invo.
       rewrite<-pure_re...
-    move:(ihB _ H4)=>tyB'.
+    move:(ihB _ H5)=>tyB'.
     apply: clc_pi...
     have /ihB{}ihB :(ok [A :L Γ]).
       simpl.
       apply: n_ok.
       apply: re_ok...
-    move:(ihB _ H4)=>tyB'.
+    move:(ihB _ H5)=>tyB'.
     apply: clc_pi... }
   move=>Γ x A s hs n o st. inv st.
-  move=>Γ A B m s t i k tyP ihP tym ihm n o st.
-  move:(pi_inv _ _ _ _ _ _ tyP)=>[r0[l[tyA tyB]]]. inv st.
-  { have st : Pi A B s t ~> Pi A' B s t...
+  move=>Γ A B m s r t i k tyP ihP tym ihm n o st.
+  move:(pi_inv _ _ _ _ _ _ _ _ tyP)=>[l[tyA[_ tyB]]]. inv st.
+  { have st : Pi A B s r t ~> Pi A' B s r t...
     move:(ihP _ (re_ok o) st)=>tyP'.
     apply: clc_conv.
     apply: conv_sub.
@@ -54,17 +53,17 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     exact: tym.
     exact: tyP. }
   { have: ok (A :{s} Γ)... }
-  move=>Γ1 Γ2 Γ A B m n s t k mrg tym ihm tyn ihn m0 o st.
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn m0 o st.
   move:(merge_context_ok_inv mrg o)=>[o1 o2].
   move:(ihm^~ o1)=>{}ihm.
   move:(ihn^~ o2)=>{}ihn. 
-  move:(validity o1 tym)=>[sP[lP tyP]]. inv st.
-  { move:(lam_inv _ _ _ _ _ _ _ _ _ _ _ tyP tym)=>tym1.
+  move:(validity o1 tym)=>[lP tyP]. inv st.
+  { move:(lam_inv _ _ _ _ _ _ _ _ _ _ _ _ _ tyP tym)=>tym1.
     apply: substitution... }
   { move:(ihm _ H2)=>{}ihm.
     apply: clc_app... }
   { move:(ihn _ H2)=>{}ihn.
-    move:(pi_inv _ _ _ _ _ _ tyP)=>[r[l[tyA tyB]]].
+    move:(pi_inv _ _ _ _ _ _ _ _ tyP)=>[l[tyA[_ tyB]]].
     move:(merge_re_re mrg)=>[e1[e2 e3]].
     destruct s.
     { have mrg' : [Γ1] ∘ Γ2 => [Γ].
@@ -112,7 +111,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     tyS ihS tym ihm tyn ihn n0 o st. 
   move:(merge_context_ok_inv mrg o)=>[o1 o2]. 
   move:(merge_re_re mrg)=>[e[e1 e2]].
-  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[mrg0[tyA tyB]]]]].
+  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[_[mrg0[tyA tyB]]]]]].
   move:(merge_re_re mrg0)=>[e3[e4 e5]]. inv st.
   { move:(ihm _ o1 H3)=>{ihm ihS ihn}tym'.
     rewrite<-re_invo in e4.
@@ -132,19 +131,19 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     rewrite e5. rewrite<-e2... }
   { move:(ihn _ o2 H3)=>{ihm ihS ihn}tyn'.
     apply:clc_pair... }
-  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn n0 o st.
+  move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn n0 o st.
   move:(merge_context_ok_inv mrg o)=>[o1 o2]. inv st.
   { move:(ihm _ o1 H2)=>tym'.
     apply: clc_letin1... }
   { move:(ihn _ o2 H2)=>tyn'.
     apply: clc_letin1... }
-  { move:(it_inv _ tym)=>k.
+  { move:(it_inv _ _ tym)=>k.
     by rewrite (merge_pureL mrg k). }
   move=>Γ1 Γ2 Γ A B C m n s r t k x i leq key mrg 
     tym ihm tyC ihC tyn ihn n0 o st.
   move:(merge_context_ok_inv mrg o)=>[o1 o2]. 
-  move:(validity o1 tym)=>[s0[l tyS]].
-  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[mrg0[tyA tyB]]]]]. 
+  move:(validity o1 tym)=>[l tyS].
+  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[_[mrg0[tyA tyB]]]]]]. 
   move:(merge_re_re mrg)=>[e0[e1 e2]].
   move:(merge_re_re mrg0)=>[e3[e4 e5]].
   inv st.
@@ -157,7 +156,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     destruct k; simpl in tyC.
     have mrg1:[Γ2] ∘ Γ1 => [Γ].
     rewrite e2 (pure_re key) e1.
-    apply:merge_re_id.
+    apply:merge_re_id. inv leq.
     have:=substitution tyC key mrg1 tym.
     asimpl...
     have:=substitutionN tyC tym.
@@ -174,8 +173,8 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: clc_letin2... }
   { rewrite<-re_invo in e4.
     rewrite<-re_invo in e5.
-    move:(pair_inv _ _ _ _ _ _ _ _ _ _ _ tym tyS)=>
-      [G3[G4[->[k1[k2[mrg1[tym1 tym2]]]]]]].
+    move:(pair_inv _ _ _ _ _ _ _ _ _ _ _ _ tym tyS)=>
+      [G3[G4[->[et[k1[k2[mrg1[tym1 tym2]]]]]]]]; subst.
     have[G[/merge_sym mrg2 /merge_sym mrg3]]:=merge_splitL mrg mrg1.
     have:=substitution2 tyn k1 k2 mrg2 mrg3 tym1 tym2.
     by asimpl. }
@@ -183,8 +182,8 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
   { apply: clc_conv... }
 Qed.
 
-Theorem subject_reduction Γ m n A :
-  ok Γ -> Γ ⊢ m : A -> m ~>* n -> Γ ⊢ n : A.
+Theorem subject_reduction Γ m n A s :
+  ok Γ -> Γ ⊢ m : A : s -> m ~>* n -> Γ ⊢ n : A : s.
 Proof.
   move=>wf tym rd. elim: rd; eauto.
   move=>y z rd ih st.

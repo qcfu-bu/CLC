@@ -23,11 +23,11 @@ Inductive pstep : term -> term -> Prop :=
   pstep m m' ->
   pstep n n' ->
   pstep (App (Lam A m s t) n) (m'.[n'/])
-| pstep_pi A A' B B' s t :
+| pstep_pi A A' B B' s r t :
   pstep A A' ->
   pstep B B' ->
-  pstep (Pi A B s t) 
-        (Pi A' B' s t)
+  pstep (Pi A B s r t) 
+        (Pi A' B' s r t)
 | pstep_unit :
   pstep Unit Unit
 | pstep_it :
@@ -92,13 +92,13 @@ Proof.
   apply: (star_hom (((Lam A')^~ s)^~ t)) r2=>x y. exact: step_lamR.
 Qed.
 
-Lemma red_pi A A' B B' s t :
-  A ~>* A' -> B ~>* B' -> Pi A B s t ~>* Pi A' B' s t.
+Lemma red_pi A A' B B' s r t :
+  A ~>* A' -> B ~>* B' -> Pi A B s r t ~>* Pi A' B' s r t.
 Proof.
   move=> r1 r2.
-  apply: (star_trans (Pi A' B s t)).
-  apply: (star_hom (((Pi^~ B)^~ s)^~ t)) r1=>x y. exact: step_piL.
-  apply: (star_hom (((Pi A')^~ s)^~ t)) r2=>x y. exact: step_piR.
+  apply: (star_trans (Pi A' B s r t)).
+  apply: (star_hom ((((Pi^~ B)^~ s)^~ r)^~ t)) r1=>x y. exact: step_piL.
+  apply: (star_hom ((((Pi A')^~ s)^~ r)^~ t)) r2=>x y. exact: step_piR.
 Qed.
 
 Lemma red_sigma A A' B B' s r t :
@@ -190,13 +190,13 @@ Proof.
   apply: (conv_hom (((Lam A')^~ s)^~ t)) r2=>x y. exact: step_lamR.
 Qed.
 
-Lemma conv_pi A A' B B' s t :
-  A === A' -> B === B' -> Pi A B s t === Pi A' B' s t.
+Lemma conv_pi A A' B B' s r t :
+  A === A' -> B === B' -> Pi A B s r t === Pi A' B' s r t.
 Proof.
   move=> r1 r2.
-  apply: (conv_trans (Pi A' B s t)).
-  apply: (conv_hom (((Pi^~ B)^~ s)^~ t)) r1=>x y. exact: step_piL.
-  apply: (conv_hom (((Pi A')^~ s)^~ t)) r2=>x y. exact: step_piR.
+  apply: (conv_trans (Pi A' B s r t)).
+  apply: (conv_hom ((((Pi^~ B)^~ s)^~ r)^~ t)) r1=>x y. exact: step_piL.
+  apply: (conv_hom ((((Pi A')^~ s)^~ r)^~ t)) r2=>x y. exact: step_piR.
 Qed.
 
 Lemma conv_sigma A A' B B' s r t :
@@ -399,11 +399,11 @@ Proof with eauto 6 using
     have[mx pm1 pm2]:=ihm _ H5.
     have[nx pn1 pn2]:=ihn _ H6.
     exists (mx.[nx/])...
-  move=> A A' B B' s t pA ihA pB ihB m2 p.
+  move=> A A' B B' s r t pA ihA pB ihB m2 p.
     inv p.
-    have[Ax pA1 pA2]:=ihA _ H4.
-    have[Bx pB1 pB2]:=ihB _ H5.
-    exists (Pi Ax Bx s t)...
+    have[Ax pA1 pA2]:=ihA _ H5.
+    have[Bx pB1 pB2]:=ihB _ H6.
+    exists (Pi Ax Bx s r t)...
   move=>m2 p. inv p. exists Unit...
   move=>m2 p. inv p. exists It...
   move=>A A' B B' s r t pA ihA pB ihB m2 p.
@@ -496,14 +496,14 @@ Proof.
   inv r2.
 Qed.
 
-Lemma red_pi_inv A B s t x :
-  Pi A B s t ~>* x -> 
+Lemma red_pi_inv A B s r t x :
+  Pi A B s r t ~>* x -> 
   exists A' B',
-    A ~>* A' /\ B ~>* B' /\ x = Pi A' B' s t.
+    A ~>* A' /\ B ~>* B' /\ x = Pi A' B' s r t.
 Proof.
   elim.
   exists A. exists B=>//.
-  move=> y z r [A'[B'[r1[r2 e]]]] st; subst.
+  move=> y z rd [A'[B'[r1[r2 e]]]] st; subst.
   inv st.
   exists A'0. exists B'.
   repeat constructor; eauto.
@@ -572,13 +572,13 @@ Proof.
   move/church_rosser=>[x/red_sort_inv->/red_sort_inv[->->]]//.
 Qed.
 
-Lemma pi_inj A A' B B' s s' t t' :
-  Pi A B s t === Pi A' B' s' t' -> 
-    A === A' /\ B === B' /\ s = s' /\ t = t'.
+Lemma pi_inj A A' B B' s s' r r' t t' :
+  Pi A B s r t === Pi A' B' s' r' t' -> 
+    A === A' /\ B === B' /\ s = s' /\ r = r' /\ t = t'.
 Proof.
   move/church_rosser=>
     [x/red_pi_inv[A1[B1[rA1[rB1->]]]]
-      /red_pi_inv[A2[B2[rA2[rB2[]]]]]] eA eB es et; subst.
+      /red_pi_inv[A2[B2[rA2[rB2[]]]]]] eA eB es er et; subst.
   repeat split.
   apply: conv_trans.
     apply: star_conv. by apply: rA1.
