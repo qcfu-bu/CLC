@@ -849,6 +849,52 @@ Proof with eauto 6 using
       apply: free_wr...
       apply: star1.
       apply: step_beta. } }
+  move=>Γ k Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
+  { inv rsm; inv ev.
+    have[<-_]:=merge_length mrg.
+    exists (Unit :U Θ1).
+    exists (Unit :U Θ2).
+    exists Unit.
+    repeat split...
+    constructor... }
+  move=>Γ k Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
+  { inv rsm; inv ev.
+    have[<-_]:=merge_length mrg.
+    exists (It :U Θ1).
+    exists (It :U Θ2).
+    exists It.
+    repeat split...
+    constructor... }
+  move=>Γ A B s r t i le k tyA ihA tyB ihB Θ1 Θ2 Θ Θ' 
+    m m' rsm e wr mrg ev; subst.
+  { inv rsm; inv ev.
+    have[wr1 wr2]:=wr_merge_inv mrg wr.
+    exists ((Sigma A0 B0 s r t) :U Θ1).
+    exists ((Sigma A0 B0 s r t) :U Θ2).
+    exists (Sigma A B s r t).
+    repeat split...
+    econstructor.
+    move:mrg=>/merge_length[<-_]...
+    econstructor...
+    econstructor...
+    have//=nfA:=nf_typing tyA.
+    have//:=resolve_wr_nfi H7 wr1 nfA.
+    destruct s; simpl in tyB.
+    have//=nfB:=nf_typing tyB.
+    have//:=resolve_wr_nfi H8 wr1 nfB.
+    have//=nfB:=nf_typing tyB.
+    have//:=resolve_wr_nfi H8 wr1 nfB. }
+  admit.
+  admit.
+  admit.
+  admit.
+  move=>Γ A B m s i sb tym ihm tyB ihB 
+    Θ1 Θ2 Θ Θ' m1 m2 rsm e wr mrg ev; subst.
+  { have[G1[G2[n'[wrs[wr1[pd1[mrg' st]]]]]]]:=
+      ihm _ _ _ _ _ _ rsm erefl wr mrg ev.
+    inv wrs.
+    exists G1. exists G2. exists n'.
+    repeat split... }
 
 
   (* move=>Γ s l k wf Θ1 Θ2 Θ Θ' m m' A rsm rsA mrg ev.
