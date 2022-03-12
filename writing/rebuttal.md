@@ -8,8 +8,8 @@ However, this expression can be refactored to work given a wrapper type
 Inductive [_] : A :U U → U :=
 | Just : A :U U → A → [A].
 
-So with Γ = A :U L, B :U U, f' :U (x :L A) → [B], x :L A, the expression 
-Γ ⊢ match (f' x) with Just y => (λ(_ :U B).0) y : 𝐍 is well typed. 
+So with Γ = A :U L, B :U U, f' :U (x :L A) → [B], x :L A, the expression Γ ⊢ match (f' x) with Just y => (λ(_ :U B).0) y : 𝐍 is well typed. 
+
 The sequencing effect imposed by constructor intro/elim ensures that y be free of linear resources when the branch is reached during reduction. This is very much the principle of call-by-push-value in effect system literature. Cbpv encoding is used extensively in our stateful reasoning example, where ΣL takes the role of [_].
 
 Now when we have a linearly closed term in place of x, it is clear that this term can be freely generated without consuming any resources. From a linear logic perspective, there is an implicit ! in front of this term and it is linear "in name only".
@@ -18,13 +18,13 @@ Now when we have a linearly closed term in place of x, it is clear that this ter
 Reviewers 1 and 2 have pointed out the lack of Prop in our system. We want to clarify that Prop is completely compatible in CLC, with meta-theory proven in Coq. Prop was removed during our Coq formalization of CILC simply as a means to reduce proof bureaucracy.
 
 ## 3
-Reviewer 1 and 3 list Quantitative Type Theory and Krishnaswami et al.'s works as comparison points. We will comment on these works in this section.
+Reviewers 1 and 3 list Quantitative Type Theory and Krishnaswami et al.'s works as comparison points. We will comment on these works in this section.
 
-QTT uses a semi-ring annotation system to control usage of function arguments within its body. It allows linear variables to occur in types by simply not counting their occurrences. This approach does not posses certain properties that we seek. Most notably, judgments of the form Γ, x :0 A ⊢ m : B cannot be strengthened to Γ ⊢ m : B as x may occur any number of times in B. The lack of this strengthening property proved to be fatal during our attempts to extend QTT with message passing concurrency.
+QTT uses a semi-ring annotation system to control usage of function arguments within its body. It allows linear variables to occur in types by simply not counting their occurrences. This approach does not posses certain properties that we seek. Most notably, judgments of the form Γ, x :0 A ⊢ m : B cannot be strengthened to Γ ⊢ m : B as x may occur any number of times in B. The lack of this strengthening property proved to be fatal during our attempts to extend QTT with message passing concurrency. Strengthening is an easy property to prove for CLC and we are currently working towards concurrency.
 
-Krishnaswami et al.'s work utilizes not just two adjoint operators G and F but also two different typing judgments of linear and non-linear. When writing programs in this system, the disparate judgments block linear and non-linear terms from direct interaction. All interactions between linear and non-linear terms require G or F to mediate, which lead to considerable complexity during back and forth interactions. Our system only uses a single typing judgment, making interaction between linear and non-linear much more straightforward.
+Krishnaswami et al.'s work utilizes not just two adjoint operators G and F but also two different typing judgments of linear and non-linear types. When writing programs in this system, the disparate judgments block linear and non-linear terms from direct interaction. All interactions between linear and non-linear terms require G or F to mediate, which lead to considerable complexity during back and forth interactions. Our system only uses a single typing judgment, making interaction between linear and non-linear term much more straightforward without needing any operators to mediate.
 
 The languages listed by reviewer 1 (Practical affine types and Linear Haskell) are not dependently typed, thus their linear inductive types permit no term dependency. The inductive types of CILC allow dependency on non-linear terms. This poses much more difficulty when defining the intro/elim rules as they must account for both dependency and linearity.
 
 ## 4
-To reviewer 2's question on which major results have been verified in Coq, all explicitly stated theorems in the paper have been verified in Coq. All theorems restated for CILC apart from strong-normalization have been proven in Coq.
+To reviewer 2's question on which major results have been verified in Coq, all explicitly stated lemmas and theorems in the paper have been verified in Coq. All theorems restated for CILC apart from strong-normalization have been proven in Coq.
