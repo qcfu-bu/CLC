@@ -55,9 +55,7 @@ Inductive pstep : term -> term -> Prop :=
   pstep m1 m1' ->
   pstep m2 m2' ->
   pstep n n' ->
-  pstep (LetIn2 (Pair m1 m2 t) n) n'.[m2',m1'/]
-| pstep_ptr l :
-  pstep (Ptr l) (Ptr l).
+  pstep (LetIn2 (Pair m1 m2 t) n) n'.[m2',m1'/].
 
 Definition sred σ τ :=
   forall x : var, (σ x) ~>* (τ x).
@@ -450,7 +448,6 @@ Proof with eauto 6 using
     have[mx2 p21 p22]:=ih2 _ H5.
     have[nx pn1 pn2]:=ihn _ H6.
     exists (nx.[mx2,mx1/])...
-  move=>l m2 p. inv p. exists (Ptr l)...
 Qed.
 
 Lemma strip m m1 m2 :

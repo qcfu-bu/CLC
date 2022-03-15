@@ -31,7 +31,6 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | Pair m n _ => occurs i m + occurs i n
   | LetIn1 m n => occurs i m + occurs i n
   | LetIn2 m n => occurs i m + occurs i.+2 n
-  | Ptr _ => 0
   end.
 
 Lemma of_sortL_impure Γ i : of_sort Γ i (Some L) -> ~Γ |> U.
