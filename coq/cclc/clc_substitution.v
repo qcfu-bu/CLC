@@ -248,6 +248,36 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
         in tyn by autosubst.
     have:=clc_letin2 leq key mrg1 tym tyC tyn.
     by asimpl. }
+  move=>Γ i k Δ σ agr.
+  { asimpl.
+    apply: clc_proto... }
+  move=>Γ i k Δ σ agr.
+  { asimpl.
+    apply: clc_inpend... }
+  move=>Γ i k Δ σ agr.
+  { asimpl.
+    apply: clc_outend... }
+  move=>Γ A B s i k tyA ihA tyB ihB Δ σ agr.
+  { asimpl.
+    apply: clc_inp... }
+  move=>Γ A B s i k tyA ihA tyB ihB Δ σ agr.
+  { asimpl.
+    apply: clc_out... }
+  move=>Γ A i k tyA ihA Δ σ agr.
+  { asimpl.
+    apply: clc_ch... }
+  move=>Γ A B m s tym ihm Δ σ agr.
+  { asimpl.
+    apply: clc_recv... }
+  move=>Γ A B m s tym ihm Δ σ agr.
+  { asimpl.
+    apply: clc_send... }
+  move=>Γ m tym ihm Δ σ agr.
+  { asimpl.
+    apply: clc_close... }
+  move=>Γ m tym ihm Δ σ agr.
+  { asimpl.
+    apply: clc_wait... }
   move=>Γ A B m s i sb tym ihm tyB ihB Δ σ agr.
   { apply: clc_conv.
     apply: sub_subst...

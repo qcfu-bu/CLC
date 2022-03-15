@@ -66,6 +66,42 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   [Sigma A B s r t :{k} Γ2] ⊢ C : x @ i : U ->
   B :{r} A :{s} Γ2 ⊢ n : C.[Pair (Var 1) (Var 0) t .: ren (+2)] : x ->
   Γ ⊢ LetIn2 m n : C.[m/] : x
+
+| clc_proto Γ i :
+  Γ |> U ->
+  Γ ⊢ Proto i : U @ i : U
+| clc_inpend Γ i :
+  Γ |> U ->
+  Γ ⊢ InpEnd : Proto i : U
+| clc_outend Γ i :
+  Γ |> U ->
+  Γ ⊢ OutEnd : Proto i : U
+| clc_inp Γ A B s i :
+  Γ |> U ->
+  Γ ⊢ A : s @ i : U ->
+  [A :{s} Γ] ⊢ B : Proto i : U ->
+  Γ ⊢ Inp A B s : Proto i : U
+| clc_out Γ A B s i :
+  Γ |> U ->
+  Γ ⊢ A : s @ i : U ->
+  [A :{s} Γ] ⊢ B : Proto i : U ->
+  Γ ⊢ Out A B s : Proto i : U
+| clc_ch Γ A i :
+  Γ |> U ->
+  Γ ⊢ A : Proto i : U ->
+  Γ ⊢ Ch A : L @ i : U
+| clc_recv Γ A B m s :
+  Γ ⊢ m : Ch (Inp A B s) : L ->
+  Γ ⊢ Recv m : Sigma A (Ch B) s L L : L
+| clc_send Γ A B m s :
+  Γ ⊢ m : Ch (Out A B s) : L ->
+  Γ ⊢ Send m : Pi A (Ch B) s L L : L
+| clc_close Γ m :
+  Γ ⊢ m : Ch OutEnd : L ->
+  Γ ⊢ Close m : Unit : U
+| clc_wait Γ m :
+  Γ ⊢ m : Ch InpEnd : L ->
+  Γ ⊢ Wait m : Unit : U
 | clc_conv Γ A B m s i :
   A <: B ->
   Γ ⊢ m : A : s ->

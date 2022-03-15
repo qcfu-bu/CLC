@@ -31,6 +31,16 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | Pair m n _ => occurs i m + occurs i n
   | LetIn1 m n => occurs i m + occurs i n
   | LetIn2 m n => occurs i m + occurs i.+2 n
+  | Proto _ => 0
+  | InpEnd => 0
+  | OutEnd => 0
+  | Inp A B s => occurs i A + occurs i.+1 B
+  | Out A B s => occurs i A + occurs i.+1 B
+  | Ch A => occurs i A
+  | Recv ch => occurs i ch
+  | Send ch => occurs i ch
+  | Close ch => occurs i ch
+  | Wait ch => occurs i ch
   end.
 
 Lemma of_sortL_impure Γ i : of_sort Γ i (Some L) -> ~Γ |> U.
@@ -163,6 +173,10 @@ Proof with eauto using of_sort, of_sortN_re.
     tym ihm tyC ihC tyn ihn i os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
+  move=>Γ A B s i k tyA ihA tyB ihB i0 os//=.
+    rewrite ihA...
+  move=>Γ A B s i k tyA ihA tyB ihB i0 os//=.
+    rewrite ihA...
 Qed.
 
 Theorem linearity Γ m A s i :
@@ -170,15 +184,15 @@ Theorem linearity Γ m A s i :
 Proof with eauto using of_sort.
   move=>ty. elim: ty i=>//{Γ m A s}.
   move=>Γ s l k i os.
-    exfalso. apply: of_sortL_impure; eauto.
+    exfalso. apply: of_sortL_impure...
   move=>Γ A B s r t l k tyA ihA tyB ihB i os//=.
-    exfalso. apply: of_sortL_impure; eauto.
+    exfalso. apply: of_sortL_impure...
   move=>Γ x A [|] hs i os//=.
-    exfalso. apply: of_sortL_hasU; eauto.
+    exfalso. apply: of_sortL_hasU...
     have->:=of_sortL_hasL os hs.
     by rewrite eq_refl.
   move=>Γ A B m s r [|] l k tyP ihP tym ihm i os//=.
-    exfalso. apply: of_sortL_impure; eauto.
+    exfalso. apply: of_sortL_impure...
     have osN:=of_sortL_reN os.
     have//=e:=narity tyP osN.
     destruct (occurs i.+1 B).
@@ -192,10 +206,10 @@ Proof with eauto using of_sort.
     by rewrite ihm.
     have->:=narity tym os2.
     by rewrite ihn.
-  move=>Γ k i os. exfalso. apply: of_sortL_impure; eauto.
-  move=>Γ k i os. exfalso. apply: of_sortL_impure; eauto.
+  move=>Γ k i os. exfalso. apply: of_sortL_impure...
+  move=>Γ k i os. exfalso. apply: of_sortL_impure...
   move=>Γ A B s r t i leq k tyA ihA tyB ihB x os//=.
-    exfalso. apply: of_sortL_impure; eauto.
+    exfalso. apply: of_sortL_impure...
   move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg 
     tyS ihS tym ihm tyn ihn x os//=.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
@@ -210,5 +224,12 @@ Proof with eauto using of_sort.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     rewrite ihm... erewrite narity...
     rewrite ihn... erewrite narity...
+  move=>Γ i k l os. exfalso. apply: of_sortL_impure...
+  move=>Γ i k l os. exfalso. apply: of_sortL_impure...
+  move=>Γ i k l os. exfalso. apply: of_sortL_impure...
+  move=>Γ A B s i k tyA ihA tyB ihB l os.
+    exfalso. apply: of_sortL_impure...
+  move=>Γ A B s i k tyA ihA tyB ihB l os.
+    exfalso. apply: of_sortL_impure...
 Qed.
     

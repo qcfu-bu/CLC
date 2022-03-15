@@ -7,17 +7,30 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Inductive term : Type :=
+(* core *)
 | Var    (x : var)
 | Sort   (s : sort) (l : nat)
 | Pi     (A : term) (B : {bind term}) (s r t : sort)
 | Lam    (A : term) (m : {bind term}) (s t : sort)
 | App    (m n : term)
+(* data *)
 | Unit
 | It
 | Sigma  (A : term) (B : {bind term}) (s r t : sort)
 | Pair   (m n : term) (t : sort)
 | LetIn1 (m n : term)
-| LetIn2 (m : term) (n : {bind 2 of term}).
+| LetIn2 (m : term) (n : {bind 2 of term})
+(* session *)
+| Proto  (l : nat)
+| InpEnd
+| OutEnd
+| Inp    (A : term) (B : {bind term}) (s : sort)
+| Out    (A : term) (B : {bind term}) (s : sort)
+| Ch     (A : term)
+| Recv   (ch : term)
+| Send   (ch : term)
+| Close  (ch : term)
+| Wait   (ch : term).
 
 Notation "s @ l" := (Sort s l) (at level 30).
 
@@ -76,6 +89,33 @@ Inductive step : term -> term -> Prop :=
   LetIn2 m n ~> LetIn2 m n'
 | step_iota2 m1 m2 n t :
   LetIn2 (Pair m1 m2 t) n ~> n.[m2,m1/]
+| step_inpL A A' B s :
+  A ~> A' ->
+  Inp A B s ~> Inp A' B s
+| step_inpR A B B' s :
+  B ~> B' ->
+  Inp A B s ~> Inp A B' s
+| step_outL A A' B s :
+  A ~> A' ->
+  Out A B s ~> Out A' B s
+| step_outR A B B' s :
+  B ~> B' ->
+  Out A B s ~> Out A B' s
+| step_ch A A' :
+  A ~> A' ->
+  Ch A ~> Ch A'
+| step_recv ch ch' :
+  ch ~> ch' ->
+  Recv ch ~> Recv ch'
+| step_send ch ch' :
+  ch ~> ch' ->
+  Send ch ~> Send ch'
+| step_close ch ch' :
+  ch ~> ch' ->
+  Close ch ~> Close ch'
+| step_wait ch ch' :
+  ch ~> ch' ->
+  Wait ch ~> Wait ch'
 where "m ~> n" := (step m n).
 
 Notation red := (star step).

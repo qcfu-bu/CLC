@@ -192,6 +192,41 @@ Proof with eauto using
         in tyn by autosubst.
     have:=clc_letin2 leq key mrg1 tym tyC tyn.
     by asimpl. }
+  move=>Γ i k Γ' ξ agr.
+  { asimpl... }
+  move=>Γ i k Γ' ξ agr.
+  { asimpl... }
+  move=>Γ i k Γ' ξ agr.
+  { asimpl... }
+  move=>Γ A B s i k tyA ihA tyB ihB Γ' ξ agr.
+  { asimpl.
+    apply: clc_inp... }
+  move=>Γ A B s i k tyA ihA tyB ihB Γ' ξ agr.
+  { asimpl.
+    apply: clc_out... }
+  move=>Γ A i k tyA ihA Γ' ξ agr.
+  { asimpl.
+    apply: clc_ch... }
+  move=>Γ A B m s tym ihm Γ' ξ agr.
+  { asimpl.
+    apply: clc_recv.
+    replace (Ch (Inp A.[ren ξ] B.[ren (upren ξ)] s))
+      with (Ch (Inp A B s)).[ren ξ] 
+        by autosubst.
+    apply: ihm... }
+  move=>Γ A B m s tym ihm Γ' ξ agr.
+  { asimpl.
+    apply: clc_send.
+    replace (Ch (Out A.[ren ξ] B.[ren (upren ξ)] s))
+      with (Ch (Out A B s)).[ren ξ] 
+        by autosubst.
+    apply: ihm... }
+  move=>Γ m tym ihm Γ' ξ agr.
+  { asimpl.
+    apply: clc_close... }
+  move=>Γ m tym ihm Γ' ξ agr.
+  { asimpl.
+    apply: clc_wait... }
   move=>Γ A B m s i sb tym ihm tyB ihB Γ' ξ agr.
   { move:(ihm _ _ agr)=>{ihm}tym.
     move:(ihB _ _ (agree_ren_re_re agr))=>{ihB}tyB.

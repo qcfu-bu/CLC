@@ -55,7 +55,36 @@ Inductive pstep : term -> term -> Prop :=
   pstep m1 m1' ->
   pstep m2 m2' ->
   pstep n n' ->
-  pstep (LetIn2 (Pair m1 m2 t) n) n'.[m2',m1'/].
+  pstep (LetIn2 (Pair m1 m2 t) n) n'.[m2',m1'/]
+| pstep_proto l :
+  pstep (Proto l) (Proto l)
+| pstep_inpend :
+  pstep InpEnd InpEnd
+| pstep_outend :
+  pstep OutEnd OutEnd
+| pstep_inp A A' B B' s :
+  pstep A A' ->
+  pstep B B' ->
+  pstep (Inp A B s) (Inp A' B' s)
+| pstep_out A A' B B' s :
+  pstep A A' ->
+  pstep B B' ->
+  pstep (Out A B s) (Out A' B' s)
+| pstep_ch A A' :
+  pstep A A' ->
+  pstep (Ch A) (Ch A')
+| pstep_recv ch ch' :
+  pstep ch ch' ->
+  pstep (Recv ch) (Recv ch')
+| pstep_send ch ch' :
+  pstep ch ch' ->
+  pstep (Send ch) (Send ch')
+| pstep_close ch ch' :
+  pstep ch ch' ->
+  pstep (Close ch) (Close ch')
+| pstep_wait ch ch' :
+  pstep ch ch' ->
+  pstep (Wait ch) (Wait ch').
 
 Definition sred σ τ :=
   forall x : var, (σ x) ~>* (τ x).
@@ -137,6 +166,54 @@ Proof.
   apply: (star_hom (LetIn2 m')) r2=>x y. exact: step_letin2R.
 Qed.
 
+Lemma red_inp A A' B B' s :
+  A ~>* A' -> B ~>* B' -> Inp A B s ~>* Inp A' B' s.
+Proof.
+  move=>r1 r2.
+  apply: (star_trans (Inp A' B s)).
+  apply: (star_hom ((Inp^~ B)^~ s)) r1=>x y. exact: step_inpL.
+  apply: (star_hom ((Inp A')^~ s)) r2=>x y. exact: step_inpR.
+Qed.
+
+Lemma red_out A A' B B' s :
+  A ~>* A' -> B ~>* B' -> Out A B s ~>* Out A' B' s.
+Proof.
+  move=>r1 r2.
+  apply: (star_trans (Out A' B s)).
+  apply: (star_hom ((Out^~ B)^~ s)) r1=>x y. exact: step_outL.
+  apply: (star_hom ((Out A')^~ s)) r2=>x y. exact: step_outR.
+Qed.
+
+Lemma red_ch A A' :
+  A ~>* A' -> Ch A ~>* Ch A'.
+Proof.
+  move=>c. apply: (star_hom Ch) c=>x y. exact: step_ch.
+Qed.
+
+Lemma red_recv ch ch' :
+  ch ~>* ch' -> Recv ch ~>* Recv ch'.
+Proof.
+  move=>c. apply: (star_hom Recv) c=>x y. exact: step_recv.
+Qed.
+
+Lemma red_send ch ch' :
+  ch ~>* ch' -> Send ch ~>* Send ch'.
+Proof.
+  move=>c. apply: (star_hom Send) c=>x y. exact: step_send.
+Qed.
+
+Lemma red_close ch ch' :
+  ch ~>* ch' -> Close ch ~>* Close ch'.
+Proof.
+  move=>c. apply: (star_hom Close) c=>x y. exact: step_close.
+Qed.
+
+Lemma red_wait ch ch' :
+  ch ~>* ch' -> Wait ch ~>* Wait ch'.
+Proof.
+  move=>c. apply: (star_hom Wait) c=>x y. exact: step_wait.
+Qed.
+
 Lemma red_subst m n σ : m ~>* n -> m.[σ] ~>* n.[σ].
 Proof.
   move=>st.
@@ -162,6 +239,8 @@ Qed.
 Hint Resolve 
   red_app red_lam red_pi 
   red_sigma red_pair red_letin1 red_letin2
+  red_inp red_out red_ch
+  red_recv red_send red_close red_wait
   sred_up sred_upn : red_congr.
 
 Lemma red_compat σ τ s : sred σ τ -> red s.[σ] s.[τ].
@@ -235,6 +314,54 @@ Proof.
   apply: (conv_hom (LetIn2 m')) r2=>x y. exact: step_letin2R.
 Qed.
 
+Lemma conv_inp A A' B B' s :
+  A === A' -> B === B' -> Inp A B s === Inp A' B' s.
+Proof.
+  move=>r1 r2.
+  apply: (conv_trans (Inp A' B s)).
+  apply: (conv_hom ((Inp^~ B)^~ s)) r1=>x y. exact: step_inpL.
+  apply: (conv_hom ((Inp A')^~ s)) r2=>x y. exact: step_inpR.
+Qed.
+
+Lemma conv_out A A' B B' s :
+  A === A' -> B === B' -> Out A B s === Out A' B' s.
+Proof.
+  move=>r1 r2.
+  apply: (conv_trans (Out A' B s)).
+  apply: (conv_hom ((Out^~ B)^~ s)) r1=>x y. exact: step_outL.
+  apply: (conv_hom ((Out A')^~ s)) r2=>x y. exact: step_outR.
+Qed.
+
+Lemma conv_ch A A' :
+  A === A' -> Ch A === Ch A'.
+Proof.
+  move=>c. apply: (conv_hom Ch) c=>x y. exact: step_ch.
+Qed.
+
+Lemma conv_recv ch ch' :
+  ch === ch' -> Recv ch === Recv ch'.
+Proof.
+  move=>c. apply: (conv_hom Recv) c=>x y. exact: step_recv.
+Qed.
+
+Lemma conv_send ch ch' :
+  ch === ch' -> Send ch === Send ch'.
+Proof.
+  move=>c. apply: (conv_hom Send) c=>x y. exact: step_send.
+Qed.
+
+Lemma conv_close ch ch' :
+  ch === ch' -> Close ch === Close ch'.
+Proof.
+  move=>c. apply: (conv_hom Close) c=>x y. exact: step_close.
+Qed.
+
+Lemma conv_wait ch ch' :
+  ch === ch' -> Wait ch === Wait ch'.
+Proof.
+  move=>c. apply: (conv_hom Wait) c=>x y. exact: step_wait.
+Qed.
+
 Lemma conv_subst σ s t : 
   s === t -> s.[σ] === t.[σ].
 Proof. 
@@ -256,6 +383,8 @@ Qed.
 Hint Resolve
   conv_app conv_lam conv_pi 
   conv_sigma conv_pair conv_letin1 conv_letin2
+  conv_inp conv_out conv_ch
+  conv_recv conv_send conv_close conv_wait
   sconv_up sconv_upn : conv_congr.
 
 Lemma conv_compat σ τ s :
@@ -448,6 +577,39 @@ Proof with eauto 6 using
     have[mx2 p21 p22]:=ih2 _ H5.
     have[nx pn1 pn2]:=ihn _ H6.
     exists (nx.[mx2,mx1/])...
+  move=>l m2 p. inv p. exists (Proto l)...
+  move=>m2 p. inv p. exists InpEnd...
+  move=>m2 p. inv p. exists OutEnd...
+  move=>A A' B B' s pA ihA pB ihB m2 p.
+    inv p.
+    have[Ax pA1 pA2]:=ihA _ H3.
+    have[Bx pB1 pB2]:=ihB _ H4.
+    exists (Inp Ax Bx s)...
+  move=>A A' B B' s pA ihA pB ihB m2 p.
+    inv p.
+    have[Ax pA1 pA2]:=ihA _ H3.
+    have[Bx pB1 pB2]:=ihB _ H4.
+    exists (Out Ax Bx s)...
+  move=>A A' pA ihA m2 p.
+    inv p.
+    have[Ax pA1 pA2]:=ihA _ H0.
+    exists (Ch Ax)...
+  move=>ch ch' pC ihC m2 p.
+    inv p.
+    have[chx pC1 pC2]:=ihC _ H0.
+    exists (Recv chx)...
+  move=>ch ch' pC ihC m2 p.
+    inv p.
+    have[chx pC1 pC2]:=ihC _ H0.
+    exists (Send chx)...
+  move=>ch ch' pC ihC m2 p.
+    inv p.
+    have[chx pC1 pC2]:=ihC _ H0.
+    exists (Close chx)...
+  move=>ch ch' pC ihC m2 p.
+    inv p.
+    have[chx pC1 pC2]:=ihC _ H0.
+    exists (Wait chx)...
 Qed.
 
 Lemma strip m m1 m2 :
@@ -563,6 +725,160 @@ Proof.
   apply: star_trans. exact: rn. by apply: star1.
 Qed.
 
+Lemma red_proto_inv l n :
+  Proto l ~>* n -> n = Proto l.
+Proof.
+  elim; eauto.
+  move=>y z r1 e r2; subst.
+  inv r2.
+Qed.
+
+Lemma red_inpend_inv n :
+  InpEnd ~>* n -> n = InpEnd.
+Proof.
+  elim; eauto.
+  move=>y z r1 e r2; subst.
+  inv r2.
+Qed.
+
+Lemma red_outend_inv n :
+  OutEnd ~>* n -> n = OutEnd.
+Proof.
+  elim; eauto.
+  move=>y z r1 e r2; subst.
+  inv r2.
+Qed.
+
+Lemma red_inp_inv A B p x :
+  Inp A B p ~>* x -> 
+  exists A' B',
+    A ~>* A' /\
+    B ~>* B' /\
+    x = Inp A' B' p.
+Proof.
+  elim=>{x}.
+  exists A. exists B; eauto.
+  move=>y z rd [A'[B'[rdA[rdB e]]]] st; subst.
+  inv st.
+  exists A'0.
+  exists B'.
+  repeat split; eauto.
+  apply: star_trans.
+  exact: rdA.
+  apply: star1; eauto.
+  exists A'.
+  exists B'0.
+  repeat split; eauto.
+  apply: star_trans.
+  exact: rdB.
+  apply: star1; eauto.
+Qed.
+
+Lemma red_out_inv A B p x :
+  Out A B p ~>* x -> 
+  exists A' B',
+    A ~>* A' /\
+    B ~>* B' /\
+    x = Out A' B' p.
+Proof.
+  elim=>{x}.
+  exists A. exists B; eauto.
+  move=>y z rd [A'[B'[rdA[rdB e]]]] st; subst.
+  inv st.
+  exists A'0.
+  exists B'.
+  repeat split; eauto.
+  apply: star_trans.
+  exact: rdA.
+  apply: star1; eauto.
+  exists A'.
+  exists B'0.
+  repeat split; eauto.
+  apply: star_trans.
+  exact: rdB.
+  apply: star1; eauto.
+Qed.
+
+Lemma red_ch_inv A x :
+  Ch A ~>* x ->
+  exists A',
+    A ~>* A' /\ x = Ch A'.
+Proof.
+  elim=>{x}.
+  exists A; eauto.
+  move=>y z rd [A'[rdA e]] st; subst.
+  inv st.
+  exists A'0.
+  repeat split; eauto.
+  apply: star_trans.
+  exact: rdA.
+  apply: star1; eauto.
+Qed.
+
+Lemma red_recv_inv ch x :
+  Recv ch ~>* x ->
+  exists ch',
+    ch ~>* ch' /\ x = Recv ch'.
+Proof.
+  elim=>{x}.
+  exists ch; eauto.
+  move=>y z rd [ch'[rdc e]] st; subst.
+  inv st.
+  exists ch'0.
+  repeat split; eauto.
+  apply: star_trans.
+  exact: rdc.
+  apply: star1; eauto.
+Qed.
+
+Lemma red_send_inv ch x :
+  Send ch ~>* x ->
+  exists ch',
+    ch ~>* ch' /\ x = Send ch'.
+Proof.
+  elim=>{x}.
+  exists ch; eauto.
+  move=>y z rd [ch'[rdc e]] st; subst.
+  inv st.
+  exists ch'0.
+  repeat split; eauto.
+  apply: star_trans.
+  exact: rdc.
+  apply: star1; eauto.
+Qed.
+
+Lemma red_close_inv ch x :
+  Close ch ~>* x ->
+  exists ch',
+    ch ~>* ch' /\ x = Close ch'.
+Proof.
+  elim=>{x}.
+  exists ch; eauto.
+  move=>y z rd [ch'[rdc e]] st; subst.
+  inv st.
+  exists ch'0.
+  repeat split; eauto.
+  apply: star_trans.
+  exact: rdc.
+  apply: star1; eauto.
+Qed.
+
+Lemma red_wait_inv ch x :
+  Wait ch ~>* x ->
+  exists ch',
+    ch ~>* ch' /\ x = Wait ch'.
+Proof.
+  elim=>{x}.
+  exists ch; eauto.
+  move=>y z rd [ch'[rdc e]] st; subst.
+  inv st.
+  exists ch'0.
+  repeat split; eauto.
+  apply: star_trans.
+  exact: rdc.
+  apply: star1; eauto.
+Qed.
+
 Lemma sort_inj s1 s2 l1 l2 :
   s1 @ l1 === s2 @ l2 -> s1 = s2 /\ l1 = l2.
 Proof.
@@ -601,16 +917,111 @@ Proof.
     apply: conv_sym. by apply: star_conv.
 Qed.
 
+Lemma proto_inj l l' :
+  Proto l === Proto l' -> l =l'.
+Proof.
+  move/church_rosser=>[x /red_proto_inv->/red_proto_inv[]]//.
+Qed.
+
+Lemma inp_inj A A' B B' p p' :
+  Inp A B p === Inp A' B' p' ->
+  A === A' /\ B === B' /\ p = p'.
+Proof.
+  move/church_rosser=>[x/red_inp_inv r1/red_inp_inv r2].
+  move:r1=>[A1[B1[rA1[rB1 e1]]]].
+  move:r2=>[A2[B2[rA2[rB2 e2]]]].
+  subst.
+  inv e2.
+  repeat split; eauto using join_conv.
+Qed.
+
+Lemma out_inj A A' B B' p p' :
+  Out A B p === Out A' B' p' ->
+  A === A' /\ B === B' /\ p = p'.
+Proof.
+  move/church_rosser=>[x/red_out_inv r1/red_out_inv r2].
+  move:r1=>[A1[B1[rA1[rB1 e1]]]].
+  move:r2=>[A2[B2[rA2[rB2 e2]]]].
+  subst.
+  inv e2.
+  repeat split; eauto using join_conv.
+Qed.
+
+Lemma ch_inj A A' :
+  Ch A === Ch A' -> A === A'.
+Proof.
+  move/church_rosser=>[x/red_ch_inv r1/red_ch_inv r2].
+  move:r1=>[A1[rA1 e1]].
+  move:r2=>[A2[rA2 e2]].
+  subst.
+  inv e2.
+  eauto using join_conv.
+Qed.
+
+Lemma recv_inj ch ch' :
+  Recv ch === Recv ch' -> ch === ch'.
+Proof.
+  move/church_rosser=>[x/red_recv_inv r1/red_recv_inv r2].
+  move:r1=>[c1[rc1 e1]].
+  move:r2=>[c2[rc2 e2]].
+  subst.
+  inv e2.
+  eauto using join_conv.
+Qed.
+
+Lemma send_inj ch ch' :
+  Send ch === Send ch' -> ch === ch'.
+Proof.
+  move/church_rosser=>[x/red_send_inv r1/red_send_inv r2].
+  move:r1=>[c1[rc1 e1]].
+  move:r2=>[c2[rc2 e2]].
+  subst.
+  inv e2.
+  eauto using join_conv.
+Qed.
+
+Lemma close_inj ch ch' :
+  Close ch === Close ch' -> ch === ch'.
+Proof.
+  move/church_rosser=>[x/red_close_inv r1/red_close_inv r2].
+  move:r1=>[c1[rc1 e1]].
+  move:r2=>[c2[rc2 e2]].
+  subst.
+  inv e2.
+  eauto using join_conv.
+Qed.
+
+Lemma wait_inj ch ch' :
+  Wait ch === Wait ch' -> ch === ch'.
+Proof.
+  move/church_rosser=>[x/red_wait_inv r1/red_wait_inv r2].
+  move:r1=>[c1[rc1 e1]].
+  move:r2=>[c2[rc2 e2]].
+  subst.
+  inv e2.
+  eauto using join_conv.
+Qed.
+
 Ltac red_inv m H :=
   match m with
-  | Var   => apply red_var_inv in H
-  | Sort  => apply red_sort_inv in H
-  | Pi    => apply red_pi_inv in H
-  | Lam   => apply red_lam_inv in H
-  | Unit  => apply red_unit_inv in H
-  | It    => apply red_it_inv in H
-  | Sigma => apply red_sigma_inv in H
-  | Pair  => apply red_pair_inv in H
+  | Var    => apply red_var_inv in H
+  | Sort   => apply red_sort_inv in H
+  | Pi     => apply red_pi_inv in H
+  | Lam    => apply red_lam_inv in H
+  | Unit   => apply red_unit_inv in H
+  | It     => apply red_it_inv in H
+  | Sigma  => apply red_sigma_inv in H
+  | Pair   => apply red_pair_inv in H
+  | Proto  => apply red_proto_inv in H
+  | InpEnd => apply red_inpend_inv in H
+  | OutEnd => apply red_outend_inv in H
+  | Inp    => apply red_inp_inv in H
+  | Out    => apply red_out_inv in H
+  | Ch     => apply red_ch_inv in H
+  | Recv   => apply red_recv_inv in H
+  | Send   => apply red_send_inv in H
+  | Close  => apply red_close_inv in H
+  | Wait   => apply red_wait_inv in H
   end.
 
 Ltac solve_conv' :=
@@ -625,6 +1036,7 @@ Ltac solve_conv' :=
   | [ H : red (?m _ _ _) _ |- _ ] => red_inv m H
   | [ H : red (?m _ _ _ _) _ |- _ ] => red_inv m H
   | [ H : red (?m _ _ _ _ _) _ |- _ ] => red_inv m H
+  | [ H : red (?m _ _ _ _ _ _) _ |- _ ] => red_inv m H
   | [ H : red ?m _ |- _ ] => red_inv m H
   end;
   firstorder; subst;

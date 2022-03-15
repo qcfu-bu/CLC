@@ -193,3 +193,74 @@ Lemma pair_inv Γ m n A B s r t1 t2 t3 x i :
     Γ1 ⊢ m : A : s /\ 
     Γ2 ⊢ n : B.[m/] : r.
 Proof. move=>tyP tyS. apply: pair_invX; eauto. Qed.
+
+Lemma inp_inv Γ A B C s t :
+  Γ ⊢ Inp A B s : C : t ->
+  exists l,
+    Γ ⊢ A : s @ l : U /\ t = U /\
+    match s with U => A :U Γ | L => _: Γ end ⊢ B : Proto l : U.
+Proof.
+  move e:(Inp A B s)=>n tp. elim:tp A B s e=>//{Γ C t n}.
+  move=>Γ A B s i k tyA ihA tyB ihB A0 B0 s0 [e1 e2 e3]; subst.
+  exists i.
+  repeat split; eauto.
+  destruct s; simpl in tyB.
+  rewrite<-pure_re in tyB; eauto.
+  rewrite<-pure_re in tyB; eauto.
+Qed.
+
+Lemma out_inv Γ A B C s t :
+  Γ ⊢ Out A B s : C : t ->
+  exists l,
+    Γ ⊢ A : s @ l : U /\ t = U /\
+    match s with U => A :U Γ | L => _: Γ end ⊢ B : Proto l : U.
+Proof.
+  move e:(Out A B s)=>n tp. elim:tp A B s e=>//{Γ C t n}.
+  move=>Γ A B s i k tyA ihA tyB ihB A0 B0 s0 [e1 e2 e3]; subst.
+  exists i.
+  repeat split; eauto.
+  destruct s; simpl in tyB.
+  rewrite<-pure_re in tyB; eauto.
+  rewrite<-pure_re in tyB; eauto.
+Qed.
+
+Lemma ch_inv Γ A B s :
+  Γ ⊢ Ch A : B : s ->
+  exists i, Γ ⊢ A : Proto i : U.
+Proof.
+  move e:(Ch A)=>n tp. elim: tp A e=>//{Γ B s n}.
+  move=>Γ A i k tyA ihA A0 [e]; subst.
+  by exists i.
+Qed.
+
+Lemma recv_inv Γ m A s :
+  Γ ⊢ Recv m : A : s ->
+  exists A B t, Γ ⊢ m : Ch (Inp A B t) : L.
+Proof.
+  move e:(Recv m)=>n tp. elim: tp m e=>//{Γ A s n}.
+  move=>Γ A B m s tym ihm m0 [e]; subst.
+  exists A. exists B. by exists s.
+Qed.
+
+Lemma send_inv Γ m A s :
+  Γ ⊢ Send m : A : s ->
+  exists A B t, Γ ⊢ m : Ch (Out A B t) : L.
+Proof.
+  move e:(Send m)=>n tp. elim: tp m e=>//{Γ A s n}.
+  move=>Γ A B m s tym ihm m0 [e]; subst.
+  exists A. exists B. by exists s.
+Qed.
+
+Lemma close_inv Γ m A s :
+  Γ ⊢ Close m : A : s -> Γ ⊢ m : Ch OutEnd : L.
+Proof.
+  move e:(Close m)=>n tp. elim: tp m e=>//{Γ A s n}.
+  move=>Γ m tym ihm m0 [e]; subst=>//.
+Qed.
+
+Lemma wait_inv Γ m A s :
+  Γ ⊢ Wait m : A : s -> Γ ⊢ m : Ch InpEnd : L.
+Proof.
+  move e:(Wait m)=>n tp. elim: tp m e=>//{Γ A s n}.
+  move=>Γ m tym ihm m0 [e]; subst=>//.
+Qed.

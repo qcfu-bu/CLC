@@ -178,6 +178,53 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     have[G[/merge_sym mrg2 /merge_sym mrg3]]:=merge_splitL mrg mrg1.
     have:=substitution2 tyn k1 k2 mrg2 mrg3 tym1 tym2.
     by asimpl. }
+  move=>Γ i k n o st. inv st.
+  move=>Γ i k n o st. inv st.
+  move=>Γ i k n o st. inv st.
+  move=>Γ A B s i k tyA ihA tyB ihB n o st. inv st.
+  { constructor...
+    destruct s; simpl...
+    apply: context_conv.
+    apply: conv1i...
+    rewrite<-re_invo.
+    rewrite<-pure_re...
+    exact: tyB. }
+  { constructor...
+    apply: ihB...
+    destruct s; simpl.
+    econstructor.
+    apply: re_ok...
+    rewrite<-re_invo.
+    rewrite<-pure_re...
+    econstructor.
+    apply: re_ok... }
+  move=>Γ A B s i k tyA ihA tyB ihB n o st. inv st.
+  { constructor...
+    destruct s; simpl...
+    apply: context_conv.
+    apply: conv1i...
+    rewrite<-re_invo.
+    rewrite<-pure_re...
+    exact: tyB. }
+  { constructor...
+    apply: ihB...
+    destruct s; simpl.
+    econstructor.
+    apply: re_ok...
+    rewrite<-re_invo.
+    rewrite<-pure_re...
+    econstructor.
+    apply: re_ok... }
+  move=>Γ A i k tyA ihA n o st. inv st.
+  { constructor... }
+  move=>Γ A B m s tym ihm n o st. inv st.
+  { constructor... }
+  move=>Γ A B m s tym ihm n o st. inv st.
+  { constructor... }
+  move=>Γ m tym ihm n o st. inv st.
+  { constructor... }
+  move=>Γ m tym ihm n o st. inv st.
+  { constructor... }
   move=>Γ A B m s i sb tym ihm tyB ihB n o st.
   { apply: clc_conv... }
 Qed.
