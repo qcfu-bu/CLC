@@ -22,7 +22,7 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   match m with
   | Var x => if x == i then 1 else 0
   | Sort _ _ => 0
-  | Pi A B _ _ => occurs i A + occurs i.+1 B
+  | Pi A B _ _ _ => occurs i A + occurs i.+1 B
   | Lam A m _ _ => occurs i A + occurs i.+1 m
   | App m n => occurs i m + occurs i n
   | Unit => 0
@@ -31,6 +31,7 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | Pair m n _ => occurs i m + occurs i n
   | LetIn1 m n => occurs i m + occurs i n
   | LetIn2 m n => occurs i m + occurs i.+2 n
+  | Ptr _ => 0
   end.
 
 Lemma of_sortL_impure Γ i : of_sort Γ i (Some L) -> ~Γ |> U.
@@ -132,22 +133,22 @@ Proof with eauto using of_sort.
     move:(ih _ H3)=>{ih H3}[os1 os2]...
 Qed.
 
-Lemma narity Γ m A i : 
-  Γ ⊢ m : A -> of_sort Γ i None -> occurs i m = 0.
+Lemma narity Γ m A s i : 
+  Γ ⊢ m : A : s -> of_sort Γ i None -> occurs i m = 0.
 Proof with eauto using of_sort, of_sortN_re.
-  move=>ty. elim: ty i=>//{Γ m A}.
+  move=>ty. elim: ty i=>//{Γ m A s}.
   move=>Γ A B s r t l k tyA ihA tyB ihB i os//=.
     rewrite ihA...
   move=>Γ x A s hs i os//=.
     erewrite of_sortN_has...
-  move=>Γ A B m s t l k tyP ihP tym ihm i os//=.
+  move=>Γ A B m s r t l k tyP ihP tym ihm i os//=.
     move:(ihP _ (of_sortN_re os))=>//=e1.
     move:(ihm _ (of_sortS (Some (A, s)) os))=>e2.
     destruct (occurs i.+1 B).
     rewrite addn0 in e1.
     rewrite e1 e2...
     destruct (occurs i A); discriminate.
-  move=>Γ1 Γ2 Γ A B m n s t k mrg tym ihm tyn ihn i os//=.
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn i os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
   move=>Γ A B s r t i leq k tyA ihA tyB ihB x os//=.
@@ -156,7 +157,7 @@ Proof with eauto using of_sort, of_sortN_re.
     tyS ihS tym ihm tyn ihn x os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
-  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn x os//=.
+  move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn x os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
   move=>Γ1 Γ2 Γ A B C m n s r t k x l leq key mrg
@@ -165,10 +166,10 @@ Proof with eauto using of_sort, of_sortN_re.
     rewrite ihm...
 Qed.
 
-Theorem linearity Γ m A i :
-  Γ ⊢ m : A -> of_sort Γ i (Some L) -> occurs i m = 1.
+Theorem linearity Γ m A s i :
+  Γ ⊢ m : A : s -> of_sort Γ i (Some L) -> occurs i m = 1.
 Proof with eauto using of_sort.
-  move=>ty. elim: ty i=>//{Γ m A}.
+  move=>ty. elim: ty i=>//{Γ m A s}.
   move=>Γ s l k i os.
     exfalso. apply: of_sortL_impure; eauto.
   move=>Γ A B s r t l k tyA ihA tyB ihB i os//=.
@@ -177,7 +178,7 @@ Proof with eauto using of_sort.
     exfalso. apply: of_sortL_hasU; eauto.
     have->:=of_sortL_hasL os hs.
     by rewrite eq_refl.
-  move=>Γ A B m s [|] l k tyP ihP tym ihm i os//=.
+  move=>Γ A B m s r [|] l k tyP ihP tym ihm i os//=.
     exfalso. apply: of_sortL_impure; eauto.
     have osN:=of_sortL_reN os.
     have//=e:=narity tyP osN.
@@ -186,7 +187,7 @@ Proof with eauto using of_sort.
     rewrite e.
     erewrite ihm...
     destruct (occurs i A); discriminate.
-  move=>Γ1 Γ2 Γ A B m n s t k mrg tym ihm tyn ihn i os//=.
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn i os//=.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     have->:=narity tyn os2.
     by rewrite ihm.
@@ -201,7 +202,7 @@ Proof with eauto using of_sort.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     rewrite ihm... erewrite narity...
     rewrite ihn... erewrite narity...
-  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn i os//=.
+  move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn i os//=.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     rewrite ihm... erewrite narity...
     rewrite ihn... erewrite narity...

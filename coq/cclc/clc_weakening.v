@@ -114,11 +114,11 @@ Proof with eauto 6 using merge, agree_ren.
     exists (_: G2)...
 Qed.
 
-Lemma rename_ok Γ Γ' m A ξ :
-  Γ ⊢ m : A -> agree_ren ξ Γ Γ' -> Γ' ⊢ m.[ren ξ] : A.[ren ξ].
+Lemma rename_ok Γ Γ' m A s ξ :
+  Γ ⊢ m : A : s -> agree_ren ξ Γ Γ' -> Γ' ⊢ m.[ren ξ] : A.[ren ξ] : s.
 Proof with eauto using 
   clc_type, agree_ren, agree_ren_key, agree_ren_re_re.
-  move=>ty. elim: ty Γ' ξ=>{Γ m A}.
+  move=>ty. elim: ty Γ' ξ=>{Γ m A s}.
   move=>Γ s l k Γ' ξ agr. asimpl...
   move=>Γ A B [] r t i k tyA ihA tyB ihB Γ' ξ agr.
   { asimpl.
@@ -129,12 +129,12 @@ Proof with eauto using
   { asimpl. 
     apply: clc_var.
     apply: agree_ren_has... }
-  move=>Γ A B m s t i k tyP ihP tym ihm Γ' ξ agr.
+  move=>Γ A B m s r t i k tyP ihP tym ihm Γ' ξ agr.
   { asimpl.
     apply: clc_lam...
     move:(ihP _ _ (agree_ren_re_re agr)). 
     asimpl... }
-  move=>Γ1 Γ2 Γ A B m n s t k mrg tym ihm tyn ihn Γ' ξ agr.
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn Γ' ξ agr.
   { asimpl.
     move:(merge_agree_ren_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
     move:(ihm _ _ agr1)=>{ihm}tym.
@@ -160,7 +160,7 @@ Proof with eauto using
     apply: clc_pair...
     move:(ihS _ _ (agree_ren_re_re agr)). asimpl...
     move:(ihn _ _ agr2). asimpl... }
-  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn Γ' ξ agr.
+  move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn Γ' ξ agr.
   { asimpl.
     move:(merge_agree_ren_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
     move:(ihm _ _ agr1)=>{}ihm.
@@ -202,7 +202,7 @@ Proof with eauto using
 Qed.
 
 Lemma has_ok Γ x A s :
-  ok Γ -> has Γ x s A -> exists l, [Γ] ⊢ A : s @ l.
+  ok Γ -> has Γ x s A -> exists l, [Γ] ⊢ A : s @ l : U.
 Proof with eauto using agree_ren, agree_ren_refl.
   move=> wf. elim: wf s x A=>{Γ}.
   move=>s x A hs. inv hs.
@@ -222,30 +222,30 @@ Proof with eauto using agree_ren, agree_ren_refl.
     apply: rename_ok; eauto... }
 Qed.
 
-Lemma weakeningU Γ m A B :
-  Γ ⊢ m : A -> B :U Γ ⊢ m.[ren (+1)] : A.[ren (+1)].
+Lemma weakeningU Γ m A B s :
+  Γ ⊢ m : A : s -> B :U Γ ⊢ m.[ren (+1)] : A.[ren (+1)] : s.
 Proof with eauto using agree_ren, agree_ren_refl.
   move=>ty. apply: rename_ok...
 Qed.
 
-Lemma weakeningN Γ m A :
-  Γ ⊢ m : A -> _: Γ ⊢ m.[ren (+1)] : A.[ren (+1)].
+Lemma weakeningN Γ m A s :
+  Γ ⊢ m : A : s -> _: Γ ⊢ m.[ren (+1)] : A.[ren (+1)] : s.
 Proof with eauto using agree_ren, agree_ren_refl.
   move=>ty. apply: rename_ok...
 Qed.
 
-Lemma eweakeningU Γ m m' A A' B :
+Lemma eweakeningU Γ m m' A A' B s :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  Γ ⊢ m : A -> B :U Γ ⊢ m' : A'.
+  Γ ⊢ m : A : s -> B :U Γ ⊢ m' : A' : s.
 Proof.  
   move=>*; subst. by apply: weakeningU.
 Qed.
 
-Lemma eweakeningN Γ m m' A A' :
+Lemma eweakeningN Γ m m' A A' s :
   m' = m.[ren (+1)] -> 
   A' = A.[ren (+1)] ->
-  Γ ⊢ m : A -> _: Γ ⊢ m' : A'.
+  Γ ⊢ m : A : s -> _: Γ ⊢ m' : A' : s.
 Proof.  
   move=>*; subst. by apply weakeningN.
 Qed.

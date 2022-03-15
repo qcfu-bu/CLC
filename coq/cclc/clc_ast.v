@@ -9,7 +9,7 @@ Unset Printing Implicit Defensive.
 Inductive term : Type :=
 | Var    (x : var)
 | Sort   (s : sort) (l : nat)
-| Pi     (A : term) (B : {bind term}) (s t : sort)
+| Pi     (A : term) (B : {bind term}) (s r t : sort)
 | Lam    (A : term) (m : {bind term}) (s t : sort)
 | App    (m n : term)
 | Unit
@@ -17,7 +17,8 @@ Inductive term : Type :=
 | Sigma  (A : term) (B : {bind term}) (s r t : sort)
 | Pair   (m n : term) (t : sort)
 | LetIn1 (m n : term)
-| LetIn2 (m : term) (n : {bind 2 of term}).
+| LetIn2 (m : term) (n : {bind 2 of term})
+| Ptr    (l : nat).
 
 Notation "s @ l" := (Sort s l) (at level 30).
 
@@ -36,12 +37,12 @@ Inductive step : term -> term -> Prop :=
 | step_lamR A m m' s t :
   m ~> m' ->
   Lam A m s t ~> Lam A m' s t
-| step_piL A A' B s t :
+| step_piL A A' B s r t :
   A ~> A' ->
-  Pi A B s t ~> Pi A' B s t
-| step_piR A B B' s t :
+  Pi A B s r t ~> Pi A' B s r t
+| step_piR A B B' s r t :
   B ~> B' ->
-  Pi A B s t ~> Pi A B' s t
+  Pi A B s r t ~> Pi A B' s r t
 | step_appL m m' n :
   m ~> m' ->
   App m n ~> App m' n
