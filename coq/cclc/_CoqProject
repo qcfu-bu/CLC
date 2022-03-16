@@ -13,3 +13,7 @@ clc_inversion.v
 clc_validity.v
 clc_soundness.v
 clc_linearity.v
+cclc_eval.v
+cclc_ast.v
+cclc_dual.v
+cclc_typing.v

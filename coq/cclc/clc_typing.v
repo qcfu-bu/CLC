@@ -66,7 +66,6 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   [Sigma A B s r t :{k} Γ2] ⊢ C : x @ i : U ->
   B :{r} A :{s} Γ2 ⊢ n : C.[Pair (Var 1) (Var 0) t .: ren (+2)] : x ->
   Γ ⊢ LetIn2 m n : C.[m/] : x
-
 | clc_proto Γ i :
   Γ |> U ->
   Γ ⊢ Proto i : U @ i : U
