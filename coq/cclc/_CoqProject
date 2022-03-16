@@ -17,3 +17,4 @@ cclc_eval.v
 cclc_ast.v
 cclc_dual.v
 cclc_typing.v
+cclc_weakening.v
