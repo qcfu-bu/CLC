@@ -47,10 +47,14 @@ Proof.
     exact: agr1.
     apply: ihq.
     exact: agr2.
-  move=>Γ p A B d typ ihp Γ' ξ agr; asimpl.
+  move=>Γ p A B i d tyA tyB typ ihp Γ' ξ agr; asimpl.
     have d':=rename_dual ξ d.
     econstructor.
     apply: d'.
+    have tyA':=rename_ok tyA (agree_ren_re_re agr).
+    asimpl in tyA'; eauto.
+    have tyB':=rename_ok tyB (agree_ren_re_re agr).
+    asimpl in tyB'; eauto.
     asimpl.
     apply: ihp.
     have: 

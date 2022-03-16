@@ -18,3 +18,5 @@ cclc_ast.v
 cclc_dual.v
 cclc_typing.v
 cclc_weakening.v
+cclc_substitution.v
+cclc_linearity.v

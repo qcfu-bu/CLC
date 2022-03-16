@@ -19,8 +19,10 @@ Inductive cclc_type : context term -> proc -> Prop :=
   Γ1 ⊢ p ->
   Γ2 ⊢ q ->
   Γ ⊢ p ∣ q
-| cclc_scope Γ p A B :
+| cclc_scope Γ p A B i :
   A ~ B ->
+  [Γ] ⊢ Ch A : L @ i : U ->
+  [Γ] ⊢ Ch B : L @ i : U ->
   Ch A.[ren (+1)] :L Ch B :L Γ ⊢ p ->
   Γ ⊢ ν.p
 where "Γ ⊢ p" := (cclc_type Γ p).

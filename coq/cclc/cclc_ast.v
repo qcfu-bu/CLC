@@ -98,3 +98,22 @@ Inductive proc_step : proc -> proc -> Prop :=
   q' ≡ q ->
   p --> q
 where "p --> q" := (proc_step p q)%C.
+
+Lemma proc_subst_comp p σ1 σ2 : p.[σ1].[σ2] = p.[σ1 >> σ2].
+Proof.
+  elim: p σ1 σ2.
+  move=>m σ1 σ2; asimpl; eauto.
+  move=>p ihp q ihq σ1 σ2; asimpl.
+    rewrite ihp.
+    by rewrite ihq.
+  move=>p ih σ1 σ2; asimpl.
+    rewrite ih.
+    by asimpl.
+Qed.
+
+Lemma proc_ids p : p.[ids] = p.
+Proof.
+  elim: p; asimpl=>//.
+  move=>p->q->//.
+  move=>p->//.
+Qed.

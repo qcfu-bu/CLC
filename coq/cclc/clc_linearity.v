@@ -233,3 +233,49 @@ Proof with eauto using of_sort.
     exfalso. apply: of_sortL_impure...
 Qed.
     
+Definition iren i (ξ : var -> var) := forall x, ~ξ x == i.
+
+Lemma iren0 : iren 0 (+2).
+Proof. elim; simpl; eauto. Qed.
+
+Lemma iren1 : iren 1 (+2).
+Proof. elim; simpl; eauto. Qed.
+
+Lemma iren_upren i ξ : iren i ξ -> iren i.+1 (upren ξ).
+Proof.
+  move=> ir x.
+  elim: x.
+  asimpl; eauto.
+  asimpl=>n e; eauto.
+Qed.
+
+Lemma iren_occurs i m ξ :
+  iren i ξ -> occurs i m.[ren ξ] = 0.
+Proof with eauto using iren_upren.
+  elim: m i ξ...
+  move=>x i ξ ir.
+    unfold occurs; simpl.
+    have{}ir:=ir x.
+    move e:(ξ x == i)=>[|]//.
+  move=>A ihA B ihB s r t i ξ ir; asimpl.
+    rewrite ihA...
+  move=>A ihA m ihm s t i ξ ir; asimpl.
+    rewrite ihA...
+  move=>m ihm n ihn i ξ ir; asimpl.
+    rewrite ihm...
+  move=>A ihA B ihB s r t i ξ ir; asimpl.
+    rewrite ihA...
+  move=>m ihm n ihn t i ξ ir; asimpl.
+    rewrite ihm...
+  move=>m ihm n ihn i ξ ir; asimpl.
+    rewrite ihm...
+  move=>m ihm n ihn i ξ ir; asimpl.
+    rewrite ihm...
+    rewrite ihn...
+    have->:(0 .: 1 .: ξ >>> (+2)) = (upren (upren ξ)) 
+      by autosubst...
+  move=>A ihA B ihB s i ξ ir; asimpl.
+    rewrite ihA...
+  move=>A ihA B ihB s i ξ ir; asimpl.
+    rewrite ihA...
+Qed.
