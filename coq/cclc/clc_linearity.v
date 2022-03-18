@@ -279,3 +279,113 @@ Proof with eauto using iren_upren.
   move=>A ihA B ihB s i ξ ir; asimpl.
     rewrite ihA...
 Qed.
+
+Inductive nsubst : nat -> (var -> term) -> Prop :=
+| Nsubst i σ :
+  (forall x, x < i -> σ x = Var x) ->
+  (forall x, i < x -> (σ x).[ren (+1)] = Var x) ->
+  nsubst i σ.
+
+Lemma nsubst0 m : nsubst 0 (m .: ids).
+Proof.
+  constructor.
+  elim=>//.
+  elim=>//.
+Qed.
+
+Lemma nsubst_up i σ : nsubst i σ -> nsubst i.+1 (up σ).
+Proof.
+  constructor.
+  move=>x. elim: x i σ H=>//.
+  move=>n _ i σ ns lt; asimpl. inv ns.
+  rewrite H; eauto.
+  move=>x. elim: x i σ H=>//.
+  move=>n _ i σ ns lt; asimpl. inv ns.
+  replace (σ n).[ren (+2)] 
+    with (σ n).[ren (+1)].[ren (+1)] by autosubst.
+  rewrite H0; eauto.
+Qed.
+
+Lemma nsubst_occurs m i σ1 σ2 :
+  occurs i m = 0 -> nsubst i σ1 -> nsubst i σ2 -> m.[σ1] = m.[σ2].
+Proof with eauto using nsubst_up.
+  elim: m i σ1 σ2=>//=.
+  move=>x i σ1 σ2 e ns1 ns2. 
+  inv ns1. inv ns2.
+  { move: e.
+    move e1:(x == i)=>[|]_//.
+    have {}e1:x != i by rewrite e1.
+    rewrite neq_ltn in e1.
+    have{e1}[lt|lt]:=orP e1.
+    have->:=H _ lt.
+    by have->:=H1 _ lt.
+    have e1:=H0 _ lt.
+    have e2:=H2 _ lt.
+    have: 
+      (σ1 x).[ren (+1)].[ren (subn^~ 1)] = (Var x).[ren (subn^~ 1)].
+      by rewrite e1.
+    asimpl.
+    have->:((+1) >>> subn_rec^~ 1) = id.
+      f_ext. elim; asimpl=>//.
+    asimpl=>->.
+    have: 
+      (σ2 x).[ren (+1)].[ren (subn^~ 1)] = (Var x).[ren (subn^~ 1)].
+      by rewrite e2.
+    asimpl.
+    have->:((+1) >>> subn_rec^~ 1) = id.
+      f_ext. elim; asimpl=>//.
+    asimpl=>->//. }
+  move=>A ihA B ihB s r t i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i A); remember (occurs i.+1 B).
+    destruct n; destruct n0; try discriminate.
+    f_equal... }
+  move=>A ihA m ihm s t i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i A); remember (occurs i.+1 m).
+    destruct n; destruct n0; try discriminate.
+    f_equal... }
+  move=>m ihm n ihn i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i m); remember (occurs i n).
+    destruct n0; destruct n1; try discriminate.
+    f_equal... }
+  move=>A ihA B ihB s r t i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i A); remember (occurs i.+1 B).
+    destruct n; destruct n0; try discriminate.
+    f_equal... }
+  move=>m ihm n ihn t i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i m); remember (occurs i n).
+    destruct n0; destruct n1; try discriminate.
+    f_equal... }
+  move=>m ihm n ihn i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i m); remember (occurs i n).
+    destruct n0; destruct n1; try discriminate.
+    f_equal... }
+  move=>m ihm n ihn i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i m); remember (occurs i.+2 n).
+    destruct n0; destruct n1; try discriminate.
+    f_equal... 
+    replace (upn 2 σ1) with (up (up σ1)) by autosubst.
+    replace (upn 2 σ2) with (up (up σ2)) by autosubst.
+    apply: ihn... }
+  move=>A ihA B ihB s i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i A); remember (occurs i.+1 B).
+    destruct n; destruct n0; try discriminate.
+    f_equal... }
+  move=>A ihA B ihB s i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i A); remember (occurs i.+1 B).
+    destruct n; destruct n0; try discriminate.
+    f_equal... }
+  move=>A ihA i σ1 σ2 oc ns1 ns2. f_equal...
+  move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
+  move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
+  move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
+  move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
+Qed.
+
+Lemma nsubst_subst m n1 n2 :
+  occurs 0 m = 0 -> m.[n1/] = m.[n2/].
+Proof.
+  move=>oc.
+  apply: nsubst_occurs; eauto.
+  apply: nsubst0.
+  apply: nsubst0.
+Qed.

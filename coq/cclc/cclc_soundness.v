@@ -3,7 +3,7 @@ From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
   clc_context clc_ast clc_confluence clc_subtype clc_typing
   clc_weakening clc_substitution clc_inversion clc_validity
-  clc_soundness clc_eval
+  clc_soundness cclc_eval
   clc_linearity cclc_ast cclc_dual cclc_typing cclc_weakening 
   cclc_substitution cclc_linearity.
 
@@ -133,12 +133,65 @@ Theorem subject_step Γ p q :
   ok Γ -> Γ ⊢ p -> p --> q -> Γ ⊢ q.
 Proof.
   move=>wf ty st. elim: st Γ ty wf=>{p q}.
-  move=>c d v val Γ ty wf. 
-  { inv ty. inv H4.
-    econstructor; eauto.
-    econstructor.
+  move=>c d v val Γ ty wf.
+  { inv ty. inv H4. inv H5; inv H6.
+    { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
+      inv H8.
+      have {}wf2:ok (_: _: Γ2).
+        repeat constructor; eauto.
+      have[G1[G2[B0[t[mrg[ty h]]]]]]:=plug_inv wf2 H4.
+      inv mrg. inv H8.
+      have os:of_sort (_: _: Γ4) 1 None.
+        repeat constructor.
+      have//=oc:=clc_linearity.narity ty os. }
+    { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
+      have[_[e1 e2]]:=merge_re_re H5.
+      inv H7. inv H8.
+      have{H1}//=tyA:=clc_weakening.weakeningN H1.
+      have wf1':ok (Ch A.[ren (+1)] :L _: Γ1).
+        econstructor.
+        constructor; eauto.
+        simpl; rewrite e1; eauto.
+      have wf2':ok (_: Ch B :L Γ2).
+        constructor.
+        econstructor; eauto.
+        rewrite e2; eauto.
+      have[G1[G2[B0[t1[mrg1[ty1 h1]]]]]]:=plug_inv wf1' H4.
+      inv mrg1; inv H7.
+      { have /h1{}h1:~Ch A.[ren (+1)] :L _: Γ4 |> U.
+          move=>k. inv k.
+        have[G3[G4[B1[t2[mrg2[ty2 h2]]]]]]:=plug_inv wf2' H6.
+        inv mrg2. inv H7.
+        { have /h2{}h2 :~_: Ch B :L Γ6 |> U.
+            move=>k. inv k. inv H1.
 
-  }
+          admit.
+
+        }
+        { have os:of_sort (_: _: Γ6) 1 None by repeat constructor.
+          have//:=clc_linearity.narity ty2 os. } }
+      { have os:of_sort (_: _: Γ4) 0 None by constructor.
+        have//:=clc_linearity.narity ty1 os. } }
+    { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
+      have[_[e1 e2]]:=merge_re_re H5.
+      inv H7.
+      have {}wf1:ok (_: Ch B :L Γ1).
+        constructor.
+        econstructor; eauto.
+        rewrite e1; eauto.
+      have[G1[G2[B0[t[mrg[ty h]]]]]]:=plug_inv wf1 H4.
+      inv mrg.
+      have os:of_sort (_: Γ0) 0 None by constructor.
+      have//=oc:=clc_linearity.narity ty os. }
+    { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
+      inv H7.
+      have {}wf1:ok (_: _: Γ1).
+        repeat constructor; eauto.
+      have[G1[G2[B0[t[mrg[ty h]]]]]]:=plug_inv wf1 H4.
+      inv mrg.
+      have os:of_sort (_: Γ0) 0 None.
+        repeat constructor.
+      have//=oc:=clc_linearity.narity ty os. } }
   move=>c d v val Γ ty wf. admit.
   move=>c d Γ ty wf. admit.
   move=>c d Γ ty wf. admit.
