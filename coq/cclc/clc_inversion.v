@@ -27,6 +27,20 @@ Ltac solve_sub :=
   | _ => solve_conv
   end.
 
+Lemma var_inv Γ x B s :
+  Γ ⊢ Var x : B : s ->
+  exists A t, has Γ x t A /\ A <: B /\ s = t.
+Proof.
+  move e:(Var x)=>m ty. elim: ty x e=>//{Γ m B s}.
+  move=>Γ x A s hs x0 [e]; subst.
+  exists A. exists s. eauto.
+  move=>Γ A B m s i sb tym ihm tyB _ x e; subst.
+  have[A0[t[hs[sb' e]]]]:=ihm _ erefl.
+  exists A0. exists t.
+  repeat split; eauto.
+  apply: sub_trans; eauto.
+Qed.
+
 Lemma pi_inv Γ A B C s r t1 t2 :
   Γ ⊢ Pi A B s r t1 : C : t2 ->
   exists l,
@@ -84,6 +98,7 @@ Qed.
 Lemma app_inv Γ m n C r :
   Γ ⊢ App m n : C : r ->
   exists Γ1 Γ2 A B s t,
+    Γ2 |> s /\
     B.[n/] <: C /\
     Γ1 ∘ Γ2 => Γ /\
     Γ1 ⊢ m : Pi A B s r t : t /\
@@ -94,7 +109,7 @@ Proof.
   { exists Γ1. exists Γ2. exists A. exists B. exists s. exists t.
     repeat split; eauto. }
   move=>Γ A B m s i sb tym ihm tyB _ m0 n e; subst.
-  { have[G1[G2[A0[B0[s0[t[sb'[mrg[tym0 tyn]]]]]]]]]:=ihm _ _ erefl.
+  { have[G1[G2[A0[B0[s0[t[k[sb'[mrg[tym0 tyn]]]]]]]]]]:=ihm _ _ erefl.
     exists G1. exists G2. exists A0. exists B0. exists s0. exists t.
     repeat split; eauto.
     apply: sub_trans; eauto. }
@@ -256,22 +271,38 @@ Proof.
   by exists i.
 Qed.
 
-Lemma recv_inv Γ m A s :
-  Γ ⊢ Recv m : A : s ->
-  exists A B t, Γ ⊢ m : Ch (Inp A B t) : L.
+Lemma recv_inv Γ m C t :
+  Γ ⊢ Recv m : C : t ->
+  exists A B s,
+    t = L /\
+    Sigma A (Ch B) s L L <: C /\
+    Γ ⊢ m : Ch (Inp A B s) : L.
 Proof.
-  move e:(Recv m)=>n tp. elim: tp m e=>//{Γ A s n}.
-  move=>Γ A B m s tym ihm m0 [e]; subst.
+  move e:(Recv m)=>n tp. elim: tp m e=>//{Γ C t n}.
+  move=>Γ A B m s tym _ m0 [e]; subst.
   exists A. exists B. by exists s.
+  move=>Γ A B m s i sb tym ih tyB _ m0 e; subst.
+  have[A0[B0[s0[e[sb0 tym0]]]]]:=ih _ erefl; subst.
+  exists A0. exists B0. exists s0.
+  repeat split; eauto.
+  apply: sub_trans; eauto.
 Qed.
 
-Lemma send_inv Γ m A s :
-  Γ ⊢ Send m : A : s ->
-  exists A B t, Γ ⊢ m : Ch (Out A B t) : L.
+Lemma send_inv Γ m C t :
+  Γ ⊢ Send m : C : t ->
+  exists A B s,
+    t = L /\
+    Pi A (Ch B) s L L <: C /\
+    Γ ⊢ m : Ch (Out A B s) : L.
 Proof.
-  move e:(Send m)=>n tp. elim: tp m e=>//{Γ A s n}.
-  move=>Γ A B m s tym ihm m0 [e]; subst.
+  move e:(Send m)=>n tp. elim: tp m e=>//{Γ C t n}.
+  move=>Γ A B m s tym _ m0 [e]; subst.
   exists A. exists B. by exists s.
+  move=>Γ A B m s i sb tym ih tyB _ m0 e; subst.
+  have[A0[B0[s0[e[sb0 tym0]]]]]:=ih _ erefl.
+  exists A0. exists B0. exists s0.
+  repeat split; eauto.
+  apply: sub_trans; eauto.
 Qed.
 
 Lemma close_inv Γ m A s :

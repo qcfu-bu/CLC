@@ -48,6 +48,16 @@ Hint Resolve sub_refl.
 Lemma sub_sort s n m : n <= m -> s @ n <: s @ m.
 Proof. move=> leq. exact/sub1_sub/sub1_sort. Qed.
 
+Lemma sub_ch A B : A <: B -> Ch A <: Ch B.
+Proof.
+  move=>[A' B' sb e1 e2].
+  apply: SubI.
+  apply: sub1_ch.
+  exact: sb.
+  apply: conv_ch; eauto.
+  apply: conv_ch; eauto.
+Qed.
+
 Lemma sub1_trans A B C D :
   sub1 A B -> B === C -> sub1 C D -> A <: D.
 Proof with eauto 6 using sub1, sub1_sub, sub1_conv, conv_sub1.

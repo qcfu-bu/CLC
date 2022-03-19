@@ -389,3 +389,164 @@ Proof.
   apply: nsubst0.
   apply: nsubst0.
 Qed.
+
+Lemma upn_ltxn x n :
+  x < n -> Var x = (Var x).[upn n (ren (+1))].
+Proof.
+  elim: n x=>//.
+  move=>n ih [|x] lt; asimpl=>//.
+  have {}lt:x < n by eauto.
+  replace (Var x.+1) with (Var x).[ren (+1)] by autosubst.
+  rewrite ih; eauto.
+Qed.
+
+Lemma upn_ltnx' x n :
+  n < x -> (upn n (ren (+1)) x.-1).[ren (+1)] = upn n.+1 (ren (+1)) x.
+Proof.
+  elim: n x=>//.
+  move=>[|x]//.
+  move=>n ih [|x] lt//.
+  asimpl; f_equal.
+Qed.
+
+Lemma upn_ltnx x n :
+  n < x -> Var x = (Var x.-1).[upn n (ren (+1))].
+Proof.
+  elim: n x=>//.
+  move=>[|x]//.
+  move=>n ih [|x] lt//.
+  asimpl.
+  replace (Var x.+1) with (Var x).[ren (+1)] by autosubst.
+  have{}lt:n < x by eauto.
+  have->:=ih _ lt.
+  asimpl.
+  apply: upn_ltnx'; eauto.
+Qed.
+
+Lemma occurs_ren i m :
+  occurs i m = 0 -> exists m', m = m'.[upn i (ren (+1))].
+Proof.
+  elim: m i=>//=.
+  move=>x i. move e:(x == i)=>[|]_//.
+  { have {e}:(x != i) by rewrite e.
+    rewrite neq_ltn.
+    move=>/orP[lt|lt].
+    exists (Var x). apply: upn_ltxn; eauto.
+    exists (Var x.-1). apply: upn_ltnx; eauto. }
+  move=>s l i _.
+  { exists (s @ l)=>//. }
+  move=>A ihA B ihB s r t i.
+  { move e1:(occurs i A)=>n1.
+    move e2:(occurs i.+1 B)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihA}[A' eA]:=ihA _ e1.
+    have{ihB}[B' eB]:=ihB _ e2.
+    exists (Pi A' B' s r t); asimpl.
+    rewrite eA eB; eauto. }
+  move=>A ihA m ihm s t i.
+  { move e1:(occurs i A)=>n1.
+    move e2:(occurs i.+1 m)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihA}[A' eA]:=ihA _ e1.
+    have{ihm}[m' em]:=ihm _ e2.
+    exists (Lam A' m' s t); asimpl.
+    rewrite eA em; eauto. }
+  move=>m ihm n ihn i.
+  { move e1:(occurs i m)=>n1.
+    move e2:(occurs i n)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihm}[m' em]:=ihm _ e1.
+    have{ihn}[n' en]:=ihn _ e2.
+    exists (App m' n'); asimpl.
+    rewrite em en; eauto . }
+  move=>i _. exists Unit=>//.
+  move=>i _. exists It=>//.
+  move=>A ihA B ihB s r t i.
+  { move e1:(occurs i A)=>n1.
+    move e2:(occurs i.+1 B)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihA}[A' eA]:=ihA _ e1.
+    have{ihB}[B' eB]:=ihB _ e2.
+    exists (Sigma A' B' s r t).
+    rewrite eA eB; eauto. }
+  move=>m ihm n ihn t i.
+  { move e1:(occurs i m)=>n1.
+    move e2:(occurs i n)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihm}[m' em]:=ihm _ e1.
+    have{ihn}[n' en]:=ihn _ e2.
+    exists (Pair m' n' t); asimpl.
+    rewrite em en; eauto. }
+  move=>m ihm n ihn i.
+  { move e1:(occurs i m)=>n1.
+    move e2:(occurs i n)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihm}[m' em]:=ihm _ e1.
+    have{ihn}[n' en]:=ihn _ e2.
+    exists (LetIn1 m' n'); asimpl.
+    rewrite em en; eauto. }
+  move=>m ihm n ihn i.
+  { move e1:(occurs i m)=>n1.
+    move e2:(occurs i.+2 n)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihm}[m' em]:=ihm _ e1.
+    have{ihn}[n' en]:=ihn _ e2.
+    exists (LetIn2 m' n'); asimpl.
+    rewrite em en; asimpl; eauto. }
+  move=>l i _. exists (Proto l)=>//.
+  move=>i _. exists InpEnd=>//.
+  move=>i _. exists OutEnd=>//.
+  move=>A ihA B ihB s i.
+  { move e1:(occurs i A)=>n1.
+    move e2:(occurs i.+1 B)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihA}[A' eA]:=ihA _ e1.
+    have{ihB}[B' eB]:=ihB _ e2.
+    exists (Inp A' B' s); asimpl.
+    rewrite eA eB; eauto. }
+  move=>A ihA B ihB s i.
+  { move e1:(occurs i A)=>n1.
+    move e2:(occurs i.+1 B)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihA}[A' eA]:=ihA _ e1.
+    have{ihB}[B' eB]:=ihB _ e2.
+    exists (Out A' B' s); asimpl.
+    rewrite eA eB; eauto. }
+  move=>A ihA i /ihA[A' e].
+  { exists (Ch A'). rewrite e; eauto. }
+  move=>ch ih i /ih[ch' e].
+  { exists (Recv ch'). rewrite e; eauto. }
+  move=>ch ih i /ih[ch' e].
+  { exists (Send ch'). rewrite e; eauto. }
+  move=>ch ih i /ih[ch' e].
+  { exists (Close ch'). rewrite e; eauto. }
+  move=>ch ih i /ih[ch' e].
+  { exists (Wait ch'). rewrite e; eauto. }
+Qed.
+
+Lemma occurs_ren0 m :
+  occurs 0 m = 0 -> exists m', m = m'.[ren (+1)].
+Proof.
+  move=>/occurs_ren//=[m' e].
+Qed.
+
+Lemma narity_ren0 Γ m A s :
+  _: Γ ⊢ m : A : s -> exists m', m = m'.[ren (+1)].
+Proof.
+  move=>ty.
+  have os:of_sort (_: Γ) 0 None by constructor.
+  have oc:=narity ty os.
+  apply: occurs_ren0; eauto.
+Qed.
+
+Lemma narity_ren1 Γ m A s :
+  ok Γ -> _: Γ ⊢ m : A : s -> 
+    exists m' A', m = m'.[ren (+1)] /\ A = A'.[ren (+1)].
+Proof.
+  move=>wf ty.
+  have {}wf:ok (_: Γ) by constructor.
+  have//=[l tyA]:=validity wf ty.
+  have[m' em]:=narity_ren0 ty.
+  have[A' eA]:=narity_ren0 tyA.
+  exists m'. by exists A'.
+Qed.
