@@ -40,7 +40,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: clc_pi... }
   move=>Γ x A s hs n o st. inv st.
   move=>Γ A B m s r t i k tyP ihP tym ihm n o st.
-  move:(pi_inv _ _ _ _ _ _ _ _ tyP)=>[l[tyA[_ tyB]]]. inv st.
+  move:(pi_inv tyP)=>[l[tyA[_ tyB]]]. inv st.
   { have st : Pi A B s r t ~> Pi A' B s r t...
     move:(ihP _ (re_ok o) st)=>tyP'.
     apply: clc_conv.
@@ -58,12 +58,12 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
   move:(ihm^~ o1)=>{}ihm.
   move:(ihn^~ o2)=>{}ihn. 
   move:(validity o1 tym)=>[lP tyP]. inv st.
-  { move:(lam_inv _ _ _ _ _ _ _ _ _ _ _ _ _ tyP tym)=>tym1.
+  { move:(lam_inv tyP tym)=>tym1.
     apply: substitution... }
   { move:(ihm _ H2)=>{}ihm.
     apply: clc_app... }
   { move:(ihn _ H2)=>{}ihn.
-    move:(pi_inv _ _ _ _ _ _ _ _ tyP)=>[l[tyA[_ tyB]]].
+    move:(pi_inv tyP)=>[l[tyA[_ tyB]]].
     move:(merge_re_re mrg)=>[e1[e2 e3]].
     destruct s.
     { have mrg' : [Γ1] ∘ Γ2 => [Γ].
@@ -111,7 +111,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     tyS ihS tym ihm tyn ihn n0 o st. 
   move:(merge_context_ok_inv mrg o)=>[o1 o2]. 
   move:(merge_re_re mrg)=>[e[e1 e2]].
-  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[_[mrg0[tyA tyB]]]]]].
+  move:(sigma_inv tyS)=>[G1[G2[i0[_[mrg0[tyA tyB]]]]]].
   move:(merge_re_re mrg0)=>[e3[e4 e5]]. inv st.
   { move:(ihm _ o1 H3)=>{ihm ihS ihn}tym'.
     rewrite<-re_invo in e4.
@@ -137,13 +137,13 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: clc_letin1... }
   { move:(ihn _ o2 H2)=>tyn'.
     apply: clc_letin1... }
-  { move:(it_inv _ _ tym)=>k.
+  { move:(it_inv tym)=>k.
     by rewrite (merge_pureL mrg k). }
   move=>Γ1 Γ2 Γ A B C m n s r t k x i leq key mrg 
     tym ihm tyC ihC tyn ihn n0 o st.
   move:(merge_context_ok_inv mrg o)=>[o1 o2]. 
   move:(validity o1 tym)=>[l tyS].
-  move:(sigma_inv _ _ _ _ _ _ _ tyS)=>[G1[G2[i0[_[mrg0[tyA tyB]]]]]]. 
+  move:(sigma_inv tyS)=>[G1[G2[i0[_[mrg0[tyA tyB]]]]]]. 
   move:(merge_re_re mrg)=>[e0[e1 e2]].
   move:(merge_re_re mrg0)=>[e3[e4 e5]].
   inv st.
@@ -173,7 +173,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: clc_letin2... }
   { rewrite<-re_invo in e4.
     rewrite<-re_invo in e5.
-    move:(pair_inv _ _ _ _ _ _ _ _ _ _ _ _ tym tyS)=>
+    move:(pair_inv tym tyS)=>
       [G3[G4[->[et[k1[k2[mrg1[tym1 tym2]]]]]]]]; subst.
     have[G[/merge_sym mrg2 /merge_sym mrg3]]:=merge_splitL mrg mrg1.
     have:=substitution2 tyn k1 k2 mrg2 mrg3 tym1 tym2.

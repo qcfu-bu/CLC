@@ -4,6 +4,10 @@ Require Import AutosubstSsr ARS
   clc_context clc_ast clc_confluence clc_subtype clc_typing
   clc_weakening clc_substitution.
 
+Set Implicit Arguments.
+Unset Strict Implicit.
+Unset Printing Implicit Defensive.
+
 Ltac solve_sub :=
   match goal with
   | [ H : _ <: _ |- _ ] =>
@@ -75,6 +79,25 @@ Lemma lam_inv Γ m A1 A2 B s1 s2 r t1 t2 t3 x l :
 Proof.
   move=> /pi_inv[i[tyA[_ tyB]]] tyL.
   apply: lam_invX; eauto.
+Qed.
+
+Lemma app_inv Γ m n C r :
+  Γ ⊢ App m n : C : r ->
+  exists Γ1 Γ2 A B s t,
+    B.[n/] <: C /\
+    Γ1 ∘ Γ2 => Γ /\
+    Γ1 ⊢ m : Pi A B s r t : t /\
+    Γ2 ⊢ n : A : s.
+Proof.
+  move e:(App m n)=>x tp. elim: tp m n e=>//{Γ C r x}.
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg tym _ tyn _ m0 n0 [e1 e2]; subst.
+  { exists Γ1. exists Γ2. exists A. exists B. exists s. exists t.
+    repeat split; eauto. }
+  move=>Γ A B m s i sb tym ihm tyB _ m0 n e; subst.
+  { have[G1[G2[A0[B0[s0[t[sb'[mrg[tym0 tyn]]]]]]]]]:=ihm _ _ erefl.
+    exists G1. exists G2. exists A0. exists B0. exists s0. exists t.
+    repeat split; eauto.
+    apply: sub_trans; eauto. }
 Qed.
 
 Lemma unit_inv Γ A s : Γ ⊢ Unit : A : s -> exists i, U @ i <: A.

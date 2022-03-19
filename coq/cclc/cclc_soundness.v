@@ -164,7 +164,9 @@ Proof.
         inv mrg2. inv H7.
         { have /h2{}h2 :~_: Ch B :L Γ6 |> U.
             move=>k. inv k. inv H1.
-
+          have[G1[G2[A2[B2[s1[t[sb[mrg[tyS tyv]]]]]]]]]:=app_inv ty1.
+          have[A3[B3[t0 tyv0]]]:=send_inv tyS.
+          have[A4[B4[t3 tyv1]]]:=recv_inv ty2.
           admit.
 
         }

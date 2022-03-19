@@ -121,7 +121,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       destruct s.
       have[]//:=merge_pure_inv mrg0 k.
       have[lP tyP]:=validity wf1 tym.
-      have[l[tyA[_ tyB]]]:=pi_inv _ _ _ _ _ _ _ _ tyP.
+      have[l[tyA[_ tyB]]]:=pi_inv tyP.
       have os:of_sort (_: [Γ1]) 0 None by constructor.
       have oc:=narity tyB os.
       have->:=nsubst_subst c.[m0] c.[n0] oc.
@@ -162,7 +162,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       have{}ih:=ih k' _ _ _ (merge_sym mrg4) tyn0.
       destruct s.
       have[]//:=merge_pure_inv mrg0 k1.
-      have//=[G5[G6[l[_[mrg6[tyA tyB]]]]]]:=sigma_inv _ _ _ _ _ _ _ tyS.
+      have//=[G5[G6[l[_[mrg6[tyA tyB]]]]]]:=sigma_inv tyS.
       have[_[e1 e2]]:=merge_re_re mrg5.
       have[_[e3 e4]]:=merge_re_re mrg.
       econstructor.
