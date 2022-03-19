@@ -37,3 +37,8 @@ Proof.
   move=>A B1 B2 s d1 ih C d2. inv d2.
   have e:=ih _ H3. apply: conv_inp; eauto.
 Qed.
+
+Lemma dual_subst A B σ : A ~ B -> A.[σ] ~ B.[σ].
+Proof with eauto using dual.
+  move=>d. elim: d σ=>{A B}...
+Qed.
