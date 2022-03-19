@@ -9,26 +9,15 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma subst_dual0 A B σ : dual0 A B -> dual0 A.[σ] B.[σ].
-Proof with eauto using dual0.
-  move=>d. elim:d σ=>{A B}.
-  move=>σ. asimpl...
-  move=>σ. asimpl...
-  move=>A B1 B2 s d1 d2 σ. asimpl...
-  move=>A B1 B2 s d1 d2 σ. asimpl...
-Qed.
-
 Lemma subst_dual A B σ : A ~ B -> A.[σ] ~ B.[σ].
 Proof with eauto using dual.
   move=>d. elim:d σ=>{A B}.
-  move=>A B d σ. move/subst_dual0 in d... 
-  move=>A A' B' B c1 d ih c2 σ.
-    apply: dual_conv.
-    apply: conv_subst.
-    exact: c1.
-    apply: ih.
-    apply: conv_subst.
-    exact: c2.
+  move=>σ...
+  move=>σ...
+  move=>A B1 B2 s d ih σ; asimpl.
+  econstructor...
+  move=>A B1 B2 s d ih σ; asimpl.
+  econstructor...
 Qed.
 
 Lemma esubstitution Γ Δ p σ :
