@@ -306,15 +306,29 @@ Proof.
 Qed.
 
 Lemma close_inv Γ m A s :
-  Γ ⊢ Close m : A : s -> Γ ⊢ m : Ch OutEnd : L.
+  Γ ⊢ Close m : A : s ->
+  s = U /\
+  Unit <: A /\
+  Γ ⊢ m : Ch OutEnd : L.
 Proof.
   move e:(Close m)=>n tp. elim: tp m e=>//{Γ A s n}.
   move=>Γ m tym ihm m0 [e]; subst=>//.
+  move=>Γ A B m s i sb tym ihm tyB _ m0 [e]; subst.
+  have[->[sb' tym0]]:=ihm _ erefl.
+  repeat split; eauto.
+  apply: sub_trans; eauto.
 Qed.
 
 Lemma wait_inv Γ m A s :
-  Γ ⊢ Wait m : A : s -> Γ ⊢ m : Ch InpEnd : L.
+  Γ ⊢ Wait m : A : s ->
+  s = U /\
+  Unit <: A /\
+  Γ ⊢ m : Ch InpEnd : L.
 Proof.
   move e:(Wait m)=>n tp. elim: tp m e=>//{Γ A s n}.
   move=>Γ m tym ihm m0 [e]; subst=>//.
+  move=>Γ A B m s i sb tym ihm tyB _ m0 [e]; subst.
+  have[->[sb' tym0]]:=ihm _ erefl.
+  repeat split; eauto.
+  apply: sub_trans; eauto.
 Qed.

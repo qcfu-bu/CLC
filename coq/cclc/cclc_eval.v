@@ -58,6 +58,26 @@ Notation "c .[ m ] " := (plug c m)
   (at level 2, m at level 200, left associativity,
     format "c .[ m ]") : eval_scope.
 
+Lemma value_ren v ξ : value v -> value v.[ren ξ]%subst.
+Proof with eauto using value.
+  move=>val. elim: val ξ=>{v}...
+Qed.
+
+Fixpoint eren (e : eval_context) (ξ : var -> var) : eval_context :=
+  match e with
+  | EHole => EHole
+  | EAppL e m => EAppL (eren e ξ) m.[ren ξ]
+  | EAppR m v e => EAppR (value_ren ξ v) (eren e ξ)
+  | EPairL e m s => EPairL (eren e ξ) m.[ren ξ] s
+  | EPairR m v e s => EPairR (value_ren ξ v) (eren e ξ) s
+  | ELetIn1 e m => ELetIn1 (eren e ξ) m.[ren ξ]
+  | ELetIn2 e m => ELetIn2 (eren e ξ) m.[upn 2 (ren ξ)]
+  | ESend e => ESend (eren e ξ)
+  | ERecv e => ERecv (eren e ξ)
+  | EClose e => EClose (eren e ξ)
+  | EWait e => EWait (eren e ξ)
+  end%subst.
+
 Lemma plug_inv Γ c m A s : 
   ok Γ -> Γ ⊢ c.[m] : A : s -> 
   exists Γ1 Γ2 B t,
@@ -312,4 +332,20 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     exact: sb.
     exact: ih.
     rewrite<-e4. rewrite e2... }
+Qed.
+
+Lemma eren_comp e m ξ :
+  (eren e ξ).[m.[ren ξ]%subst]%C = (e.[m]%C).[ren ξ]%subst.
+Proof.
+  elim: e m ξ=>//=.
+  move=>e ih t m ξ. by rewrite ih.
+  move=>m v e ih m0 ξ. by rewrite ih.
+  move=> e ih t s m ξ. by rewrite ih.
+  move=>m v e ih s m0 ξ. by rewrite ih.
+  move=>e ih t m ξ. by rewrite ih.
+  move=>e ih t m ξ. by rewrite ih.
+  move=>e ih m ξ. by rewrite ih.
+  move=>e ih m ξ. by rewrite ih.
+  move=>e ih m ξ. by rewrite ih.
+  move=>e ih m ξ. by rewrite ih.
 Qed.

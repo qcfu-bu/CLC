@@ -77,12 +77,16 @@ Inductive proc_step : proc -> proc -> Prop :=
   value v ->
   ν.(⟨c.[App (Send (Var 1)) v]⟩ ∣ ⟨d.[Recv (Var 0)]⟩) -->
   ν.(⟨c.[Var 1]⟩ ∣ ⟨d.[Pair v (Var 0) L]⟩)
-| proc_end c d :
-  ν.(⟨c.[Close (Var 0)]⟩ ∣ ⟨d.[Wait (Var 1)]⟩) -->
-  ν.(⟨c.[It]⟩ ∣ ⟨c.[It]⟩)
-| proc_endi c d :
-  ν.(⟨c.[Close (Var 1)]⟩ ∣ ⟨d.[Wait (Var 0)]⟩) -->
-  ν.(⟨c.[It]⟩ ∣ ⟨c.[It]⟩)
+| proc_end c c' d d' :
+  c' = eren c (+2) ->
+  d' = eren d (+2) ->
+  ν.(⟨c'.[Close (Var 0)]⟩ ∣ ⟨d'.[Wait (Var 1)]⟩) -->
+  ⟨c.[It]⟩ ∣ ⟨d.[It]⟩
+| proc_endi c c' d d' :
+  c' = eren c (+2) ->
+  d' = eren d (+2) ->
+  ν.(⟨c'.[Close (Var 1)]⟩ ∣ ⟨d'.[Wait (Var 0)]⟩) -->
+  ⟨c.[It]⟩ ∣ ⟨d.[It]⟩
 | proc_exp m n :
   m ~> n -> 
   ⟨m⟩ --> ⟨n⟩
