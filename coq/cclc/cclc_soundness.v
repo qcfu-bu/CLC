@@ -588,8 +588,7 @@ Proof.
         have//=:=clc_substitution.substitutionN tyB4 tyvz. }
       have tyv1:
         Ch B2.[vy/].[ren (+1)] :L _: G3 ⊢ Pair vy.[ren (+1)].[ren (+1)] (Var 0) L : B0 : L.
-      {
-        apply: clc_conv; simpl.
+      { apply: clc_conv; simpl.
         apply: sb2.
         econstructor; simpl.
         apply: (key_n H3).
