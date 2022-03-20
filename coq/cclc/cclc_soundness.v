@@ -903,20 +903,20 @@ Proof.
       have os: of_sort (_: _: Γ4) 1 None by repeat constructor.
       have//:=clc_linearity.narity ty os. } }
   move=>m n st Γ ty wf. inv ty.
-    econstructor.
-    apply: subject_step; eauto.
+  { econstructor.
+    apply: subject_step; eauto. }
   move=>o p q st ih Γ ty wf. inv ty.
-    have[wf1 wf2]:=merge_context_ok_inv H1 wf.
-    econstructor; eauto.
+  { have[wf1 wf2]:=merge_context_ok_inv H1 wf.
+    econstructor; eauto. }
   move=>p q st ih Γ ty wf. inv ty.
-    econstructor; eauto.
+  { econstructor; eauto.
     have tyA:=clc_weakening.weakeningN H1.
     apply: ih; eauto.
     econstructor.
     econstructor; eauto.
-    asimpl in tyA; eauto.
+    asimpl in tyA; eauto. }
   move=>p p' q q' e1 st ih e2 Γ typ wf.
-    have typ':=congr_type typ e1.
+  { have typ':=congr_type typ e1.
     have tyq':=ih _ typ' wf.
-    have//:=congr_type tyq' e2.
+    have//:=congr_type tyq' e2. }
 Qed.
