@@ -1,0 +1,11 @@
+* The Calculus of Linear Constructions
+
+** Introduction
+This repository contains the Coq formalization and implementation of the Calculus of Linear Constructions and its extensios.
+
+** Structure of Repository
+*** coq
+- clc  : Formalization of the core Calculus of Linear Constructions.
+- cilc : Formalization of the Calculus of Inductive Linear Constructions.
+- cclc : Formalization of the Concurrent Calculus of Linear Constructions.
+*** src : Source code for CILC prototype implementation.
