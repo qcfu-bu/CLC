@@ -1,24 +1,24 @@
-# Concurrent Calculus of Linear Constructions
+* Concurrent Calculus of Linear Constructions
 
-## Sort relations
+** Sort relations
 
-Order
-```text
+*** Order
+#+BEGIN_SRC
 ≤  U  L
 U  T  T
 L  F  T
-```
+#+END_SRC
 
-Addition
-```text
+*** Addition
+#+BEGIN_SRC
 ⋅  U  L
 U  U  L
 L  L  L
-```
+#+END_SRC
 
-## Core typing rules
+** Core typing rules
 
-```text
+#+BEGIN_SRC
 Γ ▹ U
 ————————————————
 Γ ⊢ s@i :U U@i+1
@@ -47,11 +47,11 @@ L  L  L
 Γ ⊢ m :s A     [Γ] ⊢ B :U s@i     A ⪯ B
 ————————————————————————————————————————
 Γ ⊢ m :s B
-```
+#+END_SRC
 
-## Data typing rules
+** Data typing rules
 
-```text
+#+BEGIN_SRC
 Γ ▹ U
 ————————————————
 Γ ⊢ unit :U U@0
@@ -83,11 +83,11 @@ L  L  L
 Γ2, x :s A, y :r B ⊢ n :q C[⟨x, y⟩/z]
 ————————————————————————————————————————————————
 Γ1 ∘ Γ2 ⊢ let ⟨x, y⟩ = m in n :q C[m/z]
-```
+#+END_SRC
 
-## Session typing rules
+** Session typing rules
 
-``` text
+#+BEGIN_SRC
 Γ ▹ U
 ————————————————–——
 Γ ⊢ Proto i :U U@i
@@ -136,4 +136,4 @@ L  L  L
 Γ ⊢ m :L Ch end?
 ———————————————————
 Γ ⊢ wait m :U unit
-```
+#+END_SRC
