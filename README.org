@@ -5,7 +5,8 @@ This repository contains the Coq formalization and implementation of the Calculu
 
 ** Structure of Repository
 *** coq
-- clc  : Formalization of the core Calculus of Linear Constructions.
-- cilc : Formalization of the Calculus of Inductive Linear Constructions.
-- cclc : Formalization of the Concurrent Calculus of Linear Constructions.
+- clc  : Formalization of core Calculus of Linear Constructions.
+- cilc : Formalization of Calculus of Inductive Linear Constructions.
+- cclc : Formalization of Concurrent Calculus of Linear Constructions.
+- clc_semantics : Formalization of heap semantics for Calculus of Linear Constructions.
 *** src : Source code for CILC prototype implementation.
