@@ -69,12 +69,14 @@ Notation "p ≡ q" := (conv congr0 p q) (at level 30).
 
 Reserved Notation "p --> q" (at level 30).
 Inductive proc_step : proc -> proc -> Prop :=
+| proc_fork c c' m :
+  c' = eren c (+2) ->
+  ⟨c.[Fork (Var 0) m]⟩ -->
+  ν.(⟨c'.[Pair (Var 0) (Var 2) L]⟩ ∣ ⟨m⟩)
 | proc_com c d v :
-  value v ->
   ν.(⟨c.[App (Send (Var 0)) v]⟩ ∣ ⟨d.[Recv (Var 1)]⟩) -->
   ν.(⟨c.[Var 0]⟩ ∣ ⟨d.[Pair v (Var 1) L]⟩)
 | proc_comi c d v :
-  value v ->
   ν.(⟨c.[App (Send (Var 1)) v]⟩ ∣ ⟨d.[Recv (Var 0)]⟩) -->
   ν.(⟨c.[Var 1]⟩ ∣ ⟨d.[Pair v (Var 0) L]⟩)
 | proc_end c c' d d' :

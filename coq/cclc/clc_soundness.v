@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_typing
+  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
   clc_weakening clc_substitution clc_inversion clc_validity.
 
 Set Implicit Arguments.
@@ -178,6 +178,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     have[G[/merge_sym mrg2 /merge_sym mrg3]]:=merge_splitL mrg mrg1.
     have:=substitution2 tyn k1 k2 mrg2 mrg3 tym1 tym2.
     by asimpl. }
+  move=>Γ k n wf st. inv st.
   move=>Γ i k n o st. inv st.
   move=>Γ i k n o st. inv st.
   move=>Γ i k n o st. inv st.
@@ -217,6 +218,11 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: re_ok... }
   move=>Γ A i k tyA ihA n o st. inv st.
   { constructor... }
+  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA ihA tyB ihB tym ihm tyn ihn n0 wf st. inv st.
+  { have[wf1 wf2]:=merge_context_ok_inv mrg wf.
+    econstructor... }
+  { have[wf1 wf2]:=merge_context_ok_inv mrg wf.
+    econstructor... }
   move=>Γ A B m s tym ihm n o st. inv st.
   { constructor... }
   move=>Γ A B m s tym ihm n o st. inv st.

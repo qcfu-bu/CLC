@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype.
+  clc_context clc_ast clc_confluence clc_subtype clc_dual.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -66,6 +66,9 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   [Sigma A B s r t :{k} Γ2] ⊢ C : x @ i : U ->
   B :{r} A :{s} Γ2 ⊢ n : C.[Pair (Var 1) (Var 0) t .: ren (+2)] : x ->
   Γ ⊢ LetIn2 m n : C.[m/] : x
+| clc_main Γ :
+  Γ |> U ->
+  Γ ⊢ Main : L @ 0 : U
 | clc_proto Γ i :
   Γ |> U ->
   Γ ⊢ Proto i : U @ i : U
@@ -89,6 +92,14 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   Γ |> U ->
   Γ ⊢ A : Proto i : U ->
   Γ ⊢ Ch A : L @ i : U
+| clc_fork Γ1 Γ2 Γ m n A B C s i :
+  A ~ B ->
+  Γ1 ∘ Γ2 => Γ ->
+  [Γ1] ⊢ Ch A : L @ i : U ->
+  [Γ2] ⊢ Ch B : L @ i : U ->
+  Γ1 ⊢ m : Main : L ->
+  _: Ch B :L Γ2 ⊢ n : C : s ->
+  Γ ⊢ Fork m n : Sigma (Ch A) Main L L L : L
 | clc_recv Γ A B m s :
   Γ ⊢ m : Ch (Inp A B s) : L ->
   Γ ⊢ Recv m : Sigma A (Ch B) s L L : L

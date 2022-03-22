@@ -56,6 +56,8 @@ Inductive pstep : term -> term -> Prop :=
   pstep m2 m2' ->
   pstep n n' ->
   pstep (LetIn2 (Pair m1 m2 t) n) n'.[m2',m1'/]
+| pstep_main :
+  pstep Main Main
 | pstep_proto l :
   pstep (Proto l) (Proto l)
 | pstep_inpend :
@@ -73,6 +75,10 @@ Inductive pstep : term -> term -> Prop :=
 | pstep_ch A A' :
   pstep A A' ->
   pstep (Ch A) (Ch A')
+| pstep_fork m m' n n' :
+  pstep m m' ->
+  pstep n n' ->
+  pstep (Fork m n) (Fork m' n')
 | pstep_recv ch ch' :
   pstep ch ch' ->
   pstep (Recv ch) (Recv ch')
@@ -190,6 +196,15 @@ Proof.
   move=>c. apply: (star_hom Ch) c=>x y. exact: step_ch.
 Qed.
 
+Lemma red_fork m m' n n' :
+  m ~>* m' -> n ~>* n' -> Fork m n ~>* Fork m' n'.
+Proof.
+  move=>r1 r2.
+  apply: (star_trans (Fork m' n)).
+  apply: (star_hom (Fork^~ n)) r1=>x y. exact: step_forkL.
+  apply: (star_hom (Fork m')) r2=>x y. exact: step_forkR.
+Qed.
+
 Lemma red_recv ch ch' :
   ch ~>* ch' -> Recv ch ~>* Recv ch'.
 Proof.
@@ -239,7 +254,7 @@ Qed.
 Hint Resolve 
   red_app red_lam red_pi 
   red_sigma red_pair red_letin1 red_letin2
-  red_inp red_out red_ch
+  red_inp red_out red_ch red_fork
   red_recv red_send red_close red_wait
   sred_up sred_upn : red_congr.
 
@@ -338,6 +353,15 @@ Proof.
   move=>c. apply: (conv_hom Ch) c=>x y. exact: step_ch.
 Qed.
 
+Lemma conv_fork m m' n n' :
+  m === m' -> n === n' -> Fork m n === Fork m' n'.
+Proof.
+  move=> r1 r2.
+  apply: (conv_trans (Fork m' n)).
+  apply: (conv_hom (Fork^~ n)) r1=>x y. exact: step_forkL.
+  apply: conv_hom r2. exact: step_forkR.
+Qed.
+
 Lemma conv_recv ch ch' :
   ch === ch' -> Recv ch === Recv ch'.
 Proof.
@@ -383,7 +407,7 @@ Qed.
 Hint Resolve
   conv_app conv_lam conv_pi 
   conv_sigma conv_pair conv_letin1 conv_letin2
-  conv_inp conv_out conv_ch
+  conv_inp conv_out conv_ch conv_fork
   conv_recv conv_send conv_close conv_wait
   sconv_up sconv_upn : conv_congr.
 
@@ -577,6 +601,7 @@ Proof with eauto 6 using
     have[mx2 p21 p22]:=ih2 _ H5.
     have[nx pn1 pn2]:=ihn _ H6.
     exists (nx.[mx2,mx1/])...
+  move=>m2 p. inv p. exists Main...
   move=>l m2 p. inv p. exists (Proto l)...
   move=>m2 p. inv p. exists InpEnd...
   move=>m2 p. inv p. exists OutEnd...
@@ -594,6 +619,11 @@ Proof with eauto 6 using
     inv p.
     have[Ax pA1 pA2]:=ihA _ H0.
     exists (Ch Ax)...
+  move=> m m' n n' pm ihm pn ihn m2 p.
+    inv p.
+    have[m0 pm1 pm2]:=ihm _ H1.
+    have[n0 pn1 pn2]:=ihn _ H3.
+    exists (Fork m0 n0)...
   move=>ch ch' pC ihC m2 p.
     inv p.
     have[chx pC1 pC2]:=ihC _ H0.
@@ -725,6 +755,9 @@ Proof.
   apply: star_trans. exact: rn. by apply: star1.
 Qed.
 
+Lemma red_main_inv m : Main ~>* m -> m = Main.
+Proof. elim=>//y z r->p. inv p. Qed.
+
 Lemma red_proto_inv l n :
   Proto l ~>* n -> n = Proto l.
 Proof.
@@ -813,6 +846,20 @@ Proof.
   apply: star_trans.
   exact: rdA.
   apply: star1; eauto.
+Qed.
+
+Lemma red_fork_inv m n x :
+  Fork m n ~>* x ->
+  exists m' n',
+    m ~>* m' /\ n ~>* n' /\ x = Fork m' n'.
+Proof.
+  elim.
+  exists m. exists n=>//.
+  move=>y z r [mx[nx[rm[rn->]]]] p. inv p.
+  exists m'. exists nx. firstorder.
+  apply: star_trans. exact: rm. by apply: star1.
+  exists mx. exists n'. firstorder.
+  apply: star_trans. exact: rn. by apply: star1.
 Qed.
 
 Lemma red_recv_inv ch x :
@@ -1012,12 +1059,14 @@ Ltac red_inv m H :=
   | It     => apply red_it_inv in H
   | Sigma  => apply red_sigma_inv in H
   | Pair   => apply red_pair_inv in H
+  | Main   => apply red_main_inv in H
   | Proto  => apply red_proto_inv in H
   | InpEnd => apply red_inpend_inv in H
   | OutEnd => apply red_outend_inv in H
   | Inp    => apply red_inp_inv in H
   | Out    => apply red_out_inv in H
   | Ch     => apply red_ch_inv in H
+  | Fork   => apply red_fork_inv in H
   | Recv   => apply red_recv_inv in H
   | Send   => apply red_send_inv in H
   | Close  => apply red_close_inv in H

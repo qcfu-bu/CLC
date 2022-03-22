@@ -1,10 +1,10 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_typing
+  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
   clc_weakening clc_substitution clc_inversion clc_validity
   clc_soundness cclc_eval
-  clc_linearity cclc_ast cclc_dual cclc_typing cclc_weakening 
+  clc_linearity cclc_ast cclc_typing cclc_weakening
   cclc_substitution cclc_linearity.
 
 Set Implicit Arguments.
@@ -116,24 +116,99 @@ Proof.
   move=>y z e1 e2 cr; subst. inv cr.
 Qed.
 
-Lemma step_expr_inj m p : 
-  ⟨ m ⟩ --> p -> exists n, p = ⟨ n ⟩ /\ m ~> n.
-Proof.
-  move e:(⟨ m ⟩)=>n st. elim: st m e=>//={n p}.
-  move=>m n st m0 [e]; subst.
-    exists n; eauto.
-  move=>p p' q q' e1 st ih e2 m e3; subst.
-  move/congr_expr_inj in e1; subst.
-  have[n[e st']]:=ih _ erefl; subst.
-  move/congr_expr_inj in e2; subst.
-  by exists n.
-Qed.
-
 Theorem subject_step Γ p q :
   ok Γ -> Γ ⊢ p -> p --> q -> Γ ⊢ q.
 Proof.
   move=>wf ty st. elim: st Γ ty wf=>{p q}.
-  move=>c d v val Γ ty wf.
+  move=>c c' m e Γ ty wf.
+  { inv ty.
+    have{}H1:=clc_weakening.weakeningN H1.
+    have{}H1:=clc_weakening.weakeningN H1.
+    asimpl in H1.
+    rewrite<-eren_comp in H1.
+    have{H1}[G1[G2[B[t[mrg[tyF h]]]]]]:=plug_inv (n_ok (n_ok wf)) H1.
+    inv mrg. inv H2.
+    have[wf0 wf3]:=merge_context_ok_inv H3 wf.
+    have[_[B'[_ e]]]:=narity_ren1 (n_ok wf0) tyF; subst.
+    replace (Fork (Var 0) m).[ren (+2)]
+      with (Fork (Var 0) m).[ren (+1)].[ren (+1)] in tyF by autosubst.
+    have {}tyF:=clc_substitution.strengthen tyF.
+    have[_[B[_ e]]]:=narity_ren1 wf0 tyF; subst.
+    have {}tyF:=clc_substitution.strengthen tyF.
+    have[G1[G2[A0[B0[C[s0[i[e[sb0[d[mrg[tyA[tyB[tyv tym]]]]]]]]]]]]]]:=fork_inv tyF; subst.
+    have[A1[s1[hs[sb1 e]]]]:=var_inv tyv; subst.
+    inv hs.
+    have/h{}h:~_: _: Γ0 |> U.
+    { move=>k. inv k. inv H1.
+      have[k1 k2]:=merge_pure_inv mrg H2.
+      inv k1. }
+    inv mrg. inv H3.
+    simpl in tyA. simpl in tyB.
+    have//=[l tyB']:=validity wf0 tyF.
+    inv wf. inv wf0.
+    have[wf1 wf4]:=merge_context_ok_inv H5 H3.
+    have[wf5 wf2]:=merge_context_ok_inv H6 H2.
+    have[A'[_[eA _]]]:=narity_ren1 (re_ok wf1) tyA.
+    destruct A'; inv eA.
+    have[B'[_[eB _]]]:=narity_ren1 (re_ok wf4) tyB.
+    destruct B'; inv eB.
+    have[G[mrg1 mrg2]]:=merge_splitL H6 H5.
+    have/h{}h: Ch A'.[ren (+2)] :L _: A2 :L Γ1 ∘ _: _: _: Γ2 => Ch A'.[ren (+2)] :L _: A2 :L G.
+    { repeat constructor; eauto. }
+    asimpl in h.
+    have/h{}h: Ch A'.[ren (+2)] :L _: A2 :L Γ1 ⊢ Pair (Var 0) (Var 2) L : B.[ren (+2)] : L.
+    { pose proof (sub_subst (ren (+2)) sb0).
+      have[_[e1 e4]]:=merge_re_re H5.
+      asimpl in H0.
+      have mrg:
+        Ch A'.[ren (+2)] :L _: _: [Γ1] ∘ _: _: A2 :L Γ1 => Ch A'.[ren (+2)] :L _: A2 :L Γ1.
+      { repeat constructor.
+        apply: merge_reL. }
+      apply: clc_conv; simpl.
+      apply: H0.
+      econstructor; simpl.
+      apply: key_impure.
+      apply: key_impure.
+      apply: mrg.
+      asimpl.
+      econstructor; simpl.
+      constructor.
+      repeat constructor. apply: re_pure.
+      have{}tyA:=clc_weakening.weakeningN tyA.
+      have{}tyA:=clc_weakening.weakeningN tyA.
+      asimpl in tyA; eauto.
+      repeat constructor.
+      apply: clc_conv; simpl.
+      apply: sub_sort.
+      apply: leq0n.
+      repeat constructor. apply: re_pure.
+      repeat constructor. apply: re_pure.
+      constructor.
+      replace (Ch A'.[ren (+2)]) with (Ch A').[ren (+2)] by autosubst.
+      replace (Ch A'.[ren (+3)]) with (Ch A').[ren (+2)].[ren (+1)] by autosubst.
+      repeat constructor. apply: re_pure.
+      have{}tyv:=clc_weakening.weakeningN tyv.
+      have{}tyv:=clc_weakening.weakeningN tyv.
+      asimpl in tyv; eauto.
+      have{}tyB':=clc_weakening.weakeningN tyB'.
+      have{}tyB':=clc_weakening.weakeningN tyB'.
+      asimpl in tyB'. rewrite e1; eauto. }
+    have[_[e1 e4]]:=merge_re_re H5.
+    have[_[e5 e2]]:=merge_re_re H6.
+    econstructor; simpl.
+    apply: d.
+    rewrite<-e5. rewrite<-e1; eauto.
+    rewrite<-e5. rewrite<-e4; eauto.
+    asimpl.
+    have mrg:
+      Ch A'.[ren (+2)] :L _: A2 :L G ∘ _: Ch B'.[ren (+1)] :L _: Γ4 =>
+      Ch A'.[ren (+2)] :L Ch B'.[ren (+1)] :L A2 :L Γ6.
+    { repeat constructor; eauto. }
+    econstructor.
+    apply: mrg.
+    econstructor. apply: h.
+    econstructor. apply: tym. }
+  move=>c d v Γ ty wf.
   { inv ty. inv H4. inv H5; inv H6.
     { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
       inv H8.
@@ -410,7 +485,7 @@ Proof.
       have os:of_sort (_: Γ0) 0 None.
         repeat constructor.
       have//=oc:=clc_linearity.narity ty os. } }
-  move=>c d v val Γ ty wf.
+  move=>c d v Γ ty wf.
   { inv ty. inv H4. inv H5; inv H6.
     { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
       inv H8.

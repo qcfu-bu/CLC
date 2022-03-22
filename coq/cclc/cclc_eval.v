@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_typing
+  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
   clc_weakening clc_substitution clc_inversion clc_validity
   clc_soundness clc_linearity.
 
@@ -29,6 +29,7 @@ Inductive eval_context :=
 | EPairR m : value m -> eval_context -> sort -> eval_context
 | ELetIn1 : eval_context -> term -> eval_context
 | ELetIn2 : eval_context -> term -> eval_context
+| EFork : eval_context -> term -> eval_context
 | ESend : eval_context -> eval_context
 | ERecv : eval_context -> eval_context
 | EClose : eval_context -> eval_context
@@ -48,6 +49,7 @@ Fixpoint plug (e : eval_context) (t : term) : term :=
   | EPairR m _ e s => Pair m (plug e t) s
   | ELetIn1 e m => LetIn1 (plug e t) m
   | ELetIn2 e m => LetIn2 (plug e t) m
+  | EFork e m => Fork (plug e t) m
   | ESend e => Send (plug e t)
   | ERecv e => Recv (plug e t)
   | EClose e => Close (plug e t)
@@ -72,6 +74,7 @@ Fixpoint eren (e : eval_context) (ξ : var -> var) : eval_context :=
   | EPairR m v e s => EPairR (value_ren ξ v) (eren e ξ) s
   | ELetIn1 e m => ELetIn1 (eren e ξ) m.[ren ξ]
   | ELetIn2 e m => ELetIn2 (eren e ξ) m.[upn 2 (ren ξ)]
+  | EFork e m => EFork (eren e ξ) m.[upn 2 (ren ξ)]
   | ESend e => ESend (eren e ξ)
   | ERecv e => ERecv (eren e ξ)
   | EClose e => EClose (eren e ξ)
@@ -254,6 +257,11 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       exact: lte.
       apply: (key_impure G4).
       all: eauto. } }
+  move=>Γ k wf c m e.
+  { destruct c; simpl in e; inv e.
+    exists Γ. exists Γ. exists (L @ 0). exists U.
+    repeat split...
+    move=>//. }
   move=>Γ i k wf c m e.
   { destruct c; simpl in e; inv e.
     exists Γ. exists Γ. exists (U @ i). exists U.
@@ -284,6 +292,28 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     exists Γ. exists Γ. exists (L @ i). exists U.
     repeat split...
     move=>//. }
+  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA _ tyB _ tym ihm tyn ihn wf c m0 e.
+  { destruct c; simpl in e; inv e.
+    { exists Γ. exists [Γ]. exists (Sigma (Ch A) Main L L L). exists L.
+      repeat split...
+      move=>k' Γ3 Γ' n' mrg' tyn'//=.
+      have->//:=merge_pureR mrg' (re_pure _). }
+    { have[wf1 wf2]:=merge_context_ok_inv mrg wf.
+      have{ihm ihn}[G1[G2[B0[t[mrg0[tym0 ih]]]]]]:=ihm wf1 _ _ erefl.
+      have[G3[mrg1 mrg2]]:=merge_splitL mrg (merge_sym mrg0).
+      exists G1. exists G3. exists B0. exists t.
+      repeat split...
+      apply: merge_sym...
+      move=>k' Γ3 Γ' n0 mrg3 tyn0//=.
+      have[G4[mrg4 mrg5]]:=merge_splitL (merge_sym mrg3) mrg1.
+      have{}ih:=ih k' _ _ _ (merge_sym mrg4) tyn0.
+      have[_[e1 e2]]:=merge_re_re mrg0.
+      have[_[e3 e4]]:=merge_re_re mrg4.
+      econstructor.
+      apply: d.
+      apply: mrg5.
+      rewrite<-e3. rewrite e2; eauto.
+      all: eauto. } }
   move=>Γ A B m s tym ihm wf c m0 e.
   { destruct c; simpl in e; inv e.
     { exists Γ. exists [Γ]. exists (Sigma A (Ch B) s L L). exists L.
@@ -342,6 +372,7 @@ Proof.
   move=>m v e ih m0 ξ. by rewrite ih.
   move=> e ih t s m ξ. by rewrite ih.
   move=>m v e ih s m0 ξ. by rewrite ih.
+  move=>e ih t m ξ. by rewrite ih.
   move=>e ih t m ξ. by rewrite ih.
   move=>e ih t m ξ. by rewrite ih.
   move=>e ih m ξ. by rewrite ih.

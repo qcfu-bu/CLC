@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_typing
+  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
   clc_weakening clc_substitution clc_inversion clc_validity
   clc_soundness.
 
@@ -31,12 +31,14 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | Pair m n _ => occurs i m + occurs i n
   | LetIn1 m n => occurs i m + occurs i n
   | LetIn2 m n => occurs i m + occurs i.+2 n
+  | Main => 0
   | Proto _ => 0
   | InpEnd => 0
   | OutEnd => 0
   | Inp A B s => occurs i A + occurs i.+1 B
   | Out A B s => occurs i A + occurs i.+1 B
   | Ch A => occurs i A
+  | Fork m n => occurs i m + occurs i.+2 n
   | Recv ch => occurs i ch
   | Send ch => occurs i ch
   | Close ch => occurs i ch
@@ -177,6 +179,9 @@ Proof with eauto using of_sort, of_sortN_re.
     rewrite ihA...
   move=>Γ A B s i k tyA ihA tyB ihB i0 os//=.
     rewrite ihA...
+  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA ihA tyB ihB tym ihm tyn ihn i0 os//=.
+    have[os1 os2]:=of_sortN_merge_inv mrg os.
+    rewrite ihm...
 Qed.
 
 Theorem linearity Γ m A s i :
@@ -224,6 +229,7 @@ Proof with eauto using of_sort.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     rewrite ihm... erewrite narity...
     rewrite ihn... erewrite narity...
+  move=>Γ k i os. exfalso. apply: of_sortL_impure...
   move=>Γ i k l os. exfalso. apply: of_sortL_impure...
   move=>Γ i k l os. exfalso. apply: of_sortL_impure...
   move=>Γ i k l os. exfalso. apply: of_sortL_impure...
@@ -231,6 +237,10 @@ Proof with eauto using of_sort.
     exfalso. apply: of_sortL_impure...
   move=>Γ A B s i k tyA ihA tyB ihB l os.
     exfalso. apply: of_sortL_impure...
+  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA ihA tyB ihB tym ihm tyn ihn i0 os//=.
+    have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
+    rewrite ihm... erewrite narity...
+    rewrite ihn... erewrite narity...
 Qed.
     
 Definition iren i (ξ : var -> var) := forall x, ~ξ x == i.
@@ -278,6 +288,11 @@ Proof with eauto using iren_upren.
     rewrite ihA...
   move=>A ihA B ihB s i ξ ir; asimpl.
     rewrite ihA...
+  move=>m ihm n ihn i ξ ir; asimpl.
+    rewrite ihm...
+    rewrite ihn...
+    have->:(0 .: 1 .: ξ >>> (+2)) = (upren (upren ξ))
+      by autosubst...
 Qed.
 
 Inductive nsubst : nat -> (var -> term) -> Prop :=
@@ -375,6 +390,13 @@ Proof with eauto using nsubst_up.
     destruct n; destruct n0; try discriminate.
     f_equal... }
   move=>A ihA i σ1 σ2 oc ns1 ns2. f_equal...
+  move=>m ihm n ihn i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i m); remember (occurs i.+2 n).
+    destruct n0; destruct n1; try discriminate.
+    f_equal...
+    replace (upn 2 σ1) with (up (up σ1)) by autosubst.
+    replace (upn 2 σ2) with (up (up σ2)) by autosubst.
+    apply: ihn... }
   move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
   move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
   move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
@@ -493,6 +515,7 @@ Proof.
     have{ihn}[n' en]:=ihn _ e2.
     exists (LetIn2 m' n'); asimpl.
     rewrite em en; asimpl; eauto. }
+  move=>i _. exists Main=>//.
   move=>l i _. exists (Proto l)=>//.
   move=>i _. exists InpEnd=>//.
   move=>i _. exists OutEnd=>//.
@@ -514,6 +537,14 @@ Proof.
     rewrite eA eB; eauto. }
   move=>A ihA i /ihA[A' e].
   { exists (Ch A'). rewrite e; eauto. }
+  move=>m ihm n ihn i.
+  { move e1:(occurs i m)=>n1.
+    move e2:(occurs i.+2 n)=>n2 e.
+    destruct n1; destruct n2; inv e.
+    have{ihm}[m' em]:=ihm _ e1.
+    have{ihn}[n' en]:=ihn _ e2.
+    exists (Fork m' n'); asimpl.
+    rewrite em en; asimpl; eauto. }
   move=>ch ih i /ih[ch' e].
   { exists (Recv ch'). rewrite e; eauto. }
   move=>ch ih i /ih[ch' e].

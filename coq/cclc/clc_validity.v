@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_typing
+  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
   clc_weakening clc_substitution clc_inversion.
 
 Set Implicit Arguments.
@@ -80,12 +80,25 @@ Proof with eauto using clc_type, re_pure, merge_re_id, key.
     by asimpl.
     have:=substitutionN tyC tym.
     by rewrite e2.
+  move=>Γ k wf. exists 1...
   move=>Γ i k o. exists i.+1...
   move=>Γ i k o. exists i...
   move=>Γ i k o. exists i...
   move=>Γ A B s i k tyA ihA tyB ihB o. exists i...
   move=>Γ A B s i k tyA ihA tyB ihB o. exists i...
   move=>Γ A i k tyA ihA o. exists i.+1...
+  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA _ tyB _ _ _ _ _ wf.
+    have[_[e1 e2]]:=merge_re_re mrg.
+    exists i.
+    econstructor; simpl.
+    constructor.
+    apply: re_pure.
+    rewrite<-e1; eauto.
+    apply: clc_conv; simpl.
+    apply: sub_sort.
+    apply: leq0n.
+    constructor...
+    constructor...
   move=>Γ A B m s tym ihm o.
     have[_/ch_inv[_/inp_inv[l[tyA[_ tyB]]]]]:=ihm o.
     exists l.

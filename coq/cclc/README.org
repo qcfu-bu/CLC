@@ -89,6 +89,11 @@ L  L  L
 
 #+BEGIN_SRC
 Γ ▹ U
+————————————————
+Γ ⊢ main :U L@0
+
+
+Γ ▹ U
 ————————————————–——
 Γ ⊢ proto i :U U@i
 
@@ -116,6 +121,12 @@ L  L  L
 Γ ▹ U     Γ ⊢ A :U proto i
 ———————————————————————————
 Γ ⊢ ch A :U L@i
+
+
+[Γ1] ⊢ ch A :U L@i     [Γ2] ⊢ ch B :U L@i    ¬A = B
+Γ1 ⊢ m :L main     Γ2, x :L ch B ⊢ n :s C
+—————————————————————————————————————————————————————
+Γ1 ∘ Γ2 ⊢ fork m n :L ΣL (x :L Ch A :L Main)
 
 
 Γ ⊢ m :L ch !(x :s A).B

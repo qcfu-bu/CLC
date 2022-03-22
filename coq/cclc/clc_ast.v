@@ -21,12 +21,14 @@ Inductive term : Type :=
 | LetIn1 (m n : term)
 | LetIn2 (m : term) (n : {bind 2 of term})
 (* session *)
+| Main
 | Proto  (l : nat)
 | InpEnd
 | OutEnd
 | Inp    (A : term) (B : {bind term}) (s : sort)
 | Out    (A : term) (B : {bind term}) (s : sort)
 | Ch     (A : term)
+| Fork   (m : term) (n : {bind 2 of term})
 | Recv   (ch : term)
 | Send   (ch : term)
 | Close  (ch : term)
@@ -104,6 +106,12 @@ Inductive step : term -> term -> Prop :=
 | step_ch A A' :
   A ~> A' ->
   Ch A ~> Ch A'
+| step_forkL m m' n :
+  m ~> m' ->
+  Fork m n ~> Fork m' n
+| step_forkR m n n' :
+  n ~> n' ->
+  Fork m n ~> Fork m n'
 | step_recv ch ch' :
   ch ~> ch' ->
   Recv ch ~> Recv ch'

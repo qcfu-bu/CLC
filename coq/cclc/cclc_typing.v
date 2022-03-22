@@ -1,8 +1,8 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Program Utf8.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_subtype clc_typing
-  cclc_ast cclc_dual.
+  clc_context clc_ast clc_subtype clc_dual clc_typing
+  cclc_ast.
 
 Set Implicit Arguments.
 Unset Strict Implicit.

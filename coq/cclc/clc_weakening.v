@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_typing.
+  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -192,6 +192,8 @@ Proof with eauto using
         in tyn by autosubst.
     have:=clc_letin2 leq key mrg1 tym tyC tyn.
     by asimpl. }
+  move=>Γ k Γ' ξ agr.
+  { asimpl... }
   move=>Γ i k Γ' ξ agr.
   { asimpl... }
   move=>Γ i k Γ' ξ agr.
@@ -207,6 +209,23 @@ Proof with eauto using
   move=>Γ A i k tyA ihA Γ' ξ agr.
   { asimpl.
     apply: clc_ch... }
+  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA ihA tyB ihB tym ihm tyn ihn Γ' ξ agr.
+  { asimpl.
+    have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_ren_inv agr mrg.
+    have//={}ihA:=ihA _ _ (agree_ren_re_re agr1).
+    have//={}ihB:=ihB _ _ (agree_ren_re_re agr2).
+    have//={}ihm:=ihm _ _ agr1.
+    apply: clc_fork.
+    apply: dual_subst.
+    exact: d.
+    apply: mrg'.
+    exact: ihA.
+    exact: ihB.
+    exact: ihm.
+    apply: ihn.
+    have->:(0 .: 1 .: ξ >>> (+2)) = (upren (upren ξ)) by autosubst.
+    constructor.
+    by constructor. }
   move=>Γ A B m s tym ihm Γ' ξ agr.
   { asimpl.
     apply: clc_recv.
