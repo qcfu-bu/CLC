@@ -126,7 +126,7 @@ L  L  L
 [Γ1] ⊢ ch A :U L@i     [Γ2] ⊢ ch B :U L@i    ¬A = B
 Γ1 ⊢ m :L main     Γ2, x :L ch B ⊢ n :s C
 —————————————————————————————————————————————————————
-Γ1 ∘ Γ2 ⊢ fork m n :L ΣL (x :L Ch A :L Main)
+Γ1 ∘ Γ2 ⊢ fork m n :L ΣL (x :L Ch A :L main)
 
 
 Γ ⊢ m :L ch !(x :s A).B
