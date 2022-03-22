@@ -27,8 +27,12 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | App m n => occurs i m + occurs i n
   | Unit => 0
   | It => 0
+  | Bool => 0
+  | Left => 0
+  | Right => 0
   | Sigma A B _ _ _ => occurs i A + occurs i.+1 B
   | Pair m n _ => occurs i m + occurs i n
+  | Case m n1 n2 => occurs i m + maxn (occurs i n1) (occurs i n2)
   | LetIn1 m n => occurs i m + occurs i n
   | LetIn2 m n => occurs i m + occurs i.+2 n
   | Main => 0
@@ -168,6 +172,11 @@ Proof with eauto using of_sort, of_sortN_re.
     tyS ihS tym ihm tyn ihn x os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg _ ihm _ _ _ ihn1 _ ihn2 x os//=.
+    have[os1 os2]:=of_sortN_merge_inv mrg os.
+    rewrite ihm...
+    rewrite ihn1...
+    rewrite ihn2...
   move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn x os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
@@ -213,13 +222,20 @@ Proof with eauto using of_sort.
     by rewrite ihn.
   move=>Γ k i os. exfalso. apply: of_sortL_impure...
   move=>Γ k i os. exfalso. apply: of_sortL_impure...
+  move=>Γ k i os. exfalso. apply: of_sortL_impure...
+  move=>Γ k i os. exfalso. apply: of_sortL_impure...
+  move=>Γ k i os. exfalso. apply: of_sortL_impure...
   move=>Γ A B s r t i leq k tyA ihA tyB ihB x os//=.
     exfalso. apply: of_sortL_impure...
-  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg 
+  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg
     tyS ihS tym ihm tyn ihn x os//=.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     rewrite ihm... erewrite narity...
     rewrite ihn... erewrite narity...
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg tym ihm _ _ tyn1 ihn1 tyn2 ihn2 x os//=.
+    have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
+    rewrite ihm... have->:=narity tyn1 os2. have->:=narity tyn2 os2...
+    have->:=narity tym os2. rewrite ihn1... rewrite ihn2...
   move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn i os//=.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     rewrite ihm... erewrite narity...
@@ -277,6 +293,10 @@ Proof with eauto using iren_upren.
     rewrite ihA...
   move=>m ihm n ihn t i ξ ir; asimpl.
     rewrite ihm...
+  move=>m ihm n1 ihn1 n2 ihn2 i ξ ir; asimpl.
+    rewrite ihm...
+    rewrite ihn1...
+    rewrite ihn2...
   move=>m ihm n ihn i ξ ir; asimpl.
     rewrite ihm...
   move=>m ihm n ihn i ξ ir; asimpl.
@@ -367,6 +387,11 @@ Proof with eauto using nsubst_up.
   { remember (occurs i m); remember (occurs i n).
     destruct n0; destruct n1; try discriminate.
     f_equal... }
+  move=>n ihm n1 ihn1 n2 ihn2 i σ1 σ2 oc ns1 ns2.
+  { remember (occurs i n); remember (occurs i n1); remember (occurs i n2).
+    destruct n0; destruct n3; destruct n4; try discriminate.
+    f_equal...
+    rewrite maxnSS in oc. inv oc. }
   move=>m ihm n ihn i σ1 σ2 oc ns1 ns2.
   { remember (occurs i m); remember (occurs i n).
     destruct n0; destruct n1; try discriminate.
@@ -477,6 +502,9 @@ Proof.
     rewrite em en; eauto . }
   move=>i _. exists Unit=>//.
   move=>i _. exists It=>//.
+  move=>i _. exists Bool=>//.
+  move=>i _. exists Left=>//.
+  move=>i _. exists Right=>//.
   move=>A ihA B ihB s r t i.
   { move e1:(occurs i A)=>n1.
     move e2:(occurs i.+1 B)=>n2 e.
@@ -493,6 +521,17 @@ Proof.
     have{ihn}[n' en]:=ihn _ e2.
     exists (Pair m' n' t); asimpl.
     rewrite em en; eauto. }
+  move=>m ihm n1 ihn1 n2 ihn2 i.
+  { move e0:(occurs i m)=>x.
+    move e1:(occurs i n1)=>x1.
+    move e2:(occurs i n2)=>x2 e.
+    destruct x; destruct x1; destruct x2; inv e.
+    have{ihm}[m' em]:=ihm _ e0.
+    have{ihn1}[n1' en1]:=ihn1 _ e1.
+    have{ihn2}[n2' en2]:=ihn2 _ e2.
+    exists (Case m' n1' n2'); asimpl.
+    rewrite em en1 en2; eauto.
+    rewrite maxnSS in H0. inv H0. }
   move=>m ihm n ihn i.
   { move e1:(occurs i m)=>n1.
     move e2:(occurs i n)=>n2 e.

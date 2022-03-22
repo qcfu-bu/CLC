@@ -137,6 +137,12 @@ Qed.
 Lemma it_inv Γ1 s : Γ1 ⊢ It : Unit : s -> Γ1 |> U.
 Proof. move=>ty. apply: it_invX; eauto. Qed.
 
+Lemma left_inv Γ A s : Γ ⊢ Left : A : s -> Γ |> U.
+Proof. move e:(Left)=>m tp. elim:tp e=>//{Γ m A s}. Qed.
+
+Lemma right_inv Γ A s : Γ ⊢ Right : A : s -> Γ |> U.
+Proof. move e:(Right)=>m tp. elim:tp e=>//{Γ m A s}. Qed.
+
 Lemma sigma_invX Γ A B s r t C :
   Γ ⊢ Sigma A B s r t : C : U -> exists i, t @ i <: C.
 Proof.
@@ -356,3 +362,4 @@ Proof.
   repeat split; eauto.
   apply: sub_trans; eauto.
 Qed.
+

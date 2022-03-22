@@ -9,17 +9,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma subst_dual A B σ : A ~ B -> A.[σ] ~ B.[σ].
-Proof with eauto using dual.
-  move=>d. elim:d σ=>{A B}.
-  move=>σ...
-  move=>σ...
-  move=>A B1 B2 s d ih σ; asimpl.
-  econstructor...
-  move=>A B1 B2 s d ih σ; asimpl.
-  econstructor...
-Qed.
-
 Lemma esubstitution Γ Δ p σ :
   Γ ⊢ p -> Δ ⊢ σ ⊣ Γ -> Δ ⊢ p.[σ].
 Proof.
@@ -31,7 +20,7 @@ Proof.
     have[G1[G2[mrg1[agr1 agr2]]]]:=merge_agree_subst_inv agr mrg.
     econstructor; eauto.
   move=>Γ p A B i d tyA tyB typ ihp Δ σ agr; asimpl.
-    have d':=subst_dual σ d.
+    have d':=dual_subst σ d.
     econstructor.
     apply: d'.
     have tyA':=esubstitution tyA (agree_subst_re agr).

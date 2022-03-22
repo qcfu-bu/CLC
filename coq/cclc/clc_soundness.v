@@ -87,6 +87,9 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
       exact: tyB. } }
   move=>Γ k n o st. inv st.
   move=>Γ k n o st. inv st.
+  move=>Γ k n o st. inv st.
+  move=>Γ k n o st. inv st.
+  move=>Γ k n o st. inv st.
   move=>Γ A B s r t i mrg k tyA ihA tyB ihB n o st. inv st.
   { move:(ihA _ o H5)=>{ihA}tyA'.
     apply: clc_sigma...
@@ -131,6 +134,50 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     rewrite e5. rewrite<-e2... }
   { move:(ihn _ o2 H3)=>{ihm ihS ihn}tyn'.
     apply:clc_pair... }
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg
+    tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 n wf st.
+  have[wf1 wf2]:=merge_context_ok_inv mrg wf.
+  have{}ihm:=ihm _ wf1.
+  have{}ihn1:=ihn1 _ wf2.
+  have{}ihn2:=ihn2 _ wf2.
+  have/ihA{}ihA:ok [Bool :{s} Γ2].
+  { destruct s; simpl.
+    econstructor.
+    apply: re_ok...
+    apply: clc_bool.
+    apply: re_pure.
+    constructor.
+    apply: re_ok... }
+  have[_[e1 e2]]:=merge_re_re mrg.
+  inv st.
+  { have{}ihm:=ihm _ H3.
+    destruct s; simpl in tyA.
+    have mrg':[Γ2] ∘ Γ1 => [Γ].
+    { replace Γ1 with [Γ1].
+      apply: merge_re3. apply: merge_sym...
+      rewrite<-pure_re... }
+    have tymA:=substitution tyA k mrg' tym.
+    apply: clc_conv.
+    apply: conv_sub.
+    apply: conv_beta.
+    apply: conv1i...
+    apply: clc_case...
+    apply: tymA.
+    have tymA:=substitutionN tyA tym.
+    apply: clc_conv.
+    apply: conv_sub.
+    apply: conv_beta.
+    apply: conv1i...
+    apply: clc_case...
+    rewrite<-e2... }
+  { have{}ihn1:=ihn1 _ H3.
+    apply: clc_case... }
+  { have{}ihn2:=ihn2 _ H3.
+    apply: clc_case... }
+  { have k1:=left_inv tym.
+    have->//:=merge_pureL mrg k1. }
+  { have k1:=right_inv tym.
+    have->//:=merge_pureL mrg k1. }
   move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn n0 o st.
   move:(merge_context_ok_inv mrg o)=>[o1 o2]. inv st.
   { move:(ihm _ o1 H2)=>tym'.

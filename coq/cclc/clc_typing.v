@@ -39,6 +39,15 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
 | clc_it Γ :
   Γ |> U ->
   Γ ⊢ It : Unit : U
+| clc_bool Γ :
+  Γ |> U ->
+  Γ ⊢ Bool : U @ 0 : U
+| clc_left Γ :
+  Γ |> U ->
+  Γ ⊢ Left : Bool : U
+| clc_right Γ :
+  Γ |> U ->
+  Γ ⊢ Right : Bool : U
 | clc_sigma Γ A B s r t i :
   s ⋅ r ≤ t ->
   Γ |> U ->
@@ -53,6 +62,14 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   Γ1 ⊢ m : A : s ->
   Γ2 ⊢ n : B.[m/] : r ->
   Γ ⊢ Pair m n t : Sigma A B s r t : t
+| clc_case Γ1 Γ2 Γ m n1 n2 A s t i :
+  Γ1 |> s ->
+  Γ1 ∘ Γ2 => Γ ->
+  Γ1 ⊢ m : Bool : U ->
+  [Bool :{s} Γ2] ⊢ A : t @ i : U ->
+  Γ2 ⊢ n1 : A.[Left/] : t ->
+  Γ2 ⊢ n2 : A.[Right/] : t ->
+  Γ ⊢ Case m n1 n2 : A.[m/] : t
 | clc_letin1 Γ1 Γ2 Γ m n A s :
   Γ1 ∘ Γ2 => Γ ->
   Γ1 ⊢ m : Unit : U ->

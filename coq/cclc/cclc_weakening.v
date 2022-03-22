@@ -8,17 +8,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma rename_dual A B ξ : A ~ B -> A.[ren ξ] ~ B.[ren ξ].
-Proof with eauto using dual.
-  move=>d. elim:d ξ=>{A B}.
-  move=>ξ...
-  move=>ξ...
-  move=>A B1 B2 s d ih ξ; asimpl.
-  econstructor...
-  move=>A B1 B2 s d ih ξ; asimpl.
-  econstructor...
-Qed.
-
 Lemma rename_ok Γ Γ' p ξ :
   Γ ⊢ p -> agree_ren ξ Γ Γ' -> Γ' ⊢ p.[ren ξ].
 Proof.

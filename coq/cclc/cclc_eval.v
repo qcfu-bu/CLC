@@ -27,6 +27,7 @@ Inductive eval_context :=
 | EAppR m : value m -> eval_context -> eval_context
 | EPairL : eval_context -> term -> sort -> eval_context
 | EPairR m : value m -> eval_context -> sort -> eval_context
+| ECase : eval_context -> term -> term -> eval_context
 | ELetIn1 : eval_context -> term -> eval_context
 | ELetIn2 : eval_context -> term -> eval_context
 | EFork : eval_context -> term -> eval_context
@@ -47,6 +48,7 @@ Fixpoint plug (e : eval_context) (t : term) : term :=
   | EAppR m _ e => App m (plug e t)
   | EPairL e m s => Pair (plug e t) m s
   | EPairR m _ e s => Pair m (plug e t) s
+  | ECase e n1 n2 => Case (plug e t) n1 n2
   | ELetIn1 e m => LetIn1 (plug e t) m
   | ELetIn2 e m => LetIn2 (plug e t) m
   | EFork e m => Fork (plug e t) m
@@ -72,6 +74,7 @@ Fixpoint eren (e : eval_context) (ξ : var -> var) : eval_context :=
   | EAppR m v e => EAppR (value_ren ξ v) (eren e ξ)
   | EPairL e m s => EPairL (eren e ξ) m.[ren ξ] s
   | EPairR m v e s => EPairR (value_ren ξ v) (eren e ξ) s
+  | ECase e n1 n2 => ECase (eren e ξ) n1.[ren ξ] n2.[ren ξ]
   | ELetIn1 e m => ELetIn1 (eren e ξ) m.[ren ξ]
   | ELetIn2 e m => ELetIn2 (eren e ξ) m.[upn 2 (ren ξ)]
   | EFork e m => EFork (eren e ξ) m.[ren ξ]
@@ -162,6 +165,21 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     exists Γ. exists Γ. exists Unit. exists U.
     repeat split...
     move=>//. }
+  move=>Γ k wf c m e.
+  { destruct c; simpl in e; inv e.
+    exists Γ. exists Γ. exists (U @ 0). exists U.
+    repeat split...
+    move=>//. }
+  move=>Γ k wf c m e.
+  { destruct c; simpl in e; inv e.
+    exists Γ. exists Γ. exists Bool. exists U.
+    repeat split...
+    move=>//. }
+  move=>Γ k wf c m e.
+  { destruct c; simpl in e; inv e.
+    exists Γ. exists Γ. exists Bool. exists U.
+    repeat split...
+    move=>//. }
   move=>Γ A B s r t i lte k tyA _ tyB _ wf c m e.
   { destruct c; simpl in e; inv e.
     exists Γ. exists Γ. exists (t @ i). exists U.
@@ -214,6 +232,30 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       apply: (key_impure G4).
       apply: merge_sym...
       rewrite<-e2. rewrite e3...
+      all: eauto. } }
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg tym ihm tyA _ tyn1 _ tyn2 _ wf c m0 e.
+  { destruct c; simpl in e; inv e.
+    { exists Γ. exists [Γ]. exists A.[m/]. exists t.
+      repeat split...
+      move=>k' Γ3 Γ' m0 mrg0 tym0//=.
+      have->//:=merge_pureR mrg0 (re_pure _). }
+    { have[wf1 wf2]:=merge_context_ok_inv mrg wf.
+      have{ihm}[G1[G2[B0[t0[mrg0[tym0 ih]]]]]]:=ihm wf1 _ _ erefl.
+      have[G3[mrg1 mrg2]]:=merge_splitL mrg (merge_sym mrg0).
+      exists G1. exists G3. exists B0. exists t0.
+      repeat split...
+      apply: merge_sym...
+      move=>k' Γ3 Γ' n0 mrg3 tyn0//=.
+      have[G4[mrg4 mrg5]]:=merge_splitL (merge_sym mrg3) mrg1.
+      have{}ih:=ih k' _ _ _ (merge_sym mrg4) tyn0.
+      destruct s.
+      have[]//:=merge_pure_inv mrg0 k.
+      simpl in tyA.
+      have os:of_sort (_: [Γ2]) 0 None by constructor.
+      have oc:=narity tyA os.
+      have->:=nsubst_subst c.[m0] c.[n0] oc.
+      econstructor.
+      apply: (key_impure G4).
       all: eauto. } }
   move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn _ wf c m0 e.
   { destruct c; simpl in e; inv e. 
@@ -372,6 +414,7 @@ Proof.
   move=>m v e ih m0 ξ. by rewrite ih.
   move=> e ih t s m ξ. by rewrite ih.
   move=>m v e ih s m0 ξ. by rewrite ih.
+  move=>e ih t1 t2 m ξ. by rewrite ih.
   move=>e ih t m ξ. by rewrite ih.
   move=>e ih t m ξ. by rewrite ih.
   move=>e ih t m ξ. by rewrite ih.

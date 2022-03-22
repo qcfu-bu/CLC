@@ -41,3 +41,8 @@ Lemma dual_subst A B σ : A ~ B -> A.[σ] ~ B.[σ].
 Proof with eauto using dual.
   move=>d. elim: d σ=>{A B}...
 Qed.
+
+Lemma rename_dual A B ξ : A ~ B -> A.[ren ξ] ~ B.[ren ξ].
+Proof with eauto using dual.
+  apply: dual_subst.
+Qed.

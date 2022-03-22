@@ -210,6 +210,12 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
   { apply: clc_unit... }
   move=>Γ k Δ σ agr. asimpl.
   { apply: clc_it... }
+  move=>Γ k Δ σ agr. asimpl.
+  { apply: clc_bool... }
+  move=>Γ k Δ σ agr. asimpl.
+  { apply: clc_left... }
+  move=>Γ k Δ σ agr. asimpl.
+  { apply: clc_right... }
   move=>Γ A B s r t i mrg k tyA ihA tyB ihB Δ σ agr. asimpl.
   { apply: clc_sigma... }
   move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg 
@@ -220,6 +226,23 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     apply: clc_pair...
     move:(ihn _ _ agr2).
     by asimpl. }
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 Δ σ agr. asimpl.
+  { have{agr mrg}[G1[G2[mrg[agr1 agr2]]]]:=merge_agree_subst_inv agr mrg.
+    have{}ihm:=ihm _ _ agr1.
+    have{}ihn1:=ihn1 _ _ agr2. asimpl in ihn1.
+    have{}ihn2:=ihn2 _ _ agr2. asimpl in ihn2.
+    have/ihA{}ihA:[Bool :{s} G2] ⊢ up σ ⊣ [Bool :{s} Γ2].
+    { destruct s; simpl.
+      replace (Bool :U [G2] ⊢ up σ ⊣ Bool :U [Γ2])
+        with (Bool.[σ] :U [G2] ⊢ up σ ⊣ Bool :U [Γ2]) by autosubst.
+      constructor...
+      constructor... }
+    asimpl in ihA.
+    replace A.[m.[σ] .: σ] with A.[up σ].[m.[σ]/] by autosubst.
+    have{}k:=agree_subst_key agr1 k.
+    apply: clc_case...
+    asimpl...
+    asimpl... }
   move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn Δ σ agr. asimpl.
   { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
     apply: clc_letin1... }
