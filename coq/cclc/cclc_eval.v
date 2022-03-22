@@ -74,7 +74,7 @@ Fixpoint eren (e : eval_context) (ξ : var -> var) : eval_context :=
   | EPairR m v e s => EPairR (value_ren ξ v) (eren e ξ) s
   | ELetIn1 e m => ELetIn1 (eren e ξ) m.[ren ξ]
   | ELetIn2 e m => ELetIn2 (eren e ξ) m.[upn 2 (ren ξ)]
-  | EFork e m => EFork (eren e ξ) m.[upn 2 (ren ξ)]
+  | EFork e m => EFork (eren e ξ) m.[ren ξ]
   | ESend e => ESend (eren e ξ)
   | ERecv e => ERecv (eren e ξ)
   | EClose e => EClose (eren e ξ)
@@ -292,16 +292,16 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     exists Γ. exists Γ. exists (L @ i). exists U.
     repeat split...
     move=>//. }
-  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA _ tyB _ tym ihm tyn ihn wf c m0 e.
+  move=>Γ1 Γ2 Γ m n A B C s t i d mrg tyA _ tyB _ tym ihm tyn ihn wf c m0 e.
   { destruct c; simpl in e; inv e.
     { exists Γ. exists [Γ]. exists (Sigma (Ch A) Main L L L). exists L.
       repeat split...
       move=>k' Γ3 Γ' n' mrg' tyn'//=.
       have->//:=merge_pureR mrg' (re_pure _). }
     { have[wf1 wf2]:=merge_context_ok_inv mrg wf.
-      have{ihm ihn}[G1[G2[B0[t[mrg0[tym0 ih]]]]]]:=ihm wf1 _ _ erefl.
+      have{ihm ihn}[G1[G2[B0[t0[mrg0[tym0 ih]]]]]]:=ihm wf1 _ _ erefl.
       have[G3[mrg1 mrg2]]:=merge_splitL mrg (merge_sym mrg0).
-      exists G1. exists G3. exists B0. exists t.
+      exists G1. exists G3. exists B0. exists t0.
       repeat split...
       apply: merge_sym...
       move=>k' Γ3 Γ' n0 mrg3 tyn0//=.

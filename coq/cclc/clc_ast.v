@@ -28,7 +28,7 @@ Inductive term : Type :=
 | Inp    (A : term) (B : {bind term}) (s : sort)
 | Out    (A : term) (B : {bind term}) (s : sort)
 | Ch     (A : term)
-| Fork   (m : term) (n : {bind 2 of term})
+| Fork   (m n : term)
 | Recv   (ch : term)
 | Send   (ch : term)
 | Close  (ch : term)

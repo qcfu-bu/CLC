@@ -38,7 +38,7 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | Inp A B s => occurs i A + occurs i.+1 B
   | Out A B s => occurs i A + occurs i.+1 B
   | Ch A => occurs i A
-  | Fork m n => occurs i m + occurs i.+2 n
+  | Fork m n => occurs i m + occurs i n
   | Recv ch => occurs i ch
   | Send ch => occurs i ch
   | Close ch => occurs i ch
@@ -179,7 +179,7 @@ Proof with eauto using of_sort, of_sortN_re.
     rewrite ihA...
   move=>Γ A B s i k tyA ihA tyB ihB i0 os//=.
     rewrite ihA...
-  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA ihA tyB ihB tym ihm tyn ihn i0 os//=.
+  move=>Γ1 Γ2 Γ m n A B C s t i d mrg tyA ihA tyB ihB tym ihm tyn ihn i0 os//=.
     have[os1 os2]:=of_sortN_merge_inv mrg os.
     rewrite ihm...
 Qed.
@@ -237,7 +237,7 @@ Proof with eauto using of_sort.
     exfalso. apply: of_sortL_impure...
   move=>Γ A B s i k tyA ihA tyB ihB l os.
     exfalso. apply: of_sortL_impure...
-  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA ihA tyB ihB tym ihm tyn ihn i0 os//=.
+  move=>Γ1 Γ2 Γ m n A B C s t i d mrg tyA ihA tyB ihB tym ihm tyn ihn i0 os//=.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     rewrite ihm... erewrite narity...
     rewrite ihn... erewrite narity...
@@ -290,9 +290,6 @@ Proof with eauto using iren_upren.
     rewrite ihA...
   move=>m ihm n ihn i ξ ir; asimpl.
     rewrite ihm...
-    rewrite ihn...
-    have->:(0 .: 1 .: ξ >>> (+2)) = (upren (upren ξ))
-      by autosubst...
 Qed.
 
 Inductive nsubst : nat -> (var -> term) -> Prop :=
@@ -391,12 +388,9 @@ Proof with eauto using nsubst_up.
     f_equal... }
   move=>A ihA i σ1 σ2 oc ns1 ns2. f_equal...
   move=>m ihm n ihn i σ1 σ2 oc ns1 ns2.
-  { remember (occurs i m); remember (occurs i.+2 n).
+  { remember (occurs i m); remember (occurs i n).
     destruct n0; destruct n1; try discriminate.
-    f_equal...
-    replace (upn 2 σ1) with (up (up σ1)) by autosubst.
-    replace (upn 2 σ2) with (up (up σ2)) by autosubst.
-    apply: ihn... }
+    f_equal... }
   move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
   move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
   move=>ch ihc i σ1 σ2 oc ns1 ns2. f_equal...
@@ -539,7 +533,7 @@ Proof.
   { exists (Ch A'). rewrite e; eauto. }
   move=>m ihm n ihn i.
   { move e1:(occurs i m)=>n1.
-    move e2:(occurs i.+2 n)=>n2 e.
+    move e2:(occurs i n)=>n2 e.
     destruct n1; destruct n2; inv e.
     have{ihm}[m' em]:=ihm _ e1.
     have{ihn}[n' en]:=ihn _ e2.

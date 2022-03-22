@@ -92,13 +92,13 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   Γ |> U ->
   Γ ⊢ A : Proto i : U ->
   Γ ⊢ Ch A : L @ i : U
-| clc_fork Γ1 Γ2 Γ m n A B C s i :
+| clc_fork Γ1 Γ2 Γ m n A B C s t i :
   A ~ B ->
   Γ1 ∘ Γ2 => Γ ->
   [Γ1] ⊢ Ch A : L @ i : U ->
   [Γ2] ⊢ Ch B : L @ i : U ->
   Γ1 ⊢ m : Main : L ->
-  _: Ch B :L Γ2 ⊢ n : C : s ->
+  Γ2 ⊢ n : Pi (Ch B) C L s t : t ->
   Γ ⊢ Fork m n : Sigma (Ch A) Main L L L : L
 | clc_recv Γ A B m s :
   Γ ⊢ m : Ch (Inp A B s) : L ->

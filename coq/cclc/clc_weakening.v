@@ -209,7 +209,7 @@ Proof with eauto using
   move=>Γ A i k tyA ihA Γ' ξ agr.
   { asimpl.
     apply: clc_ch... }
-  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA ihA tyB ihB tym ihm tyn ihn Γ' ξ agr.
+  move=>Γ1 Γ2 Γ m n A B C s t i d mrg tyA ihA tyB ihB tym ihm tyn ihn Γ' ξ agr.
   { asimpl.
     have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_ren_inv agr mrg.
     have//={}ihA:=ihA _ _ (agree_ren_re_re agr1).
@@ -222,10 +222,7 @@ Proof with eauto using
     exact: ihA.
     exact: ihB.
     exact: ihm.
-    apply: ihn.
-    have->:(0 .: 1 .: ξ >>> (+2)) = (upren (upren ξ)) by autosubst.
-    constructor.
-    by constructor. }
+    apply: ihn... }
   move=>Γ A B m s tym ihm Γ' ξ agr.
   { asimpl.
     apply: clc_recv.

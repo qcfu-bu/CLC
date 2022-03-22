@@ -269,7 +269,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
   move=>Γ A i k tyA ihA Δ σ agr.
   { asimpl.
     apply: clc_ch... }
-  move=>Γ1 Γ2 Γ m n A B C s i sb mrg tyA ihA tyB ihB tym ihm tyn ihn Δ σ agr.
+  move=>Γ1 Γ2 Γ m n A B C s t i sb mrg tyA ihA tyB ihB tym ihm tyn ihn Δ σ agr.
   { asimpl.
     have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_subst_inv agr mrg.
     have//={}ihA:=ihA _ _ (agree_subst_re agr1).
@@ -282,10 +282,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     exact: ihA.
     exact: ihB.
     exact: ihm.
-    apply: ihn.
-    constructor.
-    replace (Ch B.[σ]) with (Ch B).[σ] by autosubst.
-    by constructor. }
+    apply: ihn... }
   move=>Γ A B m s tym ihm Δ σ agr.
   { asimpl.
     apply: clc_recv... }

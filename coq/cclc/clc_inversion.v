@@ -271,26 +271,26 @@ Proof.
   by exists i.
 Qed.
 
-Lemma fork_inv Γ m n T t :
-  Γ ⊢ Fork m n : T : t ->
-  exists Γ1 Γ2 A B C s i,
-    t = L /\
+Lemma fork_inv Γ m n T r :
+  Γ ⊢ Fork m n : T : r ->
+  exists Γ1 Γ2 A B C s t i,
+    r = L /\
     Sigma (Ch A) Main L L L <: T /\
     A ~ B /\
     Γ1 ∘ Γ2 => Γ /\
     [Γ1] ⊢ Ch A : L @ i : U /\
     [Γ2] ⊢ Ch B : L @ i : U /\
     Γ1 ⊢ m : Main : L /\
-    _: Ch B :L Γ2 ⊢ n : C : s.
+    Γ2 ⊢ n : Pi (Ch B) C L s t : t.
 Proof.
-  move e:(Fork m n)=>x tp. elim: tp m n e=>//{Γ x T t}.
-  move=>Γ1 Γ2 Γ m n A B C s i d mrg tyA _ tyB _ tym _ tyn _ m0 n0 [e1 e2]; subst.
-  exists Γ1. exists Γ2. exists A. exists B. exists C. exists s. exists i.
+  move e:(Fork m n)=>x tp. elim: tp m n e=>//{Γ x T r}.
+  move=>Γ1 Γ2 Γ m n A B C s t i d mrg tyA _ tyB _ tym _ tyn _ m0 n0 [e1 e2]; subst.
+  exists Γ1. exists Γ2. exists A. exists B. exists C. exists s. exists t. exists i.
   repeat split; eauto.
   move=>Γ A B m s i sb tym ih tyB _ m0 n e; subst.
-  have{ih}[G1[G2[Ax[Bx[Cx[s0[i0 e]]]]]]]:=ih _ _ erefl.
+  have{ih}[G1[G2[Ax[Bx[Cx[s0[t0[i0 e]]]]]]]]:=ih _ _ erefl.
   firstorder; subst.
-  exists G1. exists G2. exists Ax. exists Bx. exists Cx. exists s0. exists i0.
+  exists G1. exists G2. exists Ax. exists Bx. exists Cx. exists s0. exists t0. exists i0.
   repeat split; eauto.
   apply: sub_trans; eauto.
 Qed.

@@ -120,7 +120,7 @@ Theorem subject_step Γ p q :
   ok Γ -> Γ ⊢ p -> p --> q -> Γ ⊢ q.
 Proof.
   move=>wf ty st. elim: st Γ ty wf=>{p q}.
-  move=>c c' m e Γ ty wf.
+  move=>c c' m m' e1 e2 Γ ty wf; subst.
   { inv ty.
     have{}H1:=clc_weakening.weakeningN H1.
     have{}H1:=clc_weakening.weakeningN H1.
@@ -135,7 +135,8 @@ Proof.
     have {}tyF:=clc_substitution.strengthen tyF.
     have[_[B[_ e]]]:=narity_ren1 wf0 tyF; subst.
     have {}tyF:=clc_substitution.strengthen tyF.
-    have[G1[G2[A0[B0[C[s0[i[e[sb0[d[mrg[tyA[tyB[tyv tym]]]]]]]]]]]]]]:=fork_inv tyF; subst.
+    have[G1[G2[A0[B0[C[s0[t0[i[e[sb0[d[mrg[tyA[tyB[tyv tym]]]]]]]]]]]]]]]:=
+      fork_inv tyF; subst.
     have[A1[s1[hs[sb1 e]]]]:=var_inv tyv; subst.
     inv hs.
     have/h{}h:~_: _: Γ0 |> U.
@@ -193,6 +194,22 @@ Proof.
       have{}tyB':=clc_weakening.weakeningN tyB'.
       have{}tyB':=clc_weakening.weakeningN tyB'.
       asimpl in tyB'. rewrite e1; eauto. }
+    have{}tym:=clc_weakening.weakeningN tym.
+    have{}tym:=clc_weakening.weakeningN tym.
+    asimpl in tym.
+    have tyv1:_: Ch B'.[ren (+1)] :L _: [Γ4] ⊢ Var 1 : Ch B'.[ren (+3)] : L.
+    { replace (Var 1) with (Var 0).[ren (+1)] by autosubst.
+      replace (Ch B'.[ren (+3)])
+        with (Ch B').[ren (+1)].[ren (+1)].[ren (+1)] by autosubst.
+      apply: clc_weakening.weakeningN.
+      constructor.
+      repeat constructor. apply: re_pure. }
+    have mrg:
+      _: _: _: Γ4 ∘ _: Ch B'.[ren (+1)] :L _: [Γ4] =>
+      _: Ch B'.[ren (+1)] :L _: Γ4.
+    { repeat constructor. apply: merge_reR. }
+    have k: _: Ch B'.[ren (+1)] :L _: [Γ4] |> L by apply key_impure.
+    have tyApp:=clc_app k mrg tym tyv1. asimpl in tyApp.
     have[_[e1 e4]]:=merge_re_re H5.
     have[_[e5 e2]]:=merge_re_re H6.
     econstructor; simpl.
@@ -200,14 +217,14 @@ Proof.
     rewrite<-e5. rewrite<-e1; eauto.
     rewrite<-e5. rewrite<-e4; eauto.
     asimpl.
-    have mrg:
+    have {}mrg:
       Ch A'.[ren (+2)] :L _: A2 :L G ∘ _: Ch B'.[ren (+1)] :L _: Γ4 =>
       Ch A'.[ren (+2)] :L Ch B'.[ren (+1)] :L A2 :L Γ6.
     { repeat constructor; eauto. }
     econstructor.
     apply: mrg.
     econstructor. apply: h.
-    econstructor. apply: tym. }
+    econstructor. apply: tyApp. }
   move=>c d v Γ ty wf.
   { inv ty. inv H4. inv H5; inv H6.
     { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
