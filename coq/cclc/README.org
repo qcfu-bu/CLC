@@ -80,7 +80,7 @@ L  L  L
 
 Γ1 ⊢ m :t Σt (x :s A :r B)     Γ1 ▹ k     t ≤ k
 [Γ2, z :k Σt (x :s A :r B)] ⊢ C :U q@i
-Γ2, x :s A, y :r B ⊢ n :q C[⟨x, y⟩/z]
+Γ2, x :s A, y :r B ⊢ n :q C[⟨x, y⟩t/z]
 ————————————————————————————————————————————————
 Γ1 ∘ Γ2 ⊢ let ⟨x, y⟩ = m in n :q C[m/z]
 #+END_SRC
