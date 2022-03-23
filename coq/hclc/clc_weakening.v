@@ -170,7 +170,7 @@ Proof with eauto using
     have//={}ihn1:=ihn1 _ _ agr2. asimpl in ihn1.
     have//={}ihn2:=ihn2 _ _ agr2. asimpl in ihn2.
     replace A.[m.[ren ξ] .: ren ξ] with A.[up (ren ξ)].[m.[ren ξ]/] by autosubst.
-    have/ihA{}ihA:agree_ren (upren ξ) [Bool :{s} Γ2] [Bool :{s} G2].
+    have/ihA{}ihA:agree_ren (upren ξ) [Either :{s} Γ2] [Either :{s} G2].
     { destruct s; simpl; constructor... }
     asimpl in ihA.
     have{}k:=agree_ren_key agr1 k.

@@ -34,9 +34,9 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
 | eval_it Θ l :
   l = length Θ ->
   eval Θ It (It :U Θ) (Ptr l)
-| eval_bool Θ l :
+| eval_either Θ l :
   l = length Θ ->
-  eval Θ Bool (Bool :U Θ) (Ptr l)
+  eval Θ Either (Either :U Θ) (Ptr l)
 | eval_left Θ l :
   l = length Θ ->
   eval Θ Left (Left :U Θ) (Ptr l)
@@ -990,9 +990,9 @@ Proof with eauto 6 using
   move=>Γ k Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
   { inv rsm; inv ev.
     have[<-_]:=merge_length mrg.
-    exists (Bool :U Θ1).
-    exists (Bool :U Θ2).
-    exists Bool.
+    exists (Either :U Θ1).
+    exists (Either :U Θ2).
+    exists Either.
     repeat split...
     constructor... }
   move=>Γ k Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.

@@ -140,11 +140,11 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
   have{}ihm:=ihm _ wf1.
   have{}ihn1:=ihn1 _ wf2.
   have{}ihn2:=ihn2 _ wf2.
-  have/ihA{}ihA:ok [Bool :{s} Γ2].
+  have/ihA{}ihA:ok [Either :{s} Γ2].
   { destruct s; simpl.
     econstructor.
     apply: re_ok...
-    apply: clc_bool.
+    apply: clc_either.
     apply: re_pure.
     constructor.
     apply: re_ok... }

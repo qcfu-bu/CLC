@@ -32,8 +32,8 @@ Inductive pstep : term -> term -> Prop :=
   pstep Unit Unit
 | pstep_it :
   pstep It It
-| pstep_bool :
-  pstep Bool Bool
+| pstep_either :
+  pstep Either Either
 | pstep_left :
   pstep Left Left
 | pstep_right :
@@ -449,7 +449,7 @@ Proof with eauto 6 using
     exists (Pi Ax Bx s r t)...
   move=>m2 p. inv p. exists Unit...
   move=>m2 p. inv p. exists It...
-  move=>m2 p. inv p. exists Bool...
+  move=>m2 p. inv p. exists Either...
   move=>m2 p. inv p. exists Left...
   move=>m2 p. inv p. exists Right...
   move=>A A' B B' s r t pA ihA pB ihB m2 p.
@@ -608,7 +608,7 @@ Proof. elim=>//y z r->p. inv p. Qed.
 Lemma red_it_inv m : It ~>* m -> m = It. 
 Proof. elim=>//y z r->p. inv p. Qed.
 
-Lemma red_bool_inv m : Bool ~>* m -> m = Bool.
+Lemma red_either_inv m : Either ~>* m -> m = Either.
 Proof. elim=>//y z r->p. inv p. Qed.
 
 Lemma red_left_inv m : Left ~>* m -> m = Left.
@@ -685,17 +685,17 @@ Qed.
 
 Ltac red_inv m H :=
   match m with
-  | Var   => apply red_var_inv in H
-  | Sort  => apply red_sort_inv in H
-  | Pi    => apply red_pi_inv in H
-  | Lam   => apply red_lam_inv in H
-  | Unit  => apply red_unit_inv in H
-  | It    => apply red_it_inv in H
-  | Bool  => apply red_bool_inv in H
-  | Left  => apply red_left_inv in H
-  | Right => apply red_right_inv in H
-  | Sigma => apply red_sigma_inv in H
-  | Pair  => apply red_pair_inv in H
+  | Var    => apply red_var_inv in H
+  | Sort   => apply red_sort_inv in H
+  | Pi     => apply red_pi_inv in H
+  | Lam    => apply red_lam_inv in H
+  | Unit   => apply red_unit_inv in H
+  | It     => apply red_it_inv in H
+  | Either => apply red_either_inv in H
+  | Left   => apply red_left_inv in H
+  | Right  => apply red_right_inv in H
+  | Sigma  => apply red_sigma_inv in H
+  | Pair   => apply red_pair_inv in H
   end.
 
 Ltac solve_conv' :=
@@ -705,12 +705,12 @@ Ltac solve_conv' :=
     apply church_rosser in H; inv H
   end;
   repeat match goal with
-  | [ H : red (?m _) _ |- _ ] => red_inv m H
-  | [ H : red (?m _ _) _ |- _ ] => red_inv m H
-  | [ H : red (?m _ _ _) _ |- _ ] => red_inv m H
-  | [ H : red (?m _ _ _ _) _ |- _ ] => red_inv m H
+  | [ H : red (?m _) _ |- _ ]         => red_inv m H
+  | [ H : red (?m _ _) _ |- _ ]       => red_inv m H
+  | [ H : red (?m _ _ _) _ |- _ ]     => red_inv m H
+  | [ H : red (?m _ _ _ _) _ |- _ ]   => red_inv m H
   | [ H : red (?m _ _ _ _ _) _ |- _ ] => red_inv m H
-  | [ H : red ?m _ |- _ ] => red_inv m H
+  | [ H : red ?m _ |- _ ]             => red_inv m H
   end;
   firstorder; subst;
   match goal with

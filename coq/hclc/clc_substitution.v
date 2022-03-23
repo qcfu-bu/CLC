@@ -211,7 +211,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
   move=>Γ k Δ σ agr. asimpl.
   { apply: clc_it... }
   move=>Γ k Δ σ agr. asimpl.
-  { apply: clc_bool... }
+  { apply: clc_either... }
   move=>Γ k Δ σ agr. asimpl.
   { apply: clc_left... }
   move=>Γ k Δ σ agr. asimpl.
@@ -231,10 +231,10 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     have{}ihm:=ihm _ _ agr1.
     have{}ihn1:=ihn1 _ _ agr2. asimpl in ihn1.
     have{}ihn2:=ihn2 _ _ agr2. asimpl in ihn2.
-    have/ihA{}ihA:[Bool :{s} G2] ⊢ up σ ⊣ [Bool :{s} Γ2].
+    have/ihA{}ihA:[Either :{s} G2] ⊢ up σ ⊣ [Either :{s} Γ2].
     { destruct s; simpl.
-      replace (Bool :U [G2] ⊢ up σ ⊣ Bool :U [Γ2])
-        with (Bool.[σ] :U [G2] ⊢ up σ ⊣ Bool :U [Γ2]) by autosubst.
+      replace (Either :U [G2] ⊢ up σ ⊣ Either :U [Γ2])
+        with (Either.[σ] :U [G2] ⊢ up σ ⊣ Either :U [Γ2]) by autosubst.
       constructor...
       constructor... }
     asimpl in ihA.

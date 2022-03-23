@@ -172,12 +172,12 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     move=>//. }
   move=>Γ k wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists Bool. exists U.
+    exists Γ. exists Γ. exists Either. exists U.
     repeat split...
     move=>//. }
   move=>Γ k wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists Bool. exists U.
+    exists Γ. exists Γ. exists Either. exists U.
     repeat split...
     move=>//. }
   move=>Γ A B s r t i lte k tyA _ tyB _ wf c m e.

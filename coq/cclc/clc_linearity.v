@@ -27,7 +27,7 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | App m n => occurs i m + occurs i n
   | Unit => 0
   | It => 0
-  | Bool => 0
+  | Either => 0
   | Left => 0
   | Right => 0
   | Sigma A B _ _ _ => occurs i A + occurs i.+1 B
@@ -502,7 +502,7 @@ Proof.
     rewrite em en; eauto . }
   move=>i _. exists Unit=>//.
   move=>i _. exists It=>//.
-  move=>i _. exists Bool=>//.
+  move=>i _. exists Either=>//.
   move=>i _. exists Left=>//.
   move=>i _. exists Right=>//.
   move=>A ihA B ihB s r t i.

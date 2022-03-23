@@ -224,7 +224,7 @@ Lemma case_inv Γ m n1 n2 C s :
   exists Γ1 Γ2 A,
     Γ1 ∘ Γ2 => Γ /\
     A.[m/] <: C /\
-    Γ1 ⊢ m : Bool : U /\
+    Γ1 ⊢ m : Either : U /\
     Γ2 ⊢ n1 : A.[Left/] : s /\
     Γ2 ⊢ n2 : A.[Right/] : s.
 Proof.

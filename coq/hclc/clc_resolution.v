@@ -20,8 +20,8 @@ Inductive value : term -> Prop :=
   value Unit
 | value_it :
   value It
-| value_bool :
-  value Bool
+| value_either :
+  value Either
 | value_left :
   value Left
 | value_right :
@@ -79,9 +79,9 @@ Inductive resolve : context term -> term -> term -> Prop :=
 | resolve_it Θ : 
   Θ |> U ->
   resolve Θ It It
-| resolve_bool Θ :
+| resolve_either Θ :
   Θ |> U ->
-  resolve Θ Bool Bool
+  resolve Θ Either Either
 | resolve_left Θ :
   Θ |> U ->
   resolve Θ Left Left
@@ -140,8 +140,8 @@ Inductive resolved : term -> Prop :=
   resolved Unit
 | resolved_it :
   resolved It
-| resolved_bool :
-  resolved Bool
+| resolved_either :
+  resolved Either
 | resolved_left :
   resolved Left
 | resolved_right :
@@ -526,8 +526,8 @@ Inductive nf : nat -> term -> Prop :=
   nf i Unit
 | nf_it i :
   nf i It
-| nf_bool i :
-  nf i Bool
+| nf_either i :
+  nf i Either
 | nf_left i :
   nf i Left
 | nf_right i :
@@ -577,9 +577,9 @@ Inductive wr_env : context term -> Prop :=
 | wr_it Θ :
   wr_env Θ ->
   wr_env (It :U Θ)
-| wr_bool Θ :
+| wr_either Θ :
   wr_env Θ ->
-  wr_env (Bool :U Θ)
+  wr_env (Either :U Θ)
 | wr_left Θ :
   wr_env Θ ->
   wr_env (Left :U Θ)
@@ -822,9 +822,9 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_bool Θ Θ' l : free Θ l Bool Θ' -> wr_env Θ -> Θ = Θ'.
+Lemma free_wr_either Θ Θ' l : free Θ l Either Θ' -> wr_env Θ -> Θ = Θ'.
 Proof.
-  move e:(Bool)=>n fr. elim: fr e=>//{Θ Θ' l n}.
+  move e:(Either)=>n fr. elim: fr e=>//{Θ Θ' l n}.
   move=>Θ m l e1 e2 wr; subst. inv wr.
   move=>Θ Θ' m n l fr ih e wr; subst.
   f_equal.
@@ -942,13 +942,13 @@ Proof.
   exfalso. apply: free_wr_ptr; eauto.
 Qed.
 
-Lemma resolve_bool_inv Θ m :
-  wr_env Θ -> resolve Θ m Bool -> Θ |> U.
+Lemma resolve_either_inv Θ m :
+  wr_env Θ -> resolve Θ m Either -> Θ |> U.
 Proof.
-  move e:(Bool)=>n wr rs. elim: rs wr e=>//{Θ m n}.
+  move e:(Either)=>n wr rs. elim: rs wr e=>//{Θ m n}.
   move=>Θ Θ' l m m' fr rs ih wr e; subst.
   destruct m; inv rs.
-  have->//:=free_wr_bool fr wr.
+  have->//:=free_wr_either fr wr.
   exfalso. apply: free_wr_ptr; eauto.
 Qed.
 
@@ -1002,7 +1002,7 @@ Proof with eauto using key_impure.
   move=>Γ k Θ m _ v wr rs.
   { apply: resolve_it_inv; eauto. }
   move=>Γ k Θ m _ v wr rs.
-  { apply: resolve_bool_inv; eauto. }
+  { apply: resolve_either_inv; eauto. }
   move=>Γ k Θ m _ v wr rs.
   { apply: resolve_left_inv; eauto. }
   move=>Γ k Θ m _ v wr rs.

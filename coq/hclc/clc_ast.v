@@ -16,7 +16,7 @@ Inductive term : Type :=
 (* data *)
 | Unit
 | It
-| Bool
+| Either
 | Left
 | Right
 | Sigma  (A : term) (B : {bind term}) (s r t : sort)
