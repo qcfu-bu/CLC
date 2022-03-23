@@ -8,25 +8,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Ltac solve_sub :=
-  match goal with
-  | [ H : _ <: _ |- _ ] =>
-    let A := fresh "A" in
-    let B := fresh "B" in
-    let sb := fresh "sb" in
-    let c1 := fresh "c1" in
-    let c2 := fresh "c2" in
-    destruct H as [A B sb c1 c2]; destruct sb
-  end;
-  match goal with
-  | [ c1 : ?A === ?x, c2 : ?x === ?B |- _ ] => 
-    assert (A === B) by 
-      (eapply conv_trans; try solve [apply c1| apply c2]);
-    clear c1 c2;
-    solve_conv
-  | _ => solve_conv
-  end.
-
 Lemma var_inv Γ x B s :
   Γ ⊢ Var x : B : s ->
   exists A t, has Γ x t A /\ A <: B /\ s = t.
@@ -237,6 +218,27 @@ Lemma pair_inv Γ m n A B s r t1 t2 t3 x i :
     Γ1 ⊢ m : A : s /\ 
     Γ2 ⊢ n : B.[m/] : r.
 Proof. move=>tyP tyS. apply: pair_invX; eauto. Qed.
+
+Lemma case_inv Γ m n1 n2 C s :
+  Γ ⊢ Case m n1 n2 : C : s ->
+  exists Γ1 Γ2 A,
+    Γ1 ∘ Γ2 => Γ /\
+    A.[m/] <: C /\
+    Γ1 ⊢ m : Bool : U /\
+    Γ2 ⊢ n1 : A.[Left/] : s /\
+    Γ2 ⊢ n2 : A.[Right/] : s.
+Proof.
+  move e:(Case m n1 n2)=>n tp. elim: tp m n1 n2 e=>//{Γ n C s}.
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg
+    tym _ tyA _ tyn1 _ tyn2 _ m0 n0 n3 [e1 e2 e3]; subst.
+  exists Γ1. exists Γ2. exists A.
+  repeat split; eauto.
+  move=>Γ A B m s i sb tym ihm _ _ m0 n1 n2 e; subst.
+  have{ihm}[G1[G2[A0[mrg'[sb'[tym0[tyn1 tyn2]]]]]]]:=ihm _ _ _ erefl.
+  exists G1. exists G2. exists A0.
+  repeat split; eauto.
+  apply: sub_trans; eauto.
+Qed.
 
 Lemma inp_inv Γ A B C s t :
   Γ ⊢ Inp A B s : C : t ->

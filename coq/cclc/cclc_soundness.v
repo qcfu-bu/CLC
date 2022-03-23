@@ -11,6 +11,124 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Lemma dual_sub Γ X Y A1 A2 B1 B2 C1 C2 s1 s2 t1 t2 ξ :
+  X ~ Y ->
+  X.[ren ξ] <: Out A1 B1 s1 ->
+  Y.[ren ξ] <: Inp A2 B2 s2 ->
+  [Γ] ⊢ X : C1 : t1 ->
+  [Γ] ⊢ Y : C2 : t2 ->
+  exists A B3 B4 C3 C4,
+    [Γ] ⊢ Out A B3 s1 : C3 : t1 /\
+    [Γ] ⊢ Inp A B4 s2 : C4 : t2 /\
+    B3 ~ B4 /\ s1 = s2 /\
+    (Out A B3 s1).[ren ξ] <: X.[ren ξ] /\
+    (Inp A B4 s2).[ren ξ] <: Y.[ren ξ] /\
+    (Out A B3 s1).[ren ξ] <: Out A1 B1 s1 /\
+    (Inp A B4 s2).[ren ξ] <: Inp A2 B2 s2.
+Proof.
+  move=>d. elim: d Γ A1 A2 B1 B2 C1 C2 s1 s2 t1 t2 ξ=>{X Y}; asimpl.
+  all: try solve[intros; exfalso; solve_sub].
+  move=>A B1 B2 s d _ Γ A1 A2 B0 B3 C1 C2 s1 s2 t1 t2 ξ c1 c2 ty1 ty2.
+  { exists A. exists B1. exists B2. exists C1. exists C2.
+    have[cA1[cB1 e]]:=sub_out_inv c1; subst.
+    have[cA2[cB2 e]]:=sub_inp_inv c2; subst.
+    repeat split; eauto. }
+  move=>m A1 A2 B1 B2 dA ihA dB ihB Γ A0 A3 B0 B3 C1 C2 s1 s2 t1 t2 ξ c1 c2 ty1 ty2.
+  { move:c1=>/sub_case_out[A4[B4[r1[r2 r3]]]].
+    move:c2=>/sub_case_inp[A5[B5[r4[r5 r6]]]].
+    have[G1[G2[Ax[mrgx[_[_[tyA1 tyB1]]]]]]]:=case_inv ty1.
+    have[G3[G4[Ay[mrgy[_[_[tyA2 tyB2]]]]]]]:=case_inv ty2.
+    have[k1 k2]:=merge_pure_inv mrgx (re_pure _).
+    have[k3 k4]:=merge_pure_inv mrgy (re_pure _).
+    have[_[e1 e2]]:=merge_re_re mrgx.
+    have[_[e3 e4]]:=merge_re_re mrgy.
+    rewrite<-re_invo in e1. rewrite<-pure_re in e1; eauto.
+    rewrite<-re_invo in e2. rewrite<-pure_re in e2; eauto.
+    rewrite<-re_invo in e3. rewrite<-pure_re in e3; eauto.
+    rewrite<-re_invo in e4. rewrite<-pure_re in e4; eauto.
+    move:r1=>/red_case_out[[hm1 hA]|[hm1 hA]].
+    move:r4=>/red_case_inp[[hm2 hB]|[hm2 hB]].
+    { have sb1:A1.[ξ >>> ids] <: Out A0 B0 s1.
+      { apply: (@sub_trans (Out A4 B4 s1)).
+        apply: conv_sub.
+        apply: star_conv; eauto.
+        apply: sub_out; eauto. }
+      have sb2:A2.[ξ >>> ids] <: Inp A3 B3 s2.
+      { apply: (@sub_trans (Inp A5 B5 s2)).
+        apply: conv_sub.
+        apply: star_conv; eauto.
+        apply: sub_inp; eauto. }
+      rewrite e2 in tyA1.
+      rewrite e4 in tyA2.
+      have{ihB}ihA:=ihA _ _ _ _ _ _ _ _ _ _ _ _ sb1 sb2 tyA1 tyA2.
+      move:ihA=>[A[B6[B7[C3[C4[tyO[tyI[d[e[sb3[sb4[sb5 sb6]]]]]]]]]]]].
+      exists A. exists B6. exists B7. exists C3. exists C4.
+      repeat split; eauto.
+      apply: sub_trans. apply: sb3.
+      apply: conv_sub.
+      apply: conv_sym.
+      apply: star_conv.
+      apply: star_trans.
+      apply: red_case.
+      apply: hm1.
+      apply: starR.
+      apply: starR.
+      apply: star1.
+      constructor.
+      apply: sub_trans. apply: sb4.
+      apply: conv_sub.
+      apply: conv_sym.
+      apply: star_conv.
+      apply: star_trans.
+      apply: red_case.
+      apply: hm2.
+      apply: starR.
+      apply: starR.
+      apply: star1.
+      constructor. }
+    { exfalso. apply: red_lr; eauto. }
+    move:r4=>/red_case_inp[[hm2 hB]|[hm2 hB]].
+    { exfalso. apply: red_lr; eauto. }
+    { have sb1:B1.[ξ >>> ids] <: Out A0 B0 s1.
+      { apply: (@sub_trans (Out A4 B4 s1)).
+        apply: conv_sub.
+        apply: star_conv; eauto.
+        apply: sub_out; eauto. }
+      have sb2:B2.[ξ >>> ids] <: Inp A3 B3 s2.
+      { apply: (@sub_trans (Inp A5 B5 s2)).
+        apply: conv_sub.
+        apply: star_conv; eauto.
+        apply: sub_inp; eauto. }
+      rewrite e2 in tyB1.
+      rewrite e4 in tyB2.
+      have{ihA}ihB:=ihB _ _ _ _ _ _ _ _ _ _ _ _ sb1 sb2 tyB1 tyB2.
+      move:ihB=>[A[B6[B7[C3[C4[tyO[tyI[d[e[sb3[sb4[sb5 sb6]]]]]]]]]]]].
+      exists A. exists B6. exists B7. exists C3. exists C4.
+      repeat split; eauto.
+      apply: sub_trans. apply: sb3.
+      apply: conv_sub.
+      apply: conv_sym.
+      apply: star_conv.
+      apply: star_trans.
+      apply: red_case.
+      apply: hm1.
+      apply: starR.
+      apply: starR.
+      apply: star1.
+      constructor.
+      apply: sub_trans. apply: sb4.
+      apply: conv_sub.
+      apply: conv_sym.
+      apply: star_conv.
+      apply: star_trans.
+      apply: red_case.
+      apply: hm2.
+      apply: starR.
+      apply: starR.
+      apply: star1.
+      constructor. } }
+Qed.
+
 Lemma congr0_sym p q : congr0 p q -> congr0 q p.
 Proof.
   elim; move=>*; eauto using congr0.
@@ -297,12 +415,17 @@ Proof.
         have{}sb3:=sub_ch_inv sb3.
         have{}sb4:=sub_ch_inv sb4.
         have{sb1}[eA0[sb5[e7[e8 _]]]]:=sub_pi_inv sb1; subst.
-        inv H0; asimpl in sb3; asimpl in sb4.
-        move=>{sb5}; exfalso; solve_sub.
-        move=>{sb5}; exfalso; solve_sub.
-        move=>{sb5}; exfalso; solve_sub.
-        have{sb3}[eA1[sb6 e7]]:=sub_out_inv sb3; subst.
-        have{sb4}[eA2[sb7 e8]]:=sub_inp_inv sb4; subst.
+        replace (Ch A.[ren (+1)]) with (Ch A).[ren (+1)] in tyA by autosubst.
+        replace (L @ i) with (L @ i).[ren (+1)] in tyA by autosubst.
+        move/clc_substitution.strengthen in tyA.
+        have{tyA}[iA tyA]:=ch_inv tyA.
+        have{H2}[iB tyB]:=ch_inv H2.
+        have{tyA tyB iA iB sb3 sb4}
+          [A4[B4[B5[C1[C2[tyA[tyB[H[e[sbA[sbB[sb3 sb4]]]]]]]]]]]]:=
+          dual_sub H0 sb3 sb4 tyA tyB; subst.
+        asimpl in sb3; asimpl in sb4.
+        have{sb3}[eA1[sb6 _]]:=sub_out_inv sb3; subst.
+        have{sb4}[eA2[sb7 _]]:=sub_inp_inv sb4; subst.
         have {eA0 eA1 eA2}eA:A2 === A'.[ren (+1)].
         apply: conv_trans. apply: (conv_sym eA0).
         apply: conv_trans. apply: (conv_sym eA1).
@@ -311,7 +434,7 @@ Proof.
         have{}sb7:=sub_ch sb7.
         pose proof (sub_trans (sub_subst (v .: ids) sb5) sb)=>{sb5}.
         pose proof (sub_subst (v .: ids) sb7)=>{sb7}.
-        asimpl in H0. asimpl in H8. inv H4.
+        asimpl in H2. asimpl in H8. inv H4.
         have[wf7 wf8]:=merge_context_ok_inv H7 wf1.
         have[wf9 wf10]:=merge_context_ok_inv H12 wf7.
         have wf11:ok (_: Γ9). repeat constructor; eauto.
@@ -320,7 +443,7 @@ Proof.
         have[vy[Ay[evy eAy]]]:=narity_ren1 wf10 tyv; subst.
         move/clc_substitution.strengthen in tyv.
         replace (Ch B4.[vy.[ren (+1)].[ren (+1)] .: ren (+2)])
-          with (Ch B4.[vy/].[ren (+1)].[ren (+1)]) in H0 by autosubst.
+          with (Ch B4.[vy/].[ren (+1)].[ren (+1)]) in H2 by autosubst.
         replace (Ch B5.[vy.[ren (+1)].[ren (+1)] .: ren (+2)])
           with (Ch B5.[vy/].[ren (+1)].[ren (+1)]) in H8 by autosubst.
         replace (Ch B1.[vy.[ren (+1)].[ren (+1)] .: ren (+1)])
@@ -342,7 +465,7 @@ Proof.
         repeat econstructor; eauto.
         have {mrg}h1:=h1 _ _ _ mrg.
         have /h1{}h1: Ch B4.[vy/].[ren (+1)] :L _: Γ8 ⊢ Var 0 : B0 : L.
-        apply: clc_conv; simpl. apply: H0.
+        apply: clc_conv; simpl. apply: H2.
         econstructor.
         repeat econstructor; eauto.
         rewrite e7; eauto.
@@ -403,36 +526,33 @@ Proof.
         rewrite e8 e5 e0. rewrite<-e3; eauto.
         have dv:B4.[vy/] ~ B5.[vy/].
         apply: dual_subst; eauto.
-        replace (L @ i) with (L @ i).[ren (+1)] in tyA by autosubst.
-        replace (Ch (Out A4 B4 s4).[ren (+1)])
-          with (Ch (Out A4 B4 s4)).[ren (+1)] in tyA by autosubst.
-        apply clc_substitution.strengthen in tyA.
         have[Ax eAx]:=narity_ren0 tyA'; subst.
         have er: (+2) >>> subn_rec^~ 1 = (+1).
         f_ext. move=>[|x]//.
-        pose proof (conv_subst (ren (subn^~ 1)) eA).
+        pose proof (sub_subst (ren (subn^~ 1)) sbB).
         asimpl in H1. rewrite er in H1.
+        pose proof (conv_subst (ren (subn^~ 1)) eA).
+        asimpl in H9. rewrite er in H9.
         have {}er: (+1) >>> subn_rec^~ 1 = id.
         f_ext. move=>[|x]//.
-        pose proof (conv_subst (ren (subn^~ 1)) H1).
-        asimpl in H9. rewrite er in H9. asimpl in H9.
+        pose proof (conv_subst (ren (subn^~ 1)) H9).
+        asimpl in H11. rewrite er in H11. asimpl in H11.
         have[Az[t[hs[sbz e]]]]:=var_inv tyv'; subst.
         inv hs. asimpl in sbz.
         move/sub_ch_inv in sbz.
+        have{H1}sbz:=sub_trans H1 sbz.
         have[eAx _]:=sub_inp_inv sbz.
         pose proof (conv_subst (ren (subn^~ 1)) eAx).
-        asimpl in H11. rewrite er in H11. asimpl in H11.
+        asimpl in H1. rewrite er in H1. asimpl in H1.
         inv k. inv H15.
-        have[i1 tyI]:=ch_inv H2.
-        have[i2 tyO]:=ch_inv tyA.
-        have{i1 tyI}[i1[tyA4[_ tyB5]]]:=inp_inv tyI.
-        have{i2 tyO}[i2[tyA5[_ tyB6]]]:=out_inv tyO.
+        have[i1[tyA4[_ tyB5]]]:=inp_inv tyB.
+        have[i2[tyA5[_ tyB6]]]:=out_inv tyA.
         have {}tyv:Γ9 ⊢ vy : A4 : s4.
         { apply: clc_conv.
           apply: conv_sub.
           apply: conv_trans.
-          apply: H9.
-          apply: (conv_sym H11).
+          apply: H11.
+          apply: (conv_sym H1).
           eauto.
           rewrite e8 e5 e1; eauto. }
         have tyC4: [Γ] ⊢ Ch B4.[vy/] : L @ (maxn i1 i2) : U.
@@ -576,11 +696,21 @@ Proof.
       have[A2[t0[hs[sb3 e]]]]:=var_inv ty1; subst.
       inv hs. asimpl in sb3.
       move/sub_ch_inv in sb3.
-      inv H0; asimpl in sb3.
-      move=>{sb sb1 sb2}. (exfalso; solve_sub).
-      move=>{sb sb1 sb2}. (exfalso; solve_sub).
-      have{sb3}[cA1[sb4 e]]:=sub_out_inv sb3; subst.
-      have{sb1}[cA2[sb5[ex[ey _]]]]:=sub_pi_inv sb1; subst.
+      pose proof (sub_subst (ren (+1)) sb3). asimpl in H.
+      have[C[t1[hs[sbC e]]]]:=var_inv ty0; subst.
+      inv hs. asimpl in sbC.
+      move/sub_ch_inv in sbC.
+      replace (Ch A.[ren (+1)]) with (Ch A).[ren (+1)] in tyA by autosubst.
+      replace (L @ i) with (L @ i).[ren (+1)] in tyA by autosubst.
+      move/clc_substitution.strengthen in tyA.
+      have{tyA}[iA tyA]:=ch_inv tyA.
+      have{H2}[iB tyB]:=ch_inv H2.
+      have{tyA tyB iA iB sb3}
+        [A2[B6[B7[C3[C4[tyA[tyB[dx[e[sbA[sbB[sb3 sb4]]]]]]]]]]]]:=
+        dual_sub (dual_sym H0) H sbC tyB tyA; subst.
+      asimpl in sb3; asimpl in sb4.
+      have{sb3}[cA1[sb5 _]]:=sub_out_inv sb3; subst.
+      have{sb1}[cA2[sb6[ex[ey _]]]]:=sub_pi_inv sb1; subst.
       have wf9': ok (_: Γ9) by constructor.
       have[vx[_[evx _]]]:=narity_ren1 wf9' tyv; subst.
       have tyvx:=clc_substitution.strengthen tyv.
@@ -617,15 +747,14 @@ Proof.
       have {}tyB5: _: Γ8 ⊢ Ch B5.[vy.[ren (+1)]/] : L @ l0 : U.
       { econstructor; eauto. constructor; eauto. }
       have//=tyB6:=clc_weakening.weakeningN tyB5.
-      pose proof (sub_subst (vy.[ren (+1)] .: ids) sb5).
-      pose proof (sub_subst (ren (+1)) H0).
-      pose proof (sub_subst (vy.[ren (+1)] .: ids) sb4).
-      pose proof (sub_subst (ren (+1)) H9).
+      pose proof (sub_subst (vy.[ren (+1)] .: ids) sb6).
+      pose proof (sub_subst (ren (+1)) H2).
+      pose proof (sub_subst (vy.[ren (+2)] .: ids) sb5).
       move/sub_ch in H10.
       asimpl in sb.
-      asimpl in H4.
+      asimpl in H9.
       asimpl in H10.
-      have {H0 H4 H9 H10 sb}sb:=sub_trans (sub_trans H10 H4) sb.
+      have {H2 H9 H10}sb:=sub_trans (sub_trans H10 H9) sb.
       replace (Ch B6.[vy.[ren (+2)] .: ren (+2)])
         with (Ch B6.[vy/]).[ren (+1)].[ren (+1)] in sb by autosubst.
       have mrgv0:
@@ -640,36 +769,33 @@ Proof.
       have//=[l1 tyC]:=validity wf3 ty0.
       have{l1 tyC}[l1 tyI]:=ch_inv tyC.
       have{l1 tyI}[l1[tyA4[_ tyB4]]]:=inp_inv tyI.
-      have[C[t[hs[sbC e]]]]:=var_inv ty0; subst.
-      inv hs. asimpl in sbC.
-      have sbI:=sub_ch_inv sbC.
-      have[cA3[sbB e]]:=sub_inp_inv sbI; subst.
+      have{}sbI:=sub_trans sbB sbC. asimpl in sbI.
+      have{sbB}[cA3[sbB _]]:=sub_inp_inv sbI; subst.
       have mrgv1:
-        Ch B2.[vy/].[ren (+1)] :L _: G3 ∘ _: _: Γ5 => Ch B2.[vy/].[ren (+1)] :L _: G2.
+        Ch B7.[vy/].[ren (+1)] :L _: G3 ∘ _: _: Γ5 => Ch B7.[vy/].[ren (+1)] :L _: G2.
       { repeat constructor; eauto. }
-      have sbA:Ay.[ren (+1)].[ren (+1)]===A4.
-      { pose proof (conv_subst (ren (+1)) cA1). asimpl in H0.
-        pose proof (conv_subst (ren (+1)) cA2). asimpl in H9.
+      have cA:Ay.[ren (+1)].[ren (+1)]===A4.
+      { pose proof (conv_subst (ren (+1)) cA2). asimpl in H2.
         asimpl.
-        apply: conv_trans. apply: (conv_sym H9).
-        apply: conv_trans. apply: (conv_sym H0).
+        apply: conv_trans. apply: (conv_sym H2).
+        apply: conv_trans. apply: (conv_sym cA1).
         eauto. }
       pose proof (sub_subst (vy.[ren (+1)].[ren (+1)] .: ids) sbB).
-      asimpl in H0=>{sbB}. move: H0=>sbB.
-      replace B2.[vy.[ren (+2)] .: ren (+2)]
-        with B2.[vy/].[ren (+1)].[ren (+1)] in sbB by autosubst.
+      asimpl in H2=>{sbB}. move: H2=>sbB.
+      replace B7.[vy.[ren (+2)] .: ren (+2)]
+        with B7.[vy/].[ren (+1)].[ren (+1)] in sbB by autosubst.
       move/sub_ch in sbB.
-      replace (Ch B2.[vy/].[ren (+1)].[ren (+1)])
-        with (Ch B2.[vy/].[ren (+1)]).[ren (+1)] in sbB by autosubst.
+      replace (Ch B7.[vy/].[ren (+1)].[ren (+1)])
+        with (Ch B7.[vy/].[ren (+1)]).[ren (+1)] in sbB by autosubst.
       have[_[ex ey]]:=merge_re_re mrg5.
-      have tyvz: _: _: Γ9 ⊢ vy.[ren (+2)] : A4 : s3.
+      have tyvz: _: _: Γ9 ⊢ vy.[ren (+2)] : A4 : s2.
       { apply: clc_conv; simpl.
         apply: conv_sub.
-        apply: sbA.
+        apply: cA.
         asimpl. by asimpl in tyv.
         rewrite ey. rewrite<-ex; eauto. }
       have {}tyvB4:_: _: [Γ4] ⊢ B4.[vy.[ren (+2)]/] : Proto l1 : U.
-      { destruct s3.
+      { destruct s2.
         have mrg:_: _: [Γ4] ∘ _: _: Γ9 => _: _: [Γ4].
         repeat constructor.
         replace Γ9 with [Γ9].
@@ -678,27 +804,27 @@ Proof.
         have//:=clc_substitution.substitution tyB4 (key_n H3) mrg tyvz.
         have//=:=clc_substitution.substitutionN tyB4 tyvz. }
       have tyv1:
-        Ch B2.[vy/].[ren (+1)] :L _: G3 ⊢ Pair vy.[ren (+1)].[ren (+1)] (Var 0) L : B0 : L.
+        Ch B7.[vy/].[ren (+1)] :L _: G3 ⊢ Pair vy.[ren (+1)].[ren (+1)] (Var 0) L : B0 : L.
       { apply: clc_conv; simpl.
         apply: sb2.
         econstructor; simpl.
         apply: (key_n H3).
-        apply: (key_impure (Ch B2.[vy/].[ren (+1)] :L _: Γ4)).
+        apply: (key_impure (Ch B7.[vy/].[ren (+1)] :L _: Γ4)).
         repeat constructor.
         apply: merge_sym; eauto.
         econstructor; simpl.
-        destruct s3; simpl; constructor.
+        destruct s2; simpl; constructor.
         repeat constructor. apply: re_pure.
         rewrite<-ex; eauto.
         econstructor.
-        destruct s3.
+        destruct s2.
         repeat constructor. apply: re_pure.
         repeat constructor. apply: re_pure.
         rewrite<-re_invo.
         rewrite<-ex; eauto.
         apply: clc_conv; simpl.
         apply: conv_sub.
-        apply: sbA.
+        apply: cA.
         apply: clc_weakening.weakeningN.
         apply: clc_weakening.weakeningN; eauto.
         rewrite ey. rewrite<-ex; eauto.
@@ -706,43 +832,39 @@ Proof.
         apply: clc_conv; simpl.
         apply: sbB.
         econstructor.
-        replace (Ch B2.[vy.[ren (+1)] .: ren (+1)])
-          with (Ch B2.[vy/]).[ren (+1)] by autosubst.
+        replace (Ch B7.[vy.[ren (+1)] .: ren (+1)])
+          with (Ch B7.[vy/]).[ren (+1)] by autosubst.
         econstructor; eauto.
         econstructor; eauto.
         repeat constructor. apply: re_pure.
         rewrite<-ex; eauto. }
       have tyd:=h1 _ _ _ mrgv1 tyv1.
-      have dv:B2.[vy/] ~ B6.[vy/].
+      have dv:B6.[vy/] ~ B7.[vy/].
       { apply: dual_subst; eauto. }
-      replace (Ch (Inp A2 B2 s3).[ren (+1)])
-        with (Ch (Inp A2 B2 s3)).[ren (+1)] in tyA by autosubst.
-      replace (L @ i) with (L @ i).[ren (+1)] in tyA by autosubst.
-      move/clc_substitution.strengthen in tyA.
-      have[x tyI]:=ch_inv tyA.
-      have{x tyI}[x[tyA2x[_ tyB2]]]:=inp_inv tyI.
-      have[y tyI]:=ch_inv H2.
-      have{y tyI tyB6}[y[tyA2y[_ tyB6]]]:=out_inv tyI.
-      have cA0: A2.[ren (+1)] === Ay.[ren (+1)].
+      have[x[tyA2x[_ tyB2]]]:=out_inv tyA.
+      have[y[tyA2y[_ tyB7]]]:=inp_inv tyB.
+      have cA0: A2.[ren (+2)] === Ay.[ren (+2)].
       { apply: conv_trans.
-        apply: cA1. apply: cA2. }
-      pose proof (conv_subst (ren (subn^~ 1)) cA0)=>{cA0}.
-      asimpl in H0. move: H0.
-      have->: (+1) >>> subn_rec^~ 1 = id.
+        apply: cA1.
+        pose proof (conv_subst (ren (+1)) cA2).
+        asimpl in H2; eauto. }
+      pose proof (conv_subst (ren (subn^~ 2)) cA0)=>{cA0}.
+      asimpl in H2. move: H2.
+      have->: (+2) >>> subn_rec^~ 2 = id.
       { f_ext. move=>[|x0]; asimpl=>//. }
       move=>cA0. asimpl in cA0.
-      have {}tyv: Γ9 ⊢ vy : A2 : s3.
+      have {}tyv: Γ9 ⊢ vy : A2 : s2.
       { apply: clc_conv.
         apply: conv_sub.
         apply: (conv_sym cA0).
         eauto.
         rewrite e9 e6 e1; eauto. }
-      have {}tyB2: [Γ] ⊢ Ch B2.[vy/] : L @ (maxn x y) : U.
+      have {}tyB2: [Γ] ⊢ Ch B6.[vy/] : L @ (maxn x y) : U.
       { apply: clc_conv.
         apply: sub_sort.
         apply: leq_maxl.
         econstructor. apply:re_pure.
-        destruct s3; inv H3.
+        destruct s2; inv H3.
         have mrg:[Γ] ∘ Γ9 => [Γ].
         replace Γ9 with [Γ9].
         rewrite e9 e6 e1. apply: merge_re_id.
@@ -750,32 +872,31 @@ Proof.
         have//:=clc_substitution.substitution tyB2 H9 mrg tyv.
         have//:=clc_substitution.substitutionN tyB2 tyv.
         constructor. apply: re_pure. }
-      have {}tyB6: [Γ] ⊢ Ch B6.[vy/] : L @ (maxn x y) : U.
+      have {}tyB7: [Γ] ⊢ Ch B7.[vy/] : L @ (maxn x y) : U.
       { apply: clc_conv.
         apply: sub_sort.
         apply: leq_maxr.
         econstructor. apply:re_pure.
-        destruct s3; inv H3.
+        destruct s2; inv H3.
         have mrg:[Γ] ∘ Γ9 => [Γ].
         replace Γ9 with [Γ9].
         rewrite e9 e6 e1. apply: merge_re_id.
         rewrite<-pure_re; eauto.
-        have//:=clc_substitution.substitution tyB6 H9 mrg tyv.
-        have//:=clc_substitution.substitutionN tyB6 tyv.
+        have//:=clc_substitution.substitution tyB7 H9 mrg tyv.
+        have//:=clc_substitution.substitutionN tyB7 tyv.
         constructor. apply: re_pure. }
       econstructor.
-      apply: dv.
+      apply: (dual_sym dv).
+      apply: tyB7.
       apply: tyB2.
-      apply: tyB6.
       have mrg:
-        _: Ch B6.[vy/] :L G1 ∘ Ch B2.[vy/].[ren (+1)] :L _: G2 =>
-        Ch B2.[vy/].[ren (+1)] :L Ch B6.[vy/] :L Γ.
+        _: Ch B6.[vy/] :L G1 ∘ Ch B7.[vy/].[ren (+1)] :L _: G2 =>
+        Ch B7.[vy/].[ren (+1)] :L Ch B6.[vy/] :L Γ.
       { repeat constructor; eauto. }
       econstructor.
       apply: mrg.
       econstructor. apply: tyc.
       econstructor. apply: tyd.
-      move=>{sb sb1 sb2}. (exfalso; solve_sub).
       have os:of_sort (_: _: Γ8) 1 None by repeat constructor.
       have//:=clc_linearity.narity tyS os.
       have os:of_sort (_: _: Γ6) 1 None by repeat constructor.

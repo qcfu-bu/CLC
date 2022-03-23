@@ -124,6 +124,32 @@ Proof.
   exact: conv_trans c5. exact: conv_trans c4.
 Qed.
 
+Lemma sub_inp A1 A2 B1 B2 s :
+  A1 === A2 -> B1 <: B2 -> Inp A1 B1 s <: Inp A2 B2 s.
+Proof.
+  move=>e [X Y sb e1 e2].
+  apply: SubI.
+  apply: sub1_inp.
+  apply: A1.
+  apply: s.
+  apply: sb.
+  apply: conv_inp; eauto.
+  apply: conv_inp; eauto.
+Qed.
+
+Lemma sub_out A1 A2 B1 B2 s :
+  A1 === A2 -> B1 <: B2 -> Out A1 B1 s <: Out A2 B2 s.
+Proof.
+  move=>e [X Y sb e1 e2].
+  apply: SubI.
+  apply: sub1_out.
+  apply: A1.
+  apply: s.
+  apply: sb.
+  apply: conv_out; eauto.
+  apply: conv_out; eauto.
+Qed.
+
 Lemma sub_sort_inv s1 s2 l1 l2 :
   s1 @ l1 <: s2 @ l2 -> s1 = s2 /\ l1 <= l2.
 Proof.
@@ -249,3 +275,22 @@ Proof. move=> [A' B' /sub1_subst]; eauto using sub, conv_subst. Qed.
 
 Lemma sub_ren A B ξ : A <: B -> A.[ren ξ] <: B.[ren ξ].
 Proof. move=> *; by apply: sub_subst. Qed.
+
+Ltac solve_sub :=
+  match goal with
+  | [ H : _ <: _ |- _ ] =>
+    let A := fresh "A" in
+    let B := fresh "B" in
+    let sb := fresh "sb" in
+    let c1 := fresh "c1" in
+    let c2 := fresh "c2" in
+    destruct H as [A B sb c1 c2]; destruct sb
+  end;
+  match goal with
+  | [ c1 : ?A === ?x, c2 : ?x === ?B |- _ ] =>
+    assert (A === B) by
+      (eapply conv_trans; try solve [apply c1| apply c2]);
+    clear c1 c2;
+    solve_conv
+  | _ => solve_conv
+  end.
