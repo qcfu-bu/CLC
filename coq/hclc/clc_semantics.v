@@ -34,6 +34,15 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
 | eval_it Θ l :
   l = length Θ ->
   eval Θ It (It :U Θ) (Ptr l)
+| eval_bool Θ l :
+  l = length Θ ->
+  eval Θ Bool (Bool :U Θ) (Ptr l)
+| eval_left Θ l :
+  l = length Θ ->
+  eval Θ Left (Left :U Θ) (Ptr l)
+| eval_right Θ l :
+  l = length Θ ->
+  eval Θ Right (Right :U Θ) (Ptr l)
 | eval_sigma Θ A B s r t l :
   l = length Θ ->
   eval Θ (Sigma A B s r t) (Sigma A B s r t :U Θ) (Ptr l)
@@ -47,12 +56,21 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   l = length Θ ->
   eval Θ (Pair (Ptr lm) (Ptr ln) t)
          ((Pair (Ptr lm) (Ptr ln) t) :{t} Θ) (Ptr l)
+| eval_case Θ Θ' m m' n1 n2 :
+  eval Θ m Θ' m' ->
+  eval Θ (Case m n1 n2) Θ' (Case m' n1 n2)
 | eval_letin1 Θ Θ' m m' n :
   eval Θ m Θ' m' ->
   eval Θ (LetIn1 m n) Θ' (LetIn1 m' n)
 | eval_letin2 Θ Θ' m m' n :
   eval Θ m Θ' m' ->
   eval Θ (LetIn2 m n) Θ' (LetIn2 m' n)
+| eval_iotaL Θ Θ' l n1 n2 :
+  free Θ l Left Θ' ->
+  eval Θ (Case (Ptr l) n1 n2) Θ' n1
+| eval_iotaR Θ Θ' l n1 n2 :
+  free Θ l Right Θ' ->
+  eval Θ (Case (Ptr l) n1 n2) Θ' n2
 | eval_iota1 Θ Θ' l n :
   free Θ l It Θ' ->
   eval Θ (LetIn1 (Ptr l) n) Θ' n
@@ -152,6 +170,11 @@ Proof with eauto using agree_resolve.
     asimpl. f_equal.
     apply: ihm. exact: le. exact: agr.
     apply: ihn. exact: le. exact: agr.
+  move=>i m n1 n2 nfm ihm nfn1 ihn1 nfn2 ihn2 Γ Θ σ σ' j le agr.
+    asimpl. f_equal.
+    apply: ihm. exact: le. exact: agr.
+    apply: ihn1. exact: le. exact: agr.
+    apply: ihn2. exact: le. exact: agr.
   move=>i m n nfm ihm nfn ihn Γ Θ σ σ' j le agr.
     asimpl. f_equal.
     apply: ihm. exact: le. exact: agr.
@@ -217,6 +240,10 @@ Proof.
   move=>i m n t nfm ihm nfn ihn ξ idr.
   { rewrite<-ihm; eauto.
     rewrite<-ihn; eauto. }
+  move=>i m n1 n2 nfm ihm nfn1 ihn1 nfn2 ihn2 ξ idr.
+  { rewrite<-ihm; eauto.
+    rewrite<-ihn1; eauto.
+    rewrite<-ihn2; eauto. }
   move=>i m n nfm ihm nfn ihn ξ idr.
   { rewrite<-ihm; eauto.
     rewrite<-ihn; eauto. }
@@ -256,6 +283,10 @@ Proof with eauto using resolve.
     apply: ihB; eauto.
     apply: id_ren_up; eauto. }
   move=>Θ1 Θ2 Θ m m' n n' t mrg rsm ihm rsn ihn i ξ wr dr.
+  { asimpl.
+    have[wr1 wr2]:=wr_merge_inv mrg wr.
+    econstructor; eauto. }
+  move=>Θ1 Θ2 Θ m m' n1 n1' n2 n2' mrg rsm ihm rsn1 ihn1 rsn2 ihn2 i ξ wr idr.
   { asimpl.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
     econstructor; eauto. }
@@ -451,7 +482,7 @@ Proof with eauto using resolve, merge_pure_pure.
       have//:=free_wr_var H wr.
       have//:=free_wr_ptr H wr. } }
   move=>Γ A B m s r t i k tyP ihP tym ihm Θ1 Θ2 Θ n σ σ' x mrg rsL wr agr.
-  { have[lP[tyA[_ tyB]]]:=pi_inv _ _ _ _ _ _ _ _ tyP.
+  { have[lP[tyA[_ tyB]]]:=pi_inv tyP.
     inv rsL; asimpl.
     { econstructor.
       destruct t.
@@ -534,6 +565,27 @@ Proof with eauto using resolve, merge_pure_pure.
     { have k':=agree_resolve_key agr k.
       have e:=merge_pureR mrg k'; subst.
       econstructor... } }
+  move=>Γ k Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
+  { inv rsm; asimpl.
+    { have k':=agree_resolve_key agr k.
+      econstructor... }
+    { have k':=agree_resolve_key agr k.
+      have e:=merge_pureR mrg k'; subst.
+      econstructor... } }
+  move=>Γ k Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
+  { inv rsm; asimpl.
+    { have k':=agree_resolve_key agr k.
+      econstructor... }
+    { have k':=agree_resolve_key agr k.
+      have e:=merge_pureR mrg k'; subst.
+      econstructor... } }
+  move=>Γ k Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
+  { inv rsm; asimpl.
+    { have k':=agree_resolve_key agr k.
+      econstructor... }
+    { have k':=agree_resolve_key agr k.
+      have e:=merge_pureR mrg k'; subst.
+      econstructor... } }
   move=>Γ A B s r t i le k tyA ihA tyB ihB 
     Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
   { inv rsm; asimpl.
@@ -592,6 +644,31 @@ Proof with eauto using resolve, merge_pure_pure.
       apply:ihm...
       have->:=nf_agree_resolve H5 lx agr2.
       apply:ihn...
+      exfalso. apply: free_wr_ptr; eauto. } }
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg
+    tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
+  { inv rsm; asimpl.
+    { have[wr1 wr2]:=wr_merge_inv H2 wr.
+      have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg.
+      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg2 H2 mrg5.
+      econstructor... }
+    { destruct m1; inv H0.
+      have nfp:=free_wr_nf H wr.
+      inv nfp.
+      have[G[fr mrg']]:=free_merge H mrg2.
+      have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg.
+      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg' H7 mrg5.
+      have wr':=free_wr H wr.
+      have[wr1 wr2]:=wr_merge_inv H7 wr'.
+      have lx:0 <= x by eauto.
+      econstructor...
+      econstructor...
+      have->:=nf_agree_resolve H4 lx agr1.
+      apply:ihm...
+      have->:=nf_agree_resolve H5 lx agr2.
+      apply:ihn1...
+      have->:=nf_agree_resolve H6 lx agr2.
+      apply:ihn2...
       exfalso. apply: free_wr_ptr; eauto. } }
   move=>Γ1 Γ2 Γ m n A s mrg1 tym ihm tyn ihn Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
   { inv rsm; asimpl.
@@ -797,7 +874,7 @@ Proof with eauto 6 using
       exists (Lam A m s U).
       repeat split... 
       econstructor... 
-      have[l0[tyA[_ _]]]:=pi_inv _ _ _ _ _ _ _ _ tyP.
+      have[l0[tyA[_ _]]]:=pi_inv tyP.
       have//=nfA:=nf_typing tyA.
       have//:=resolve_wr_nfi H6 (wr_env_re wr1) nfA.
       destruct s.
@@ -810,7 +887,7 @@ Proof with eauto 6 using
       exists (Lam A m s L).
       repeat split... 
       econstructor... 
-      have[l0[tyA[_ _]]]:=pi_inv _ _ _ _ _ _ _ _ tyP.
+      have[l0[tyA[_ _]]]:=pi_inv tyP.
       have//=nfA:=nf_typing tyA.
       have//:=resolve_wr_nfi H6 (wr_env_re wr1) nfA.
       destruct s.
@@ -822,7 +899,7 @@ Proof with eauto 6 using
     Θ1 Θ2 Θ Θ' x x' rx e wf mrg2 ev; subst.
   { inv mrg1.
     have[l tyP]:= validity nil_ok tym.
-    have[l0[tyA[_ tyB]]]:= pi_inv _ _ _ _ _ _ _ _ tyP.
+    have[l0[tyA[_ tyB]]]:= pi_inv tyP.
     inv rx; inv ev.
     { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
       have[Θx1[Θx2[mx[wr[wf'[pd[mrgx rx]]]]]]]:=
@@ -875,7 +952,7 @@ Proof with eauto 6 using
       have[G[mrg rs]]:=resolve_free H7 H4 mrg4.
       have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
       exists Gx. exists Θ2. inv rs. exists (m'.[n/]).
-      have tym':=lam_inv _ _ _ _ _ _ _ _ _ _ _ _ _ tyP tym.
+      have tym':=lam_inv tyP tym.
       repeat split...
       have[wf1 wf2]:=wr_merge_inv mrg2 wf.
       have[wf0 wf3]:=wr_merge_inv H1 wf1.
@@ -910,6 +987,30 @@ Proof with eauto 6 using
     exists It.
     repeat split...
     constructor... }
+  move=>Γ k Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
+  { inv rsm; inv ev.
+    have[<-_]:=merge_length mrg.
+    exists (Bool :U Θ1).
+    exists (Bool :U Θ2).
+    exists Bool.
+    repeat split...
+    constructor... }
+  move=>Γ k Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
+  { inv rsm; inv ev.
+    have[<-_]:=merge_length mrg.
+    exists (Left :U Θ1).
+    exists (Left :U Θ2).
+    exists Left.
+    repeat split...
+    constructor... }
+  move=>Γ k Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
+  { inv rsm; inv ev.
+    have[<-_]:=merge_length mrg.
+    exists (Right :U Θ1).
+    exists (Right :U Θ2).
+    exists Right.
+    repeat split...
+    constructor... }
   move=>Γ A B s r t i le k tyA ihA tyB ihB Θ1 Θ2 Θ Θ' 
     m m' rsm e wr mrg ev; subst.
   { inv rsm; inv ev.
@@ -933,7 +1034,7 @@ Proof with eauto 6 using
     tyn ihn Θ1 Θ2 Θ Θ' m0 m' rsP e wr mrg2 ev; subst.
   { inv mrg1.
     have[G1[G2[l[le[mrg3[tyA tyB]]]]]]:=
-      sigma_inv _ _ _ _ _ _ _ tyS. 
+      sigma_inv tyS.
     inv mrg3.
     inv rsP; inv ev.
     { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H4.
@@ -999,7 +1100,57 @@ Proof with eauto 6 using
         move:mrg2=>/merge_length[<-_]...
         econstructor...
         econstructor... } } }
-  move=>Γ1 Γ2 Γ m n A s mrg1 tym ihm tyn ihn 
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg1 tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2
+    Θ1 Θ2 Θ Θ' m0 m' rsm e wr mrg2 ev; subst.
+  { inv mrg1.
+    inv rsm; inv ev.
+    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H2.
+      have[Θx1[Θx2[mx[wrs[wf'[pd[mrgx rx]]]]]]]:=
+        ihm _ _ _ _ _ _ H5 erefl wr mrg4 H9.
+      have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
+      have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
+      inv wrs.
+      exists Θy. exists Θ2p.
+      exists (Case mx n1 n2).
+      repeat split...
+      econstructor.
+      apply: merge_sym...
+      eauto.
+      apply: resolve_pad...
+      apply: resolve_pad...
+      have tyAm:nil ⊢ A.[m/] : t @ i : U.
+      { destruct s; simpl in tyA.
+        have//:=substitution tyA (key_nil term U) (merge_nil _) tym.
+        have//:=substitutionN tyA tym. }
+      apply: clc_conv.
+      apply: conv_sub.
+      apply: conv_sym.
+      apply: conv_beta.
+      apply: star_conv; eauto.
+      apply: clc_case...
+      rewrite<-pure_re...
+      apply: red_case... }
+    { move=>{ihm ihn2}.
+      have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H2.
+      have[G[mrg rs]]:=resolve_free H9 H5 mrg4.
+      have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
+      exists Gx. exists Θ2. inv rs. exists n1.
+      repeat split...
+      have->:=merge_pureR mrg5 H...
+      apply: free_wr H9 wr.
+      apply: star1.
+      constructor. }
+    { move=>{ihm ihn1}.
+      have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H2.
+      have[G[mrg rs]]:=resolve_free H9 H5 mrg4.
+      have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
+      exists Gx. exists Θ2. inv rs. exists n2.
+      repeat split...
+      have->:=merge_pureR mrg5 H...
+      apply: free_wr H9 wr.
+      apply: star1.
+      constructor. } }
+  move=>Γ1 Γ2 Γ m n A s mrg1 tym ihm tyn ihn
     Θ1 Θ2 Θ Θ' m0 m' rsm e wr mrg2 ev; subst.
   { inv mrg1.
     inv rsm; inv ev.
@@ -1080,7 +1231,7 @@ Proof with eauto 6 using
       exists Gx. exists Θ2. inv rs. exists (n.[n',m'/]).
       have[lx tyS]:=validity (nil_ok) tym.
       have[G1[G2[e1[e2[k1[k2[mrg7[tym' tyn']]]]]]]]:=
-        pair_inv _ _ _ _ _ _ _ _ _ _ _ _ tym tyS; subst.
+        pair_inv tym tyS; subst.
       inv mrg7.
       have fr':=free_wr H7 wr.
       have[wrG wrX]:=wr_merge_inv mrg fr'.

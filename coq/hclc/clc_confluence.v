@@ -32,6 +32,12 @@ Inductive pstep : term -> term -> Prop :=
   pstep Unit Unit
 | pstep_it :
   pstep It It
+| pstep_bool :
+  pstep Bool Bool
+| pstep_left :
+  pstep Left Left
+| pstep_right :
+  pstep Right Right
 | pstep_sigma A A' B B' s r t :
   pstep A A' ->
   pstep B B' ->
@@ -40,6 +46,17 @@ Inductive pstep : term -> term -> Prop :=
   pstep m m' ->
   pstep n n' ->
   pstep (Pair m n t) (Pair m' n' t)
+| pstep_case m m' n1 n1' n2 n2' :
+  pstep m m' ->
+  pstep n1 n1' ->
+  pstep n2 n2' ->
+  pstep (Case m n1 n2) (Case m' n1' n2')
+| pstep_iotaL n1 n1' n2 :
+  pstep n1 n1' ->
+  pstep (Case Left n1 n2) n1'
+| pstep_iotaR n1 n2 n2' :
+  pstep n2 n2' ->
+  pstep (Case Right n1 n2) n2'
 | pstep_letin1 m m' n n' :
   pstep m m' ->
   pstep n n' ->
@@ -121,6 +138,17 @@ Proof.
   apply: (star_hom ((Pair m')^~ t)) r2=>x y. exact: step_pairR.
 Qed.
 
+Lemma red_case m m' n1 n1' n2 n2' :
+  m ~>* m' -> n1 ~>* n1' -> n2 ~>* n2' -> Case m n1 n2 ~>* Case m' n1' n2'.
+Proof.
+  move=>r1 r2 r3.
+  apply: (star_trans (Case m' n1 n2)).
+  apply: (star_hom ((Case^~ n1)^~ n2)) r1=>x y. exact: step_caseL.
+  apply: (star_trans (Case m' n1' n2)).
+  apply: (star_hom ((Case m')^~ n2)) r2=>x y. exact: step_caseR1.
+  apply: (star_hom (Case m' n1')) r3=> x y. exact: step_caseR2.
+Qed.
+
 Lemma red_letin1 m m' n n' :
   m ~>* m' -> n ~>* n' -> LetIn1 m n ~>* LetIn1 m' n'.
 Proof.
@@ -162,8 +190,8 @@ Proof.
 Qed.
 
 Hint Resolve 
-  red_app red_lam red_pi 
-  red_sigma red_pair red_letin1 red_letin2
+  red_app red_lam red_pi red_sigma
+  red_case red_pair red_letin1 red_letin2
   sred_up sred_upn : red_congr.
 
 Lemma red_compat σ τ s : sred σ τ -> red s.[σ] s.[τ].
@@ -219,6 +247,17 @@ Proof.
   apply: (conv_hom ((Pair m')^~ t)) r2=>x y. exact: step_pairR.
 Qed.
 
+Lemma conv_case m m' n1 n1' n2 n2' :
+  m === m' -> n1 === n1' -> n2 === n2' -> Case m n1 n2 === Case m' n1' n2'.
+Proof.
+  move=>r1 r2 r3.
+  apply: (conv_trans (Case m' n1 n2)).
+  apply: (conv_hom ((Case^~ n1)^~ n2)) r1=>x y. exact: step_caseL.
+  apply: (conv_trans (Case m' n1' n2)).
+  apply: (conv_hom ((Case m')^~ n2)) r2=>x y. exact: step_caseR1.
+  apply: (conv_hom (Case m' n1')) r3=> x y. exact: step_caseR2.
+Qed.
+
 Lemma conv_letin1 m m' n n' :
   m === m' -> n === n' -> LetIn1 m n === LetIn1 m' n'.
 Proof.
@@ -256,8 +295,8 @@ Proof.
 Qed.
 
 Hint Resolve
-  conv_app conv_lam conv_pi 
-  conv_sigma conv_pair conv_letin1 conv_letin2
+  conv_app conv_lam conv_pi conv_sigma
+  conv_case conv_pair conv_letin1 conv_letin2
   sconv_up sconv_upn : conv_congr.
 
 Lemma conv_compat σ τ s :
@@ -281,6 +320,10 @@ Proof.
     apply: starES. by constructor.
     apply: (star_trans (m'.[n.:Var])). exact: red_subst.
     by apply: red_compat => -[|].
+  move=>n1 n1' n2 p r.
+    apply: starES. by constructor. exact: r.
+  move=>n1 n2 n2' p r.
+    apply: starES. by constructor. exact: r.
   move=>n n' p1 r1.
     apply: starES. by constructor. exact: r1.
   move=>m1 m1' m2 m2' n n' t p1 r1 p2 r2 pn rn.
@@ -406,6 +449,9 @@ Proof with eauto 6 using
     exists (Pi Ax Bx s r t)...
   move=>m2 p. inv p. exists Unit...
   move=>m2 p. inv p. exists It...
+  move=>m2 p. inv p. exists Bool...
+  move=>m2 p. inv p. exists Left...
+  move=>m2 p. inv p. exists Right...
   move=>A A' B B' s r t pA ihA pB ihB m2 p.
     inv p.
     have[Ax pA1 pA2]:=ihA _ H5.
@@ -416,6 +462,30 @@ Proof with eauto 6 using
     have[mx pm1 pm2]:=ihm _ H3.
     have[nx pn1 pn2]:=ihn _ H4.
     exists (Pair mx nx t)...
+  move=>m m' n1 n1' n2 n2' pm ihm p1 ih1 p2 ih2 m2 p.
+    inv p.
+    have[mx pm1 pm2]:=ihm _ H2.
+    have[x px1 px2]:=ih1 _ H4.
+    have[y py1 py2]:=ih2 _ H5.
+    exists (Case mx x y)...
+    inv pm.
+    have[x px1 px2]:=ih1 _ H3.
+    exists x...
+    inv pm.
+    have[y py1 py2]:=ih2 _ H3.
+    exists y...
+  move=>n1 n1' n2 pn ih m2 p.
+    inv p. inv H2.
+    have[x px1 px2]:=ih _ H4.
+    exists x...
+    have[x px1 px2]:=ih _ H2.
+    exists x...
+  move=>n1 n2 n2' pn ih m2 p.
+    inv p. inv H2.
+    have[x px1 px2]:=ih _ H5.
+    exists x...
+    have[x px1 px2]:=ih _ H2.
+    exists x...
   move=>m m' n n' pm ihm pn ihn m2 p. 
     inv p.
     have[mx pm1 pm2]:=ihm _ H1.
@@ -538,6 +608,15 @@ Proof. elim=>//y z r->p. inv p. Qed.
 Lemma red_it_inv m : It ~>* m -> m = It. 
 Proof. elim=>//y z r->p. inv p. Qed.
 
+Lemma red_bool_inv m : Bool ~>* m -> m = Bool.
+Proof. elim=>//y z r->p. inv p. Qed.
+
+Lemma red_left_inv m : Left ~>* m -> m = Left.
+Proof. elim=>//y z r->p. inv p. Qed.
+
+Lemma red_right_inv m : Right ~>* m -> m = Right.
+Proof. elim=>//y z r->p. inv p. Qed.
+
 Lemma red_sigma_inv A B s r t x :
   Sigma A B s r t ~>* x ->
   exists A' B',
@@ -612,6 +691,9 @@ Ltac red_inv m H :=
   | Lam   => apply red_lam_inv in H
   | Unit  => apply red_unit_inv in H
   | It    => apply red_it_inv in H
+  | Bool  => apply red_bool_inv in H
+  | Left  => apply red_left_inv in H
+  | Right => apply red_right_inv in H
   | Sigma => apply red_sigma_inv in H
   | Pair  => apply red_pair_inv in H
   end.

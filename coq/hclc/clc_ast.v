@@ -7,17 +7,24 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Inductive term : Type :=
+(* core *)
 | Var    (x : var)
 | Sort   (s : sort) (l : nat)
 | Pi     (A : term) (B : {bind term}) (s r t : sort)
 | Lam    (A : term) (m : {bind term}) (s t : sort)
 | App    (m n : term)
+(* data *)
 | Unit
 | It
+| Bool
+| Left
+| Right
 | Sigma  (A : term) (B : {bind term}) (s r t : sort)
 | Pair   (m n : term) (t : sort)
+| Case   (m n1 n2 : term)
 | LetIn1 (m n : term)
 | LetIn2 (m : term) (n : {bind 2 of term})
+(* heap *)
 | Ptr    (l : nat).
 
 Notation "s @ l" := (Sort s l) (at level 30).
@@ -61,6 +68,19 @@ Inductive step : term -> term -> Prop :=
 | step_pairR m n n' t :
   n ~> n' ->
   Pair m n t ~> Pair m n' t
+| step_caseL m m' n1 n2 :
+  m ~> m' ->
+  Case m n1 n2 ~> Case m' n1 n2
+| step_caseR1 m n1 n1' n2 :
+  n1 ~> n1' ->
+  Case m n1 n2 ~> Case m n1' n2
+| step_caseR2 m n1 n2 n2' :
+  n2 ~> n2' ->
+  Case m n1 n2 ~> Case m n1 n2'
+| step_iotaL n1 n2 :
+  Case Left n1 n2 ~> n1
+| step_iotaR n1 n2 :
+  Case Right n1 n2 ~> n2
 | step_letin1L m m' n :
   m ~> m' ->
   LetIn1 m n ~> LetIn1 m' n

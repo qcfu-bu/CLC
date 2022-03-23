@@ -4,6 +4,10 @@ Require Import AutosubstSsr ARS
   clc_context clc_ast clc_confluence clc_subtype clc_typing
   clc_weakening clc_substitution.
 
+Set Implicit Arguments.
+Unset Strict Implicit.
+Unset Printing Implicit Defensive.
+
 Ltac solve_sub :=
   match goal with
   | [ H : _ <: _ |- _ ] =>
@@ -112,6 +116,12 @@ Proof.
   exists l. apply: sub_trans.
   exact: sb'. exact: sb.
 Qed.
+
+Lemma left_inv Γ A s : Γ ⊢ Left : A : s -> Γ |> U.
+Proof. move e:(Left)=>m tp. elim:tp e=>//{Γ m A s}. Qed.
+
+Lemma right_inv Γ A s : Γ ⊢ Right : A : s -> Γ |> U.
+Proof. move e:(Right)=>m tp. elim:tp e=>//{Γ m A s}. Qed.
 
 Lemma sigma_inv Γ A B s r t x :
   Γ ⊢ Sigma A B s r t : x : U ->

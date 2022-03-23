@@ -27,8 +27,12 @@ Fixpoint occurs (i : nat) (m : term) : nat :=
   | App m n => occurs i m + occurs i n
   | Unit => 0
   | It => 0
+  | Bool => 0
+  | Left => 0
+  | Right => 0
   | Sigma A B _ _ _ => occurs i A + occurs i.+1 B
   | Pair m n _ => occurs i m + occurs i n
+  | Case m n1 n2 => occurs i m + maxn (occurs i n1) (occurs i n2)
   | LetIn1 m n => occurs i m + occurs i n
   | LetIn2 m n => occurs i m + occurs i.+2 n
   | Ptr _ => 0
@@ -157,6 +161,11 @@ Proof with eauto using of_sort, of_sortN_re.
     tyS ihS tym ihm tyn ihn x os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg _ ihm _ _ _ ihn1 _ ihn2 x os//=.
+    have[os1 os2]:=of_sortN_merge_inv mrg os.
+    rewrite ihm...
+    rewrite ihn1...
+    rewrite ihn2...
   move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn x os//=.
     move:(of_sortN_merge_inv mrg os)=>[os1 os2].
     rewrite ihm...
@@ -195,6 +204,9 @@ Proof with eauto using of_sort.
     by rewrite ihn.
   move=>Γ k i os. exfalso. apply: of_sortL_impure; eauto.
   move=>Γ k i os. exfalso. apply: of_sortL_impure; eauto.
+  move=>Γ k i os. exfalso. apply: of_sortL_impure; eauto.
+  move=>Γ k i os. exfalso. apply: of_sortL_impure; eauto.
+  move=>Γ k i os. exfalso. apply: of_sortL_impure; eauto.
   move=>Γ A B s r t i leq k tyA ihA tyB ihB x os//=.
     exfalso. apply: of_sortL_impure; eauto.
   move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg 
@@ -202,6 +214,10 @@ Proof with eauto using of_sort.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     rewrite ihm... erewrite narity...
     rewrite ihn... erewrite narity...
+  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg tym ihm _ _ tyn1 ihn1 tyn2 ihn2 x os//=.
+    have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
+    rewrite ihm... have->:=narity tyn1 os2. have->:=narity tyn2 os2...
+    have->:=narity tym os2. rewrite ihn1... rewrite ihn2...
   move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn i os//=.
     have[[os1 os2]|[os1 os2]]:=of_sortL_merge_inv mrg os.
     rewrite ihm... erewrite narity...
@@ -212,4 +228,3 @@ Proof with eauto using of_sort.
     rewrite ihm... erewrite narity...
     rewrite ihn... erewrite narity...
 Qed.
-    
