@@ -590,7 +590,7 @@ Lemma constr_drespine_ren n s (Q c C : term) I (ξ : var -> var) :
   (drespine Q c C.[I]).[ren ξ] = 
     drespine Q.[ren ξ] c.[ren ξ] C.[I].[ren ξ].
 Proof.
-  move=> cn; unfold case.
+  move=> cn. unfold case.
   elim: cn Q c I ξ; intros.
   - rewrite! spine_subst.
     rewrite drespine_spine_I_ren.

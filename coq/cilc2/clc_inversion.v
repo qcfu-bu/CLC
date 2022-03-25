@@ -8,25 +8,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Ltac solve_sub :=
-  match goal with
-  | [ H : _ <: _ |- _ ] =>
-    let A := fresh "A" in
-    let B := fresh "B" in
-    let sb := fresh "sb" in
-    let c1 := fresh "c1" in
-    let c2 := fresh "c2" in
-    destruct H as [A B sb c1 c2]; destruct sb
-  end;
-  match goal with
-  | [ c1 : ?A === ?x, c2 : ?x === ?B |- _ ] => 
-    assert (A === B) by 
-      (eapply conv_trans; try solve [apply c1| apply c2]);
-    clear c1 c2;
-    solve_conv
-  | _ => solve_conv
-  end.
-
 Lemma pi_inv Γ A B C s r t1 t2 :
   Γ ⊢ Pi A B s r t1 : C : t2 ->
   exists l,

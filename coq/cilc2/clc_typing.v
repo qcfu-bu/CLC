@@ -7,6 +7,134 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Inductive arity (s : sort) : term -> Prop :=
+| arity_sort l : arity s (s @ l)
+| arity_pi A B : arity s B -> arity s (Pi A B U U U).
+
+Inductive noccurs : var -> term -> Prop :=
+| noccurs_var x y : ~x = y -> noccurs x (Var y)
+| noccurs_sort x s l : noccurs x (s @ l)
+| noccurs_pi x A B s r t :
+  noccurs x A -> noccurs x.+1 B -> noccurs x (Pi A B s r t)
+| noccurs_lam x A m s t :
+  noccurs x A -> noccurs x.+1 m -> noccurs x (Lam A m s t)
+| noccurs_app x m n :
+  noccurs x m -> noccurs x n -> noccurs x (App m n)
+| noccurs_indd x A Cs s :
+  noccurs x A -> All1 (noccurs x.+1) Cs -> noccurs x (Ind A Cs s)
+| noccurs_constr x i m :
+  noccurs x m -> noccurs x (Constr i m)
+| noccurs_case x m Q Fs :
+  noccurs x m -> noccurs x Q -> All1 (noccurs x) Fs -> noccurs x (Case m Q Fs)
+| noccurs_fix x A m :
+  noccurs x A -> noccurs x.+1 m -> noccurs x (Fix A m).
+
+Section noccurs_ind_nested.
+  Variable P : var -> term -> Prop.
+  Hypothesis ih_var : forall x y, ~x = y -> P x (Var y).
+  Hypothesis ih_sort : forall x s l, P x (s @ l).
+  Hypothesis ih_pi : forall x A B s r t,
+    noccurs x A -> P x A -> noccurs x.+1 B -> P x.+1 B -> P x (Pi A B s r t).
+  Hypothesis ih_lam : forall x A m s t,
+    noccurs x A -> P x A -> noccurs x.+1 m -> P x.+1 m -> P x (Lam A m s t).
+  Hypothesis ih_app : forall x m n,
+    noccurs x m -> P x m -> noccurs x n -> P x n -> P x (App m n).
+  Hypothesis ih_indd : forall x A Cs s,
+    noccurs x A -> P x A ->
+    All1 (noccurs x.+1) Cs -> All1 (P x.+1) Cs ->
+    P x (Ind A Cs s).
+  Hypothesis ih_constr : forall x i m,
+    noccurs x m -> P x m -> P x (Constr i m).
+  Hypothesis ih_case : forall x m Q Fs,
+    noccurs x m -> P x m ->
+    noccurs x Q -> P x Q ->
+    All1 (noccurs x) Fs -> All1 (P x) Fs ->
+    P x (Case m Q Fs).
+  Hypothesis ih_fix : forall x A m,
+    noccurs x A -> P x A ->
+    noccurs x.+1 m -> P x.+1 m ->
+    P x (Fix A m).
+
+  Fixpoint noccurs_ind_nested x m (no : noccurs x m) : P x m.
+  Proof.
+    have ih_nestd :=
+      fix fold x ls (no : All1 (noccurs x) ls) : All1 (P x) ls :=
+        match no with
+        | All1_nil => All1_nil _
+        | All1_cons _ _ hd tl =>
+          All1_cons (noccurs_ind_nested x _ hd) (fold x _ tl)
+        end.
+    case no; move=>*.
+    apply: ih_var; eauto.
+    apply: ih_sort; eauto.
+    apply: ih_pi; eauto.
+    apply: ih_lam; eauto.
+    apply: ih_app; eauto.
+    apply: ih_indd; eauto.
+    apply: ih_constr; eauto.
+    apply: ih_case; eauto.
+    apply: ih_fix; eauto.
+  Qed.
+End noccurs_ind_nested.
+
+Inductive pos : var -> term -> Prop :=
+| pos_X x ms : All1 (noccurs x) ms -> pos x (spine (Var x) ms)
+| pos_pi x A B s r t : noccurs x A -> pos x.+1 B -> pos x (Pi A B s r t).
+
+Inductive constr : var -> sort -> term -> Prop :=
+| constr_X x s ms :
+  All1 (noccurs x) ms ->
+  constr x s (spine (Var x) ms)
+| constr_pos s t x A B :
+  t ≤ s ->
+  pos x A ->
+  noccurs 0 B ->
+  constr x.+1 s B ->
+  constr x s (Pi A B t s s)
+| constr_pi s t x A B :
+  t ≤ s ->
+  noccurs x A ->
+  constr x.+1 s B ->
+  constr x s (Pi A B t s s).
+
+Fixpoint rearity (k s : sort) (I A : term) : term :=
+  match A with
+  | _ @ l =>
+    match k with
+    | U => Pi I (s @ l) U U U
+    | L => s @ l
+    end
+  | Pi A B u v U =>
+    Pi A (rearity k s (App I.[ren (+1)] (Var 0)) B) u v U
+  | _ => A
+  end.
+
+Fixpoint respine0 hd sp :=
+  match sp with
+  | App m n => App (respine0 hd m) n
+  | _ => hd
+  end.
+
+Fixpoint respine (k s : sort) hd c sp : (sort * term) :=
+  match sp with
+  | Pi A B u _ t =>
+    let (v, B) := respine k s hd.[ren (+1)] (App c.[ren (+1)] (Var 0)) B in
+    (L, Pi A B u v L)
+  | _ =>
+    match k with
+    | U => (s, App (respine0 hd sp) c)
+    | L => (s, respine0 hd sp)
+    end
+  end.
+
+Definition mkcase k s I Q c C := respine k s Q c C.[I/].
+
+Definition kapp k m n :=
+  match k with
+  | U => App m n
+  | L => m
+  end.
+
 Reserved Notation "Γ ⊢ m : A : s" 
   (at level 50, m, A, s at next level).
 
@@ -33,62 +161,174 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   Γ1 ⊢ m : Pi A B s r t : t ->
   Γ2 ⊢ n : A : s ->
   Γ ⊢ App m n : B.[n/] : r
-| clc_unit Γ :
+| clc_indd Γ A Cs s t l :
   Γ |> U ->
-  Γ ⊢ Unit : U @ 0 : U
-| clc_it Γ :
+  arity s A ->
+  All1 (constr 0 s) Cs ->
+  Γ ⊢ A : U @ l : U ->
+  All1 (fun C => A :U Γ ⊢ C : t @ l : U) Cs ->
+  Γ ⊢ Ind A Cs s : A : U
+| clc_constr Γ A s i C Cs :
+  let I := Ind A Cs s in
   Γ |> U ->
-  Γ ⊢ It : Unit : U
-| clc_either Γ :
-  Γ |> U ->
-  Γ ⊢ Either : U @ 0 : U
-| clc_left Γ :
-  Γ |> U ->
-  Γ ⊢ Left : Either : U
-| clc_right Γ :
-  Γ |> U ->
-  Γ ⊢ Right : Either : U
-| clc_sigma Γ A B s r t i :
-  s ⋅ r ≤ t ->
-  Γ |> U ->
-  Γ ⊢ A : s @ i : U ->
-  [A :{s} Γ] ⊢ B : r @ i : U ->
-  Γ ⊢ Sigma A B s r t : t @ i : U
-| clc_pair Γ1 Γ2 Γ A B m n s r t i :
-  Γ1 |> s ->
-  Γ2 |> r ->
+  iget i Cs C ->
+  Γ ⊢ I : A : U ->
+  Γ ⊢ Constr i I : C.[I/] : s
+| clc_case Γ1 Γ2 Γ A Q s s' k Fs Cs m ms :
+  let I := Ind A Cs s in
+  s ≤ k ->
+  arity s A ->
   Γ1 ∘ Γ2 => Γ ->
-  [Γ] ⊢ Sigma A B s r t : t @ i : U ->
-  Γ1 ⊢ m : A : s ->
-  Γ2 ⊢ n : B.[m/] : r ->
-  Γ ⊢ Pair m n t : Sigma A B s r t : t
-| clc_case Γ1 Γ2 Γ m n1 n2 A s t i :
-  Γ1 |> s ->
-  Γ1 ∘ Γ2 => Γ ->
-  Γ1 ⊢ m : Either : U ->
-  [Either :{s} Γ2] ⊢ A : t @ i : U ->
-  Γ2 ⊢ n1 : A.[Left/] : t ->
-  Γ2 ⊢ n2 : A.[Right/] : t ->
-  Γ ⊢ Case m n1 n2 : A.[m/] : t
-| clc_letin1 Γ1 Γ2 Γ m n A s :
-  Γ1 ∘ Γ2 => Γ ->
-  Γ1 ⊢ m : Unit : U ->
-  Γ2 ⊢ n : A : s ->
-  Γ ⊢ LetIn1 m n : A : s
-| clc_letin2 Γ1 Γ2 Γ A B C m n s r t k x i :
-  t ≤ k ->
-  Γ1 |> k ->
-  Γ1 ∘ Γ2 => Γ ->
-  Γ1 ⊢ m : Sigma A B s r t : t ->
-  [Sigma A B s r t :{k} Γ2] ⊢ C : x @ i : U ->
-  B :{r} A :{s} Γ2 ⊢ n : C.[Pair (Var 1) (Var 0) t .: ren (+2)] : x ->
-  Γ ⊢ LetIn2 m n : C.[m/] : x
+  Γ1 ⊢ m : spine I ms : s ->
+  [Γ2] ⊢ Q : rearity k s' I A : U ->
+  All2i (fun i F C =>
+    constr 0 s C /\
+    let T := mkcase k s' I Q (Constr i I) C in
+    Γ2 ⊢ F : T.2 : T.1) 0 Fs Cs ->
+  Γ ⊢ Case m Q Fs : kapp k (spine Q ms) m : s'
+| clc_fix Γ A m l :
+  Γ |> U ->
+  Γ ⊢ A : U @ l : U ->
+  A :U Γ ⊢ m : A.[ren (+1)] : U ->
+  Γ ⊢ Fix A m : A : U
 | clc_conv Γ A B m s i :
   A <: B ->
   Γ ⊢ m : A : s ->
   [Γ] ⊢ B : s @ i : U ->
   Γ ⊢ m : B : s
 where "Γ ⊢ m : A : s" := (clc_type Γ m A s).
+
+Section clc_type_ind_nested.
+  Variable P : context term -> term -> term -> sort -> Prop.
+  Hypothesis ih_sort : forall Γ s l,
+    Γ |> U -> P Γ (s @ l) (U @ l.+1) U.
+  Hypothesis ih_pi : forall Γ A B s r t i,
+    Γ |> U ->
+    Γ ⊢ A : s @ i : U -> P Γ A (s @ i) U ->
+    [A :{s} Γ] ⊢ B : r @ i : U -> P [A :{s} Γ] B (r @ i) U ->
+    P Γ (Pi A B s r t) (t @ i) U.
+  Hypothesis ih_var : forall Γ x A s,
+    has Γ x s A -> P Γ (Var x) A s.
+  Hypothesis ih_lam : forall Γ A B m s r t i,
+    Γ |> t ->
+    [Γ] ⊢ Pi A B s r t : t @ i : U -> P [Γ] (Pi A B s r t) (t @ i) U ->
+    A :{s} Γ ⊢ m : B : r -> P (A :{s} Γ) m B r ->
+    P Γ (Lam A m s t) (Pi A B s r t) t.
+  Hypothesis ih_app : forall Γ1 Γ2 Γ A B m n s r t,
+    Γ2 |> s ->
+    Γ1 ∘ Γ2 => Γ ->
+    Γ1 ⊢ m : Pi A B s r t : t -> P Γ1 m (Pi A B s r t) t ->
+    Γ2 ⊢ n : A : s -> P Γ2 n A s ->
+    P Γ (App m n) B.[n/] r.
+  Hypothesis ih_indd : forall Γ A Cs s t l,
+    Γ |> U ->
+    arity s A ->
+    All1 (constr 0 s) Cs ->
+    Γ ⊢ A : U @ l : U -> P Γ A (U @ l) U ->
+    All1 (fun C => A :U Γ ⊢ C : t @ l : U) Cs ->
+    All1 (fun C => P (A :U Γ) C (t @ l) U) Cs ->
+    P Γ (Ind A Cs s) A U.
+  Hypothesis ih_constr : forall Γ A s i C Cs,
+    let I := Ind A Cs s in
+    Γ |> U ->
+    iget i Cs C ->
+    Γ ⊢ I : A : U -> P Γ I A U ->
+    P Γ (Constr i I) C.[I/] s.
+  Hypothesis ih_case : forall Γ1 Γ2 Γ A Q s s' k Fs Cs m ms,
+    let I := Ind A Cs s in
+    s ≤ k ->
+    arity s A ->
+    Γ1 ∘ Γ2 => Γ ->
+    Γ1 ⊢ m : spine I ms : s -> P Γ1 m (spine I ms) s ->
+    [Γ2] ⊢ Q : rearity k s' I A : U -> P [Γ2] Q (rearity k s' I A) U ->
+    All2i (fun i F C =>
+      constr 0 s C /\
+      let T := mkcase k s' I Q (Constr i I) C in
+      Γ2 ⊢ F : T.2 : T.1) 0 Fs Cs ->
+    All2i (fun i F C =>
+      constr 0 s C /\
+      let T := mkcase k s' I Q (Constr i I) C in
+      P Γ2 F T.2 T.1) 0 Fs Cs ->
+    P Γ (Case m Q Fs) (kapp k (spine Q ms) m) s'.
+  Hypothesis ih_fix : forall Γ A m l,
+    Γ |> U ->
+    Γ ⊢ A : U @ l : U -> P Γ A (U @ l) U ->
+    A :U Γ ⊢ m : A.[ren (+1)] : U -> P (A :U Γ) m A.[ren (+1)] U ->
+    P Γ (Fix A m) A U.
+  Hypothesis ih_conv : forall Γ A B m s i,
+    A <: B ->
+    Γ ⊢ m : A : s -> P Γ m A s ->
+    [Γ] ⊢ B : s @ i : U -> P [Γ] B (s @ i) U ->
+    P Γ m B s.
+
+  Fixpoint clc_type_ind_nested
+    Γ m A s (pf : Γ ⊢ m : A : s) : P Γ m A s.
+  Proof.
+    case pf; intros.
+    apply: ih_sort; eauto.
+    apply: ih_pi; eauto.
+    apply: ih_var; eauto.
+    apply: ih_lam; eauto.
+    apply: ih_app; eauto.
+    apply: ih_indd; eauto.
+    have ih_nested :=
+      fix fold Cs (pf : All1 (fun C => A0 :U Γ0 ⊢ C : t @ l : U) Cs) :
+        All1 (fun C => P (A0 :U Γ0) C (t @ l) U) Cs :=
+        match pf with
+        | All1_nil => All1_nil _
+        | All1_cons _ _ hd tl =>
+          All1_cons (clc_type_ind_nested _ _ _ _ hd) (fold _ tl)
+        end; eauto.
+    apply: ih_constr; eauto.
+    apply: ih_case; eauto.
+    have ih_nested :=
+      fix fold n Fs Cs
+          (pf : All2i (fun i F C =>
+                         constr 0 s0 C ∧
+                           let T := mkcase k s' I Q (Constr i I) C in
+                           Γ2 ⊢ F : T.2 : T.1) n Fs Cs) :
+        All2i (fun i F C =>
+                 constr 0 s0 C ∧
+                   let T := mkcase k s' I Q (Constr i I) C in
+                   P Γ2 F T.2 T.1) n Fs Cs :=
+        match pf in All2i _ n Fs Cs return
+          All2i (fun i F C =>
+                   constr 0 s0 C /\
+                     let T := mkcase k s' I Q (Constr i I) C in
+                     P Γ2 F T.2 T.1) n Fs Cs
+        with
+        | All2i_nil _ => All2i_nil _ _
+        | All2i_cons _ _ _ _ _ (conj h1 h2) tl =>
+          All2i_cons (conj h1 (clc_type_ind_nested _ _ _ _ h2)) (fold _ _ _ tl)
+        end; eauto.
+    apply: ih_fix; eauto.
+    apply: ih_conv; eauto.
+  Qed.
+End clc_type_ind_nested.
+
+Lemma clc_pi_max Γ A B s r t l1 l2 :
+  Γ |> U ->
+  Γ ⊢ A : s @ l1 : U ->
+  [A :{s} Γ] ⊢ B : r @ l2 : U ->
+  Γ ⊢ Pi A B s r t : t @ (maxn l1 l2) : U.
+Proof.
+  move=>k tyA tyB.
+  have {}tyA : Γ ⊢ A : s @ (maxn l1 l2) : U.
+  apply: clc_conv.
+  apply: sub_sort.
+  apply: leq_maxl.
+  eauto.
+  constructor.
+  apply: re_pure.
+  have {}tyB : [A :{s} Γ] ⊢ B : r @ (maxn l1 l2) : U.
+  apply: clc_conv.
+  apply: sub_sort.
+  apply: leq_maxr.
+  eauto.
+  constructor.
+  apply: re_pure.
+  constructor; eauto.
+Qed.
 
 Inductive ok : context term -> Prop :=
 | nil_ok :

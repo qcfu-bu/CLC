@@ -76,7 +76,7 @@ Section pstep_ind_nested.
     forall A A' n n' s t, pstep A A' -> P A A' -> pstep n n' -> P n n' ->
       P (Lam A n s t) (Lam A' n' s t).
   Hypothesis ih_app :
-    forall m m' n n', pstep m m' -> P m m' -> pstep n n' -> P n n' -> P n n' ->
+    forall m m' n n', pstep m m' -> P m m' -> pstep n n' -> P n n' ->
       P (App m n) (App m' n').
   Hypothesis ih_beta :
     forall A m m' n n' s t, pstep m m' -> P m m' -> pstep n n' -> P n n' ->
@@ -765,20 +765,149 @@ Proof with eauto using pstep_compat, psstep_refl, psstep_compat.
   move...
 Qed.
 
+Lemma pstep_iget1 ls ls' i m :
+  All2 pstep ls ls' -> iget i ls m ->
+  exists m', iget i ls' m' /\ pstep m m'.
+Proof with eauto using iget.
+  move=>p.
+  elim: p m i=>{ls ls'}.
+  move=>m i ig. inv ig.
+  move=>m m' ls ls' p1 p2 ih m0 i ig. inv ig.
+  exists m'...
+  move: H3=>/ih[m1[ig p]].
+  exists m1...
+Qed.
+
+Lemma pstep_iget2 ls ls' i m' :
+  All2 pstep ls ls' -> iget i ls' m' ->
+  exists m, iget i ls m /\ pstep m m'.
+Proof with eauto using iget.
+  move=>p.
+  elim: p m' i=>{ls ls'}.
+  move=>m' i ig. inv ig.
+  move=>m m' ls ls' p1 p2 ih m0 i ig. inv ig.
+  exists m...
+  move: H3=>/ih[m1[ig p]].
+  exists m1...
+Qed.
+
+Lemma pstep_spine h h' ls ls' :
+  pstep h h' -> All2 pstep ls ls' -> pstep (spine h ls) (spine h' ls').
+Proof.
+  elim: ls ls' h h'.
+  move=>ls' h h' p1 p2. inv p2=>//.
+  move=>a ls ih ls' h h' ph pls. inv pls=>//=.
+  apply: ih=>//.
+  constructor; eauto.
+Qed.
+
+Lemma spine'_lam_constr A m s t i h ls :
+  ~Lam A m s t = spine' (Constr i h) ls.
+Proof. elim: ls=>//. Qed.
+
+Lemma pstep_spine'_inv i h ls m :
+  pstep (spine' (Constr i h) ls) m ->
+  exists h' ls',
+    m = spine' (Constr i h') ls' /\
+    pstep h h' /\
+    All2 pstep ls ls'.
+Proof with eauto using pstep, All2.
+  elim: ls h m.
+  move=>h m//=p. inv p.
+  exists m'. exists nil...
+  move=>a ls ih h m//=p. inv p.
+  move:H1=>/ih[h'[ls'[->[p1 p2]]]].
+  exists h'. exists (n' :: ls')...
+  exfalso. apply: spine'_lam_constr; eauto.
+Qed.
+
+Lemma pstep_spine'_congr i h1 h2 ms1 ms2 :
+  pstep (spine' (Constr i h1) ms1) (spine' (Constr i h2) ms2) ->
+  All2 pstep ms1 ms2.
+Proof with eauto using All2.
+  elim: ms1 ms2 h2=>//=.
+  destruct ms2=>//=...
+  move=>h2 p. inv p.
+  move=>a ls ih [|hd tl] h2 p//=.
+  inv p. exfalso. apply: spine'_lam_constr; eauto.
+  inv p.
+  move: H2=>/ih...
+  exfalso. apply: spine'_lam_constr; eauto.
+Qed.
+
+Lemma All2_pstep_append ls1 ls2 ls1' ls2' :
+  All2 pstep ls1 ls2 -> All2 pstep ls1' ls2' ->
+  All2 pstep (ls1 ++ ls1') (ls2 ++ ls2').
+Proof with eauto using All2.
+  move=>p. elim: p ls1' ls2'=>//={ls1 ls2}...
+Qed.
+
+Lemma All2_pstep_rev ls1 ls2 :
+  All2 pstep ls1 ls2 -> All2 pstep (rev ls1) (rev ls2).
+Proof with eauto using All2.
+  elim=>//={ls1 ls2}...
+  move=>m m' ls ls' p1 p2 p3.
+  replace (m :: ls) with ([:: m] ++ ls) by eauto.
+  replace (m' :: ls') with ([:: m'] ++ ls') by eauto.
+  rewrite!rev_cat.
+  apply: All2_pstep_append...
+Qed.
+
+Lemma pstep_spine_inv i h ls m :
+  pstep (spine (Constr i h) ls) m ->
+  ∃ h' ls',
+    m = spine (Constr i h') ls' /\
+    pstep h h' /\
+    All2 pstep ls ls'.
+Proof with eauto using pstep, All2.
+  move=>p.
+  have e:=revK ls.
+  rewrite<-e in p.
+  rewrite spine_spine'_rev in p.
+  move: p=>/pstep_spine'_inv[h'[ls'[->[p1 p2]]]].
+  exists h'. exists (rev ls').
+  rewrite spine_spine'_rev.
+  rewrite revK.
+  rewrite revK in p2.
+  repeat split...
+  move/All2_pstep_rev in p2.
+  by rewrite revK in p2.
+Qed.
+
+Lemma pstep_spine_congr i h1 h2 ms1 ms2 :
+  pstep (spine (Constr i h1) ms1) (spine (Constr i h2) ms2) ->
+  All2 pstep ms1 ms2.
+Proof with eauto using pstep, All2.
+  have<-:=revK ms1.
+  have<-:=revK ms2.
+  rewrite!spine_spine'_rev.
+  move=>/pstep_spine'_congr.
+  rewrite!revK=>/All2_pstep_rev.
+  by rewrite!revK.
+Qed.
+
+Lemma All2_diamond ls ls1 ls2 :
+  All2 pstep ls ls1 ->
+  All2 pstep ls ls2 ->
+  All2 (fun m m1 => forall m2, pstep m m2 -> exists2 m', pstep m1 m' & pstep m2 m') ls ls1 ->
+  exists2 ls', All2 pstep ls1 ls' & All2 pstep ls2 ls'.
+Proof with eauto using All2.
+  move=>p1 p2 h. elim: h ls2 p1 p2=>{ls ls1}.
+  move=>ls _ p. inv p. exists nil...
+  move=>m m' ls ls' f p ih ls2 p1 p2.
+  inv p1. inv p2.
+  move: H1=>/f[mx p3 p4].
+  have[lsx p5 p6]:=ih _ H4 H5.
+  exists (mx :: lsx)...
+Qed.
+
 Lemma pstep_diamond m m1 m2 :
-  pstep m m1 -> pstep m m2 ->
-    exists2 m', pstep m1 m' & pstep m2 m'.
+  pstep m m1 -> pstep m m2 -> exists2 m', pstep m1 m' & pstep m2 m'.
 Proof with eauto 6 using 
-  pstep, pstep_refl, 
-  pstep_compat, pstep_compat_beta, 
-  psstep_compat, psstep_refl.
-  move=>ps. elim: ps m2=>{m m1}.
-  move=> x m2 p.
-    inv p.
-    exists (Var x)...
-  move=> s l m2 p.
-    inv p.
-    exists (s @ l)...
+  pstep, pstep_compat, pstep_compat_beta, psstep_compat, pstep_spine.
+  move=>p. move: m m1 p m2. apply: pstep_ind_nested.
+  move=>x m2 p. inv p. exists (Var x)...
+  move=> s l m2 p. inv p. exists (s @ l)...
   move=> A A' n n' s t pA ihA pn ihn m2 p.
     inv p.
     have[A0 pA1 pA2]:=ihA _ H4.
@@ -808,80 +937,54 @@ Proof with eauto 6 using
     have[Ax pA1 pA2]:=ihA _ H5.
     have[Bx pB1 pB2]:=ihB _ H6.
     exists (Pi Ax Bx s r t)...
-  move=>m2 p. inv p. exists Unit...
-  move=>m2 p. inv p. exists It...
-  move=>m2 p. inv p. exists Either...
-  move=>m2 p. inv p. exists Left...
-  move=>m2 p. inv p. exists Right...
-  move=>A A' B B' s r t pA ihA pB ihB m2 p.
-    inv p.
-    have[Ax pA1 pA2]:=ihA _ H5.
-    have[Bx pB1 pB2]:=ihB _ H6.
-    exists (Sigma Ax Bx s r t)...
-  move=>m m' n n' t pm ihm pn ihn m2 p. 
-    inv p.
-    have[mx pm1 pm2]:=ihm _ H3.
-    have[nx pn1 pn2]:=ihn _ H4.
-    exists (Pair mx nx t)...
-  move=>m m' n1 n1' n2 n2' pm ihm p1 ih1 p2 ih2 m2 p.
-    inv p.
-    have[mx pm1 pm2]:=ihm _ H2.
-    have[x px1 px2]:=ih1 _ H4.
-    have[y py1 py2]:=ih2 _ H5.
-    exists (Case mx x y)...
-    inv pm.
-    have[x px1 px2]:=ih1 _ H3.
-    exists x...
-    inv pm.
-    have[y py1 py2]:=ih2 _ H3.
-    exists y...
-  move=>n1 n1' n2 pn ih m2 p.
-    inv p. inv H2.
-    have[x px1 px2]:=ih _ H4.
-    exists x...
-    have[x px1 px2]:=ih _ H2.
-    exists x...
-  move=>n1 n2 n2' pn ih m2 p.
-    inv p. inv H2.
-    have[x px1 px2]:=ih _ H5.
-    exists x...
-    have[x px1 px2]:=ih _ H2.
-    exists x...
-  move=>m m' n n' pm ihm pn ihn m2 p. 
-    inv p.
-    have[mx pm1 pm2]:=ihm _ H1.
-    have[nx pn1 pn2]:=ihn _ H3.
-    exists (LetIn1 mx nx)...
-    inv pm.
-    have[nx pn1 pn2]:=ihn _ H2.
-    exists nx...
-  move=>n n' pn ihn m2 p. 
-    inv p. inv H1.
-    have[nx pn1 pn2]:=ihn _ H3.
-    exists nx...
-    have[nx pn1 pn2]:=ihn _ H0.
-    exists nx...
-  move=>m m' n n' pm ihm pn ihn m2 p.
-    inv p.
-    have[mx pm1 pm2]:=ihm _ H1.
-    have[nx pn1 pn2]:=ihn _ H3.
-    exists (LetIn2 mx nx)...
-    inv pm.
-    have{ihn}[nx pn1 pn2]:=ihn _ H4.
-    have{}/ihm[mx p1 p2]:pstep (Pair m1 m0 t) (Pair m1' m2' t)...
-    inv p1. inv p2.
-    exists (nx.[n'2,m'/])...
-  move=>m1 m1' m2 m2' n n' p1 t ih1 p2 ih2 pn ihn m0 p.
-    inv p. inv H1.
-    have[mx1 p11 p12]:=ih1 _ H5.
-    have[mx2 p21 p22]:=ih2 _ H6.
-    have[nx pn1 pn2]:=ihn _ H3.
-    exists (nx.[mx2,mx1/])...
-    have[mx1 p11 p12]:=ih1 _ H4.
-    have[mx2 p21 p22]:=ih2 _ H5.
-    have[nx pn1 pn2]:=ihn _ H6.
-    exists (nx.[mx2,mx1/])...
-  move=>l m2 p. inv p. exists (Ptr l)...
+  move=> A A' Cs Cs' s pA ihA pCs ihCs t p. inv p.
+    move: H3=> /ihA [Ax pAx1 pAx2].
+    move: (All2_diamond pCs H4 ihCs)=>[Csx pCsx1 pCsx2].
+    exists (Ind Ax Csx s)...
+  move=> i m m' pM ihM t p. inv p.
+    move: H2=> /ihM [mx pMx1 pMx2].
+    exists (Constr i mx)...
+  move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs t p. inv p.
+    move: H2=> /ihM [mx pMx1 pMx2].
+    move: H4=> /ihQ [Qx pQx1 pQx2].
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx pFsx1 pFsx2].
+    exists (Case mx Qx Fsx)...
+    move: (pstep_spine_inv pM)=>[hx [msx[e[pM0 pMs]]]]; subst.
+    have pf : pstep (spine (Constr i m0) ms) (spine (Constr i m0) ms').
+      apply: pstep_spine...
+    move: pf=> /ihM[mx pMx1 pMx2].
+    move: (pstep_spine_inv pMx1)=>[hx'[msx'[e[pHx pMsx]]]]; subst.
+    move: pMx2=>/pstep_spine_congr=> pMs'.
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx pFxs1 pFxs2].
+    move: (pstep_iget1 pFxs2 H2)=> [Fx[ig pFx]].
+    exists (spine Fx msx')...
+  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs t p. inv p.
+    move: H2=>/pstep_spine_inv[hx[mx[->[pM pMs']]]].
+    move: (All2_diamond pMs pMs' ihMs)=>[mx' pMx1 pMx2].
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx pFsx1 pFsx2].
+    move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
+    exists (spine Fx mx')...
+    move: H=> /spine_constr_inj[e1[e2 e3]]; subst.
+    move: (All2_diamond pMs H4 ihMs)=>[mx pMx1 pMx2].
+    move: (All2_diamond pFs H5 ihFs)=>[Fsx pFsx1 pFsx2].
+    move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
+    move: (pstep_iget2 pFsx2 igFx)=>[Fx'[igFx' pFx']].
+    move: (iget_iget igFx' H2)=>e; subst.
+    exists (spine Fx mx)...
+  move=> A A' m m' pA ihA pM ihM t p. inv p.
+    move: H1=> /ihA[Ax pAx1 pAx2].
+    move: H3=> /ihM[mx pMx1 pMx2].
+    exists (Fix Ax mx)...
+    move: H1=> /ihA[Ax pAx1 pAx2].
+    move: H3=> /ihM[mx pMx1 pMx2].
+    exists (mx.[Fix Ax mx/])...
+  move=> A A' m m' pA ihA pM ihM t p. inv p.
+    move: H1=> /ihA[Ax pAx1 pAx2].
+    move: H3=> /ihM[mx pMx1 pMx2].
+    exists (mx.[Fix Ax mx/])...
+    move: H1=> /ihA[Ax pAx1 pAx2].
+    move: H3=> /ihM[mx pMx1 pMx2].
+    exists (mx.[Fix Ax mx/])...
 Qed.
 
 Lemma strip m m1 m2 :
@@ -963,47 +1066,29 @@ Proof.
   exists A'. exists m'0. eauto using star.
 Qed.
 
-Lemma red_unit_inv m : Unit ~>* m -> m = Unit.
-Proof. elim=>//y z r->p. inv p. Qed.
-
-Lemma red_it_inv m : It ~>* m -> m = It. 
-Proof. elim=>//y z r->p. inv p. Qed.
-
-Lemma red_either_inv m : Either ~>* m -> m = Either.
-Proof. elim=>//y z r->p. inv p. Qed.
-
-Lemma red_left_inv m : Left ~>* m -> m = Left.
-Proof. elim=>//y z r->p. inv p. Qed.
-
-Lemma red_right_inv m : Right ~>* m -> m = Right.
-Proof. elim=>//y z r->p. inv p. Qed.
-
-Lemma red_sigma_inv A B s r t x :
-  Sigma A B s r t ~>* x ->
-  exists A' B',
-    A ~>* A' /\ B ~>* B' /\ x = Sigma A' B' s r t.
+Lemma red_ind_inv A Cs s x :
+  Ind A Cs s ~>* x ->
+  exists A' Cs',
+    A ~>* A' /\
+    star (One2 step) Cs Cs' /\ x = Ind A' Cs' s.
 Proof.
   elim.
-  exists A. exists B=>//.
-  move=>y z r1 [Ax[Bx[rA[rB->]]]] s1. inv s1.
-  exists A'. exists Bx. firstorder.
-  apply: star_trans. exact: rA. by apply: star1.
-  exists Ax. exists B'. firstorder.
-  apply: star_trans. exact: rB. by apply: star1.
+  exists A. exists Cs=>//.
+  move=>y z r1 [A'[Cs'[rA[rCs e]]]] r2. subst.
+  inv r2.
+  exists A'0. exists Cs'. eauto using star.
+  exists A'. exists Cs'0. eauto using star.
 Qed.
 
-Lemma red_pair_inv m n t x :
-  Pair m n t ~>* x ->
-  exists m' n',
-    m ~>* m' /\ n ~>* n' /\ x = Pair m' n' t.
+Lemma red_constr_inv i m x :
+  Constr i m ~>* x ->
+  exists m', m ~>* m' /\ x = Constr i m'.
 Proof.
   elim.
-  exists m. exists n=>//.
-  move=>y z r [mx[nx[rm[rn->]]]] p. inv p.
-  exists m'. exists nx. firstorder.
-  apply: star_trans. exact: rm. by apply: star1.
-  exists mx. exists n'. firstorder.
-  apply: star_trans. exact: rn. by apply: star1.
+  exists m=>//.
+  move=>y z r1 [m'[r e]] r2. subst.
+  inv r2.
+  exists m'0. eauto using star.
 Qed.
 
 Lemma sort_inj s1 s2 l1 l2 :
@@ -1013,7 +1098,7 @@ Proof.
 Qed.
 
 Lemma pi_inj A A' B B' s s' r r' t t' :
-  Pi A B s r t === Pi A' B' s' r' t' -> 
+  Pi A B s r t === Pi A' B' s' r' t' ->
     A === A' /\ B === B' /\ s = s' /\ r = r' /\ t = t'.
 Proof.
   move/church_rosser=>
@@ -1028,20 +1113,126 @@ Proof.
     apply: conv_sym. by apply: star_conv.
 Qed.
 
-Lemma sigma_inj A A' B B' s s' r r' t t' :
-  Sigma A B s r t === Sigma A' B' s' r' t' ->
-  A === A' /\ B === B' /\ s = s' /\ r = r' /\ t = t'.
+Lemma All2_cat (P : term -> term -> Prop) xs1 xs2 ys1 ys2 :
+  All2 P xs1 ys1 ->
+  All2 P xs2 ys2 ->
+  All2 P (xs1 ++ xs2) (ys1 ++ ys2).
 Proof.
-  move/church_rosser=>
-    [x/red_sigma_inv[A1[B1[rA1[rB1->]]]]]
-      /red_sigma_inv[A2[B2[rA2[rB2[]]]]] eA eB es er et; subst.
-  repeat split.
-  apply: conv_trans.
-    apply: star_conv. by apply: rA1.
-    apply: conv_sym. by apply: star_conv.
-  apply: conv_trans.
-    apply: star_conv. by apply: rB1.
-    apply: conv_sym. by apply: star_conv.
+  move=>a2. elim: a2 xs2 ys2=>//=.
+  move=> m m' ls ls' p a2 ih xs2 ys2 a2'.
+  constructor; eauto.
+Qed.
+
+Lemma All2_rev (P : term -> term -> Prop) xs ys :
+  All2 P xs ys -> All2 P (rev xs) (rev ys).
+Proof.
+  elim.
+  rewrite /rev/catrev. constructor.
+  move=> m m' ls ls' p a2 ih.
+  replace (m :: ls) with ([:: m] ++ ls) by eauto.
+  replace (m' :: ls') with ([:: m'] ++ ls') by eauto.
+  rewrite! rev_cat.
+  apply: All2_cat; eauto.
+  rewrite /rev/catrev.
+  repeat constructor; eauto.
+Qed.
+
+Lemma All2_red_refl ms : All2 red ms ms.
+Proof with eauto using All2. elim: ms... Qed.
+
+Lemma All2_conv_refl xs : All2 (conv step) xs xs.
+Proof with eauto using All2. elim: xs... Qed.
+
+Lemma One2_step_All2_red xs ys :
+  One2 step xs ys -> All2 red xs ys.
+Proof with eauto using star1, All2, All2_red_refl.
+  elim=>{xs ys}.
+  move=> m m' ls st...
+  move=> m ls ls' o2 a2...
+Qed.
+
+Lemma One2_step_All2_conv xs ys :
+  One2 step xs ys -> All2 (conv step) xs ys.
+Proof with eauto using conv1, All2, All2_conv_refl.
+  elim=>{xs ys}.
+  move=> m m' ls st...
+  move=> m ls ls' o2 a2...
+Qed.
+
+Lemma All2_red_trans xs ys zs :
+  All2 red xs ys ->
+  All2 red ys zs ->
+  All2 red xs zs.
+Proof.
+  move=> a2. elim: a2 zs=>{xs ys}.
+  move=> zs a2.
+  inv a2.
+  constructor.
+  move=> m m' ls ls' rd a2 ih zs a2'.
+  inv a2'.
+  constructor; eauto.
+  apply: star_trans; eauto.
+Qed.
+
+Lemma All2_conv_trans xs ys zs :
+  All2 (conv step) xs ys ->
+  All2 (conv step) ys zs ->
+  All2 (conv step) xs zs.
+Proof.
+  move=> a2. elim: a2 zs=>{xs ys}.
+  move=> zs a2.
+  inv a2.
+  constructor.
+  move=> m m' ls ls' e a2 ih zs a2'.
+  inv a2'.
+  constructor; eauto.
+  apply: conv_trans; eauto.
+Qed.
+
+Lemma All2_conv_sym xs ys :
+  All2 (conv step) xs ys -> All2 (conv step) ys xs.
+Proof.
+  elim.
+  constructor.
+  move=> m m' ls ls' e a2 ih.
+  constructor; eauto.
+  apply: conv_sym; eauto.
+Qed.
+
+Lemma All2_red_conv xs ys :
+  All2 red xs ys -> All2 (conv step) xs ys.
+Proof with eauto using All2.
+  elim...
+  move=> m m' ls ls' rd a2 ih.
+  constructor...
+  apply: star_conv...
+Qed.
+
+Lemma star_One2_step_All2_conv xs ys :
+  star (One2 step) xs ys -> All2 (conv step) xs ys.
+Proof.
+  elim.
+  elim: xs; constructor; eauto.
+  move=>y z st a2 o2.
+  apply One2_step_All2_conv in o2.
+  apply: All2_conv_trans; eauto.
+Qed.
+
+Lemma Ind_inj A A' Cs Cs' s s' :
+  Ind A Cs s === Ind A' Cs' s' ->
+  A === A' /\
+  All2 (conv step) Cs Cs' /\
+  s = s'.
+Proof.
+  move=>/church_rosser h. inv h.
+  move: H=>/red_ind_inv[Ax[Csx[rA[rCs e]]]]; subst.
+  move: H0=>/red_ind_inv[Ax'[Csx'[rA'[rCs' e']]]]; subst.
+  inv e'.
+  firstorder; eauto using join_conv.
+  apply star_One2_step_All2_conv in rCs.
+  apply star_One2_step_All2_conv in rCs'.
+  apply: All2_conv_trans; eauto.
+  apply: All2_conv_sym; eauto.
 Qed.
 
 Ltac red_inv m H :=
@@ -1050,13 +1241,8 @@ Ltac red_inv m H :=
   | Sort   => apply red_sort_inv in H
   | Pi     => apply red_pi_inv in H
   | Lam    => apply red_lam_inv in H
-  | Unit   => apply red_unit_inv in H
-  | It     => apply red_it_inv in H
-  | Either => apply red_either_inv in H
-  | Left   => apply red_left_inv in H
-  | Right  => apply red_right_inv in H
-  | Sigma  => apply red_sigma_inv in H
-  | Pair   => apply red_pair_inv in H
+  | Ind    => apply red_ind_inv in H
+  | Constr => apply red_constr_inv in H
   end.
 
 Ltac solve_conv' :=
