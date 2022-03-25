@@ -189,10 +189,413 @@ Proof with eauto 6 using merge, agree_subst, agree_subst_key.
     rewrite g3... }
 Qed.
 
+Lemma arity_subst s A σ : arity s A -> arity s A.[σ].
+Proof with eauto using arity. move=>ar. elim: ar σ... Qed.
+
+Definition n_subst σ x :=
+  (forall i, ~x = i -> noccurs x (σ i)) /\ σ x = Var x.
+
+Lemma noccurs_ren0 x m ξ :
+  (forall i, ~ξ i = x) -> noccurs x m.[ren ξ].
+Proof with eauto using noccurs, All1.
+  move: m x ξ. apply: term_ind_nested...
+  move=>A B s r t ihA ihB x ξ h. asimpl.
+  { constructor...
+    apply: ihB.
+    move=>[|i]; asimpl... }
+  move=>A m s t ihA ihm x ξ h. asimpl.
+  { constructor...
+    apply: ihm.
+    move=>[|i]; asimpl... }
+  move=>A Cs s ihA ihCs x ξ h. asimpl.
+  { constructor...
+    elim: ihCs...
+    move=>C Cs' hd tl ih.
+    constructor...
+    apply: hd.
+    move=>[|i]; asimpl... }
+  move=>m Q Fs ihm ihQ ihFs x ξ h. asimpl.
+  { constructor...
+    elim: ihFs... }
+  move=>A m ihA ihm x ξ h. asimpl.
+  { constructor...
+    apply: ihm...
+    move=>[|i]; asimpl... }
+Qed.
+
+Lemma n_subst0 σ : n_subst (up σ) 0.
+Proof.
+  split; eauto.
+  move=> i. elim: i σ=>//=.
+  move=> i _ σ _; asimpl.
+  apply: noccurs_ren0; eauto.
+Qed.
+
+Lemma noccurs_up x m ξ :
+  noccurs x m -> (forall i, ~x = i -> ~ξ x = ξ i) -> noccurs (ξ x) m.[ren ξ].
+Proof with eauto using noccurs.
+  move=> no. move: x m no ξ.
+  apply: noccurs_ind_nested=>//=...
+  move=>x A B s r t nA ihA nB ihB ξ h.
+  { constructor...
+    asimpl.
+    apply: ihB.
+    move=>[|i] h1; asimpl...
+    move=>h2.
+    have /h h3: ~x = i by eauto.
+    eauto. }
+  move=>x A m s t nA ihA nm ihm ξ h.
+  { constructor...
+    asimpl.
+    apply: ihm.
+    move=>[|i] h1; asimpl...
+    move=>h2.
+    have /h h3: ~x = i by eauto.
+    eauto. }
+  move=>x A Cs s nA ihA nCs ihCs ξ h.
+  { constructor...
+    elim: ihCs. constructor.
+    move=>C Cs' hd tl ih.
+    constructor...
+    asimpl.
+    apply: hd.
+    move=>[|i] neq; asimpl...
+    have /h h1: ~x = i by eauto.
+    eauto. }
+  move=>x m Q Fs nm ihm nQ ihQ nFs ihFs ξ h.
+  { constructor...
+    elim: ihFs. constructor.
+    move=>F Fs' hd tl ih.
+    constructor... }
+  move=>x A m nA ihA nm ihm ξ h.
+  { constructor...
+    asimpl.
+    apply: ihm.
+    move=>[|i] neq; asimpl...
+    have /h h1: ~x = i by eauto.
+    eauto. }
+Qed.
+
+Lemma n_subst_up σ x : n_subst σ x -> n_subst (up σ) x.+1.
+Proof.
+  move=>[h e]; split; asimpl.
+  elim; asimpl.
+  constructor; eauto.
+  move=> n h' neq.
+  have pf : ~x = n by eauto.
+  move: (h _ pf)=>{}h.
+  apply: noccurs_up; eauto.
+  rewrite e. autosubst.
+Qed.
+
+Lemma noccurs_subst σ m x : noccurs x m -> n_subst σ x -> noccurs x m.[σ].
+Proof with eauto using noccurs.
+  move=>no. move: x m no σ.
+  apply: noccurs_ind_nested=>//=...
+  move=>x y neq σ [n _]...
+  move=>x A B s r t nA ihA nB ihB σ no.
+  { constructor...
+    apply: ihB.
+    apply: n_subst_up... }
+  move=>x A m s t nA ihA nm ihm σ no.
+  { constructor...
+    apply: ihm.
+    apply: n_subst_up... }
+  move=>x A Cs s nA ihA nCs ihCs σ no.
+  { constructor...
+    elim: ihCs. constructor.
+    move=>C Cs' hd tl ih.
+    constructor...
+    apply: hd.
+    apply: n_subst_up... }
+  move=>x m Q Fs nm ihm nQ ihQ nFs ihFs σ no.
+  { constructor...
+    elim: ihFs. constructor.
+    move=>F Fs' hd tl ih.
+    constructor... }
+  move=>x A m nA ihA nm ihm σ no.
+  { constructor...
+    apply: ihm.
+    apply: n_subst_up... }
+Qed.
+
+Lemma pos_subst i A σ : pos i A -> n_subst σ i -> pos i A.[σ].
+Proof with eauto.
+  move=>p. elim: p σ=>//={i A}.
+  move=>x ms ih σ [n e].
+  rewrite spine_subst; asimpl.
+  rewrite e.
+  constructor.
+  elim: ih. constructor.
+  move=>m ms' hd tl ih. asimpl.
+  constructor...
+  apply: noccurs_subst...
+  split...
+  move=>x A B s r t tnA pB ihB σ no.
+  constructor.
+  apply: noccurs_subst...
+  apply: ihB.
+  apply: n_subst_up...
+Qed.
+
+Lemma constr_subst i s m σ :
+  constr i s m -> n_subst σ i -> constr i s m.[σ].
+Proof with eauto.
+  move=>c. elim: c σ=>//={i m s}.
+  move=>x s ms nms σ [n e].
+  { rewrite spine_subst; asimpl.
+    rewrite e.
+    constructor.
+    elim: nms. constructor.
+    move=>m ms' hd tl ih.
+    constructor...
+    apply: noccurs_subst...
+    split... }
+  move=>s t x A B leq pA nB cB ihB σ no.
+  { apply: constr_pos...
+    apply: pos_subst...
+    apply: noccurs_subst...
+    apply: n_subst0.
+    apply: ihB.
+    apply: n_subst_up... }
+  move=>s t x A B leq nA cB ihB σ no.
+  { apply: constr_pi...
+    apply: noccurs_subst...
+    apply: ihB.
+    apply: n_subst_up... }
+Qed.
+
+Lemma rearity_subst k s s' I A σ :
+  arity s A -> (rearity k s' I A).[σ] = rearity k s' I.[σ] A.[σ].
+Proof.
+  move=>ar. elim: ar I σ=>//={A}.
+  move=>l I σ.
+  destruct k; asimpl=>//.
+  move=>A B ar ih I σ.
+  rewrite ih.
+  by asimpl.
+Qed.
+
+Lemma respine0_I_subst Q I σ :
+  (forall Q, respine0 Q I = Q) -> (forall x, ~I = Var x) -> Q.[σ] = respine0 Q.[σ] I.[σ].
+Proof.
+  elim: I σ=>//=.
+  move=>x σ _ h.
+  have//:=h x.
+  move=>A _ B _ σ h _.
+  have//:=h (Var 0).
+Qed.
+
+Lemma respine_I_subst k s s' Q c I σ :
+  (forall Q c, respine k s Q c I = (s', kapp k Q c)) ->
+  (forall x, ~I = Var x) ->
+  s' = (respine k s Q.[σ] c.[σ] I.[σ]).1 /\
+  kapp k Q.[σ] c.[σ] = (respine k s Q.[σ] c.[σ] I.[σ]).2.
+Proof.
+  elim: I k s s' Q c σ=>//=.
+  move=>x k s s' Q c σ _ h. have//:=h x.
+  move=>s l k s0 s' Q c σ h _.
+  { have{}h:=h Q c.
+    destruct k=>//=.
+    inv h=>//.
+    inv h=>//. }
+  move=>A _ B _ s r t k s0 s' Q c σ h _.
+  { have{h}:=h (Var 0) c.
+    destruct k=>//=.
+    destruct (respine U s0 (ids 1) (App c.[ren (+1)] (Var 0)) B)=>//.
+    destruct (respine L s0 (ids 1) (App c.[ren (+1)] (Var 0)) B)=>//. }
+  move=>A _ m _ s t k s0 s' Q c σ h _.
+  { have{}h:=h (Var 0) c.
+    destruct k=>//=.
+    inv h=>//.
+    inv h=>//. }
+  move=>m _ n _ k s s' Q c σ h _.
+  { have{}h:=h (Var 0) c.
+    destruct k=>//=. }
+  move=>A _ Cs s k s0 s' Q c σ h _.
+  { have{}h:=h (Var 0) c.
+    destruct k=>//=.
+    inv h=>//.
+    inv h=>//. }
+  move=>i m _ k s s' Q c σ h _.
+  { have{}h:=h (Var 0) c.
+    destruct k=>//=.
+    inv h=>//.
+    inv h=>//. }
+  move=>m _ Q _ Fs k s s' Q0 c σ h _.
+  { have{}h:=h (Var 0) c.
+    destruct k=>//=.
+    inv h=>//.
+    inv h=>//. }
+  move=>A _ m _ k s s' Q c σ h _.
+  { have{}h:=h (Var 0) c.
+    destruct k=>//=.
+    inv h=>//.
+    inv h=>//. }
+Qed.
+
+Lemma kapp_subst k m n σ : (kapp k m n).[σ] = kapp k m.[σ] n.[σ].
+Proof. destruct k=>//=. Qed.
+
+Lemma respine0_spine'_I_subst Q I ms σ :
+  (forall Q, respine0 Q I = Q) ->
+  (forall x, ~I = Var x) ->
+  (respine0 Q (spine' I ms)).[σ] = respine0 Q.[σ] (spine' I ms).[σ].
+Proof.
+  elim: ms Q I σ=>//=.
+  move=>Q I σ h1 h2.
+  rewrite h1.
+  by apply: respine0_I_subst.
+  move=>m ms ih Q I σ h1 h2.
+  by rewrite ih.
+Qed.
+
+Lemma respine_spine'_I_subst k s s' Q c I ms σ :
+  (forall Q c, respine k s Q c I = (s', kapp k Q c)) ->
+  (forall x, ~I = Var x) ->
+  (respine k s Q c (spine' I ms)).1 =
+    (respine k s Q.[σ] c.[σ] (spine' I ms).[σ]).1 /\
+  (respine k s Q c (spine' I ms)).2.[σ] =
+    (respine k s Q.[σ] c.[σ] (spine' I ms).[σ]).2.
+Proof.
+  elim: ms Q I σ=>//=.
+  move=>Q I σ h1 h2.
+  rewrite h1=>//=.
+  rewrite kapp_subst.
+  by apply: respine_I_subst.
+  move=>m ms ih Q I σ h1 h2.
+  destruct k=>//=.
+  rewrite respine0_spine'_I_subst; eauto.
+  by apply: respine_respine0.
+  rewrite respine0_spine'_I_subst; eauto.
+  by apply: respine_respine0.
+  Unshelve. all: eauto.
+Qed.
+
+Lemma respine_spine_I_subst k s s' I :
+  (forall Q c, respine k s Q c I = (s', kapp k Q c)) ->
+  (forall x, ~I = Var x) ->
+  forall Q c ms σ,
+    (respine k s Q c (spine I ms)).1 =
+      (respine k s Q.[σ] c.[σ] (spine I ms).[σ]).1 /\
+    (respine k s Q c (spine I ms)).2.[σ] =
+      (respine k s Q.[σ] c.[σ] (spine I ms).[σ]).2.
+Proof.
+  move=>h1 h2 Q c ms σ.
+  rewrite spine_spine'_rev.
+  by apply: respine_spine'_I_subst.
+Qed.
+
+Lemma ren_var_false (I : var -> term) x :
+  (forall y, ~I x = Var y) -> (forall y, ~(I x).[ren (+1)] = Var y).
+Proof.
+  move e:(I x)=> n h y.
+  elim: n h I e y; intros; try discriminate.
+  destruct y; asimpl.
+  discriminate.
+  move: (h y)=>{}h eq.
+  inv eq.
+  apply: h; eauto.
+Qed.
+
+Lemma constr_respine_subst x s' C :
+  constr x s' C ->
+  forall k s I,
+    (forall i Q c, respine k s Q c (I i) = (s, kapp k Q c)) ->
+    (forall y, ~I x = Var y) ->
+  forall Q c σ,
+    (respine k s Q c C.[I]).1 =
+      (respine k s Q.[σ] c.[σ] C.[I].[σ]).1 /\
+    (respine k s Q c C.[I]).2.[σ] =
+      (respine k s Q.[σ] c.[σ] C.[I].[σ]).2.
+Proof.
+  move=>cn. elim: cn=>{x s' C}.
+  move=>x s' ms nms k s0 I h1 h2 Q c σ.
+  { rewrite!spine_subst. asimpl.
+    pose proof (respine_spine_I_subst (h1 x) h2 Q c ms..[I] σ) as X.
+    rewrite!spine_subst in X.
+    by asimpl in X. }
+  move=>s t x A B leq pA nB cB ih k s0 I h1 h2 Q c σ.
+  { asimpl.
+    have/ih{}ih:=respine_up h1.
+    have {}h2: forall y, ~up I x.+1 = Var y.
+    { move=>y; asimpl.
+      by apply: ren_var_false. }
+    pose proof (ih h2 Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) (up σ)) as hx.
+    asimpl in hx.
+    replace (Var 0) with (ids 0) in hx by autosubst.
+    replace (Var 0) with (ids 0) by autosubst.
+    remember (respine k s0 Q.[ren (+1)] (App c.[ren (+1)] (ids 0)) B.[up I]) as p1.
+    remember (respine k s0 Q.[σ >> ren (+1)] (App c.[σ >> ren (+1)] (ids 0))
+       B.[ids 0 .: I >> (σ >> ren (+1))]) as p2.
+    destruct p1. destruct p2.
+    split; eauto.
+    asimpl. simpl in hx. destruct hx.
+    repeat f_equal; eauto. }
+  move=>s t x A B leq nA cB ih k s0 I h1 h2 Q c σ.
+  { asimpl.
+    have/ih{}ih:=respine_up h1.
+    have {}h2: forall y, ~up I x.+1 = Var y.
+    { move=>y; asimpl.
+      by apply: ren_var_false. }
+    pose proof (ih h2 Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) (up σ)) as hx.
+    asimpl in hx.
+    replace (Var 0) with (ids 0) in hx by autosubst.
+    replace (Var 0) with (ids 0) by autosubst.
+    remember (respine k s0 Q.[ren (+1)] (App c.[ren (+1)] (ids 0)) B.[up I]) as p1.
+    remember (respine k s0 Q.[σ >> ren (+1)] (App c.[σ >> ren (+1)] (ids 0))
+       B.[ids 0 .: I >> (σ >> ren (+1))]) as p2.
+    destruct p1. destruct p2.
+    split; eauto.
+    asimpl. simpl in hx. destruct hx.
+    repeat f_equal; eauto. }
+Qed.
+
+Lemma All2_case_subst Γ Δ n k s s' A Q Fs Cs Cs' σ:
+  All2i (fun i F C =>
+    constr 0 s C /\
+    let I := Ind A Cs' s in
+    let T := mkcase k s' I Q (Constr i I) C in
+    forall Δ σ, Δ ⊢ σ ⊣ Γ ->
+      Δ ⊢ F.[σ] : T.2.[σ] : T.1) n Fs Cs ->
+  Δ ⊢ σ ⊣ Γ ->
+  All2i (fun i F C =>
+    constr 0 s C /\
+    let I := Ind A.[σ] Cs'..[up σ] s in
+    let T := mkcase k s' I Q.[σ] (Constr i I) C in
+    Δ ⊢ F : T.2 : T.1) n Fs..[σ] Cs..[up σ].
+Proof.
+  elim: Fs Γ Δ n s A Q Cs σ=>//=.
+  move=>Γ Δ n s A Q Cs σ h agr. inv h.
+  { constructor. }
+  move=>F Fs ih Γ Δ n s A Q Cs σ h agr.
+  inv h. inv H2.
+  constructor.
+  { split.
+    asimpl.
+    apply: constr_subst; eauto. apply: n_subst0.
+    have{H0}tyF:=H0 _ _ agr.
+    unfold mkcase in tyF.
+    have h1: ∀ i Q c, respine k s' Q c ((Ind A Cs' s .: ids) i) = (s', kapp k Q c).
+    { move=>[|i] Q0 c; asimpl.
+      destruct k=>//.
+      destruct k=>//. }
+    have h2: ∀ x, ~(Ind A Cs' s .: ids) 0 = Var x.
+    { move=>//. }
+    have {h1 h2}[e1 e2]:=constr_respine_subst H h1 h2 Q (Constr n (Ind A Cs' s)) σ.
+    rewrite e1 in tyF=>{e1}.
+    rewrite e2 in tyF=>{e2}.
+    asimpl in tyF.
+    unfold mkcase.
+    asimpl. eauto. }
+  { apply: ih; eauto. }
+Qed.
+
 Lemma esubstitution Γ m A Δ s σ :
   Γ ⊢ m : A : s -> Δ ⊢ σ ⊣ Γ -> Δ ⊢ m.[σ] : A.[σ] : s.
 Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
-  move=>ty. elim: ty Δ σ=>{Γ m A s}.
+  move=>ty. move: Γ m A s ty Δ σ.
+  apply: clc_type_ind_nested.
   move=>Γ s l k Δ σ agr. asimpl.
   { apply: clc_axiom... }
   move=>Γ A B s r t i k tyA ihA tyB ihB Δ σ agr. asimpl.
@@ -206,71 +609,45 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     replace B.[n.[σ] .: σ] with B.[up σ].[n.[σ]/] by autosubst.
     move:(agree_subst_key agr2 k)=>{}k.
     apply: clc_app... }
-  move=>Γ k Δ σ agr. asimpl.
-  { apply: clc_unit... }
-  move=>Γ k Δ σ agr. asimpl.
-  { apply: clc_it... }
-  move=>Γ k Δ σ agr. asimpl.
-  { apply: clc_either... }
-  move=>Γ k Δ σ agr. asimpl.
-  { apply: clc_left... }
-  move=>Γ k Δ σ agr. asimpl.
-  { apply: clc_right... }
-  move=>Γ A B s r t i mrg k tyA ihA tyB ihB Δ σ agr. asimpl.
-  { apply: clc_sigma... }
-  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg 
-    tyS ihS tym ihm tyn ihn Δ σ agr. asimpl.
-  { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
-    move:(agree_subst_key agr1 k1)=>{}k1.
-    move:(agree_subst_key agr2 k2)=>{}k2.
-    apply: clc_pair...
-    move:(ihn _ _ agr2).
-    by asimpl. }
-  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 Δ σ agr. asimpl.
-  { have{agr mrg}[G1[G2[mrg[agr1 agr2]]]]:=merge_agree_subst_inv agr mrg.
-    have{}ihm:=ihm _ _ agr1.
-    have{}ihn1:=ihn1 _ _ agr2. asimpl in ihn1.
-    have{}ihn2:=ihn2 _ _ agr2. asimpl in ihn2.
-    have/ihA{}ihA:[Either :{s} G2] ⊢ up σ ⊣ [Either :{s} Γ2].
-    { destruct s; simpl.
-      replace (Either :U [G2] ⊢ up σ ⊣ Either :U [Γ2])
-        with (Either.[σ] :U [G2] ⊢ up σ ⊣ Either :U [Γ2]) by autosubst.
-      constructor...
-      constructor... }
-    asimpl in ihA.
-    replace A.[m.[σ] .: σ] with A.[up σ].[m.[σ]/] by autosubst.
-    have{}k:=agree_subst_key agr1 k.
-    apply: clc_case...
-    asimpl...
-    asimpl... }
-  move=>Γ1 Γ2 Γ m n A s mrg tym ihm tyn ihn Δ σ agr. asimpl.
-  { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
-    apply: clc_letin1... }
-  move=>Γ1 Γ2 Γ A B C m n s r t k x i leq key mrg
-    tym ihm tyC ihC tyn ihn Δ σ agr. asimpl.
-  { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
-    move:(ihm _ _ agr1)=>{ihm}tym.
-    move:(agree_subst_key agr1 key)=>{}key.
-    have/ihn{ihn}tyn: B.[up σ] :{r} A.[σ] :{s} G2 ⊢ up (up σ) ⊣
-      B :{r} A :{s} Γ2...
-    destruct k.
-    have/ihC{ihC}tyC:(Sigma A B s r t).[σ] :U [G2] ⊢ up σ ⊣
-      [Sigma A B s r t :U Γ2]...
-    asimpl in tym.
-    asimpl in tyC.
-    replace C.[Pair (Var 1) (Var 0) t .: ren (+2)].[up (up σ)]
-      with C.[up σ].[Pair (Var 1) (Var 0) t .: ren (+2)]
-        in tyn by autosubst.
-    have:=clc_letin2 leq key mrg1 tym tyC tyn.
-    by asimpl.
-    have/ihC{ihC}tyC:_: [G2] ⊢ up σ ⊣ [Sigma A B s r t :L Γ2]...
-    asimpl in tym.
-    asimpl in tyC.
-    replace C.[Pair (Var 1) (Var 0) t .: ren (+2)].[up (up σ)]
-      with C.[up σ].[Pair (Var 1) (Var 0) t .: ren (+2)]
-        in tyn by autosubst.
-    have:=clc_letin2 leq key mrg1 tym tyC tyn.
-    by asimpl. }
+  move=>Γ A Cs s t l k ar ctr tyA ihA tyCs ihCs Δ σ agr. asimpl.
+  { asimpl.
+    apply: clc_indd...
+    apply: arity_subst...
+    move=>{agr}.
+    elim: ctr σ=>//=...
+    { move=>_. constructor. }
+    { move=>m ls c h ih σ. asimpl.
+      constructor.
+      apply: constr_subst... apply: n_subst0.
+      have:=ih σ... }
+    elim: ihCs=>//=.
+    { constructor. }
+    { move=>m ls ihm hls ihls. asimpl.
+      constructor... } }
+  move=>Γ A s i C Cs//=k ig ty ih Δ σ agr.
+  { replace (C.[Ind A Cs s/].[σ])
+      with (C.[up σ]).[Ind A.[σ] Cs..[up σ] s/] by autosubst.
+    apply: clc_constr...
+    apply: iget_subst... }
+  move=>Γ1 Γ2 Γ A Q s s'//=k Fs Cs m ms leq ar mrg tym ihm tyQ ihQ tyFs ihFs Δ σ agr.
+  { rewrite kapp_subst.
+    rewrite spine_subst.
+    have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_subst_inv agr mrg.
+    have ar':=arity_subst σ ar.
+    have{}ihm:=ihm _ _ agr1. rewrite spine_subst in ihm.
+    have{}ihQ:=ihQ _ _ (agree_subst_re agr2).
+    rewrite (rearity_subst k s' (Ind A Cs s) σ ar) in ihQ.
+    apply: clc_case; eauto.
+    apply: All2_case_subst; eauto. }
+  move=>Γ A m l k tyA ihA tym ihm Δ σ agr.
+  { asimpl.
+    apply: clc_fix.
+    apply: agree_subst_key; eauto.
+    apply: ihA; eauto.
+    replace A.[σ].[ren (+1)] with A.[ren (+1)].[up σ]
+      by autosubst.
+    apply: ihm.
+    by constructor. }
   move=>Γ A B m s i sb tym ihm tyB ihB Δ σ agr.
   { apply: clc_conv.
     apply: sub_subst...
@@ -295,53 +672,6 @@ Proof with eauto.
     by asimpl. }
   { apply: agree_subst_wkL...
     by asimpl. }
-Qed.
-
-Lemma substitution2 Γ1 Γ2 Γ3 Γ4 Γ m1 m2 n A B C s r t :
-  B :{r} A :{s} Γ1 ⊢ n : C : t->
-  Γ2 |> s ->
-  Γ3 |> r ->
-  Γ1 ∘ Γ2 => Γ4 -> Γ3 ∘ Γ4 => Γ ->
-  Γ2 ⊢ m1 : A : s ->
-  Γ3 ⊢ m2 : B.[m1/] : r ->
-  Γ ⊢ n.[m2,m1/] : C.[m2,m1/] : t.
-Proof.
-  move=>tyn k1 k2 mrg1 mrg2 ty1 ty2.
-  apply: esubstitution.
-  exact: tyn.
-  move:(merge_re_re mrg1)=>[e0[e1 e2]].
-  move:(merge_re_re mrg2)=>[e3[e4 e5]].
-  destruct r; destruct s.
-  { apply: agree_subst_wkU.
-    apply: agree_subst_wkU.
-    have e:=merge_pureR mrg1 k1; subst.
-    have e:=merge_pureL mrg2 k2; subst.
-    eauto. asimpl.
-    rewrite<-e5. rewrite<-e2.
-    by rewrite<-pure_re.
-    rewrite<-e5. rewrite<-e3.
-    by rewrite<-pure_re. }
-  { have[G[mrg3 mrg4]]:=merge_splitR (merge_sym mrg2) mrg1. 
-    apply: agree_subst_wkU.
-    apply: agree_subst_wkL.
-    exact: mrg4. eauto.
-    have e:=merge_pureR mrg3 k2; subst.
-    by asimpl.
-    rewrite<-e4. by rewrite<-pure_re. }
-  { have[G[mrg3 mrg4]]:=merge_splitR (merge_sym mrg2) mrg1. 
-    apply: agree_subst_wkL.
-    exact: mrg4.
-    apply: agree_subst_wkU.
-    eauto. asimpl.
-    rewrite e0. by rewrite<-pure_re.
-    have e:=merge_pureL mrg3 k1; subst.
-    eauto. }
-  { apply: agree_subst_wkL.
-    apply: merge_sym.
-    exact: mrg2.
-    apply: agree_subst_wkL; eauto.
-    by asimpl.
-    eauto. }
 Qed.
 
 Lemma substitutionN Γ1 Γ2 m n A B s t :

@@ -289,12 +289,12 @@ Proof.
 Qed.
 
 Lemma respine_up k s I :
-  (forall i c Q, respine k s Q c (I i) = (s, kapp k Q c)) ->
-  (forall i c Q, respine k s Q c (up I i) = (s, kapp k Q c)).
+  (forall i Q c, respine k s Q c (I i) = (s, kapp k Q c)) ->
+  (forall i Q c, respine k s Q c (up I i) = (s, kapp k Q c)).
 Proof.
   move=>h i. elim: i I h=>//=.
-  move=>I h c Q. destruct k=>//=.
-  move=>n ih I h c Q. asimpl.
+  move=>I h Q c. destruct k=>//=.
+  move=>n ih I h Q c. asimpl.
   by apply: respine_ren1.
 Qed.
 
@@ -316,47 +316,47 @@ Proof.
 Qed.
 
 Lemma respine_I_ren k s s' Q c I ξ :
-  (forall c Q, respine k s Q c I = (s', kapp k Q c)) ->
+  (forall Q c, respine k s Q c I = (s', kapp k Q c)) ->
   s' = (respine k s Q.[ren ξ] c.[ren ξ] I.[ren ξ]).1 /\
   kapp k Q.[ren ξ] c.[ren ξ] = (respine k s Q.[ren ξ] c.[ren ξ] I.[ren ξ]).2.
 Proof.
-  elim: I ξ c Q=>//=.
-  move=>x ξ c Q h.
+  elim: I ξ Q c=>//=.
+  move=>x ξ Q c h.
   { destruct k=>//=.
-    have[->]//:=h c Q.
-    have[->]//:=h c Q. }
+    have[->]//:=h Q c.
+    have[->]//:=h Q c. }
   move=>t i ξ c Q h.
   { destruct k=>//=.
-    have[->]//:=h c Q.
-    have[->]//:=h c Q. }
+    have[->]//:=h Q c.
+    have[->]//:=h Q c. }
   move=>A _ B _ s0 r t ξ c Q h.
-  { have{h}:=h c (Var 0).
+  { have{h}:=h (Var 0) c.
     destruct k=>//=.
     destruct (respine U s (ids 1) (App c.[ren (+1)] (Var 0)) B)=>//.
     destruct (respine L s (ids 1) (App c.[ren (+1)] (Var 0)) B)=>//. }
-  move=>A _ m _ r t ξ c Q h.
+  move=>A _ m _ r t ξ Q c h.
   { destruct k=>//=.
-    have[->]//:=h c Q.
-    have[->]//:=h c Q. }
+    have[->]//:=h Q c.
+    have[->]//:=h Q c. }
   move=>m _ n _ ξ c Q h.
-  { have{h}:=h c (Var 0).
+  { have{h}:=h (Var 0) c.
     destruct k=>//=. }
-  move=>A _ Cs r ξ c Q h.
+  move=>A _ Cs r ξ Q c h.
   { destruct k=>//=.
-    have[->]//:=h c Q.
-    have[->]//:=h c Q. }
-  move=>i m _ ξ c Q h.
+    have[->]//:=h Q c.
+    have[->]//:=h Q c. }
+  move=>i m _ ξ Q c h.
   { destruct k=>//=.
-    have[->]//:=h c Q.
-    have[->]//:=h c Q. }
-  move=>m _ Q _ Fs ξ c Q0 h.
+    have[->]//:=h Q c.
+    have[->]//:=h Q c. }
+  move=>m _ Q _ Fs ξ Q0 c h.
   { destruct k=>//=.
-    have[->]//:=h c Q.
-    have[->]//:=h c Q. }
-  move=>A _ m _ ξ c Q h.
+    have[->]//:=h Q c.
+    have[->]//:=h Q c. }
+  move=>A _ m _ ξ Q c h.
   { destruct k=>//=.
-    have[->]//:=h c Q.
-    have[->]//:=h c Q. }
+    have[->]//:=h Q c.
+    have[->]//:=h Q c. }
 Qed.
 
 Lemma kapp_ren k m n ξ : (kapp k m n).[ren ξ] = kapp k m.[ren ξ] n.[ren ξ].
@@ -373,7 +373,7 @@ Proof.
 Qed.
 
 Lemma respine_spine'_I_ren k s s' Q c I ms ξ :
-  (forall c Q, respine k s Q c I = (s', kapp k Q c)) ->
+  (forall Q c, respine k s Q c I = (s', kapp k Q c)) ->
   (respine k s Q c (spine' I ms)).1 =
     (respine k s Q.[ren ξ] c.[ren ξ] (spine' I ms).[ren ξ]).1 /\
   (respine k s Q c (spine' I ms)).2.[ren ξ] =
@@ -390,41 +390,41 @@ Proof.
   by apply: respine_respine0.
   rewrite respine0_spine'_I_ren; eauto.
   by apply: respine_respine0.
-  Unshelve. eauto. eauto.
+  Unshelve. all: eauto.
 Qed.
 
 Lemma respine_spine_I_ren k s s' I :
-  (forall c Q, respine k s Q c I = (s', kapp k Q c)) ->
-  forall c Q ms ξ,
+  (forall Q c, respine k s Q c I = (s', kapp k Q c)) ->
+  forall Q c ms ξ,
     (respine k s Q c (spine I ms)).1 =
       (respine k s Q.[ren ξ] c.[ren ξ] (spine I ms).[ren ξ]).1 /\
     (respine k s Q c (spine I ms)).2.[ren ξ] =
       (respine k s Q.[ren ξ] c.[ren ξ] (spine I ms).[ren ξ]).2.
 Proof.
-  move=>h c Q ms ξ.
+  move=>h Q c ms ξ.
   rewrite spine_spine'_rev.
   by apply: respine_spine'_I_ren.
 Qed.
 
 Lemma constr_respine_ren x s' C :
   constr x s' C ->
-  forall k s I, (forall i c Q, respine k s Q c (I i) = (s, kapp k Q c)) ->
-  forall c Q ξ,
+  forall k s I, (forall i Q c, respine k s Q c (I i) = (s, kapp k Q c)) ->
+  forall Q c ξ,
     (respine k s Q c C.[I]).1 =
       (respine k s Q.[ren ξ] c.[ren ξ] C.[I].[ren ξ]).1 /\
     (respine k s Q c C.[I]).2.[ren ξ] =
       (respine k s Q.[ren ξ] c.[ren ξ] C.[I].[ren ξ]).2.
 Proof.
   move=>cn. elim: cn=>{x s' C}.
-  move=>x s' ms nms k s0 I h c Q ξ.
+  move=>x s' ms nms k s0 I h Q c ξ.
   { rewrite!spine_subst. asimpl.
-    pose proof (respine_spine_I_ren (h x) c Q ms..[I] ξ) as X.
+    pose proof (respine_spine_I_ren (h x) Q c ms..[I] ξ) as X.
     rewrite!spine_subst in X.
     by asimpl in X. }
-  move=>s t x A B leq pA nB cB ih k s0 I h c Q ξ.
+  move=>s t x A B leq pA nB cB ih k s0 I h Q c ξ.
   { asimpl.
     have/ih{}ih:=respine_up h.
-    pose proof (ih (App c.[ren (+1)] (Var 0)) Q.[ren (+1)] (upren ξ)) as hx.
+    pose proof (ih Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) (upren ξ)) as hx.
     asimpl in hx.
     replace (Var 0) with (ids 0) in hx by autosubst.
     replace (Var 0) with (ids 0) by autosubst.
@@ -435,10 +435,10 @@ Proof.
     split; eauto.
     asimpl. simpl in hx. destruct hx.
     repeat f_equal; eauto. }
-  move=>s t x A B leq nA cB ih k s0 I h c Q ξ.
+  move=>s t x A B leq nA cB ih k s0 I h Q c ξ.
   { asimpl.
     have/ih{}ih:=respine_up h.
-    pose proof (ih (App c.[ren (+1)] (Var 0)) Q.[ren (+1)] (upren ξ)) as hx.
+    pose proof (ih Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) (upren ξ)) as hx.
     asimpl in hx.
     replace (Var 0) with (ids 0) in hx by autosubst.
     replace (Var 0) with (ids 0) by autosubst.
@@ -476,11 +476,11 @@ Proof.
     apply: constr_ren; eauto. apply: n_ren0.
     have{H0}tyF:=H0 _ _ agr.
     unfold mkcase in tyF.
-    have h: ∀ i c Q, respine k s' Q c ((Ind A Cs' s .: ids) i) = (s', kapp k Q c).
-    { move=>[|i] c Q0; asimpl.
+    have h: ∀ i Q c, respine k s' Q c ((Ind A Cs' s .: ids) i) = (s', kapp k Q c).
+    { move=>[|i] Q0 c; asimpl.
       destruct k=>//.
       destruct k=>//. }
-    have {h}[e1 e2]:=constr_respine_ren H h (Constr n (Ind A Cs' s)) Q ξ.
+    have {h}[e1 e2]:=constr_respine_ren H h Q (Constr n (Ind A Cs' s)) ξ.
     rewrite e1 in tyF=>{e1}.
     rewrite e2 in tyF=>{e2}.
     asimpl in tyF.
