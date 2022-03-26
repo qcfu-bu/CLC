@@ -235,10 +235,10 @@ Lemma ind_spine'_invX Γ A B Cs ms s t :
   Γ |> U ->
   arity s A ->
   Γ ⊢ spine' (Ind A Cs s) ms : B : t ->
-  exists A' s t l,
-    arity t A' /\
-    Γ ⊢ A' : s @ l : U /\
-    arity_spine Γ A U (rev ms) A' s /\
+  exists A' t l,
+    arity s A' /\
+    Γ ⊢ A' : t @ l : U /\
+    arity_spine Γ A U (rev ms) A' t /\
     A' <: B.
 Proof.
   move e:(spine' (Ind A Cs s) ms)=>n k a ty.
@@ -252,12 +252,12 @@ Proof.
     have e1:=merge_pureL mrg k1.
     have e2:=merge_pureR mrg k2.
     subst.
-    have[A'[s1[t0[l[ar'[tyA'[sp sb]]]]]]]:=ihm _ _ _ _ ar erefl k.
+    have[A'[t0[l[ar'[tyA'[sp sb]]]]]]:=ihm _ _ _ _ ar erefl k.
     inv ar'.
     exfalso; solve_sub.
     move: sb=>/sub_pi_inv[eA[sB[e1[e2 e3]]]]; subst.
     move: tyA'=>/pi_inv[l0[tyA1[sb[_ tyB0]]]].
-    exists B0.[n/]. exists U. exists t0. exists l0.
+    exists B0.[n/]. exists U. exists l0.
     have {}tyn : Γ1 ⊢ n : A1 : U.
     { apply: clc_conv.
       apply: conv_sub.
@@ -280,13 +280,13 @@ Proof.
   { move: sp. destruct ms.
     rewrite/rev/catrev=>//=.
     move=>[e1 e2 e3]; subst.
-    exists A. exists U. exists s. exists l.
+    exists A. exists U. exists l.
     repeat split; eauto.
     apply: arity_spine_nil; eauto.
-     move=>//=e. }
+    move=>//=e. }
   move=>Γ A B m s i sb tym ihm tyB _ A0 Cs ms s0 ar sp k; subst.
-  { have{ihm}[A'[s1[t[l[ar'[tyA'[sp sb']]]]]]]:=ihm _ _ _ _ ar erefl k.
-    exists A'. exists s1. exists t. exists l.
+  { have{ihm}[A'[t[l[ar'[tyA'[sp sb']]]]]]:=ihm _ _ _ _ ar erefl k.
+    exists A'. exists t. exists l.
     repeat split; eauto.
     apply: sub_trans; eauto. }
 Qed.
@@ -295,10 +295,10 @@ Lemma ind_spine_invX Γ A B Cs ms s t :
   Γ |> U ->
   arity s A ->
   Γ ⊢ spine (Ind A Cs s) ms : B : t ->
-  exists A' s t l,
-    arity t A' /\
-    Γ ⊢ A' : s @ l : U /\
-    arity_spine Γ A U ms A' s /\
+  exists A' t l,
+    arity s A' /\
+    Γ ⊢ A' : t @ l : U /\
+    arity_spine Γ A U ms A' t /\
     A' <: B.
 Proof.
   rewrite spine_spine'_rev.
@@ -311,14 +311,15 @@ Lemma ind_spine_inv Γ A Cs ms s t l :
   Γ |> U ->
   arity s A ->
   Γ ⊢ spine (Ind A Cs s) ms : t @ l : U ->
-  exists s l, arity_spine Γ A U ms (s @ l) U.
+  exists l, arity_spine Γ A U ms (t @ l) U /\ s = t.
 Proof.
   move=>k ar ty.
-  have[A'[s0[t0[l0[ar'[tyA'[sp sb]]]]]]]:=ind_spine_invX k ar ty.
+  have[A'[t0[l0[ar'[tyA'[sp sb]]]]]]:=ind_spine_invX k ar ty.
   inv ar'.
+  have[e _]:=sub_sort_inv sb; subst.
   have[sb' _]:=sort_inv tyA'.
   have[e lt]:=sub_sort_inv sb'; subst.
-  exists t0. exists l1. eauto.
+  exists l1. eauto.
   exfalso; solve_sub.
 Qed.
 

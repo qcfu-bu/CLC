@@ -11,8 +11,9 @@ clc_weakening.v
 clc_substitution.v
 clc_inversion.v
 clc_arity_spine.v
-
 clc_validity.v
+clc_typing_spine.v
+clc_respine.v
 
 clc_soundness.v
 clc_linearity.v

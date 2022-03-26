@@ -76,7 +76,7 @@ Proof with eauto using clc_type, re_pure, merge_re_id.
     have[e0[<- e2]]:=merge_re_re mrg.
     have{ihm}[l tysp]:=ihm wf1.
     have k1 : [Γ1] |> U by apply re_pure.
-    have[s0[l0 sp]]:=ind_spine_inv k1 ar tysp.
+    have[l0[sp _]]:=ind_spine_inv k1 ar tysp.
     have tyI:=ind_spine k1 tysp.
     have {}sp:=rearity_spine s' sp ar leq k1 tyI.
     rewrite<-e0 in tyQ.

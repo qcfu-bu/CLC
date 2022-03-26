@@ -229,7 +229,7 @@ Proof.
     have[l tysp]:=validity wf1 tym.
     have tyI:=ind_spine (re_pure _) tysp.
     have[l0[_[_[_[cCs[tyA tyCs]]]]]]:=ind_inv tyI.
-    have[s0[l1 sp]]:=ind_spine_inv (re_pure _) ar tysp.
+    have[l1[sp _]]:=ind_spine_inv (re_pure _) ar tysp.
     have{sp}/arity_typing_spine sp:=rearity_spine s' sp ar leq (re_pure _) tyI.
     have spQ:=app_typing_spine tyQ sp (merge_sym (merge_re3 mrg)).
     exists Γ. exists [Γ]. exists (kapp k (spine Q ms) m). exists s'.
