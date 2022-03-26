@@ -2,7 +2,7 @@ From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
   clc_context clc_ast clc_confluence clc_subtype clc_typing
-  clc_weakening clc_substitution clc_inversion.
+  clc_weakening clc_substitution clc_inversion clc_arity_spine.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -43,15 +43,16 @@ Qed.
 Theorem validity Γ m A s :
   ok Γ -> Γ ⊢ m : A : s -> exists l, [Γ] ⊢ A : s @ l : U.
 Proof with eauto using clc_type, re_pure, merge_re_id.
-  move=>wf tp. elim: tp wf=>{Γ m A s}.
+  move=>wf tp. move: Γ m A s tp wf.
+  apply: clc_type_ind_nested.
   move=>Γ s l k o. exists l.+2...
   move=>Γ A B s r t i k tyA ihA tyB ihB o. exists i.+1...
   move=>Γ x A s hs o. move:(has_ok o hs)=>[l tyA]. exists l...
   move=>Γ A B m s r t i k tyP ihP tym ihm o. exists i...
   move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn o.
-    move:(merge_context_ok_inv mrg o)=>[o1 o2].
+  { move:(merge_context_ok_inv mrg o)=>[o1 o2].
     move:(merge_re_re mrg)=>[e1[e2 e3]].
-    move:o1=>/ihm{ihm}[l1/pi_inv[l2[tyA[_ tyB]]]].
+    move:o1=>/ihm{ihm}[l1/pi_inv[l2[tyA[_[_ tyB]]]]].
     destruct s; exists l2.
     have {}mrg : [Γ1] ∘ Γ2 => [Γ].
       replace Γ2 with [Γ2].
@@ -59,40 +60,33 @@ Proof with eauto using clc_type, re_pure, merge_re_id.
       rewrite<-pure_re...
     by apply: (substitution tyB k mrg tyn).
     move:(substitutionN tyB tyn).
-    by rewrite e2.
-  move=>Γ k o. exists 1...
-  move=>Γ k o. exists 0...
-  move=>Γ k o. exists 1...
-  move=>Γ k o. exists 0...
-  move=>Γ k o. exists 0...
-  move=>Γ A B s r t i leq k tyA ihA tyB ihB o. exists i.+1...
-  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg
-    tyS ihS tym ihm tyn ihn o. exists i...
-  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg tym _ tyA ihA _ _ _ _ wf.
-    have[_[e1 e2]]:=merge_re_re mrg.
-    exists i.
-    destruct s; simpl in tyA.
-    have{}mrg:[Γ2] ∘ Γ1 => [Γ].
-    { replace Γ1 with [Γ1].
-      apply: merge_re3. apply: merge_sym...
-      rewrite<-pure_re... }
-    have//:=substitution tyA k mrg tym.
-    have:=substitutionN tyA tym.
-    by rewrite e2.
-  move=>Γ1 Γ2 Γ m n A s mrg _ _ tyn ihn o.
-    move:(merge_context_ok_inv mrg o)=>[_/ihn[l tyA]]{ihn}.
-    move:(merge_re_re mrg)=>[_[_ e]].
-    exists l. by rewrite<-e.
-  move=>Γ1 Γ2 Γ A B C m n s r t k x i leq key mrg
-    tym _ tyC _ tyn _ o. exists i.
-    move:(merge_re_re mrg)=>[e0[e1 e2]].
-    destruct k; simpl in tyC.
-    have mrg1:[Γ2] ∘ Γ1 => [Γ].
-    rewrite e2 (pure_re key) e1.
-    apply: merge_re_id. inv leq.
-    have:=substitution tyC key mrg1 tym.
-    by asimpl.
-    have:=substitutionN tyC tym.
-    by rewrite e2.
+    by rewrite e2. }
+  move=>Γ A Cs s l k ar cCs tyA _ tyCs ihCs wf.
+  { exists l. rewrite<-pure_re; eauto. }
+  move=>Γ A s i C Cs//=k ig tyI ihI wf.
+  { have[l[_[_[ar[cCs[tyA tyCs]]]]]]:=ind_inv tyI.
+    exists l.
+    have tyC:=iget_All1 ig tyCs.
+    replace (s @ l) with (s @ l).[Ind A Cs s/] by autosubst.
+    apply: substitution...
+    rewrite<-pure_re...
+    apply: merge_pure... }
+  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms//=leq ar key mrg tym ihm tyQ ihQ tyFs ihFs wf.
+  { have[wf1 wf2]:=merge_context_ok_inv mrg wf.
+    have[e0[<- e2]]:=merge_re_re mrg.
+    have{ihm}[l tysp]:=ihm wf1.
+    have k1 : [Γ1] |> U by apply re_pure.
+    have[s0[l0 sp]]:=ind_spine_inv k1 ar tysp.
+    have tyI:=ind_spine k1 tysp.
+    have {}sp:=rearity_spine s' sp ar leq k1 tyI.
+    rewrite<-e0 in tyQ.
+    have mrg1:=merge_re_id Γ1.
+    have tySp:=app_arity_spine tyQ sp mrg1.
+    exists l0. destruct k=>//=; simpl in tySp.
+    replace (s' @ l0) with (s' @ l0).[m/] by autosubst.
+    apply: clc_app...
+    rewrite<-pure_re...
+    inv leq... }
+  move=>Γ A m l k tyA ihA tym ihm wf. exists l. rewrite<-pure_re...
   move=>Γ A B m s i sb tym ihm tyB ihB o. exists i...
 Qed.

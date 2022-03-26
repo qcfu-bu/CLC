@@ -161,12 +161,12 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   Γ1 ⊢ m : Pi A B s r t : t ->
   Γ2 ⊢ n : A : s ->
   Γ ⊢ App m n : B.[n/] : r
-| clc_indd Γ A Cs s t l :
+| clc_indd Γ A Cs s l :
   Γ |> U ->
   arity s A ->
   All1 (constr 0 s) Cs ->
   Γ ⊢ A : U @ l : U ->
-  All1 (fun C => A :U Γ ⊢ C : t @ l : U) Cs ->
+  All1 (fun C => A :U Γ ⊢ C : s @ l : U) Cs ->
   Γ ⊢ Ind A Cs s : A : U
 | clc_constr Γ A s i C Cs :
   let I := Ind A Cs s in
@@ -178,6 +178,7 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   let I := Ind A Cs s in
   s ≤ k ->
   arity s A ->
+  Γ1 |> k ->
   Γ1 ∘ Γ2 => Γ ->
   Γ1 ⊢ m : spine I ms : s ->
   [Γ2] ⊢ Q : rearity k s' I A : U ->
@@ -220,13 +221,13 @@ Section clc_type_ind_nested.
     Γ1 ⊢ m : Pi A B s r t : t -> P Γ1 m (Pi A B s r t) t ->
     Γ2 ⊢ n : A : s -> P Γ2 n A s ->
     P Γ (App m n) B.[n/] r.
-  Hypothesis ih_indd : forall Γ A Cs s t l,
+  Hypothesis ih_indd : forall Γ A Cs s l,
     Γ |> U ->
     arity s A ->
     All1 (constr 0 s) Cs ->
     Γ ⊢ A : U @ l : U -> P Γ A (U @ l) U ->
-    All1 (fun C => A :U Γ ⊢ C : t @ l : U) Cs ->
-    All1 (fun C => P (A :U Γ) C (t @ l) U) Cs ->
+    All1 (fun C => A :U Γ ⊢ C : s @ l : U) Cs ->
+    All1 (fun C => P (A :U Γ) C (s @ l) U) Cs ->
     P Γ (Ind A Cs s) A U.
   Hypothesis ih_constr : forall Γ A s i C Cs,
     let I := Ind A Cs s in
@@ -238,6 +239,7 @@ Section clc_type_ind_nested.
     let I := Ind A Cs s in
     s ≤ k ->
     arity s A ->
+    Γ1 |> k ->
     Γ1 ∘ Γ2 => Γ ->
     Γ1 ⊢ m : spine I ms : s -> P Γ1 m (spine I ms) s ->
     [Γ2] ⊢ Q : rearity k s' I A : U -> P [Γ2] Q (rearity k s' I A) U ->
@@ -272,8 +274,8 @@ Section clc_type_ind_nested.
     apply: ih_app; eauto.
     apply: ih_indd; eauto.
     have ih_nested :=
-      fix fold Cs (pf : All1 (fun C => A0 :U Γ0 ⊢ C : t @ l : U) Cs) :
-        All1 (fun C => P (A0 :U Γ0) C (t @ l) U) Cs :=
+      fix fold Cs (pf : All1 (fun C => A0 :U Γ0 ⊢ C : s0 @ l : U) Cs) :
+        All1 (fun C => P (A0 :U Γ0) C (s0 @ l) U) Cs :=
         match pf with
         | All1_nil => All1_nil _
         | All1_cons _ _ hd tl =>

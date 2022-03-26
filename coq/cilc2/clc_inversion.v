@@ -8,10 +8,23 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Lemma sort_inv Γ C s t l :
+  Γ ⊢ s @ l : C : t -> U @ l.+1 <: C /\ t = U.
+Proof.
+  move e:(s @ l)=>m tp.
+  elim: tp s l e=>//={Γ m C t}.
+  move=>Γ s l k s0 l0[e1 e2]; subst.
+  eauto.
+  move=>Γ A B m s i sb tym ihm tyB _ s0 l e; subst.
+  have[sb' e]:=ihm _ _ erefl; subst.
+  split; eauto.
+  apply: sub_trans; eauto.
+Qed.
+
 Lemma pi_inv Γ A B C s r t1 t2 :
   Γ ⊢ Pi A B s r t1 : C : t2 ->
   exists l,
-    Γ ⊢ A : s @ l : U /\ t2 = U /\
+    Γ ⊢ A : s @ l : U /\ t1 @ l <: C /\ t2 = U /\
     match s with U => A :U Γ | L => _: Γ end ⊢ B : r @ l : U.
 Proof with eauto using key.
   move e:(Pi A B s r t1)=>m tp.
@@ -23,6 +36,11 @@ Proof with eauto using key.
   destruct s.
   simpl in tyB. rewrite<-pure_re in tyB...
   simpl in tyB. rewrite<-pure_re in tyB...
+  move=>Γ A B m s i sb tym ihm tyB _ A0 B0 s0 r t1 e; subst.
+  have{ihm}[l[tyA[sb'[e tyB0]]]]:=ihm _ _ _ _ _ erefl; subst.
+  exists l.
+  repeat split; eauto.
+  apply: sub_trans; eauto.
 Qed.
 
 Lemma lam_invX Γ A1 A2 B C m s1 s2 r t1 t2 t3 l :
@@ -58,129 +76,47 @@ Lemma lam_inv Γ m A1 A2 B s1 s2 r t1 t2 t3 x l :
   Γ ⊢ Lam A2 m s2 t2 : Pi A1 B s1 r t1 : t3 ->
   A1 :{s1} Γ ⊢ m : B : r.
 Proof.
-  move=> /pi_inv[i[tyA[_ tyB]]] tyL.
+  move=> /pi_inv[i[tyA[_[_ tyB]]]] tyL.
   apply: lam_invX; eauto.
 Qed.
 
-Lemma unit_inv Γ A s : Γ ⊢ Unit : A : s -> exists i, U @ i <: A.
+Lemma ind_inv Γ A B Cs s t :
+  Γ ⊢ Ind A Cs s : B : t ->
+  exists l,
+    A <: B /\ t = U /\
+    arity s A /\
+    All1 (constr 0 s) Cs /\
+    Γ ⊢ A : U @ l : U /\
+    All1 (fun C => A :U Γ ⊢ C : s @ l : U) Cs.
 Proof.
-  move e:(Unit)=>m tp. elim:tp e=>//{Γ A m s}.
-  move=>Γ k _. exists 0; eauto.
-  move=>Γ A B m s i sb tym ihm tyB ihB e; subst.
-  have[l sb']:=ihm erefl.
-  exists l. apply: sub_trans.
-  exact: sb'. exact: sb.
-Qed.
-
-Lemma it_invX Γ1 A s :
-  Γ1 ⊢ It : A : s -> A <: Unit -> Γ1 |> U.
-Proof.
-  move e:(It)=>m tp. elim:tp e=>//{Γ1 m A s}.
-  move=>Γ A B m s i sb1 tym ihm tyB ihB e sb2; subst.
-  apply: ihm; eauto.
+  move e:(Ind A Cs s)=>n tp.
+  elim: tp A Cs s e=>//={Γ n B t}.
+  move=>Γ A Cs s l k ar cCs
+    tyA _ tyCs A0 Cs0 s0[e1 e2 e3]; subst.
+  exists l.
+  repeat split; eauto.
+  move=>Γ A B m s i sb tym ihm tyB _ A0 Cs s0 e; subst.
+  have[l[sb'[e[ar[cCs[tyA tyCs]]]]]]:=ihm _ _ _ erefl.
+  exists l.
+  repeat split; eauto.
   apply: sub_trans; eauto.
 Qed.
 
-Lemma it_inv Γ1 s : Γ1 ⊢ It : Unit : s -> Γ1 |> U.
-Proof. move=>ty. apply: it_invX; eauto. Qed.
-
-Lemma sigma_invX Γ A B s r t C :
-  Γ ⊢ Sigma A B s r t : C : U -> exists i, t @ i <: C.
+Lemma constr_inv Γ i I CI s :
+  Γ ⊢ Constr i I : CI : s ->
+  exists A C Cs,
+    iget i Cs C /\ I = Ind A Cs s /\
+    C.[I/] <: CI /\
+    Γ ⊢ I : A : U.
 Proof.
-  move e:(Sigma A B s r t)=>m ty. 
-  elim: ty A B s r t e=>//{Γ C m}.
-  move=>Γ A B s r t i _ _ _ _ _ _ 
-    A0 B0 s0 r0 t0[e1 e2 e3 e4 e5]; subst.
-  exists i; eauto.
-  move=>Γ A B m s i sb tym ihm tyB ihB A0 B0 s0 r t e; subst.
-  have[l sb']:=ihm _ _ _ _ _ erefl.
-  exists l. apply: sub_trans.
-  exact: sb'. exact: sb.
+  move e:(Constr i I)=>n tp.
+  elim: tp i I e=>//={Γ n CI s}.
+  move=>Γ A s i C Cs k ig tyI _ i0 I [e1 e2]; subst.
+  exists A. exists C. exists Cs.
+  repeat split; eauto.
+  move=>Γ A B m s i sb tym ihm tyB _ i0 I e; subst.
+  have[A0[C[Cs[ig[e[sb' tyI]]]]]]:=ihm _ _ erefl.
+  exists A0. exists C. exists Cs.
+  repeat split; eauto.
+  apply: sub_trans; eauto.
 Qed.
-
-Lemma left_inv Γ A s : Γ ⊢ Left : A : s -> Γ |> U.
-Proof. move e:(Left)=>m tp. elim:tp e=>//{Γ m A s}. Qed.
-
-Lemma right_inv Γ A s : Γ ⊢ Right : A : s -> Γ |> U.
-Proof. move e:(Right)=>m tp. elim:tp e=>//{Γ m A s}. Qed.
-
-Lemma sigma_inv Γ A B s r t x :
-  Γ ⊢ Sigma A B s r t : x : U ->
-  exists Γ1 Γ2 i,
-    s ⋅ r ≤ t /\
-    Γ1 ∘ Γ2 => Γ /\
-    Γ1 ⊢ A : s @ i : U /\ 
-    [A :{s} Γ2] ⊢ B : r @ i : U.
-Proof.
-  move e:(Sigma A B s r t)=>m ty. 
-  elim: ty A B s r t e=>//{Γ x m}.
-  move=>Γ A B s r t i mrg k 
-    tyA ihA tyB ihB A0 B0 s0 r0 t0 [e1 e2 e3 e4 e5]; subst.
-  exists Γ. exists Γ. 
-  exists i. firstorder.
-  by apply: merge_pure.
-Qed.
-
-Lemma pair_invX Γ m n t1 t3 C :
-  Γ ⊢ Pair m n t1 : C : t3 ->
-  forall A B s r t2 x l,
-    C <: Sigma A B s r t2 ->
-    [Γ] ⊢ Sigma A B s r t2 : x @ l : U ->
-    exists Γ1 Γ2,
-      t1 = t2 /\
-      t2 = t3 /\
-      Γ1 |> s /\ 
-      Γ2 |> r /\
-      Γ1 ∘ Γ2 => Γ /\
-      Γ1 ⊢ m : A : s /\ 
-      Γ2 ⊢ n : B.[m/] : r.
-Proof.
-  move e:(Pair m n t1)=>v tp. elim: tp m n t1 e=>//{Γ v C t3}.
-  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg.
-  move=>/sigma_inv[G1[G2[i0[mrg0[tyA tyB]]]]].
-  move=>_ tym _ tyn _ m0 n0 t1 [e1 e2 e3] A0 B0 s1 r1 t2 x l.
-  move=>/sub_sigma_inv[sbA[sbB[e4[e5 e6]]]]; subst.
-  move=>/sigma_inv[G3[G4[i1[_[mrg1[tyA0 tyB0]]]]]].
-  { exists Γ1. exists Γ2.
-    have[_[e1 e2]]:=merge_re_re mrg.
-    have[_[e3 e4]]:=merge_re_re mrg1.
-    rewrite<-re_invo in e3.
-    rewrite<-re_invo in e4.
-    have[k3 k4]:=merge_pure_inv mrg1 (re_pure _).
-    repeat split; eauto.
-    apply: clc_conv; eauto.
-    rewrite e1.
-    rewrite<-e3.
-    rewrite<-pure_re; eauto.
-    apply: clc_conv.
-    apply: sub_subst; eauto.
-    eauto.
-    destruct s1; simpl in tyB0.
-    { have mrg2:[G4] ∘ Γ1 => [Γ2].
-      rewrite e4 e2 (pure_re k1) e1.
-      apply: merge_re_id.
-      have {}tym:Γ1 ⊢ m : A0 : U.
-      apply:clc_conv; eauto.
-      rewrite e1. rewrite<-e3. rewrite<-pure_re; eauto.
-      have:=substitution tyB0 k1 mrg2 tym. 
-      asimpl; eauto. }
-    { have:=substitutionN tyB0 tym.
-      rewrite e4. by rewrite<-e2. } }
-  move=>Γ A B m s i sb1 tym ihm tyB ihB 
-    m0 n e A0 B0 s0 r t x l sb2 tyS; subst.
-  { apply: ihm; eauto.
-    apply: sub_trans; eauto. }
-Qed.
-
-Lemma pair_inv Γ m n A B s r t1 t2 t3 x i :
-  Γ ⊢ Pair m n t1 : Sigma A B s r t2 : t3 ->
-  [Γ] ⊢ Sigma A B s r t2 : x @ i : U ->
-  exists Γ1 Γ2,
-    t1 = t2 /\
-    t2 = t3 /\
-    Γ1 |> s /\ 
-    Γ2 |> r /\
-    Γ1 ∘ Γ2 => Γ /\
-    Γ1 ⊢ m : A : s /\ 
-    Γ2 ⊢ n : B.[m/] : r.
-Proof. move=>tyP tyS. apply: pair_invX; eauto. Qed.

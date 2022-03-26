@@ -609,7 +609,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     replace B.[n.[σ] .: σ] with B.[up σ].[n.[σ]/] by autosubst.
     move:(agree_subst_key agr2 k)=>{}k.
     apply: clc_app... }
-  move=>Γ A Cs s t l k ar ctr tyA ihA tyCs ihCs Δ σ agr. asimpl.
+  move=>Γ A Cs s l k ar ctr tyA ihA tyCs ihCs Δ σ agr. asimpl.
   { asimpl.
     apply: clc_indd...
     apply: arity_subst...
@@ -629,7 +629,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
       with (C.[up σ]).[Ind A.[σ] Cs..[up σ] s/] by autosubst.
     apply: clc_constr...
     apply: iget_subst... }
-  move=>Γ1 Γ2 Γ A Q s s'//=k Fs Cs m ms leq ar mrg tym ihm tyQ ihQ tyFs ihFs Δ σ agr.
+  move=>Γ1 Γ2 Γ A Q s s'//=k Fs Cs m ms leq ar key mrg tym ihm tyQ ihQ tyFs ihFs Δ σ agr.
   { rewrite kapp_subst.
     rewrite spine_subst.
     have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_subst_inv agr mrg.
@@ -637,7 +637,12 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     have{}ihm:=ihm _ _ agr1. rewrite spine_subst in ihm.
     have{}ihQ:=ihQ _ _ (agree_subst_re agr2).
     rewrite (rearity_subst k s' (Ind A Cs s) σ ar) in ihQ.
-    apply: clc_case; eauto.
+    apply: clc_case.
+    apply: leq.
+    eauto.
+    apply: agree_subst_key.
+    apply: agr1.
+    all: eauto.
     apply: All2_case_subst; eauto. }
   move=>Γ A m l k tyA ihA tym ihm Δ σ agr.
   { asimpl.

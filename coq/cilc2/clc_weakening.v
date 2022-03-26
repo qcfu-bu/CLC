@@ -520,7 +520,7 @@ Proof with eauto using
       by autosubst.
     apply: clc_app...
     asimpl in tym... }
-  move=>Γ A Cs s t l k ar ctr tyA ihA tyCs ihCs Γ' ξ agr.
+  move=>Γ A Cs s l k ar ctr tyA ihA tyCs ihCs Γ' ξ agr.
   { asimpl.
     apply: clc_indd...
     apply: arity_ren...
@@ -541,7 +541,7 @@ Proof with eauto using
         by autosubst.
     apply: clc_constr...
     apply: iget_subst... }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms leq ar mrg tym ihm tyQ ihQ tyFs ihFs Γ' ξ agr.
+  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms leq ar key mrg tym ihm tyQ ihQ tyFs ihFs Γ' ξ agr.
   { rewrite kapp_ren.
     rewrite spine_subst.
     have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_ren_inv agr mrg.
@@ -549,7 +549,12 @@ Proof with eauto using
     have{}ihm:=ihm _ _ agr1. rewrite spine_subst in ihm.
     have{}ihQ:=ihQ _ _ (agree_ren_re_re agr2).
     rewrite (rearity_ren k s' (Ind A Cs s) ξ ar) in ihQ.
-    apply: clc_case; eauto.
+    apply: clc_case.
+    apply: leq.
+    eauto.
+    apply: agree_ren_key.
+    apply: agr1.
+    all: eauto.
     apply: All2_case_ren; eauto. }
   move=>Γ A m l k tyA ihA tym ihm Γ' ξ agr.
   { asimpl.

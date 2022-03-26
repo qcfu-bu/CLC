@@ -25,7 +25,7 @@ Instance Rename_term : Rename term. derive. Defined.
 Instance Subst_term : Subst term. derive. Defined.
 Instance substLemmas_term : SubstLemmas term. derive. Qed.
 
-Inductive All1 P : list term -> Prop :=
+Inductive All1 (P : term -> Prop) : list term -> Prop :=
 | All1_nil : All1 P nil
 | All1_cons m ls : P m -> All1 P ls -> All1 P (m :: ls).
 
