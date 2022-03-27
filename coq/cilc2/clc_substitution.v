@@ -500,28 +500,32 @@ Qed.
 
 Lemma constr_respine_subst x s' C :
   constr x s' C ->
-  forall k s I,
-    (forall i Q c, respine k s Q c (I i) = (s, kapp k Q c)) ->
+  forall A Cs I,
+    I x = Ind A Cs s' ->
     (forall y, ~I x = Var y) ->
-  forall Q c σ,
+  forall Q c k s σ,
     (respine k s Q c C.[I]).1 =
       (respine k s Q.[σ] c.[σ] C.[I].[σ]).1 /\
     (respine k s Q c C.[I]).2.[σ] =
       (respine k s Q.[σ] c.[σ] C.[I].[σ]).2.
 Proof.
   move=>cn. elim: cn=>{x s' C}.
-  move=>x s' ms nms k s0 I h1 h2 Q c σ.
+  move=>x s ms nms A Cs I h1 h2 Q c k s' σ.
   { rewrite!spine_subst. asimpl.
-    pose proof (respine_spine_I_subst (h1 x) h2 Q c ms..[I] σ) as X.
+    have h: forall Q c, respine k s' Q c (I x) = (s', kapp k Q c).
+    { move=>Q0 c0. rewrite h1.
+      destruct k; simpl; eauto. }
+    pose proof (respine_spine_I_subst h h2 Q c ms..[I] σ) as X.
     rewrite!spine_subst in X.
     by asimpl in X. }
-  move=>s t x A B leq pA nB cB ih k s0 I h1 h2 Q c σ.
+  move=>s t x A B leq pA nB cB ih A0 Cs I h1 h2 Q c k s0 σ.
   { asimpl.
-    have/ih{}ih:=respine_up h1.
+    have {}h1: up I x.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] s.
+    { asimpl. rewrite h1. autosubst. }
     have {}h2: forall y, ~up I x.+1 = Var y.
     { move=>y; asimpl.
       by apply: ren_var_false. }
-    pose proof (ih h2 Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) (up σ)) as hx.
+    pose proof (ih _ _ _ h1 h2 Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) k s0 (up σ)) as hx.
     asimpl in hx.
     replace (Var 0) with (ids 0) in hx by autosubst.
     replace (Var 0) with (ids 0) by autosubst.
@@ -532,13 +536,14 @@ Proof.
     split; eauto.
     asimpl. simpl in hx. destruct hx.
     repeat f_equal; eauto. }
-  move=>s t x A B leq nA cB ih k s0 I h1 h2 Q c σ.
+  move=>s t x A B leq nA cB ih A0 Cs I h1 h2 Q c k s0 σ.
   { asimpl.
-    have/ih{}ih:=respine_up h1.
+    have {}h1: up I x.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] s.
+    { asimpl. rewrite h1. autosubst. }
     have {}h2: forall y, ~up I x.+1 = Var y.
     { move=>y; asimpl.
       by apply: ren_var_false. }
-    pose proof (ih h2 Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) (up σ)) as hx.
+    pose proof (ih _ _ _ h1 h2 Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) k s0 (up σ)) as hx.
     asimpl in hx.
     replace (Var 0) with (ids 0) in hx by autosubst.
     replace (Var 0) with (ids 0) by autosubst.
@@ -576,13 +581,10 @@ Proof.
     apply: constr_subst; eauto. apply: n_subst0.
     have{H0}tyF:=H0 _ _ agr.
     unfold mkcase in tyF.
-    have h1: ∀ i Q c, respine k s' Q c ((Ind A Cs' s .: ids) i) = (s', kapp k Q c).
-    { move=>[|i] Q0 c; asimpl.
-      destruct k=>//.
-      destruct k=>//. }
+    have h1: ((Ind A Cs' s .: ids) 0) = Ind A Cs' s by autosubst.
     have h2: ∀ x, ~(Ind A Cs' s .: ids) 0 = Var x.
     { move=>//. }
-    have {h1 h2}[e1 e2]:=constr_respine_subst H h1 h2 Q (Constr n (Ind A Cs' s)) σ.
+    have {h1 h2}[e1 e2]:=constr_respine_subst H h1 h2 Q (Constr n (Ind A Cs' s)) k s' σ.
     rewrite e1 in tyF=>{e1}.
     rewrite e2 in tyF=>{e2}.
     asimpl in tyF.

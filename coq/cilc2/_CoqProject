@@ -14,6 +14,7 @@ clc_arity_spine.v
 clc_validity.v
 clc_typing_spine.v
 clc_respine.v
+clc_iota_lemma.v
 
 clc_soundness.v
 clc_linearity.v
