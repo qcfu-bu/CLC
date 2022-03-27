@@ -200,7 +200,7 @@ Lemma pos_step x A B : pos x A -> A ~> B -> pos x B.
 Proof.
   move=> p. elim: p B=>{A x}.
   move=> x ms no B st.
-  have[ms'[e no']]:=var_spine_step st no; subst.
+  have[ms' e no']:=var_spine_step st no; subst.
   constructor; eauto.
   move=>x A B s r t n p ih B' st. inv st.
   constructor; eauto.
