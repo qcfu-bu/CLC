@@ -1218,7 +1218,7 @@ Proof.
   apply: All2_conv_trans; eauto.
 Qed.
 
-Lemma Ind_inj A A' Cs Cs' s s' :
+Lemma ind_inj A A' Cs Cs' s s' :
   Ind A Cs s === Ind A' Cs' s' ->
   A === A' /\
   All2 (conv step) Cs Cs' /\

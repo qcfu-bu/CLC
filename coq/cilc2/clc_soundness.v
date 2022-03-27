@@ -397,8 +397,8 @@ Lemma All2i_One2_stepF Γ A Q Fs Fs' Cs Cs' n k s s' :
     let T := mkcase k s' I Q (Constr i I) C in
     Γ ⊢ F : T.2 : T.1) n Fs Cs ->
   All2i (fun i F C =>
-    constr 0 s C /\ (ok Γ -> forall F',
-    F ~> F' ->
+    constr 0 s C /\ (forall F',
+    ok Γ -> F ~> F' ->
     let T := mkcase k s' I Q (Constr i I) C in
     Γ ⊢ F' : T.2 : T.1)) n Fs Cs ->
   All2i (fun i F C =>
@@ -560,10 +560,185 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: clc_constr...
     rewrite<-pure_re... }
   move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms I leq ar key mrg
-    tym ihm tyQ ihQ tyFs ihFs n wf st. inv st.
-  {
-
-  }
+    tym ihm tyQ ihQ tyFs ihFs n wf st.
+  have[wf1 wf2]:=merge_context_ok_inv mrg wf.
+  have[e12[e1 e2]]:=merge_re_re mrg.
+  have[l0 tysp]:=validity wf1 tym. inv st.
+  { have{}ihm:=ihm _ wf1 H3.
+    have sb : kapp k (spine Q ms) m' <: kapp k (spine Q ms) m.
+    { destruct k=>//=.
+      apply: conv_sub.
+      apply: conv_app...
+      apply: conv_sym.
+      apply: conv1... }
+    have[l1[sp _]]:=ind_spine_inv (re_pure _) ar tysp.
+    have tyI:=ind_spine (re_pure _) tysp.
+    have{}sp:=rearity_spine s' sp ar leq (re_pure _) tyI.
+    have{sp}spQ:=app_arity_spine tyQ sp (merge_re3 (merge_sym mrg)).
+    destruct k=>//=.
+    { inv leq.
+      have mrg' : [Γ] ∘ Γ1 => [Γ].
+      replace Γ1 with [Γ1].
+      rewrite e1. apply: merge_re_id.
+      rewrite<-pure_re...
+      have//=tyapp:=clc_app key mrg' spQ tym.
+      apply: clc_conv.
+      apply: sb.
+      apply: clc_case...
+      constructor.
+      apply: tyapp. }
+    { apply: clc_conv.
+      apply: sb.
+      apply: clc_case...
+      apply: spQ. } }
+  { have{}ihQ:=ihQ _ (re_ok wf2) H3.
+    have[l1[sp _]]:=ind_spine_inv (re_pure _) ar tysp.
+    have tyI:=ind_spine (re_pure _) tysp.
+    have{}sp:=rearity_spine s' sp ar leq (re_pure _) tyI.
+    have spQ:=app_arity_spine tyQ sp (merge_re3 (merge_sym mrg)).
+    have spQ':=app_arity_spine ihQ sp (merge_re3 (merge_sym mrg)).
+    have st : kapp k (spine Q' ms) m <: kapp k (spine Q ms) m.
+    { apply: conv_sub.
+      destruct k=>//=.
+      apply: conv_sym.
+      apply: conv1.
+      constructor.
+      apply: head_spine_step...
+      apply: conv_sym.
+      apply: conv1.
+      apply: head_spine_step... }
+    have[l[_[_[_[_[_ tyCs]]]]]]:=ind_inv tyI.
+    apply: clc_conv.
+    apply: st.
+    apply: clc_case...
+    apply: All2i_mkcase_stepQ...
+    rewrite<-e12...
+    constructor.
+    rewrite<-e12...
+    destruct k=>//=... inv leq.
+    replace (s' @ l1) with (s' @ l1).[m/] by autosubst.
+    apply: clc_app...
+    replace Γ1 with [Γ1].
+    rewrite e1. apply: merge_re_id.
+    rewrite<-pure_re; eauto. }
+  { apply: clc_case...
+    apply: All2i_One2_stepF... }
+  { have tyI:=ind_spine (re_pure _) tysp.
+    have[G1[G2[A0[s0[mrg0[tyC sp]]]]]]:=spine_inv wf1 tym.
+    have[A1[C[Cs0[key'[ig[e[sb tyI0]]]]]]]:=constr_inv tyC; subst.
+    have[l1[_[_[_[cCs[tyA tyCs]]]]]]:=ind_inv tyI.
+    have[l2[_[_[ar0[cCs0[tyA1 tyCs0]]]]]]:=ind_inv tyI0.
+    have tyC0:=iget_All1 ig tyCs0.
+    have c:=iget_All1 ig cCs0.
+    have[wf3 wf4]:=merge_context_ok_inv mrg0 wf1.
+    have[eG[eG1 eG2]]:=merge_re_re mrg0.
+    have[l3 tyA0]:=validity wf3 tyC.
+    rewrite eG in tyA0.
+    have{}sp:=typing_spine_strengthen sp sb tyA0.
+    have h1 : (Ind A1 Cs0 s0 .: ids) 0 = Ind A1 Cs0 s0 by eauto.
+    have//=[cv e]:=typing_spine_constr_ind c sp h1; subst.
+    have[C'[ig'[cC tyF]]]:=iget_All2i tyFs H3.
+    have[eA[a2Cs _]]:=ind_inj cv.
+    have[Cx[igCx eCx]]:=iget_All2 a2Cs ig.
+    have e:=iget_iget igCx ig'; subst.
+    have sbC : C'.[Ind A Cs s/] <: C.[Ind A1 Cs0 s/].
+    { apply: conv_sub.
+      apply: conv_trans.
+      apply: conv_beta.
+      apply: conv_sym.
+      apply: cv.
+      apply: conv_subst.
+      apply: conv_sym... }
+    have tyCI: [G2] ⊢ C.[Ind A1 Cs0 s/] : s @ l2 : U.
+    { rewrite<-eG.
+      rewrite<-pure_re; eauto.
+      replace (s @ l2) with (s @ l2).[Ind A1 Cs0 s/] by autosubst.
+      apply: substitution...
+      apply: merge_pure... }
+    have{}sp:=typing_spine_strengthen sp sbC tyCI.
+    have[l4[asp _]]:=ind_spine_inv (re_pure _) ar tysp.
+    have{}asp:=rearity_spine s' asp ar leq (re_pure _) tyI.
+    have spQ:=app_arity_spine tyQ asp (merge_re3 (merge_sym mrg)).
+    have tyC':=iget_All1 ig' tyCs.
+    have tyCI' : [Γ1] ⊢ C'.[Ind A Cs s/] : s @ l1 : U.
+    { replace (s @ l1) with (s @ l1).[Ind A Cs s/] by autosubst.
+      apply: substitution.
+      apply: tyC'.
+      apply: (re_pure Γ1).
+      apply: merge_re_id.
+      eauto. }
+    have h2 : (Ind A Cs s .: ids) 0 = Ind A Cs s by eauto.
+    have h3 : forall x, ~(Ind A Cs s .: ids) 0 = Var x by eauto.
+    have h4 :
+      kapp k (spine Q ms) (spine (Constr i (Ind A Cs s)) ms0) <:
+      kapp k (spine Q ms) (spine (Constr i (Ind A1 Cs0 s)) ms0).
+    { apply: conv_sub.
+      destruct k=>//=.
+      apply: conv_app...
+      apply: head_spine_conv.
+      apply: conv_constr.
+      apply: conv_sym... }
+    have h5 : [Γ1] ⊢ Constr i I : C'.[I/] : s.
+    { apply: clc_constr...
+      apply: re_pure. }
+    destruct k=>//=.
+    { inv leq.
+      have mrg' : [Γ] ∘ Γ1 => [Γ].
+      { replace Γ1 with [Γ1].
+        rewrite e1. apply: merge_re_id.
+        rewrite<-pure_re... }
+      have//=tyapp:=clc_app key mrg' spQ tym.
+      apply: clc_conv.
+      apply: h4.
+      apply: app_typing_spine...
+      unfold mkcase.
+      apply: typing_spine_constrU...
+      rewrite eG2...
+      rewrite eG2...
+      rewrite eG2...
+      rewrite eG2 e12...
+      rewrite eG2 e1...
+      have<-:=merge_pureL mrg0 key'.
+      apply: merge_sym...
+      eauto. }
+    { apply: clc_conv.
+      apply: h4.
+      apply: app_typing_spine...
+      unfold mkcase.
+      apply: typing_spine_constrL...
+      rewrite eG2...
+      rewrite eG2...
+      rewrite eG2 e12...
+      rewrite eG2 e1...
+      have<-:=merge_pureL mrg0 key'.
+      apply: merge_sym...
+      eauto. } }
+  move=>Γ A m l k tyA ihA tym ihm n wf st. inv st.
+  { have{}ihA:=ihA _ wf H2.
+    apply: clc_conv.
+    apply: conv_sub.
+    apply: conv1i...
+    apply: clc_fix...
+    apply: context_conv.
+    apply: conv1i...
+    rewrite<-pure_re...
+    apply: clc_conv.
+    apply: conv_sub.
+    apply: conv_subst.
+    apply: conv1...
+    eauto.
+    have//=:=weakeningU A ihA.
+    rewrite<-pure_re...
+    rewrite<-pure_re... }
+  { have{}wf:ok (A :U Γ).
+    { apply: ty_ok...
+      rewrite<-pure_re... }
+    have{}ihm:=ihm _ wf H2.
+    apply: clc_fix... }
+  { have tyF: Γ ⊢ Fix A m : A : U.
+    apply: clc_fix...
+    have:=substitution tym k (merge_pure k) tyF.
+    by asimpl. }
   move=>Γ A B m s i sb tym ihm tyB ihB n o st.
   { apply: clc_conv... }
 Qed.

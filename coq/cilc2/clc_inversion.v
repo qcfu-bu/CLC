@@ -105,6 +105,7 @@ Qed.
 Lemma constr_inv Γ i I CI s :
   Γ ⊢ Constr i I : CI : s ->
   exists A C Cs,
+    Γ |> U /\
     iget i Cs C /\ I = Ind A Cs s /\
     C.[I/] <: CI /\
     Γ ⊢ I : A : U.
@@ -115,7 +116,7 @@ Proof.
   exists A. exists C. exists Cs.
   repeat split; eauto.
   move=>Γ A B m s i sb tym ihm tyB _ i0 I e; subst.
-  have[A0[C[Cs[ig[e[sb' tyI]]]]]]:=ihm _ _ erefl.
+  have[A0[C[Cs[k[ig[e[sb' tyI]]]]]]]:=ihm _ _ erefl.
   exists A0. exists C. exists Cs.
   repeat split; eauto.
   apply: sub_trans; eauto.
