@@ -50,3 +50,4 @@ L  L  L
 #+END_SRC
 
 ** Data typing rules
+See formalization in ~clc_typing.v~ for details.
