@@ -1,0 +1,18 @@
+-R . CILC
+
+AutosubstSsr.v
+ARS.v
+cilc_context.v
+cilc_ast.v
+cilc_confluence.v
+cilc_subtype.v
+cilc_typing.v
+cilc_weakening.v
+cilc_substitution.v
+cilc_inversion.v
+cilc_arity_spine.v
+cilc_validity.v
+cilc_typing_spine.v
+cilc_respine.v
+cilc_iota_lemma.v
+cilc_soundness.v
