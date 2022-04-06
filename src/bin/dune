@@ -1,4 +1,4 @@
 (executable
- (public_name cilc)
+ (public_name cclc)
  (name main)
- (libraries cilc))
+ (libraries cclc))

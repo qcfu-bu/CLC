@@ -1,2 +1,2 @@
-(lang dune 2.8)
-(name cilc)
+(lang dune 2.9)
+(name cclc)
