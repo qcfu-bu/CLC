@@ -1,3 +1,3 @@
 (library
  (name cclc)
- (libraries mparser))
+ (libraries bindlib mparser))

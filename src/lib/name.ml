@@ -32,8 +32,6 @@ module Var : sig
 
   val compare : t -> t -> int
 
-  val map : (int -> int) -> t -> t
-
   val incr : int -> t -> t
 
   val case : t -> (t -> 'a) -> (t -> 'a) -> 'a
@@ -50,9 +48,7 @@ end = struct
 
   let compare (_, i1) (_, i2) = Int.compare i1 i2
 
-  let map f (s, i) = (s, max 0 (f i))
-
-  let incr n (s, i) = (s, i + n)
+  let incr n (s, i) = (s, i + max 0 n)
 
   let case (s, i) f g =
     match i with
