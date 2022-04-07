@@ -23,43 +23,6 @@ end = struct
   let pp fmt i = fprintf fmt "?%d" i
 end
 
-module Var : sig
-  type t
-
-  val mk : string -> t
-
-  val equal : t -> t -> bool
-
-  val compare : t -> t -> int
-
-  val incr : int -> t -> t
-
-  val case : t -> (t -> 'a) -> (t -> 'a) -> 'a
-
-  val pp : formatter -> t -> unit
-
-  val pp_debug : formatter -> t -> unit
-end = struct
-  type t = string * int
-
-  let mk s = (s, 0)
-
-  let equal (_, i1) (_, i2) = i1 = i2
-
-  let compare (_, i1) (_, i2) = Int.compare i1 i2
-
-  let incr n (s, i) = (s, i + max 0 n)
-
-  let case (s, i) f g =
-    match i with
-    | 0 -> f (s, 0)
-    | _ -> g (s, i - 1)
-
-  let pp fmt (s, _) = fprintf fmt "%s" s
-
-  let pp_debug fmt (s, i) = fprintf fmt "%s#%d" s i
-end
-
 module Id : sig
   type t
 
