@@ -16,4 +16,19 @@ let m = unbox _m
 
 let env = VMap.singleton main EvalTerm.VBox
 
-let v = EvalTerm.eval env m
+let _ = EvalTerm.eval env m
+
+open Top
+
+let stdout_v = mk "stdout"
+
+let _t =
+  _Import Id.stdout_id
+    (bind_var stdout_v
+       (_Define
+          (_App (_Send (_Var stdout_v)) (_Knd L))
+          (bind_var Term.blank (_Main (_Var main)))))
+
+let t = unbox _t
+
+let _ = EvalTop.eval env t

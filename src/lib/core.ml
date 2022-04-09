@@ -285,8 +285,8 @@ module Term = struct
       let x, um = unbind m in
       let xs, um = spine U um in
       fprintf fmt "@[fix %a %a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um
-    | Main -> fprintf fmt "Main"
-    | Proto -> fprintf fmt "Proto"
+    | Main -> fprintf fmt "main"
+    | Proto -> fprintf fmt "proto"
     | End -> fprintf fmt "$"
     | Inp (a, b) ->
       let x, ub = unbind b in
@@ -658,4 +658,6 @@ module Top = struct
   let _Define = box_apply2 (fun m t -> Define (m, t))
 
   let _Induct = box_apply2 (fun ind t -> Induct (ind, t))
+
+  let _Import id = box_apply (fun t -> Import (id, t))
 end

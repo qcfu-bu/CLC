@@ -24,6 +24,41 @@ end = struct
   let pp fmt i = fprintf fmt "?%d" i
 end
 
+module Var : sig
+  type t
+
+  val mk : string -> t
+
+  val equal : t -> t -> bool
+
+  val compare : t -> t -> int
+
+  val pp : formatter -> t -> unit
+
+  val pp_debug : formatter -> t -> unit
+
+  val var : ('a var -> 'a) -> t -> 'a var
+end = struct
+  type t = string * int
+
+  let stamp = ref 0
+
+  let mk s =
+    let i = !stamp in
+    let _ = incr stamp in
+    (s, i)
+
+  let equal (_, i1) (_, i2) = i1 = i2
+
+  let compare (_, i1) (_, i2) = Int.compare i1 i2
+
+  let pp fmt (s, _) = fprintf fmt "%s" s
+
+  let pp_debug fmt (s, i) = fprintf fmt "%s#%d" s i
+
+  let var f (s, _) = new_var f s
+end
+
 module Id : sig
   type t
 
@@ -36,6 +71,12 @@ module Id : sig
   val pp : formatter -> t -> unit
 
   val pp_debug : formatter -> t -> unit
+
+  val stdin_id : t
+
+  val stdout_id : t
+
+  val stderr_id : t
 
   val tt_id : t
 
@@ -57,6 +98,12 @@ end = struct
   let pp fmt (s, _) = fprintf fmt "%s" s
 
   let pp_debug fmt (s, i) = fprintf fmt "%s#%d" s i
+
+  let stdin_id = mk "stdin"
+
+  let stdout_id = mk "stdout"
+
+  let stderr_id = mk "stderr"
 
   let tt_id = mk "unit"
 

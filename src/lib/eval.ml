@@ -1,3 +1,4 @@
+open Format
 open Bindlib
 open Name
 open Core
@@ -11,30 +12,47 @@ module EvalTerm = struct
 
   exception UnMatchedPattern
 
-  exception NonChannelError
+  exception SendError
 
-  type value =
+  exception RecvError
+
+  type ch =
+    | Channel of value channel
+    | Stdin
+    | Stdout
+    | Stderr
+
+  and value =
     | VBox
     | VConstr of Id.t * value list
     | VLam of Term.v * Term.t
     | VFix of Term.v * Term.t
-    | VCh of value channel
-    | VSend of value channel
+    | VCh of ch
+    | VSend of ch
 
   type env = value VMap.t
 
-  let rec mt_of_pt0 p0 v =
-    match (p0, v) with
-    | P0Rel, _ -> [| v |]
-    | P0Ind _, _ -> raise PBacktrack
-    | P0Constr (id1, ps), VConstr (id2, ms) ->
-      if Id.equal id1 id2 then
-        List.fold_left2
-          (fun acc p t -> Array.append acc (mt_of_pt0 p t))
-          [||] ps ms
-      else
-        raise PBacktrack
-    | _ -> raise PBacktrack
+  let rec pp fmt m =
+    let rec aux fmt ms =
+      match ms with
+      | [] -> ()
+      | [ m ] -> pp fmt m
+      | m :: ms -> fprintf fmt "%a; %a" pp m aux ms
+    in
+    match m with
+    | VBox -> fprintf fmt "VBox"
+    | VConstr (id, ms) -> fprintf fmt "VConstr(%a, [%a])" Id.pp id aux ms
+    | VLam (x, m) -> fprintf fmt "VLam(%a, %a)" pp_v x Term.pp m
+    | VFix (x, m) -> fprintf fmt "VFix(%a, %a)" pp_v x Term.pp m
+    | VCh ch -> fprintf fmt "VCh(%a)" pp_ch ch
+    | VSend ch -> fprintf fmt "VSend(%a)" pp_ch ch
+
+  and pp_ch fmt ch =
+    match ch with
+    | Channel ch -> fprintf fmt "<ch>"
+    | Stdin -> fprintf fmt "stdin"
+    | Stdout -> fprintf fmt "stdout"
+    | Stderr -> fprintf fmt "stderr"
 
   let rec mk_env env p m =
     match (p, m) with
@@ -69,10 +87,20 @@ module EvalTerm = struct
       | VFix (x, b) ->
         let env = VMap.add x m env in
         eval env (App (b, n))
-      | VSend ch ->
+      | VSend m -> (
         let n = eval env n in
-        let _ = sync (send ch n) in
-        VCh ch
+        match m with
+        | Channel ch ->
+          let _ = sync (send ch n) in
+          VCh m
+        | Stdout ->
+          let _ = printf "%a" pp n in
+          VCh m
+        | Stderr ->
+          let s = asprintf "%a" pp n in
+          let _ = prerr_endline s in
+          VCh m
+        | _ -> raise SendError)
       | _ -> raise NonFunctionalApp)
     | Let (m, n) ->
       let x, un = unbind n in
@@ -114,8 +142,8 @@ module EvalTerm = struct
     | Fork (_, m, n) ->
       let x, un = unbind n in
       let m = eval env m in
-      let ch = new_channel () in
-      let env = VMap.add x (VCh ch) env in
+      let ch = VCh (Channel (new_channel ())) in
+      let env = VMap.add x ch env in
       let _ =
         create
           (fun env ->
@@ -123,19 +151,55 @@ module EvalTerm = struct
             eval env un)
           env
       in
-      VConstr (Id.pair_id, [ VCh ch; m ])
+      VConstr (Id.pair_id, [ ch; m ])
     | Send m -> (
       let m = eval env m in
       match m with
       | VCh ch -> VSend ch
-      | _ -> raise NonChannelError)
+      | _ -> raise SendError)
     | Recv m -> (
       let m = eval env m in
       match m with
-      | VCh ch ->
+      | VCh (Channel ch) ->
         let n = sync (receive ch) in
-        VConstr (Id.pair_id, [ n; VCh ch ])
-      | _ -> raise NonChannelError)
+        VConstr (Id.pair_id, [ n; m ])
+      | VCh Stdin ->
+        (* TODO: convert string input *)
+        let s = read_line () in
+        let _ = print_endline s in
+        VConstr (Id.pair_id, [ VBox; m ])
+      | _ -> raise RecvError)
     | Close _ -> VConstr (Id.tt_id, [])
     | Axiom _ -> VBox
+end
+
+module EvalTop = struct
+  open Term
+  open Top
+  open EvalTerm
+
+  exception ImportError
+
+  let rec eval env t =
+    match t with
+    | Main m -> EvalTerm.eval env m
+    | Define (m, t) ->
+      let x, ut = unbind t in
+      let m = EvalTerm.eval env m in
+      let env = VMap.add x m env in
+      eval env ut
+    | Induct (_, t) -> eval env t
+    | Import (id, t) ->
+      let x, ut = unbind t in
+      if Id.equal Id.stdin_id id then
+        let env = VMap.add x (VCh Stdin) env in
+        eval env ut
+      else if Id.equal Id.stdout_id id then
+        let env = VMap.add x (VCh Stdout) env in
+        eval env ut
+      else if Id.equal Id.stderr_id id then
+        let env = VMap.add x (VCh Stderr) env in
+        eval env ut
+      else
+        raise ImportError
 end
