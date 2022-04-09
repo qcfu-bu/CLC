@@ -189,7 +189,7 @@ module EvalTop = struct
       let env = VMap.add x m env in
       eval env ut
     | Induct (_, t) -> eval env t
-    | Import (id, t) ->
+    | Import (id, _, t) ->
       let x, ut = unbind t in
       if Id.equal Id.stdin_id id then
         let env = VMap.add x (VCh Stdin) env in

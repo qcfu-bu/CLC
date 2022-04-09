@@ -586,7 +586,7 @@ module Top = struct
     | Main of Term.t
     | Define of Term.t * tbinder
     | Induct of ind * t
-    | Import of Id.t * tbinder
+    | Import of Id.t * Term.t * tbinder
 
   and tbinder = (Term.t, t) binder
 
@@ -605,9 +605,9 @@ module Top = struct
     | Induct (Ind (id, a, cs), t) ->
       fprintf fmt "@[Inductive %a %a :=@.%a.@.@.%a@]" Id.pp id pp_pscope a
         pp_constr cs pp t
-    | Import (_, t) ->
+    | Import (_, m, t) ->
       let x, ut = unbind t in
-      fprintf fmt "@[Import %a.@.@.%a@]" pp_v x pp ut
+      fprintf fmt "@[Import %a of@;<1 2>%a.@.@.%a@]" pp_v x Term.pp m pp ut
 
   and pp_constr fmt cs =
     match cs with
@@ -659,5 +659,5 @@ module Top = struct
 
   let _Induct = box_apply2 (fun ind t -> Induct (ind, t))
 
-  let _Import id = box_apply (fun t -> Import (id, t))
+  let _Import id = box_apply2 (fun m t -> Import (id, m, t))
 end

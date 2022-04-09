@@ -239,7 +239,7 @@ module Top = struct
     | Main of Term.t
     | Define of v * Term.t * t
     | Induct of ind * t
-    | Import of Id.t * v * t
+    | Import of Id.t * Term.t * v * t
 
   let rec _core ctx t =
     match t with
@@ -259,11 +259,12 @@ module Top = struct
       let _cs = box_list _cs in
       let _t = _core ctx t in
       _Induct (_Ind id _a _cs) _t
-    | Import (id, x, t) ->
+    | Import (id, m, x, t) ->
       let _x = var x in
+      let _m = Term._core ctx m in
       let ctx = VMap.add x _x ctx in
       let _t = _core ctx t in
-      _Import id (bind_var _x _t)
+      _Import id _m (bind_var _x _t)
 
   and _core_pscope ctx a =
     match a with
