@@ -1,0 +1,25 @@
+{
+    "name": "clc",
+    "displayName": "clc",
+    "description": "",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.66.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "clc",
+            "aliases": ["clc", "clc"],
+            "extensions": [".clc"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "clc",
+            "scopeName": "source.coq",
+            "path": "./syntaxes/clc.tmLanguage"
+        }]
+    }
+}

@@ -2,13 +2,14 @@ open Format
 open Bindlib
 open Name
 open Core
+open Prelude
 open Thread
 open Event
 
 module EvalTerm = struct
   open Term
 
-  exception NonFunctionalApp
+  exception NonFunctional of string
 
   exception UnMatchedPattern
 
@@ -54,12 +55,14 @@ module EvalTerm = struct
     | Stdout -> fprintf fmt "stdout"
     | Stderr -> fprintf fmt "stderr"
 
+  let pair_id = Id.mk "pair"
+
   let rec mk_env env p m =
     match (p, m) with
     | PVar x, m -> VMap.add x m env
     | PInd _, _ -> raise PBacktrack
     | PConstr (id1, ps), VConstr (id2, ms) ->
-      if Id.equal id1 id2 then
+      if Id.equal id1 id2 || Id.equal pair_id id2 then
         List.fold_left2 (fun acc p m -> mk_env acc p m) env ps ms
       else
         raise PBacktrack
@@ -94,14 +97,16 @@ module EvalTerm = struct
           let _ = sync (send ch n) in
           VCh m
         | Stdout ->
-          let _ = printf "%a" pp n in
+          (* TODO: convert string output *)
+          let _ = printf "%a\n" pp n in
           VCh m
         | Stderr ->
-          let s = asprintf "%a" pp n in
+          (* TODO: convert string output *)
+          let s = asprintf "%a\n" pp n in
           let _ = prerr_endline s in
           VCh m
         | _ -> raise SendError)
-      | _ -> raise NonFunctionalApp)
+      | _ -> raise (NonFunctional (asprintf "non-functional:=@.%a" pp m)))
     | Let (m, n) ->
       let x, un = unbind n in
       let m = eval env m in
@@ -147,11 +152,12 @@ module EvalTerm = struct
       let _ =
         create
           (fun env ->
-            let _ = print_endline "hello from thread" in
+            let t_id = id (self ()) in
+            let _ = printf "hello from thread(%d)\n" t_id in
             eval env un)
           env
       in
-      VConstr (Id.pair_id, [ ch; m ])
+      VConstr (pair_id, [ ch; m ])
     | Send m -> (
       let m = eval env m in
       match m with
@@ -162,14 +168,14 @@ module EvalTerm = struct
       match m with
       | VCh (Channel ch) ->
         let n = sync (receive ch) in
-        VConstr (Id.pair_id, [ n; m ])
+        VConstr (pair_id, [ n; m ])
       | VCh Stdin ->
         (* TODO: convert string input *)
         let s = read_line () in
         let _ = print_endline s in
-        VConstr (Id.pair_id, [ VBox; m ])
+        VConstr (pair_id, [ VBox; m ])
       | _ -> raise RecvError)
-    | Close _ -> VConstr (Id.tt_id, [])
+    | Close _ -> VConstr (Prelude.tt, [])
     | Axiom _ -> VBox
 end
 
@@ -180,26 +186,30 @@ module EvalTop = struct
 
   exception ImportError
 
-  let rec eval env t =
-    match t with
-    | Main m -> EvalTerm.eval env m
-    | Define (m, t) ->
-      let x, ut = unbind t in
-      let m = EvalTerm.eval env m in
-      let env = VMap.add x m env in
-      eval env ut
-    | Induct (_, t) -> eval env t
-    | Import (id, _, t) ->
-      let x, ut = unbind t in
-      if Id.equal Id.stdin_id id then
-        let env = VMap.add x (VCh Stdin) env in
-        eval env ut
-      else if Id.equal Id.stdout_id id then
-        let env = VMap.add x (VCh Stdout) env in
-        eval env ut
-      else if Id.equal Id.stderr_id id then
-        let env = VMap.add x (VCh Stderr) env in
-        eval env ut
-      else
-        raise ImportError
+  let eval t =
+    let env = VMap.singleton Prelude.main VBox in
+    let rec aux env t =
+      match t with
+      | Main m -> EvalTerm.eval env m
+      | Define (m, t) ->
+        let x, ut = unbind t in
+        let m = EvalTerm.eval env m in
+        let env = VMap.add x m env in
+        aux env ut
+      | Induct (_, t) -> aux env t
+      | Import (id, _, t) ->
+        let x, ut = unbind t in
+        if Id.equal Id.stdin_id id then
+          let env = VMap.add x (VCh Stdin) env in
+          aux env ut
+        else if Id.equal Id.stdout_id id then
+          let env = VMap.add x (VCh Stdout) env in
+          aux env ut
+        else if Id.equal Id.stderr_id id then
+          let env = VMap.add x (VCh Stderr) env in
+          aux env ut
+        else
+          raise ImportError
+    in
+    aux env t
 end

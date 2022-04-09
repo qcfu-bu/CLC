@@ -3,7 +3,7 @@ open Bindlib
 open Name
 open Core
 
-module Term = struct
+module RTerm = struct
   open Term
   module VMap = Map.Make (Var)
 
@@ -214,9 +214,9 @@ module Term = struct
   let core ctx m = unbox (_core ctx m)
 end
 
-module Top = struct
+module RTop = struct
   open Top
-  open Term
+  open RTerm
 
   exception EmptyTop
 
@@ -228,28 +228,28 @@ module Top = struct
 
   and pscope =
     | PBase of tscope
-    | PBind of v * Term.t * pscope
+    | PBind of v * RTerm.t * pscope
 
   and tscope =
-    | TBase of Term.t
-    | TBind of v * Term.t * tscope
+    | TBase of RTerm.t
+    | TBind of v * RTerm.t * tscope
 
   type t =
     | Empty
-    | Main of Term.t
-    | Define of v * Term.t * t
+    | Main of RTerm.t
+    | Define of v * RTerm.t * t
     | Induct of ind * t
-    | Import of Id.t * Term.t * v * t
+    | Import of Id.t * RTerm.t * v * t
 
   let rec _core ctx t =
     match t with
     | Empty -> raise EmptyTop
     | Main m ->
-      let _m = Term._core ctx m in
+      let _m = RTerm._core ctx m in
       _Main _m
     | Define (x, m, t) ->
       let _x = var x in
-      let _m = Term._core ctx m in
+      let _m = RTerm._core ctx m in
       let ctx = VMap.add x _x ctx in
       let _t = _core ctx t in
       _Define _m (bind_var _x _t)
@@ -261,7 +261,7 @@ module Top = struct
       _Induct (_Ind id _a _cs) _t
     | Import (id, m, x, t) ->
       let _x = var x in
-      let _m = Term._core ctx m in
+      let _m = RTerm._core ctx m in
       let ctx = VMap.add x _x ctx in
       let _t = _core ctx t in
       _Import id _m (bind_var _x _t)
@@ -273,7 +273,7 @@ module Top = struct
       _PBase _a
     | PBind (x, a, b) ->
       let _x = var x in
-      let _a = Term._core ctx a in
+      let _a = RTerm._core ctx a in
       let ctx = VMap.add x _x ctx in
       let _b = _core_pscope ctx b in
       _PBind _a (bind_var _x _b)
@@ -281,11 +281,11 @@ module Top = struct
   and _core_tscope ctx a =
     match a with
     | TBase a ->
-      let _a = Term._core ctx a in
+      let _a = RTerm._core ctx a in
       _TBase _a
     | TBind (x, a, b) ->
       let _x = var x in
-      let _a = Term._core ctx a in
+      let _a = RTerm._core ctx a in
       let ctx = VMap.add x _x ctx in
       let _b = _core_tscope ctx b in
       _TBind _a (bind_var _x _b)
@@ -293,4 +293,10 @@ module Top = struct
   and _core_constr ctx (Constr (id, a)) =
     let _a = _core_pscope ctx a in
     _Constr id _a
+
+  let main = var Var.main
+
+  let core t =
+    let ctx = VMap.singleton Var.main main in
+    unbox (_core ctx t)
 end

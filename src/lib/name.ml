@@ -38,6 +38,12 @@ module Var : sig
   val pp_debug : formatter -> t -> unit
 
   val var : ('a var -> 'a) -> t -> 'a var
+
+  val string_of : t -> string
+
+  val __ : t
+
+  val main : t
 end = struct
   type t = string * int
 
@@ -57,6 +63,12 @@ end = struct
   let pp_debug fmt (s, i) = fprintf fmt "%s#%d" s i
 
   let var f (s, _) = new_var f s
+
+  let string_of (s, _) = s
+
+  let __ = mk "_"
+
+  let main = mk "_main_"
 end
 
 module Id : sig
@@ -72,15 +84,13 @@ module Id : sig
 
   val pp_debug : formatter -> t -> unit
 
+  val string_of : t -> string
+
   val stdin_id : t
 
   val stdout_id : t
 
   val stderr_id : t
-
-  val tt_id : t
-
-  val pair_id : t
 end = struct
   type t = string * int
 
@@ -99,13 +109,11 @@ end = struct
 
   let pp_debug fmt (s, i) = fprintf fmt "%s#%d" s i
 
+  let string_of (s, _) = s
+
   let stdin_id = mk "stdin"
 
   let stdout_id = mk "stdout"
 
   let stderr_id = mk "stderr"
-
-  let tt_id = mk "unit"
-
-  let pair_id = mk "pair"
 end

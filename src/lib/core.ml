@@ -294,7 +294,7 @@ module Term = struct
     | Out (a, b) ->
       let x, ub = unbind b in
       fprintf fmt "@[!(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
-    | Ch m -> fprintf fmt "ch %a" pp m
+    | Ch m -> fprintf fmt "channel %a" pp m
     | Fork (a, m, n) ->
       let x, un = unbind n in
       fprintf fmt "@[@[fork (%a :@;<1 2>%a) :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
@@ -605,26 +605,25 @@ module Top = struct
     | Induct (Ind (id, a, cs), t) ->
       fprintf fmt "@[Inductive %a %a :=@.%a.@.@.%a@]" Id.pp id pp_pscope a
         pp_constr cs pp t
-    | Import (_, m, t) ->
+    | Import (id, m, t) ->
       let x, ut = unbind t in
-      fprintf fmt "@[Import %a of@;<1 2>%a.@.@.%a@]" pp_v x Term.pp m pp ut
+      fprintf fmt "@[Import %a@;<1 2>%a as %a.@.@.%a@]" Id.pp id Term.pp m pp_v
+        x pp ut
 
   and pp_constr fmt cs =
     match cs with
     | [] -> ()
+    | [ Constr (id, a) ] -> fprintf fmt "@[<v 0>| %a %a@]" Id.pp id pp_pscope a
     | Constr (id, a) :: cs ->
       fprintf fmt "@[<v 0>| %a %a@;<1 0>%a@]" Id.pp id pp_pscope a pp_constr cs
 
   and pp_pscope fmt a =
     match a with
-    | PBase a -> pp_tscope fmt a
+    | PBase a -> fprintf fmt ": %a" pp_tscope a
     | PBind (a, b) ->
       let x, ub = unbind b in
-      if binder_occur b then
-        fprintf fmt "@[@[forall (%a :@;<1 2>%a),@]@;<1 2>%a@]" pp_v x Term.pp a
-          pp_pscope ub
-      else
-        fprintf fmt "@[(%a) ->@;<1 2>%a@]" Term.pp a pp_pscope ub
+      fprintf fmt "@[@[(%a :@;<1 2>%a)@]@;<1 2>%a@]" pp_v x Term.pp a pp_pscope
+        ub
 
   and pp_tscope fmt a =
     match a with

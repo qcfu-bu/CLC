@@ -1,0 +1,40 @@
+Inductive unit : U :=
+| tt : unit.
+
+Inductive bool : U :=
+| true : bool
+| false : bool.
+
+Inductive ex (A : U) (P : A -> U) : U :=
+| ex_intro : forall (x : A), P x -> ex A P.
+
+Inductive sig (A : U) (P : A -> L) : L :=
+| sig_intro : forall (x : A), P x -> sig A P.
+
+Inductive tnsr (A B : L) : L :=
+| tnsr_intro : A -> B -> tnsr A B.
+
+Inductive nat : U :=
+| O : nat
+| S : nat -> nat.
+
+Inductive list (A : U) : U :=
+| nil : list A
+| cons : A -> list A -> list A.
+
+Import stdout O as _stdout_.
+
+Definition Main := 
+  let tnsr_intro ch _main_ := 
+    fork (ch : channel ?nat, $) := _main_ in
+    let ch := send ch (S (S O)) in
+    close ch
+  in
+  let sig msg ch := recv ch in
+  let _stdout_ := send _stdout_ msg in
+  match close ch with
+  | tt =>
+    match close _stdout_ with
+    | tt => _main_
+    end
+  end.
