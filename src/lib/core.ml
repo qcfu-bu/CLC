@@ -9,13 +9,15 @@ type sort =
 let pp_v fmt x = fprintf fmt "%s" (name_of x)
 
 module Term = struct
-  type t =
+  type v = t var
+
+  and t =
     (* inference *)
     | Ann of t * t
     | Meta of Meta.t
     (* core *)
     | Knd of sort
-    | Var of t var
+    | Var of v
     | Pi of sort * t * tbinder
     | Lam of sort * tbinder
     | App of t * t
@@ -60,6 +62,12 @@ module Term = struct
   and pbinder = p0 * (t, t) mbinder
 
   and tpbinder = (t, pbinder) binder
+
+  module VMap = Map.Make (struct
+    type t = v
+
+    let compare = compare_vars
+  end)
 
   exception PBacktrack
 
@@ -277,8 +285,8 @@ module Term = struct
       let x, um = unbind m in
       let xs, um = spine U um in
       fprintf fmt "@[fix %a %a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um
-    | Main -> fprintf fmt "main"
-    | Proto -> fprintf fmt "proto"
+    | Main -> fprintf fmt "Main"
+    | Proto -> fprintf fmt "Proto"
     | End -> fprintf fmt "$"
     | Inp (a, b) ->
       let x, ub = unbind b in
@@ -575,7 +583,7 @@ module Top = struct
   and tsbinder = (Term.t, tscope) binder
 
   type t =
-    | Bottom
+    | Main of Term.t
     | Define of Term.t * tbinder
     | Induct of ind * t
     | Import of Id.t * tbinder
@@ -584,7 +592,7 @@ module Top = struct
 
   let rec pp fmt t =
     match t with
-    | Bottom -> ()
+    | Main m -> fprintf fmt "@[Main :=@;<1 2>%a.@]" Term.pp m
     | Define (m, t) -> (
       match m with
       | Axiom (_, m) ->
@@ -645,11 +653,9 @@ module Top = struct
 
   let _Constr id = box_apply (fun a -> Constr (id, a))
 
-  let _Bottom = box Bottom
+  let _Main = box_apply (fun m -> Main m)
 
   let _Define = box_apply2 (fun m t -> Define (m, t))
 
   let _Induct = box_apply2 (fun ind t -> Induct (ind, t))
-
-  let _Import id = box_apply (fun t -> Import (id, t))
 end

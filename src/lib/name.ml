@@ -1,4 +1,5 @@
 open Format
+open Bindlib
 
 module Meta : sig
   type t
@@ -35,6 +36,10 @@ module Id : sig
   val pp : formatter -> t -> unit
 
   val pp_debug : formatter -> t -> unit
+
+  val tt_id : t
+
+  val pair_id : t
 end = struct
   type t = string * int
 
@@ -52,4 +57,8 @@ end = struct
   let pp fmt (s, _) = fprintf fmt "%s" s
 
   let pp_debug fmt (s, i) = fprintf fmt "%s#%d" s i
+
+  let tt_id = mk "unit"
+
+  let pair_id = mk "pair"
 end
