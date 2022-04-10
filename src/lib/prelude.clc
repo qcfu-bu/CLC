@@ -27,20 +27,3 @@ Inductive ascii : U :=
 Inductive string : U :=
 | EmptyString : string
 | String : ascii -> string -> string.
-
-Import stdout O as _stdout_.
-
-Definition sender (ch : channel ?nat, $) : unit := 
-  let ch := send ch (S (S O)) in
-  close ch.
-
-Definition Main := 
-  let tnsr_intro ch _main_ := 
-    fork (ch : channel ?nat, $) := _main_ in
-    sender ch
-  in
-  let sig msg ch := recv ch in
-  let _stdout_ := send _stdout_ msg in
-  let tt := close ch in
-  let tt := close _stdout_ in
-  _main_.

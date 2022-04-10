@@ -6,6 +6,12 @@ open Core
 module SMap = Map.Make (String)
 module SSet = Set.Make (String)
 
+type id_info =
+  { id : Id.t
+  ; is_ind : bool
+  ; arity : int
+  }
+
 module PreludeTerm = struct
   open RTerm
 
@@ -42,12 +48,6 @@ module PreludeTerm = struct
       ; "stderr"
       ]
 
-  type id_info =
-    { id : Id.t
-    ; is_ind : bool
-    ; arity : int
-    }
-
   type 'a parser = ('a, Var.t SMap.t * id_info SMap.t) MParser.t
 
   let ( let* ) = bind
@@ -60,18 +60,20 @@ module PreludeTerm = struct
       let* xs = repeatn p (n - 1) in
       return (x :: xs)
 
-  let comment : unit parser =
+  let rec comment () : unit parser =
+    let any = any_char_or_nl >>$ () in
     let* _ = string "(*" in
     let* _ =
       many
         (let* opt =
            look_ahead (string "*)")
-           >> return None
-           <|> (any_char_or_nl >>= fun c -> return (Some c))
+           >> return true
+           <|> (comment () <|> any >> return false)
          in
-         match opt with
-         | Some c -> return c
-         | None -> zero)
+         if opt then
+           zero
+         else
+           return ())
     in
     let* _ = string "*)" in
     return ()
@@ -79,7 +81,7 @@ module PreludeTerm = struct
   let ws =
     many
       (choice
-         [ blank >> return (); newline >> return (); comment >> return () ])
+         [ blank >> return (); newline >> return (); comment () >> return () ])
     >>$ ()
 
   let kw s =
@@ -146,20 +148,21 @@ module PreludeTerm = struct
     let* x = var_parser ~pat:true () in
     return (PVar x)
 
-  and pcons_parser ?is_type:(p = false) () =
+  and pcons_parser () =
     let* id_info = id_parser () in
     let n = id_info.arity in
+    let is_ind = id_info.is_ind in
     let* ps = repeatn (p_parser ()) n in
-    if p then
+    if is_ind then
       return (PInd (id_info.id, ps))
     else
       return (PConstr (id_info.id, ps))
 
-  and p_parser ?is_type:(p = false) () =
+  and p_parser () =
     let* _ = return () in
     choice
       (List.map attempt
-         [ pcons_parser ~is_type:p (); pvar_parser (); parens (p_parser ()) ])
+         [ pcons_parser (); pvar_parser (); parens (p_parser ()) ])
 
   let rec knd_parser () = kw "U" >>$ Knd U <|> (kw "L" >>$ Knd L)
 
@@ -292,7 +295,7 @@ module PreludeTerm = struct
   and mot2_parser () =
     let* ctx = get_user_state in
     let* _ = kw "in" in
-    let* p = p_parser ~is_type:true () in
+    let* p = p_parser () in
     let* _ = kw "return" in
     let* m = t_parser () in
     let* _ = set_user_state ctx in
@@ -303,7 +306,7 @@ module PreludeTerm = struct
     let* _ = kw "as" in
     let* x = var_parser () in
     let* _ = kw "in" in
-    let* p = p_parser ~is_type:true () in
+    let* p = p_parser () in
     let* _ = kw "return" in
     let* m = t_parser () in
     let* _ = set_user_state ctx in

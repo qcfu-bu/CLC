@@ -1,8 +1,11 @@
 open Format
 open Bindlib
+open MParser
 open Name
+open Raw
 open Core
 open Prelude
+open Parser
 open Thread
 open Event
 
@@ -16,6 +19,12 @@ module EvalTerm = struct
   exception SendError
 
   exception RecvError
+
+  exception BoolError
+
+  exception CharError
+
+  exception StringError
 
   type ch =
     | Channel of value channel
@@ -54,6 +63,39 @@ module EvalTerm = struct
     | Stdin -> fprintf fmt "stdin"
     | Stdout -> fprintf fmt "stdout"
     | Stderr -> fprintf fmt "stderr"
+
+  let bin_of ms =
+    List.map
+      (fun m ->
+        match m with
+        | VConstr (id, []) when Id.equal Prelude.true_id id -> 1
+        | VConstr (id, []) when Id.equal Prelude.false_id id -> 0
+        | _ -> raise BoolError)
+      ms
+
+  let dec_of ns = List.fold_left (fun acc n -> (acc * 2) + n) 0 ns
+
+  let char_of m =
+    match m with
+    | VConstr (id, ms) when Id.equal Prelude.ascii0_id id ->
+      let n = ms |> bin_of |> dec_of in
+      Char.chr n
+    | _ -> raise CharError
+
+  let rec string_of m =
+    match m with
+    | VConstr (id, []) when Id.equal Prelude.emptyString_id id -> ""
+    | VConstr (id, [ m; n ]) when Id.equal Prelude.string0_id id ->
+      let c = char_of m in
+      let s = string_of n in
+      sprintf "%c%s" c s
+    | _ -> raise StringError
+
+  let of_string s =
+    let ctx = Prelude.(vctx, ictx) in
+    match parse_string (ParseTerm.asciix_parser ()) s ctx with
+    | Success t -> RTerm.(core VMap.empty t)
+    | Failed (s, _) -> raise StringError
 
   let pair_id = Id.mk "pair"
 
@@ -100,12 +142,10 @@ module EvalTerm = struct
           let _ = sync (send ch n) in
           VCh m
         | Stdout ->
-          (* TODO: convert string output *)
-          let _ = printf "%a\n" pp n in
+          let _ = printf "%s" (string_of n) in
           VCh m
         | Stderr ->
-          (* TODO: convert string output *)
-          let s = asprintf "%a\n" pp n in
+          let s = asprintf "%s" (string_of n) in
           let _ = prerr_endline s in
           VCh m
         | _ -> raise SendError)
@@ -152,16 +192,7 @@ module EvalTerm = struct
       let m = eval env m in
       let ch = VCh (Channel (new_channel ())) in
       let env = VMap.add x ch env in
-      let t_id = id (self ()) in
-      let _ = printf "forking from thread(%d)\n" t_id in
-      let _ =
-        create
-          (fun env ->
-            let t_id = id (self ()) in
-            let _ = printf "hello from thread(%d)\n" t_id in
-            eval env un)
-          env
-      in
+      let _ = create (fun env -> eval env un) env in
       VConstr (pair_id, [ ch; m ])
     | Send m -> (
       let m = eval env m in
@@ -175,10 +206,8 @@ module EvalTerm = struct
         let n = sync (receive ch) in
         VConstr (pair_id, [ n; m ])
       | VCh Stdin ->
-        (* TODO: convert string input *)
-        let s = read_line () in
-        let _ = print_endline s in
-        VConstr (pair_id, [ VBox; m ])
+        let s = read_line () |> of_string |> eval env in
+        VConstr (pair_id, [ s; m ])
       | _ -> raise RecvError)
     | Close _ -> VConstr (Prelude.tt_id, [])
     | Axiom _ -> VBox

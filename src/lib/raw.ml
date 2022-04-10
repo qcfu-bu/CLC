@@ -227,6 +227,8 @@ module RTop = struct
 
   exception EmptyTop
 
+  exception AppendMain
+
   type v = Var.t
 
   type ind = Ind of Id.t * pscope * constr list
@@ -247,6 +249,14 @@ module RTop = struct
     | Define of v * RTerm.t * t
     | Induct of ind * t
     | Import of Id.t * RTerm.t * v * t
+
+  let rec append_t t1 t2 =
+    match t1 with
+    | Empty -> t2
+    | Main _ -> raise AppendMain
+    | Define (v, m, t1) -> Define (v, m, append_t t1 t2)
+    | Induct (ind, t1) -> Induct (ind, append_t t1 t2)
+    | Import (id, m, x, t1) -> Import (id, m, x, append_t t1 t2)
 
   let rec _core ctx t =
     match t with

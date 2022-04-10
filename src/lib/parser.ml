@@ -3,6 +3,7 @@ open MParser
 open Name
 open Raw
 open Core
+open Prelude
 module SMap = Map.Make (String)
 module SSet = Set.Make (String)
 
@@ -42,12 +43,6 @@ module ParseTerm = struct
       ; "stderr"
       ]
 
-  type id_info =
-    { id : Id.t
-    ; is_ind : bool
-    ; arity : int
-    }
-
   type 'a parser = ('a, Var.t SMap.t * id_info SMap.t) MParser.t
 
   let ( let* ) = bind
@@ -60,18 +55,20 @@ module ParseTerm = struct
       let* xs = repeatn p (n - 1) in
       return (x :: xs)
 
-  let comment : unit parser =
+  let rec comment () : unit parser =
+    let any = any_char_or_nl >>$ () in
     let* _ = string "(*" in
     let* _ =
       many
         (let* opt =
            look_ahead (string "*)")
-           >> return None
-           <|> (any_char_or_nl >>= fun c -> return (Some c))
+           >> return true
+           <|> (comment () <|> any >> return false)
          in
-         match opt with
-         | Some c -> return c
-         | None -> zero)
+         if opt then
+           zero
+         else
+           return ())
     in
     let* _ = string "*)" in
     return ()
@@ -79,7 +76,7 @@ module ParseTerm = struct
   let ws =
     many
       (choice
-         [ blank >> return (); newline >> return (); comment >> return () ])
+         [ blank >> return (); newline >> return (); comment () >> return () ])
     >>$ ()
 
   let kw s =
@@ -146,20 +143,45 @@ module ParseTerm = struct
     let* x = var_parser ~pat:true () in
     return (PVar x)
 
-  and pcons_parser ?is_type:(p = false) () =
+  and pcons_parser () =
     let* id_info = id_parser () in
     let n = id_info.arity in
+    let is_ind = id_info.is_ind in
     let* ps = repeatn (p_parser ()) n in
-    if p then
+    if is_ind then
       return (PInd (id_info.id, ps))
     else
       return (PConstr (id_info.id, ps))
 
-  and p_parser ?is_type:(p = false) () =
+  and p_tt_parser () = kw "(" >> kw ")" >>$ PConstr (Prelude.tt_id, [])
+
+  and p_pair_parser () =
+    let* _ = kw "(" in
+    let* p1 = p_parser () in
+    let* _ = kw "," in
+    let* p2 = p_parser () in
+    let* _ = kw ")" in
+    return (PStruct (Meta.mk (), [ p1; p2 ]))
+
+  and p0_parser () =
     let* _ = return () in
     choice
       (List.map attempt
-         [ pcons_parser ~is_type:p (); pvar_parser (); parens (p_parser ()) ])
+         [ pcons_parser ()
+         ; pvar_parser ()
+         ; p_tt_parser ()
+         ; p_pair_parser ()
+         ; parens (p_parser ())
+         ])
+
+  and p_parser () =
+    let prod_parser =
+      choice
+        [ (kw "*" >>$ fun p1 p2 -> PInd (Prelude.ex_id, [ p1; p2 ]))
+        ; (kw "^" >>$ fun p1 p2 -> PInd (Prelude.tnsr_id, [ p1; p2 ]))
+        ]
+    in
+    chain_left1 (p0_parser ()) prod_parser
 
   let rec knd_parser () = kw "U" >>$ Knd U <|> (kw "L" >>$ Knd L)
 
@@ -292,7 +314,7 @@ module ParseTerm = struct
   and mot2_parser () =
     let* ctx = get_user_state in
     let* _ = kw "in" in
-    let* p = p_parser ~is_type:true () in
+    let* p = p_parser () in
     let* _ = kw "return" in
     let* m = t_parser () in
     let* _ = set_user_state ctx in
@@ -303,7 +325,7 @@ module ParseTerm = struct
     let* _ = kw "as" in
     let* x = var_parser () in
     let* _ = kw "in" in
-    let* p = p_parser ~is_type:true () in
+    let* p = p_parser () in
     let* _ = kw "return" in
     let* m = t_parser () in
     let* _ = set_user_state ctx in
@@ -317,6 +339,86 @@ module ParseTerm = struct
     let* m = t_parser () in
     let* _ = set_user_state ctx in
     return (p, m)
+
+  and tt_parser () = kw "(" >> kw ")" >>$ Constr (Prelude.tt_id, [])
+
+  and pair_parser () =
+    let* _ = kw "(" in
+    let* t1 = t_parser () in
+    let* _ = kw "," in
+    let* t2 = t_parser () in
+    let* _ = kw ")" in
+    return (Struct (Meta.mk (), [ t1; t2 ]))
+
+  and nat_parser () =
+    let* s = many1_chars digit in
+    let* _ = ws in
+    match int_of_string_opt s with
+    | Some n ->
+      let rec loop i acc =
+        if i < n then
+          loop (i + 1) (Constr (Prelude.s_id, [ acc ]))
+        else
+          acc
+      in
+      return (loop 0 (Constr (Prelude.o_id, [])))
+    | None -> fail "non-int"
+
+  and ascii_parser () =
+    let ascii n =
+      let rec aux i n =
+        let x = n mod 2 in
+        let x =
+          if x = 0 then
+            Constr (Prelude.false_id, [])
+          else
+            Constr (Prelude.true_id, [])
+        in
+        let n = n / 2 in
+        if i > 0 then
+          x :: aux (i - 1) n
+        else
+          []
+      in
+      Constr (Prelude.ascii0_id, List.rev (aux 8 n))
+    in
+    let* c = any_char in
+    if c = '\\' then
+      choice
+        [ char '\\' >>$ ascii (Char.code '\\')
+        ; char '\"' >>$ ascii (Char.code '\"')
+        ; char '\'' >>$ ascii (Char.code '\'')
+        ; char 'n' >>$ ascii (Char.code '\n')
+        ; char 't' >>$ ascii (Char.code '\t')
+        ; char 'b' >>$ ascii (Char.code '\b')
+        ; char 'r' >>$ ascii (Char.code '\r')
+        ; char ' ' >>$ ascii (Char.code '\ ')
+        ; (let* n1 = digit in
+           let* n2 = digit in
+           let* n3 = digit in
+           let s = sprintf "0o%c%c%c" n1 n2 n3 in
+           let n = int_of_string s in
+           return (ascii n))
+        ]
+    else if c = '\"' || c = '\'' then
+      zero
+    else
+      let n = Char.code c in
+      return (ascii n)
+
+  and char_parser () = char '\'' >> ascii_parser () << char '\'' << ws
+
+  and asciix_parser () =
+    let* ms = many (attempt (ascii_parser ())) in
+    let m =
+      List.fold_right
+        (fun m acc -> Constr (Prelude.string0_id, [ m; acc ]))
+        ms
+        (Constr (Prelude.emptyString_id, []))
+    in
+    return m
+
+  and string_parser () = char '\"' >> asciix_parser () << char '\"' << ws
 
   and main_parser () = kw "main" >> return Main
 
@@ -423,6 +525,11 @@ module ParseTerm = struct
          ; lin_parser ()
          ; let_parser ()
          ; match_parser ()
+         ; tt_parser ()
+         ; pair_parser ()
+         ; nat_parser ()
+         ; char_parser ()
+         ; string_parser ()
          ; main_parser ()
          ; proto_parser ()
          ; end_parser ()
@@ -502,8 +609,8 @@ module ParseTop = struct
     in
     let* _ = kw "." in
     let* _ = set_user_state ctx in
-    let* tp, ctx = tp_parser () in
-    return (Define (x, Ann (m, a), tp), ctx)
+    let* tp = tp_parser () in
+    return (Define (x, Ann (m, a), tp))
 
   and fixpoint_parser () =
     let* _ = kw "Fixpoint" in
@@ -530,8 +637,8 @@ module ParseTop = struct
     in
     let* _ = kw "." in
     let* _ = set_user_state ctx in
-    let* tp, ctx = tp_parser () in
-    return (Define (x, Ann (m, a), tp), ctx)
+    let* tp = tp_parser () in
+    return (Define (x, Ann (m, a), tp))
 
   and induct_parser () =
     let* _ = kw "Inductive" in
@@ -553,8 +660,8 @@ module ParseTop = struct
     let* cs = many (constr_parser ps ()) in
     let* _ = kw "." in
     let* _ = update_user_state (fun (_, ictx) -> (vctx, ictx)) in
-    let* tp, ctx = tp_parser () in
-    return (Induct (Ind (id_info.id, a, cs), tp), ctx)
+    let* tp = tp_parser () in
+    return (Induct (Ind (id_info.id, a, cs), tp))
 
   and constr_parser ps () =
     let* _ = kw "|" in
@@ -591,8 +698,8 @@ module ParseTop = struct
     let* _ = kw "as" in
     let* x = var_parser () in
     let* _ = kw "." in
-    let* tp, ctx = tp_parser () in
-    return (Import (id_info.id, m, x, tp), ctx)
+    let* tp = tp_parser () in
+    return (Import (id_info.id, m, x, tp))
 
   and axiom_parser () =
     let* _ = kw "Axiom" in
@@ -601,8 +708,8 @@ module ParseTop = struct
     let* _ = kw ":" in
     let* a = t_parser () in
     let* _ = kw "." in
-    let* tp, ctx = tp_parser () in
-    return (Define (x, Axiom (id, a), tp), ctx)
+    let* tp = tp_parser () in
+    return (Define (x, Axiom (id, a), tp))
 
   and main_parser () =
     let* _ = kw "Definition" in
@@ -611,11 +718,7 @@ module ParseTop = struct
     let* m = t_parser () in
     let* _ = kw "." in
     let* ctx = get_user_state in
-    return (Main m, ctx)
-
-  and empty_parser () =
-    let* ctx = get_user_state in
-    return (Empty, ctx)
+    return (Main m)
 
   and tp_parser () =
     choice
@@ -626,6 +729,11 @@ module ParseTop = struct
          ; import_parser ()
          ; axiom_parser ()
          ; main_parser ()
-         ; empty_parser ()
          ])
+
+  let parse_ch ch =
+    let ctx = Prelude.(vctx, ictx) in
+    match parse_channel (ws >> tp_parser ()) ch ctx with
+    | Success t -> append_t Prelude.raw t
+    | Failed (s, _) -> raise (ParseError s)
 end
