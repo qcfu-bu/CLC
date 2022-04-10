@@ -15,6 +15,7 @@ module Term = struct
     (* inference *)
     | Ann of t * t
     | Meta of Meta.t
+    | Struct of Meta.t * t list
     (* core *)
     | Knd of sort
     | Var of v
@@ -45,11 +46,13 @@ module Term = struct
     | PVar of t var
     | PInd of Id.t * p list
     | PConstr of Id.t * p list
+    | PStruct of Meta.t * p list
 
   and p0 =
     | P0Rel
     | P0Ind of Id.t * p0 list
     | P0Constr of Id.t * p0 list
+    | P0Struct of Meta.t * p0 list
 
   and m =
     | Mot0
@@ -86,6 +89,12 @@ module Term = struct
         && List.fold_left2 (fun acc p1 p2 -> acc && equal_p0 p1 p2) true ps1 ps2
       with
       | _ -> false)
+    | P0Struct (x1, ps1), P0Struct (x2, ps2) -> (
+      try
+        Meta.equal x1 x2
+        && List.fold_left2 (fun acc p1 p2 -> acc && equal_p0 p1 p2) true ps1 ps2
+      with
+      | _ -> false)
     | _ -> false
 
   and pp_p0 fmt p =
@@ -93,6 +102,7 @@ module Term = struct
     | P0Rel -> fprintf fmt "P0Rel"
     | P0Ind (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps0 ps
     | P0Constr (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps0 ps
+    | P0Struct (x, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Meta.pp x pp_ps0 ps
 
   and pp_ps0 fmt = function
     | [ p ] -> fprintf fmt "%a" pp_p0 p
@@ -141,6 +151,16 @@ module Term = struct
           ps
       in
       (P0Constr (id, List.rev ps0), m)
+    | PStruct (x, ps) ->
+      let ps0, m =
+        List.fold_left
+          (fun (ps0, acc) p ->
+            let p0, m = mvar_of_p p in
+            (p0 :: ps0, Array.append acc m))
+          ([], [||])
+          ps
+      in
+      (P0Struct (x, List.rev ps0), m)
 
   and list_of_p p =
     match p with
@@ -149,6 +169,9 @@ module Term = struct
       let xss = List.fold_right (fun p acc -> list_of_p p :: acc) ps [] in
       List.concat xss
     | PConstr (_, ps) ->
+      let xss = List.fold_right (fun p acc -> list_of_p p :: acc) ps [] in
+      List.concat xss
+    | PStruct (_, ps) ->
       let xss = List.fold_right (fun p acc -> list_of_p p :: acc) ps [] in
       List.concat xss
 
@@ -176,6 +199,15 @@ module Term = struct
           ([], m) ps
       in
       (PConstr (id, List.rev ps), m)
+    | P0Struct (x, ps) ->
+      let ps, m =
+        List.fold_left
+          (fun (ps, m) p0 ->
+            let p, m = p_of_mvar p0 m in
+            (p :: ps, m))
+          ([], m) ps
+      in
+      (PStruct (x, List.rev ps), m)
 
   and bind_p p tb =
     let p0, m = mvar_of_p p in
@@ -217,6 +249,7 @@ module Term = struct
     | PVar x -> pp_v fmt x
     | PInd (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps ps
     | PConstr (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps ps
+    | PStruct (x, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Meta.pp x pp_ps ps
 
   and pp_ps fmt ps =
     match ps with
@@ -239,6 +272,10 @@ module Term = struct
     match m with
     | Ann (m, a) -> fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp m pp a
     | Meta x -> Meta.pp fmt x
+    | Struct (x, ms) -> (
+      match ms with
+      | [] -> Meta.pp fmt x
+      | _ -> fprintf fmt "@[(%a@;<1 2>%a)@]" Meta.pp x pp_ts ms)
     | Knd s -> (
       match s with
       | U -> fprintf fmt "U"
@@ -361,6 +398,8 @@ module Term = struct
 
   let _Meta x = box (Meta x)
 
+  let _Struct x = box_apply (fun ms -> Struct (x, ms))
+
   let _Knd s = box (Knd s)
 
   let _Var = box_var
@@ -419,6 +458,7 @@ module Term = struct
     match m with
     | Ann (m, a) -> _Ann (lift m) (lift a)
     | Meta x -> _Meta x
+    | Struct (x, ms) -> _Struct x (box_list (List.map lift ms))
     | Knd s -> _Knd s
     | Var x -> _Var x
     | Pi (s, a, b) -> _Pi s (lift a) (box_binder lift b)
@@ -467,6 +507,8 @@ module Term = struct
       match (m1, m2) with
       | Ann (m1, a1), Ann (m2, a2) -> aeq m1 m2 && aeq a1 a2
       | Meta x1, Meta x2 -> Meta.equal x1 x2
+      | Struct (x1, ms1), Struct (x2, ms2) ->
+        Meta.equal x1 x2 && List.equal aeq ms1 ms2
       | Knd s1, Knd s2 -> s1 = s2
       | Var x1, Var x2 -> eq_vars x1 x2
       | Pi (s1, a1, b1), Pi (s2, a2, b2) ->
@@ -535,6 +577,8 @@ module Term = struct
       match (m1, m2) with
       | Ann (m1, a1), Ann (m2, a2) -> equal m1 m2 && equal a1 a2
       | Meta x1, Meta x2 -> Meta.equal x1 x2
+      | Struct (x1, ms1), Struct (x2, ms2) ->
+        Meta.equal x1 x2 && List.equal equal ms1 ms2
       | Knd s1, Knd s2 -> s1 = s2
       | Var x1, Var x2 -> eq_vars x1 x2
       | Pi (s1, a1, b1), Pi (s2, a2, b2) ->

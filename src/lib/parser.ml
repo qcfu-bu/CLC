@@ -6,7 +6,7 @@ open Core
 module SMap = Map.Make (String)
 module SSet = Set.Make (String)
 
-module PreludeTerm = struct
+module ParseTerm = struct
   open RTerm
 
   let reserved =
@@ -464,8 +464,8 @@ module PreludeTerm = struct
         return (Ann (m, a))
 end
 
-module PreludeTop = struct
-  open PreludeTerm
+module ParseTop = struct
+  open ParseTerm
   open RTerm
   open RTop
 
@@ -628,66 +628,4 @@ module PreludeTop = struct
          ; main_parser ()
          ; empty_parser ()
          ])
-
-  let init =
-    let vctx = Var.(SMap.singleton (string_of main) main) in
-    let ictx = SMap.empty in
-    let stdin_info = { id = Id.stdin_id; is_ind = false; arity = 0 } in
-    let stdout_info = { id = Id.stdout_id; is_ind = false; arity = 0 } in
-    let stderr_info = { id = Id.stderr_id; is_ind = false; arity = 0 } in
-    let ictx = Id.(SMap.add (string_of stdin_id) stdin_info ictx) in
-    let ictx = Id.(SMap.add (string_of stdout_id) stdout_info ictx) in
-    let ictx = Id.(SMap.add (string_of stderr_id) stderr_info ictx) in
-    (vctx, ictx)
-
-  let parse_ch ch =
-    match parse_channel (ws >> tp_parser ()) ch init with
-    | Success t -> t
-    | Failed (s, _) -> raise (ParseError s)
-end
-
-module Prelude = struct
-  let raw, (vctx, ictx) =
-    let ch = open_in "./lib/prelude.clc" in
-    PreludeTop.parse_ch ch
-
-  let main_v = RTop.main
-
-  let unit_id = (SMap.find "unit" ictx).id
-
-  let tt_id = (SMap.find "tt" ictx).id
-
-  let bool_id = (SMap.find "bool" ictx).id
-
-  let true_id = (SMap.find "true" ictx).id
-
-  let false_id = (SMap.find "false" ictx).id
-
-  let ex_id = (SMap.find "ex" ictx).id
-
-  let ex_intro_id = (SMap.find "ex_intro" ictx).id
-
-  let sig_id = (SMap.find "sig" ictx).id
-
-  let sig_intro_id = (SMap.find "sig_intro" ictx).id
-
-  let tnsr_id = (SMap.find "tnsr" ictx).id
-
-  let tnsr_intro_id = (SMap.find "tnsr_intro" ictx).id
-
-  let nat_id = (SMap.find "nat" ictx).id
-
-  let o_id = (SMap.find "O" ictx).id
-
-  let s_id = (SMap.find "S" ictx).id
-
-  let ascii_id = (SMap.find "ascii" ictx).id
-
-  let ascii0_id = (SMap.find "Ascii" ictx).id
-
-  let string_id = (SMap.find "string" ictx).id
-
-  let emptyString_id = (SMap.find "EmptyString" ictx).id
-
-  let string0_id = (SMap.find "String" ictx).id
 end

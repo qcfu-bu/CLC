@@ -18,23 +18,29 @@ Inductive nat : U :=
 | O : nat
 | S : nat -> nat.
 
-Inductive list (A : U) : U :=
-| nil : list A
-| cons : A -> list A -> list A.
+Inductive ascii : U :=
+| Ascii : 
+  bool -> bool -> bool -> bool ->
+  bool -> bool -> bool -> bool ->
+  ascii.
+
+Inductive string : U :=
+| EmptyString : string
+| String : ascii -> string -> string.
 
 Import stdout O as _stdout_.
+
+Definition sender (ch : channel ?nat, $) : unit := 
+  let ch := send ch (S (S O)) in
+  close ch.
 
 Definition Main := 
   let tnsr_intro ch _main_ := 
     fork (ch : channel ?nat, $) := _main_ in
-    let ch := send ch (S (S O)) in
-    close ch
+    sender ch
   in
   let sig msg ch := recv ch in
   let _stdout_ := send _stdout_ msg in
-  match close ch with
-  | tt =>
-    match close _stdout_ with
-    | tt => _main_
-    end
-  end.
+  let tt := close ch in
+  let tt := close _stdout_ in
+  _main_.

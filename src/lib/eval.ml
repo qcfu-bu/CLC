@@ -9,9 +9,9 @@ open Event
 module EvalTerm = struct
   open Term
 
-  exception NonFunctional of string
+  exception FunctionError of string
 
-  exception UnMatchedPattern
+  exception MatchError
 
   exception SendError
 
@@ -72,6 +72,9 @@ module EvalTerm = struct
     match m with
     | Ann (m, _) -> eval env m
     | Meta _ -> VBox
+    | Struct (_, ms) ->
+      let ms = List.map (eval env) ms in
+      VConstr (pair_id, ms)
     | Knd _ -> VBox
     | Var x -> (
       try VMap.find x env with
@@ -106,7 +109,7 @@ module EvalTerm = struct
           let _ = prerr_endline s in
           VCh m
         | _ -> raise SendError)
-      | _ -> raise (NonFunctional (asprintf "non-functional:=@.%a" pp m)))
+      | _ -> raise (FunctionError (asprintf "non-functional:=@.%a" pp m)))
     | Let (m, n) ->
       let x, un = unbind n in
       let m = eval env m in
@@ -134,7 +137,7 @@ module EvalTerm = struct
       in
       match opt with
       | Some m -> m
-      | None -> raise UnMatchedPattern)
+      | None -> raise MatchError)
     | Fix m ->
       let x, um = unbind m in
       VFix (x, um)
@@ -149,6 +152,8 @@ module EvalTerm = struct
       let m = eval env m in
       let ch = VCh (Channel (new_channel ())) in
       let env = VMap.add x ch env in
+      let t_id = id (self ()) in
+      let _ = printf "forking from thread(%d)\n" t_id in
       let _ =
         create
           (fun env ->
@@ -175,7 +180,7 @@ module EvalTerm = struct
         let _ = print_endline s in
         VConstr (pair_id, [ VBox; m ])
       | _ -> raise RecvError)
-    | Close _ -> VConstr (Prelude.tt, [])
+    | Close _ -> VConstr (Prelude.tt_id, [])
     | Axiom _ -> VBox
 end
 
@@ -187,7 +192,7 @@ module EvalTop = struct
   exception ImportError
 
   let eval t =
-    let env = VMap.singleton Prelude.main VBox in
+    let env = VMap.singleton Prelude.main_v VBox in
     let rec aux env t =
       match t with
       | Main m -> EvalTerm.eval env m
