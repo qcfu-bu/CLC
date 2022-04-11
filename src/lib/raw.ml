@@ -15,7 +15,6 @@ module RTerm = struct
     (* inference *)
     | Ann of t * t
     | Meta of Meta.t
-    | Struct of Meta.t * t list
     (* core *)
     | Knd of sort
     | Var of v
@@ -46,7 +45,6 @@ module RTerm = struct
     | PVar of v
     | PInd of Id.t * p list
     | PConstr of Id.t * p list
-    | PStruct of Meta.t * p list
 
   and m =
     | Mot0
@@ -67,10 +65,6 @@ module RTerm = struct
       let _a = _core ctx a in
       _Ann _m _a
     | Meta x -> _Meta x
-    | Struct (x, ms) ->
-      let _ms = List.map (_core ctx) ms in
-      let _ms = box_list _ms in
-      _Struct x _ms
     | Knd s -> _Knd s
     | Var x ->
       let x = find x ctx in
@@ -187,9 +181,6 @@ module RTerm = struct
     | PConstr (id, ps) ->
       let _ps, ctx = _core_ps ctx ps in
       (Term.PConstr (id, _ps), ctx)
-    | PStruct (x, ps) ->
-      let _ps, ctx = _core_ps ctx ps in
-      (Term.PStruct (x, _ps), ctx)
 
   and _core_ps ctx ps =
     match ps with

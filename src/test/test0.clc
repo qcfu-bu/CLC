@@ -8,11 +8,11 @@ Definition sender (ch : channel ?nat, $) : unit :=
   ().
 
 Definition Main := 
-  let tnsr_intro ch _main_ := 
-    fork (ch : channel ?nat, $) := _main_ in
+  let ⟨ch, _main_⟩ := 
+    fork (ch : ?nat, $) := _main_ in
     sender ch
   in
-  let sig_intro msg ch := recv ch in
+  let [msg, ch] := recv ch in
   let _stdout_ := send _stdout_ msg in
   let () := close ch in
   let () := close _stdout_ in

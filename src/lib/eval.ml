@@ -114,9 +114,6 @@ module EvalTerm = struct
     match m with
     | Ann (m, _) -> eval env m
     | Meta _ -> VBox
-    | Struct (_, ms) ->
-      let ms = List.map (eval env) ms in
-      VConstr (pair_id, ms)
     | Knd _ -> VBox
     | Var x -> (
       try VMap.find x env with

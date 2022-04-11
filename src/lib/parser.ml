@@ -155,13 +155,29 @@ module ParseTerm = struct
 
   and p_tt_parser () = kw "(" >> kw ")" >>$ PConstr (Prelude.tt_id, [])
 
-  and p_pair_parser () =
+  and p_pair0_parser () =
     let* _ = kw "(" in
     let* p1 = p_parser () in
     let* _ = kw "," in
     let* p2 = p_parser () in
     let* _ = kw ")" in
-    return (PStruct (Meta.mk (), [ p1; p2 ]))
+    return (PConstr (Prelude.ex_intro_id, [ p1; p2 ]))
+
+  and p_pair1_parser () =
+    let* _ = kw "[" in
+    let* p1 = p_parser () in
+    let* _ = kw "," in
+    let* p2 = p_parser () in
+    let* _ = kw "]" in
+    return (PConstr (Prelude.sig_intro_id, [ p1; p2 ]))
+
+  and p_pair2_parser () =
+    let* _ = kw "⟨" in
+    let* p1 = p_parser () in
+    let* _ = kw "," in
+    let* p2 = p_parser () in
+    let* _ = kw "⟩" in
+    return (PConstr (Prelude.tnsr_intro_id, [ p1; p2 ]))
 
   and p0_parser () =
     let* _ = return () in
@@ -170,7 +186,9 @@ module ParseTerm = struct
          [ pcons_parser ()
          ; pvar_parser ()
          ; p_tt_parser ()
-         ; p_pair_parser ()
+         ; p_pair0_parser ()
+         ; p_pair1_parser ()
+         ; p_pair2_parser ()
          ; parens (p_parser ())
          ])
 
@@ -342,13 +360,29 @@ module ParseTerm = struct
 
   and tt_parser () = kw "(" >> kw ")" >>$ Constr (Prelude.tt_id, [])
 
-  and pair_parser () =
+  and pair0_parser () =
     let* _ = kw "(" in
     let* t1 = t_parser () in
     let* _ = kw "," in
     let* t2 = t_parser () in
     let* _ = kw ")" in
-    return (Struct (Meta.mk (), [ t1; t2 ]))
+    return (Constr (Prelude.ex_intro_id, [ t1; t2 ]))
+
+  and pair1_parser () =
+    let* _ = kw "[" in
+    let* t1 = t_parser () in
+    let* _ = kw "," in
+    let* t2 = t_parser () in
+    let* _ = kw "]" in
+    return (Constr (Prelude.sig_intro_id, [ t1; t2 ]))
+
+  and pair2_parser () =
+    let* _ = kw "⟨" in
+    let* t1 = t_parser () in
+    let* _ = kw "," in
+    let* t2 = t_parser () in
+    let* _ = kw "⟩" in
+    return (Constr (Prelude.tnsr_intro_id, [ t1; t2 ]))
 
   and nat_parser () =
     let* s = many1_chars digit in
@@ -526,7 +560,9 @@ module ParseTerm = struct
          ; let_parser ()
          ; match_parser ()
          ; tt_parser ()
-         ; pair_parser ()
+         ; pair0_parser ()
+         ; pair1_parser ()
+         ; pair2_parser ()
          ; nat_parser ()
          ; char_parser ()
          ; string_parser ()
