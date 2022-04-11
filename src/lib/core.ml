@@ -388,7 +388,7 @@ module Term = struct
 
   let mk = new_var (fun x -> Var x)
 
-  let blank = mk "_"
+  let __ = mk "_"
 
   let _U = box U
 
@@ -684,13 +684,13 @@ module Top = struct
 
   let _PBind = box_apply2 (fun a b -> PBind (a, b))
 
-  let _PBnd a b = _PBind a (bind_var Term.blank b)
+  let _PBnd a b = _PBind a (bind_var Term.__ b)
 
   let _TBase = box_apply (fun m -> TBase m)
 
   let _TBind = box_apply2 (fun a b -> TBind (a, b))
 
-  let _TBnd a b = _TBind a (bind_var Term.blank b)
+  let _TBnd a b = _TBind a (bind_var Term.__ b)
 
   let _Ind id = box_apply2 (fun a cs -> Ind (id, a, cs))
 

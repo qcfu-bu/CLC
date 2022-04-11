@@ -1,5 +1,6 @@
 open Format
 open MParser
+open Bindlib
 open Name
 open Raw
 open Core
@@ -650,6 +651,8 @@ module PreludeTop = struct
 end
 
 module Prelude = struct
+  open Term
+
   let raw, (vctx, ictx) =
     let ch = open_in "./lib/prelude.clc" in
     PreludeTop.parse_ch ch
@@ -693,4 +696,52 @@ module Prelude = struct
   let emptyString_id = (SMap.find "EmptyString" ictx).id
 
   let string0_id = (SMap.find "String" ictx).id
+
+  let stdin_t =
+    let f = mk "stdin_t" in
+    let n = mk "n" in
+    let _a = _Pi U (_Ind nat_id (box_list [])) @@ bind_var __ _Proto in
+    let _m =
+      _Fix @@ bind_var f @@ _Lam U @@ bind_var n
+      @@ _Match (_Var n) _Mot0
+      @@ box_list
+           [ bind_p (PConstr (o_id, [])) _End
+           ; bind_p (PConstr (s_id, [ PVar n ]))
+             @@ _Inp (_Ind string_id (box_list []))
+             @@ bind_var __ (_App (_Var f) (_Var n))
+           ]
+    in
+    unbox (_Ann _m _a)
+
+  let stdout_t =
+    let f = mk "stdout_t" in
+    let n = mk "n" in
+    let _a = _Pi U (_Ind nat_id (box_list [])) @@ bind_var __ _Proto in
+    let _m =
+      _Fix @@ bind_var f @@ _Lam U @@ bind_var n
+      @@ _Match (_Var n) _Mot0
+      @@ box_list
+           [ bind_p (PConstr (o_id, [])) _End
+           ; bind_p (PConstr (s_id, [ PVar n ]))
+             @@ _Out (_Ind string_id (box_list []))
+             @@ bind_var __ (_App (_Var f) (_Var n))
+           ]
+    in
+    unbox (_Ann _m _a)
+
+  let stderr_t =
+    let f = mk "stderr_t" in
+    let n = mk "n" in
+    let _a = _Pi U (_Ind nat_id (box_list [])) @@ bind_var __ _Proto in
+    let _m =
+      _Fix @@ bind_var f @@ _Lam U @@ bind_var n
+      @@ _Match (_Var n) _Mot0
+      @@ box_list
+           [ bind_p (PConstr (o_id, [])) _End
+           ; bind_p (PConstr (s_id, [ PVar n ]))
+             @@ _Out (_Ind string_id (box_list []))
+             @@ bind_var __ (_App (_Var f) (_Var n))
+           ]
+    in
+    unbox (_Ann _m _a)
 end

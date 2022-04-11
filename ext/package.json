@@ -10,16 +10,25 @@
         "Programming Languages"
     ],
     "contributes": {
-        "languages": [{
-            "id": "clc",
-            "aliases": ["clc", "clc"],
-            "extensions": [".clc"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "clc",
-            "scopeName": "source.coq",
-            "path": "./syntaxes/clc.tmLanguage"
-        }]
+        "languages": [
+            {
+                "id": "clc",
+                "aliases": [
+                    "cclc",
+                    "cilc"
+                ],
+                "extensions": [
+                    ".clc"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "clc",
+                "scopeName": "source.coq",
+                "path": "./syntaxes/clc.tmLanguage"
+            }
+        ]
     }
 }
