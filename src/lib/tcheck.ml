@@ -176,14 +176,14 @@ module CheckTerm = struct
           | (a, ctx2) :: ctxs ->
             List.fold_left
               (fun acc (a', ctx) ->
-                if equal a a' && Context.equal ctx ctx2 then
+                if Term.equal a a' && equal ctx ctx2 then
                   acc
                 else
                   failwith "mot0 error")
-              (a, Context.merge ctx1 ctx2)
+              (a, merge ctx1 ctx2)
               ctxs)
-        | U, Mot1 mot -> (
-          let a = subst mot m in
+        | U, Mot1 mt -> (
+          let a = subst mt m in
           let ctxs = check_motive cover ictx mot s in
           match ctxs with
           | [] -> (a, ctx1)
@@ -191,7 +191,7 @@ module CheckTerm = struct
             if VMap.is_empty ctx1 then
               List.fold_left
                 (fun acc ctx ->
-                  if Context.equal ctx1 ctx2 then
+                  if equal ctx1 ctx2 then
                     acc
                   else
                     failwith "mot1 error")
@@ -199,30 +199,30 @@ module CheckTerm = struct
                 ctxs
             else
               failwith "mot1 impure context")
-        | _, Mot2 mot -> (
-          let a = subst_p mot a in
+        | _, Mot2 mt -> (
+          let a = subst_p mt a in
           let ctxs = check_motive cover ictx mot s in
           match ctxs with
           | [] -> (a, ctx1)
           | ctx2 :: ctxs ->
             List.fold_left
               (fun acc ctx ->
-                if Context.equal ctx1 ctx2 then
+                if equal ctx1 ctx2 then
                   acc
                 else
                   failwith "mot2 error")
               (a, merge ctx1 ctx2)
               ctxs)
-        | U, Mot3 mot -> (
-          let a = subst_p (subst mot m) a in
-          let ctxs = check_motive ictx mot s in
+        | U, Mot3 mt -> (
+          let a = subst_p (subst mt m) a in
+          let ctxs = check_motive cover ictx mot s in
           match ctxs with
           | [] -> (a, ctx1)
           | ctx2 :: ctxs ->
             if VMap.is_empty ctx1 then
               List.fold_left
                 (fun acc ctx ->
-                  if Context.equal ctx1 ctx2 then
+                  if equal ctx1 ctx2 then
                     acc
                   else
                     failwith "mot3 error")
@@ -293,9 +293,135 @@ module CheckTerm = struct
       let _ = infer_sort vctx ictx m in
       (m, VMap.empty)
 
-  and infer_pscope = _x
+  and infer_pscope vctx ictx ms a =
+    match (ms, a) with
+    | m :: ms, PBind (a, b) -> (
+      let s = infer_sort vctx ictx a in
+      let ctx1 = check vctx ictx m a in
+      let a, ctx2 = infer_pscope vctx ictx ms (subst b (Ann (m, a))) in
+      match s with
+      | U ->
+        if VMap.is_empty ctx1 then
+          (a, merge ctx1 ctx2)
+        else
+          failwith "infer pscope impure context"
+      | L -> (a, merge ctx1 ctx2))
+    | ms, PBase a -> infer_tscope vctx ictx ms a
+    | _ -> failwith "infer pscope uneven length"
+
+  and infer_tscope vctx ictx ms a =
+    match (ms, a) with
+    | m :: ms, TBind (a, b) -> (
+      let s = infer_sort vctx ictx a in
+      let ctx1 = check vctx ictx m a in
+      let a, ctx2 = infer_tscope vctx ictx ms (subst b (Ann (m, a))) in
+      match s with
+      | U ->
+        if VMap.is_empty ctx1 then
+          (a, merge ctx1 ctx2)
+        else
+          failwith "infer tscope impure context"
+      | L -> (a, merge ctx1 ctx2))
+    | [], TBase a ->
+      let _ = infer_sort vctx ictx a in
+      (a, VMap.empty)
+    | _ -> failwith "infer tscope uneven length"
+
+  and infer_cover cover ictx =
+    match cover with
+    | (vctx, _, _, ucl, ss) :: cover ->
+      let a, ctx = infer vctx ictx ucl in
+      let ctx = List.fold_left (fun ctx (x, s) -> remove x ctx s) ctx ss in
+      (a, ctx) :: infer_cover cover ictx
+    | _ -> []
+
+  and coverage vctx ictx cls cs ms =
+    let rec t_of_p p =
+      match p with
+      | PVar x -> Var x
+      | PInd (id, ps) -> Ind (id, List.map t_of_p ps)
+      | PConstr (id, ps) -> Constr (id, List.map t_of_p ps)
+    in
+    let strip p =
+      match p with
+      | PVar x -> x
+      | p -> failwith "coverage strip"
+    in
+    let rec find id cs =
+      match cs with
+      | (Top.Constr (idc, a) as c) :: cs ->
+        if Id.equal id idc then
+          (a, cs)
+        else
+          let b, cs = find id cs in
+          (b, c :: cs)
+      | _ -> failwith (asprintf "unbound id(%a)" Id.pp id)
+    in
+    let rec arity_pscope vctx a ms xs =
+      match (a, ms) with
+      | Top.PBind (a, b), m :: ms ->
+        let b = subst b (Ann (m, a)) in
+        let vctx, b, ss = arity_pscope vctx b ms xs in
+        (vctx, b, ss)
+      | Top.PBase a, _ -> arity_tscope vctx a xs
+      | _ -> failwith "coverage arity pscope"
+    and arity_tscope vctx a xs =
+      match (a, xs) with
+      | Top.TBind (a, b), x :: xs ->
+        let s = infer_sort vctx ictx a in
+        let vctx = VMap.add x (a, s) vctx in
+        let b = subst b (Var x) in
+        let vctx, b, ss = arity_tscope vctx b xs in
+        (vctx, b, (x, s) :: ss)
+      | Top.TBase a, [] -> (vctx, a, [])
+      | _ -> failwith "coverage arity tscope"
+    in
+    match cls with
+    | cl :: cls -> (
+      let p, ucl = unbind_p cl in
+      match p with
+      | PConstr (id, ps) ->
+        let xs = List.map strip ps in
+        let m = t_of_p p in
+        let a, cs = find id cs in
+        let vctx, a, ss = arity_pscope vctx a ms xs in
+        let cs = coverage vctx ictx cls cs ms in
+        (vctx, m, a, ucl, ss) :: cs
+      | _ -> failwith "coverage")
+    | [] -> (
+      match cs with
+      | [] -> []
+      | _ -> failwith "coverage")
 
   and check vctx ictx m a = _x
+
+  and check_cover cover ictx a =
+    match cover with
+    | (vctx, _, _, ucl, ss) :: cover ->
+      let ctx = check vctx ictx ucl a in
+      let ctx = List.fold_left (fun ctx (x, s) -> remove x ctx s) ctx ss in
+      ctx :: check_cover cover ictx ucl
+    | _ -> []
+
+  and check_motive cover ictx mot s =
+    match (mot, s, cover) with
+    | Mot0, _, _ -> failwith "check mot0"
+    | Mot1 mt, U, (vctx, m, a, ucl, ss) :: cover ->
+      let mt = subst mt m in
+      let ctx = check vctx ictx ucl mt in
+      let ctx = List.fold_left (fun ctx (x, s) -> remove x ctx s) ctx ss in
+      ctx :: check_motive cover ictx mot s
+    | Mot2 mt, _, (vctx, m, a, ucl, ss) :: cover ->
+      let mt = subst_p mt a in
+      let ctx = check vctx ictx ucl mt in
+      let ctx = List.fold_left (fun ctx (x, s) -> remove x ctx s) ctx ss in
+      ctx :: check_motive cover ictx mot s
+    | Mot3 mt, U, (vctx, m, a, ucl, ss) :: cover ->
+      let mt = subst_p (subst mt m) a in
+      let ctx = check vctx ictx ucl mt in
+      let ctx = List.fold_left (fun ctx (x, s) -> remove x ctx s) ctx ss in
+      ctx :: check_motive cover ictx mot s
+    | _ -> []
 end
 
 module CheckTop = struct end
