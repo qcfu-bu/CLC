@@ -393,7 +393,44 @@ module CheckTerm = struct
       | [] -> []
       | _ -> failwith "coverage")
 
-  and check vctx ictx m a = _x
+  and check vctx ictx m a =
+    match m with
+    | Meta x -> failwith (asprintf "check meta(%a)" Meta.pp x)
+    | Lam (s, m) as lm -> (
+      let x, um = unbind m in
+      match whnf a with
+      | Pi (t, a, b) when s = t -> (
+        let ub = subst b (Var x) in
+        let r = infer_sort vctx ictx a in
+        let ctx = check (VMap.add x (a, r) vctx) ictx um ub in
+        let ctx = remove x ctx r in
+        match s with
+        | U when VMap.is_empty ctx -> ctx
+        | U -> failwith (asprintf "impure context(%a)" Term.pp um)
+        | L -> ctx)
+      | _ -> failwith (asprintf "type mismatch(%a, %a)" Term.pp lm Term.pp a))
+    | Fix m as fx ->
+      let x, um = unbind m in
+      let s = infer_sort vctx ictx a in
+      let ctx = check (VMap.add x (a, s) vctx) ictx um a in
+      if VMap.is_empty ctx then
+        ctx
+      else
+        failwith (asprintf "impure context(%a)" Term.pp fx)
+    | Let (m, n) ->
+      let x, un = unbind n in
+      let n = unbox (bind_var x (lift (Ann (un, a)))) in
+      let b, ctx = infer vctx ictx (Let (m, n)) in
+      if Term.equal a b then
+        ctx
+      else
+        failwith (asprintf "type mistmatch(%a, %a)" Term.pp a Term.pp b)
+    | _ ->
+      let b, ctx = infer vctx ictx m in
+      if Term.equal a b then
+        ctx
+      else
+        failwith (asprintf "type mismatch(%a, %a)" Term.pp a Term.pp b)
 
   and check_cover cover ictx a =
     match cover with
