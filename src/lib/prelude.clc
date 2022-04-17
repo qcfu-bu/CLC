@@ -27,3 +27,9 @@ Inductive ascii : U :=
 Inductive string : U :=
 | EmptyString : string
 | String : ascii -> string -> string.
+
+Fixpoint cat (s1 s2 : string) : string :=
+  match s1 with
+  | EmptyString => s2
+  | String c s1 => String c (cat s1 s2)
+  end.

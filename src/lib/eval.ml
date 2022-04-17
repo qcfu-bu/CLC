@@ -113,51 +113,57 @@ module EvalTerm = struct
   let rec eval env m =
     match m with
     | Ann (m, _) -> eval env m
-    | Meta _ -> VBox
-    | Knd _ -> VBox
+    | Meta _ -> (VBox, env)
+    | Knd _ -> (VBox, env)
     | Var x -> (
-      try VMap.find x env with
+      try (VMap.find x env, env) with
       | _ -> failwith (Format.asprintf "cannot find %a" pp_v x))
-    | Pi _ -> VBox
+    | Pi _ -> (VBox, env)
     | Lam (_, m) ->
       let x, um = unbind m in
-      VLam (x, um)
+      (VLam (x, um), env)
     | App (m, n) -> (
-      let m = eval env m in
+      let m, env = eval env m in
       match m with
       | VLam (x, m) ->
-        let n = eval env n in
+        let n, env = eval env n in
         let env = VMap.add x n env in
         eval env m
       | VFix (x, b) ->
         let env = VMap.add x m env in
         eval env (App (b, n))
       | VSend m -> (
-        let n = eval env n in
+        let n, env = eval env n in
         match m with
         | Channel ch ->
           let _ = sync (send ch n) in
-          VCh m
+          (VCh m, env)
         | Stdout ->
           let _ = printf "%s" (string_of n) in
-          VCh m
+          (VCh m, env)
         | Stderr ->
           let s = asprintf "%s" (string_of n) in
           let _ = prerr_endline s in
-          VCh m
+          (VCh m, env)
         | _ -> raise SendError)
       | _ -> raise (FunctionError (asprintf "non-functional:=@.%a" pp m)))
     | Let (m, n) ->
       let x, un = unbind n in
-      let m = eval env m in
+      let m, env = eval env m in
       let env = VMap.add x m env in
       eval env un
-    | Ind _ -> VBox
+    | Ind _ -> (VBox, env)
     | Constr (id, ms) ->
-      let ms = List.map (eval env) ms in
-      VConstr (id, ms)
+      let ms, env =
+        List.fold_left
+          (fun (ms, env) m ->
+            let m, env = eval env m in
+            (m :: ms, env))
+          ([], env) ms
+      in
+      (VConstr (id, List.rev ms), env)
     | Match (m, _, cls) -> (
-      let m = eval env m in
+      let m, env = eval env m in
       let opt =
         List.fold_left
           (fun opt cl ->
@@ -177,37 +183,37 @@ module EvalTerm = struct
       | None -> raise MatchError)
     | Fix m ->
       let x, um = unbind m in
-      VFix (x, um)
-    | Main -> VBox
-    | Proto -> VBox
-    | End -> VBox
-    | Inp _ -> VBox
-    | Out _ -> VBox
-    | Ch _ -> VBox
+      (VFix (x, um), env)
+    | Main -> (VBox, env)
+    | Proto -> (VBox, env)
+    | End -> (VBox, env)
+    | Inp _ -> (VBox, env)
+    | Out _ -> (VBox, env)
+    | Ch _ -> (VBox, env)
     | Fork (_, m, n) ->
       let x, un = unbind n in
-      let m = eval env m in
+      let m, env = eval env m in
       let ch = VCh (Channel (new_channel ())) in
       let env = VMap.add x ch env in
       let _ = create (fun env -> eval env un) env in
-      VConstr (pair_id, [ ch; m ])
+      (VConstr (pair_id, [ ch; m ]), env)
     | Send m -> (
-      let m = eval env m in
+      let m, env = eval env m in
       match m with
-      | VCh ch -> VSend ch
+      | VCh ch -> (VSend ch, env)
       | _ -> raise SendError)
     | Recv m -> (
-      let m = eval env m in
+      let m, env = eval env m in
       match m with
       | VCh (Channel ch) ->
         let n = sync (receive ch) in
-        VConstr (pair_id, [ n; m ])
+        (VConstr (pair_id, [ n; m ]), env)
       | VCh Stdin ->
-        let s = read_line () |> of_string |> eval env in
-        VConstr (pair_id, [ s; m ])
+        let s, env = read_line () |> of_string |> eval env in
+        (VConstr (pair_id, [ s; m ]), env)
       | _ -> raise RecvError)
-    | Close _ -> VConstr (Prelude.tt_id, [])
-    | Axiom _ -> VBox
+    | Close _ -> (VConstr (Prelude.tt_id, []), env)
+    | Axiom _ -> (VBox, env)
 end
 
 module EvalTop = struct
@@ -224,7 +230,7 @@ module EvalTop = struct
       | Main m -> EvalTerm.eval env m
       | Define (m, t) ->
         let x, ut = unbind t in
-        let m = EvalTerm.eval env m in
+        let m, env = EvalTerm.eval env m in
         let env = VMap.add x m env in
         aux env ut
       | Induct (_, t) -> aux env t
@@ -242,5 +248,5 @@ module EvalTop = struct
         else
           raise ImportError
     in
-    aux env t
+    fst (aux env t)
 end
