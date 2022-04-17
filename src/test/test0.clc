@@ -1,24 +1,7 @@
-Import stdin 1 as _stdin_.
 Import stdout 2 as _stdout_.
 
-Definition sender : (channel !string, !string, $) -o unit := 
-  lin ch =>
-    let [msg, _stdin_] := recv _stdin_ in
-    let ch := send ch msg in
-    let ch := send ch msg in
-    let () := close ch in
-    let () := close _stdin_ in
-    ().
-
 Definition Main := 
-  let ⟨ch, _main_⟩ := 
-    fork (ch : channel !string, !string, $) := _main_ in
-    sender ch
-  in
-  let [msg1, ch] := recv ch in
-  let [msg2, ch] := recv ch in
-  let _stdout_ := send _stdout_ (cat msg1 "\n") in
-  let _stdout_ := send _stdout_ (cat msg2 "\n") in
-  let () := close ch in
+  let _stdout_ := send _stdout_ (cat "hello" "\n") in
+  let _stdout_ := send _stdout_ "world\n" in
   let () := close _stdout_ in
   _main_.

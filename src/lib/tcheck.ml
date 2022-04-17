@@ -6,6 +6,10 @@ open Term
 open Top
 open Prelude
 
+let failwith s =
+  let _ = printf "%s\n" s in
+  failwith "bad"
+
 module Context = struct
   module IMap = Map.Make (Id)
 
@@ -98,8 +102,8 @@ module CheckTerm = struct
       if VMap.is_empty ctx then
         s
       else
-        failwith "impure context"
-    | _ -> failwith "unexpected type"
+        failwith (asprintf "impure context(%a)" Term.pp a)
+    | a -> failwith (asprintf "unexpected type(%a)" Term.pp a)
 
   and infer vctx ictx m =
     match m with

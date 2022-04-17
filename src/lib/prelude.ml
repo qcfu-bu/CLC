@@ -380,7 +380,7 @@ module PreludeTerm = struct
 
   and ch_parser () =
     let* _ = kw "channel" in
-    let* m = t_parser () in
+    let* m = t1_parser () in
     return (Ch m)
 
   and fork_parser () =
