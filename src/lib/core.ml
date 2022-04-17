@@ -498,7 +498,27 @@ module Term = struct
 
   let rec whnf m =
     match m with
-    | Ann (m, _) -> whnf m
+    | Ann (m, a) -> (
+      let m = whnf m in
+      match m with
+      | Let (m, n) ->
+        let x, un = unbind n in
+        let n = unbox (bind_var x (lift (Ann (un, a)))) in
+        Let (m, n)
+      | Match (m, mot, cls) ->
+        let cls =
+          List.map
+            (fun cl ->
+              let p, ucl = unbind_p cl in
+              unbox (bind_p p (lift (Ann (ucl, a)))))
+            cls
+        in
+        Match (m, mot, cls)
+      | Fix m ->
+        let x, um = unbind m in
+        let m = unbox (bind_var x (lift (Ann (um, a)))) in
+        Fix m
+      | _ -> m)
     | App (m, n) -> (
       let m = whnf m in
       let n = whnf n in

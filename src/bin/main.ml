@@ -5,6 +5,7 @@ open Core
 open Raw
 open Name
 open Parser
+open Tcheck
 open Eval
 
 let _ =
@@ -16,5 +17,6 @@ let _ =
     let rtp = ParseTop.parse_ch ch in
     let tp = RTop.core rtp in
     let _ = printf "%a@.@." Top.pp tp in
+    let _ = infer tp in
     let _ = EvalTop.eval tp in
     ()

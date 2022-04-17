@@ -23,6 +23,7 @@ module ParseTerm = struct
       ; "forall"
       ; "linear"
       ; "fun"
+      ; "lin"
       ; "fix"
       ; "let"
       ; "in"
@@ -689,7 +690,8 @@ module ParseTop = struct
           List.fold_right (fun x acc -> PBind (x, a, acc)) xs acc)
         ps (PBase ts)
     in
-    let id_info = { id_info with arity = List.length ps + n } in
+    let n_ps = ps |> List.map fst |> List.concat |> List.length in
+    let id_info = { id_info with arity = n_ps + n } in
     let ictx = SMap.add (Id.string_of id_info.id) id_info ictx in
     let* _ = update_user_state (fun (vctx, _) -> (vctx, ictx)) in
     let* _ = kw ":=" in

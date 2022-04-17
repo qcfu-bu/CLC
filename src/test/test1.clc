@@ -1,0 +1,7 @@
+Import stdout 2 as _stdout_.
+
+Definition Main := 
+  let _stdout_ := send _stdout_ "hello\n" in
+  let _stdout_ := send _stdout_ "world\n" in
+  let () := close _stdout_ in
+  _main_.

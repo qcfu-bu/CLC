@@ -1,15 +1,17 @@
 Import stdin 1 as _stdin_.
 Import stdout 1 as _stdout_.
 
-Definition sender (ch : channel ?nat, $) : unit := 
-  let ch := send ch "h" in
-  let () := close ch in
-  let () := close _stdin_ in
-  ().
+Definition sender : (channel !string, $) -o unit := 
+  lin ch =>
+    let [msg, _stdin_] := recv _stdin_ in
+    let ch := send ch msg in
+    let () := close ch in
+    let () := close _stdin_ in
+    ().
 
 Definition Main := 
   let ⟨ch, _main_⟩ := 
-    fork (ch : ?nat, $) := _main_ in
+    fork (ch : channel !string, $) := _main_ in
     sender ch
   in
   let [msg, ch] := recv ch in
