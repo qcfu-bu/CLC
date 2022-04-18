@@ -213,6 +213,7 @@ module EvalTerm = struct
         (VConstr (pair_id, [ s; m ]), env)
       | _ -> raise RecvError)
     | Close _ -> (VConstr (Prelude.tt_id, []), env)
+    | Dual _ -> (VBox, env)
     | Axiom _ -> (VBox, env)
 end
 

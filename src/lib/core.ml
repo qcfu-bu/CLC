@@ -38,6 +38,7 @@ module Term = struct
     | Send of t
     | Recv of t
     | Close of t
+    | Dual of t
     (* magic *)
     | Axiom of Id.t * t
 
@@ -302,6 +303,7 @@ module Term = struct
     | Send m -> fprintf fmt "send %a" pp m
     | Recv m -> fprintf fmt "recv %a" pp m
     | Close m -> fprintf fmt "close %a" pp m
+    | Dual m -> fprintf fmt "~%a" pp m
     | Axiom (id, _) -> Id.pp fmt id
 
   and pp_vs fmt xs =
@@ -405,6 +407,8 @@ module Term = struct
 
   let _Close = box_apply (fun m -> Close m)
 
+  let _Dual = box_apply (fun m -> Dual m)
+
   let _Axiom id = box_apply (fun m -> Axiom (id, m))
 
   let _Mot0 = box Mot0
@@ -450,6 +454,7 @@ module Term = struct
     | Send m -> _Send (lift m)
     | Recv m -> _Recv (lift m)
     | Close m -> _Close (lift m)
+    | Dual m -> _Dual (lift m)
     | Axiom (id, m) -> _Axiom id (lift m)
 
   let rec eq_m eq mot1 mot2 =
@@ -493,6 +498,7 @@ module Term = struct
       | Send m1, Send m2 -> aeq m1 m2
       | Recv m1, Recv m2 -> aeq m1 m2
       | Close m1, Close m2 -> aeq m1 m2
+      | Dual m1, Dual m2 -> aeq m1 m2
       | Axiom (id1, m1), Axiom (id2, m2) -> Id.equal id1 id2 && aeq m1 m2
       | _ -> false
 
@@ -545,6 +551,27 @@ module Term = struct
       | Some m -> whnf m
       | None -> Match (m, mot, cls))
     | Ch m -> Ch (whnf m)
+    | Dual m -> (
+      match whnf m with
+      | End -> End
+      | Inp (a, b) ->
+        let x, ub = unbind b in
+        let b = unbox (bind_var x (lift (Dual ub))) in
+        Out (a, b)
+      | Out (a, b) ->
+        let x, ub = unbind b in
+        let b = unbox (bind_var x (lift (Dual ub))) in
+        Inp (a, b)
+      | Match (m, mot, cls) ->
+        let cls =
+          List.map
+            (fun cl ->
+              let p, ucl = unbind_p cl in
+              unbox (bind_p p (lift (Dual ucl))))
+            cls
+        in
+        Match (m, mot, cls)
+      | m -> Dual m)
     | _ -> m
 
   let rec equal m1 m2 =

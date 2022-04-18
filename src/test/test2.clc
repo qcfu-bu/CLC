@@ -47,8 +47,8 @@ Fixpoint ref_handler
 
 Definition Main :=
   let ⟨ref, _main_⟩ :=
-    fork (ref : channel ref_t 10 string) := _main_ in
-    ref_handler string 10 "hello\n" ref
+    fork (ref : channel ref_t 30 string) := _main_ in
+    ref_handler string 30 "hello\n" ref
   in
   let ref := send ref GET in
   let [msg1, ref] := recv ref in

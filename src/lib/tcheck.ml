@@ -69,32 +69,6 @@ end
 open Context
 
 module CheckTerm = struct
-  let rec dual m =
-    let m = whnf m in
-    match m with
-    | End -> End
-    | Inp (a, b) ->
-      let x, ub = unbind b in
-      let ub = dual ub in
-      let b = unbox (bind_var x (lift ub)) in
-      Out (a, b)
-    | Out (a, b) ->
-      let x, ub = unbind b in
-      let ub = dual ub in
-      let b = unbox (bind_var x (lift ub)) in
-      Inp (a, b)
-    | Match (m, mot, cls) ->
-      let cls =
-        List.map
-          (fun cl ->
-            let p, ucl = unbind_p cl in
-            let ucl = dual ucl in
-            unbox (bind_p p (lift ucl)))
-          cls
-      in
-      Match (m, mot, cls)
-    | _ -> failwith (asprintf "dual error(%a)" Term.pp m)
-
   let rec infer_sort vctx ictx m =
     let a, ctx = infer vctx ictx m in
     match whnf a with
@@ -280,7 +254,7 @@ module CheckTerm = struct
         let ctx2 = check vctx ictx m Main in
         let _, ctx3 = infer (VMap.add x (Ch a, L) vctx) ictx un in
         let ctx3 = remove x ctx3 L in
-        let a = Ch (dual a) in
+        let a = Ch (Dual a) in
         if VMap.is_empty ctx1 then
           (Ind (Prelude.tnsr_id, [ a; Main ]), merge ctx2 ctx3)
         else
@@ -307,6 +281,9 @@ module CheckTerm = struct
       match whnf a with
       | Ch End -> (Ind (Prelude.unit_id, []), ctx)
       | _ -> failwith (asprintf "close on non-end(%a, %a)" Term.pp m Term.pp a))
+    | Dual m ->
+      let ctx = check vctx ictx m Proto in
+      (Proto, ctx)
     | Axiom (id, m) ->
       let _ = infer_sort vctx ictx m in
       (m, VMap.empty)
