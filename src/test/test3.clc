@@ -1,0 +1,16 @@
+Definition handler : (channel ?main, !main, $) -o unit := 
+  lin ch =>
+    let ⟨msg, ch⟩ := recv ch in
+    let ch := send ch msg in
+    let () := close ch in
+    ().
+
+Definition Main := 
+  let ⟨ch, _main_⟩ := 
+    fork (ch : channel ?main, !main, $) := _main_ in
+    handler ch
+  in
+  let ch := send ch _main_ in
+  let ⟨_main_, ch⟩ := recv ch in
+  let () := close ch in
+  _main_.

@@ -271,10 +271,14 @@ module CheckTerm = struct
     | Recv m -> (
       let a, ctx = infer vctx ictx m in
       match whnf a with
-      | Ch (Inp (a, b)) ->
+      | Ch (Inp (a, b)) -> (
         let x, ub = unbind b in
-        let b = unbox (bind_var x (lift (Ch ub))) in
-        (Ind (Prelude.sig_id, [ a; Lam (U, b) ]), ctx)
+        let s = infer_sort vctx ictx a in
+        match s with
+        | U ->
+          let b = unbox (bind_var x (lift (Ch ub))) in
+          (Ind (Prelude.sig_id, [ a; Lam (U, b) ]), ctx)
+        | L -> (Ind (Prelude.tnsr_id, [ a; Ch ub ]), ctx))
       | _ -> failwith (asprintf "recv on non-inp(%a)" Term.pp m))
     | Close m -> (
       let a, ctx = infer vctx ictx m in
