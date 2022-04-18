@@ -61,11 +61,11 @@ Definition ref_t :=
 
 Definition ref_handler :=
   ((fix ref_handler A n m =>
-      lin ch  =>
+      lin ch =>
         (match n as x return (channel ((ref_t) x) A) -> unit with
-         | O => fun ch  => close ch
+         | O => fun ch => close ch
          | (S n) =>
-           fun ch  =>
+           fun ch =>
              match recv ch with
              | (sig_intro msg ch) =>
                (match msg as x return
@@ -77,14 +77,14 @@ Definition ref_handler :=
                     unit
                 with
                 | GET =>
-                  fun ch  =>
+                  fun ch =>
                     let ch := (send ch) m in ((((ref_handler) A) n) m) ch
                 | SET =>
-                  fun ch  =>
+                  fun ch =>
                     match recv ch with
                     | (sig_intro m ch) => ((((ref_handler) A) n) m) ch
                     end
-                | FREE => fun ch  => close ch
+                | FREE => fun ch => close ch
                 end) ch
              end
          end) ch) :
@@ -98,17 +98,17 @@ Definition mk_ref :=
       forall (n : nat), (A) -> (main) -> (tnsr channel ~((ref_t) n) A main)).
 
 Definition set_ref :=
-  ((fun A n m => lin ref  => let ref := (send ref) SET in (send ref) m) :
+  ((fun A n m => lin ref => let ref := (send ref) SET in (send ref) m) :
     forall (A : U),
       forall (n : nat),
         (A) -> (channel ~((ref_t) (S n)) A) -o channel ~((ref_t) n) A).
 
 Definition get_ref :=
-  ((fun A n => lin ref  => let ref := (send ref) GET in recv ref) :
+  ((fun A n => lin ref => let ref := (send ref) GET in recv ref) :
     forall (A : U),
       forall (n : nat),
         (channel ~((ref_t) (S n)) A) -o
-          (sig A fun _  => channel ~((ref_t) n) A)).
+          (sig A fun _ => channel ~((ref_t) n) A)).
 
 Definition Main :=
   match ((((mk_ref) string) 3000) "hello\n") _main_ with

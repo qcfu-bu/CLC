@@ -106,8 +106,8 @@ module PrintTerm = struct
       let x, um = unbind m in
       let xs, um = spine s um in
       match s with
-      | U -> fprintf fmt "@[fun %a %a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um
-      | L -> fprintf fmt "@[lin %a %a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um)
+      | U -> fprintf fmt "@[fun %a%a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um
+      | L -> fprintf fmt "@[lin %a%a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um)
     | App (m, n) -> fprintf fmt "@[(%a)@;<1 2>%a@]" pp m pp n
     | Let (m, n) ->
       let x, un = unbind n in
@@ -143,7 +143,7 @@ module PrintTerm = struct
     | Fix m ->
       let x, um = unbind m in
       let xs, um = spine U um in
-      fprintf fmt "@[fix %a %a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um
+      fprintf fmt "@[fix %a%a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um
     | Main -> fprintf fmt "main"
     | Proto -> fprintf fmt "proto"
     | End -> fprintf fmt "$"
@@ -167,8 +167,8 @@ module PrintTerm = struct
   and pp_vs fmt xs =
     match xs with
     | [] -> ()
-    | [ x ] -> pp_v fmt x
-    | x :: xs -> fprintf fmt "%a %a" pp_v x pp_vs xs
+    | [ x ] -> fprintf fmt " %a" pp_v x
+    | x :: xs -> fprintf fmt " %a%a" pp_v x pp_vs xs
 
   and pp_ts fmt ms =
     match ms with
