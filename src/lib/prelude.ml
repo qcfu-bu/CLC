@@ -383,6 +383,11 @@ module PreludeTerm = struct
     let* m = t1_parser () in
     return (Ch m)
 
+  and dual_parser () =
+    let* _ = kw "~" in
+    let* m = t1_parser () in
+    return (Dual m)
+
   and fork_parser () =
     let* ctx = get_user_state in
     let* _ = kw "fork" in
@@ -432,6 +437,7 @@ module PreludeTerm = struct
          ; end_parser ()
          ; inp_parser ()
          ; out_parser ()
+         ; dual_parser ()
          ; ch_parser ()
          ; fork_parser ()
          ; send_parser ()

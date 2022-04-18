@@ -6,7 +6,7 @@ type sort =
   | U
   | L
 
-let pp_v fmt x = fprintf fmt "%s" (name_of x)
+let pp_v fmt x = fprintf fmt "%s#%d" (name_of x) (uid_of x)
 
 module Term = struct
   type v = t var
@@ -33,12 +33,12 @@ module Term = struct
     | End
     | Inp of t * tbinder
     | Out of t * tbinder
+    | Dual of t
     | Ch of t
     | Fork of t * t * tbinder
     | Send of t
     | Recv of t
     | Close of t
-    | Dual of t
     (* magic *)
     | Axiom of Id.t * t
 
@@ -216,7 +216,9 @@ module Term = struct
   let rec pp_p fmt p =
     match p with
     | PVar x -> pp_v fmt x
+    | PInd (id, []) -> fprintf fmt "%a" Id.pp id
     | PInd (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps ps
+    | PConstr (id, []) -> fprintf fmt "%a" Id.pp id
     | PConstr (id, ps) -> fprintf fmt "@[(%a@;<1 2>%a)@]" Id.pp id pp_ps ps
 
   and pp_ps fmt ps =
@@ -295,6 +297,7 @@ module Term = struct
     | Out (a, b) ->
       let x, ub = unbind b in
       fprintf fmt "@[!(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
+    | Dual m -> fprintf fmt "~%a" pp m
     | Ch m -> fprintf fmt "channel %a" pp m
     | Fork (a, m, n) ->
       let x, un = unbind n in
@@ -303,7 +306,6 @@ module Term = struct
     | Send m -> fprintf fmt "send %a" pp m
     | Recv m -> fprintf fmt "recv %a" pp m
     | Close m -> fprintf fmt "close %a" pp m
-    | Dual m -> fprintf fmt "~%a" pp m
     | Axiom (id, _) -> Id.pp fmt id
 
   and pp_vs fmt xs =
@@ -323,14 +325,14 @@ module Term = struct
     | Mot0 -> ()
     | Mot1 mot ->
       let x, umot = unbind mot in
-      fprintf fmt "as %a return@;<1 2>%a" pp_v x pp umot
+      fprintf fmt " as %a return@;<1 2>%a" pp_v x pp umot
     | Mot2 mot ->
       let p, umot = unbind_p mot in
-      fprintf fmt "in %a return@;<1 2>%a" pp_p p pp umot
+      fprintf fmt " in %a return@;<1 2>%a" pp_p p pp umot
     | Mot3 mot ->
       let x, mot = unbind mot in
       let p, umot = unbind_p mot in
-      fprintf fmt "as %a in %a return@;<1 2>%a" pp_v x pp_p p pp umot
+      fprintf fmt " as %a in %a return@;<1 2>%a" pp_v x pp_p p pp umot
 
   and pp_cl fmt cl =
     let p, ucl = unbind_p cl in
@@ -397,6 +399,8 @@ module Term = struct
 
   let _Out = box_apply2 (fun a b -> Out (a, b))
 
+  let _Dual = box_apply (fun m -> Dual m)
+
   let _Ch = box_apply (fun m -> Ch m)
 
   let _Fork = box_apply3 (fun a m n -> Fork (a, m, n))
@@ -406,8 +410,6 @@ module Term = struct
   let _Recv = box_apply (fun m -> Recv m)
 
   let _Close = box_apply (fun m -> Close m)
-
-  let _Dual = box_apply (fun m -> Dual m)
 
   let _Axiom id = box_apply (fun m -> Axiom (id, m))
 
@@ -449,12 +451,12 @@ module Term = struct
     | End -> _End
     | Inp (a, b) -> _Inp (lift a) (box_binder lift b)
     | Out (a, b) -> _Out (lift a) (box_binder lift b)
+    | Dual m -> _Dual (lift m)
     | Ch m -> _Ch (lift m)
     | Fork (a, m, n) -> _Fork (lift a) (lift m) (box_binder lift n)
     | Send m -> _Send (lift m)
     | Recv m -> _Recv (lift m)
     | Close m -> _Close (lift m)
-    | Dual m -> _Dual (lift m)
     | Axiom (id, m) -> _Axiom id (lift m)
 
   let rec eq_m eq mot1 mot2 =
@@ -492,13 +494,13 @@ module Term = struct
       | End, End -> true
       | Inp (a1, b1), Inp (a2, b2) -> aeq a1 a2 && eq_binder aeq b1 b2
       | Out (a1, b1), Out (a2, b2) -> aeq a1 a2 && eq_binder aeq b1 b2
+      | Dual m1, Dual m2 -> aeq m1 m2
       | Ch m1, Ch m2 -> aeq m1 m2
       | Fork (a1, m1, n1), Fork (a2, m2, n2) ->
         aeq a1 a2 && aeq m1 m2 && eq_binder aeq n1 n2
       | Send m1, Send m2 -> aeq m1 m2
       | Recv m1, Recv m2 -> aeq m1 m2
       | Close m1, Close m2 -> aeq m1 m2
-      | Dual m1, Dual m2 -> aeq m1 m2
       | Axiom (id1, m1), Axiom (id2, m2) -> Id.equal id1 id2 && aeq m1 m2
       | _ -> false
 
@@ -550,7 +552,6 @@ module Term = struct
       match opt with
       | Some m -> whnf m
       | None -> Match (m, mot, cls))
-    | Ch m -> Ch (whnf m)
     | Dual m -> (
       match whnf m with
       | End -> End
@@ -572,6 +573,7 @@ module Term = struct
         in
         Match (m, mot, cls)
       | m -> Dual m)
+    | Ch m -> Ch (whnf m)
     | _ -> m
 
   let rec equal m1 m2 =
@@ -603,6 +605,7 @@ module Term = struct
       | End, End -> true
       | Inp (a1, b1), Inp (a2, b2) -> equal a1 a2 && eq_binder equal b1 b2
       | Out (a1, b1), Out (a2, b2) -> equal a1 a2 && eq_binder equal b1 b2
+      | Dual m1, Dual m2 -> equal m1 m2
       | Ch m1, Ch m2 -> equal m1 m2
       | Fork (a1, m1, n1), Fork (a2, m2, n2) ->
         equal a1 a2 && equal m1 m2 && eq_binder equal n1 n2
@@ -640,7 +643,7 @@ module Top = struct
 
   let rec pp fmt t =
     match t with
-    | Main m -> fprintf fmt "@[Main :=@;<1 2>%a.@]" Term.pp m
+    | Main m -> fprintf fmt "@[Definition Main :=@;<1 2>%a.@]" Term.pp m
     | Define (m, t) -> (
       match m with
       | Axiom (_, m) ->

@@ -1,8 +1,8 @@
 Import stdout 2 as _stdout_.
 
 Inductive ref_msg : U :=
-| GET : ref_msg
-| SET : ref_msg
+| GET  : ref_msg
+| SET  : ref_msg
 | FREE : ref_msg.
 
 Fixpoint ref_t (n : nat) (A : U) : proto :=
@@ -45,11 +45,14 @@ Fixpoint ref_handler
     end ch
   end ch.
 
+Definition mk_ref 
+  (A : U) (n : nat) (m : A) (x : main) : tnsr (channel ~ref_t n A) main 
+:=
+  fork (ref : channel ref_t n A) := x in
+  ref_handler A n m ref.
+
 Definition Main :=
-  let ⟨ref, _main_⟩ :=
-    fork (ref : channel ref_t 30 string) := _main_ in
-    ref_handler string 30 "hello\n" ref
-  in
+  let ⟨ref, _main_⟩ := mk_ref string 3000 "hello\n" _main_ in
   let ref := send ref GET in
   let [msg1, ref] := recv ref in
   let ref := send ref SET in

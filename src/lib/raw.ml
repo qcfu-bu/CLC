@@ -33,6 +33,7 @@ module RTerm = struct
     | End
     | Inp of v * t * t
     | Out of v * t * t
+    | Dual of t
     | Ch of t
     | Fork of v * t * t * t
     | Send of t
@@ -146,6 +147,9 @@ module RTerm = struct
       let ctx = VMap.add x _x ctx in
       let _b = _core ctx b in
       _Out _a (bind_var _x _b)
+    | Dual m ->
+      let _m = _core ctx m in
+      _Dual _m
     | Ch m ->
       let _m = _core ctx m in
       _Ch _m

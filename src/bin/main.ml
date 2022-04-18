@@ -6,6 +6,7 @@ open Raw
 open Name
 open Parser
 open Tcheck
+open Pprint
 open Eval
 
 let _ =
@@ -14,9 +15,11 @@ let _ =
   else
     let fname = Sys.argv.(1) in
     let ch = open_in fname in
+    let log = open_out "log.clc" in
     let rtp = ParseTop.parse_ch ch in
     let tp = RTop.core rtp in
-    let _ = printf "%a@.@." Top.pp tp in
+    let s = asprintf "%a" PrintTop.pp tp in
+    let _ = Printf.fprintf log "%s" s in
     let _ = infer tp in
     let _ = EvalTop.eval tp in
     ()

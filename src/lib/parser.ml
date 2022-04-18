@@ -511,6 +511,11 @@ module ParseTerm = struct
     let* _ = set_user_state ctx in
     return m
 
+  and dual_parser () =
+    let* _ = kw "~" in
+    let* m = t1_parser () in
+    return (Dual m)
+
   and ch_parser () =
     let* _ = kw "channel" in
     let* m = t1_parser () in
@@ -572,6 +577,7 @@ module ParseTerm = struct
          ; end_parser ()
          ; inp_parser ()
          ; out_parser ()
+         ; dual_parser ()
          ; ch_parser ()
          ; fork_parser ()
          ; send_parser ()
