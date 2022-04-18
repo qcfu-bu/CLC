@@ -7,8 +7,6 @@ module RTerm = struct
   open Term
   module VMap = Map.Make (Var)
 
-  exception DesugarFind of Var.t
-
   type v = Var.t
 
   type t =
@@ -57,7 +55,7 @@ module RTerm = struct
 
   let find x ctx =
     try VMap.find x ctx with
-    | _ -> raise (DesugarFind x)
+    | _ -> failwith (asprintf "desugar cannot find var(%a)" Var.pp x)
 
   let rec _core ctx m =
     match m with
