@@ -70,7 +70,7 @@ module CheckTm = struct
         | U when VMap.is_empty ctx1 ->
           let x, un = unbind n in
           infer (VMap.add x (a, s) vctx) ictx (VMap.add x m env) un
-        | U -> failwith (asprintf "import let(%a)" Tm.pp m)
+        | U -> failwith (asprintf "impure let(%a)" Tm.pp m)
         | L ->
           let x, un = unbind n in
           let b, ctx2 = infer (VMap.add x (a, s) vctx) ictx env un in

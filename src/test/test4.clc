@@ -1,0 +1,8 @@
+
+Definition id (A : U) : A -o A :=
+  lin x => x.
+
+Definition Main := 
+  let x := id _ 5 in
+  let y : ex nat (fun _ => nat) := (x, x) in
+  _main_.
