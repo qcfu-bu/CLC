@@ -8,6 +8,8 @@ module Meta : sig
 
   val equal : t -> t -> bool
 
+  val compare : t -> t -> int
+
   val pp : formatter -> t -> unit
 end = struct
   type t = int
@@ -20,6 +22,8 @@ end = struct
     i
 
   let equal i1 i2 = i1 = i2
+
+  let compare i1 i2 = Int.compare i1 i2
 
   let pp fmt i = fprintf fmt "?%d" i
 end
@@ -117,3 +121,7 @@ end = struct
 
   let stderr_id = mk "stderr"
 end
+
+module MMap = Map.Make (Meta)
+module VMap = Map.Make (Var)
+module IMap = Map.Make (Id)

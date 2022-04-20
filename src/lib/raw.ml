@@ -5,7 +5,6 @@ open Core
 
 module RTerm = struct
   open Term
-  module VMap = Map.Make (Var)
 
   type v = Var.t
 

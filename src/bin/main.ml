@@ -5,6 +5,7 @@ open Core
 open Raw
 open Name
 open Parser
+open Elab
 open Tcheck
 open Pprint
 open Eval
@@ -18,8 +19,26 @@ let _ =
     let log = open_out "log.clc" in
     let rtp = ParseTop.parse_ch ch in
     let tp = RTop.core rtp in
-    let s = asprintf "%a" PrintTop.pp tp in
+    let s = asprintf "%a@.@." PrintTop.pp tp in
+    let _ = Printf.fprintf log "desugar ok\n" in
+    let _ =
+      Printf.fprintf log "----------------------------------------";
+      Printf.fprintf log "----------------------------------------\n"
+    in
+    let _ = Printf.fprintf log "%s" s in
+    let tp = elab tp in
+    let s = asprintf "%a@.@." PrintTop.pp tp in
+    let _ = Printf.fprintf log "elab ok\n" in
+    let _ =
+      Printf.fprintf log "----------------------------------------";
+      Printf.fprintf log "----------------------------------------\n"
+    in
     let _ = Printf.fprintf log "%s" s in
     let _ = infer tp in
+    let _ =
+      Printf.fprintf log "----------------------------------------";
+      Printf.fprintf log "----------------------------------------\n"
+    in
+    let _ = Printf.fprintf log "tcheck ok" in
     let _ = EvalTop.eval tp in
     ()

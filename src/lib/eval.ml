@@ -3,6 +3,7 @@ open Bindlib
 open MParser
 open Name
 open Raw
+open Context
 open Core
 open Prelude
 open Parser
@@ -94,7 +95,7 @@ module EvalTerm = struct
   let of_string s =
     let ctx = Prelude.(vctx, ictx) in
     match parse_string (ParseTerm.asciix_parser ()) s ctx with
-    | Success t -> RTerm.(core VMap.empty t)
+    | Success t -> RTerm.(core Name.VMap.empty t)
     | Failed (s, _) -> raise StringError
 
   let pair_id = Id.mk "pair"

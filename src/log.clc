@@ -1,3 +1,5 @@
+desugar ok
+--------------------------------------------------------------------------------
 Inductive unit : U :=
 | tt : unit.
 
@@ -6,14 +8,15 @@ Inductive bool : U :=
 | false : bool.
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
-| ex_intro (A : U) (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#68 P#69).
+| ex_intro (A : U)
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#129 P#130).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#76 P#77).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#137 P#138).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#83 B#84).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#144 B#145).
 
 Inductive nat : U :=
 | O : nat
@@ -37,25 +40,95 @@ Definition cat :=
       end) :
     (string) -> (string) -> string).
 
-Definition handler :=
-  ((lin ch =>
-      match recv ch with
-      | (tnsr_intro msg ch) =>
-        let ch := (send ch) msg in match close ch with
-                                   | tt => tt
-                                   end
+Import stdout 2 as _stdout_.
+
+Inductive ref_msg : U :=
+| GET : ref_msg
+| SET : ref_msg
+| FREE : ref_msg.
+
+Definition ref_t :=
+  ((fix ref_t n A =>
+      match n with
+      | O => $
+      | (S n) =>
+        ?(msg : ref_msg),
+          match msg with
+          | GET => !(_ : A), ((ref_t) n) A
+          | SET => ?(_ : A), ((ref_t) n) A
+          | FREE => $
+          end
       end) :
-    (channel ?(_ : main), !(_ : main), $) -o unit).
+    (nat) -> (U) -> proto).
+
+Definition ref_handler :=
+  ((fix ref_handler A n m =>
+      lin ch =>
+        (match n as x return (channel ((ref_t) x) A) -> unit with
+         | O => fun ch => close ch
+         | (S n) =>
+           fun ch =>
+             match recv ch with
+             | (sig_intro msg ch) =>
+               (match msg as x return
+                  (channel match x with
+                           | GET => !(_ : A), ((ref_t) n) A
+                           | SET => ?(_ : A), ((ref_t) n) A
+                           | FREE => $
+                           end) ->
+                    unit
+                with
+                | GET =>
+                  fun ch =>
+                    let ch := (send ch) m in ((((ref_handler) A) n) m) ch
+                | SET =>
+                  fun ch =>
+                    match recv ch with
+                    | (sig_intro m ch) => ((((ref_handler) A) n) m) ch
+                    end
+                | FREE => fun ch => close ch
+                end) ch
+             end
+         end) ch) :
+    forall (A : U), forall (n : nat), (A) -> (channel ((ref_t) n) A) -o unit).
+
+Definition mk_ref :=
+  ((fun A n m x =>
+      fork (ref : channel ((ref_t) n) A) := x in
+      ((((ref_handler) A) n) m) ref) :
+    forall (A : U),
+      forall (n : nat), (A) -> (main) -> (tnsr channel ~((ref_t) n) A main)).
+
+Definition set_ref :=
+  ((fun A n m => lin ref => let ref := (send ref) SET in (send ref) m) :
+    forall (A : U),
+      forall (n : nat),
+        (A) -> (channel ~((ref_t) (S n)) A) -o channel ~((ref_t) n) A).
+
+Definition get_ref :=
+  ((fun A n => lin ref => let ref := (send ref) GET in recv ref) :
+    forall (A : U),
+      forall (n : nat),
+        (channel ~((ref_t) (S n)) A) -o
+          (sig A fun _ => channel ~((ref_t) n) A)).
 
 Definition Main :=
-  match fork (ch : channel ?(_ : main), !(_ : main), $) := _main_ in
-        (handler) ch
-  with
-  | (tnsr_intro ch _main_) =>
-    let ch := (send ch) _main_ in
-    match recv ch with
-    | (tnsr_intro _main_ ch) => match close ch with
-                                | tt => _main_
-                                end
+  match ((((mk_ref) string) 5) "hello\n") _main_ with
+  | (tnsr_intro ref _main_) =>
+    match (((get_ref) ?0) ?1) ref with
+    | (sig_intro msg1 ref) =>
+      let ref := ((((set_ref) string) ?2) "world\n") ref in
+      match (((get_ref) string) ?3) ref with
+      | (sig_intro msg2 ref) =>
+        let _stdout_ := (send _stdout_) msg1 in
+        let _stdout_ := (send _stdout_) msg2 in
+        let ref := (send ref) FREE in
+        match close _stdout_ with
+        | tt => match close ref with
+                | tt => _main_
+                end
+        end
+      end
     end
   end.
+

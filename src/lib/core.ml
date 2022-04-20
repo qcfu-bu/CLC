@@ -64,12 +64,6 @@ module Term = struct
 
   and tpbinder = (t, pbinder) binder
 
-  module VMap = Map.Make (struct
-    type t = v
-
-    let compare = compare_vars
-  end)
-
   exception PBacktrack
 
   let rec equal_p0 p1 p2 =
