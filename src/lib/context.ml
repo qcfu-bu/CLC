@@ -5,18 +5,6 @@ open Core
 open Term
 open Top
 
-module VSet = Set.Make (struct
-  type t = v
-
-  let compare = compare_vars
-end)
-
-module VMap = Map.Make (struct
-  type t = v
-
-  let compare = compare_vars
-end)
-
 let find_v x ctx =
   try VMap.find x ctx with
   | _ -> failwith (asprintf "unbound variable(%a)" pp_v x)

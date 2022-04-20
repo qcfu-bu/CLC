@@ -1,11 +1,10 @@
 open Format
 open Bindlib
-open Name
 open Core
+open Term
+open Name
 
 module RTerm = struct
-  open Term
-
   type v = Var.t
 
   type t =

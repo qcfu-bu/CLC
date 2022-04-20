@@ -68,8 +68,8 @@ Definition get_ref
 Definition Main :=
   let ⟨ref, _main_⟩ := mk_ref string 5 "hello\n" _main_ in
   let [msg1, ref] := get_ref _ _ ref in
-  let ref := set_ref string _ "world\n" ref in
-  let [msg2, ref] := get_ref string _ ref in
+  let ref := set_ref _ _ "world\n" ref in
+  let [msg2, ref] := get_ref _ _ ref in
   let _stdout_ := send _stdout_ msg1 in
   let _stdout_ := send _stdout_ msg2 in
   let ref := send ref FREE in

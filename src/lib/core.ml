@@ -64,6 +64,18 @@ module Term = struct
 
   and tpbinder = (t, pbinder) binder
 
+  module VSet = Set.Make (struct
+    type t = v
+
+    let compare = compare_vars
+  end)
+
+  module VMap = Map.Make (struct
+    type t = v
+
+    let compare = compare_vars
+  end)
+
   exception PBacktrack
 
   let rec equal_p0 p1 p2 =
@@ -453,6 +465,81 @@ module Term = struct
     | Close m -> _Close (lift m)
     | Axiom (id, m) -> _Axiom id (lift m)
 
+  let rec zdnf env m =
+    match m with
+    | Ann (m, a) -> (
+      let m = zdnf env m in
+      match m with
+      | Let (m, n) ->
+        let x, un = unbind n in
+        let n = unbox (bind_var x (lift (Ann (un, a)))) in
+        Let (m, n)
+      | Match (m, mot, cls) ->
+        let cls =
+          List.map
+            (fun cl ->
+              let p, ucl = unbind_p cl in
+              unbox (bind_p p (lift (Ann (ucl, a)))))
+            cls
+        in
+        Match (m, mot, cls)
+      | Fix m ->
+        let x, um = unbind m in
+        let m = unbox (bind_var x (lift (Ann (um, a)))) in
+        Fix m
+      | _ -> m)
+    | Var x -> (
+      try zdnf env (VMap.find x env) with
+      | _ -> m)
+    | App (m, n) -> (
+      let m = zdnf env m in
+      let n = zdnf env n in
+      match m with
+      | Lam (_, m) -> zdnf env (subst m n)
+      | Fix b -> zdnf env (App (subst b m, n))
+      | _ -> App (m, n))
+    | Let (m, n) ->
+      let m = zdnf env m in
+      zdnf env (subst n m)
+    | Match (m, mot, cls) -> (
+      let m = zdnf env m in
+      let opt =
+        List.fold_left
+          (fun opt cl ->
+            match opt with
+            | Some _ -> opt
+            | None -> (
+              try Some (subst_p cl m) with
+              | _ -> None))
+          None cls
+      in
+      match opt with
+      | Some m -> zdnf env m
+      | None -> Match (m, mot, cls))
+    | Dual m -> (
+      match zdnf env m with
+      | End -> End
+      | Inp (a, b) ->
+        let x, ub = unbind b in
+        let b = unbox (bind_var x (lift (Dual ub))) in
+        Out (a, b)
+      | Out (a, b) ->
+        let x, ub = unbind b in
+        let b = unbox (bind_var x (lift (Dual ub))) in
+        Inp (a, b)
+      | Match (m, mot, cls) ->
+        let cls =
+          List.map
+            (fun cl ->
+              let p, ucl = unbind_p cl in
+              unbox (bind_p p (lift (Dual ucl))))
+            cls
+        in
+        Match (m, mot, cls)
+      | m -> Dual m)
+    | Ch m -> Ch (zdnf env m)
+    | _ -> m
+
   let rec eq_m eq mot1 mot2 =
     match (mot1, mot2) with
     | Mot0, Mot0 -> true
@@ -570,43 +657,59 @@ module Term = struct
     | Ch m -> Ch (whnf m)
     | _ -> m
 
-  let rec equal m1 m2 =
+  let rec equal env m1 m2 =
     if aeq m1 m2 then
       true
     else
-      let m1 = whnf m1 in
-      let m2 = whnf m2 in
+      let m1 = zdnf env m1 in
+      let m2 = zdnf env m2 in
       match (m1, m2) with
-      | Ann (m1, a1), Ann (m2, a2) -> equal m1 m2 && equal a1 a2
+      | Ann (m1, a1), Ann (m2, a2) -> equal env m1 m2 && equal env a1 a2
       | Meta x1, Meta x2 -> Meta.equal x1 x2
       | Knd s1, Knd s2 -> s1 = s2
       | Var x1, Var x2 -> eq_vars x1 x2
+      | Var _, _ -> (
+        try
+          let m1 = zdnf env m1 in
+          equal env m1 m2
+        with
+        | _ -> false)
+      | _, Var _ -> (
+        try
+          let m2 = zdnf env m2 in
+          equal env m1 m2
+        with
+        | _ -> false)
       | Pi (s1, a1, b1), Pi (s2, a2, b2) ->
-        s1 = s2 && equal a1 a2 && eq_binder equal b1 b2
-      | Lam (s1, m1), Lam (s2, m2) -> s1 = s2 && eq_binder equal m1 m2
-      | App (m1, n1), App (m2, n2) -> equal m1 m2 && equal n1 n2
-      | Let (m1, n1), Let (m2, n2) -> equal m1 m2 && eq_binder equal n1 n2
+        s1 = s2 && equal env a1 a2 && eq_binder (equal env) b1 b2
+      | Lam (s1, m1), Lam (s2, m2) -> s1 = s2 && eq_binder (equal env) m1 m2
+      | App (m1, n1), App (m2, n2) -> (equal env) m1 m2 && (equal env) n1 n2
+      | Let (m1, n1), Let (m2, n2) ->
+        (equal env) m1 m2 && eq_binder (equal env) n1 n2
       | Ind (id1, ms1), Ind (id2, ms2) ->
-        Id.equal id1 id2 && List.equal equal ms1 ms2
+        Id.equal id1 id2 && List.equal (equal env) ms1 ms2
       | Constr (id1, ms1), Constr (id2, ms2) ->
-        Id.equal id1 id2 && List.equal equal ms1 ms2
+        Id.equal id1 id2 && List.equal (equal env) ms1 ms2
       | Match (m1, mot1, cls1), Match (m2, mot2, cls2) ->
-        equal m1 m2 && eq_m equal mot1 mot2
-        && List.equal (eq_binder_p equal) cls1 cls2
-      | Fix m1, Fix m2 -> eq_binder equal m1 m2
+        equal env m1 m2
+        && eq_m (equal env) mot1 mot2
+        && List.equal (eq_binder_p (equal env)) cls1 cls2
+      | Fix m1, Fix m2 -> eq_binder (equal env) m1 m2
       | Main, Main -> true
       | Proto, Proto -> true
       | End, End -> true
-      | Inp (a1, b1), Inp (a2, b2) -> equal a1 a2 && eq_binder equal b1 b2
-      | Out (a1, b1), Out (a2, b2) -> equal a1 a2 && eq_binder equal b1 b2
-      | Dual m1, Dual m2 -> equal m1 m2
-      | Ch m1, Ch m2 -> equal m1 m2
+      | Inp (a1, b1), Inp (a2, b2) ->
+        equal env a1 a2 && eq_binder (equal env) b1 b2
+      | Out (a1, b1), Out (a2, b2) ->
+        equal env a1 a2 && eq_binder (equal env) b1 b2
+      | Dual m1, Dual m2 -> equal env m1 m2
+      | Ch m1, Ch m2 -> equal env m1 m2
       | Fork (a1, m1, n1), Fork (a2, m2, n2) ->
-        equal a1 a2 && equal m1 m2 && eq_binder equal n1 n2
-      | Send m1, Send m2 -> equal m1 m2
-      | Recv m1, Recv m2 -> equal m1 m2
-      | Close m1, Close m2 -> equal m1 m2
-      | Axiom (id1, m1), Axiom (id2, m2) -> Id.equal id1 id2 && equal m1 m2
+        equal env a1 a2 && equal env m1 m2 && eq_binder (equal env) n1 n2
+      | Send m1, Send m2 -> equal env m1 m2
+      | Recv m1, Recv m2 -> equal env m1 m2
+      | Close m1, Close m2 -> equal env m1 m2
+      | Axiom (id1, m1), Axiom (id2, m2) -> Id.equal id1 id2 && equal env m1 m2
       | _ -> false
 end
 

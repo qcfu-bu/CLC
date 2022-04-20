@@ -122,6 +122,6 @@ end = struct
   let stderr_id = mk "stderr"
 end
 
+module IMap = Map.Make (Id)
 module MMap = Map.Make (Meta)
 module VMap = Map.Make (Var)
-module IMap = Map.Make (Id)
