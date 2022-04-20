@@ -668,18 +668,6 @@ module Term = struct
       | Meta x1, Meta x2 -> Meta.equal x1 x2
       | Knd s1, Knd s2 -> s1 = s2
       | Var x1, Var x2 -> eq_vars x1 x2
-      | Var _, _ -> (
-        try
-          let m1 = zdnf env m1 in
-          equal env m1 m2
-        with
-        | _ -> false)
-      | _, Var _ -> (
-        try
-          let m2 = zdnf env m2 in
-          equal env m1 m2
-        with
-        | _ -> false)
       | Pi (s1, a1, b1), Pi (s2, a2, b2) ->
         s1 = s2 && equal env a1 a2 && eq_binder (equal env) b1 b2
       | Lam (s1, m1), Lam (s2, m2) -> s1 = s2 && eq_binder (equal env) m1 m2

@@ -113,7 +113,7 @@ Definition get_ref :=
           (sig A fun _ => channel ~((ref_t) n) A)).
 
 Definition Main :=
-  match ((((mk_ref) string) 5) "hello\n") _main_ with
+  match ((((mk_ref) string) 4000) "hello\n") _main_ with
   | (tnsr_intro ref _main_) =>
     match (((get_ref) ?0) ?1) ref with
     | (sig_intro msg1 ref) =>
@@ -143,16 +143,14 @@ Inductive bool : U :=
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U)
-               : forall (x : A), ((P) x) -> (ex A#304131 P#304132).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#4447 P#4448).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L)
-                : forall (x : A), ((P) x) -> (sig A#304139 P#304140).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#4455 P#4456).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#304146 B#304147).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#4462 B#4463).
 
 Inductive nat : U :=
 | O : nat
@@ -249,12 +247,12 @@ Definition get_ref :=
           (sig A fun _ => channel ~((ref_t) n) A)).
 
 Definition Main :=
-  match ((((mk_ref) string) 5) "hello\n") _main_ with
+  match ((((mk_ref) string) 4000) "hello\n") _main_ with
   | (tnsr_intro ref _main_) =>
-    match (((get_ref) string) 4) ref with
+    match (((get_ref) string) 3999) ref with
     | (sig_intro msg1 ref) =>
-      let ref := ((((set_ref) string) 3) "world\n") ref in
-      match (((get_ref) string) 2) ref with
+      let ref := ((((set_ref) string) 3998) "world\n") ref in
+      match (((get_ref) string) 3997) ref with
       | (sig_intro msg2 ref) =>
         let _stdout_ := (send _stdout_) msg1 in
         let _stdout_ := (send _stdout_) msg2 in

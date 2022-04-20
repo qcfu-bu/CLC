@@ -4,6 +4,7 @@ open Name
 open Context
 open Core
 open Term
+open Pprint
 
 let failwith s =
   let _ = printf "%s\n" s in
@@ -328,8 +329,8 @@ let solve eqn =
     let m1 = unbox (_mLam U xs m) in
     let m2 = unbox (_mLam U ys m) in
     let res = MMap.empty in
-    let res = MMap.add x1 (m1, None, 0) res in
-    let res = MMap.add x2 (m2, None, 0) res in
+    let res = MMap.add x1 (Some m1, None, 0) res in
+    let res = MMap.add x2 (Some m2, None, 0) res in
     res
   | Meta x, _ ->
     if occurs x m2 then
@@ -339,7 +340,7 @@ let solve eqn =
       let ctx = fv VSet.empty m2 in
       if VSet.subset ctx (VSet.of_list xs) then
         let m = unbox (_mLam U xs (lift m2)) in
-        MMap.singleton x (m, None, 1)
+        MMap.singleton x (Some m, None, 1)
       else
         failwith (asprintf "solve failure(%a, %a)" Term.pp m1 Term.pp m2)
   | _ -> failwith (asprintf "solve failure(%a, %a)" Term.pp m1 Term.pp m2)
@@ -350,10 +351,12 @@ module UnifyTerm = struct
     match h with
     | Meta x -> (
       try
-        let h, _, _ = MMap.find x mmap in
-        let sp = List.map lift sp in
-        let t = unbox (_mApp (lift h) sp) in
-        resolve mmap (whnf t)
+        match MMap.find x mmap with
+        | Some h, _, _ ->
+          let sp = List.map lift sp in
+          let t = unbox (_mApp (lift h) sp) in
+          resolve mmap (whnf t)
+        | _ -> m
       with
       | _ -> m)
     | _ -> (

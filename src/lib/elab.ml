@@ -12,9 +12,12 @@ let pp_mmap fmt mmap =
   let aux fmt mmap =
     MMap.iter
       (fun x (m, opt, _) ->
-        match opt with
-        | Some a -> fprintf fmt "%a : %a => %a@." Meta.pp x Term.pp a Term.pp m
-        | None -> fprintf fmt "%a => %a@." Meta.pp x Term.pp m)
+        match (m, opt) with
+        | Some m, Some a ->
+          fprintf fmt "%a : %a => %a@." Meta.pp x Term.pp a Term.pp m
+        | Some m, None -> fprintf fmt "%a => %a@." Meta.pp x Term.pp m
+        | None, Some a -> fprintf fmt "%a : %a@." Meta.pp x Term.pp a
+        | None, None -> fprintf fmt "%a => ??@." Meta.pp x)
       mmap
   in
   fprintf fmt "mmap(@.%a)@." aux mmap
@@ -26,7 +29,6 @@ let failwith s =
 module ElabTerm = struct
   let rec infer_sort vctx ictx env eqns mmap m =
     let a, eqns, mmap = infer vctx ictx env eqns mmap m in
-    let mmap = unify env mmap eqns in
     let a = UnifyTerm.resolve mmap a in
     match zdnf env a with
     | Knd s -> (s, eqns, mmap)
@@ -86,6 +88,7 @@ module ElabTerm = struct
       | Let (m, n) ->
         let a, eqns, mmap = infer vctx ictx env eqns mmap m in
         let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let mmap = unify env mmap eqns in
         let m = UnifyTerm.resolve mmap m in
         let a = UnifyTerm.resolve mmap a in
         let b, eqns, mmap =
@@ -307,7 +310,7 @@ module ElabTerm = struct
   and check vctx ictx env eqns mmap m a =
     match m with
     | Meta x ->
-      let mmap = MMap.add x (m, Some a, 0) mmap in
+      let mmap = MMap.add x (None, Some a, 0) mmap in
       (eqns, mmap)
     | Lam (s, m) as lm -> (
       let x, um = unbind m in
@@ -326,7 +329,7 @@ module ElabTerm = struct
       let x, un = unbind n in
       let n = unbox (bind_var x (lift (Ann (un, a)))) in
       let b, eqns, mmap = infer vctx ictx env eqns mmap (Let (m, n)) in
-      check_eq eqns mmap a b
+      check_eq env eqns mmap a b
     | Constr (id, ms) -> (
       let a = UnifyTerm.resolve mmap a in
       match zdnf env a with
@@ -341,10 +344,10 @@ module ElabTerm = struct
             b ns
         in
         let b, eqns, mmap = infer_pscope vctx ictx env eqns mmap ms b in
-        check_eq eqns mmap a b
+        check_eq env eqns mmap a b
       | _ ->
         let b, eqns, mmap = infer vctx ictx env eqns mmap m in
-        check_eq eqns mmap a b)
+        check_eq env eqns mmap a b)
     | Match (m, mot, cls) -> (
       match mot with
       | Mot0 -> (
@@ -360,12 +363,16 @@ module ElabTerm = struct
         let b, eqns, mmap =
           infer vctx ictx env eqns mmap (Match (m, mot, cls))
         in
-        check_eq eqns mmap a b)
+        check_eq env eqns mmap a b)
     | _ ->
       let b, eqns, mmap = infer vctx ictx env eqns mmap m in
-      check_eq eqns mmap a b
+      check_eq env eqns mmap a b
 
-  and check_eq eqns mmap a b = ((a, b) :: eqns, mmap)
+  and check_eq env eqns mmap a b =
+    if Term.equal env a b then
+      (eqns, mmap)
+    else
+      ((a, b) :: eqns, mmap)
 
   and check_cover cover ictx env eqns mmap a =
     match cover with
