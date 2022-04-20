@@ -74,7 +74,7 @@ Definition free_ref
   ().
 
 Definition Main :=
-  let ⟨ref, _main_⟩ := mk_ref _ 4000 "hello\n" _main_ in
+  let ⟨ref, _main_⟩ := mk_ref _ 10000 "hello\n" _main_ in
   let [msg1, ref] := get_ref _ _ ref in
   let ref := set_ref _ _ "world\n" ref in
   let [msg2, ref] := get_ref _ _ ref in

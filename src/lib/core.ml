@@ -536,6 +536,7 @@ module Tm = struct
             cls
         in
         Match (m, mot, cls)
+      | Dual m -> m
       | m -> Dual m)
     | Ch m -> Ch (zdnf env m)
     | _ -> m
@@ -653,6 +654,7 @@ module Tm = struct
             cls
         in
         Match (m, mot, cls)
+      | Dual m -> m
       | m -> Dual m)
     | Ch m -> Ch (whnf m)
     | _ -> m

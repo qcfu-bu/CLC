@@ -1,8 +1,11 @@
+Inductive eq (A : U) (x : A) : A -> U :=
+| refl : eq A x x.
 
 Definition id (A : U) : A -o A :=
   lin x => x.
 
 Definition Main := 
+  let pf : eq proto (!nat, $) (~~!nat, ~$) := refl in
   let x := id _ 5 in
   let y : ex nat (fun _ => nat) := (x, x) in
   _main_.
