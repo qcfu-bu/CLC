@@ -27,8 +27,8 @@ let failwith s =
   failwith "elab"
 
 module ElabTerm = struct
-  let rec infer_sort vctx ictx env eqns mmap m =
-    let a, eqns, mmap = infer vctx ictx env eqns mmap m in
+  let rec elab_sort vctx ictx env eqns mmap m =
+    let a, eqns, mmap = elab vctx ictx env eqns mmap m in
     let a = UnifyTerm.resolve mmap a in
     match zdnf env a with
     | Knd s -> (s, eqns, mmap)
@@ -36,7 +36,7 @@ module ElabTerm = struct
       let _ = printf "%a" pp_mmap mmap in
       failwith (asprintf "unexpected type(%a)" Term.pp a)
 
-  and infer vctx ictx env eqns mmap m =
+  and elab vctx ictx env eqns mmap m =
     let h, _ = spine m in
     match h with
     | Meta x -> (
@@ -53,7 +53,7 @@ module ElabTerm = struct
     | _ -> (
       match m with
       | Ann (m, a) -> (
-        let _, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let _, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         match m with
         | Let (m, n) ->
           let x, un = unbind n in
@@ -63,31 +63,31 @@ module ElabTerm = struct
         | _ ->
           let eqns, mmap = check vctx ictx env eqns mmap m a in
           (a, eqns, mmap))
-      | Meta x -> failwith (asprintf "infer meta(%a)" Meta.pp x)
+      | Meta x -> failwith (asprintf "elab meta(%a)" Meta.pp x)
       | Knd _ -> (Knd U, eqns, mmap)
       | Var x ->
         let a, _ = find_v x vctx in
         (a, eqns, mmap)
       | Pi (s, a, b) ->
         let x, ub = unbind b in
-        let t, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let t, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let _, eqns, mmap =
-          infer_sort (VMap.add x (a, t) vctx) ictx env eqns mmap ub
+          elab_sort (VMap.add x (a, t) vctx) ictx env eqns mmap ub
         in
         (Knd s, eqns, mmap)
       | Lam _ -> (Meta (Meta.mk ()), eqns, mmap)
       | App (m, n) -> (
-        let a, eqns, mmap = infer vctx ictx env eqns mmap m in
+        let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let a = UnifyTerm.resolve mmap a in
         match zdnf env a with
         | Pi (_, a, b) ->
-          let t, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+          let t, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
           let eqns, mmap = check vctx ictx env eqns mmap n a in
           (subst b n, eqns, mmap)
-        | _ -> failwith (asprintf "infer app(%a)" Term.pp m))
+        | _ -> failwith (asprintf "elab app(%a)" Term.pp m))
       | Let (m, n) ->
-        let a, eqns, mmap = infer vctx ictx env eqns mmap m in
-        let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let a, eqns, mmap = elab vctx ictx env eqns mmap m in
+        let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let mmap = unify env mmap eqns in
         let m = UnifyTerm.resolve mmap m in
         let a = UnifyTerm.resolve mmap a in
@@ -95,23 +95,23 @@ module ElabTerm = struct
           match s with
           | U ->
             let x, un = unbind n in
-            infer (VMap.add x (a, s) vctx) ictx (VMap.add x m env) eqns mmap un
+            elab (VMap.add x (a, s) vctx) ictx (VMap.add x m env) eqns mmap un
           | L ->
             let x, un = unbind n in
-            infer (VMap.add x (a, s) vctx) ictx env eqns mmap un
+            elab (VMap.add x (a, s) vctx) ictx env eqns mmap un
         in
         (b, eqns, mmap)
       | Ind (id, ms) -> (
         let (Top.Ind (_, a, _)) = find_id id ictx in
-        try infer_pscope vctx ictx env eqns mmap ms a with
+        try elab_pscope vctx ictx env eqns mmap ms a with
         | _ -> failwith (asprintf "ind failure(%a)" Term.pp m))
       | Constr (id, ms) -> (
         let (Top.Constr (_, a)) = find_idc id ictx in
-        try infer_pscope vctx ictx env eqns mmap ms a with
+        try elab_pscope vctx ictx env eqns mmap ms a with
         | _ -> failwith (asprintf "constr failure(%a)" Term.pp m))
       | Match (m, mot, cls) -> (
-        let a, eqns, mmap = infer vctx ictx env eqns mmap m in
-        let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let a, eqns, mmap = elab vctx ictx env eqns mmap m in
+        let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let a = UnifyTerm.resolve mmap a in
         match zdnf env a with
         | Ind (id, ms) -> (
@@ -119,9 +119,9 @@ module ElabTerm = struct
           let cover, eqns, mmap = coverage vctx ictx env eqns mmap cls cs ms in
           match (s, mot) with
           | _, Mot0 -> (
-            let ms, eqns, mmap = infer_cover cover ictx env eqns mmap in
+            let ms, eqns, mmap = elab_cover cover ictx env eqns mmap in
             match ms with
-            | [] -> failwith "infer motive error"
+            | [] -> failwith "elab motive error"
             | m :: ms ->
               let eqns = List.fold_left (fun acc n -> (m, n) :: acc) eqns ms in
               (m, eqns, mmap))
@@ -143,7 +143,7 @@ module ElabTerm = struct
         let _, un = unbind n in
         match un with
         | Ann (_, a) ->
-          let _, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+          let _, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
           let eqns, mmap = check vctx ictx env eqns mmap m a in
           (a, eqns, mmap)
         | _ -> (Meta (Meta.mk ()), eqns, mmap))
@@ -152,14 +152,14 @@ module ElabTerm = struct
       | End -> (Proto, eqns, mmap)
       | Inp (a, b) ->
         let x, ub = unbind b in
-        let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let eqns, mmap =
           check (VMap.add x (a, s) vctx) ictx env eqns mmap ub Proto
         in
         (Proto, eqns, mmap)
       | Out (a, b) ->
         let x, ub = unbind b in
-        let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let eqns, mmap =
           check (VMap.add x (a, s) vctx) ictx env eqns mmap ub Proto
         in
@@ -168,7 +168,7 @@ module ElabTerm = struct
         let eqns, mmap = check vctx ictx env eqns mmap m Proto in
         (Knd L, eqns, mmap)
       | Fork (a, m, n) -> (
-        let _, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let _, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let a = UnifyTerm.resolve mmap a in
         match zdnf env a with
         | Ch a ->
@@ -176,13 +176,13 @@ module ElabTerm = struct
           let eqns, mmap = check vctx ictx env eqns mmap a Proto in
           let eqns, mmap = check vctx ictx env eqns mmap m Main in
           let _, eqns, mmap =
-            infer (VMap.add x (Ch a, L) vctx) ictx env eqns mmap un
+            elab (VMap.add x (Ch a, L) vctx) ictx env eqns mmap un
           in
           let a = Ch (Dual a) in
           (Ind (Prelude.tnsr_id, [ a; Main ]), eqns, mmap)
         | _ -> failwith (asprintf "non-channel fork(%a)" Term.pp a))
       | Send m -> (
-        let a, eqns, mmap = infer vctx ictx env eqns mmap m in
+        let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let a = UnifyTerm.resolve mmap a in
         match zdnf env a with
         | Ch (Out (a, b)) ->
@@ -193,12 +193,12 @@ module ElabTerm = struct
           let _ = printf "%a" pp_mmap mmap in
           failwith (asprintf "send on non-out(%a, %a)" Term.pp m Term.pp a))
       | Recv m -> (
-        let a, eqns, mmap = infer vctx ictx env eqns mmap m in
+        let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let a = UnifyTerm.resolve mmap a in
         match zdnf env a with
         | Ch (Inp (a, b)) -> (
           let x, ub = unbind b in
-          let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+          let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
           match s with
           | U ->
             let b = unbox (bind_var x (lift (Ch ub))) in
@@ -208,7 +208,7 @@ module ElabTerm = struct
           let _ = printf "%a" pp_mmap mmap in
           failwith (asprintf "recv on non-inp(%a, %a)" Term.pp m Term.pp a))
       | Close m -> (
-        let a, eqns, mmap = infer vctx ictx env eqns mmap m in
+        let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let a = UnifyTerm.resolve mmap a in
         match zdnf env a with
         | Ch End -> (Ind (Prelude.unit_id, []), eqns, mmap)
@@ -218,34 +218,34 @@ module ElabTerm = struct
         let eqns, mmap = check vctx ictx env eqns mmap m Proto in
         (Proto, eqns, mmap)
       | Axiom (id, m) ->
-        let _, eqns, mmap = infer_sort vctx ictx env eqns mmap m in
+        let _, eqns, mmap = elab_sort vctx ictx env eqns mmap m in
         (m, eqns, mmap))
 
-  and infer_pscope vctx ictx env eqns mmap ms a =
+  and elab_pscope vctx ictx env eqns mmap ms a =
     match (ms, a) with
     | m :: ms, PBind (a, b) ->
-      let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+      let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
       let eqns, mmap = check vctx ictx env eqns mmap m a in
-      infer_pscope vctx ictx env eqns mmap ms (subst b (Ann (m, a)))
-    | ms, PBase a -> infer_tscope vctx ictx env eqns mmap ms a
-    | _ -> failwith "infer pscope uneven length"
+      elab_pscope vctx ictx env eqns mmap ms (subst b (Ann (m, a)))
+    | ms, PBase a -> elab_tscope vctx ictx env eqns mmap ms a
+    | _ -> failwith "elab pscope uneven length"
 
-  and infer_tscope vctx ictx env eqns mmap ms a =
+  and elab_tscope vctx ictx env eqns mmap ms a =
     match (ms, a) with
     | m :: ms, TBind (a, b) ->
-      let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+      let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
       let eqns, mmap = check vctx ictx env eqns mmap m a in
-      infer_tscope vctx ictx env eqns mmap ms (subst b (Ann (m, a)))
+      elab_tscope vctx ictx env eqns mmap ms (subst b (Ann (m, a)))
     | [], TBase a ->
-      let _, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+      let _, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
       (a, eqns, mmap)
-    | _ -> failwith "infer tscope uneven length"
+    | _ -> failwith "elab tscope uneven length"
 
-  and infer_cover cover ictx env eqns mmap =
+  and elab_cover cover ictx env eqns mmap =
     match cover with
     | (vctx, _, _, ucl, ss) :: cover ->
-      let m, eqns, mmap = infer vctx ictx env eqns mmap ucl in
-      let ms, eqns, mmap = infer_cover cover ictx env eqns mmap in
+      let m, eqns, mmap = elab vctx ictx env eqns mmap ucl in
+      let ms, eqns, mmap = elab_cover cover ictx env eqns mmap in
       (m :: ms, eqns, mmap)
     | _ -> ([], eqns, mmap)
 
@@ -281,7 +281,7 @@ module ElabTerm = struct
     and arity_tscope vctx a xs =
       match (a, xs) with
       | Top.TBind (a, b), x :: xs ->
-        let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let vctx = VMap.add x (a, s) vctx in
         let b = subst b (Var x) in
         let vctx, b, ss, eqns, mmap = arity_tscope vctx b xs in
@@ -318,17 +318,17 @@ module ElabTerm = struct
       match zdnf env a with
       | Pi (t, a, b) when s = t ->
         let ub = subst b (Var x) in
-        let r, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+        let r, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         check (VMap.add x (a, r) vctx) ictx env eqns mmap um ub
       | _ -> failwith (asprintf "type mismatch(%a, %a)" Term.pp lm Term.pp a))
     | Fix m ->
       let x, um = unbind m in
-      let s, eqns, mmap = infer_sort vctx ictx env eqns mmap a in
+      let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
       check (VMap.add x (a, s) vctx) ictx env eqns mmap um a
     | Let (m, n) ->
       let x, un = unbind n in
       let n = unbox (bind_var x (lift (Ann (un, a)))) in
-      let b, eqns, mmap = infer vctx ictx env eqns mmap (Let (m, n)) in
+      let b, eqns, mmap = elab vctx ictx env eqns mmap (Let (m, n)) in
       check_eq env eqns mmap a b
     | Constr (id, ms) -> (
       let a = UnifyTerm.resolve mmap a in
@@ -343,15 +343,15 @@ module ElabTerm = struct
               | Top.PBase _ -> a)
             b ns
         in
-        let b, eqns, mmap = infer_pscope vctx ictx env eqns mmap ms b in
+        let b, eqns, mmap = elab_pscope vctx ictx env eqns mmap ms b in
         check_eq env eqns mmap a b
       | _ ->
-        let b, eqns, mmap = infer vctx ictx env eqns mmap m in
+        let b, eqns, mmap = elab vctx ictx env eqns mmap m in
         check_eq env eqns mmap a b)
     | Match (m, mot, cls) -> (
       match mot with
       | Mot0 -> (
-        let b, eqns, mmap = infer vctx ictx env eqns mmap m in
+        let b, eqns, mmap = elab vctx ictx env eqns mmap m in
         let b = UnifyTerm.resolve mmap b in
         match zdnf env b with
         | Ind (id, ms) ->
@@ -361,11 +361,11 @@ module ElabTerm = struct
         | _ -> failwith (asprintf "check non-inductive(%a)" Term.pp b))
       | _ ->
         let b, eqns, mmap =
-          infer vctx ictx env eqns mmap (Match (m, mot, cls))
+          elab vctx ictx env eqns mmap (Match (m, mot, cls))
         in
         check_eq env eqns mmap a b)
     | _ ->
-      let b, eqns, mmap = infer vctx ictx env eqns mmap m in
+      let b, eqns, mmap = elab vctx ictx env eqns mmap m in
       check_eq env eqns mmap a b
 
   and check_eq env eqns mmap a b =
@@ -400,24 +400,24 @@ module ElabTerm = struct
 end
 
 module ElabTop = struct
-  let rec infer vctx ictx env eqns mmap tp =
+  let rec elab vctx ictx env eqns mmap tp =
     match tp with
     | Main m ->
       let eqns, mmap = ElabTerm.check vctx ictx env eqns mmap m Term.Main in
       let mmap = unify env mmap eqns in
       (ictx, mmap)
     | Define (m, tp) ->
-      let a, eqns, mmap = ElabTerm.infer vctx ictx env eqns mmap m in
-      let s, eqns, mmap = ElabTerm.infer_sort vctx ictx env eqns mmap a in
+      let a, eqns, mmap = ElabTerm.elab vctx ictx env eqns mmap m in
+      let s, eqns, mmap = ElabTerm.elab_sort vctx ictx env eqns mmap a in
       let mmap = unify env mmap eqns in
       let m = UnifyTerm.resolve mmap m in
       let a = UnifyTerm.resolve mmap a in
       if s = U then
         let x, utp = unbind tp in
-        infer (VMap.add x (a, s) vctx) ictx (VMap.add x m env) eqns mmap utp
+        elab (VMap.add x (a, s) vctx) ictx (VMap.add x m env) eqns mmap utp
       else
         let x, utp = unbind tp in
-        infer (VMap.add x (a, s) vctx) ictx env eqns mmap utp
+        elab (VMap.add x (a, s) vctx) ictx env eqns mmap utp
     | Induct (Ind (id, a, cs), tp) ->
       let eqns, mmap = check_pscope vctx ictx env eqns mmap a U in
       let mmap = unify env mmap eqns in
@@ -434,7 +434,7 @@ module ElabTop = struct
       let mmap = unify env mmap eqns in
       let cs = List.map (fun x -> unbox (UnifyTop.resolve_constr mmap x)) cs in
       let ictx = IMap.add id (Ind (id, a, cs)) ictx in
-      infer vctx ictx env eqns mmap tp
+      elab vctx ictx env eqns mmap tp
     | Import (id, m, tp) ->
       let n =
         if Id.equal id Id.stdin_id then
@@ -449,7 +449,7 @@ module ElabTop = struct
       let a = Ch (App (n, m)) in
       let eqns, mmap = ElabTerm.check vctx ictx env eqns mmap a (Knd L) in
       let x, utp = unbind tp in
-      infer (VMap.add x (a, L) vctx) ictx env eqns mmap utp
+      elab (VMap.add x (a, L) vctx) ictx env eqns mmap utp
 
   and param_pscope a id xs =
     match a with
@@ -497,26 +497,26 @@ module ElabTop = struct
     | PBase a -> check_tscope vctx ictx env eqns mmap a s
     | PBind (a, b) ->
       let x, ub = unbind b in
-      let t, eqns, mmap = ElabTerm.infer_sort vctx ictx env eqns mmap a in
+      let t, eqns, mmap = ElabTerm.elab_sort vctx ictx env eqns mmap a in
       let vctx = VMap.add x (a, t) vctx in
       check_pscope vctx ictx env eqns mmap ub (min_sort s t)
 
   and check_tscope vctx ictx env eqns mmap a s =
     match a with
     | TBase a ->
-      let t, eqns, mmap = ElabTerm.infer_sort vctx ictx env eqns mmap a in
+      let t, eqns, mmap = ElabTerm.elab_sort vctx ictx env eqns mmap a in
       if cmp_sort t s then
         (eqns, mmap)
       else
         failwith "unsound tscope"
     | TBind (a, b) ->
       let x, ub = unbind b in
-      let t, eqns, mmap = ElabTerm.infer_sort vctx ictx env eqns mmap a in
+      let t, eqns, mmap = ElabTerm.elab_sort vctx ictx env eqns mmap a in
       let vctx = VMap.add x (a, t) vctx in
       check_tscope vctx ictx env eqns mmap ub (min s t)
 end
 
 let elab tp =
   let vctx = VMap.singleton Prelude.main_v (Term.Main, L) in
-  let _, mmap = ElabTop.infer vctx IMap.empty VMap.empty [] MMap.empty tp in
+  let _, mmap = ElabTop.elab vctx IMap.empty VMap.empty [] MMap.empty tp in
   unbox (UnifyTop.resolve mmap tp)

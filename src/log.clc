@@ -113,12 +113,12 @@ Definition get_ref :=
           (sig A fun _ => channel ~((ref_t) n) A)).
 
 Definition Main :=
-  match ((((mk_ref) string) 4000) "hello\n") _main_ with
+  match ((((mk_ref) ?0) 4000) "hello\n") _main_ with
   | (tnsr_intro ref _main_) =>
-    match (((get_ref) ?0) ?1) ref with
+    match (((get_ref) ?1) ?2) ref with
     | (sig_intro msg1 ref) =>
-      let ref := ((((set_ref) ?2) ?3) "world\n") ref in
-      match (((get_ref) ?4) ?5) ref with
+      let ref := ((((set_ref) ?3) ?4) "world\n") ref in
+      match (((get_ref) ?5) ?6) ref with
       | (sig_intro msg2 ref) =>
         let _stdout_ := (send _stdout_) msg1 in
         let _stdout_ := (send _stdout_) msg2 in
