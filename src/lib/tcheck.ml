@@ -2,8 +2,8 @@ open Format
 open Bindlib
 open Name
 open Core
-open Term
-open Top
+open Tm
+open Tp
 open Context
 open Prelude
 
@@ -11,7 +11,7 @@ let failwith s =
   let _ = printf "%s\n" s in
   failwith "tcheck"
 
-module CheckTerm = struct
+module CheckTm = struct
   let rec infer_sort vctx ictx env m =
     let a, ctx = infer vctx ictx env m in
     match zdnf env a with
@@ -19,8 +19,8 @@ module CheckTerm = struct
       if VMap.is_empty ctx then
         s
       else
-        failwith (asprintf "impure context(%a)" Term.pp a)
-    | a -> failwith (asprintf "unexpected type(%a)" Term.pp a)
+        failwith (asprintf "impure context(%a)" Tm.pp a)
+    | a -> failwith (asprintf "unexpected type(%a)" Tm.pp a)
 
   and infer vctx ictx env m =
     match m with
@@ -47,7 +47,7 @@ module CheckTerm = struct
       let t = infer_sort vctx ictx env a in
       let _ = infer_sort (VMap.add x (a, t) vctx) ictx env ub in
       (Knd s, VMap.empty)
-    | Lam _ -> failwith (asprintf "infer lam(%a)" Term.pp m)
+    | Lam _ -> failwith (asprintf "infer lam(%a)" Tm.pp m)
     | App (m, n) -> (
       let a, ctx1 = infer vctx ictx env m in
       match zdnf env a with
@@ -59,9 +59,9 @@ module CheckTerm = struct
           if VMap.is_empty ctx2 then
             (subst b n, merge ctx1 ctx2)
           else
-            failwith (asprintf "impure arg(%a)" Term.pp n)
+            failwith (asprintf "impure arg(%a)" Tm.pp n)
         | L -> (subst b n, merge ctx1 ctx2))
-      | _ -> failwith (asprintf "infer app(%a)" Term.pp m))
+      | _ -> failwith (asprintf "infer app(%a)" Tm.pp m))
     | Let (m, n) ->
       let a, ctx1 = infer vctx ictx env m in
       let s = infer_sort vctx ictx env a in
@@ -70,7 +70,7 @@ module CheckTerm = struct
         | U when VMap.is_empty ctx1 ->
           let x, un = unbind n in
           infer (VMap.add x (a, s) vctx) ictx (VMap.add x m env) un
-        | U -> failwith (asprintf "import let(%a)" Term.pp m)
+        | U -> failwith (asprintf "import let(%a)" Tm.pp m)
         | L ->
           let x, un = unbind n in
           let b, ctx2 = infer (VMap.add x (a, s) vctx) ictx env un in
@@ -78,20 +78,20 @@ module CheckTerm = struct
       in
       (b, merge ctx1 ctx2)
     | Ind (id, ms) -> (
-      let (Top.Ind (_, a, _)) = find_id id ictx in
+      let (Tp.Ind (_, a, _)) = find_id id ictx in
       try infer_pscope vctx ictx env ms a with
-      | _ -> failwith (asprintf "ind failure(%a)" Term.pp m))
+      | _ -> failwith (asprintf "ind failure(%a)" Tm.pp m))
     | Constr (id, ms) -> (
-      let (Top.Constr (_, a)) = find_idc id ictx in
+      let (Tp.Constr (_, a)) = find_idc id ictx in
       try infer_pscope vctx ictx env ms a with
-      | _ -> failwith (asprintf "constr failure(%a)" Term.pp m))
+      | _ -> failwith (asprintf "constr failure(%a)" Tm.pp m))
     | Match (m, mot, cls) -> (
       let a, ctx1 = infer vctx ictx env m in
       let s = infer_sort vctx ictx env a in
       let a = zdnf env a in
       match a with
       | Ind (id, ms) -> (
-        let (Top.Ind (_, _, cs)) = find_id id ictx in
+        let (Tp.Ind (_, _, cs)) = find_id id ictx in
         let cover = coverage vctx ictx env cls cs ms in
         match (s, mot) with
         | _, Mot0 -> (
@@ -101,7 +101,7 @@ module CheckTerm = struct
           | (a, ctx2) :: ctxs ->
             List.fold_left
               (fun acc (a', ctx) ->
-                if Term.equal env a a' && equal ctx ctx2 then
+                if Tm.equal env a a' && equal ctx ctx2 then
                   acc
                 else
                   failwith "mot0 error")
@@ -155,8 +155,8 @@ module CheckTerm = struct
                 ctxs
             else
               failwith "mot3 impure context")
-        | _ -> failwith (asprintf "linear motive(%a)" Term.pp m))
-      | _ -> failwith (asprintf "match non-inductive(%a)" Term.pp m))
+        | _ -> failwith (asprintf "linear motive(%a)" Tm.pp m))
+      | _ -> failwith (asprintf "match non-inductive(%a)" Tm.pp m))
     | Fix n -> (
       let _, un = unbind n in
       match un with
@@ -164,7 +164,7 @@ module CheckTerm = struct
         let _ = infer_sort vctx ictx env a in
         let ctx = check vctx ictx env m a in
         (a, ctx)
-      | _ -> failwith (asprintf "infer fix(%a)" Term.pp m))
+      | _ -> failwith (asprintf "infer fix(%a)" Tm.pp m))
     | Main -> (Knd L, VMap.empty)
     | Proto -> (Knd U, VMap.empty)
     | End -> (Proto, VMap.empty)
@@ -175,7 +175,7 @@ module CheckTerm = struct
       if VMap.is_empty ctx then
         (Proto, VMap.empty)
       else
-        failwith (asprintf "impure inp(%a)" Term.pp m)
+        failwith (asprintf "impure inp(%a)" Tm.pp m)
     | Out (a, b) ->
       let x, ub = unbind b in
       let s = infer_sort vctx ictx env a in
@@ -183,13 +183,13 @@ module CheckTerm = struct
       if VMap.is_empty ctx then
         (Proto, VMap.empty)
       else
-        failwith (asprintf "impure out(%a)" Term.pp m)
+        failwith (asprintf "impure out(%a)" Tm.pp m)
     | Ch m ->
       let ctx = check vctx ictx env m Proto in
       if VMap.is_empty ctx then
         (Knd L, VMap.empty)
       else
-        failwith (asprintf "impure channel(%a)" Term.pp m)
+        failwith (asprintf "impure channel(%a)" Tm.pp m)
     | Fork (a, m, n) -> (
       let _ = infer_sort vctx ictx env a in
       match zdnf env a with
@@ -203,8 +203,8 @@ module CheckTerm = struct
         if VMap.is_empty ctx1 then
           (Ind (Prelude.tnsr_id, [ a; Main ]), merge ctx2 ctx3)
         else
-          failwith (asprintf "impure fork(%a)" Term.pp a)
-      | _ -> failwith (asprintf "non-channel fork(%a)" Term.pp a))
+          failwith (asprintf "impure fork(%a)" Tm.pp a)
+      | _ -> failwith (asprintf "non-channel fork(%a)" Tm.pp a))
     | Send m -> (
       let a, ctx = infer vctx ictx env m in
       match zdnf env a with
@@ -212,7 +212,7 @@ module CheckTerm = struct
         let x, ub = unbind b in
         let b = unbox (bind_var x (lift (Ch ub))) in
         (Pi (L, a, b), ctx)
-      | _ -> failwith (asprintf "send on non-out(%a, %a)" Term.pp m Term.pp a))
+      | _ -> failwith (asprintf "send on non-out(%a, %a)" Tm.pp m Tm.pp a))
     | Recv m -> (
       let a, ctx = infer vctx ictx env m in
       match zdnf env a with
@@ -224,12 +224,12 @@ module CheckTerm = struct
           let b = unbox (bind_var x (lift (Ch ub))) in
           (Ind (Prelude.sig_id, [ a; Lam (U, b) ]), ctx)
         | L -> (Ind (Prelude.tnsr_id, [ a; Ch ub ]), ctx))
-      | _ -> failwith (asprintf "recv on non-inp(%a)" Term.pp m))
+      | _ -> failwith (asprintf "recv on non-inp(%a)" Tm.pp m))
     | Close m -> (
       let a, ctx = infer vctx ictx env m in
       match zdnf env a with
       | Ch End -> (Ind (Prelude.unit_id, []), ctx)
-      | _ -> failwith (asprintf "close on non-end(%a, %a)" Term.pp m Term.pp a))
+      | _ -> failwith (asprintf "close on non-end(%a, %a)" Tm.pp m Tm.pp a))
     | Dual m ->
       let ctx = check vctx ictx env m Proto in
       (Proto, ctx)
@@ -293,7 +293,7 @@ module CheckTerm = struct
     in
     let rec find id cs =
       match cs with
-      | (Top.Constr (idc, a) as c) :: cs ->
+      | (Tp.Constr (idc, a) as c) :: cs ->
         if Id.equal id idc then
           (a, cs)
         else
@@ -303,20 +303,20 @@ module CheckTerm = struct
     in
     let rec arity_pscope vctx a ms xs =
       match (a, ms) with
-      | Top.PBind (a, b), m :: ms ->
+      | Tp.PBind (a, b), m :: ms ->
         let b = subst b (Ann (m, a)) in
         arity_pscope vctx b ms xs
-      | Top.PBase a, _ -> arity_tscope vctx a xs
+      | Tp.PBase a, _ -> arity_tscope vctx a xs
       | _ -> failwith "coverage arity pscope"
     and arity_tscope vctx a xs =
       match (a, xs) with
-      | Top.TBind (a, b), x :: xs ->
+      | Tp.TBind (a, b), x :: xs ->
         let s = infer_sort vctx ictx env a in
         let vctx = VMap.add x (a, s) vctx in
         let b = subst b (Var x) in
         let vctx, b, ss = arity_tscope vctx b xs in
         (vctx, b, (x, s) :: ss)
-      | Top.TBase a, [] -> (vctx, a, [])
+      | Tp.TBase a, [] -> (vctx, a, [])
       | _ -> failwith "coverage arity tscope"
     in
     match cls with
@@ -349,9 +349,9 @@ module CheckTerm = struct
         let ctx = remove x ctx r in
         match s with
         | U when VMap.is_empty ctx -> ctx
-        | U -> failwith (asprintf "impure context(%a)" Term.pp um)
+        | U -> failwith (asprintf "impure context(%a)" Tm.pp um)
         | L -> ctx)
-      | _ -> failwith (asprintf "type mismatch(%a, %a)" Term.pp lm Term.pp a))
+      | _ -> failwith (asprintf "type mismatch(%a, %a)" Tm.pp lm Tm.pp a))
     | Fix m as fx ->
       let x, um = unbind m in
       let s = infer_sort vctx ictx env a in
@@ -359,7 +359,7 @@ module CheckTerm = struct
       if VMap.is_empty ctx then
         ctx
       else
-        failwith (asprintf "impure context(%a)" Term.pp fx)
+        failwith (asprintf "impure context(%a)" Tm.pp fx)
     | Let (m, n) ->
       let x, un = unbind n in
       let n = unbox (bind_var x (lift (Ann (un, a)))) in
@@ -368,13 +368,13 @@ module CheckTerm = struct
     | Constr (id, ms) -> (
       match zdnf env a with
       | Ind (_, ns) ->
-        let (Top.Constr (_, b)) = find_idc id ictx in
+        let (Tp.Constr (_, b)) = find_idc id ictx in
         let b =
           List.fold_left
             (fun a m ->
               match a with
-              | Top.PBind (a, b) -> subst b (Ann (m, a))
-              | Top.PBase _ -> a)
+              | Tp.PBind (a, b) -> subst b (Ann (m, a))
+              | Tp.PBase _ -> a)
             b ns
         in
         let b, ctx = infer_pscope vctx ictx env ms b in
@@ -389,7 +389,7 @@ module CheckTerm = struct
         let b = zdnf env b in
         match b with
         | Ind (id, ms) -> (
-          let (Top.Ind (_, b, cs)) = find_id id ictx in
+          let (Tp.Ind (_, b, cs)) = find_id id ictx in
           let cover = coverage vctx ictx env cls cs ms in
           let ctxs = check_cover cover ictx env a in
           match ctxs with
@@ -402,7 +402,7 @@ module CheckTerm = struct
                 else
                   failwith "mot3 error")
               (merge ctx1 ctx2) ctxs)
-        | _ -> failwith (asprintf "check non-inductive(%a)" Term.pp b))
+        | _ -> failwith (asprintf "check non-inductive(%a)" Tm.pp b))
       | _ ->
         let b, ctx = infer vctx ictx env (Match (m, mot, cls)) in
         check_eq env ctx a b)
@@ -411,10 +411,10 @@ module CheckTerm = struct
       check_eq env ctx a b
 
   and check_eq env ctx a b =
-    if Term.equal env a b then
+    if Tm.equal env a b then
       ctx
     else
-      failwith (asprintf "type mismatch(%a, %a)" Term.pp a Term.pp b)
+      failwith (asprintf "type mismatch(%a, %a)" Tm.pp a Tm.pp b)
 
   and check_cover cover ictx env a =
     match cover with
@@ -445,22 +445,22 @@ module CheckTerm = struct
     | _ -> []
 end
 
-module CheckTop = struct
+module CheckTp = struct
   let rec infer vctx ictx env tp =
     match tp with
     | Main m ->
-      let ctx = CheckTerm.check vctx ictx env m Term.Main in
+      let ctx = CheckTm.check vctx ictx env m Tm.Main in
       (ctx, ictx)
     | Define (m, tp) ->
-      let a, ctx1 = CheckTerm.infer vctx ictx env m in
-      let s = CheckTerm.infer_sort vctx ictx env a in
+      let a, ctx1 = CheckTm.infer vctx ictx env m in
+      let s = CheckTm.infer_sort vctx ictx env a in
       let ctx2, ictx =
         if s = U then
           if VMap.is_empty ctx1 then
             let x, utp = unbind tp in
             infer (VMap.add x (a, s) vctx) ictx (VMap.add x m env) utp
           else
-            failwith (asprintf "impure define(%a)" Term.pp m)
+            failwith (asprintf "impure define(%a)" Tm.pp m)
         else
           let x, utp = unbind tp in
           let ctx, ictx = infer (VMap.add x (a, s) vctx) ictx env utp in
@@ -491,7 +491,7 @@ module CheckTop = struct
           failwith (asprintf "unknown import id(%a)" Id.pp id)
       in
       let a = Ch (App (n, m)) in
-      let ctx1 = CheckTerm.check vctx ictx env a (Knd L) in
+      let ctx1 = CheckTm.check vctx ictx env a (Knd L) in
       let x, utp = unbind tp in
       let ctx2, ictx = infer (VMap.add x (a, L) vctx) ictx env utp in
       let ctx2 = remove x ctx2 L in
@@ -518,12 +518,12 @@ module CheckTop = struct
     match a with
     | TBase a -> (
       match a with
-      | Term.Ind (id', ms) ->
+      | Tm.Ind (id', ms) ->
         if Id.equal id id' then
           param xs ms
         else
           failwith (asprintf "unmatched tscope(%a, %a)" Id.pp id Id.pp id')
-      | _ -> failwith (asprintf "non-inductive tscope(%a)" Term.pp a))
+      | _ -> failwith (asprintf "non-inductive tscope(%a)" Tm.pp a))
     | TBind (_, a) ->
       let _, a = unbind a in
       param_tscope a id xs
@@ -543,33 +543,31 @@ module CheckTop = struct
     | PBase a -> check_tscope vctx ictx env a s
     | PBind (a, b) ->
       let x, ub = unbind b in
-      let t = CheckTerm.infer_sort vctx ictx env a in
+      let t = CheckTm.infer_sort vctx ictx env a in
       let vctx = VMap.add x (a, t) vctx in
       check_pscope vctx ictx env ub (min_sort s t)
 
   and check_tscope vctx ictx env a s =
     match a with
     | TBase a ->
-      let t = CheckTerm.infer_sort vctx ictx env a in
+      let t = CheckTm.infer_sort vctx ictx env a in
       if cmp_sort t s then
         ()
       else
         failwith "unsound tscope"
     | TBind (a, b) ->
       let x, ub = unbind b in
-      let t = CheckTerm.infer_sort vctx ictx env a in
+      let t = CheckTm.infer_sort vctx ictx env a in
       let vctx = VMap.add x (a, t) vctx in
       check_tscope vctx ictx env ub (min s t)
 end
 
 let infer tp =
-  let vctx = VMap.singleton Prelude.main_v (Term.Main, L) in
-  let ctx, _ = CheckTop.infer vctx IMap.empty VMap.empty tp in
+  let vctx = VMap.singleton Prelude.main_v (Tm.Main, L) in
+  let ctx, _ = CheckTp.infer vctx IMap.empty VMap.empty tp in
   let ctx = remove Prelude.main_v ctx L in
   if VMap.is_empty ctx then
     ()
   else
-    let _ =
-      VMap.iter (fun x m -> printf "VMap(%a, %a)@." pp_v x Term.pp m) ctx
-    in
+    let _ = VMap.iter (fun x m -> printf "VMap(%a, %a)@." pp_v x Tm.pp m) ctx in
     failwith "impure toplevel"

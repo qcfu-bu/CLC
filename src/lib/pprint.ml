@@ -7,7 +7,7 @@ open Prelude
 let pp_v fmt x = fprintf fmt "%s" (name_of x)
 
 module PrintTerm = struct
-  open Term
+  open Tm
 
   let rec nat_of m =
     match m with
@@ -201,7 +201,7 @@ module PrintTerm = struct
 end
 
 module PrintTop = struct
-  open Top
+  open Tp
 
   let rec pp fmt t =
     match t with
@@ -240,7 +240,7 @@ module PrintTop = struct
 
   and pp_tscope fmt a =
     match a with
-    | TBase a -> Term.pp fmt a
+    | TBase a -> Tm.pp fmt a
     | TBind (a, b) ->
       let x, ub = unbind b in
       if binder_occur b then

@@ -10,8 +10,8 @@ open Parser
 open Thread
 open Event
 
-module EvalTerm = struct
-  open Term
+module EvalTm = struct
+  open Tm
 
   exception FunctionError of string
 
@@ -36,8 +36,8 @@ module EvalTerm = struct
   and value =
     | VBox
     | VConstr of Id.t * value list
-    | VLam of Term.v * Term.t
-    | VFix of Term.v * Term.t
+    | VLam of Tm.v * Tm.t
+    | VFix of Tm.v * Tm.t
     | VCh of ch
     | VSend of ch
 
@@ -53,8 +53,8 @@ module EvalTerm = struct
     match m with
     | VBox -> fprintf fmt "VBox"
     | VConstr (id, ms) -> fprintf fmt "VConstr(%a, [%a])" Id.pp id aux ms
-    | VLam (x, m) -> fprintf fmt "VLam(%a, %a)" pp_v x Term.pp m
-    | VFix (x, m) -> fprintf fmt "VFix(%a, %a)" pp_v x Term.pp m
+    | VLam (x, m) -> fprintf fmt "VLam(%a, %a)" pp_v x Tm.pp m
+    | VFix (x, m) -> fprintf fmt "VFix(%a, %a)" pp_v x Tm.pp m
     | VCh ch -> fprintf fmt "VCh(%a)" pp_ch ch
     | VSend ch -> fprintf fmt "VSend(%a)" pp_ch ch
 
@@ -94,8 +94,8 @@ module EvalTerm = struct
 
   let of_string s =
     let ctx = Prelude.(vctx, ictx) in
-    match parse_string (ParseTerm.asciix_parser ()) s ctx with
-    | Success t -> RTerm.(core Name.VMap.empty t)
+    match parse_string (ParseTm.asciix_parser ()) s ctx with
+    | Success t -> RTm.(core Name.VMap.empty t)
     | Failed (s, _) -> raise StringError
 
   let pair_id = Id.mk "pair"
@@ -218,10 +218,10 @@ module EvalTerm = struct
     | Axiom _ -> (VBox, env)
 end
 
-module EvalTop = struct
-  open Term
-  open Top
-  open EvalTerm
+module EvalTp = struct
+  open Tm
+  open Tp
+  open EvalTm
 
   exception ImportError
 
@@ -229,10 +229,10 @@ module EvalTop = struct
     let env = VMap.singleton Prelude.main_v VBox in
     let rec aux env t =
       match t with
-      | Main m -> EvalTerm.eval env m
+      | Main m -> EvalTm.eval env m
       | Define (m, t) ->
         let x, ut = unbind t in
-        let m, env = EvalTerm.eval env m in
+        let m, env = EvalTm.eval env m in
         let env = VMap.add x m env in
         aux env ut
       | Induct (_, t) -> aux env t

@@ -13,8 +13,8 @@ type id_info =
   ; arity : int
   }
 
-module PreludeTerm = struct
-  open RTerm
+module PreTm = struct
+  open RTm
 
   let reserved =
     SSet.of_list
@@ -474,10 +474,10 @@ module PreludeTerm = struct
         return (Ann (m, a))
 end
 
-module PreludeTop = struct
-  open PreludeTerm
-  open RTerm
-  open RTop
+module PreTp = struct
+  open PreTm
+  open RTm
+  open RTp
 
   exception ParseError of string
 
@@ -658,13 +658,13 @@ module PreludeTop = struct
 end
 
 module Prelude = struct
-  open Term
+  open Tm
 
   let raw, (vctx, ictx) =
     let ch = open_in "./lib/prelude.clc" in
-    PreludeTop.parse_ch ch
+    PreTp.parse_ch ch
 
-  let main_v = RTop.main
+  let main_v = RTp.main
 
   let unit_id = (SMap.find "unit" ictx).id
 

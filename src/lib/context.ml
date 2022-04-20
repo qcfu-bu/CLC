@@ -2,8 +2,8 @@ open Format
 open Bindlib
 open Name
 open Core
-open Term
-open Top
+open Tm
+open Tp
 
 let find_v x ctx =
   try VMap.find x ctx with

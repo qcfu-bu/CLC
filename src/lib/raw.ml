@@ -1,10 +1,10 @@
 open Format
 open Bindlib
 open Core
-open Term
+open Tm
 open Name
 
-module RTerm = struct
+module RTm = struct
   type v = Var.t
 
   type t =
@@ -49,7 +49,7 @@ module RTerm = struct
     | Mot2 of p * t
     | Mot3 of v * p * t
 
-  let var = Var.var (fun x -> Term.Var x)
+  let var = Var.var (fun x -> Tm.Var x)
 
   let find x ctx =
     try VMap.find x ctx with
@@ -174,13 +174,13 @@ module RTerm = struct
     | PVar x ->
       let _x = var x in
       let ctx = VMap.add x _x ctx in
-      (Term.PVar _x, ctx)
+      (Tm.PVar _x, ctx)
     | PInd (id, ps) ->
       let _ps, ctx = _core_ps ctx ps in
-      (Term.PInd (id, _ps), ctx)
+      (Tm.PInd (id, _ps), ctx)
     | PConstr (id, ps) ->
       let _ps, ctx = _core_ps ctx ps in
-      (Term.PConstr (id, _ps), ctx)
+      (Tm.PConstr (id, _ps), ctx)
 
   and _core_ps ctx ps =
     match ps with
@@ -192,7 +192,7 @@ module RTerm = struct
 
   and _core_m ctx mot =
     match mot with
-    | Mot0 -> Term._Mot0
+    | Mot0 -> Tm._Mot0
     | Mot1 (x, mot) ->
       let _x = var x in
       let ctx = VMap.add x _x ctx in
@@ -212,9 +212,9 @@ module RTerm = struct
   let core ctx m = unbox (_core ctx m)
 end
 
-module RTop = struct
-  open Top
-  open RTerm
+module RTp = struct
+  open Tp
+  open RTm
 
   exception EmptyTop
 
@@ -228,18 +228,18 @@ module RTop = struct
 
   and pscope =
     | PBase of tscope
-    | PBind of v * RTerm.t * pscope
+    | PBind of v * RTm.t * pscope
 
   and tscope =
-    | TBase of RTerm.t
-    | TBind of v * RTerm.t * tscope
+    | TBase of RTm.t
+    | TBind of v * RTm.t * tscope
 
   type t =
     | Empty
-    | Main of RTerm.t
-    | Define of v * RTerm.t * t
+    | Main of RTm.t
+    | Define of v * RTm.t * t
     | Induct of ind * t
-    | Import of Id.t * RTerm.t * v * t
+    | Import of Id.t * RTm.t * v * t
 
   let rec append_t t1 t2 =
     match t1 with
@@ -253,11 +253,11 @@ module RTop = struct
     match t with
     | Empty -> raise EmptyTop
     | Main m ->
-      let _m = RTerm._core ctx m in
+      let _m = RTm._core ctx m in
       _Main _m
     | Define (x, m, t) ->
       let _x = var x in
-      let _m = RTerm._core ctx m in
+      let _m = RTm._core ctx m in
       let ctx = VMap.add x _x ctx in
       let _t = _core ctx t in
       _Define _m (bind_var _x _t)
@@ -269,7 +269,7 @@ module RTop = struct
       _Induct (_Ind id _a _cs) _t
     | Import (id, m, x, t) ->
       let _x = var x in
-      let _m = RTerm._core ctx m in
+      let _m = RTm._core ctx m in
       let ctx = VMap.add x _x ctx in
       let _t = _core ctx t in
       _Import id _m (bind_var _x _t)
@@ -281,7 +281,7 @@ module RTop = struct
       _PBase _a
     | PBind (x, a, b) ->
       let _x = var x in
-      let _a = RTerm._core ctx a in
+      let _a = RTm._core ctx a in
       let ctx = VMap.add x _x ctx in
       let _b = _core_pscope ctx b in
       _PBind _a (bind_var _x _b)
@@ -289,11 +289,11 @@ module RTop = struct
   and _core_tscope ctx a =
     match a with
     | TBase a ->
-      let _a = RTerm._core ctx a in
+      let _a = RTm._core ctx a in
       _TBase _a
     | TBind (x, a, b) ->
       let _x = var x in
-      let _a = RTerm._core ctx a in
+      let _a = RTm._core ctx a in
       let ctx = VMap.add x _x ctx in
       let _b = _core_tscope ctx b in
       _TBind _a (bind_var _x _b)

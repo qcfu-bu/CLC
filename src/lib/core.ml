@@ -8,7 +8,7 @@ type sort =
 
 let pp_v fmt x = fprintf fmt "%s#%d" (name_of x) (uid_of x)
 
-module Term = struct
+module Tm = struct
   type v = t var
 
   and t =
@@ -701,50 +701,49 @@ module Term = struct
       | _ -> false
 end
 
-module Top = struct
+module Tp = struct
   type ind = Ind of Id.t * pscope * constr list
 
   and constr = Constr of Id.t * pscope
 
   and pscope =
     | PBase of tscope
-    | PBind of Term.t * psbinder
+    | PBind of Tm.t * psbinder
 
   and tscope =
-    | TBase of Term.t
-    | TBind of Term.t * tsbinder
+    | TBase of Tm.t
+    | TBind of Tm.t * tsbinder
 
-  and psbinder = (Term.t, pscope) binder
+  and psbinder = (Tm.t, pscope) binder
 
-  and tsbinder = (Term.t, tscope) binder
+  and tsbinder = (Tm.t, tscope) binder
 
   type t =
-    | Main of Term.t
-    | Define of Term.t * tbinder
+    | Main of Tm.t
+    | Define of Tm.t * tbinder
     | Induct of ind * t
-    | Import of Id.t * Term.t * tbinder
+    | Import of Id.t * Tm.t * tbinder
 
-  and tbinder = (Term.t, t) binder
+  and tbinder = (Tm.t, t) binder
 
   let rec pp fmt t =
     match t with
-    | Main m -> fprintf fmt "@[Definition Main :=@;<1 2>%a.@]" Term.pp m
+    | Main m -> fprintf fmt "@[Definition Main :=@;<1 2>%a.@]" Tm.pp m
     | Define (m, t) -> (
       match m with
       | Axiom (_, m) ->
         let x, ut = unbind t in
-        fprintf fmt "@[Axiom %a :@;<1 2>%a.@.@.%a@]" pp_v x Term.pp m pp ut
+        fprintf fmt "@[Axiom %a :@;<1 2>%a.@.@.%a@]" pp_v x Tm.pp m pp ut
       | _ ->
         let x, ut = unbind t in
-        fprintf fmt "@[Definition %a :=@;<1 2>%a.@.@.%a@]" pp_v x Term.pp m pp
-          ut)
+        fprintf fmt "@[Definition %a :=@;<1 2>%a.@.@.%a@]" pp_v x Tm.pp m pp ut)
     | Induct (Ind (id, a, cs), t) ->
       fprintf fmt "@[Inductive %a %a :=@.%a.@.@.%a@]" Id.pp id pp_pscope a
         pp_constr cs pp t
     | Import (id, m, t) ->
       let x, ut = unbind t in
-      fprintf fmt "@[Import %a@;<1 2>%a as %a.@.@.%a@]" Id.pp id Term.pp m pp_v
-        x pp ut
+      fprintf fmt "@[Import %a@;<1 2>%a as %a.@.@.%a@]" Id.pp id Tm.pp m pp_v x
+        pp ut
 
   and pp_constr fmt cs =
     match cs with
@@ -758,31 +757,30 @@ module Top = struct
     | PBase a -> fprintf fmt ": %a" pp_tscope a
     | PBind (a, b) ->
       let x, ub = unbind b in
-      fprintf fmt "@[@[(%a :@;<1 2>%a)@]@;<1 2>%a@]" pp_v x Term.pp a pp_pscope
-        ub
+      fprintf fmt "@[@[(%a :@;<1 2>%a)@]@;<1 2>%a@]" pp_v x Tm.pp a pp_pscope ub
 
   and pp_tscope fmt a =
     match a with
-    | TBase a -> Term.pp fmt a
+    | TBase a -> Tm.pp fmt a
     | TBind (a, b) ->
       let x, ub = unbind b in
       if binder_occur b then
-        fprintf fmt "@[@[forall (%a :@;<1 2>%a),@]@;<1 2>%a@]" pp_v x Term.pp a
+        fprintf fmt "@[@[forall (%a :@;<1 2>%a),@]@;<1 2>%a@]" pp_v x Tm.pp a
           pp_tscope ub
       else
-        fprintf fmt "@[(%a) ->@;<1 2>%a@]" Term.pp a pp_tscope ub
+        fprintf fmt "@[(%a) ->@;<1 2>%a@]" Tm.pp a pp_tscope ub
 
   let _PBase = box_apply (fun a -> PBase a)
 
   let _PBind = box_apply2 (fun a b -> PBind (a, b))
 
-  let _PBnd a b = _PBind a (bind_var Term.__ b)
+  let _PBnd a b = _PBind a (bind_var Tm.__ b)
 
   let _TBase = box_apply (fun m -> TBase m)
 
   let _TBind = box_apply2 (fun a b -> TBind (a, b))
 
-  let _TBnd a b = _TBind a (bind_var Term.__ b)
+  let _TBnd a b = _TBind a (bind_var Tm.__ b)
 
   let _Ind id = box_apply2 (fun a cs -> Ind (id, a, cs))
 

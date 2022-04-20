@@ -17,8 +17,8 @@ let _ =
     let fname = Sys.argv.(1) in
     let ch = open_in fname in
     let log = open_out "log.clc" in
-    let rtp = ParseTop.parse_ch ch in
-    let tp = RTop.core rtp in
+    let rtp = ParseTp.parse_ch ch in
+    let tp = RTp.core rtp in
     let s = asprintf "%a@.@." PrintTop.pp tp in
     let _ = Printf.fprintf log "desugar ok\n" in
     let _ =
@@ -40,5 +40,5 @@ let _ =
       Printf.fprintf log "----------------------------------------\n"
     in
     let _ = Printf.fprintf log "tcheck ok" in
-    let _ = EvalTop.eval tp in
+    let _ = EvalTp.eval tp in
     ()

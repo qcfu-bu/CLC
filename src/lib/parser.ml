@@ -7,8 +7,8 @@ open Prelude
 module SMap = Map.Make (String)
 module SSet = Set.Make (String)
 
-module ParseTerm = struct
-  open RTerm
+module ParseTm = struct
+  open RTm
 
   let reserved =
     SSet.of_list
@@ -614,10 +614,10 @@ module ParseTerm = struct
         return (Ann (m, a))
 end
 
-module ParseTop = struct
-  open ParseTerm
-  open RTerm
-  open RTop
+module ParseTp = struct
+  open ParseTm
+  open RTm
+  open RTp
 
   exception ParseError of string
 

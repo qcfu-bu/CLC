@@ -3,7 +3,7 @@ open Bindlib
 open Name
 open Context
 open Core
-open Term
+open Tm
 open Pprint
 
 let failwith s =
@@ -190,12 +190,12 @@ let rec simpl env eqn =
       if s1 = s2 then
         []
       else
-        failwith (asprintf "simpl failure(%a, %a)" Term.pp h1 Term.pp h2)
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Var x1, Var x2 ->
       if eq_vars x1 x2 then
         List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] sp1 sp2
       else
-        failwith (asprintf "simpl failure(%a, %a)" Term.pp h1 Term.pp h2)
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Pi (s1, a1, b1), Pi (s2, a2, b2) ->
       if s1 = s2 then
         let _, ub1, ub2 = unbind2 b1 b2 in
@@ -203,13 +203,13 @@ let rec simpl env eqn =
         let eqn2 = simpl env (ub1, ub2) in
         eqn1 @ eqn2
       else
-        failwith (asprintf "simpl failure(%a, %a)" Term.pp h1 Term.pp h2)
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Lam (s1, m1), Lam (s2, m2) ->
       if s1 = s2 then
         let _, um1, um2 = unbind2 m1 m2 in
         simpl env (um1, um2)
       else
-        failwith (asprintf "simpl failure(%a, %a)" Term.pp h1 Term.pp h2)
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Let (m1, n1), Let (m2, n2) ->
       let _, un1, un2 = unbind2 n1 n2 in
       let eqn1 = simpl env (m1, m2) in
@@ -219,12 +219,12 @@ let rec simpl env eqn =
       if Id.equal id1 id2 then
         List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] ms1 ms2
       else
-        failwith (asprintf "simpl failure(%a, %a)" Term.pp h1 Term.pp h2)
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Constr (id1, ms1), Constr (id2, ms2) ->
       if Id.equal id1 id2 then
         List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] ms1 ms2
       else
-        failwith (asprintf "simpl failure(%a, %a)" Term.pp h1 Term.pp h2)
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Match (m1, mot1, cls1), Match (m2, mot2, cls2) ->
       let eqn1 = simpl env (m1, m2) in
       let eqn2 =
@@ -240,7 +240,7 @@ let rec simpl env eqn =
           let _, mot1, mot2 = unbind2 mot1 mot2 in
           let _, umot1, umot2 = unbind_p2 mot1 mot2 in
           simpl env (umot1, umot2)
-        | _ -> failwith (asprintf "simpl failure(%a, %a)" Term.pp h1 Term.pp h2)
+        | _ -> failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
       in
       let eqn3 =
         List.fold_left2
@@ -285,8 +285,8 @@ let rec simpl env eqn =
         in
         eqn1 @ eqn2
       else
-        failwith (asprintf "simpl failure(%a, %a)" Term.pp h1 Term.pp h2)
-    | _ -> failwith (asprintf "simpl failure(%a, %a)" Term.pp m1 Term.pp m2)
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
+    | _ -> failwith (asprintf "simpl failure(%a, %a)" Tm.pp m1 Tm.pp m2)
 
 let solve eqn =
   let strip sp =
@@ -334,7 +334,7 @@ let solve eqn =
     res
   | Meta x, _ ->
     if occurs x m2 then
-      failwith (asprintf "meta(%a) occurs in term(%a)" Meta.pp x Term.pp m2)
+      failwith (asprintf "meta(%a) occurs in term(%a)" Meta.pp x Tm.pp m2)
     else
       let xs = strip sp1 in
       let ctx = fv VSet.empty m2 in
@@ -342,10 +342,10 @@ let solve eqn =
         let m = unbox (_mLam U xs (lift m2)) in
         MMap.singleton x (Some m, None, 1)
       else
-        failwith (asprintf "solve failure(%a, %a)" Term.pp m1 Term.pp m2)
-  | _ -> failwith (asprintf "solve failure(%a, %a)" Term.pp m1 Term.pp m2)
+        failwith (asprintf "solve failure(%a, %a)" Tm.pp m1 Tm.pp m2)
+  | _ -> failwith (asprintf "solve failure(%a, %a)" Tm.pp m1 Tm.pp m2)
 
-module UnifyTerm = struct
+module UnifyTm = struct
   let rec resolve mmap m =
     let h, sp = spine m in
     match h with
@@ -455,22 +455,22 @@ module UnifyTerm = struct
       | Recv m -> Recv (resolve mmap m)
       | Close m -> Close (resolve mmap m)
       | Axiom (id, m) -> Axiom (id, resolve mmap m)
-      | _ -> failwith (asprintf "resolve failure(%a)" Term.pp m))
+      | _ -> failwith (asprintf "resolve failure(%a)" Tm.pp m))
 end
 
-module UnifyTop = struct
-  open Term
-  open Top
-  open UnifyTerm
+module UnifyTp = struct
+  open Tm
+  open Tp
+  open UnifyTm
 
   let rec resolve mmap tp =
     match tp with
     | Main m ->
-      let m = UnifyTerm.resolve mmap m in
+      let m = UnifyTm.resolve mmap m in
       _Main (lift m)
     | Define (m, tp) ->
       let x, utp = unbind tp in
-      let m = UnifyTerm.resolve mmap m in
+      let m = UnifyTm.resolve mmap m in
       let utp = resolve mmap utp in
       let tp = bind_var x utp in
       _Define (lift m) tp
@@ -480,7 +480,7 @@ module UnifyTop = struct
       _Induct ind tp
     | Import (id, m, tp) ->
       let x, utp = unbind tp in
-      let m = UnifyTerm.resolve mmap m in
+      let m = UnifyTm.resolve mmap m in
       let utp = resolve mmap utp in
       let tp = bind_var x utp in
       _Import id (lift m) tp
@@ -500,7 +500,7 @@ module UnifyTop = struct
     | PBase a -> _PBase (resolve_tscope mmap a)
     | PBind (a, b) ->
       let x, ub = unbind b in
-      let a = UnifyTerm.resolve mmap a in
+      let a = UnifyTm.resolve mmap a in
       let ub = resolve_pscope mmap ub in
       let b = bind_var x ub in
       _PBind (lift a) b
@@ -508,11 +508,11 @@ module UnifyTop = struct
   and resolve_tscope mmap a =
     match a with
     | TBase a ->
-      let a = UnifyTerm.resolve mmap a in
+      let a = UnifyTm.resolve mmap a in
       _TBase (lift a)
     | TBind (a, b) ->
       let x, ub = unbind b in
-      let a = UnifyTerm.resolve mmap a in
+      let a = UnifyTm.resolve mmap a in
       let ub = resolve_tscope mmap ub in
       let b = bind_var x ub in
       _TBind (lift a) b
@@ -526,7 +526,7 @@ let rec unify env mmap eqns =
     let mmap = List.fold_left (fun acc mmap -> union acc mmap) mmap mmaps in
     let eqns =
       List.map
-        (fun (m1, m2) -> (UnifyTerm.resolve mmap m1, UnifyTerm.resolve mmap m2))
+        (fun (m1, m2) -> (UnifyTm.resolve mmap m1, UnifyTm.resolve mmap m2))
         eqns
     in
     unify env mmap eqns
