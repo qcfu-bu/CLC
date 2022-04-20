@@ -8,14 +8,14 @@ Inductive bool : U :=
 | false : bool.
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
-| ex_intro (A : U) (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#60 P#61).
+| ex_intro (A : U) (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#85 P#86).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#68 P#69).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#93 P#94).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#75 B#76).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#100 B#101).
 
 Inductive nat : U :=
 | O : nat
@@ -39,11 +39,57 @@ Definition cat :=
       end) :
     (string) -> (string) -> string).
 
-Definition id := ((fun A => lin x => x) : forall (A : U), (A) -o A).
+Import stdout 1 as _stdout_.
+
+Definition handler :=
+  ((lin ch0 =>
+      match recv ch0 with
+      | (tnsr_intro _main_ ch0) =>
+        match fork (ch :
+                channel ?(_ : main), ?(_ : string), !(_ : main), $) := _main_
+              in
+              match recv ch with
+              | (tnsr_intro _main_ ch) =>
+                match recv ch with
+                | (sig_intro msg ch) =>
+                  let _stdout_ := (send _stdout_) msg in
+                  let ch := (send ch) _main_ in
+                  match close ch with
+                  | tt => match close _stdout_ with
+                          | tt => tt
+                          end
+                  end
+                end
+              end
+        with
+        | (tnsr_intro ch1 _main_) =>
+          let ch1 := (send ch1) _main_ in
+          let ch1 := (send ch1) "hello world\n" in
+          match recv ch1 with
+          | (tnsr_intro _main_ ch1) =>
+            let ch0 := (send ch0) _main_ in
+            match close ch0 with
+            | tt => match close ch1 with
+                    | tt => tt
+                    end
+            end
+          end
+        end
+      end) :
+    (channel ?(_ : main), !(_ : main), $) -o unit).
 
 Definition Main :=
-  let x := ((id) ?0) 5 in
-  let y := (((ex_intro x x)) : (ex nat fun _ => nat)) in _main_.
+  match fork (ch : channel ?(_ : main), !(_ : main), $) := _main_ in
+        (handler) ch
+  with
+  | (tnsr_intro ch _main_) =>
+    let ch := (send ch) _main_ in
+    match recv ch with
+    | (tnsr_intro _main_ ch) => match close ch with
+                                | tt => _main_
+                                end
+    end
+  end.
 
 elab ok
 --------------------------------------------------------------------------------
@@ -56,14 +102,14 @@ Inductive bool : U :=
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#349 P#350).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#825 P#826).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#357 P#358).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#833 P#834).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#364 B#365).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#840 B#841).
 
 Inductive nat : U :=
 | O : nat
@@ -87,11 +133,57 @@ Definition cat :=
       end) :
     (string) -> (string) -> string).
 
-Definition id := ((fun A => lin x => x) : forall (A : U), (A) -o A).
+Import stdout 1 as _stdout_.
+
+Definition handler :=
+  ((lin ch0 =>
+      match recv ch0 with
+      | (tnsr_intro _main_ ch0) =>
+        match fork (ch :
+                channel ?(_ : main), ?(_ : string), !(_ : main), $) := _main_
+              in
+              match recv ch with
+              | (tnsr_intro _main_ ch) =>
+                match recv ch with
+                | (sig_intro msg ch) =>
+                  let _stdout_ := (send _stdout_) msg in
+                  let ch := (send ch) _main_ in
+                  match close ch with
+                  | tt => match close _stdout_ with
+                          | tt => tt
+                          end
+                  end
+                end
+              end
+        with
+        | (tnsr_intro ch1 _main_) =>
+          let ch1 := (send ch1) _main_ in
+          let ch1 := (send ch1) "hello world\n" in
+          match recv ch1 with
+          | (tnsr_intro _main_ ch1) =>
+            let ch0 := (send ch0) _main_ in
+            match close ch0 with
+            | tt => match close ch1 with
+                    | tt => tt
+                    end
+            end
+          end
+        end
+      end) :
+    (channel ?(_ : main), !(_ : main), $) -o unit).
 
 Definition Main :=
-  let x := ((id) nat) 5 in
-  let y := (((ex_intro x x)) : (ex nat fun _ => nat)) in _main_.
+  match fork (ch : channel ?(_ : main), !(_ : main), $) := _main_ in
+        (handler) ch
+  with
+  | (tnsr_intro ch _main_) =>
+    let ch := (send ch) _main_ in
+    match recv ch with
+    | (tnsr_intro _main_ ch) => match close ch with
+                                | tt => _main_
+                                end
+    end
+  end.
 
 --------------------------------------------------------------------------------
 tcheck ok
