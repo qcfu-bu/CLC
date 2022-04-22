@@ -12,6 +12,5 @@ clc_substitution.v
 clc_inversion.v
 clc_validity.v
 clc_soundness.v
-clc_linearity.v
 clc_resolution.v
 clc_semantics.v
