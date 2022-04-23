@@ -417,7 +417,7 @@ Proof.
     destruct k=>//=.
     inv h=>//.
     inv h=>//. }
-  move=>i m _ k s s' Q c σ h _.
+  move=>i m _ t k s s' Q c σ h _.
   { have{}h:=h (Var 0) c.
     destruct k=>//=.
     inv h=>//.
@@ -428,6 +428,11 @@ Proof.
     inv h=>//.
     inv h=>//. }
   move=>A _ m _ k s s' Q c σ h _.
+  { have{}h:=h (Var 0) c.
+    destruct k=>//=.
+    inv h=>//.
+    inv h=>//. }
+  move=>l k s s' Q c σ h _.
   { have{}h:=h (Var 0) c.
     destruct k=>//=.
     inv h=>//.
@@ -560,14 +565,14 @@ Lemma All2_case_subst Γ Δ n k s s' A Q Fs Cs Cs' σ:
   All2i (fun i F C =>
     constr 0 s C /\
     let I := Ind A Cs' s in
-    let T := mkcase k s' I Q (Constr i I) C in
+    let T := mkcase k s' I Q (Constr i I s) C in
     forall Δ σ, Δ ⊢ σ ⊣ Γ ->
       Δ ⊢ F.[σ] : T.2.[σ] : T.1) n Fs Cs ->
   Δ ⊢ σ ⊣ Γ ->
   All2i (fun i F C =>
     constr 0 s C /\
     let I := Ind A.[σ] Cs'..[up σ] s in
-    let T := mkcase k s' I Q.[σ] (Constr i I) C in
+    let T := mkcase k s' I Q.[σ] (Constr i I s) C in
     Δ ⊢ F : T.2 : T.1) n Fs..[σ] Cs..[up σ].
 Proof.
   elim: Fs Γ Δ n s A Q Cs σ=>//=.
@@ -584,7 +589,7 @@ Proof.
     have h1: ((Ind A Cs' s .: ids) 0) = Ind A Cs' s by autosubst.
     have h2: ∀ x, ~(Ind A Cs' s .: ids) 0 = Var x.
     { move=>//. }
-    have {h1 h2}[e1 e2]:=constr_respine_subst H h1 h2 Q (Constr n (Ind A Cs' s)) k s' σ.
+    have {h1 h2}[e1 e2]:=constr_respine_subst H h1 h2 Q (Constr n (Ind A Cs' s) s) k s' σ.
     rewrite e1 in tyF=>{e1}.
     rewrite e2 in tyF=>{e2}.
     asimpl in tyF.

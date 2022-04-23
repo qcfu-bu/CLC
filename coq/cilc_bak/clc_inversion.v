@@ -102,21 +102,22 @@ Proof.
   apply: sub_trans; eauto.
 Qed.
 
-Lemma constr_inv Γ i I CI s :
-  Γ ⊢ Constr i I : CI : s ->
+Lemma constr_inv Γ i I CI s t :
+  Γ ⊢ Constr i I s : CI : t ->
   exists A C Cs,
+    s = t /\
     Γ |> U /\
     iget i Cs C /\ I = Ind A Cs s /\
     C.[I/] <: CI /\
     Γ ⊢ I : A : U.
 Proof.
-  move e:(Constr i I)=>n tp.
-  elim: tp i I e=>//={Γ n CI s}.
-  move=>Γ A s i C Cs k ig tyI _ i0 I [e1 e2]; subst.
+  move e:(Constr i I s)=>n tp.
+  elim: tp i I e=>//={Γ n CI t}.
+  move=>Γ A t i C Cs k ig tyI _ i0 I [e1 e2] e3; subst.
   exists A. exists C. exists Cs.
   repeat split; eauto.
-  move=>Γ A B m s i sb tym ihm tyB _ i0 I e; subst.
-  have[A0[C[Cs[k[ig[e[sb' tyI]]]]]]]:=ihm _ _ erefl.
+  move=>Γ A B m t i sb tym ihm tyB _ i0 I e; subst.
+  have[A0[C[Cs[e1[k[ig[e2[sb' tyI]]]]]]]]:=ihm _ _ erefl.
   exists A0. exists C. exists Cs.
   repeat split; eauto.
   apply: sub_trans; eauto.
