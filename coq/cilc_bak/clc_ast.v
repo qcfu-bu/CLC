@@ -209,3 +209,26 @@ Section step_ind_nested.
     apply: ih_iota2; eauto.
   Qed.
 End step_ind_nested.
+
+Lemma All1_append P ms ms' :
+  All1 P ms -> All1 P ms' -> All1 P (ms ++ ms').
+Proof with eauto using All1.
+  move=>pms. elim: pms ms'=>//={ms}...
+Qed.
+
+Lemma All1_rcons P ms m :
+  All1 P ms -> P m -> All1 P (rcons ms m).
+Proof with eauto using All1.
+  move=>pms pm.
+  rewrite<-cats1.
+  apply: All1_append...
+Qed.
+
+Lemma All1_rev P ms : All1 P ms -> All1 P (rev ms).
+Proof with eauto using All1.
+  elim=>//={ms}...
+  move=>m ms pm hd tl.
+  replace (m :: ms) with ([:: m] ++ ms) by eauto.
+  rewrite rev_cat.
+  apply: All1_append...
+Qed.

@@ -17,6 +17,7 @@ Inductive value : term -> Prop :=
 | value_lam A m s t :
   value (Lam A m s t)
 | value_indd A Cs s ms :
+  All1 value ms ->
   value (spine (Ind A Cs s) ms)
 | value_constr i I s ms :
   All1 value ms ->
@@ -32,7 +33,9 @@ Section value_ind_nested.
   Hypothesis ih_pi : forall A B s r t, P (Pi A B s r t).
   Hypothesis ih_lam : forall A m s t, P (Lam A m s t).
   Hypothesis ih_indd :
-    forall A Cs s ms, P (spine (Ind A Cs s) ms).
+    forall A Cs s ms,
+      All1 value ms -> All1 P ms ->
+      P (spine (Ind A Cs s) ms).
   Hypothesis ih_constr :
     forall i I s ms,
       All1 value ms -> All1 P ms ->
@@ -46,7 +49,13 @@ Section value_ind_nested.
     apply: ih_sort; eauto.
     apply: ih_pi; eauto.
     apply: ih_lam; eauto.
-    apply: ih_indd; eauto.
+    have ih_nested:=
+      fix fold ms (pf : All1 value ms) : All1 P ms :=
+        match pf with
+        | All1_nil => All1_nil _
+        | All1_cons _ _ hd tl =>
+          All1_cons (value_ind_nested _ hd) (fold _ tl)
+        end; eauto.
     have ih_nested:=
       fix fold ms (pf : All1 value ms) : All1 P ms :=
         match pf with
@@ -75,6 +84,14 @@ Inductive free : context term -> nat -> term -> context term -> Prop :=
   free Θ l m Θ' ->
   free (n :: Θ) l m (n :: Θ').
 
+Inductive ind_head : term -> Prop :=
+| Ind_head A Cs s ms :
+  ind_head (spine (Ind A Cs s) ms).
+
+Inductive constr_head : term -> Prop :=
+| Constr_head i I s ms :
+  constr_head (spine (Constr i I s) ms).
+
 Inductive resolve : context term -> term -> term -> Prop :=
 | resolve_var Θ x :
   Θ |> U ->
@@ -94,6 +111,7 @@ Inductive resolve : context term -> term -> term -> Prop :=
   resolve Θ (Lam A m s t) (Lam A' m' s t)
 | resolve_app Θ1 Θ2 Θ m m' n n' :
   Θ1 ∘ Θ2 => Θ ->
+  (ind_head m' -> Θ2 |> U) ->
   resolve Θ1 m m' ->
   resolve Θ2 n n' ->
   resolve Θ (App m n) (App m' n')
@@ -143,6 +161,7 @@ Section resolve_ind_nested.
   Hypothesis ih_app :
     forall Θ1 Θ2 Θ m m' n n',
       Θ1 ∘ Θ2 => Θ ->
+      (ind_head m' -> Θ2 |> U) ->
       resolve Θ1 m m' -> P Θ1 m m' ->
       resolve Θ2 n n' -> P Θ2 n n' ->
       P Θ (App m n) (App m' n').
@@ -655,12 +674,9 @@ Proof with eauto using
     rewrite<-e2.
     apply: merge_re_id.
     apply: re_pure. }
-  move=>Θ1 Θ2 Θ m m' n n' mrg1 rsm ihm rsn ihn Θ0 Θ3 mrg2 k.
+  move=>Θ1 Θ2 Θ m m' n n' mrg1 h rsm ihm rsn ihn Θ0 Θ3 mrg2 k.
   { have[G[mrg3 mrg4]]:=merge_splitL mrg2 mrg1.
-    econstructor.
-    apply: mrg4.
-    apply: ihm; eauto.
-    eauto. }
+    econstructor... }
   move=>Θ1 A A' Cs Cs' s k1 rA ihA rCs ihCs Θ2 Θ mrg k2.
   { have e:=merge_pureL mrg k1; subst.
     have e:=merge_pureR mrg k2; subst.
@@ -674,7 +690,6 @@ Proof with eauto using
   { have e:=merge_pureR mrg k; subst.
     econstructor... }
 Qed.
-
 
 Lemma resolve_free Θ1 Θ2 Θ Θ' l m n :
   free Θ l n Θ' -> resolve Θ1 (Ptr l) m -> Θ1 ∘ Θ2 => Θ ->
@@ -820,7 +835,7 @@ Inductive wr_env : context term -> Prop :=
 | wr_indd Θ A Cs s ms :
   nf 0 A ->
   All1 (nf 1) Cs ->
-  All1 (nf 0) ms ->
+  all_ptr ms ->
   wr_env Θ ->
   wr_env (spine (Ind A Cs s) ms :U Θ)
 | wr_constr Θ i I s ms :
@@ -930,7 +945,8 @@ Lemma free_wr_nf Θ l m Θ' :
 Proof with eauto using nf.
   elim=>//{Θ l m Θ'}.
   move=>Θ m l e wr. inv wr...
-  { apply: nf_spine... }
+  { apply: nf_spine...
+    apply: all_ptr_nf... }
   { apply: nf_spine...
     apply: all_ptr_nf... }
   move=>Θ m l e wr. inv wr...
@@ -1005,7 +1021,7 @@ Proof with eauto using nf, wr_env_re, All1.
   apply: resolve_ind_nested...
   move=>Θ A A' B B' s r t k rA ihA rB ihB i wr nfP. inv nfP...
   move=>Θ A A' m m' s t k rA ihA rm ihm i wr nfL. inv nfL...
-  move=>Θ1 Θ2 Θ m m' n n' mrg rm ihm rn ihn i wr nfA.
+  move=>Θ1 Θ2 Θ m m' n n' mrg h rm ihm rn ihn i wr nfA.
   { have[wr1 wr2]:=wr_merge_inv mrg wr. inv nfA... }
   move=>Θ A A' Cs Cs' s k rA ihA _ ihCs i wr nfI.
   { inv nfI. constructor...
@@ -1028,7 +1044,7 @@ Proof with eauto using nf, wr_env_re, All1.
   apply: resolve_ind_nested...
   move=>Θ A A' B B' s r t k rA ihA rB ihB i wr nfP. inv nfP...
   move=>Θ A A' m m' s t k rA ihA rm ihm i wr nfL. inv nfL...
-  move=>Θ1 Θ2 Θ m m' n n' mrg rm ihm rn ihn i wr nfA.
+  move=>Θ1 Θ2 Θ m m' n n' mrg h rm ihm rn ihn i wr nfA.
   { have[wr1 wr2]:=wr_merge_inv mrg wr. inv nfA... }
   move=>Θ A A' Cs Cs' s k rA ihA _ ihCs i wr nfI.
   { inv nfI. constructor...
@@ -1184,4 +1200,564 @@ Proof.
   f_equal.
   apply: ih; eauto.
   inv wr; eauto.
+Qed.
+
+Lemma ind_spine'_app_inv A Cs s ms m n :
+  spine' (Ind A Cs s) ms = App m n ->
+  exists ms', spine' (Ind A Cs s) ms' = m /\ ms = n :: ms'.
+Proof.
+  elim: ms=>//=.
+  move=>x ms ih [e1 e2]; subst.
+  exists ms; eauto.
+Qed.
+
+Lemma ind_spine_app_inv A Cs s ms m n :
+  spine (Ind A Cs s) ms = App m n ->
+  exists ms', spine (Ind A Cs s) ms' = m /\ ms = rcons ms' n.
+Proof.
+  rewrite spine_spine'_rev=>/ind_spine'_app_inv[ms'[e1 e2]].
+  exists (rev ms').
+  rewrite spine_spine'_rev.
+  rewrite revK.
+  split; eauto.
+  rewrite<-rev_cons.
+  rewrite<-e2.
+  by rewrite revK.
+Qed.
+
+Lemma constr_spine'_app_inv i I s ms m n :
+  spine' (Constr i I s) ms = App m n ->
+  exists ms', spine' (Constr i I s) ms' = m /\ ms = n :: ms'.
+Proof.
+  elim: ms=>//=.
+  move=>x ms ih [e1 e2]; subst.
+  exists ms; eauto.
+Qed.
+
+Lemma constr_spine_app_inv i I s ms m n :
+  spine (Constr i I s) ms = App m n ->
+  exists ms', spine (Constr i I s) ms' = m /\ ms = rcons ms' n.
+Proof.
+  rewrite spine_spine'_rev=>/constr_spine'_app_inv[ms'[e1 e2]].
+  exists (rev ms').
+  rewrite spine_spine'_rev.
+  rewrite revK.
+  split; eauto.
+  rewrite<-rev_cons.
+  rewrite<-e2.
+  by rewrite revK.
+Qed.
+
+Lemma free_wr_app Θ Θ' l m n :
+  free Θ l (App m n) Θ' -> wr_env Θ -> ind_head m \/ constr_head m.
+Proof.
+  move e:(App m n)=>x fr. elim: fr m n e=>//{Θ Θ' l x}.
+  move=>Θ m l e1 m0 n e2 wr; subst.
+  { inv wr.
+    have[ms'[e1 e2]]:=ind_spine_app_inv H; subst.
+    left. constructor.
+    have[ms'[e1 e2]]:=constr_spine_app_inv H; subst.
+    right. constructor. }
+  move=>Θ m l e1 m0 n e2 wr; subst.
+  { inv wr.
+    have[ms'[e1 e2]]:=constr_spine_app_inv H; subst.
+    right. constructor. }
+  move=>Θ Θ' m n l fr ih m0 n0 e wr; subst.
+  { apply: ih; eauto.
+    inv wr; eauto. }
+Qed.
+
+Lemma resolve_sort_inv Θ m s i :
+  wr_env Θ -> resolve Θ m (s @ i) -> Θ |> U.
+Proof.
+  move e:(s @ i)=>n wr rs.
+  move: Θ m n rs s i e wr.
+  apply: resolve_ind_nested=>//.
+  move=>Θ Θ' l m m' fr rm ihm s i e wr; subst.
+  destruct m; inv rm.
+  have->//:=free_wr_sort fr wr.
+  exfalso. apply: free_wr_ptr; eauto.
+Qed.
+
+Lemma resolve_pi_inv Θ m A B s r t :
+  wr_env Θ -> resolve Θ m (Pi A B s r t) -> Θ |> U.
+Proof.
+  move e:(Pi A B s r t)=>n wr rs.
+  move: Θ m n rs A B s r t e wr.
+  apply: resolve_ind_nested=>//.
+  move=>Θ Θ' l m m' fr rm ihm A B s r t e wr; subst.
+  destruct m; inv rm.
+  have->//:=free_wr_pi fr wr.
+  exfalso. apply: free_wr_ptr; eauto.
+Qed.
+
+Lemma resolve_var_inv Θ m x :
+  wr_env Θ -> resolve Θ m (Var x) -> Θ |> U.
+Proof.
+  move e:(Var x)=>n wr rs.
+  move: Θ m n rs x e wr.
+  apply: resolve_ind_nested=>//.
+  move=>Θ Θ' l m m' fr rm ihm x e wr; subst.
+  destruct m; inv rm.
+  exfalso. apply: free_wr_var; eauto.
+  exfalso. apply: free_wr_ptr; eauto.
+Qed.
+
+Lemma resolve_lam_inv Θ m A n s t :
+  wr_env Θ -> resolve Θ m (Lam A n s t) -> Θ |> t.
+Proof.
+  move e:(Lam A n s t)=>v wr rs.
+  move: Θ m v rs A n s t e wr.
+  apply: resolve_ind_nested=>//.
+  move=>Θ A A' m m' s t k _ _ _ _ _ _ _ _ [_ _ _ ->] _//.
+  move=>Θ Θ' l m m' fr rm ihm A n s t e wr; subst.
+  destruct m; inv rm.
+  destruct t.
+  have->//:=free_wr_lam fr wr.
+  apply: key_impure.
+  exfalso. apply: free_wr_ptr; eauto.
+Qed.
+
+Lemma resolve_ind_inv Θ m A Cs s :
+  wr_env Θ -> resolve Θ m (Ind A Cs s) -> Θ |> U.
+Proof.
+  move e:(Ind A Cs s)=>n wr rs.
+  move: Θ m n rs A Cs s e wr.
+  apply: resolve_ind_nested=>//.
+  move=>Θ Θ' l m m' fr rm ihm A Cs s e wr; subst.
+  destruct m; inv rm.
+  have{}fr:free Θ l (spine (Ind m Cs0 s) nil) Θ' by eauto.
+  have->//:=free_wr_ind fr wr.
+  exfalso. apply: free_wr_ptr; eauto.
+Qed.
+
+Lemma resolve_constr_inv Θ m i I :
+  wr_env Θ -> resolve Θ m (Constr i I U) -> Θ |> U.
+Proof.
+  move e:(Constr i I U)=>n wr rs.
+  move: Θ m n rs i I e wr.
+  apply: resolve_ind_nested=>//.
+  move=>Θ Θ' l m m' fr rm ihm i I e wr; subst.
+  destruct m; inv rm.
+  have{}fr:free Θ l (spine (Constr i m U) nil) Θ' by eauto.
+  have->//:=free_wr_constr fr wr.
+  exfalso. apply: free_wr_ptr; eauto.
+Qed.
+
+Lemma resolve_fix_inv Θ m A n :
+  wr_env Θ -> resolve Θ m (Fix A n) -> Θ |> U.
+Proof.
+  move e:(Fix A n)=>x wr rs.
+  move: Θ m x rs A n e wr.
+  apply: resolve_ind_nested=>//.
+  move=>Θ Θ' l m m' fr rm ihm A n e wr; subst.
+  destruct m; inv rm.
+  have->//:=free_wr_fix fr wr.
+  exfalso. apply: free_wr_ptr; eauto.
+Qed.
+
+Lemma spine_app_rcons m ms n :
+  App (spine m ms) n = spine m (rcons ms n).
+Proof.
+  rewrite!spine_spine'_rev.
+  rewrite rev_rcons=>//=.
+Qed.
+
+Lemma resolve_constr_ind Θ A I Cs i s1 s2 ms1 ms2 :
+  ~resolve Θ (spine (Constr i I s1) ms1) (spine (Ind A Cs s2) ms2).
+Proof.
+  move e1:(spine (Constr i I s1) ms1)=>n1.
+  move e2:(spine (Ind A Cs s2) ms2)=>n2 h.
+  elim: h A I Cs i I s1 s2 ms1 ms2 e1 e2=>//={Θ n1 n2}.
+  all: try solve[intros; exfalso; solve_spine].
+  move=>Θ1 Θ2 Θ m m' n n' mrg h rm ihm rn ihn A _ Cs i I s1 s2 ms1 ms2 e1 e2.
+  { have[ms3[e3 e4]]:=constr_spine_app_inv e1; subst.
+    have[ms4[e3 e4]]:=ind_spine_app_inv e2; subst.
+    apply: ihm; eauto. }
+  move=>Θ A A' Cs Cs' s k rA ihA rCs A0 _ Cs0 i I s1 s2 ms1 ms2 e _.
+  { solve_spine. }
+  move=>Θ Θ' l m m' fr rm ih A _ Cs i I s1 s2 ms1 ms2 e _.
+  { solve_spine. }
+Qed.
+
+Lemma resolve_ind_constr Θ A I Cs i s1 s2 ms1 ms2 :
+  ~resolve Θ (spine (Ind A Cs s1) ms1) (spine (Constr i I s2) ms2).
+Proof.
+  move e1:(spine (Ind A Cs s1) ms1)=>n1.
+  move e2:(spine (Constr i I s2) ms2)=>n2 h.
+  elim: h A I Cs i I s1 s2 ms1 ms2 e1 e2=>//={Θ n1 n2}.
+  all: try solve[intros; exfalso; solve_spine].
+  move=>Θ1 Θ2 Θ m m' n n' mrg h rm ihm rn ihn A _ Cs i I s1 s2 ms1 ms2 e1 e2.
+  { have[ms3[e3 e4]]:=ind_spine_app_inv e1; subst.
+    have[ms4[e3 e4]]:=constr_spine_app_inv e2; subst.
+    apply: ihm; eauto. }
+  move=>Θ i I I' s k rI _ A _ Cs i0 I0 s1 s2 ms1 ms2 e _.
+  { solve_spine. }
+  move=>Θ Θ' l m m' fr rm ih A _ Cs i I s1 s2 ms1 ms2 e _.
+  { solve_spine. }
+Qed.
+
+Lemma ind_ind_spine'_inv A1 A2 Cs1 Cs2 s1 s2 ms :
+  spine' (Ind A1 Cs1 s1) ms = Ind A2 Cs2 s2 ->
+  A1 = A2 /\ Cs1 = Cs2 /\ s1 = s2 /\ ms = nil.
+Proof.
+  elim: ms=>//=.
+  move=>[e1 e2 e3]; subst=>//.
+Qed.
+
+Lemma ind_ind_spine_inv A1 A2 Cs1 Cs2 s1 s2 ms :
+  spine (Ind A1 Cs1 s1) ms = Ind A2 Cs2 s2 ->
+  A1 = A2 /\ Cs1 = Cs2 /\ s1 = s2 /\ ms = nil.
+Proof.
+  rewrite spine_spine'_rev=>/ind_ind_spine'_inv[e1[e2[e3 e4]]]; subst.
+  have->//:=rev_nil e4.
+Qed.
+
+Lemma constr_constr_spine'_inv i1 i2 I1 I2 s1 s2 ms :
+  spine' (Constr i1 I1 s1) ms = Constr i2 I2 s2 ->
+  i1 = i2 /\ I1 = I2 /\ s1 = s2 /\ ms = nil.
+Proof.
+  elim: ms=>//=.
+  move=>[e1 e2 e3]; subst=>//.
+Qed.
+
+Lemma constr_constr_spine_inv i1 i2 I1 I2 s1 s2 ms :
+  spine (Constr i1 I1 s1) ms = Constr i2 I2 s2 ->
+  i1 = i2 /\ I1 = I2 /\ s1 = s2 /\ ms = nil.
+Proof.
+  rewrite spine_spine'_rev=>/constr_constr_spine'_inv[e1[e2[e3 e4]]]; subst.
+  have->//:=rev_nil e4.
+Qed.
+
+Lemma resolve_constr_constr Θ i1 i2 I1 I2 s1 s2 ms1 ms2 :
+  resolve Θ (spine (Constr i1 I1 s1) ms1) (spine (Constr i2 I2 s2) ms2) -> s1 = s2.
+Proof.
+  move e1:(spine (Constr i1 I1 s1) ms1)=>n1.
+  move e2:(spine (Constr i2 I2 s2) ms2)=>n2 r.
+  elim: r i1 i2 I1 I2 s1 s2 ms1 ms2 e1 e2=>{Θ n1 n2}.
+  all: try solve[intros; exfalso; solve_spine].
+  move=>Θ1 Θ2 Θ m m' n n' mrg h rm ihm rn ihn i1 i2 I1 I2 s1 s2 ms1 ms2 e1 e2.
+  { have[ms3[e3 e4]]:=constr_spine_app_inv e1; subst.
+    have[ms4[e3 e4]]:=constr_spine_app_inv e2; subst.
+    apply: ihm; eauto. }
+  move=>Θ i I I' s k rI ihI i1 i2 I1 I2 s1 s2 ms1 ms2 e1 e2.
+  { have[e3[e4[e5 e6]]]:=constr_constr_spine_inv e1; subst.
+    have[e3[e4[e5 e6]]]:=constr_constr_spine_inv e2; subst.
+    eauto. }
+  move=>Θ Θ' l m m' fr rm ihm i1 i2 I1 I2 s1 s2 ms1 ms2 e _.
+  { exfalso. solve_spine. }
+Qed.
+
+Lemma resolve_ind_spine'_inv Θ m A Cs s ms :
+  wr_env Θ -> resolve Θ m (spine' (Ind A Cs s) ms) -> Θ |> U.
+Proof with eauto using resolve_ind_inv.
+  elim: ms Θ m=>//=...
+  move=>m' ms ih Θ m wr rm. inv rm.
+  { have[wr1 wr2]:=wr_merge_inv H1 wr.
+    have k1:=ih _ _ wr1 H5.
+    have /H2 k2:ind_head (spine' (Ind A Cs s) ms).
+    { rewrite<-spine_rev_spine'.
+      constructor. }
+    apply: merge_pure_pure; eauto. }
+  { destruct m0; inv H0.
+    have[wr1 wr2]:=wr_merge_inv H6 (free_wr H wr).
+    have k1:=ih _ _ wr1 H8.
+    have /H7 k2:ind_head (spine' (Ind A Cs s ) ms).
+    { rewrite<-spine_rev_spine'.
+      constructor. }
+    have[h1|h2]:=free_wr_app H wr.
+    inv h1.
+    rewrite spine_app_rcons in H.
+    have e:=free_wr_ind H wr; subst.
+    apply: merge_pure_pure; eauto.
+    inv h2.
+    rewrite<-spine_rev_spine' in H8.
+    move/resolve_constr_ind in H8=>//.
+    have//:=free_wr_ptr H wr. }
+Qed.
+
+Lemma resolve_ind_spine_inv Θ m A Cs s ms :
+  wr_env Θ -> resolve Θ m (spine (Ind A Cs s) ms) -> Θ |> U.
+Proof.
+  rewrite spine_spine'_rev.
+  apply: resolve_ind_spine'_inv.
+Qed.
+
+Lemma All1_rcons_value ms m :
+  All1 value (rcons ms m) -> All1 value ms /\ value m.
+Proof with eauto using All1.
+  elim: ms m=>//=.
+  move=>m vm. inv vm...
+  move=>m ms ih x vm. inv vm.
+  have{ih}[vms vx]:=ih _ H2...
+Qed.
+
+Lemma typing_spine_ind Γ A1 A2 B Cs s1 s2 r t ms1 ms2 :
+  ~typing_spine Γ (spine (Ind A1 Cs s1) ms1) s1 ms2 (Pi A2 B s2 r t) t.
+Proof.
+  move e1:(spine (Ind A1 Cs s1) ms1)=>n1.
+  move e2:(Pi A2 B s2 r t)=>n2 sp.
+  elim: sp A1 A2 B Cs ms1 s2 r e1 e2=>{Γ n1 n2 s1 t ms2}.
+  move=>Γ A B s l k sb tyB A1 A2 B0 Cs ms1 s2 r e1 e2; subst.
+  solve_sub_spine.
+  move=>Γ1 Γ2 Γ hd tl T A B B' s r t u l k sb tyP tyhd
+    mrg sp ih A1 A2 B0 Cs ms1 s2 r0 e1 e2; subst.
+  solve_sub_spine.
+Qed.
+
+Lemma constr_typing_spineX I i s1 s2 r t A1 A2 B C Cs ms :
+  constr i s1 C -> (I i = Ind A1 Cs s1) ->
+  typing_spine nil C.[I] s1 ms (Pi A2 B s2 r t) t ->
+  s2 ≤ s1 /\ r = s1 /\ t = s1.
+Proof.
+  move=>cs.
+  elim: cs s2 r t I A1 A2 B Cs ms=>{i s1 C}.
+  move=>x s ms nms s2 r t I A1 A2 B Cs ms0 h sp.
+  { rewrite spine_subst in sp.
+    asimpl in sp. rewrite h in sp.
+    exfalso.
+    apply: typing_spine_ind; eauto. }
+  move=>s t x A B leq pos nB cB ihB s2 r t0 I A1 A2 B0 Cs ms h sp.
+  { asimpl in sp.
+    inv sp.
+    have[_[_[e1[e2 e3]]]]:=sub_pi_inv H0; subst.
+    repeat split; eauto.
+    have[_[sb[e1[e2 _]]]]:=sub_pi_inv H0; subst.
+    have{}sb:B.[up I].[hd/] <: B1.[hd/].
+    { apply: sub_subst; eauto. }
+    asimpl in sb.
+    inv H3.
+    have[l0[_[_[_ tyB1]]]]:=pi_inv H1.
+    have{}tyB1:[nil] ⊢ B1.[hd/] : r0 @ l0 : U.
+    { destruct s0.
+      have//:=substitution tyB1 (key_nil _ _) (merge_nil _) H2.
+      have//:=substitutionN tyB1 H2. }
+    have sp:=typing_spine_strengthen H4 sb tyB1.
+    have e: (hd .: I) x.+1 = Ind A1 Cs r0 by asimpl.
+    apply: ihB; eauto. }
+  move=>s t x A B leq nA cB ihB s2 r t0 I A1 A2 B0 Cs ms h sp.
+  { asimpl in sp.
+    inv sp.
+    have[_[_[e1[e2 e3]]]]:=sub_pi_inv H0; subst.
+    repeat split; eauto.
+    have[_[sb[e1[e2 _]]]]:=sub_pi_inv H0; subst.
+    have{}sb:B.[up I].[hd/] <: B1.[hd/].
+    { apply: sub_subst; eauto. }
+    asimpl in sb.
+    inv H3.
+    have[l0[_[_[_ tyB1]]]]:=pi_inv H1.
+    have{}tyB1:[nil] ⊢ B1.[hd/] : r0 @ l0 : U.
+    { destruct s0.
+      have//:=substitution tyB1 (key_nil _ _) (merge_nil _) H2.
+      have//:=substitutionN tyB1 H2. }
+    have sp:=typing_spine_strengthen H4 sb tyB1.
+    have e: (hd .: I) x.+1 = Ind A1 Cs r0 by asimpl.
+    apply: ihB; eauto. }
+Qed.
+
+Lemma constr_typing_spine s1 s2 r t A1 A2 B C Cs ms :
+  constr 0 s1 C ->
+  typing_spine nil C.[Ind A1 Cs s1/] s1 ms (Pi A2 B s2 r t) t ->
+  s2 ≤ s1 /\ r = s1 /\ t = s1.
+Proof.
+  move=>c sp.
+  apply: (@constr_typing_spineX (Ind A1 Cs s1 .: ids)); eauto.
+  simpl; eauto.
+Qed.
+
+Theorem resolution Θ m n A t :
+  nil ⊢ n : A : t -> value n -> wr_env Θ -> resolve Θ m n -> Θ |> t.
+Proof with eauto using key_impure.
+  move e:(nil)=>Γ ty. move: Γ n A t ty Θ m e.
+  apply: clc_type_ind_nested.
+  move=>Γ s l k Θ m e val wr rs.
+  { apply: resolve_sort_inv... }
+  move=>Γ A B s r t i k tyA ihA tyB ihB Θ m e val wr rs.
+  { apply: resolve_pi_inv... }
+  move=>Γ x A s hs Θ m e val wr rs; subst. inv hs.
+  move=>Γ A B m s r [|] i k tyP ihP tym ihm Θ m0 e val wr rs...
+  { apply: resolve_lam_inv... }
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn Θ m0 e val wr rs; subst. inv val.
+  { inv mrg.
+    have[ms'[e1 e2]]:=ind_spine_app_inv H; subst.
+    rewrite spine_app_rcons in rs.
+    destruct r.
+    apply: resolve_ind_spine_inv; eauto.
+    apply: key_impure. }
+  { inv mrg.
+    have[ms'[e1 e2]]:=constr_spine_app_inv H; subst.
+    have[G1[G2[A0[s1[mrg[tyC sp]]]]]]:=spine_inv nil_ok tym.
+    inv mrg.
+    have[l tyA0]:=validity nil_ok tyC.
+    have[A1[C[Cs[e1[_[ig[e2[sb tyI]]]]]]]]:=constr_inv tyC; subst.
+    have[l0[_[_[_[cCs[_ tyCs]]]]]]:=ind_inv tyI.
+    have c:=iget_All1 ig cCs.
+    have tyc:=iget_All1 ig tyCs.
+    have//=tycI:=substitution tyc (key_nil _ _) (merge_nil _) tyI.
+    have{}sp:=typing_spine_strengthen sp sb tyA0.
+    have[leq[e1 e2]]:=constr_typing_spine c sp; subst.
+    inv rs.
+    have[wr1 wr2]:=wr_merge_inv H3 wr.
+    have[vms vn]:=All1_rcons_value H0.
+    have vC:value (spine (Constr i (Ind A1 Cs s1) s1) ms') by constructor.
+    have{}ihm:=ihm _ _ erefl vC wr1 H7.
+    have{}ihn:=ihn _ _ erefl vn wr2 H8.
+    destruct s1.
+    { inv leq.
+      apply: merge_pure_pure; eauto. }
+    { apply: key_impure. }
+    inv H2.
+    have[wr1 wr2]:=wr_merge_inv H5 (free_wr H1 wr).
+    have[vms vn]:=All1_rcons_value H0.
+    have vC:value (spine (Constr i (Ind A1 Cs s1) s1) ms') by constructor.
+    have{}ihm:=ihm _ _ erefl vC wr1 H9.
+    have{}ihn:=ihn _ _ erefl vn wr2 H10.
+    destruct s1.
+    { inv leq.
+      have[h1|h2]:=free_wr_app H1 wr.
+      inv h1. exfalso. apply: resolve_ind_constr; eauto.
+      inv h2.
+      have e:=resolve_constr_constr H9; subst.
+      rewrite spine_app_rcons in H1.
+      have e:=free_wr_constr H1 wr; subst.
+      apply: merge_pure_pure; eauto. }
+    { apply: key_impure. }
+    exfalso. apply: free_wr_ptr; eauto. }
+  move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs Θ m e v wr rs; subst.
+  { apply: resolve_ind_inv; eauto. }
+  move=>Γ A s i C Cs I k ig tyI ihI Θ m e v wr rs; subst.
+  { destruct s.
+    apply: resolve_constr_inv; eauto.
+    apply: key_impure. }
+  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms I leq ar key mrg
+    tym ihm tyQ ihQ tyFs ihFs Θ m0 e val. inv val.
+  { exfalso. solve_spine. }
+  { exfalso. solve_spine. }
+  move=>Γ A m l k tyA ihA tym ihm Θ m0 e v wr rs; subst.
+  { apply: resolve_fix_inv; eauto. }
+  move=>Γ A B m s i sb tym ihm tyB ihB Θ m0 e v wr rs; subst.
+  { eauto. }
+Qed.
+
+Lemma all_ptr_value ms : all_ptr ms -> All1 value ms.
+Proof with eauto using value, All1. elim=>{ms}... Qed.
+
+Lemma wr_free_value Θ l m Θ' :
+  free Θ l m Θ' -> wr_env Θ -> value m.
+Proof with eauto using wr_env, value, all_ptr_value.
+  elim=>{Θ l m Θ'}.
+  move=>Θ m l e wr. inv wr...
+  move=>Θ m l e wr. inv wr...
+  move=>Θ m n A l fr ih wr.
+  inv wr...
+Qed.
+
+Lemma resolve_ind_spine Θ A Cs s ms m :
+  resolve Θ (spine (Ind A Cs s) ms) m ->
+  exists A Cs s ms, m = spine (Ind A Cs s) ms.
+Proof.
+  move e:(spine (Ind A Cs s) ms)=>n rs.
+  elim: rs A Cs s ms e=>{Θ m n}.
+  all: try solve[intros; exfalso; solve_spine].
+  move=>Θ1 Θ2 Θ m m' n n' mrg h rm ihm rn ihn A Cs s ms e.
+  { have[ms'[e1 e2]]:=ind_spine_app_inv e; subst.
+    have[A0[Cs0[s0[ms e1]]]]:=ihm _ _ _ _ erefl; subst.
+    exists A0. exists Cs0. exists s0. exists (rcons ms n').
+    by rewrite spine_app_rcons. }
+  move=>Θ A A' Cs Cs' s k rA ihA rCs A0 Cs0 s0 ms e.
+  { have[e1[e2[e3 e4]]]:=ind_ind_spine_inv e; subst.
+    exists A'. exists Cs'. exists s. exists nil=>//. }
+Qed.
+
+Lemma resolve_constr_spine Θ i I s ms m :
+  resolve Θ (spine (Constr i I s) ms) m ->
+  exists i I s ms, m = spine (Constr i I s) ms.
+Proof.
+  move e:(spine (Constr i I s) ms)=>n rs.
+  elim: rs i I s ms e=>{Θ m n}.
+  all: try solve[intros; exfalso; solve_spine].
+  move=>Θ1 Θ2 Θ m m' n n' mrg h rm ihm rn ihn A Cs s ms e.
+  { have[ms'[e1 e2]]:=constr_spine_app_inv e; subst.
+    have[i0[I0[s0[ms e1]]]]:=ihm _ _ _ _ erefl; subst.
+    exists i0. exists I0. exists s0. exists (rcons ms n').
+    by rewrite spine_app_rcons. }
+  move=>Θ i I I' s k rI ihI i0 I0 s0 ms e.
+  { have[e1[e2[e3 e4]]]:=constr_constr_spine_inv e; subst.
+    exists i. exists I'. exists s. exists nil=>//. }
+Qed.
+
+Lemma value_ind_spine_inv A Cs s ms :
+  value (spine (Ind A Cs s) ms) -> All1 value ms.
+Proof.
+  move e:(spine (Ind A Cs s) ms)=>n v.
+  elim: v A Cs s ms e=>{n}.
+  all: try solve[intros; exfalso; solve_spine].
+  move=>A Cs s ms vms A0 Cs0 s0 ms0 e.
+  { have[e1[e2[e3 e4]]]:=spine_ind_inj e; subst=>//. }
+  move=>i I s ms vms A Cs s0 ms0 e.
+  { exfalso. apply: ind_constr_spine; eauto. }
+Qed.
+
+Lemma value_constr_spine_inv i I s ms :
+  value (spine (Constr i I s) ms) -> All1 value ms.
+Proof.
+  move e:(spine (Constr i I s) ms)=>n v.
+  elim: v i I s ms e=>{n}.
+  all: try solve[intros; exfalso; solve_spine].
+  move=>A Cs s ms vms A0 Cs0 s0 ms0 e.
+  { exfalso.
+    symmetry in e.
+    apply: ind_constr_spine; eauto. }
+  move=>i I s ms vms A Cs s0 ms0 e.
+  { have[e1[e2[e3 e4]]]:=spine_constr_inj e; subst=>//. }
+Qed.
+
+Lemma resolve_value Θ m n :
+  resolve Θ m n -> value m -> wr_env Θ -> value n.
+Proof with eauto using value, All1.
+  move: Θ m n.
+  apply: resolve_ind_nested...
+  move=>Θ1 Θ2 Θ m m' n n' mrg h rm ihm rn ihn v wr. inv v.
+  { have[wr1 wr2]:=wr_merge_inv mrg wr.
+    have[ms'[e1 e2]]:=ind_spine_app_inv H; subst.
+    have[vms vn]:=All1_rcons_value H0.
+    have vI : value (spine (Ind A Cs s) ms') by constructor.
+    have{}ihm:=ihm vI wr1.
+    have{}ihn:=ihn vn wr2.
+    have[A0[Cs0[s0[ms e]]]]:=resolve_ind_spine rm; subst.
+    rewrite spine_app_rcons.
+    constructor.
+    move/value_ind_spine_inv in ihm.
+    apply: All1_rcons... }
+  { have[wr1 wr2]:=wr_merge_inv mrg wr.
+    have[ms'[e1 e2]]:=constr_spine_app_inv H; subst.
+    have[vms vn]:=All1_rcons_value H0.
+    have vC : value (spine (Constr i I s) ms') by constructor.
+    have{}ihm:=ihm vC wr1.
+    have{}ihn:=ihn vn wr2.
+    have[i0[I0[s0[ms e]]]]:=resolve_constr_spine rm; subst.
+    rewrite spine_app_rcons.
+    constructor.
+    move/value_constr_spine_inv in ihm.
+    apply: All1_rcons... }
+  move=>Θ A A' Cs Cs' s k rA ihA rCs ihCs v wr.
+  { have: value (spine (Ind A' Cs' s) nil)... }
+  move=>Θ i I I' s k rI ihI v wr.
+  { have: value (spine (Constr i I' s) nil)... }
+  move=>Θ1 Θ2 Θ m m' Q Q' Fs Fs' mrg rm ihm rQ ihQ rFs ihFs v. inv v.
+  { exfalso. solve_spine. }
+  { exfalso. solve_spine. }
+  move=>Θ Θ' l m m' fr rm ih _ wr.
+  { have v:=wr_free_value fr wr.
+    apply: ih...
+    apply: free_wr; eauto. }
+Qed.
+
+Lemma wr_resolve_value Θ l n :
+  wr_env Θ -> resolve Θ (Ptr l) n -> value n.
+Proof.
+  move=>wr rs. inv rs.
+  have fr:=free_wr H0 wr.
+  have vm:=wr_free_value H0 wr.
+  apply: resolve_value; eauto.
 Qed.

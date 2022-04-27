@@ -229,6 +229,22 @@ Proof.
   by rewrite revK in pf.
 Qed.
 
+Lemma spine'_ind_inj A1 A2 Cs1 Cs2 ls1 ls2 s1 s2 :
+  spine' (Ind A1 Cs1 s1) ls1 = spine' (Ind A2 Cs2 s2) ls2 ->
+  A1 = A2 /\ Cs1 = Cs2 /\ ls1 = ls2 /\ s1 = s2.
+Proof.
+  elim: ls1 ls2 A1 A2 Cs1 Cs2 s1 s2=>//=.
+  move=>[|] A1 A2 Cs1 Cs2 s1 s2 e//=. by inv e.
+  move=>t ls1 ih [|]//= t1 t2 A1 A2 Cs1 Cs2 s1 s2[/ih[->[->[->->]]]->]//.
+Qed.
+
+Lemma spine_ind_inj A1 A2 Cs1 Cs2 ls1 ls2 s1 s2 :
+  spine (Ind A1 Cs1 s1) ls1 = spine (Ind A2 Cs2 s2) ls2 ->
+  A1 = A2 /\ Cs1 = Cs2 /\ ls1 = ls2 /\ s1 = s2.
+Proof.
+  rewrite!spine_spine'_rev=>/spine'_ind_inj[->[->[/rev_inj->->]]]//.
+Qed.
+
 Lemma spine'_constr_inj i1 i2 h1 h2 ls1 ls2 s1 s2 :
   spine' (Constr i1 h1 s1) ls1 = spine' (Constr i2 h2 s2) ls2 ->
   i1 = i2 /\ h1 = h2 /\ ls1 = ls2 /\ s1 = s2.
