@@ -817,40 +817,40 @@ Inductive all_ptr : list term -> Prop :=
 | all_ptr_cons l ms :
   all_ptr ms -> all_ptr (Ptr l :: ms).
 
-Inductive wr_env : context term -> Prop :=
-| wr_nil : wr_env nil
+Inductive wr_heap : context term -> Prop :=
+| wr_nil : wr_heap nil
 | wr_sort Θ s i :
-  wr_env Θ ->
-  wr_env (s @ i :U Θ)
+  wr_heap Θ ->
+  wr_heap (s @ i :U Θ)
 | wr_pi Θ A B s r t :
   nf 0 A ->
   nf 1 B ->
-  wr_env Θ ->
-  wr_env (Pi A B s r t :U Θ)
+  wr_heap Θ ->
+  wr_heap (Pi A B s r t :U Θ)
 | wr_lam Θ A m s t :
   nf 0 A ->
   nf 1 m ->
-  wr_env Θ ->
-  wr_env (Lam A m s t :{t} Θ)
+  wr_heap Θ ->
+  wr_heap (Lam A m s t :{t} Θ)
 | wr_indd Θ A Cs s ms :
   nf 0 A ->
   All1 (nf 1) Cs ->
   all_ptr ms ->
-  wr_env Θ ->
-  wr_env (spine (Ind A Cs s) ms :U Θ)
+  wr_heap Θ ->
+  wr_heap (spine (Ind A Cs s) ms :U Θ)
 | wr_constr Θ i I s ms :
   nf 0 I ->
   all_ptr ms ->
-  wr_env Θ ->
-  wr_env (spine (Constr i I s) ms :{s} Θ)
+  wr_heap Θ ->
+  wr_heap (spine (Constr i I s) ms :{s} Θ)
 | wr_fix Θ A m :
   nf 0 A ->
   nf 1 m ->
-  wr_env Θ ->
-  wr_env (Fix A m :U Θ)
+  wr_heap Θ ->
+  wr_heap (Fix A m :U Θ)
 | wr_N Θ :
-  wr_env Θ ->
-  wr_env (_: Θ).
+  wr_heap Θ ->
+  wr_heap (_: Θ).
 
 Lemma nf_typing_All2i (Γ : context term) Fs Cs s i :
   All2i
@@ -895,8 +895,8 @@ Proof with eauto using nf.
     apply: nf_typing_All2i... }
 Qed.
 
-Lemma wr_env_re Θ : wr_env Θ -> wr_env [Θ].
-Proof with eauto using wr_env.
+Lemma wr_heap_re Θ : wr_heap Θ -> wr_heap [Θ].
+Proof with eauto using wr_heap.
   elim=>{Θ}...
   move=>Θ A m s [|] nfA nfm wr ih//=...
   move=>Θ lm ln [|] wr ih//=...
@@ -941,7 +941,7 @@ Lemma all_ptr_nf ms i :
 Proof with eauto using All1, nf. elim=>{ms}... Qed.
 
 Lemma free_wr_nf Θ l m Θ' :
-  free Θ l m Θ' -> wr_env Θ -> nf 0 m.
+  free Θ l m Θ' -> wr_heap Θ -> nf 0 m.
 Proof with eauto using nf.
   elim=>//{Θ l m Θ'}.
   move=>Θ m l e wr. inv wr...
@@ -956,8 +956,8 @@ Proof with eauto using nf.
 Qed.
 
 Lemma wr_merge Θ1 Θ2 Θ :
-  Θ1 ∘ Θ2 => Θ -> wr_env Θ1 -> wr_env Θ2 -> wr_env Θ.
-Proof with eauto using wr_env.
+  Θ1 ∘ Θ2 => Θ -> wr_heap Θ1 -> wr_heap Θ2 -> wr_heap Θ.
+Proof with eauto using wr_heap.
   elim=>{Θ1 Θ2 Θ}...
   move=>Θ1 Θ2 Θ m mrg ih wr1 wr2.
   inv wr1; inv wr2; constructor...
@@ -970,8 +970,8 @@ Proof with eauto using wr_env.
 Qed.
 
 Lemma wr_merge_inv Θ1 Θ2 Θ :
-  Θ1 ∘ Θ2 => Θ -> wr_env Θ -> wr_env Θ1 /\ wr_env Θ2.
-Proof with eauto using wr_env.
+  Θ1 ∘ Θ2 => Θ -> wr_heap Θ -> wr_heap Θ1 /\ wr_heap Θ2.
+Proof with eauto using wr_heap.
   elim...
   move=>Γ1 Γ2 Γ m mrg ih wr. inv wr.
     move:H0=>/ih[wr1 wr2]...
@@ -991,8 +991,8 @@ Proof with eauto using wr_env.
 Qed.
 
 Lemma free_wr Θ Θ' l m :
-  free Θ l m Θ' -> wr_env Θ -> wr_env Θ'.
-Proof with eauto using wr_env.
+  free Θ l m Θ' -> wr_heap Θ -> wr_heap Θ'.
+Proof with eauto using wr_heap.
   elim=>{Θ l m Θ'}; eauto.
   move=>Θ m l e wr. inv wr...
   move=>Θ Θ' m n l fr ih wr.
@@ -1015,8 +1015,8 @@ Proof with eauto using nf, All1.
 Qed.
 
 Lemma resolve_wr_nfi Θ m m' i :
-  resolve Θ m m' -> wr_env Θ -> nf i m' -> nf i m.
-Proof with eauto using nf, wr_env_re, All1.
+  resolve Θ m m' -> wr_heap Θ -> nf i m' -> nf i m.
+Proof with eauto using nf, wr_heap_re, All1.
   move=>rm. move: Θ m m' rm i.
   apply: resolve_ind_nested...
   move=>Θ A A' B B' s r t k rA ihA rB ihB i wr nfP. inv nfP...
@@ -1038,8 +1038,8 @@ Proof with eauto using nf, wr_env_re, All1.
 Qed.
 
 Lemma resolve_wr_nfi' Θ m m' i :
-  resolve Θ m m' -> wr_env Θ -> nf i m -> nf i m'.
-Proof with eauto using nf, wr_env_re, All1.
+  resolve Θ m m' -> wr_heap Θ -> nf i m -> nf i m'.
+Proof with eauto using nf, wr_heap_re, All1.
   move=>rm. move: Θ m m' rm i.
   apply: resolve_ind_nested...
   move=>Θ A A' B B' s r t k rA ihA rB ihB i wr nfP. inv nfP...
@@ -1066,7 +1066,7 @@ Proof with eauto using nf, wr_env_re, All1.
 Qed.
 
 Lemma free_wr_ptr Θ Θ' l i :
-  free Θ l (Ptr i) Θ' -> wr_env Θ -> False.
+  free Θ l (Ptr i) Θ' -> wr_heap Θ -> False.
 Proof.
   move e:(Ptr i)=>m fr. elim: fr i e=>{Θ Θ' l m}.
   move=>Θ m l e1 i e2 wr; subst. inv wr.
@@ -1079,7 +1079,7 @@ Proof.
 Qed.
 
 Lemma free_wr_sort Θ Θ' l s i :
-  free Θ l (s @ i) Θ' -> wr_env Θ -> Θ = Θ'.
+  free Θ l (s @ i) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(s @ i)=>m fr. elim: fr s i e=>//{Θ Θ' l m}.
   move=>Θ m l e1 s i e2 wr; subst. inv wr.
@@ -1091,7 +1091,7 @@ Proof.
 Qed.
 
 Lemma free_wr_pi Θ Θ' l A B s r t :
-  free Θ l (Pi A B s r t) Θ' -> wr_env Θ -> Θ = Θ'.
+  free Θ l (Pi A B s r t) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(Pi A B s r t)=>m fr. elim: fr A B s r t e=>//{Θ Θ' l m}.
   move=>Θ m l e1 A B s r t e2 wr; subst. inv wr.
@@ -1103,7 +1103,7 @@ Proof.
 Qed.
 
 Lemma free_wr_var Θ Θ' l x :
-  free Θ l (Var x) Θ' -> wr_env Θ -> False.
+  free Θ l (Var x) Θ' -> wr_heap Θ -> False.
 Proof.
   move e:(Var x)=>m fr. elim: fr x e=>//{Θ Θ' l m}.
   move=>Θ m l e1 x e2 wr; subst. inv wr.
@@ -1117,7 +1117,7 @@ Proof.
 Qed.
 
 Lemma free_wr_lam Θ Θ' l A m s :
-  free Θ l (Lam A m s U) Θ' -> wr_env Θ -> Θ = Θ'.
+  free Θ l (Lam A m s U) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(Lam A m s U)=>n fr. elim: fr A m s e=>//{Θ Θ' l n}.
   move=>Θ m l e1 A n s e2 wr; subst. inv wr. inv H4.
@@ -1145,7 +1145,7 @@ Proof.
 Qed.
 
 Lemma free_wr_ind Θ Θ' l A Cs s ms :
-  free Θ l (spine (Ind A Cs s) ms) Θ' -> wr_env Θ -> Θ = Θ'.
+  free Θ l (spine (Ind A Cs s) ms) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(spine (Ind A Cs s) ms)=>n fr.
   elim: fr A Cs s ms e=>//{Θ Θ' l n}.
@@ -1176,7 +1176,7 @@ Proof.
 Qed.
 
 Lemma free_wr_constr Θ Θ' l i I ms :
-  free Θ l (spine (Constr i I U) ms) Θ' -> wr_env Θ -> Θ = Θ'.
+  free Θ l (spine (Constr i I U) ms) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(spine (Constr i I U) ms)=>n fr.
   elim: fr i I ms e=>//{Θ Θ' l n}.
@@ -1191,7 +1191,7 @@ Proof.
 Qed.
 
 Lemma free_wr_fix Θ Θ' l A m :
-  free Θ l (Fix A m) Θ' -> wr_env Θ -> Θ = Θ'.
+  free Θ l (Fix A m) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(Fix A m)=>n fr. elim: fr A m e=>//{Θ Θ' l n}.
   move=>Θ m l e1 A n e2 wr; subst. inv wr.
@@ -1249,7 +1249,7 @@ Proof.
 Qed.
 
 Lemma free_wr_app Θ Θ' l m n :
-  free Θ l (App m n) Θ' -> wr_env Θ -> ind_head m \/ constr_head m.
+  free Θ l (App m n) Θ' -> wr_heap Θ -> ind_head m \/ constr_head m.
 Proof.
   move e:(App m n)=>x fr. elim: fr m n e=>//{Θ Θ' l x}.
   move=>Θ m l e1 m0 n e2 wr; subst.
@@ -1268,7 +1268,7 @@ Proof.
 Qed.
 
 Lemma resolve_sort_inv Θ m s i :
-  wr_env Θ -> resolve Θ m (s @ i) -> Θ |> U.
+  wr_heap Θ -> resolve Θ m (s @ i) -> Θ |> U.
 Proof.
   move e:(s @ i)=>n wr rs.
   move: Θ m n rs s i e wr.
@@ -1280,7 +1280,7 @@ Proof.
 Qed.
 
 Lemma resolve_pi_inv Θ m A B s r t :
-  wr_env Θ -> resolve Θ m (Pi A B s r t) -> Θ |> U.
+  wr_heap Θ -> resolve Θ m (Pi A B s r t) -> Θ |> U.
 Proof.
   move e:(Pi A B s r t)=>n wr rs.
   move: Θ m n rs A B s r t e wr.
@@ -1292,7 +1292,7 @@ Proof.
 Qed.
 
 Lemma resolve_var_inv Θ m x :
-  wr_env Θ -> resolve Θ m (Var x) -> Θ |> U.
+  wr_heap Θ -> resolve Θ m (Var x) -> Θ |> U.
 Proof.
   move e:(Var x)=>n wr rs.
   move: Θ m n rs x e wr.
@@ -1304,7 +1304,7 @@ Proof.
 Qed.
 
 Lemma resolve_lam_inv Θ m A n s t :
-  wr_env Θ -> resolve Θ m (Lam A n s t) -> Θ |> t.
+  wr_heap Θ -> resolve Θ m (Lam A n s t) -> Θ |> t.
 Proof.
   move e:(Lam A n s t)=>v wr rs.
   move: Θ m v rs A n s t e wr.
@@ -1319,7 +1319,7 @@ Proof.
 Qed.
 
 Lemma resolve_ind_inv Θ m A Cs s :
-  wr_env Θ -> resolve Θ m (Ind A Cs s) -> Θ |> U.
+  wr_heap Θ -> resolve Θ m (Ind A Cs s) -> Θ |> U.
 Proof.
   move e:(Ind A Cs s)=>n wr rs.
   move: Θ m n rs A Cs s e wr.
@@ -1332,7 +1332,7 @@ Proof.
 Qed.
 
 Lemma resolve_constr_inv Θ m i I :
-  wr_env Θ -> resolve Θ m (Constr i I U) -> Θ |> U.
+  wr_heap Θ -> resolve Θ m (Constr i I U) -> Θ |> U.
 Proof.
   move e:(Constr i I U)=>n wr rs.
   move: Θ m n rs i I e wr.
@@ -1345,7 +1345,7 @@ Proof.
 Qed.
 
 Lemma resolve_fix_inv Θ m A n :
-  wr_env Θ -> resolve Θ m (Fix A n) -> Θ |> U.
+  wr_heap Θ -> resolve Θ m (Fix A n) -> Θ |> U.
 Proof.
   move e:(Fix A n)=>x wr rs.
   move: Θ m x rs A n e wr.
@@ -1449,7 +1449,7 @@ Proof.
 Qed.
 
 Lemma resolve_ind_spine'_inv Θ m A Cs s ms :
-  wr_env Θ -> resolve Θ m (spine' (Ind A Cs s) ms) -> Θ |> U.
+  wr_heap Θ -> resolve Θ m (spine' (Ind A Cs s) ms) -> Θ |> U.
 Proof with eauto using resolve_ind_inv.
   elim: ms Θ m=>//=...
   move=>m' ms ih Θ m wr rm. inv rm.
@@ -1477,7 +1477,7 @@ Proof with eauto using resolve_ind_inv.
 Qed.
 
 Lemma resolve_ind_spine_inv Θ m A Cs s ms :
-  wr_env Θ -> resolve Θ m (spine (Ind A Cs s) ms) -> Θ |> U.
+  wr_heap Θ -> resolve Θ m (spine (Ind A Cs s) ms) -> Θ |> U.
 Proof.
   rewrite spine_spine'_rev.
   apply: resolve_ind_spine'_inv.
@@ -1566,7 +1566,7 @@ Proof.
 Qed.
 
 Theorem resolution Θ m n A t :
-  nil ⊢ n : A : t -> value n -> wr_env Θ -> resolve Θ m n -> Θ |> t.
+  nil ⊢ n : A : t -> value n -> wr_heap Θ -> resolve Θ m n -> Θ |> t.
 Proof with eauto using key_impure.
   move e:(nil)=>Γ ty. move: Γ n A t ty Θ m e.
   apply: clc_type_ind_nested.
@@ -1643,8 +1643,8 @@ Lemma all_ptr_value ms : all_ptr ms -> All1 value ms.
 Proof with eauto using value, All1. elim=>{ms}... Qed.
 
 Lemma wr_free_value Θ l m Θ' :
-  free Θ l m Θ' -> wr_env Θ -> value m.
-Proof with eauto using wr_env, value, all_ptr_value.
+  free Θ l m Θ' -> wr_heap Θ -> value m.
+Proof with eauto using wr_heap, value, all_ptr_value.
   elim=>{Θ l m Θ'}.
   move=>Θ m l e wr. inv wr...
   move=>Θ m l e wr. inv wr...
@@ -1713,7 +1713,7 @@ Proof.
 Qed.
 
 Lemma resolve_value Θ m n :
-  resolve Θ m n -> value m -> wr_env Θ -> value n.
+  resolve Θ m n -> value m -> wr_heap Θ -> value n.
 Proof with eauto using value, All1.
   move: Θ m n.
   apply: resolve_ind_nested...
@@ -1754,7 +1754,7 @@ Proof with eauto using value, All1.
 Qed.
 
 Lemma wr_resolve_value Θ l n :
-  wr_env Θ -> resolve Θ (Ptr l) n -> value n.
+  wr_heap Θ -> resolve Θ (Ptr l) n -> value n.
 Proof.
   move=>wr rs. inv rs.
   have fr:=free_wr H0 wr.
