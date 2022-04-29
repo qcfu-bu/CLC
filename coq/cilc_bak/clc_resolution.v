@@ -934,6 +934,24 @@ Proof.
   apply: All1_nf_rev; eauto.
 Qed.
 
+Lemma all_ptr_append xs ys :
+  all_ptr xs -> all_ptr ys -> all_ptr (xs ++ ys).
+Proof.
+  elim: xs=>//.
+  move=>x xs ih pxs pys. inv pxs.
+  rewrite cat_cons.
+  constructor; eauto.
+Qed.
+
+Lemma all_ptr_rcons xs l :
+  all_ptr xs -> all_ptr (rcons xs (Ptr l)).
+Proof.
+  move=>pxs.
+  rewrite<-cats1.
+  apply: all_ptr_append; eauto.
+  repeat constructor.
+Qed.
+
 Lemma all_ptr_nf ms i :
   all_ptr ms -> All1 (nf i) ms.
 Proof with eauto using All1, nf. elim=>{ms}... Qed.
@@ -1157,14 +1175,15 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_ind_all_ptr Θ Θ' l A Cs s ms :
-  free Θ l (spine (Ind A Cs s) ms) Θ' -> wr_heap Θ -> all_ptr ms.
+Lemma free_wr_ind_inv Θ Θ' l A Cs s ms :
+  free Θ l (spine (Ind A Cs s) ms) Θ' -> wr_heap Θ -> 
+  nf 0 A /\ All1 (nf 1) Cs /\ all_ptr ms.
 Proof.
   move e:(spine (Ind A Cs s) ms)=>n fr.
   elim: fr A Cs s ms e=>//{Θ Θ' l n}.
   move=>Θ m l e1 A Cs s ms e2 wr; subst. inv wr.
   all: try solve[exfalso; solve_spine].
-  { have[_[_[e _]]]:=spine_ind_inj H; subst=>//. }
+  { have[e1[e2[e3 _]]]:=spine_ind_inj H; subst=>//. }
   { exfalso.
     apply: ind_constr_spine; eauto. }
   move=>Θ m l e1 A Cs s ms e2 wr; subst. inv wr.
@@ -1207,19 +1226,19 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_constr_all_ptr Θ Θ' l i I ms :
-  free Θ l (spine (Constr i I U) ms) Θ' -> wr_heap Θ -> all_ptr ms.
+Lemma free_wr_constr_inv Θ Θ' l i I ms s :
+  free Θ l (spine (Constr i I s) ms) Θ' -> wr_heap Θ -> 
+  nf 0 I /\ all_ptr ms.
 Proof.
-  move e:(spine (Constr i I U) ms)=>n fr.
+  move e:(spine (Constr i I s) ms)=>n fr.
   elim: fr i I ms e=>//{Θ Θ' l n}.
   move=>Θ m l e1 i I ms e2 wr; subst. inv wr.
   all: try solve[exfalso; solve_spine].
   { exfalso. apply: ind_constr_spine; eauto. }
-  { have[_[_[e _]]]:=spine_constr_inj H; subst=>//. }
+  { have[_[e1[e2 _]]]:=spine_constr_inj H; subst=>//. }
   move=>Θ m l e1 i I ms e2 wr; subst. inv wr.
   { exfalso. solve_spine. }
-  { exfalso. apply: constr_constr_spine; eauto.
-    move=>//. }
+  { have[_[e1[e2 _]]]:=spine_constr_inj H; subst=>//. }
   move=>Θ Θ' m n l fr ih i I ms e wr; subst.
   apply: ih; eauto.
   inv wr; eauto.
