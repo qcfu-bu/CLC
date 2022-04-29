@@ -1157,6 +1157,25 @@ Proof.
   inv wr; eauto.
 Qed.
 
+Lemma free_wr_ind_all_ptr Θ Θ' l A Cs s ms :
+  free Θ l (spine (Ind A Cs s) ms) Θ' -> wr_heap Θ -> all_ptr ms.
+Proof.
+  move e:(spine (Ind A Cs s) ms)=>n fr.
+  elim: fr A Cs s ms e=>//{Θ Θ' l n}.
+  move=>Θ m l e1 A Cs s ms e2 wr; subst. inv wr.
+  all: try solve[exfalso; solve_spine].
+  { have[_[_[e _]]]:=spine_ind_inj H; subst=>//. }
+  { exfalso.
+    apply: ind_constr_spine; eauto. }
+  move=>Θ m l e1 A Cs s ms e2 wr; subst. inv wr.
+  { exfalso; solve_spine. }
+  { exfalso.
+    apply: ind_constr_spine; eauto. }
+  move=>Θ Θ' m n l fr ih A Cs s ms e wr; subst.
+  apply: ih; eauto.
+  inv wr; eauto.
+Qed.
+
 Lemma constr_constr_spine' i1 i2 I1 I2 s1 s2 ms1 ms2 :
   s1 <> s2 -> spine' (Constr i1 I1 s1) ms1 <> spine' (Constr i2 I2 s2) ms2.
 Proof.
@@ -1184,6 +1203,24 @@ Proof.
     move=>h. inv h. }
   move=>Θ Θ' m n l fr ih i I ms e wr; subst.
   f_equal.
+  apply: ih; eauto.
+  inv wr; eauto.
+Qed.
+
+Lemma free_wr_constr_all_ptr Θ Θ' l i I ms :
+  free Θ l (spine (Constr i I U) ms) Θ' -> wr_heap Θ -> all_ptr ms.
+Proof.
+  move e:(spine (Constr i I U) ms)=>n fr.
+  elim: fr i I ms e=>//{Θ Θ' l n}.
+  move=>Θ m l e1 i I ms e2 wr; subst. inv wr.
+  all: try solve[exfalso; solve_spine].
+  { exfalso. apply: ind_constr_spine; eauto. }
+  { have[_[_[e _]]]:=spine_constr_inj H; subst=>//. }
+  move=>Θ m l e1 i I ms e2 wr; subst. inv wr.
+  { exfalso. solve_spine. }
+  { exfalso. apply: constr_constr_spine; eauto.
+    move=>//. }
+  move=>Θ Θ' m n l fr ih i I ms e wr; subst.
   apply: ih; eauto.
   inv wr; eauto.
 Qed.
