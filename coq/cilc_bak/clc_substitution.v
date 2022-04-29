@@ -561,7 +561,7 @@ Proof.
     repeat f_equal; eauto. }
 Qed.
 
-Lemma All2_case_subst Γ Δ n k s s' A Q Fs Cs Cs' σ:
+Lemma All2i_case_subst Γ Δ n k s s' A Q Fs Cs Cs' σ:
   All2i (fun i F C =>
     constr 0 s C /\
     let I := Ind A Cs' s in
@@ -650,7 +650,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     apply: agree_subst_key.
     apply: agr1.
     all: eauto.
-    apply: All2_case_subst; eauto. }
+    apply: All2i_case_subst; eauto. }
   move=>Γ A m l k tyA ihA tym ihm Δ σ agr.
   { asimpl.
     apply: clc_fix.

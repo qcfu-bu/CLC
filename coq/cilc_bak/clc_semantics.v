@@ -271,11 +271,10 @@ Proof with eauto using resolve, All2.
     apply: wr_heap_re...
     apply: ihm...
     apply: id_ren_up... }
-  move=>Θ1 Θ2 Θ m m' n n' mrg h rm ihm rn ihn i ξ wr idr.
+  move=>Θ1 Θ2 Θ m m' n n' mrg rm ihm rn ihn i ξ wr idr.
   { asimpl.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
-    econstructor...
-    move=>/ind_head_ren_inv/h//. }
+    econstructor... }
   move=>Θ A A' Cs Cs' s k rA ihA rCs ihCs i ξ wr idr.
   { asimpl.
     econstructor...
@@ -413,9 +412,251 @@ Proof with eauto using merge, agree_resolve.
     repeat split... }
 Qed.
 
+Lemma All2i_resolve_subst Γ Θ1 Θ2 Θ Fs1 Fs2 Cs s x i σ σ' :
+  All2 (resolve Θ1) Fs1 Fs2 ->
+  Θ1 ∘ Θ2 => Θ ->
+  All2i
+    (fun _ F C =>
+      constr 0 s C /\
+      forall Θ1 Θ2 Θ m σ σ' x,
+        Θ1 ∘ Θ2 => Θ ->
+        resolve Θ1 m F ->
+        wr_heap Θ1 ->
+        agree_resolve Γ Θ2 σ σ' x ->
+        resolve Θ m.[σ] F.[σ']) 
+    i Fs2 Cs ->
+  wr_heap Θ1 ->
+  agree_resolve Γ Θ2 σ σ' x ->
+  All2 (resolve Θ) Fs1..[σ] Fs2..[σ'].
+Proof with eauto using All2.
+  move=>h. elim: h Γ Θ2 Θ Cs s x i σ σ'=>{Fs1 Fs2}...
+  move=>F1 F2 Fs1 Fs2 rF rFs ih1 Γ Θ2 Θ Cs s x i σ σ' mrg hd wr agr.
+  inv hd.
+  move:H2=>[_ ih2].
+  asimpl.
+  constructor...
+Qed.  
+
 Lemma resolve_subst Γ Θ1 Θ2 Θ m m' A r σ σ' x :
   Γ ⊢ m' : A : r -> Θ1 ∘ Θ2 => Θ ->
   resolve Θ1 m m' -> wr_heap Θ1 ->
   agree_resolve Γ Θ2 σ σ' x ->
   resolve Θ m.[σ] m'.[σ'].
-Proof with eauto using resolve, merge_pure_pure.
+Proof with eauto using resolve, merge_pure_pure, All2.
+  move=>ty. move: Γ m' A r ty Θ1 Θ2 Θ m σ σ' x.
+  apply: clc_type_ind_nested...
+  move=>Γ s l k Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
+  { inv rsm; asimpl.
+    { have k2:=agree_resolve_key agr k.
+      econstructor... }
+    { inv H0.
+      have e:=free_wr_sort H wr; subst.
+      have p:=agree_resolve_key agr k.
+      have [e1 e2]:=merge_pure_eq mrg H4 p; subst.
+      econstructor...
+      exfalso. apply: free_wr_ptr; eauto. } }
+  move=>Γ A B s r t i k tyA ihA tyB ihB Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
+  { inv rsm; asimpl.
+    { constructor.
+      have k2:=agree_resolve_key agr k...
+      apply: ihA...
+      have ag1:agree_resolve (A :U [Γ]) Θ2 (up σ) (up σ') x.+1. 
+      { apply: agree_resolve_upTy; eauto.
+        rewrite<-pure_re; eauto. }
+      have ag2:agree_resolve (_: [Γ]) Θ2 (up σ) (up σ') x.+1.
+      { apply: agree_resolve_upN.
+        rewrite<-pure_re; eauto. } 
+      apply: ihB...
+      destruct s... }
+    { inv H0.
+      have nfP:=free_wr_nf H wr.
+      have e:=free_wr_pi H wr; subst.
+      have k1:=agree_resolve_key agr k.
+      have[e1 e2]:=merge_pure_eq mrg H6 k1; subst.
+      inv nfP.
+      econstructor...
+      econstructor...
+      have le1:0 <= x by eauto.
+      have->:=nf_agree_resolve H3 le1 agr.
+      apply: ihA...
+      have le2:0 < x.+1 by eauto.
+      destruct s.
+      { have agr': agree_resolve (A :U [Γ]) Θ (up σ) (up σ') x.+1.
+        apply: agree_resolve_upTy.
+        rewrite<-pure_re...
+        have->:=nf_agree_resolve H8 le2 agr'... }
+      { have agr': agree_resolve (_: [Γ]) Θ (up σ) (up σ') x.+1.
+        apply: agree_resolve_upN.
+        rewrite<-pure_re...
+        have->:=nf_agree_resolve H8 le2 agr'... }
+      exfalso. apply: free_wr_ptr; eauto. } }
+  move=>Γ x A s hs Θ1 Θ2 Θ m σ σ' x0 mrg rsm wr agr.
+  { inv rsm; asimpl.
+    { have e:=merge_pureL mrg H2; subst.
+      apply: agree_resolve_id... }
+    { inv H0.
+      have//:=free_wr_var H wr.
+      have//:=free_wr_ptr H wr. } }
+  move=>Γ A B m s r t i k tyP ihP tym ihm Θ1 Θ2 Θ n σ σ' x mrg rsL wr agr.
+  { have[lP[tyA[_[_ tyB]]]]:=pi_inv tyP.
+    inv rsL; asimpl.
+    { econstructor.
+      destruct t.
+      have k2:=agree_resolve_key agr k...
+      apply: key_impure.
+      have rsP: resolve [Θ1] (Pi A0 B s r t) (Pi A B s r t).
+      { econstructor...
+        apply: re_pure.
+        apply: resolve_type_refl... }
+      have{}ihP:=ihP _ _ _ _ _ _ _ 
+        (merge_re3 mrg) rsP (wr_heap_re wr) (agree_resolve_re agr).
+      inv ihP...
+      apply: ihm...
+      destruct s.
+      { econstructor... }
+      { econstructor... } }
+    { inv H0.
+      have nfL:=free_wr_nf H wr.
+      have k2:=agree_resolve_key agr k.
+      inv nfL.
+      have[G[fr mrg']]:=free_merge H mrg.
+      have wr':=free_wr H wr.
+      econstructor...
+      econstructor...
+      apply: merge_key...
+      have le1:0 <= x by eauto.
+      have->:=nf_agree_resolve H3 le1 agr.
+      have[e1[e2 e3]]:=merge_re_re mrg'.
+      have rsP: resolve [Θ'] (Pi A0 B s r t) (Pi A B s r t).
+      { econstructor...
+        apply: re_pure.
+        apply: resolve_type_refl... }
+      have{}ihP:=ihP _ _ _ _ _ _ _ 
+        (merge_re3 mrg') rsP (wr_heap_re wr') (agree_resolve_re agr).
+      inv ihP...
+      have le2:0 < x.+1 by eauto.
+      destruct s.
+      { have agr': agree_resolve (A :U Γ) Θ2 (up σ) (up σ') x.+1.
+          apply: agree_resolve_upTy...
+        have->:=nf_agree_resolve H7 le2 agr'... }
+      { have agr': agree_resolve (A :L Γ) Θ2 (up σ) (up σ') x.+1.
+          apply: agree_resolve_upTy...
+        have->:=nf_agree_resolve H7 le2 agr'... }
+      exfalso. apply: free_wr_ptr; eauto. } }
+  move=>Γ1 Γ2 Γ A B m n s r t k mrg1 tym ihm tyn ihn 
+    Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
+  { inv rsm; asimpl.
+    { have[wr1 wr2]:=wr_merge_inv H1 wr.
+      have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
+      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg2 H1 mrg5.
+      econstructor... }
+    { inv H0.
+      have nfa:=free_wr_nf H wr.
+      inv nfa.
+      have[G[fr mrg']]:=free_merge H mrg2.
+      have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
+      have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg' H3 mrg5.
+      have wr':=free_wr H wr.
+      have[wr1 wr2]:=wr_merge_inv H3 wr'.
+      have le:0 <= x by eauto.
+      econstructor...
+      econstructor.
+      apply: mrg6.
+      have->:=nf_agree_resolve H4 le agr1. apply:ihm...
+      have->:=nf_agree_resolve H5 le agr2. apply:ihn...
+      exfalso. apply: free_wr_ptr; eauto. } }
+  move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
+  { inv rsm; asimpl.
+    { have k2:=agree_resolve_key agr k.
+      econstructor...
+      elim: H6 ihCs...
+      move=>C1 C2 Cs1 Cs2 rC rCs ih tl. inv tl.
+      asimpl. constructor...
+      apply: H1...
+      apply: agree_resolve_upTy... }
+    { inv H0.
+      have nfI:=free_wr_nf H wr.
+      have fr:free Θ1 l0 (spine (Ind A0 Cs0 s) nil) Θ' by eauto.
+      have e:=free_wr_ind fr wr; subst.
+      have k2:=agree_resolve_key agr k.
+      have[e1 e2]:=merge_pure_eq mrg H6 k2; subst.
+      inv nfI.
+      econstructor...
+      econstructor...
+      have leq:0 <= x by eauto.
+      have->:=nf_agree_resolve H3 leq agr.
+      apply: ihA...
+      have lt:0 < x.+1 by eauto.
+      have agr': agree_resolve (A :U Γ) Θ (up σ) (up σ') x.+1.
+        apply: agree_resolve_upTy...
+      elim: H8 H5 ihCs...
+      move=>C1 C2 Cs1 Cs2 rC rCs ih hd tl. 
+      inv hd. inv tl.
+      constructor...
+      have->:=nf_agree_resolve H2 lt agr'.
+      apply: H5...
+      exfalso. apply: free_wr_ptr... } }
+  move=>Γ A s i C Cs//=k ig tyI ihI Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
+  { inv rsm; asimpl.
+    { have k2:=agree_resolve_key agr k.
+      econstructor... }
+    { inv H0.
+      have nfC:=free_wr_nf H wr.
+      have k2:=agree_resolve_key agr k.
+      have e:=merge_pureR mrg k2; subst.
+      econstructor...
+      econstructor...
+      inv nfC.
+      have leq:0 <= x by eauto.
+      have->:=nf_agree_resolve H2 leq agr.
+      apply: ihI...
+      have[G[_ mrg1]]:=free_merge H mrg.
+      have e:=merge_pureR mrg1 k2; subst=>//.
+      apply: free_wr...
+      exfalso. apply: free_wr_ptr... } }
+  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms//=leq ar key mrg1 
+    tym ihm tyQ ihQ tyFs ihFs Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
+  { inv rsm; asimpl.
+    { have[wr1 wr2]:=wr_merge_inv H2 wr.
+      have[G1[G2[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
+      have[G3[G4[mrg4[mrg5 mrg6]]]]:=merge_distr mrg2 H2 mrg3.
+      have[e1[e2 _]]:=merge_re_re mrg6.
+      econstructor.
+      apply: mrg4.
+      apply: ihm...
+      apply: ihQ...
+      rewrite<-e2.
+      apply: merge_re_id.
+      apply: wr_heap_re...
+      rewrite e1.
+      apply: agree_resolve_re...
+      apply: All2i_resolve_subst... }
+    { inv H0.
+      have v:=wr_free_value H wr. inv v.
+      exfalso. solve_spine.
+      exfalso. solve_spine.
+      exfalso. apply: free_wr_ptr... } }
+  move=>Γ A m l k tyA ihA tym ihm Θ1 Θ2 Θ m0 σ σ' x mrg rsm wr agr.
+  { inv rsm; asimpl.
+    { have k2:=agree_resolve_key agr k.
+      econstructor...
+      apply: ihm...
+      apply: agree_resolve_upTy... }
+    { inv H0.
+      have nfF:=free_wr_nf H wr.
+      inv nfF.
+      have e:=free_wr_fix H wr; subst.
+      have k2:=agree_resolve_key agr k.
+      have e:=merge_pureR mrg k2; subst.
+      have leq: 0 <= x by eauto.
+      have lt: 0 < x.+1 by eauto.
+      econstructor...
+      econstructor...
+      have->:=nf_agree_resolve H4 leq agr.
+      apply: ihA...
+      have agr': agree_resolve (A :U Γ) Θ2 (up σ) (up σ') x.+1.
+      { apply: agree_resolve_upTy... }
+      have->:=nf_agree_resolve H5 lt agr'.
+      apply: ihm...
+      exfalso. apply: free_wr_ptr... } }
+Qed.
