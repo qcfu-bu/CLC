@@ -435,7 +435,7 @@ Proof with eauto using All2.
   move:H2=>[_ ih2].
   asimpl.
   constructor...
-Qed.  
+Qed.
 
 Lemma resolve_subst Γ Θ1 Θ2 Θ m m' A r σ σ' x :
   Γ ⊢ m' : A : r -> Θ1 ∘ Θ2 => Θ ->
