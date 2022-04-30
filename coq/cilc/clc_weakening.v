@@ -268,7 +268,7 @@ Proof.
     destruct k=>//=.
     move=>[]->//.
     move=>[]->//. }
-  move=>i0 m _ e h c Q.
+  move=>i0 m _ t e h c Q.
   { have:=h i c (Var 0).
     rewrite e=>//=.
     destruct k=>//=.
@@ -286,6 +286,9 @@ Proof.
     destruct k=>//=.
     move=>[]->//.
     move=>[]->//. }
+  move=>l e h c Q.
+  { have:=h i c Q.
+    rewrite e=>//=. }
 Qed.
 
 Lemma respine_up k s I :
@@ -345,7 +348,7 @@ Proof.
   { destruct k=>//=.
     have[->]//:=h Q c.
     have[->]//:=h Q c. }
-  move=>i m _ ξ Q c h.
+  move=>i m _ t ξ Q c h.
   { destruct k=>//=.
     have[->]//:=h Q c.
     have[->]//:=h Q c. }
@@ -354,6 +357,10 @@ Proof.
     have[->]//:=h Q c.
     have[->]//:=h Q c. }
   move=>A _ m _ ξ Q c h.
+  { destruct k=>//=.
+    have[->]//:=h Q c.
+    have[->]//:=h Q c. }
+  move=>l ξ Q c h.
   { destruct k=>//=.
     have[->]//:=h Q c.
     have[->]//:=h Q c. }
@@ -455,14 +462,14 @@ Lemma All2_case_ren Γ Γ' n k s s' A Q Fs Cs Cs' ξ :
   All2i (fun i F C =>
     constr 0 s C /\
     let I := Ind A Cs' s in
-    let T := mkcase k s' I Q (Constr i I) C in
+    let T := mkcase k s' I Q (Constr i I s) C in
     forall Γ' ξ, agree_ren ξ Γ Γ' ->
       Γ' ⊢ F.[ren ξ] : T.2.[ren ξ] : T.1) n Fs Cs ->
   agree_ren ξ Γ Γ' ->
   All2i (fun i F C =>
     constr 0 s C /\
     let I := Ind A.[ren ξ] Cs'..[up (ren ξ)] s in
-    let T := mkcase k s' I Q.[ren ξ] (Constr i I) C in
+    let T := mkcase k s' I Q.[ren ξ] (Constr i I s) C in
     Γ' ⊢ F : T.2 : T.1) n Fs..[ren ξ] Cs..[up (ren ξ)].
 Proof.
   elim: Fs Γ Γ' n s A Q Cs ξ=>//=.
@@ -480,7 +487,7 @@ Proof.
     { move=>[|i] Q0 c; asimpl.
       destruct k=>//.
       destruct k=>//. }
-    have {h}[e1 e2]:=constr_respine_ren H h Q (Constr n (Ind A Cs' s)) ξ.
+    have {h}[e1 e2]:=constr_respine_ren H h Q (Constr n (Ind A Cs' s) s) ξ.
     rewrite e1 in tyF=>{e1}.
     rewrite e2 in tyF=>{e2}.
     asimpl in tyF.

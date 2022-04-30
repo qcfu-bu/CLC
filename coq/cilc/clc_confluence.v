@@ -46,19 +46,19 @@ Inductive pstep : term -> term -> Prop :=
   pstep A A' ->
   All2 pstep Cs Cs' ->
   pstep (Ind A Cs s) (Ind A' Cs' s)
-| pstep_constr i m m' :
+| pstep_constr i m m' s :
   pstep m m' ->
-  pstep (Constr i m) (Constr i m')
+  pstep (Constr i m s) (Constr i m' s)
 | pstep_case m m' Q Q' Fs Fs' :
   pstep m m' ->
   pstep Q Q' ->
   All2 pstep Fs Fs' ->
   pstep (Case m Q Fs) (Case m' Q' Fs')
-| pstep_iota1 i m ms ms' Q Fs Fs' F' :
+| pstep_iota1 i m ms ms' Q Fs Fs' F' s :
   iget i Fs' F' ->
   All2 pstep ms ms' ->
   All2 pstep Fs Fs' ->
-  pstep (Case (spine (Constr i m) ms) Q Fs) (spine F' ms')
+  pstep (Case (spine (Constr i m s) ms) Q Fs) (spine F' ms')
 | pstep_fix A A' m m' :
   pstep A A' ->
   pstep m m' ->
@@ -66,7 +66,9 @@ Inductive pstep : term -> term -> Prop :=
 | pstep_iota2 A A' m m' :
   pstep A A' ->
   pstep m m' ->
-  pstep (Fix A m) (m'.[Fix A' m'/]).
+  pstep (Fix A m) (m'.[Fix A' m'/])
+| pstep_ptr l :
+  pstep (Ptr l) (Ptr l).
 
 Section pstep_ind_nested.
   Variable P : term -> term -> Prop.
@@ -88,7 +90,7 @@ Section pstep_ind_nested.
     forall A A' Cs Cs' s, pstep A A' -> P A A' -> All2 pstep Cs Cs' -> All2 P Cs Cs' ->
       P (Ind A Cs s) (Ind A' Cs' s).
   Hypothesis ih_constr :
-    forall i m m', pstep m m' -> P m m' -> P (Constr i m) (Constr i m').
+    forall i m m' s, pstep m m' -> P m m' -> P (Constr i m s) (Constr i m' s).
   Hypothesis ih_case :
     forall m m' Q Q' Fs Fs',
       pstep m m' -> P m m' ->
@@ -96,17 +98,18 @@ Section pstep_ind_nested.
       All2 pstep Fs Fs' -> All2 P Fs Fs' ->
       P (Case m Q Fs) (Case m' Q' Fs').
   Hypothesis ih_iota1 :
-    forall i m ms ms' Q Fs Fs' F',
+    forall i m ms ms' Q Fs Fs' F' s,
       iget i Fs' F' ->
       All2 pstep ms ms' -> All2 P ms ms' ->
       All2 pstep Fs Fs' -> All2 P Fs Fs' ->
-      P (Case (spine (Constr i m) ms) Q Fs) (spine F' ms').
+      P (Case (spine (Constr i m s) ms) Q Fs) (spine F' ms').
   Hypothesis ih_fix :
     forall A A' m m', pstep A A' -> P A A' -> pstep m m' -> P m m' ->
       P (Fix A m) (Fix A' m').
   Hypothesis ih_iota2 :
     forall A A' m m', pstep A A' -> P A A' -> pstep m m' -> P m m' ->
       P (Fix A m) (m'.[Fix A' m'/]).
+  Hypothesis ih_ptr : forall l, P (Ptr l) (Ptr l).
 
   Fixpoint pstep_ind_nested m m' (st : pstep m m') : P m m'.
   Proof.
@@ -130,6 +133,7 @@ Section pstep_ind_nested.
     apply: ih_iota1; eauto.
     apply: ih_fix; eauto.
     apply: ih_iota2; eauto.
+    apply: ih_ptr; eauto.
   Qed.
 End pstep_ind_nested.
 
@@ -225,20 +229,36 @@ Proof.
   by rewrite revK in pf.
 Qed.
 
-Lemma spine'_constr_inj i1 i2 h1 h2 ls1 ls2 :
-  spine' (Constr i1 h1) ls1 = spine' (Constr i2 h2) ls2 ->
-  i1 = i2 /\ h1 = h2 /\ ls1 = ls2.
+Lemma spine'_ind_inj A1 A2 Cs1 Cs2 ls1 ls2 s1 s2 :
+  spine' (Ind A1 Cs1 s1) ls1 = spine' (Ind A2 Cs2 s2) ls2 ->
+  A1 = A2 /\ Cs1 = Cs2 /\ ls1 = ls2 /\ s1 = s2.
 Proof.
-  elim: ls1 ls2 i1 i2 h1 h2=>//=.
-  move=>[|] i1 i2 h1 h2 e//=. by inv e.
-  move=>t ls1 ih [|]//= t1 t2 i1 i2 h1 h2 [/ih[->[->->]]->]//.
+  elim: ls1 ls2 A1 A2 Cs1 Cs2 s1 s2=>//=.
+  move=>[|] A1 A2 Cs1 Cs2 s1 s2 e//=. by inv e.
+  move=>t ls1 ih [|]//= t1 t2 A1 A2 Cs1 Cs2 s1 s2[/ih[->[->[->->]]]->]//.
 Qed.
 
-Lemma spine_constr_inj i1 i2 h1 h2 ls1 ls2 :
-  spine (Constr i1 h1) ls1 = spine (Constr i2 h2) ls2 ->
-  i1 = i2 /\ h1 = h2 /\ ls1 = ls2.
+Lemma spine_ind_inj A1 A2 Cs1 Cs2 ls1 ls2 s1 s2 :
+  spine (Ind A1 Cs1 s1) ls1 = spine (Ind A2 Cs2 s2) ls2 ->
+  A1 = A2 /\ Cs1 = Cs2 /\ ls1 = ls2 /\ s1 = s2.
 Proof.
-  rewrite!spine_spine'_rev=>/spine'_constr_inj[->[->/rev_inj->]]//.
+  rewrite!spine_spine'_rev=>/spine'_ind_inj[->[->[/rev_inj->->]]]//.
+Qed.
+
+Lemma spine'_constr_inj i1 i2 h1 h2 ls1 ls2 s1 s2 :
+  spine' (Constr i1 h1 s1) ls1 = spine' (Constr i2 h2 s2) ls2 ->
+  i1 = i2 /\ h1 = h2 /\ ls1 = ls2 /\ s1 = s2.
+Proof.
+  elim: ls1 ls2 i1 i2 h1 h2 s1 s2=>//=.
+  move=>[|] i1 i2 h1 h2 s1 s2 e//=. by inv e.
+  move=>t ls1 ih [|]//= t1 t2 i1 i2 h1 h2 s1 s2[/ih[->[->[->->]]]->]//.
+Qed.
+
+Lemma spine_constr_inj i1 i2 h1 h2 ls1 ls2 s1 s2 :
+  spine (Constr i1 h1 s1) ls1 = spine (Constr i2 h2 s2) ls2 ->
+  i1 = i2 /\ h1 = h2 /\ ls1 = ls2 /\ s1 = s2.
+Proof.
+  rewrite!spine_spine'_rev=>/spine'_constr_inj[->[->[/rev_inj->->]]]//.
 Qed.
 
 Lemma spine_subst σ h ls : (spine h ls).[σ] = spine h.[σ] ls..[σ].
@@ -281,7 +301,7 @@ Proof with eauto using step.
     elim: ih=>//=.
     move=>*. constructor. asimpl...
     move=>*. constructor. asimpl...
-  move=>i m ms Q Fs F ig σ.
+  move=>i m ms Q Fs F ig s σ.
     repeat (rewrite spine_subst; asimpl).
     constructor.
     exact: iget_subst.
@@ -332,10 +352,10 @@ Proof.
   by constructor.
 Qed.
 
-Lemma red_constr i m1 m2 : m1 ~>* m2 -> Constr i m1 ~>* Constr i m2.
+Lemma red_constr i m1 m2 s : m1 ~>* m2 -> Constr i m1 s ~>* Constr i m2 s.
 Proof.
   move=>r.
-  apply: (star_hom (Constr i)) r=> x y. exact: step_constr.
+  apply: (star_hom ((Constr i)^~ s)) r=> x y. exact: step_constr.
 Qed.
 
 Lemma red_case m1 m2 Q1 Q2 Fs1 Fs2 :
@@ -512,10 +532,10 @@ Proof.
   by constructor.
 Qed.
 
-Lemma conv_constr i m1 m2 : m1 === m2 -> Constr i m1 === Constr i m2.
+Lemma conv_constr i m1 m2 s : m1 === m2 -> Constr i m1 s === Constr i m2 s.
 Proof.
   move=>r.
-  apply: (conv_hom (Constr i)) r=> x y. exact: step_constr.
+  apply: (conv_hom ((Constr i)^~ s)) r=> x y. exact: step_constr.
 Qed.
 
 Lemma conv_case m1 m2 Q1 Q2 Fs1 Fs2 :
@@ -660,7 +680,7 @@ Proof with eauto with red_congr.
   move=>m m' Q Q' Fs Fs' pM rM pQ rQ pFs rFs.
     apply: red_case...
     elim: rFs...
-  move=>i m ms ms' Q Fs Fs' F' ig pMs rMs pFs rFs.
+  move=>i m ms ms' Q Fs Fs' F' s ig pMs rMs pFs rFs.
     have ihMs : star (One2 step) ms ms'.
     { elim: rMs... }
     have ihFs : star (One2 step) Fs Fs'.
@@ -681,7 +701,6 @@ Proof with eauto with red_congr.
     by constructor.
 Qed.
 
-
 Lemma pstep_subst m n σ : pstep m n -> pstep m.[σ] n.[σ].
 Proof with eauto using pstep, All2.
   move=>p. move: m n p σ.
@@ -697,7 +716,7 @@ Proof with eauto using pstep, All2.
   move=>m m' Q Q' Fs Fs' pm ihm pQ iihQ pFs ihFs σ. asimpl.
     constructor...
     elim: ihFs...
-  move=>i m ms ms' Q Fs Fs' F' ig pms ihMs pFs ihFs σ. asimpl.
+  move=>i m ms ms' Q Fs Fs' F' s ig pms ihMs pFs ihFs σ. asimpl.
     rewrite!spine_subst.
     apply: pstep_iota1.
     apply: iget_subst...
@@ -737,7 +756,7 @@ Proof with eauto 6 using pstep, All2, psstep_up.
   move=>m m' Q Q' Fs Fs' pm ihm pQ ihQ pFs ihFs σ τ pss.
     constructor...
     elim: ihFs...
-  move=>i m ms ms' Q Fs Fs' F' ig pms ihms pFs ihFs σ τ pss. asimpl.
+  move=>i m ms ms' Q Fs Fs' F' s ig pms ihms pFs ihFs σ τ pss. asimpl.
     rewrite!spine_subst.
     apply: pstep_iota1.
     apply: iget_subst...
@@ -801,14 +820,14 @@ Proof.
   constructor; eauto.
 Qed.
 
-Lemma spine'_lam_constr A m s t i h ls :
-  ~Lam A m s t = spine' (Constr i h) ls.
+Lemma spine'_lam_constr A m s t r i h ls :
+  ~Lam A m s t = spine' (Constr i h r) ls.
 Proof. elim: ls=>//. Qed.
 
-Lemma pstep_spine'_inv i h ls m :
-  pstep (spine' (Constr i h) ls) m ->
+Lemma pstep_spine'_inv i h ls m s :
+  pstep (spine' (Constr i h s) ls) m ->
   exists h' ls',
-    m = spine' (Constr i h') ls' /\
+    m = spine' (Constr i h' s) ls' /\
     pstep h h' /\
     All2 pstep ls ls'.
 Proof with eauto using pstep, All2.
@@ -821,8 +840,8 @@ Proof with eauto using pstep, All2.
   exfalso. apply: spine'_lam_constr; eauto.
 Qed.
 
-Lemma pstep_spine'_congr i h1 h2 ms1 ms2 :
-  pstep (spine' (Constr i h1) ms1) (spine' (Constr i h2) ms2) ->
+Lemma pstep_spine'_congr i h1 h2 ms1 ms2 s :
+  pstep (spine' (Constr i h1 s) ms1) (spine' (Constr i h2 s) ms2) ->
   All2 pstep ms1 ms2.
 Proof with eauto using All2.
   elim: ms1 ms2 h2=>//=.
@@ -853,10 +872,10 @@ Proof with eauto using All2.
   apply: All2_pstep_append...
 Qed.
 
-Lemma pstep_spine_inv i h ls m :
-  pstep (spine (Constr i h) ls) m ->
+Lemma pstep_spine_inv i h ls m s :
+  pstep (spine (Constr i h s) ls) m ->
   ∃ h' ls',
-    m = spine (Constr i h') ls' /\
+    m = spine (Constr i h' s) ls' /\
     pstep h h' /\
     All2 pstep ls ls'.
 Proof with eauto using pstep, All2.
@@ -874,8 +893,8 @@ Proof with eauto using pstep, All2.
   by rewrite revK in p2.
 Qed.
 
-Lemma pstep_spine_congr i h1 h2 ms1 ms2 :
-  pstep (spine (Constr i h1) ms1) (spine (Constr i h2) ms2) ->
+Lemma pstep_spine_congr i h1 h2 ms1 ms2 s :
+  pstep (spine (Constr i h1 s) ms1) (spine (Constr i h2 s) ms2) ->
   All2 pstep ms1 ms2.
 Proof with eauto using pstep, All2.
   have<-:=revK ms1.
@@ -941,16 +960,16 @@ Proof with eauto 6 using
     move: H3=> /ihA [Ax pAx1 pAx2].
     move: (All2_diamond pCs H4 ihCs)=>[Csx pCsx1 pCsx2].
     exists (Ind Ax Csx s)...
-  move=> i m m' pM ihM t p. inv p.
-    move: H2=> /ihM [mx pMx1 pMx2].
-    exists (Constr i mx)...
+  move=> i m m' s pM ihM t p. inv p.
+    move: H3=> /ihM [mx pMx1 pMx2].
+    exists (Constr i mx s)...
   move=> m m' Q Q' Fs Fs' pM ihM pQ ihQ pFs ihFs t p. inv p.
     move: H2=> /ihM [mx pMx1 pMx2].
     move: H4=> /ihQ [Qx pQx1 pQx2].
     move: (All2_diamond pFs H5 ihFs)=>[Fsx pFsx1 pFsx2].
     exists (Case mx Qx Fsx)...
     move: (pstep_spine_inv pM)=>[hx [msx[e[pM0 pMs]]]]; subst.
-    have pf : pstep (spine (Constr i m0) ms) (spine (Constr i m0) ms').
+    have pf : pstep (spine (Constr i m0 s) ms) (spine (Constr i m0 s) ms').
       apply: pstep_spine...
     move: pf=> /ihM[mx pMx1 pMx2].
     move: (pstep_spine_inv pMx1)=>[hx'[msx'[e[pHx pMsx]]]]; subst.
@@ -958,13 +977,13 @@ Proof with eauto 6 using
     move: (All2_diamond pFs H5 ihFs)=>[Fsx pFxs1 pFxs2].
     move: (pstep_iget1 pFxs2 H2)=> [Fx[ig pFx]].
     exists (spine Fx msx')...
-  move=> i m ms ms' Q Fs Fs' F' ig pMs ihMs pFs ihFs t p. inv p.
+  move=> i m ms ms' Q Fs Fs' F' s ig pMs ihMs pFs ihFs t p. inv p.
     move: H2=>/pstep_spine_inv[hx[mx[->[pM pMs']]]].
     move: (All2_diamond pMs pMs' ihMs)=>[mx' pMx1 pMx2].
     move: (All2_diamond pFs H5 ihFs)=>[Fsx pFsx1 pFsx2].
     move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
     exists (spine Fx mx')...
-    move: H=> /spine_constr_inj[e1[e2 e3]]; subst.
+    move: H=> /spine_constr_inj[e1[e2[e3 e4]]]; subst.
     move: (All2_diamond pMs H4 ihMs)=>[mx pMx1 pMx2].
     move: (All2_diamond pFs H5 ihFs)=>[Fsx pFsx1 pFsx2].
     move: (pstep_iget1 pFsx1 ig)=>[Fx[igFx pFx]].
@@ -985,6 +1004,7 @@ Proof with eauto 6 using
     move: H1=> /ihA[Ax pAx1 pAx2].
     move: H3=> /ihM[mx pMx1 pMx2].
     exists (mx.[Fix Ax mx/])...
+  move=>l m2 p. inv p. exists (Ptr l)...
 Qed.
 
 Lemma strip m m1 m2 :
@@ -1080,15 +1100,22 @@ Proof.
   exists A'. exists Cs'0. eauto using star.
 Qed.
 
-Lemma red_constr_inv i m x :
-  Constr i m ~>* x ->
-  exists m', m ~>* m' /\ x = Constr i m'.
+Lemma red_constr_inv i m s x :
+  Constr i m s ~>* x ->
+  exists m', m ~>* m' /\ x = Constr i m' s.
 Proof.
   elim.
   exists m=>//.
   move=>y z r1 [m'[r e]] r2. subst.
   inv r2.
   exists m'0. eauto using star.
+Qed.
+
+Lemma red_ptr_inv l x :
+  Ptr l ~>* x -> x = Ptr l.
+Proof.
+  elim=>//.
+  move=>y z r e st; subst. inv st.
 Qed.
 
 Lemma sort_inj s1 s2 l1 l2 :
@@ -1243,6 +1270,7 @@ Ltac red_inv m H :=
   | Lam    => apply red_lam_inv in H
   | Ind    => apply red_ind_inv in H
   | Constr => apply red_constr_inv in H
+  | Ptr    => apply red_ptr_inv in H
   end.
 
 Ltac solve_conv' :=

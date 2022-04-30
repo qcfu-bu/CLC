@@ -276,9 +276,10 @@ Proof with eauto using step, respine0_step.
   move=>A ihA m ihm s t [|] s0 Q Q' c st//=...
   move=>m ihm n ihn [|] s Q Q' c st//=...
   move=>A ihA Cs s [|] s0 Q Q' c st//=...
-  move=>i m ihm [|] s Q Q' c st//=...
+  move=>i m ihm t [|] s Q Q' c st//=...
   move=>m ihm Q ihQ Fs [|] s Q0 Q' c st//=...
   move=>A ihA m ihm [|] s Q Q' c st//=...
+  move=>l [|] s Q Q' c st//=...
 Qed.
 
 Lemma mkcase_step k s I Q Q' c C :
@@ -338,12 +339,12 @@ Lemma All2i_mkcase_stepQ Γ A Q Q' Fs Cs Xs n k s s' l :
   sub_list n Cs Xs ->
   All2i (fun i F C =>
     constr 0 s C /\
-    let T := mkcase k s' I Q (Constr i I) C in
+    let T := mkcase k s' I Q (Constr i I s) C in
     Γ ⊢ F : T.2 : T.1) n Fs Xs ->
   All1 (fun C => A :U [Γ] ⊢ C : s @ l : U) Xs ->
   All2i (fun i F C =>
     constr 0 s C /\
-    let T := mkcase k s' I Q' (Constr i I) C in
+    let T := mkcase k s' I Q' (Constr i I s) C in
     Γ ⊢ F : T.2 : T.1) n Fs Xs.
 Proof.
   move=>I leq st ar tyI tyQ sbl a2i.
@@ -359,13 +360,13 @@ Proof.
     apply: (re_pure Γ).
     apply: merge_re_id.
     eauto. }
-  pose proof (respine_step k s' (Constr i I) C.[I/] st) as [h3 h4].
+  pose proof (respine_step k s' (Constr i I s) C.[I/] st) as [h3 h4].
   have{}h4 :
-    (respine k s' Q (Constr i I) C.[I/]).2 <:
-    (respine k s' Q' (Constr i I) C.[I/]).2.
+    (respine k s' Q (Constr i I s) C.[I/]).2 <:
+    (respine k s' Q' (Constr i I s) C.[I/]).2.
   { apply: conv_sub.
     apply: conv1; eauto. }
-  have h5 : [Γ] ⊢ Constr i I : C.[I/] : s.
+  have h5 : [Γ] ⊢ Constr i I s : C.[I/] : s.
   { apply: clc_constr; eauto.
     apply: re_pure. }
   destruct k.
@@ -378,7 +379,7 @@ Proof.
     rewrite<-h3.
     apply: tym.
     eauto. }
-  { have//=[l0 ty]:=constr_respineL (Constr i I) cm ar h1 tyI tyQ h2.
+  { have//=[l0 ty]:=constr_respineL (Constr i I s) cm ar h1 tyI tyQ h2.
     unfold mkcase.
     unfold mkcase in tym.
     apply: clc_conv.
@@ -394,16 +395,16 @@ Lemma All2i_One2_stepF Γ A Q Fs Fs' Cs Cs' n k s s' :
   One2 step Fs Fs' ->
   All2i (fun i F C =>
     constr 0 s C /\
-    let T := mkcase k s' I Q (Constr i I) C in
+    let T := mkcase k s' I Q (Constr i I s) C in
     Γ ⊢ F : T.2 : T.1) n Fs Cs ->
   All2i (fun i F C =>
     constr 0 s C /\ (forall F',
     ok Γ -> F ~> F' ->
-    let T := mkcase k s' I Q (Constr i I) C in
+    let T := mkcase k s' I Q (Constr i I s) C in
     Γ ⊢ F' : T.2 : T.1)) n Fs Cs ->
   All2i (fun i F C =>
     constr 0 s C /\
-    let T := mkcase k s' I Q (Constr i I) C in
+    let T := mkcase k s' I Q (Constr i I s) C in
     Γ ⊢ F : T.2 : T.1) n Fs' Cs.
 Proof.
   move=>I wf oFs. elim: oFs Cs n=>{Fs Fs'}.
@@ -521,7 +522,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
       rewrite<-pure_re... }
     { move=>C C' Cs' st ih h1 h2. inv h1. inv h2.
       constructor... } }
-  move=>Γ A s i C Cs I k ig tyI ih n wf st. inv st. inv H2.
+  move=>Γ A s i C Cs I k ig tyI ih n wf st. inv st. inv H3.
   { have st : Ind A Cs s ~> Ind A' Cs s.
     { constructor; eauto. }
     have{}ih:=ih _ wf st.
@@ -624,8 +625,8 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
   { apply: clc_case...
     apply: All2i_One2_stepF... }
   { have tyI:=ind_spine (re_pure _) tysp.
-    have[G1[G2[A0[s0[mrg0[tyC sp]]]]]]:=spine_inv wf1 tym.
-    have[A1[C[Cs0[key'[ig[e[sb tyI0]]]]]]]:=constr_inv tyC; subst.
+    have[G1[G2[A0[s1[mrg0[tyC sp]]]]]]:=spine_inv wf1 tym.
+    have[A1[C[Cs0[e3[key'[ig[e4[sb tyI0]]]]]]]]:=constr_inv tyC; subst.
     have[l1[_[_[_[cCs[tyA tyCs]]]]]]:=ind_inv tyI.
     have[l2[_[_[ar0[cCs0[tyA1 tyCs0]]]]]]:=ind_inv tyI0.
     have tyC0:=iget_All1 ig tyCs0.
@@ -635,7 +636,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     have[l3 tyA0]:=validity wf3 tyC.
     rewrite eG in tyA0.
     have{}sp:=typing_spine_strengthen sp sb tyA0.
-    have h1 : (Ind A1 Cs0 s0 .: ids) 0 = Ind A1 Cs0 s0 by eauto.
+    have h1 : (Ind A1 Cs0 s1 .: ids) 0 = Ind A1 Cs0 s1 by eauto.
     have//=[cv e]:=typing_spine_constr_ind c sp h1; subst.
     have[C'[ig'[cC tyF]]]:=iget_All2i tyFs H3.
     have[eA[a2Cs _]]:=ind_inj cv.
@@ -670,15 +671,15 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     have h2 : (Ind A Cs s .: ids) 0 = Ind A Cs s by eauto.
     have h3 : forall x, ~(Ind A Cs s .: ids) 0 = Var x by eauto.
     have h4 :
-      kapp k (spine Q ms) (spine (Constr i (Ind A Cs s)) ms0) <:
-      kapp k (spine Q ms) (spine (Constr i (Ind A1 Cs0 s)) ms0).
+      kapp k (spine Q ms) (spine (Constr i (Ind A Cs s) s) ms0) <:
+      kapp k (spine Q ms) (spine (Constr i (Ind A1 Cs0 s) s) ms0).
     { apply: conv_sub.
       destruct k=>//=.
       apply: conv_app...
       apply: head_spine_conv.
       apply: conv_constr.
       apply: conv_sym... }
-    have h5 : [Γ1] ⊢ Constr i I : C'.[I/] : s.
+    have h5 : [Γ1] ⊢ Constr i I s : C'.[I/] : s.
     { apply: clc_constr...
       apply: re_pure. }
     destruct k=>//=.

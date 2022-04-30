@@ -14,9 +14,10 @@ Inductive term : Type :=
 | Lam    (A : term) (m : {bind term}) (s t : sort)
 | App    (m n : term)
 | Ind    (A : term) (Cs : list {bind term}) (s : sort)
-| Constr (i : nat) (m : term)
+| Constr (i : nat) (m : term) (s : sort)
 | Case   (m Q : term) (Fs : list term)
-| Fix    (A : term) (m : {bind term}).
+| Fix    (A : term) (m : {bind term})
+| Ptr    (l : nat).
 
 Notation "s @ l" := (Sort s l) (at level 30).
 
@@ -37,10 +38,11 @@ Section term_ind_nested.
   Hypothesis ih_lam : forall A m s t, P A -> P m -> P (Lam A m s t).
   Hypothesis ih_app : forall m n, P m -> P n -> P (App m n).
   Hypothesis ih_ind : forall A Cs s, P A -> All1 P Cs -> P (Ind A Cs s).
-  Hypothesis ih_constr : forall i m, P m -> P (Constr i m).
+  Hypothesis ih_constr : forall i m s, P m -> P (Constr i m s).
   Hypothesis ih_case :
     forall m Q Fs, P m -> P Q -> All1 P Fs -> P (Case m Q Fs).
   Hypothesis ih_fix : forall A m, P A -> P m -> P (Fix A m).
+  Hypothesis ih_ptr : forall l, P (Ptr l).
 
   Fixpoint term_ind_nested m : P m.
   Proof.
@@ -60,6 +62,7 @@ Section term_ind_nested.
     exact: ih_constr.
     exact: ih_case.
     exact: ih_fix.
+    exact: ih_ptr.
   Qed.
 End term_ind_nested.
 
@@ -112,9 +115,9 @@ Inductive step : term -> term -> Prop :=
 | step_indCs A Cs Cs' s :
   One2 step Cs Cs' ->
   Ind A Cs s ~> Ind A Cs' s
-| step_constr i m m' :
+| step_constr i m m' s :
   m ~> m' ->
-  Constr i m ~> Constr i m'
+  Constr i m s ~> Constr i m' s
 | step_caseM m m' Q Fs :
   m ~> m' ->
   Case m Q Fs ~> Case m' Q Fs
@@ -124,9 +127,9 @@ Inductive step : term -> term -> Prop :=
 | step_caseFs m Q Fs Fs' :
   One2 step Fs Fs' ->
   Case m Q Fs ~> Case m Q Fs'
-| step_iota1 i m ms Q Fs F :
+| step_iota1 i m ms Q Fs F s :
   iget i Fs F ->
-  Case (spine (Constr i m) ms) Q Fs ~> spine F ms
+  Case (spine (Constr i m s) ms) Q Fs ~> spine F ms
 | step_fixL A A' m :
   A ~> A' ->
   Fix A m ~> Fix A' m
@@ -162,7 +165,7 @@ Section step_ind_nested.
   Hypothesis ih_indCs :
     forall A Cs Cs' s, One2 step Cs Cs' -> One2 P Cs Cs' -> P (Ind A Cs s) (Ind A Cs' s).
   Hypothesis ih_constr :
-    forall i m m', m ~> m' -> P m m' -> P (Constr i m) (Constr i m').
+    forall i m m' s, m ~> m' -> P m m' -> P (Constr i m s) (Constr i m' s).
   Hypothesis ih_caseM :
     forall m m' Q Fs, m ~> m' -> P m m' -> P (Case m Q Fs) (Case m' Q Fs).
   Hypothesis ih_caseQ :
@@ -170,7 +173,7 @@ Section step_ind_nested.
   Hypothesis ih_caseFs :
     forall m Q Fs Fs', One2 step Fs Fs' -> One2 P Fs Fs' -> P (Case m Q Fs) (Case m Q Fs').
   Hypothesis ih_iota1 :
-    forall i m ms Q Fs F, iget i Fs F -> P (Case (spine (Constr i m) ms) Q Fs) (spine F ms).
+    forall i m ms Q Fs F s, iget i Fs F -> P (Case (spine (Constr i m s) ms) Q Fs) (spine F ms).
   Hypothesis ih_fixL :
     forall A A' m, A ~> A' -> P A A' -> P (Fix A m) (Fix A' m).
   Hypothesis ih_fixR :
@@ -206,3 +209,26 @@ Section step_ind_nested.
     apply: ih_iota2; eauto.
   Qed.
 End step_ind_nested.
+
+Lemma All1_append P ms ms' :
+  All1 P ms -> All1 P ms' -> All1 P (ms ++ ms').
+Proof with eauto using All1.
+  move=>pms. elim: pms ms'=>//={ms}...
+Qed.
+
+Lemma All1_rcons P ms m :
+  All1 P ms -> P m -> All1 P (rcons ms m).
+Proof with eauto using All1.
+  move=>pms pm.
+  rewrite<-cats1.
+  apply: All1_append...
+Qed.
+
+Lemma All1_rev P ms : All1 P ms -> All1 P (rev ms).
+Proof with eauto using All1.
+  elim=>//={ms}...
+  move=>m ms pm hd tl.
+  replace (m :: ms) with ([:: m] ++ ms) by eauto.
+  rewrite rev_cat.
+  apply: All1_append...
+Qed.

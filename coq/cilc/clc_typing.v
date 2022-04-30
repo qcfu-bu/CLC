@@ -22,12 +22,13 @@ Inductive noccurs : var -> term -> Prop :=
   noccurs x m -> noccurs x n -> noccurs x (App m n)
 | noccurs_indd x A Cs s :
   noccurs x A -> All1 (noccurs x.+1) Cs -> noccurs x (Ind A Cs s)
-| noccurs_constr x i m :
-  noccurs x m -> noccurs x (Constr i m)
+| noccurs_constr x i m s :
+  noccurs x m -> noccurs x (Constr i m s)
 | noccurs_case x m Q Fs :
   noccurs x m -> noccurs x Q -> All1 (noccurs x) Fs -> noccurs x (Case m Q Fs)
 | noccurs_fix x A m :
-  noccurs x A -> noccurs x.+1 m -> noccurs x (Fix A m).
+  noccurs x A -> noccurs x.+1 m -> noccurs x (Fix A m)
+| noccurs_ptr x l : noccurs x (Ptr l).
 
 Section noccurs_ind_nested.
   Variable P : var -> term -> Prop.
@@ -43,8 +44,8 @@ Section noccurs_ind_nested.
     noccurs x A -> P x A ->
     All1 (noccurs x.+1) Cs -> All1 (P x.+1) Cs ->
     P x (Ind A Cs s).
-  Hypothesis ih_constr : forall x i m,
-    noccurs x m -> P x m -> P x (Constr i m).
+  Hypothesis ih_constr : forall x i m s,
+    noccurs x m -> P x m -> P x (Constr i m s).
   Hypothesis ih_case : forall x m Q Fs,
     noccurs x m -> P x m ->
     noccurs x Q -> P x Q ->
@@ -54,6 +55,7 @@ Section noccurs_ind_nested.
     noccurs x A -> P x A ->
     noccurs x.+1 m -> P x.+1 m ->
     P x (Fix A m).
+  Hypothesis ih_ptr : forall x l, P x (Ptr l).
 
   Fixpoint noccurs_ind_nested x m (no : noccurs x m) : P x m.
   Proof.
@@ -74,6 +76,7 @@ Section noccurs_ind_nested.
     apply: ih_constr; eauto.
     apply: ih_case; eauto.
     apply: ih_fix; eauto.
+    apply: ih_ptr; eauto.
   Qed.
 End noccurs_ind_nested.
 
@@ -173,7 +176,7 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   Γ |> U ->
   iget i Cs C ->
   Γ ⊢ I : A : U ->
-  Γ ⊢ Constr i I : C.[I/] : s
+  Γ ⊢ Constr i I s : C.[I/] : s
 | clc_case Γ1 Γ2 Γ A Q s s' k Fs Cs m ms :
   let I := Ind A Cs s in
   s ≤ k ->
@@ -184,7 +187,7 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   [Γ2] ⊢ Q : rearity k s' I A : U ->
   All2i (fun i F C =>
     constr 0 s C /\
-    let T := mkcase k s' I Q (Constr i I) C in
+    let T := mkcase k s' I Q (Constr i I s) C in
     Γ2 ⊢ F : T.2 : T.1) 0 Fs Cs ->
   Γ ⊢ Case m Q Fs : kapp k (spine Q ms) m : s'
 | clc_fix Γ A m l :
@@ -234,7 +237,7 @@ Section clc_type_ind_nested.
     Γ |> U ->
     iget i Cs C ->
     Γ ⊢ I : A : U -> P Γ I A U ->
-    P Γ (Constr i I) C.[I/] s.
+    P Γ (Constr i I s) C.[I/] s.
   Hypothesis ih_case : forall Γ1 Γ2 Γ A Q s s' k Fs Cs m ms,
     let I := Ind A Cs s in
     s ≤ k ->
@@ -245,11 +248,11 @@ Section clc_type_ind_nested.
     [Γ2] ⊢ Q : rearity k s' I A : U -> P [Γ2] Q (rearity k s' I A) U ->
     All2i (fun i F C =>
       constr 0 s C /\
-      let T := mkcase k s' I Q (Constr i I) C in
+      let T := mkcase k s' I Q (Constr i I s) C in
       Γ2 ⊢ F : T.2 : T.1) 0 Fs Cs ->
     All2i (fun i F C =>
       constr 0 s C /\
-      let T := mkcase k s' I Q (Constr i I) C in
+      let T := mkcase k s' I Q (Constr i I s) C in
       P Γ2 F T.2 T.1) 0 Fs Cs ->
     P Γ (Case m Q Fs) (kapp k (spine Q ms) m) s'.
   Hypothesis ih_fix : forall Γ A m l,
@@ -287,16 +290,16 @@ Section clc_type_ind_nested.
       fix fold n Fs Cs
           (pf : All2i (fun i F C =>
                          constr 0 s0 C ∧
-                           let T := mkcase k s' I Q (Constr i I) C in
+                           let T := mkcase k s' I Q (Constr i I s0) C in
                            Γ2 ⊢ F : T.2 : T.1) n Fs Cs) :
         All2i (fun i F C =>
                  constr 0 s0 C ∧
-                   let T := mkcase k s' I Q (Constr i I) C in
+                   let T := mkcase k s' I Q (Constr i I s0) C in
                    P Γ2 F T.2 T.1) n Fs Cs :=
         match pf in All2i _ n Fs Cs return
           All2i (fun i F C =>
                    constr 0 s0 C /\
-                     let T := mkcase k s' I Q (Constr i I) C in
+                     let T := mkcase k s' I Q (Constr i I s0) C in
                      P Γ2 F T.2 T.1) n Fs Cs
         with
         | All2i_nil _ => All2i_nil _ _
