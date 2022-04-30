@@ -17,3 +17,4 @@ clc_respine.v
 clc_iota_lemma.v
 clc_soundness.v
 clc_resolution.v
+clc_resolve_spine.v

@@ -4,7 +4,7 @@ Require Import AutosubstSsr ARS
   clc_context clc_ast clc_confluence clc_subtype clc_typing
   clc_weakening clc_substitution clc_inversion clc_arity_spine
   clc_validity clc_typing_spine clc_respine clc_iota_lemma
-  clc_resolution.
+  clc_soundness clc_resolution clc_resolve_spine.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -707,7 +707,8 @@ Lemma eval_split Θ1 Θ2 Θ Θ' m n m' A t :
     pad Θ2 Θ2' /\ Θ1' ∘ Θ2' => Θ' /\ n ~>* n'.
 Proof with eauto 6 using 
   clc_type, key, free, pad, merge, 
-  well_resolved, resolve, resolve_wkU, resolve_wkN.
+  well_resolved, resolve, resolve_wkU, resolve_wkN, 
+  all_ptr, All1, All2.
   move=>{Θ1 m n A t}[Θ1 m n A t rm]. move e:(nil)=>Γ tyn.
   move: Γ n A t tyn Θ1 Θ2 Θ Θ' m m' rm e.
   apply: clc_type_ind_nested.
@@ -920,3 +921,156 @@ Proof with eauto 6 using
         have wr:=free_wr H8 wf.
         constructor...
         apply: all_ptr_rcons... } } }
+  move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs 
+    Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
+  { inv rsm; inv ev.
+    have[wr1 wr2]:=wr_merge_inv mrg wr.
+    have[<-_]:=merge_length mrg.
+    exists (Ind A0 Cs0 s :U Θ1).
+    exists (Ind A0 Cs0 s :U Θ2).
+    exists (Ind A Cs s).
+    repeat split...
+    replace (Ind A0 Cs0 s) with (spine (Ind A0 Cs0 s) nil) by eauto.
+    constructor...
+    have//=nfA:=nf_typing tyA.
+    have//:=resolve_wr_nfi H5 wr1 nfA.
+    elim: H6 tyCs...
+    move=>C1 C2 Cs1 Cs2 rC rCs ih tl. inv tl.
+    constructor...
+    have//=nfC:=nf_typing H1.
+    have//:=resolve_wr_nfi rC wr1 nfC. }
+  move=>Γ A s i C Cs//=k ig tyI ihI 
+    Θ1 Θ2 Θ Θ' m m' rsm e  wr mrg ev; subst.
+  { inv rsm; inv ev.
+    have[wr1 wr2]:=wr_merge_inv mrg wr.
+    have[<-_]:=merge_length mrg.
+    destruct s.
+    { exists (Constr i I U :U Θ1).
+      exists (Constr i I U :U Θ2).
+      exists (Constr i (Ind A Cs U) U).
+      repeat split...
+      replace (Constr i I U) with (spine (Constr i I U) nil) by eauto.
+      constructor...
+      have//=nfI:=nf_typing tyI.
+      have//:=resolve_wr_nfi H5 wr1 nfI. }
+    { exists (Constr i I L :L Θ1).
+      exists (_: Θ2).
+      exists (Constr i (Ind A Cs L) L).
+      repeat split...
+      replace (Constr i I L) with (spine (Constr i I L) nil) by eauto.
+      constructor...
+      have//=nfI:=nf_typing tyI.
+      have//:=resolve_wr_nfi H5 wr1 nfI. } }
+  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms//=leq ar key mrg1 
+    tym ihm tyQ ihQ tyFs ihFs Θ1 Θ2 Θ Θ' m0 m' rsm e wr mrg2 ev; subst.
+  { inv mrg1.
+    inv rsm; inv ev.
+    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H2.
+      have[Θx1[Θx2[mx[wrs[wf'[pd[mrgx rx]]]]]]]:=
+        ihm _ _ _ _ _ _ H5 erefl wr mrg4 H9.
+      have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
+      have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
+      have[l tysp]:=validity nil_ok tym.
+      have tyI:=ind_spine (key_nil _ _) tysp.
+      inv wrs.
+      exists Θy. exists Θ2p.
+      exists (Case mx Q Fs).
+      repeat split...
+      { econstructor.
+        apply: merge_sym...
+        eauto.
+        apply: resolve_pad.
+        apply: pad_re...
+        eauto.
+        elim: H7...
+        move=>F1 F2 Fs1 Fs2 rF rFs tl.
+        constructor...
+        apply: resolve_pad... }
+      { have sb: kapp k (spine Q ms) mx <: kapp k (spine Q ms) m.
+        { destruct k=>//=.
+          apply: conv_sub.
+          apply: conv_sym.
+          apply: star_conv.
+          apply: red_app... }
+        have[l0[sp _]]:=ind_spine_inv (key_nil _ _) ar tysp.
+        have{}sp:=rearity_spine s' sp ar leq (key_nil _ _) tyI.
+        have spQ:=app_arity_spine tyQ sp (merge_nil _).
+        destruct k=>//=.
+        { inv leq.
+          have//=tyapp:=clc_app (key_nil _ _) (merge_nil _) spQ tym.
+          apply: clc_conv...
+          apply: clc_case...
+          constructor. }
+        { apply: clc_conv... } }
+      { apply: red_case... } }
+    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H2.
+      have[G[mrg rs]]:=resolve_free H10 H5 mrg4.
+      have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
+      exists Gx. exists Θ2. 
+      have[I'[ms'[e[rI sp]]]]:=constr_spine_inv rs; subst.
+      have[F'[ig' rF]]:=iget_All2 H7 H9.
+      exists (spine F' ms').
+      have wr':=free_wr H10 wr.
+      have[wr1 wr2]:=wr_merge_inv mrg wr'.
+      repeat split...
+      apply: app_resolve_spine...
+      have[G1[G2[A0[s1[mrg7[tyC tysp]]]]]]:=spine_inv nil_ok tym.
+      inv mrg7.
+      have//=[l0 tyA0]:=validity nil_ok tyC.
+      have[A1[C0[Cs0[e1[_[ig0[e2[sb tyI']]]]]]]]:=constr_inv tyC; subst.
+      have[l1[_[_[ar1[cCs0[tyA1 tyCs0]]]]]]:=ind_inv tyI'.
+      have[C[ig1[cC tyF']]]:=iget_All2i tyFs ig'.
+      have cC0:=iget_All1 ig0 cCs0.
+      have{}tysp:=typing_spine_strengthen tysp sb tyA0.
+      have//=[cv e]:=typing_spine_constr_ind cC0 tysp erefl; subst.
+      have[cvA[cvCs _]]:=ind_inj cv.
+      have[Cx[igx cvC]]:=iget_All2 cvCs ig0.
+      have e:=iget_iget ig1 igx; subst.
+      have tyC0:=iget_All1 ig0 tyCs0.
+      have//=tyCI:=substitution tyC0 (key_nil _ _) (merge_nil _) tyI'.
+      have h3 : Cx.[Ind A Cs s/] <: C0.[Ind A1 Cs0 s/].
+      { apply: conv_sub.
+        apply: conv_trans.
+        apply: conv_beta.
+        apply: conv_sym...
+        apply: conv_subst.
+        apply: conv_sym... }
+      have{}tysp:=typing_spine_strengthen tysp h3 tyCI.
+      have//=[l2 tyIsp]:=validity nil_ok tym.
+      have[l3[arsp _]]:=ind_spine_inv (key_nil _ _) ar tyIsp.
+      have tyI:=ind_spine (key_nil _ _) tyIsp.
+      have{}arsp:=rearity_spine s' arsp ar leq (key_nil _ _) tyI.
+      have spQ:=app_arity_spine tyQ arsp (merge_nil _).
+      have[l4[_[_[_[_[tyA tyCs]]]]]]:=ind_inv tyI.
+      have tyCx:=iget_All1 igx tyCs.
+      have//={}tyCx:=substitution tyCx (key_nil _ _) (merge_nil _) tyI.
+      have h4 :
+        kapp k (spine Q ms) (spine (Constr i (Ind A Cs s) s) ms') <:
+        kapp k (spine Q ms) (spine (Constr i (Ind A1 Cs0 s) s) ms').
+      { apply: conv_sub.
+        destruct k=>//=.
+        apply: conv_app...
+        apply: head_spine_conv.
+        apply: conv_constr.
+        apply: conv_sym... }
+      destruct k=>//=.
+      { inv leq.
+        have//=tyapp:=clc_app (key_nil _ _) (merge_nil _) spQ tym.
+        apply: clc_conv.
+        apply: h4. 
+        apply: app_typing_spine...
+        unfold mkcase.
+        apply: typing_spine_constrU...
+        asimpl; eauto.
+        move=>x; asimpl=>h. inv h.
+        eauto. }
+      { apply: clc_conv.
+        apply: h4.
+        apply: app_typing_spine...
+        unfold mkcase.
+        apply: typing_spine_constrL...
+        asimpl; eauto.
+        move=>x; asimpl=>h. inv h.
+        eauto. }
+      apply: star1.
+      constructor... } }

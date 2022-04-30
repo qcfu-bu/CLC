@@ -3,7 +3,8 @@ From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS
   clc_context clc_ast clc_confluence clc_subtype clc_typing
   clc_weakening clc_substitution clc_inversion clc_arity_spine
-  clc_validity clc_typing_spine clc_respine clc_iota_lemma.
+  clc_validity clc_typing_spine clc_respine clc_iota_lemma
+  clc_soundness.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
