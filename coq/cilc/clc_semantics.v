@@ -58,9 +58,9 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   l = length Θ ->
   eval Θ (Fix A m) (Fix A m :U Θ) m.[Ptr l/].
 
-  Inductive agree_resolve :
+Inductive agree_resolve :
   context term -> context term -> 
-    (var -> term) -> (var -> term) -> nat -> Prop :=
+  (var -> term) -> (var -> term) -> nat -> Prop :=
 | agree_resolve_nil Θ :
   Θ |> U ->
   wr_heap Θ ->
