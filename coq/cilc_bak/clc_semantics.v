@@ -1074,3 +1074,63 @@ Proof with eauto 6 using
         eauto. }
       apply: star1.
       constructor... } }
+  move=>Γ A m l _ tyA ihA tym ihm Θ1 Θ2 Θ Θ' m0 m' rsm e wr mrg ev.
+  { inv rsm; inv ev.
+    have[<-_]:=merge_length mrg.
+    have[wr1 wr2]:=wr_merge_inv mrg wr.
+    have tyF:nil ⊢ Fix A m : A : U.
+      econstructor...
+    have//=nfA:=nf_typing tyA.
+    have//=nfm:=nf_typing tym.
+    have nfA0:=resolve_wr_nfi H4 wr1 nfA.
+    have nfm1:=resolve_wr_nfi H5 wr1 nfm.
+    exists (Fix A0 m1 :U Θ1).
+    exists (Fix A0 m1 :U Θ2).
+    exists m.[Fix A m/].
+    repeat split...
+    have k: Fix A0 m1 :U Θ1 |> U by constructor.
+    have rsm: resolve (Fix A0 m1 :U Θ1) m1 m...
+    apply: resolve_substU.
+    apply: tym.
+    apply: k.
+    apply: rsm.
+    econstructor.
+    constructor...
+    constructor...
+    constructor...
+    constructor.
+    apply: merge_pure...
+    have:=substitution tym (key_nil _ _) (merge_nil _) tyF.
+    asimpl=>//.
+    constructor...
+    apply: star1.
+    constructor. }
+  move=>Γ A B m s i sb tym ihm tyB ihB 
+    Θ1 Θ2 Θ Θ' m1 m2 rsm e wr mrg ev; subst.
+  { have[G1[G2[n'[wrs[wr1[pd1[mrg' st]]]]]]]:=
+      ihm _ _ _ _ _ _ rsm erefl wr mrg ev.
+    inv wrs.
+    exists G1. exists G2. exists n'.
+    repeat split... }
+Qed.
+
+Theorem evaluation Θ Θ' m m' n A t :
+  wr_heap Θ -> well_resolved Θ m m' A t -> eval Θ m Θ' n -> 
+  exists n', well_resolved Θ' n n' A t /\ wr_heap Θ' /\ m' ~>* n'.
+Proof.
+  move=>wr wrs ev.
+  have mrg:=merge_reR Θ.
+  have[G1[G2[n'[wrs'[wr'[pd[mrg' rd]]]]]]]:=eval_split wrs wr mrg ev.
+  have k:=pad_pure pd.
+  have e:=merge_pureR mrg' k; subst.
+  exists n'; eauto.
+Qed.
+
+Theorem type_resolved m A t : 
+  nil ⊢ m : A : t -> well_resolved nil m m A t.
+Proof.
+  move=>ty.
+  constructor.
+  have//:=resolve_type_refl nil ty.
+  exact: ty.
+Qed.
