@@ -13,7 +13,7 @@ Unset Printing Implicit Defensive.
 Inductive eval : context term -> term -> context term -> term -> Prop :=
 | eval_sort Θ s i l :
   l = length Θ ->
-  eval Θ (Sort s i) (Sort s i :U Θ) (Ptr l)
+  eval Θ (s @ i) (s @ i :U Θ) (Ptr l)
 | eval_pi Θ A B s r t l :
   l = length Θ ->
   eval Θ (Pi A B s r t) (Pi A B s r t :U Θ) (Ptr l)
