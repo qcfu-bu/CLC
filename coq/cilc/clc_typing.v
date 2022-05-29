@@ -130,6 +130,40 @@ Fixpoint respine (k s : sort) hd c sp : (sort * term) :=
     end
   end.
 
+Definition r1 sp s := 
+  match sp with
+  | Pi _ _ _ _ _ => L
+  | _ => s
+  end.
+
+Fixpoint r2 (k s : sort) hd c sp := 
+  match sp with
+  | Pi A B u _ t =>
+    Pi A (r2 k s hd.[ren (+1)] (App c.[ren (+1)] (Var 0)) B) u (r1 B s) L
+  | _ =>
+    match k with
+    | U => App (respine0 hd sp) c
+    | L => respine0 hd sp
+    end
+  end.
+
+Lemma r2_respine k s hd c sp :
+  respine k s hd c sp = (r1 sp s, r2 k s hd c sp).
+Proof.
+  move: k s hd c. elim: sp.
+  move=>x [|] s hd c=>//=.
+  move=>s l [|] r hd c=>//=.
+  move=>A ihA B ihB s r t k s0 hd c=>//=.
+    by rewrite ihB.
+  move=>A _ m _ s t [|] s0 hd c =>//=.
+  move=>m _ n _ [|] s hd c=>//=.
+  move=>A _ Cs s [|] r hd c=>//=.
+  move=>i m _ s [|] r hd c=>//=.
+  move=>m _ Q _ Fs [|] s hd c=>//=.
+  move=>A _ m _ [|] s hd c=>//=.
+  move=>l [|] s hd c=>//=.
+Qed.
+
 Definition mkcase k s I Q c C := respine k s Q c C.[I/].
 
 Definition kapp k m n :=
