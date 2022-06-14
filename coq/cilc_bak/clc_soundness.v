@@ -126,7 +126,6 @@ Proof with eauto using noccurs, noccurs_beta, noccurs_n_beta.
     elim: H3 nFs.
     move=>m ls nFs. inv nFs...
     move=>n m m' ls ig ih nFs. inv nFs... }
-  move=>x A m nA ihA nm ihm n st. inv st...
 Qed.
 
 Lemma head_spine'_step h h' ms : h ~> h' -> spine' h ms ~> spine' h' ms.
@@ -736,10 +735,6 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
       rewrite<-pure_re... }
     have{}ihm:=ihm _ wf H2.
     apply: clc_fix... }
-  { have tyF: Γ ⊢ Fix A m : A : U.
-    apply: clc_fix...
-    have:=substitution tym k (merge_pure k) tyF.
-    by asimpl. }
   move=>Γ A B m s i sb tym ihm tyB ihB n o st.
   { apply: clc_conv... }
 Qed.

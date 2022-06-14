@@ -50,13 +50,13 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
 | eval_case Θ Θ' m m' Q Fs :
   eval Θ m Θ' m' ->
   eval Θ (Case m Q Fs) Θ' (Case m' Q Fs)
-| eval_iota1 Θ Θ' l i I s ms Q Fs F :
+| eval_iota Θ Θ' l i I s ms Q Fs F :
   iget i Fs F ->
   free Θ l (spine (Constr i I s) ms) Θ' ->
   eval Θ (Case (Ptr l) Q Fs) Θ' (spine F ms)
 | step_fix Θ l A m :
   l = length Θ ->
-  eval Θ (Fix A m) (Fix A m :U Θ) m.[Ptr l/].
+  eval Θ (Fix A m) (Fix A m :U Θ) (Ptr l).
 
 Inductive agree_resolve :
   context term -> context term -> 
@@ -1086,25 +1086,9 @@ Proof with eauto 6 using
     have nfm1:=resolve_wr_nfi H5 wr1 nfm.
     exists (Fix A0 m1 :U Θ1).
     exists (Fix A0 m1 :U Θ2).
-    exists m.[Fix A m/].
+    exists (Fix A m).
     repeat split...
-    have k: Fix A0 m1 :U Θ1 |> U by constructor.
-    have rsm: resolve (Fix A0 m1 :U Θ1) m1 m...
-    apply: resolve_substU.
-    apply: tym.
-    apply: k.
-    apply: rsm.
-    econstructor.
-    constructor...
-    constructor...
-    constructor...
-    constructor.
-    apply: merge_pure...
-    have:=substitution tym (key_nil _ _) (merge_nil _) tyF.
-    asimpl=>//.
-    constructor...
-    apply: star1.
-    constructor. }
+    constructor... }
   move=>Γ A B m s i sb tym ihm tyB ihB 
     Θ1 Θ2 Θ Θ' m1 m2 rsm e wr mrg ev; subst.
   { have[G1[G2[n'[wrs[wr1[pd1[mrg' st]]]]]]]:=
@@ -1126,7 +1110,7 @@ Proof.
   exists n'; eauto.
 Qed.
 
-Theorem type_resolved m A t : 
+Theorem type_resolved m A t :
   nil ⊢ m : A : t -> well_resolved nil m m A t.
 Proof.
   move=>ty.
