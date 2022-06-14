@@ -54,7 +54,7 @@ Inductive pstep : term -> term -> Prop :=
   pstep Q Q' ->
   All2 pstep Fs Fs' ->
   pstep (Case m Q Fs) (Case m' Q' Fs')
-| pstep_iota i m ms ms' Q Fs Fs' F' s :
+| pstep_iota1 i m ms ms' Q Fs Fs' F' s :
   iget i Fs' F' ->
   All2 pstep ms ms' ->
   All2 pstep Fs Fs' ->
@@ -63,6 +63,10 @@ Inductive pstep : term -> term -> Prop :=
   pstep A A' ->
   pstep m m' ->
   pstep (Fix A m) (Fix A' m')
+| pstep_iota2 A A' m m' :
+  pstep A A' ->
+  pstep m m' ->
+  pstep (Fix A m) (m'.[Fix A' m'/])
 | pstep_ptr l :
   pstep (Ptr l) (Ptr l).
 
@@ -93,7 +97,7 @@ Section pstep_ind_nested.
       pstep Q Q' -> P Q Q' ->
       All2 pstep Fs Fs' -> All2 P Fs Fs' ->
       P (Case m Q Fs) (Case m' Q' Fs').
-  Hypothesis ih_iota :
+  Hypothesis ih_iota1 :
     forall i m ms ms' Q Fs Fs' F' s,
       iget i Fs' F' ->
       All2 pstep ms ms' -> All2 P ms ms' ->
@@ -102,6 +106,9 @@ Section pstep_ind_nested.
   Hypothesis ih_fix :
     forall A A' m m', pstep A A' -> P A A' -> pstep m m' -> P m m' ->
       P (Fix A m) (Fix A' m').
+  Hypothesis ih_iota2 :
+    forall A A' m m', pstep A A' -> P A A' -> pstep m m' -> P m m' ->
+      P (Fix A m) (m'.[Fix A' m'/]).
   Hypothesis ih_ptr : forall l, P (Ptr l) (Ptr l).
 
   Fixpoint pstep_ind_nested m m' (st : pstep m m') : P m m'.
@@ -123,8 +130,9 @@ Section pstep_ind_nested.
     apply: ih_indd; eauto.
     apply: ih_constr; eauto.
     apply: ih_case; eauto.
-    apply: ih_iota; eauto.
+    apply: ih_iota1; eauto.
     apply: ih_fix; eauto.
+    apply: ih_iota2; eauto.
     apply: ih_ptr; eauto.
   Qed.
 End pstep_ind_nested.
@@ -297,6 +305,10 @@ Proof with eauto using step.
     repeat (rewrite spine_subst; asimpl).
     constructor.
     exact: iget_subst.
+  move=>A m σ.
+    replace m.[Fix A m/].[σ] with m.[up σ].[Fix A.[σ] m.[up σ]/]
+      by autosubst.
+    constructor.
 Qed.
 
 Lemma red_app m m' n n' :
@@ -682,6 +694,11 @@ Proof with eauto with red_congr.
     apply: ihFs.
     apply: star1.
     by constructor.
+  move=>A A' m m' pA rA pM rM.
+    apply: star_trans.
+    apply: red_fix...
+    apply: star1.
+    by constructor.
 Qed.
 
 Lemma pstep_subst m n σ : pstep m n -> pstep m.[σ] n.[σ].
@@ -701,10 +718,14 @@ Proof with eauto using pstep, All2.
     elim: ihFs...
   move=>i m ms ms' Q Fs Fs' F' s ig pms ihMs pFs ihFs σ. asimpl.
     rewrite!spine_subst.
-    apply: pstep_iota.
+    apply: pstep_iota1.
     apply: iget_subst...
     elim: ihMs...
     elim: ihFs...
+  move=>A A' m m' pA ihA pM ihM σ. asimpl.
+    replace m'.[Fix A'.[σ] m'.[up σ] .: σ]
+      with (m'.[up σ]).[Fix A'.[σ] m'.[up σ]/]
+        by autosubst...
 Qed.
 
 Definition psstep (σ τ : var -> term) := 
@@ -737,10 +758,14 @@ Proof with eauto 6 using pstep, All2, psstep_up.
     elim: ihFs...
   move=>i m ms ms' Q Fs Fs' F' s ig pms ihms pFs ihFs σ τ pss. asimpl.
     rewrite!spine_subst.
-    apply: pstep_iota.
+    apply: pstep_iota1.
     apply: iget_subst...
     elim: ihms...
     elim: ihFs...
+  move=>A A' m m' pA ihA pm ihm σ τ pss. asimpl.
+    replace m'.[Fix A'.[τ] m'.[up τ] .: τ]
+      with (m'.[up τ]).[Fix A'.[τ] m'.[up τ]/]
+      by autosubst...
 Qed.
 
 Lemma psstep_compat s1 s2 σ τ:
@@ -969,6 +994,16 @@ Proof with eauto 6 using
     move: H1=> /ihA[Ax pAx1 pAx2].
     move: H3=> /ihM[mx pMx1 pMx2].
     exists (Fix Ax mx)...
+    move: H1=> /ihA[Ax pAx1 pAx2].
+    move: H3=> /ihM[mx pMx1 pMx2].
+    exists (mx.[Fix Ax mx/])...
+  move=> A A' m m' pA ihA pM ihM t p. inv p.
+    move: H1=> /ihA[Ax pAx1 pAx2].
+    move: H3=> /ihM[mx pMx1 pMx2].
+    exists (mx.[Fix Ax mx/])...
+    move: H1=> /ihA[Ax pAx1 pAx2].
+    move: H3=> /ihM[mx pMx1 pMx2].
+    exists (mx.[Fix Ax mx/])...
   move=>l m2 p. inv p. exists (Ptr l)...
 Qed.
 

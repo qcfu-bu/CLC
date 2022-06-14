@@ -127,7 +127,7 @@ Inductive step : term -> term -> Prop :=
 | step_caseFs m Q Fs Fs' :
   One2 step Fs Fs' ->
   Case m Q Fs ~> Case m Q Fs'
-| step_iota i m ms Q Fs F s :
+| step_iota1 i m ms Q Fs F s :
   iget i Fs F ->
   Case (spine (Constr i m s) ms) Q Fs ~> spine F ms
 | step_fixL A A' m :
@@ -136,6 +136,9 @@ Inductive step : term -> term -> Prop :=
 | step_fixR A m m' :
   m ~> m' ->
   Fix A m ~> Fix A m'
+| step_iota2 i A m n ms ns s :
+  spine (Fix A m) (rcons ms (spine (Constr i n s) ns)) ~> 
+  spine m.[Fix A m/] (rcons ms (spine (Constr i n s) ns))
 where "m ~> n" := (step m n).
 
 Notation red := (star step).
@@ -170,12 +173,14 @@ Section step_ind_nested.
     forall m Q Q' Fs, Q ~> Q' -> P Q Q' -> P (Case m Q Fs) (Case m Q' Fs).
   Hypothesis ih_caseFs :
     forall m Q Fs Fs', One2 step Fs Fs' -> One2 P Fs Fs' -> P (Case m Q Fs) (Case m Q Fs').
-  Hypothesis ih_iota :
+  Hypothesis ih_iota1 :
     forall i m ms Q Fs F s, iget i Fs F -> P (Case (spine (Constr i m s) ms) Q Fs) (spine F ms).
   Hypothesis ih_fixL :
     forall A A' m, A ~> A' -> P A A' -> P (Fix A m) (Fix A' m).
   Hypothesis ih_fixR :
     forall A m m', m ~> m' -> P m m' -> P (Fix A m) (Fix A m').
+  Hypothesis ih_iota2 :
+    forall A m, P (Fix A m) m.[Fix A m/].
 
   Fixpoint step_ind_nested m m' (st : m ~> m') : P m m'.
   Proof.
@@ -199,9 +204,10 @@ Section step_ind_nested.
     apply: ih_caseM; eauto.
     apply: ih_caseQ; eauto.
     apply: ih_caseFs; eauto.
-    apply: ih_iota; eauto.
+    apply: ih_iota1; eauto.
     apply: ih_fixL; eauto.
     apply: ih_fixR; eauto.
+    apply: ih_iota2; eauto.
   Qed.
 End step_ind_nested.
 
