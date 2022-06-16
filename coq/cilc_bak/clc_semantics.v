@@ -54,9 +54,14 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   iget i Fs F ->
   free Θ l (spine (Constr i I s) ms) Θ' ->
   eval Θ (Case (Ptr l) Q Fs) Θ' (spine F ms)
-| step_fix Θ l A m :
-  l = length Θ ->
-  eval Θ (Fix A m) (Fix A m :U Θ) m.[Ptr l/].
+| step_fix Θ Θ' i l1 l2 k A I m ms ns s :
+  k = size ms ->
+  l1 = size Θ ->
+  free Θ l2 (spine (Constr i I s) ns) Θ' ->
+  eval
+    Θ (spine (Fix k A m) (rcons ms (Ptr l2)))
+    ((spine (Constr i I s) ns) :{s} Fix k A m :U Θ')
+    (spine m.[Ptr l1/] (rcons ms (Ptr l1.+1))).
 
 Inductive agree_resolve :
   context term -> context term -> 

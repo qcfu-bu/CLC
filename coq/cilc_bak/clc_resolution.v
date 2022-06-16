@@ -23,8 +23,8 @@ Inductive value : term -> Prop :=
 | value_constr i I s ms :
   All1 value ms ->
   value (spine (Constr i I s) ms)
-| value_fix A m :
-  value (Fix A m)
+| value_fix k A m :
+  value (Fix k A m)
 | value_ptr l :
   value (Ptr l).
 
@@ -41,7 +41,7 @@ Section value_ind_nested.
     forall i I s ms,
       All1 value ms -> All1 P ms ->
       P (spine (Constr i I s) ms).
-  Hypothesis ih_fix : forall A m, P (Fix A m).
+  Hypothesis ih_fix : forall k A m, P (Fix k A m).
   Hypothesis ih_ptr : forall l, P (Ptr l).
 
   Fixpoint value_ind_nested m (pf : value m) : P m.
@@ -130,11 +130,11 @@ Inductive resolve : context term -> term -> term -> Prop :=
   resolve [Θ2] Q Q' ->
   All2 (resolve Θ2) Fs Fs' ->
   resolve Θ (Case m Q Fs) (Case m' Q' Fs')
-| resolve_fix Θ A A' m m' :
+| resolve_fix Θ k A A' m m' :
   Θ |> U ->
   resolve Θ A A' ->
   resolve Θ m m' ->
-  resolve Θ (Fix A m) (Fix A' m')
+  resolve Θ (Fix k A m) (Fix k A' m')
 | resolve_ptr Θ Θ' l m m' :
   free Θ l m Θ' ->
   resolve Θ' m m' ->
@@ -183,11 +183,11 @@ Section resolve_ind_nested.
       All2 (resolve Θ2) Fs Fs' -> All2 (P Θ2) Fs Fs' ->
       P Θ (Case m Q Fs) (Case m' Q' Fs').
   Hypothesis ih_fix :
-    forall Θ A A' m m',
+    forall Θ k A A' m m',
       Θ |> U ->
       resolve Θ A A' -> P Θ A A' ->
       resolve Θ m m' -> P Θ m m' ->
-      P Θ (Fix A m) (Fix A' m').
+      P Θ (Fix k A m) (Fix k A' m').
   Hypothesis ih_ptr :
     forall Θ Θ' l m m',
       free Θ l m Θ' ->
@@ -254,10 +254,10 @@ Inductive resolved : term -> Prop :=
   resolved Q ->
   All1 resolved Fs ->
   resolved (Case m Q Fs)
-| resolved_fix A m :
+| resolved_fix k A m :
   resolved A ->
   resolved m ->
-  resolved (Fix A m).
+  resolved (Fix k A m).
 
 Section resolved_ind_nested.
   Variable P : term -> Prop.
@@ -294,10 +294,10 @@ Section resolved_ind_nested.
       All1 resolved Fs -> All1 P Fs ->
       P (Case m Q Fs).
   Hypothesis ih_fix :
-    forall A m,
+    forall k A m,
       resolved A -> P A ->
       resolved m -> P m ->
-      P (Fix A m).
+      P (Fix k A m).
 
   Fixpoint resolved_ind_nested
     m (pf : resolved m) : P m.
@@ -515,7 +515,7 @@ Proof with eauto using resolve, re_pure, merge_re_id, re_pure, All1.
     tym ihm tyQ ihQ tyFs ihFs Θ n rs. inv rs.
   { f_equal...
     apply: resolve_type_id_All2i... }
-  move=>Γ A m l k tyA ihA tym ihm Θ n rs. inv rs.
+  move=>Γ k0 A m l k tyA ihA tym ihm Θ n rs. inv rs.
   { erewrite ihA...
     erewrite ihm... }
   Unshelve. all: eauto.
@@ -731,10 +731,10 @@ Inductive nf : nat -> term -> Prop :=
   nf i Q ->
   All1 (nf i) Fs ->
   nf i (Case m Q Fs)
-| nf_fix i A m :
+| nf_fix i k A m :
   nf i A ->
   nf i.+1 m ->
-  nf i (Fix A m)
+  nf i (Fix k A m)
 | nf_ptr i l :
   nf i (Ptr l).
 
@@ -775,10 +775,10 @@ Section nf_ind_nested.
       All1 (nf i) Fs -> All1 (P i) Fs ->
       P i (Case m Q Fs).
   Hypothesis ih_fix :
-    forall i A m,
+    forall i k A m,
       nf i A -> P i A ->
       nf i.+1 m -> P i.+1 m ->
-      P i (Fix A m).
+      P i (Fix k A m).
   Hypothesis ih_ptr :
     forall i l, P i (Ptr l).
 
@@ -842,11 +842,11 @@ Inductive wr_heap : context term -> Prop :=
   all_ptr ms ->
   wr_heap Θ ->
   wr_heap (spine (Constr i I s) ms :{s} Θ)
-| wr_fix Θ A m :
+| wr_fix Θ k A m :
   nf 0 A ->
   nf 1 m ->
   wr_heap Θ ->
-  wr_heap (Fix A m :U Θ)
+  wr_heap (Fix k A m :U Θ)
 | wr_N Θ :
   wr_heap Θ ->
   wr_heap (_: Θ).
@@ -1051,7 +1051,7 @@ Proof with eauto using nf, wr_heap_re, All1.
     constructor...
     elim: ihFs H5=>{Fs Fs' rFs}...
     move=>F F' Fs Fs' h hd ih tl. inv tl... }
-  move=>Θ A A' m m' k rA ihA rm ihm i wr nfF. inv nfF...
+  move=>Θ k0 A A' m m' k rA ihA rm ihm i wr nfF. inv nfF...
 Qed.
 
 Lemma resolve_wr_nfi' Θ m m' i :
@@ -1074,7 +1074,7 @@ Proof with eauto using nf, wr_heap_re, All1.
     constructor...
     elim: ihFs H5=>{Fs Fs' rFs}...
     move=>F F' Fs Fs' h hd ih tl. inv tl... }
-  move=>Θ A A' m m' k rA ihA rm ihm i wr nfF. inv nfF...
+  move=>Θ k0 A A' m m' k rA ihA rm ihm i wr nfF. inv nfF...
   move=>Θ Θ' l m m' fr rs ih i wr nfP.
   { apply: ih...
     apply: free_wr...
@@ -1245,10 +1245,10 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_fix Θ Θ' l A m :
-  free Θ l (Fix A m) Θ' -> wr_heap Θ -> Θ = Θ'.
+Lemma free_wr_fix Θ Θ' l k A m :
+  free Θ l (Fix k A m) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
-  move e:(Fix A m)=>n fr. elim: fr A m e=>//{Θ Θ' l n}.
+  move e:(Fix k A m)=>n fr. elim: fr A m e=>//{Θ Θ' l n}.
   move=>Θ m l e1 A n e2 wr; subst. inv wr.
   { exfalso. solve_spine. }
   move=>Θ Θ' m n l fr ih A m0 e wr; subst.
@@ -1399,10 +1399,10 @@ Proof.
   exfalso. apply: free_wr_ptr; eauto.
 Qed.
 
-Lemma resolve_fix_inv Θ m A n :
-  wr_heap Θ -> resolve Θ m (Fix A n) -> Θ |> U.
+Lemma resolve_fix_inv Θ m k A n :
+  wr_heap Θ -> resolve Θ m (Fix k A n) -> Θ |> U.
 Proof.
-  move e:(Fix A n)=>x wr rs.
+  move e:(Fix k A n)=>x wr rs.
   move: Θ m x rs A n e wr.
   apply: resolve_ind_nested=>//.
   move=>Θ Θ' l m m' fr rm ihm A n e wr; subst.
