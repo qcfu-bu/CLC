@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
+  clc_context clc_ast clc_confluence clc_typing
   clc_weakening clc_substitution clc_inversion clc_validity
   clc_soundness cclc_eval
   clc_linearity cclc_ast cclc_typing cclc_weakening
@@ -10,124 +10,6 @@ Require Import AutosubstSsr ARS
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
-
-Lemma dual_sub Γ X Y A1 A2 B1 B2 C1 C2 s1 s2 t1 t2 ξ :
-  X ~ Y ->
-  X.[ren ξ] <: Out A1 B1 s1 ->
-  Y.[ren ξ] <: Inp A2 B2 s2 ->
-  [Γ] ⊢ X : C1 : t1 ->
-  [Γ] ⊢ Y : C2 : t2 ->
-  exists A B3 B4 C3 C4,
-    [Γ] ⊢ Out A B3 s1 : C3 : t1 /\
-    [Γ] ⊢ Inp A B4 s2 : C4 : t2 /\
-    B3 ~ B4 /\ s1 = s2 /\
-    (Out A B3 s1).[ren ξ] <: X.[ren ξ] /\
-    (Inp A B4 s2).[ren ξ] <: Y.[ren ξ] /\
-    (Out A B3 s1).[ren ξ] <: Out A1 B1 s1 /\
-    (Inp A B4 s2).[ren ξ] <: Inp A2 B2 s2.
-Proof.
-  move=>d. elim: d Γ A1 A2 B1 B2 C1 C2 s1 s2 t1 t2 ξ=>{X Y}; asimpl.
-  all: try solve[intros; exfalso; solve_sub].
-  move=>A B1 B2 s d _ Γ A1 A2 B0 B3 C1 C2 s1 s2 t1 t2 ξ c1 c2 ty1 ty2.
-  { exists A. exists B1. exists B2. exists C1. exists C2.
-    have[cA1[cB1 e]]:=sub_out_inv c1; subst.
-    have[cA2[cB2 e]]:=sub_inp_inv c2; subst.
-    repeat split; eauto. }
-  move=>m A1 A2 B1 B2 dA ihA dB ihB Γ A0 A3 B0 B3 C1 C2 s1 s2 t1 t2 ξ c1 c2 ty1 ty2.
-  { move:c1=>/sub_case_out[A4[B4[r1[r2 r3]]]].
-    move:c2=>/sub_case_inp[A5[B5[r4[r5 r6]]]].
-    have[G1[G2[Ax[mrgx[_[_[tyA1 tyB1]]]]]]]:=case_inv ty1.
-    have[G3[G4[Ay[mrgy[_[_[tyA2 tyB2]]]]]]]:=case_inv ty2.
-    have[k1 k2]:=merge_pure_inv mrgx (re_pure _).
-    have[k3 k4]:=merge_pure_inv mrgy (re_pure _).
-    have[_[e1 e2]]:=merge_re_re mrgx.
-    have[_[e3 e4]]:=merge_re_re mrgy.
-    rewrite<-re_invo in e1. rewrite<-pure_re in e1; eauto.
-    rewrite<-re_invo in e2. rewrite<-pure_re in e2; eauto.
-    rewrite<-re_invo in e3. rewrite<-pure_re in e3; eauto.
-    rewrite<-re_invo in e4. rewrite<-pure_re in e4; eauto.
-    move:r1=>/red_case_out[[hm1 hA]|[hm1 hA]].
-    move:r4=>/red_case_inp[[hm2 hB]|[hm2 hB]].
-    { have sb1:A1.[ξ >>> ids] <: Out A0 B0 s1.
-      { apply: (@sub_trans (Out A4 B4 s1)).
-        apply: conv_sub.
-        apply: star_conv; eauto.
-        apply: sub_out; eauto. }
-      have sb2:A2.[ξ >>> ids] <: Inp A3 B3 s2.
-      { apply: (@sub_trans (Inp A5 B5 s2)).
-        apply: conv_sub.
-        apply: star_conv; eauto.
-        apply: sub_inp; eauto. }
-      rewrite e2 in tyA1.
-      rewrite e4 in tyA2.
-      have{ihB}ihA:=ihA _ _ _ _ _ _ _ _ _ _ _ _ sb1 sb2 tyA1 tyA2.
-      move:ihA=>[A[B6[B7[C3[C4[tyO[tyI[d[e[sb3[sb4[sb5 sb6]]]]]]]]]]]].
-      exists A. exists B6. exists B7. exists C3. exists C4.
-      repeat split; eauto.
-      apply: sub_trans. apply: sb3.
-      apply: conv_sub.
-      apply: conv_sym.
-      apply: star_conv.
-      apply: star_trans.
-      apply: red_case.
-      apply: hm1.
-      apply: starR.
-      apply: starR.
-      apply: star1.
-      constructor.
-      apply: sub_trans. apply: sb4.
-      apply: conv_sub.
-      apply: conv_sym.
-      apply: star_conv.
-      apply: star_trans.
-      apply: red_case.
-      apply: hm2.
-      apply: starR.
-      apply: starR.
-      apply: star1.
-      constructor. }
-    { exfalso. apply: red_lr; eauto. }
-    move:r4=>/red_case_inp[[hm2 hB]|[hm2 hB]].
-    { exfalso. apply: red_lr; eauto. }
-    { have sb1:B1.[ξ >>> ids] <: Out A0 B0 s1.
-      { apply: (@sub_trans (Out A4 B4 s1)).
-        apply: conv_sub.
-        apply: star_conv; eauto.
-        apply: sub_out; eauto. }
-      have sb2:B2.[ξ >>> ids] <: Inp A3 B3 s2.
-      { apply: (@sub_trans (Inp A5 B5 s2)).
-        apply: conv_sub.
-        apply: star_conv; eauto.
-        apply: sub_inp; eauto. }
-      rewrite e2 in tyB1.
-      rewrite e4 in tyB2.
-      have{ihA}ihB:=ihB _ _ _ _ _ _ _ _ _ _ _ _ sb1 sb2 tyB1 tyB2.
-      move:ihB=>[A[B6[B7[C3[C4[tyO[tyI[d[e[sb3[sb4[sb5 sb6]]]]]]]]]]]].
-      exists A. exists B6. exists B7. exists C3. exists C4.
-      repeat split; eauto.
-      apply: sub_trans. apply: sb3.
-      apply: conv_sub.
-      apply: conv_sym.
-      apply: star_conv.
-      apply: star_trans.
-      apply: red_case.
-      apply: hm1.
-      apply: starR.
-      apply: starR.
-      apply: star1.
-      constructor.
-      apply: sub_trans. apply: sb4.
-      apply: conv_sub.
-      apply: conv_sym.
-      apply: star_conv.
-      apply: star_trans.
-      apply: red_case.
-      apply: hm2.
-      apply: starR.
-      apply: starR.
-      apply: star1.
-      constructor. } }
-Qed.
 
 Lemma congr0_sym p q : congr0 p q -> congr0 q p.
 Proof.
@@ -161,12 +43,10 @@ Proof with eauto using cclc_type, congr0.
   { inv typ.
     have[_[e1 e2]]:=merge_re_re mrg.
     have mrg': 
-      Ch A.[ren (+1)] :L Ch B :L Γ1 ∘ _: _: Γ2 => 
-      Ch A.[ren (+1)] :L Ch B :L Γ.
+      Ch (~~r2) A.[ren (+1)] :L Ch r2 A :L Γ1 ∘ _: _: Γ2 =>
+      Ch (~~r2) A.[ren (+1)] :L Ch r2 A :L Γ.
       repeat econstructor; eauto.
-    econstructor.
-    exact: H0.
-    rewrite<-e1; eauto.
+    econstructor; eauto.
     rewrite<-e1; eauto.
     econstructor...
     replace q.[ren (+2)]%P 
@@ -182,7 +62,7 @@ Proof with eauto using cclc_type, congr0.
     apply: congr0_sym...
     apply: ihq...
     apply: congr0_sym... }
-  move=>Γ p A B i d tyA tyB typ ihp q cr. inv cr.
+  move=>Γ p r1 r2 A d tyA typ ihp q cr. inv cr.
   { inv typ. 
     inv H1; inv H5.
     { have[_[e1 e2]]:=merge_re_re H2.
@@ -190,20 +70,19 @@ Proof with eauto using cclc_type, congr0.
       apply: H2.
       econstructor...
       rewrite e1...
-      rewrite e1...
       apply: strengthen.
       apply: strengthen.
       rewrite proc_subst_comp.
       by asimpl. }
-    { have os:of_sort (_: Ch B :L Γ2) 1 (Some L).
+    { have os:of_sort (_: Ch r2 A :L Γ2) 1 (Some L).
         repeat econstructor.
       have:=linearity H4 os. 
       have->//:=iren_occurs q0 iren1. }
-    { have os:of_sort (Ch A.[ren (+1)] :L _: Γ2) 0 (Some L).
+    { have os:of_sort (Ch (~~r2) A.[ren (+1)] :L _: Γ2) 0 (Some L).
         econstructor.
       have:=linearity H4 os.
       have->//:=iren_occurs q0 iren0. }
-    { have os:of_sort (Ch A.[ren (+1)] :L Ch B :L Γ2) 0 (Some L).
+    { have os:of_sort (Ch (~~r2) A.[ren (+1)] :L Ch r2 A :L Γ2) 0 (Some L).
         econstructor.
       have:=linearity H4 os.
       have->//:=iren_occurs q0 iren0. } }

@@ -1,8 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Program Utf8.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_subtype clc_dual clc_typing
-  cclc_ast.
+  clc_context clc_ast clc_typing cclc_ast.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -19,10 +18,9 @@ Inductive cclc_type : context term -> proc -> Prop :=
   Γ1 ⊢ p ->
   Γ2 ⊢ q ->
   Γ ⊢ p ∣ q
-| cclc_scope Γ p A B i :
-  A ~ B ->
-  [Γ] ⊢ Ch A : L @ i : U ->
-  [Γ] ⊢ Ch B : L @ i : U ->
-  Ch A.[ren (+1)] :L Ch B :L Γ ⊢ p ->
+| cclc_scope Γ p r1 r2 A :
+  r1 = ~~r2 ->
+  [Γ] ⊢ A : Proto : U ->
+  Ch r1 A.[ren (+1)] :L Ch r2 A :L Γ ⊢ p ->
   Γ ⊢ ν.p
 where "Γ ⊢ p" := (cclc_type Γ p).

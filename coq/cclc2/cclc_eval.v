@@ -171,6 +171,11 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       apply: (key_impure G4).
       apply: (merge_sym mrg5).
       all: eauto. } }
+  move=>Γ A m k tyA ihA tym ihm wf c n e.
+  { destruct c; simpl in e; inv e.
+    exists Γ. exists Γ. exists A. exists U.
+    repeat split...
+    move=>//. }
   move=>Γ k wf c m e.
   { destruct c; simpl in e; inv e.
     exists Γ. exists Γ. exists (Sort U). exists U.
@@ -196,12 +201,12 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     exists Γ. exists Γ. exists Either. exists U.
     repeat split...
     move=>//. }
-  move=>Γ A B s r t i lte k tyA _ tyB _ wf c m e.
+  move=>Γ A B s r t lte k tyA _ tyB _ wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (t @ i). exists U.
+    exists Γ. exists Γ. exists (Sort t). exists U.
     repeat split...
     move=>//. }
-  move=>Γ1 Γ2 Γ A B m n s r t i k1 k2 mrg 
+  move=>Γ1 Γ2 Γ A B m n s r t k1 k2 mrg
     tyS ihS tym ihm tyn ihn wf c m0 e.
   { destruct c; simpl in e; inv e.
     { exists Γ. exists [Γ]. exists (Sigma A B s r t). exists t.
@@ -219,7 +224,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       have{}ih:=ih k' _ _ _ (merge_sym mrg4) tyn0.
       destruct s.
       have[]//:=merge_pure_inv mrg0 k1.
-      have//=[G5[G6[l[_[mrg6[tyA tyB]]]]]]:=sigma_inv tyS.
+      have//=[G5[G6[_[mrg6[tyA tyB]]]]]:=sigma_inv tyS.
       have[_[e1 e2]]:=merge_re_re mrg5.
       have[_[e3 e4]]:=merge_re_re mrg.
       econstructor.
@@ -249,7 +254,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       apply: merge_sym...
       rewrite<-e2. rewrite e3...
       all: eauto. } }
-  move=>Γ1 Γ2 Γ m n1 n2 A s t i k mrg tym ihm tyA _ tyn1 _ tyn2 _ wf c m0 e.
+  move=>Γ1 Γ2 Γ m n1 n2 A s t k mrg tym ihm tyA _ tyn1 _ tyn2 _ wf c m0 e.
   { destruct c; simpl in e; inv e.
     { exists Γ. exists [Γ]. exists A.[m/]. exists t.
       repeat split...
@@ -289,7 +294,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       have[G4[mrg4 mrg5]]:=merge_splitL (merge_sym mrg3) mrg1.
       have{}ih:=ih k' _ _ _ (merge_sym mrg4) tyn0.
       econstructor... } }
-  move=>Γ1 Γ2 Γ A B C m n s r t k x i lte key mrg 
+  move=>Γ1 Γ2 Γ A B C m n s r t k x lte key mrg
     tym ihm tyC _ tyn _ wf c m0 e.
   { destruct c; simpl in e; inv e. 
     { exists Γ. exists [Γ]. exists C.[m/]. exists x.
@@ -317,42 +322,32 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       all: eauto. } }
   move=>Γ k wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (L @ 0). exists U.
+    exists Γ. exists Γ. exists (Sort L). exists U.
     repeat split...
     move=>//. }
-  move=>Γ i k wf c m e.
+  move=>Γ k wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (U @ i). exists U.
+    exists Γ. exists Γ. exists (Sort U). exists U.
     repeat split...
     move=>//. }
-  move=>Γ i k wf c m e.
+  move=>Γ r k wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (Proto 0). exists U.
+    exists Γ. exists Γ. exists Proto. exists U.
     repeat split...
     move=>//. }
-  move=>Γ i k wf c m e.
+  move=>Γ r A B s k tyA _ tyB _ wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (Proto 0). exists U.
+    exists Γ. exists Γ. exists Proto. exists U.
     repeat split...
     move=>//. }
-  move=>Γ A B s i k tyA _ tyB _ wf c m e.
+  move=>Γ r A k tyA ihA wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (Proto i). exists U.
+    exists Γ. exists Γ. exists (Sort L). exists U.
     repeat split...
     move=>//. }
-  move=>Γ A B s i k tyA _ tyB _ wf c m e.
+  move=>Γ1 Γ2 r1 r2 Γ m n A B s t mrg d tyA _ tym ihm tyn ihn wf c m0 e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (Proto i). exists U.
-    repeat split...
-    move=>//. }
-  move=>Γ A i k tyA ihA wf c m e.
-  { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (L @ i). exists U.
-    repeat split...
-    move=>//. }
-  move=>Γ1 Γ2 Γ m n A B C s t i d mrg tyA _ tyB _ tym ihm tyn ihn wf c m0 e.
-  { destruct c; simpl in e; inv e.
-    { exists Γ. exists [Γ]. exists (Sigma (Ch A) Main L L L). exists L.
+    { exists Γ. exists [Γ]. exists (Sigma (Ch (~~r2) A) Main L L L). exists L.
       repeat split...
       move=>k' Γ3 Γ' n' mrg' tyn'//=.
       have->//:=merge_pureR mrg' (re_pure _). }
@@ -365,41 +360,32 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       move=>k' Γ3 Γ' n0 mrg3 tyn0//=.
       have[G4[mrg4 mrg5]]:=merge_splitL (merge_sym mrg3) mrg1.
       have{}ih:=ih k' _ _ _ (merge_sym mrg4) tyn0.
-      have[_[e1 e2]]:=merge_re_re mrg0.
-      have[_[e3 e4]]:=merge_re_re mrg4.
+      have[_[e1 e2]]:=merge_re_re mrg5.
+      have[_[e3 e4]]:=merge_re_re mrg.
       econstructor.
-      apply: d.
       apply: mrg5.
-      rewrite<-e3. rewrite e2; eauto.
+      eauto.
+      rewrite<-e2. rewrite e4; eauto.
       all: eauto. } }
-  move=>Γ A B m s tym ihm wf c m0 e.
+  move=>Γ r1 r2 A B m s xor tym ihm wf c m0 e.
   { destruct c; simpl in e; inv e.
-    { exists Γ. exists [Γ]. exists (Sigma A (Ch B) s L L). exists L.
+    { exists Γ. exists [Γ]. exists (Sigma A (Ch r1 B) s L L). exists L.
       repeat split...
       move=>k' Γ3 Γ' n mrg tyn//=.
       have->//:=merge_pureR mrg (re_pure _). }
     { have{ihm}[G1[G2[B0[t[mrg[tym0 ih]]]]]]:=ihm wf _ _ erefl.
       exists G1. exists G2. exists B0. exists t.
       repeat split... } }
-  move=>Γ A B m s tym ihm wf c m0 e.
+  move=>Γ r1 r2 A B m s xor tym ihm wf c m0 e.
   { destruct c; simpl in e; inv e.
-    { exists Γ. exists [Γ]. exists (Pi A (Ch B) s L L). exists L.
+    { exists Γ. exists [Γ]. exists (Pi A (Ch r1 B) s L L). exists L.
       repeat split...
       move=>k' Γ3 Γ' n mrg tyn//=.
       have->//:=merge_pureR mrg (re_pure _). }
     { have{ihm}[G1[G2[B0[t[mrg[tym0 ih]]]]]]:=ihm wf _ _ erefl.
       exists G1. exists G2. exists B0. exists t.
       repeat split... } }
-  move=>Γ m tym ihm wf c m0 e.
-  { destruct c; simpl in e; inv e.
-    { exists Γ. exists [Γ]. exists Unit. exists U.
-      repeat split...
-      move=>k' Γ3 Γ' n mrg tyn//=.
-      have->//:=merge_pureR mrg (re_pure _). }
-    { have{ihm}[G1[G2[B0[t[mrg[tym0 ih]]]]]]:=ihm wf _ _ erefl.
-      exists G1. exists G2. exists B0. exists t.
-      repeat split... } }
-  move=>Γ m tym ihm wf c m0 e.
+  move=>Γ r1 r2 m xor tym ihm wf c m0 e.
   { destruct c; simpl in e; inv e.
     { exists Γ. exists [Γ]. exists Unit. exists U.
       repeat split...
@@ -408,7 +394,16 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     { have{ihm}[G1[G2[B0[t[mrg[tym0 ih]]]]]]:=ihm wf _ _ erefl.
       exists G1. exists G2. exists B0. exists t.
       repeat split... } }
-  move=>Γ A B m s i sb tym ihm tyB _ wf c m0 e.
+  move=>Γ r1 r2 m xor tym ihm wf c m0 e.
+  { destruct c; simpl in e; inv e.
+    { exists Γ. exists [Γ]. exists Unit. exists U.
+      repeat split...
+      move=>k' Γ3 Γ' n mrg tyn//=.
+      have->//:=merge_pureR mrg (re_pure _). }
+    { have{ihm}[G1[G2[B0[t[mrg[tym0 ih]]]]]]:=ihm wf _ _ erefl.
+      exists G1. exists G2. exists B0. exists t.
+      repeat split... } }
+  move=>Γ A B m s sb tym ihm tyB _ wf c m0 e.
   { have{ihm}[G1[G2[B0[t[mrg[tym0 ih]]]]]]:=ihm wf _ _ e.
     exists G1. exists G2. exists B0. exists t.
     repeat split...

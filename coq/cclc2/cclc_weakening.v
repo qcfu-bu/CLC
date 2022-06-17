@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
+  clc_context clc_ast clc_confluence clc_typing
   clc_weakening cclc_ast cclc_typing.
 
 Set Implicit Arguments.
@@ -25,20 +25,16 @@ Proof.
     exact: agr1.
     apply: ihq.
     exact: agr2.
-  move=>Γ p A B i d tyA tyB typ ihp Γ' ξ agr; asimpl.
-    have d':=rename_dual ξ d.
-    econstructor.
-    apply: d'.
+  move=>Γ p r1 r2 A d tyA typ ihp Γ' ξ agr; asimpl.
+    econstructor; eauto.
     have tyA':=rename_ok tyA (agree_ren_re_re agr).
     asimpl in tyA'; eauto.
-    have tyB':=rename_ok tyB (agree_ren_re_re agr).
-    asimpl in tyB'; eauto.
     asimpl.
     apply: ihp.
     have: 
       (agree_ren (upren (upren ξ))
-        (Ch A.[ren (+1)] :L Ch B :L Γ)
-        (Ch A.[ren (+1)].[ren (upren ξ)] :L Ch B.[ren ξ] :L Γ')).
+        (Ch r1 A.[ren (+1)] :L Ch r2 A :L Γ)
+        (Ch r1 A.[ren (+1)].[ren (upren ξ)] :L Ch r2 A.[ren ξ] :L Γ')).
       econstructor.
       econstructor.
       exact:agr.

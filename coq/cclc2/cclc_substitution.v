@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
+  clc_context clc_ast clc_confluence clc_typing
   clc_weakening clc_substitution 
   cclc_ast cclc_typing cclc_weakening.
 
@@ -19,19 +19,15 @@ Proof.
   move=>Γ1 Γ2 Γ p q mrg typ ihp tyq ihq Δ σ agr; asimpl.
     have[G1[G2[mrg1[agr1 agr2]]]]:=merge_agree_subst_inv agr mrg.
     econstructor; eauto.
-  move=>Γ p A B i d tyA tyB typ ihp Δ σ agr; asimpl.
-    have d':=dual_subst σ d.
-    econstructor.
-    apply: d'.
+  move=>Γ p r1 r2 A d tyA typ ihp Δ σ agr; asimpl.
+    econstructor; eauto.
     have tyA':=esubstitution tyA (agree_subst_re agr).
     asimpl in tyA'; eauto.
-    have tyB':=esubstitution tyB (agree_subst_re agr).
-    asimpl in tyB'; eauto.
     asimpl.
     apply: ihp.
     have:
-      (Ch A.[ren (+1)]).[up σ] :L (Ch B).[σ] :L Δ ⊢ up (up σ) ⊣
-      Ch A.[ren (+1)] :L Ch B :L Γ.
+      (Ch r1 A.[ren (+1)]).[up σ] :L (Ch r2 A).[σ] :L Δ ⊢ up (up σ) ⊣
+      Ch r1 A.[ren (+1)] :L Ch r2 A :L Γ.
       apply: agree_subst_ty.
       apply: agree_subst_ty.
       exact: agr.
@@ -115,7 +111,7 @@ Qed.
 Lemma strengthen Γ p : _: Γ ⊢ p.[ren (+1)] -> Γ ⊢ p.
 Proof with eauto using key.
   move=>typ.
-  have ty : (nil ⊢ U @ 0 : U @ 1 : U).
+  have ty : (nil ⊢ Sort U : Sort U : U).
   apply: clc_axiom...
   have := (substitutionN typ ty).
   rewrite proc_subst_comp.

@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
+  clc_context clc_ast clc_confluence clc_typing
   clc_weakening clc_substitution clc_inversion clc_validity
   clc_soundness clc_linearity
   cclc_ast cclc_typing.
@@ -26,7 +26,7 @@ Proof.
   move=>Γ1 Γ2 Γ p q mrg typ ihp tyq ihq i os.
     have[os1 os2]:=of_sortN_merge_inv mrg os.
     rewrite ihp; eauto.
-  move=>Γ p A B d tyA tyB i typ ihp x os. 
+  move=>Γ p r1 r2 A d tyA typ ihp x os.
     apply: ihp.
     repeat econstructor; eauto.
 Qed.
@@ -42,7 +42,7 @@ Proof.
     rewrite ihp; eauto.
     erewrite narity; eauto.
     erewrite narity; eauto.
-  move=>Γ p A B d tyA tyB i typ ihp x os.
+  move=>Γ p r1 r2 A d tyA typ ihp x os.
     apply: ihp.
     repeat econstructor; eauto.
 Qed.
