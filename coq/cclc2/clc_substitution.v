@@ -285,13 +285,17 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
   move=>Γ r A k tyA ihA Δ σ agr.
   { asimpl.
     apply: clc_ch... }
-  move=>Γ1 Γ2 r1 r2 Γ m n A B s t mrg d tyA ihA tyB ihB tym ihm tyn ihn Δ σ agr.
+  move=>Γ1 Γ2 r1 r2 Γ m n A B s t mrg d tyA ihA tym ihm tyn ihn Δ σ agr.
   { asimpl.
     have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_subst_inv agr mrg.
-    have//={}ihA:=ihA _ _ (agree_subst_re agr1).
-    have//={}ihB:=ihB _ _ (agree_subst_re agr2).
+    have agr0:=agree_subst_re agr1.
+    have[e1[e2 e3]]:=merge_re_re mrg.
+    have[e4[e5 e6]]:=merge_re_re mrg'.
+    rewrite e2 in agr0.
+    have//={}ihA:=ihA _ _ agr0.
     have//={}ihm:=ihm _ _ agr1.
-    apply: clc_fork... }
+    apply: clc_fork...
+    rewrite<-e5... }
   move=>Γ r1 r2 A B m s xor tym ihm Δ σ agr.
   { asimpl.
     apply: clc_recv... }

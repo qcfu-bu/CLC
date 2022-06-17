@@ -222,13 +222,17 @@ Proof with eauto using
   move=>Γ r A k tyA ihA Γ' ξ agr.
   { asimpl.
     apply: clc_ch... }
-  move=>Γ1 Γ2 r1 r2 Γ m n A B s t mrg d tyA ihA tyB ihB tym ihm tyn ihn Γ' ξ agr.
+  move=>Γ1 Γ2 r1 r2 Γ m n A B s t mrg d tyA ihA tym ihm tyn ihn Γ' ξ agr.
   { asimpl.
     have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_ren_inv agr mrg.
-    have//={}ihA:=ihA _ _ (agree_ren_re_re agr1).
-    have//={}ihB:=ihB _ _ (agree_ren_re_re agr2).
+    have[e1[e2 e3]]:=merge_re_re mrg.
+    have[e4[e5 e6]]:=merge_re_re mrg'.
+    have agr0:=agree_ren_re_re agr1.
+    rewrite e2 in agr0.
+    have//={}ihA:=ihA _ _ agr0.
     have//={}ihm:=ihm _ _ agr1.
-    apply: clc_fork... }
+    apply: clc_fork...
+    rewrite<-e5... }
   move=>Γ r1 r2 A B m s xor tym ihm Γ' ξ agr.
   { asimpl.
     apply: clc_recv...

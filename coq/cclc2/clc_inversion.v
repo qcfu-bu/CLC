@@ -259,87 +259,97 @@ Qed.
 
 Lemma fork_inv Γ m n T r :
   Γ ⊢ Fork m n : T : r ->
-  exists Γ1 Γ2 A B C s t i,
+  exists Γ1 Γ2 r1 r2 A B s t,
     r = L /\
-    Sigma (Ch A) Main L L L <: T /\
-    A ~ B /\
+    Sigma (Ch r1 A) Main L L L === T /\
     Γ1 ∘ Γ2 => Γ /\
-    [Γ1] ⊢ Ch A : L @ i : U /\
-    [Γ2] ⊢ Ch B : L @ i : U /\
+    r1 = ~~ r2 /\
+    [Γ] ⊢ A : Proto : U /\
     Γ1 ⊢ m : Main : L /\
-    Γ2 ⊢ n : Pi (Ch B) C L s t : t.
+    Γ2 ⊢ n : Pi (Ch r2 A) B L s t : t.
 Proof.
   move e:(Fork m n)=>x tp. elim: tp m n e=>//{Γ x T r}.
-  move=>Γ1 Γ2 Γ m n A B C s t i d mrg tyA _ tyB _ tym _ tyn _ m0 n0 [e1 e2]; subst.
-  exists Γ1. exists Γ2. exists A. exists B. exists C. exists s. exists t. exists i.
+  move=>Γ1 Γ2 r1 r2 Γ m n A B s t mrg d tyA _ tym _ tyn _ m0 n0 [e1 e2]; subst.
+  exists Γ1. exists Γ2. exists (~~r2). exists r2. exists A. exists B. exists s. exists t.
   repeat split; eauto.
-  move=>Γ A B m s i sb tym ih tyB _ m0 n e; subst.
-  have{ih}[G1[G2[Ax[Bx[Cx[s0[t0[i0 e]]]]]]]]:=ih _ _ erefl.
+  move=>Γ A B m s sb tym ih tyB _ m0 n e; subst.
+  have{ih}[G1[G2[r1[r2[A0[B0[s0[t0]]]]]]]]:=ih _ _ erefl.
   firstorder; subst.
-  exists G1. exists G2. exists Ax. exists Bx. exists Cx. exists s0. exists t0. exists i0.
+  exists G1. exists G2. exists (~~r2). exists r2. exists A0. exists B0. exists s0. exists t0.
   repeat split; eauto.
-  apply: sub_trans; eauto.
+  apply: conv_trans; eauto.
 Qed.
 
 Lemma recv_inv Γ m C t :
   Γ ⊢ Recv m : C : t ->
-  exists A B s,
+  exists r1 r2 A B s,
     t = L /\
-    Sigma A (Ch B) s L L <: C /\
-    Γ ⊢ m : Ch (Inp A B s) : L.
+    Sigma A (Ch r1 B) s L L === C /\
+    addb r1 r2 = false /\
+    Γ ⊢ m : Ch r1 (Act r2 A B s) : L.
 Proof.
   move e:(Recv m)=>n tp. elim: tp m e=>//{Γ C t n}.
-  move=>Γ A B m s tym _ m0 [e]; subst.
-  exists A. exists B. by exists s.
-  move=>Γ A B m s i sb tym ih tyB _ m0 e; subst.
-  have[A0[B0[s0[e[sb0 tym0]]]]]:=ih _ erefl; subst.
-  exists A0. exists B0. exists s0.
+  move=>Γ r1 r2 A B m s xor tym _ m0 [e]; subst.
+  exists r1. exists r2. exists A. exists B. by exists s.
+  move=>Γ A B m s sb tym ih tyB _ m0 e; subst.
+  have[r1[r2[A0[B0[s0]]]]]:=ih _ erefl.
+  firstorder; subst.
+  exists r1. exists r2. exists A0. exists B0. exists s0.
   repeat split; eauto.
-  apply: sub_trans; eauto.
+  apply: conv_trans; eauto.
 Qed.
 
 Lemma send_inv Γ m C t :
   Γ ⊢ Send m : C : t ->
-  exists A B s,
+  exists r1 r2 A B s,
     t = L /\
-    Pi A (Ch B) s L L <: C /\
-    Γ ⊢ m : Ch (Out A B s) : L.
+    Pi A (Ch r1 B) s L L === C /\
+    addb r1 r2 = true /\
+    Γ ⊢ m : Ch r1 (Act r2 A B s) : L.
 Proof.
   move e:(Send m)=>n tp. elim: tp m e=>//{Γ C t n}.
-  move=>Γ A B m s tym _ m0 [e]; subst.
-  exists A. exists B. by exists s.
-  move=>Γ A B m s i sb tym ih tyB _ m0 e; subst.
-  have[A0[B0[s0[e[sb0 tym0]]]]]:=ih _ erefl.
-  exists A0. exists B0. exists s0.
+  move=>Γ r1 r2 A B m s xor tym _ m0 [e]; subst.
+  exists r1. exists r2. exists A. exists B. by exists s.
+  move=>Γ A B m s sb tym ih tyB _ m0 e; subst.
+  have[r1[r2[A0[B0[s0]]]]]:=ih _ erefl.
+  firstorder; subst.
+  exists r1. exists r2. exists A0. exists B0. exists s0.
   repeat split; eauto.
-  apply: sub_trans; eauto.
-Qed.
-
-Lemma close_inv Γ m A s :
-  Γ ⊢ Close m : A : s ->
-  s = U /\
-  Unit <: A /\
-  Γ ⊢ m : Ch OutEnd : L.
-Proof.
-  move e:(Close m)=>n tp. elim: tp m e=>//{Γ A s n}.
-  move=>Γ m tym ihm m0 [e]; subst=>//.
-  move=>Γ A B m s i sb tym ihm tyB _ m0 [e]; subst.
-  have[->[sb' tym0]]:=ihm _ erefl.
-  repeat split; eauto.
-  apply: sub_trans; eauto.
+  apply: conv_trans; eauto.
 Qed.
 
 Lemma wait_inv Γ m A s :
   Γ ⊢ Wait m : A : s ->
-  s = U /\
-  Unit <: A /\
-  Γ ⊢ m : Ch InpEnd : L.
+  exists r1 r2,
+    s = U /\
+    Unit === A /\
+    addb r1 r2 = false /\
+    Γ ⊢ m : Ch r1 (Stop r2) : L.
 Proof.
   move e:(Wait m)=>n tp. elim: tp m e=>//{Γ A s n}.
-  move=>Γ m tym ihm m0 [e]; subst=>//.
-  move=>Γ A B m s i sb tym ihm tyB _ m0 [e]; subst.
-  have[->[sb' tym0]]:=ihm _ erefl.
+  move=>Γ r1 r2 m xor tym ihm m0 [e]; subst=>//.
+  exists r1. exists r2. eauto.
+  move=>Γ A B m s sb tym ihm tyB _ m0 [e]; subst.
+  have[r1[r2[->[sb0[xor tym0]]]]]:=ihm _ erefl.
+  exists r1. exists r2.
   repeat split; eauto.
-  apply: sub_trans; eauto.
+  apply: conv_trans; eauto.
 Qed.
 
+Lemma close_inv Γ m A s :
+  Γ ⊢ Close m : A : s ->
+  exists r1 r2,
+    s = U /\
+    Unit === A /\
+    addb r1 r2 = true /\
+    Γ ⊢ m : Ch r1 (Stop r2) : L.
+Proof.
+  move e:(Close m)=>n tp. elim: tp m e=>//{Γ A s n}.
+  move=>Γ r1 r2 m xor tym ihm m0 [e]; subst=>//.
+  exists r1. exists r2. eauto.
+  move=>Γ A B m s sb tym ihm tyB _ m0 [e]; subst.
+  have[r1[r2[->[sb0[xor tym0]]]]]:=ihm _ erefl.
+  exists r1. exists r2.
+  repeat split; eauto.
+  apply: conv_trans; eauto.
+Qed.
