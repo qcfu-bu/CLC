@@ -33,6 +33,11 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   Γ1 ⊢ m : Pi A B s r t : t ->
   Γ2 ⊢ n : A : s ->
   Γ ⊢ App m n : B.[n/] : r
+| clc_fix Γ A m :
+  Γ |> U ->
+  Γ ⊢ A : Sort U : U ->
+  A :U Γ ⊢ m : A.[ren (+1)] : U ->
+  Γ ⊢ Fix A m : A : U
 | clc_unit Γ :
   Γ |> U ->
   Γ ⊢ Unit : Sort U : U

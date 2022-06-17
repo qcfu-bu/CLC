@@ -205,6 +205,11 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     replace B.[n.[σ] .: σ] with B.[up σ].[n.[σ]/] by autosubst.
     move:(agree_subst_key agr2 k)=>{}k.
     apply: clc_app... }
+  move=>Γ A m k tyA ihA tym ihm Δ σ agr.
+  { asimpl.
+    constructor...
+    have:=ihm _ _ (agree_subst_ty U A agr).
+    asimpl... }
   move=>Γ k Δ σ agr. asimpl.
   { apply: clc_unit... }
   move=>Γ k Δ σ agr. asimpl.

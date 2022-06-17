@@ -1,9 +1,9 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Utf8 Classical.
 Require Import AutosubstSsr ARS 
-  clc_context clc_ast clc_confluence clc_subtype clc_dual clc_typing
-  clc_weakening clc_substitution clc_inversion clc_validity
-  clc_soundness clc_linearity.
+  clc_context clc_ast clc_confluence clc_typing
+  clc_weakening clc_substitution clc_inversion
+  clc_validity clc_soundness clc_linearity.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -11,12 +11,28 @@ Unset Printing Implicit Defensive.
 
 Inductive value : term -> Prop :=
 | value_var x : value (Var x)
+| value_sort s : value (Sort s)
+| value_pi A B s r t : value (Pi A B s r t)
 | value_lam A m s t : value (Lam A m s t)
+| value_fix A m : value (Fix A m)
+| value_unit : value Unit
 | value_it : value It
-| value_pair m n s : 
+| value_either : value Either
+| value_left : value Left
+| value_right : value Right
+| value_sigma A B s r t : value (Sigma A B s r t)
+| value_pair m n s :
   value m ->
   value n ->
   value (Pair m n s)
+| value_main : value Main
+| value_proto : value Proto
+| value_stop r : value (Stop r)
+| value_act r A B s : value (Act r A B s)
+| value_ch r A : value (Ch r A)
+| value_recv m :
+  value m ->
+  value (Recv m)
 | value_send m :
   value m ->
   value (Send m).
@@ -97,14 +113,14 @@ Lemma plug_inv Γ c m A s :
 Proof with eauto using clc_type, merge_reR, merge_pure.
   move e:(c.[m])=>n wf ty. 
   elim: ty wf c m e=>{Γ n A s}.
-  move=>Γ s l k wf c m e.
+  move=>Γ s k wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ.  exists (U @ l.+1). exists U.
+    exists Γ. exists Γ.  exists (Sort U). exists U.
     repeat split...
     move=>//. }
-  move=>Γ A B s r t i k tyA _ tyB _ wf c m e.
+  move=>Γ A B s r t k tyA _ tyB _ wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (t @ i). exists U.
+    exists Γ. exists Γ. exists (Sort t). exists U.
     repeat split...
     move=>//. }
   move=>Γ x A s hs wf c m e.
@@ -113,7 +129,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     repeat split...
     move=>k Γ3 Γ' n mrg tyn//=.
     have->//:=merge_pureR mrg (re_pure _). }
-  move=>Γ A B m s r t i k tyP _ tym _ wf c m0 e.
+  move=>Γ A B m s r t k tyP _ tym _ wf c m0 e.
   { destruct c; simpl in e; inv e.
     exists Γ. exists [Γ]. exists (Pi A B s r t). exists t.
     repeat split...
@@ -146,8 +162,8 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       have{}ih:=ih k' _ _ _ (merge_sym mrg4) tyn0.
       destruct s.
       have[]//:=merge_pure_inv mrg0 k.
-      have[lP tyP]:=validity wf1 tym.
-      have[l[tyA[_ tyB]]]:=pi_inv tyP.
+      have tyP:=validity wf1 tym.
+      have[tyA[_ tyB]]:=pi_inv tyP.
       have os:of_sort (_: [Γ1]) 0 None by constructor.
       have oc:=narity tyB os.
       have->:=nsubst_subst c.[m0] c.[n0] oc.
@@ -157,7 +173,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       all: eauto. } }
   move=>Γ k wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (U @ 0). exists U.
+    exists Γ. exists Γ. exists (Sort U). exists U.
     repeat split...
     move=>//. }
   move=>Γ k wf c m e.
@@ -167,7 +183,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     move=>//. }
   move=>Γ k wf c m e.
   { destruct c; simpl in e; inv e.
-    exists Γ. exists Γ. exists (U @ 0). exists U.
+    exists Γ. exists Γ. exists (Sort U). exists U.
     repeat split...
     move=>//. }
   move=>Γ k wf c m e.

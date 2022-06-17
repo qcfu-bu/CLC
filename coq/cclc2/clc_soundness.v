@@ -82,6 +82,32 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
       apply: clc_app...
       rewrite<-e2.
       exact: tyB. } }
+  move=>Γ A m k tyA ihA tym ihm n o st. inv st.
+  { have tyA':=ihA _ o H2.
+    apply: clc_conv.
+    apply: conv1i...
+    apply: clc_fix...
+    apply: clc_conv.
+    apply: conv_subst.
+    apply: conv1...
+    apply: context_conv.
+    apply: conv1i...
+    rewrite<-pure_re...
+    eauto.
+    simpl.
+    replace (Sort U) with (Sort U).[ren (+1)] by eauto.
+    apply: eweakeningU...
+    rewrite<-pure_re...
+    rewrite<-pure_re... }
+  { have wf: ok (A :U Γ).
+    { constructor...
+      rewrite<-pure_re... }
+    have tym':=ihm _ wf H2.
+    constructor... }
+  { have tyF : Γ ⊢ Fix A m : A : U.
+    { constructor... }
+    have:=substitution tym k (merge_pure k) tyF.
+    asimpl... }
   move=>Γ k n o st. inv st.
   move=>Γ k n o st. inv st.
   move=>Γ k n o st. inv st.
