@@ -76,10 +76,10 @@ Inductive pad (Θ : context term) : context term -> Prop :=
 
 Inductive free : context term -> nat -> term -> context term -> Prop :=
 | free_U Θ m l :
-  l = length Θ ->
+  l = size Θ ->
   free (Some (m, U) :: Θ) l m (Some (m, U) :: Θ)
 | free_L Θ m l :
-  l = length Θ ->
+  l = size Θ ->
   free (Some (m, L) :: Θ) l m (None :: Θ)
 | free_S Θ Θ' m n l :
   free Θ l m Θ' ->
@@ -521,7 +521,7 @@ Proof with eauto using resolve, re_pure, merge_re_id, re_pure, All1.
   Unshelve. all: eauto.
 Qed.
 
-Lemma free_length Θ l n Θ' : free Θ l n Θ' -> l < length Θ.
+Lemma free_size Θ l n Θ' : free Θ l n Θ' -> l < size Θ.
 Proof.
   elim=>{Θ l n Θ'}.
   move=>Θ m l->//=.
@@ -533,7 +533,7 @@ Proof.
 Qed.
 
 Lemma free_inv Θ Θ' m n t :
-  free (m :{t} Θ) (length Θ) n Θ' ->
+  free (m :{t} Θ) (size Θ) n Θ' ->
   m = n /\
   match t with
   | U => m :{t} Θ
@@ -545,39 +545,39 @@ Proof.
   move=>m Θ ih Θ' m0 n fr=>//. inv fr=>//.
   exfalso.
   inv H4.
-  have:(length Θ).+1 - (length Θ) = (length Θ) - (length Θ).
+  have:(size Θ).+1 - (size Θ) = (size Θ) - (size Θ).
   by rewrite H5.
   rewrite subnn.
   rewrite subSnn=>//.
-  have:(length Θ).+1 - (length Θ) = (length Θ) - (length Θ).
+  have:(size Θ).+1 - (size Θ) = (size Θ) - (size Θ).
   by rewrite H5.
   rewrite subnn.
   rewrite subSnn=>//.
-  move/free_length in H5.
-  have le :length Θ < (length Θ).+2 by eauto.
+  move/free_size in H5.
+  have le :size Θ < (size Θ).+2 by eauto.
   have h:= leq_trans H5 le.
   unfold leq in h.
   rewrite subSnn in h.
   move/eqnP in h; inv h.
 Qed.
 
-Lemma free_empty Θ Θ' n : ~free (_: Θ) (length Θ) n Θ'.
+Lemma free_empty Θ Θ' n : ~free (_: Θ) (size Θ) n Θ'.
 Proof.
   elim: Θ Θ' n=>//=.
   move=>Θ' n fr. inv fr. inv H4.
   move=>m Θ ih Θ' n fr=>//. inv fr=>//.
   exfalso.
   inv H4.
-  have:(length Θ).+1 - (length Θ) = (length Θ) - (length Θ).
+  have:(size Θ).+1 - (size Θ) = (size Θ) - (size Θ).
   by rewrite H5.
   rewrite subnn.
   rewrite subSnn=>//.
-  have:(length Θ).+1 - (length Θ) = (length Θ) - (length Θ).
+  have:(size Θ).+1 - (size Θ) = (size Θ) - (size Θ).
   by rewrite H5.
   rewrite subnn.
   rewrite subSnn=>//.
-  move/free_length in H5.
-  have le :length Θ < (length Θ).+2 by eauto.
+  move/free_size in H5.
+  have le :size Θ < (size Θ).+2 by eauto.
   have h:= leq_trans H5 le.
   unfold leq in h.
   rewrite subSnn in h.
@@ -592,11 +592,11 @@ Proof with eauto using free, merge.
   move=>Θ m l e Θ2 Θ0 mrg. inv mrg.
   exists (m :U Γ). split...
   econstructor.
-  have[->_]//=:=merge_length H3.
+  have[->_]//=:=merge_size H3.
   move=>Θ m l e Θ2 Θ0 mrg. inv mrg.
   exists (_: Γ). split...
   econstructor.
-  have[->_]//:=merge_length H3.
+  have[->_]//:=merge_size H3.
   move=>Θ Θ' m n l fr ih Θ2 Θ0 mrg. inv mrg.
   have[Θ4[fr0 mrg]]:=ih _ _ H3.
     exists (m0 :U Θ4). split...
@@ -623,31 +623,31 @@ Proof with eauto 6 using merge.
   move=>mrg. elim: mrg l m n Θ' Θ1'=>{Θ Θ1 Θ2}.
   move=>l m n G1 G2 fr. inv fr.
   move=>G1 G2 G m mrg ih l n x G3 G4 fr1 fr2.
-  { have[e1 e2]:=merge_length mrg.
+  { have[e1 e2]:=merge_size mrg.
     inv fr1; inv fr2...
-    move/free_length in H4.
+    move/free_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
-    move/free_length in H4.
+    move/free_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
     have:=ih _ _ _ _ _ H4 H5.
     firstorder... }
   move=>G1 G2 G m mrg ih l n x G3 G4 fr1 fr2.
-  { have[e1 e2]:=merge_length mrg.
+  { have[e1 e2]:=merge_size mrg.
     inv fr1; inv fr2...
-    move/free_length in H4.
+    move/free_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
-    move/free_length in H4.
+    move/free_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
     have:=ih _ _ _ _ _ H4 H5.
     firstorder... }
   move=>G1 G2 G m mrg ih l n x G3 G4 fr1 fr2.
-  { have[e1 e2]:=merge_length mrg.
+  { have[e1 e2]:=merge_size mrg.
     inv fr1; inv fr2.
-    move/free_length in H4.
+    move/free_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
     have:=ih _ _ _ _ _ H4 H5.
@@ -854,8 +854,8 @@ Inductive wr_heap : context term -> Prop :=
 Lemma nf_typing_All2i (Γ : context term) Fs Cs s i :
   All2i
     (fun _ F C =>
-       constr 0 s C ∧ nf (length Γ) F) i Fs Cs ->
-  All1 (nf (length Γ)) Fs.
+       constr 0 s C ∧ nf (size Γ) F) i Fs Cs ->
+  All1 (nf (size Γ)) Fs.
 Proof with eauto using All1.
   elim=>{Fs Cs i}...
   move=>i F F' Fs Fs' [_ h] hd tl.
@@ -863,33 +863,33 @@ Proof with eauto using All1.
 Qed.
 
 Lemma nf_typing Γ m A s :
-  Γ ⊢ m : A : s -> nf (length Γ) m.
+  Γ ⊢ m : A : s -> nf (size Γ) m.
 Proof with eauto using nf.
   move:Γ m A s. apply: clc_type_ind_nested=>//=...
   move=>Γ A B [|] r t i k tyA ihA tyB ihB.
   { constructor...
-    rewrite re_length... }
+    rewrite re_size... }
   { constructor...
-    rewrite re_length... }
+    rewrite re_size... }
   move=>Γ x A s hs.
   { constructor.
-    apply: has_length... }
+    apply: has_size... }
   move=>Γ A B m s r t i k tyP nfP tym nfm.
   { inv nfP.
     constructor...
-    rewrite re_length... }
+    rewrite re_size... }
   move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn.
-  { have[e1 e2]:=merge_length mrg.
+  { have[e1 e2]:=merge_size mrg.
     constructor.
     rewrite<-e1...
     rewrite<-e2... }
   move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms leq ar key mrg
     tym ihm tyQ ihQ tyFs ihFs.
-  { have[e1 e2]:=merge_length mrg.
+  { have[e1 e2]:=merge_size mrg.
     constructor.
     rewrite<-e1...
     rewrite<-e2.
-    rewrite re_length...
+    rewrite re_size...
     rewrite<-e2.
     apply: nf_typing_All2i... }
 Qed.

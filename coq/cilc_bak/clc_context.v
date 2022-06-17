@@ -99,11 +99,11 @@ Proof with eauto using key.
   move=>[[A s]|] Γ k...
 Qed.
 
-Lemma has_length {T}  `{Ids T} `{Subst T} (Γ : context T) x s A : 
-  has Γ x s A -> x < length Γ.
+Lemma has_size {T}  `{Ids T} `{Subst T} (Γ : context T) x s A :
+  has Γ x s A -> x < size Γ.
 Proof. elim=>//{Γ x s A}. Qed.
 
-Lemma re_length T (Γ : context T) : length Γ = length [Γ].
+Lemma re_size T (Γ : context T) : size Γ = size [Γ].
 Proof.
   elim: Γ=>//.
   move=>[[x[|]]|] Γ e//=.
@@ -112,9 +112,9 @@ Proof.
   by rewrite e.
 Qed.
 
-Lemma merge_length T (Γ1 Γ2 Γ : context T) :
+Lemma merge_size T (Γ1 Γ2 Γ : context T) :
   Γ1 ∘ Γ2 => Γ -> 
-  length Γ1 = length Γ /\ length Γ2 = length Γ.
+  size Γ1 = size Γ /\ size Γ2 = size Γ.
 Proof.
   elim=>//={Γ1 Γ2 Γ}.
   move=>Γ1 Γ2 Γ m mrg [->->]//.
