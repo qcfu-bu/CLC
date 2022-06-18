@@ -9,60 +9,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Inductive structural : term -> term -> Prop :=
-| struct_var x1 x2 :
-  structural (Var x1) (Var x2)
-| struct_sort s1 s2 :
-  structural (Sort s1) (Sort s2)
-| struct_pi A1 A2 B1 B2 s1 s2 r1 r2 t1 t2 :
-  structural (Pi A1 B1 s1 r1 t1) (Pi A2 B2 s2 r2 t2)
-| struct_lam A1 A2 m1 m2 s1 s2 t1 t2 :
-  structural (Lam A1 m1 s1 t1) (Lam A2 m2 s2 t2)
-| struct_app m1 m2 n1 n2 :
-  structural (App m1 n1) (App m2 n2)
-| struct_fix A1 A2 m1 m2 :
-  structural (Fix A1 m1) (Fix A2 m2)
-| struct_unit :
-  structural Unit Unit
-| struct_it :
-  structural It It
-| struct_either :
-  structural Either Either
-| struct_left :
-  structural Left Left
-| struct_right :
-  structural Right Right
-| struct_sigma A1 A2 B1 B2 s1 s2 r1 r2 t1 t2 :
-  structural (Sigma A1 B1 s1 r1 t1) (Sigma A2 B2 s2 r2 t2)
-| struct_pair m1 m2 n1 n2 t1 t2 :
-  structural (Pair m1 n1 t1) (Pair m2 n2 t2)
-| struct_case m1 m2 n11 n12 n21 n22 :
-  structural (Case m1 n11 n12) (Case m2 n21 n22)
-| struct_letin1 m1 m2 n1 n2 :
-  structural (LetIn1 m1 n1) (LetIn1 m2 n2)
-| struct_letin2 m1 m2 n1 n2 :
-  structural (LetIn2 m1 n1) (LetIn2 m2 n2)
-| struct_main :
-  structural Main Main
-| struct_proto :
-  structural Proto Proto
-| struct_stop r1 r2 :
-  structural (Stop r1) (Stop r2)
-| struct_act r1 r2 A1 A2 B1 B2 s1 s2 :
-  structural (Act r1 A1 B1 s1) (Act r2 A2 B2 s2)
-| struct_ch r1 r2 A1 A2 :
-  structural (Ch r1 A1) (Ch r2 A2)
-| struct_fork m1 m2 n1 n2 :
-  structural (Fork m1 n1) (Fork m2 n2)
-| struct_recv ch1 ch2 :
-  structural (Recv ch1) (Recv ch2)
-| struct_send ch1 ch2 :
-  structural (Send ch1) (Send ch2)
-| struct_close ch1 ch2 :
-  structural (Close ch1) (Close ch2)
-| struct_wait ch1 ch2 :
-  structural (Wait ch1) (Wait ch2).
-
 Lemma decide_act X ξ :
   (forall r A B s, ~X.[ren ξ] = Act r A B s) \/
   (exists r A B s, X = Act r A B s).

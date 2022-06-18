@@ -522,6 +522,10 @@ Proof.
       have os:of_sort (_: Γ0) 0 None.
       { repeat constructor. }
       have//=oc:=clc_linearity.narity ty os. } }
+
+
+
+
   move=>c d v Γ ty wf.
   { inv ty. inv H4. inv H5; inv H6.
     { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
