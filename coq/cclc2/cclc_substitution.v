@@ -118,3 +118,19 @@ Proof with eauto using key.
   asimpl.
   rewrite proc_ids...
 Qed.
+
+Lemma context_conv Γ p A B s :
+  B === A ->
+  [Γ] ⊢ A : Sort s : U -> A :{s} Γ ⊢ p -> B :{s} Γ ⊢ p.
+Proof with eauto.
+  move=>conv tpA tpm.
+  cut (B :{s} Γ ⊢ p.[ids]).
+  rewrite proc_ids...
+  apply: esubstitution...
+  apply: agree_subst_conv...
+  destruct s=>//=; asimpl.
+  apply: clc_weakening.eweakeningU; eauto.
+  asimpl; eauto.
+  apply: clc_weakening.eweakeningN; eauto.
+  asimpl; eauto.
+Qed.

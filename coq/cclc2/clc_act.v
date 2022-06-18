@@ -128,6 +128,16 @@ Proof.
   by asimpl in H.
 Qed.
 
+Lemma conv_ren_inv X Y ξ :
+  X.[ren ξ] === Y.[ren ξ] -> can_cancel ξ -> X === Y.
+Proof.
+  move=>st [g h].
+  pose proof (conv_subst (ren g) st).
+  asimpl in H.
+  rewrite h in H.
+  by asimpl in H.
+Qed.
+
 Lemma dual_step X Y ξ :
   X.[ren ξ] ~> Y ->
   (exists Z,
@@ -437,7 +447,8 @@ Lemma dual_conv Γ X r A B C s t ξ :
   can_cancel ξ ->
   exists A' B',
     Γ ⊢ Act r A' B' s : C : t /\
-    (Act r A' B' s).[ren ξ] === X.[ren ξ].
+    (Act r A' B' s).[ren ξ] === X.[ren ξ] /\
+    (Act r A' B' s).[ren ξ] === Act r A B s.
 Proof.
   move=>wf /church_rosser[x r1 r2] ty cc.
   have[A'[B'[rA[rB e]]]]:=red_act_inv r2; subst.
@@ -449,9 +460,11 @@ Proof.
     with (Act r3 A3 B3 s3).[ren ξ] in r1 by autosubst.
   have:=red_ren_inv r1 cc.
   exists A3. exists B3.
-  split; asimpl.
+  repeat split; asimpl.
   apply: subject_reduction; eauto.
   apply: conv_sym.
   apply: star_conv; eauto.
   asimpl in r1; eauto.
+  apply: conv_sym.
+  apply: star_conv; eauto.
 Qed.
