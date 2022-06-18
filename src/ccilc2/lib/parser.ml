@@ -27,6 +27,9 @@ module ParseTm = struct
       ; "fix"
       ; "let"
       ; "in"
+      ; "if"
+      ; "then"
+      ; "else"
       ; "match"
       ; "as"
       ; "return"
@@ -305,6 +308,17 @@ module ParseTm = struct
     else
       return (Constr (id_info.id, ts))
 
+  and ifte_parser () =
+    let* _ = kw "if" in
+    let* m = t_parser () in
+    let* _ = kw "then" in
+    let* n1 = t_parser () in
+    let* _ = kw "else" in
+    let* n2 = t_parser () in
+    let cl1 = (PConstr (Prelude.true_id, []), n1) in
+    let cl2 = (PConstr (Prelude.false_id, []), n2) in
+    return (Match (m, Mot0, [ cl1; cl2 ]))
+
   and match_parser () =
     let* _ = kw "match" in
     let* m = t_parser () in
@@ -531,6 +545,7 @@ module ParseTm = struct
          ; fun_parser ()
          ; lin_parser ()
          ; let_parser ()
+         ; ifte_parser ()
          ; match_parser ()
          ; tt_parser ()
          ; pair0_parser ()

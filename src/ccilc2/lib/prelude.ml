@@ -29,6 +29,7 @@ module PreTm = struct
       ; "forall"
       ; "linear"
       ; "fun"
+      ; "lin"
       ; "fix"
       ; "let"
       ; "in"
@@ -396,8 +397,8 @@ module PreTm = struct
          ; knd_parser ()
          ; forall_parser ()
          ; linear_parser ()
-         ; fun_parser ()
          ; lin_parser ()
+         ; fun_parser ()
          ; let_parser ()
          ; match_parser ()
          ; main_parser ()

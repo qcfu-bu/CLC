@@ -33,3 +33,42 @@ Fixpoint cat (s1 s2 : string) : string :=
   | EmptyString => s2
   | String c s1 => String c (cat s1 s2)
   end.
+
+Fixpoint stdin_rec (_ : unit) : proto := 
+  !(b : bool),
+  match b with
+  | true => ?(string), stdin_rec tt
+  | false => $
+  end.
+
+Definition stdin_t : proto := stdin_rec tt.
+
+Definition readline (ch : channel (stdin_t)) : 
+  sig string (fun _ => channel (stdin_t)) 
+:=
+  let ch := send ch true in
+  recv ch.
+
+Definition close_in (ch : channel (stdin_t)) : unit :=
+  let ch := send ch false in
+  close ch.
+
+Fixpoint stdout_rec (_ : unit) : proto :=
+  !(b : bool),
+  match b with
+  | true => !(string), stdout_rec tt
+  | false => $
+  end.
+
+Definition stdout_t : proto := stdout_rec tt.
+
+Definition printline (ch : channel (stdout_t)) : 
+  string -o channel (stdout_t)
+:=
+  lin s =>
+    let ch := send ch true in
+    send ch s.
+
+Definition close_out (ch : channel (stdout_t)) : unit :=
+  let ch := send ch false in
+  close ch.
