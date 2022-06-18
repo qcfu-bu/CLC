@@ -8,9 +8,10 @@ This repository contains the Coq formalization and implementation of the Calculu
 
 ### coq : Current formalizations
 
-- hclc : Heap semantics for core Calculus of Linear Constructions.
-- cilc : Formalization of Calculus of Inductive Linear Constructions.
-- cclc : Formalization of Concurrent Calculus of Linear Constructions.
+- hclc  : Heap semantics for core Calculus of Linear Constructions.
+- cilc  : Formalization of Calculus of Inductive Linear Constructions.
+- cclc  : Formalization of Concurrent Calculus of Linear Constructions.
+- cclc2 : Formalization of Concurrent Calculus of Linear Constructions with interpreted duality.
 
 ### src : Source code for CCILC prototype implementation.
 
