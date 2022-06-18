@@ -1,0 +1,35 @@
+Inductive unit : U :=
+| tt : unit.
+
+Inductive bool : U :=
+| true : bool
+| false : bool.
+
+Inductive ex (A : U) (P : A -> U) : U :=
+| ex_intro : forall (x : A), P x -> ex A P.
+
+Inductive sig (A : U) (P : A -> L) : L :=
+| sig_intro : forall (x : A), P x -> sig A P.
+
+Inductive tnsr (A B : L) : L :=
+| tnsr_intro : A -> B -> tnsr A B.
+
+Inductive nat : U :=
+| O : nat
+| S : nat -> nat.
+
+Inductive ascii : U :=
+| Ascii : 
+  bool -> bool -> bool -> bool ->
+  bool -> bool -> bool -> bool ->
+  ascii.
+
+Inductive string : U :=
+| EmptyString : string
+| String : ascii -> string -> string.
+
+Fixpoint cat (s1 s2 : string) : string :=
+  match s1 with
+  | EmptyString => s2
+  | String c s1 => String c (cat s1 s2)
+  end.
