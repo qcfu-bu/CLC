@@ -454,16 +454,13 @@ module ParseTm = struct
     return m
 
   and string_parser () = char '\"' >> asciix_parser () << char '\"' << ws
-
   and main_parser () = kw "main" >> return Main
-
   and proto_parser () = kw "proto" >> return Proto
-
   and end_parser () = kw "$" >> return End
 
-  and inp_parser () =
+  and act_parser () =
     let* ctx = get_user_state in
-    let* _ = kw "?" in
+    let* r = kw "?" >>$ true <|> (kw "!" >>$ false) in
     let* args =
       many1
         (attempt
@@ -480,46 +477,16 @@ module ParseTm = struct
     let* b = t_parser () in
     let m =
       List.fold_right
-        (fun (xs, a) b -> List.fold_right (fun x b -> Inp (x, a, b)) xs b)
+        (fun (xs, a) b -> List.fold_right (fun x b -> Act (r, x, a, b)) xs b)
         args b
     in
     let* _ = set_user_state ctx in
     return m
-
-  and out_parser () =
-    let* ctx = get_user_state in
-    let* _ = kw "!" in
-    let* args =
-      many1
-        (attempt
-           (let* _ = kw "(" in
-            let* xs = many1 (var_parser ()) in
-            let* _ = kw ":" in
-            let* a = t_parser () in
-            let* _ = kw ")" in
-            return (xs, a)))
-      <|> let* a = t_parser () in
-          return [ ([ Var.__ ], a) ]
-    in
-    let* _ = kw "," in
-    let* b = t_parser () in
-    let m =
-      List.fold_right
-        (fun (xs, a) b -> List.fold_right (fun x b -> Out (x, a, b)) xs b)
-        args b
-    in
-    let* _ = set_user_state ctx in
-    return m
-
-  and dual_parser () =
-    let* _ = kw "~" in
-    let* m = t1_parser () in
-    return (Dual m)
 
   and ch_parser () =
-    let* _ = kw "channel" in
+    let* r = kw "channel-" >>$ false <|> (kw "channel" >>$ true) in
     let* m = t1_parser () in
-    return (Ch m)
+    return (Ch (r, m))
 
   and fork_parser () =
     let* ctx = get_user_state in
@@ -575,9 +542,7 @@ module ParseTm = struct
          ; main_parser ()
          ; proto_parser ()
          ; end_parser ()
-         ; inp_parser ()
-         ; out_parser ()
-         ; dual_parser ()
+         ; act_parser ()
          ; ch_parser ()
          ; fork_parser ()
          ; send_parser ()

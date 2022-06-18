@@ -147,14 +147,17 @@ module PrintTerm = struct
     | Main -> fprintf fmt "main"
     | Proto -> fprintf fmt "proto"
     | End -> fprintf fmt "$"
-    | Inp (a, b) ->
+    | Act (r, a, b) ->
       let x, ub = unbind b in
-      fprintf fmt "@[?(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
-    | Out (a, b) ->
-      let x, ub = unbind b in
-      fprintf fmt "@[!(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
-    | Dual m -> fprintf fmt "~%a" pp m
-    | Ch m -> fprintf fmt "channel %a" pp m
+      if r then
+        fprintf fmt "@[?(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
+      else
+        fprintf fmt "@[!(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
+    | Ch (r, m) ->
+      if r then
+        fprintf fmt "channel %a" pp m
+      else
+        fprintf fmt "channel- %a" pp m
     | Fork (a, m, n) ->
       let x, un = unbind n in
       fprintf fmt "@[@[fork (%a :@;<1 2>%a) :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"

@@ -14,17 +14,11 @@ module EvalTm = struct
   open Tm
 
   exception FunctionError of string
-
   exception MatchError
-
   exception SendError
-
   exception RecvError
-
   exception BoolError
-
   exception CharError
-
   exception StringError
 
   type ch =
@@ -188,8 +182,7 @@ module EvalTm = struct
     | Main -> (VBox, env)
     | Proto -> (VBox, env)
     | End -> (VBox, env)
-    | Inp _ -> (VBox, env)
-    | Out _ -> (VBox, env)
+    | Act _ -> (VBox, env)
     | Ch _ -> (VBox, env)
     | Fork (_, m, n) ->
       let x, un = unbind n in
@@ -214,7 +207,6 @@ module EvalTm = struct
         (VConstr (pair_id, [ s; m ]), env)
       | _ -> raise RecvError)
     | Close _ -> (VConstr (Prelude.tt_id, []), env)
-    | Dual _ -> (VBox, env)
     | Axiom _ -> (VBox, env)
 end
 

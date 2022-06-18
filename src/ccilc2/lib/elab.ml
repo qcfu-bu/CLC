@@ -22,6 +22,12 @@ let pp_mmap fmt mmap =
   in
   fprintf fmt "mmap(@.%a)@." aux mmap
 
+let pp_eqns fmt eqns =
+  let aux fmt eqns =
+    List.iter (fun (m1, m2) -> fprintf fmt "%a ?= %a" Tm.pp m1 Tm.pp m2) eqns
+  in
+  fprintf fmt "eqns(@.%a)@." aux eqns
+
 let failwith s =
   let _ = printf "%s\n" s in
   failwith "elab"
@@ -112,6 +118,7 @@ module ElabTm = struct
       | Match (m, mot, cls) -> (
         let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
+        let mmap = unify env mmap eqns in
         let a = UnifyTm.resolve mmap a in
         match zdnf env a with
         | Ind (id, ms) -> (
@@ -150,72 +157,64 @@ module ElabTm = struct
       | Main -> (Knd L, eqns, mmap)
       | Proto -> (Knd U, eqns, mmap)
       | End -> (Proto, eqns, mmap)
-      | Inp (a, b) ->
+      | Act (r, a, b) ->
         let x, ub = unbind b in
         let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let eqns, mmap =
           check (VMap.add x (a, s) vctx) ictx env eqns mmap ub Proto
         in
         (Proto, eqns, mmap)
-      | Out (a, b) ->
-        let x, ub = unbind b in
-        let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
-        let eqns, mmap =
-          check (VMap.add x (a, s) vctx) ictx env eqns mmap ub Proto
-        in
-        (Proto, eqns, mmap)
-      | Ch m ->
+      | Ch (r, m) ->
         let eqns, mmap = check vctx ictx env eqns mmap m Proto in
         (Knd L, eqns, mmap)
       | Fork (a, m, n) -> (
         let _, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let a = UnifyTm.resolve mmap a in
         match zdnf env a with
-        | Ch a ->
+        | Ch (r, a) ->
           let x, un = unbind n in
           let eqns, mmap = check vctx ictx env eqns mmap a Proto in
           let eqns, mmap = check vctx ictx env eqns mmap m Main in
           let _, eqns, mmap =
-            elab (VMap.add x (Ch a, L) vctx) ictx env eqns mmap un
+            elab (VMap.add x (Ch (r, a), L) vctx) ictx env eqns mmap un
           in
-          let a = Ch (Dual a) in
+          let a = Ch (not r, a) in
           (Ind (Prelude.tnsr_id, [ a; Main ]), eqns, mmap)
         | _ -> failwith (asprintf "non-channel fork(%a)" Tm.pp a))
       | Send m -> (
         let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let a = UnifyTm.resolve mmap a in
         match zdnf env a with
-        | Ch (Out (a, b)) ->
+        | Ch (r1, Act (r2, a, b)) when r1 <> r2 = true ->
           let x, ub = unbind b in
-          let b = unbox (bind_var x (lift (Ch ub))) in
+          let b = unbox (bind_var x (lift (Ch (r1, ub)))) in
           (Pi (L, a, b), eqns, mmap)
         | _ ->
           let _ = printf "%a" pp_mmap mmap in
+          let _ = printf "%a" pp_eqns eqns in
           failwith (asprintf "send on non-out(%a, %a)" Tm.pp m Tm.pp a))
       | Recv m -> (
         let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let a = UnifyTm.resolve mmap a in
         match zdnf env a with
-        | Ch (Inp (a, b)) -> (
+        | Ch (r1, Act (r2, a, b)) when r1 <> r2 = false -> (
           let x, ub = unbind b in
           let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
           match s with
           | U ->
-            let b = unbox (bind_var x (lift (Ch ub))) in
+            let b = unbox (bind_var x (lift (Ch (r1, ub)))) in
             (Ind (Prelude.sig_id, [ a; Lam (U, b) ]), eqns, mmap)
-          | L -> (Ind (Prelude.tnsr_id, [ a; Ch ub ]), eqns, mmap))
+          | L -> (Ind (Prelude.tnsr_id, [ a; Ch (r1, ub) ]), eqns, mmap))
         | _ ->
           let _ = printf "%a" pp_mmap mmap in
+          let _ = printf "%a" pp_eqns eqns in
           failwith (asprintf "recv on non-inp(%a, %a)" Tm.pp m Tm.pp a))
       | Close m -> (
         let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let a = UnifyTm.resolve mmap a in
         match zdnf env a with
-        | Ch End -> (Ind (Prelude.unit_id, []), eqns, mmap)
+        | Ch (_, End) -> (Ind (Prelude.unit_id, []), eqns, mmap)
         | _ -> failwith (asprintf "close on non-end(%a, %a)" Tm.pp m Tm.pp a))
-      | Dual m ->
-        let eqns, mmap = check vctx ictx env eqns mmap m Proto in
-        (Proto, eqns, mmap)
       | Axiom (id, m) ->
         let _, eqns, mmap = elab_sort vctx ictx env eqns mmap m in
         (m, eqns, mmap))
@@ -351,6 +350,7 @@ module ElabTm = struct
       match mot with
       | Mot0 -> (
         let b, eqns, mmap = elab vctx ictx env eqns mmap m in
+        let mmap = unify env mmap eqns in
         let b = UnifyTm.resolve mmap b in
         match zdnf env b with
         | Ind (id, ms) ->
@@ -445,7 +445,7 @@ module ElabTp = struct
         else
           failwith (asprintf "unknown import id(%a)" Id.pp id)
       in
-      let a = Ch (App (n, m)) in
+      let a = Ch (true, App (n, m)) in
       let eqns, mmap = ElabTm.check vctx ictx env eqns mmap a (Knd L) in
       let x, utp = unbind tp in
       elab (VMap.add x (a, L) vctx) ictx env eqns mmap utp

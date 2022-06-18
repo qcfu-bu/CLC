@@ -94,18 +94,12 @@ let rec fv ctx t =
   | Main -> VSet.empty
   | Proto -> VSet.empty
   | End -> VSet.empty
-  | Inp (a, b) ->
+  | Act (_, a, b) ->
     let x, ub = unbind b in
     let fv1 = fv ctx a in
     let fv2 = fv (VSet.add x ctx) ub in
     VSet.union fv1 fv2
-  | Out (a, b) ->
-    let x, ub = unbind b in
-    let fv1 = fv ctx a in
-    let fv2 = fv (VSet.add x ctx) ub in
-    VSet.union fv1 fv2
-  | Dual m -> fv ctx m
-  | Ch m -> fv ctx m
+  | Ch (_, m) -> fv ctx m
   | Fork (a, m, n) ->
     let x, un = unbind n in
     let fv1 = fv ctx a in
@@ -158,14 +152,10 @@ let rec occurs x m =
   | Main -> false
   | Proto -> false
   | End -> false
-  | Inp (a, b) ->
+  | Act (_, a, b) ->
     let _, ub = unbind b in
     occurs x a || occurs x ub
-  | Out (a, b) ->
-    let _, ub = unbind b in
-    occurs x a || occurs x ub
-  | Dual m -> occurs x m
-  | Ch m -> occurs x m
+  | Ch (_, m) -> occurs x m
   | Fork (a, m, n) ->
     let _, un = unbind n in
     occurs x a || occurs x m || occurs x un
@@ -256,18 +246,19 @@ let rec simpl env eqn =
     | Main, Main -> []
     | Proto, Proto -> []
     | End, End -> []
-    | Inp (a1, b1), Inp (a2, b2) ->
-      let _, ub1, ub2 = unbind2 b1 b2 in
-      let eqn1 = simpl env (a1, a2) in
-      let eqn2 = simpl env (ub1, ub2) in
-      eqn1 @ eqn2
-    | Out (a1, b1), Out (a2, b2) ->
-      let _, ub1, ub2 = unbind2 b1 b2 in
-      let eqn1 = simpl env (a1, a2) in
-      let eqn2 = simpl env (ub1, ub2) in
-      eqn1 @ eqn2
-    | Dual m1, Dual m2 -> simpl env (m1, m2)
-    | Ch m1, Ch m2 -> simpl env (m1, m2)
+    | Act (r1, a1, b1), Act (r2, a2, b2) ->
+      if r1 = r2 then
+        let _, ub1, ub2 = unbind2 b1 b2 in
+        let eqn1 = simpl env (a1, a2) in
+        let eqn2 = simpl env (ub1, ub2) in
+        eqn1 @ eqn2
+      else
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
+    | Ch (r1, m1), Ch (r2, m2) ->
+      if r1 = r2 then
+        simpl env (m1, m2)
+      else
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Fork (a1, m1, n1), Fork (a2, m2, n2) ->
       let _, un1, un2 = unbind2 n1 n2 in
       let eqn1 = simpl env (a1, a2) in
@@ -430,20 +421,13 @@ module UnifyTm = struct
       | Main -> m
       | Proto -> m
       | End -> m
-      | Inp (a, b) ->
+      | Act (r, a, b) ->
         let x, ub = unbind b in
         let a = resolve mmap a in
         let ub = resolve mmap ub in
         let b = unbox (bind_var x (lift ub)) in
-        Inp (a, b)
-      | Out (a, b) ->
-        let x, ub = unbind b in
-        let a = resolve mmap a in
-        let ub = resolve mmap ub in
-        let b = unbox (bind_var x (lift ub)) in
-        Out (a, b)
-      | Dual m -> Dual (resolve mmap m)
-      | Ch m -> Ch (resolve mmap m)
+        Act (r, a, b)
+      | Ch (r, m) -> Ch (r, resolve mmap m)
       | Fork (a, m, n) ->
         let x, un = unbind n in
         let a = resolve mmap a in

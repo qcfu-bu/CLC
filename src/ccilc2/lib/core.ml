@@ -31,10 +31,8 @@ module Tm = struct
     | Main
     | Proto
     | End
-    | Inp of t * tbinder
-    | Out of t * tbinder
-    | Dual of t
-    | Ch of t
+    | Act of bool * t * tbinder
+    | Ch of bool * t
     | Fork of t * t * tbinder
     | Send of t
     | Recv of t
@@ -59,9 +57,7 @@ module Tm = struct
     | Mot3 of tpbinder
 
   and tbinder = (t, t) binder
-
   and pbinder = p0 * (t, t) mbinder
-
   and tpbinder = (t, pbinder) binder
 
   module VSet = Set.Make (struct
@@ -134,8 +130,7 @@ module Tm = struct
           (fun (ps0, acc) p ->
             let p0, m = mvar_of_p p in
             (p0 :: ps0, Array.append acc m))
-          ([], [||])
-          ps
+          ([], [||]) ps
       in
       (P0Ind (id, List.rev ps0), m)
     | PConstr (id, ps) ->
@@ -144,8 +139,7 @@ module Tm = struct
           (fun (ps0, acc) p ->
             let p0, m = mvar_of_p p in
             (p0 :: ps0, Array.append acc m))
-          ([], [||])
-          ps
+          ([], [||]) ps
       in
       (P0Constr (id, List.rev ps0), m)
 
@@ -297,14 +291,17 @@ module Tm = struct
     | Main -> fprintf fmt "main"
     | Proto -> fprintf fmt "proto"
     | End -> fprintf fmt "$"
-    | Inp (a, b) ->
+    | Act (r, a, b) ->
       let x, ub = unbind b in
-      fprintf fmt "@[?(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
-    | Out (a, b) ->
-      let x, ub = unbind b in
-      fprintf fmt "@[!(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
-    | Dual m -> fprintf fmt "~%a" pp m
-    | Ch m -> fprintf fmt "channel %a" pp m
+      if r then
+        fprintf fmt "@[?(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
+      else
+        fprintf fmt "@[!(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
+    | Ch (r, m) ->
+      if r then
+        fprintf fmt "channel %a" pp m
+      else
+        fprintf fmt "channel- %a" pp m
     | Fork (a, m, n) ->
       let x, un = unbind n in
       fprintf fmt "@[@[fork (%a :@;<1 2>%a) :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
@@ -358,73 +355,37 @@ module Tm = struct
     aux m []
 
   let respine m sp = List.fold_left (fun acc m -> App (acc, m)) m sp
-
   let mk = new_var (fun x -> Var x)
-
   let __ = mk "_"
-
   let _U = box U
-
   let _L = box L
-
   let _Ann = box_apply2 (fun m a -> Ann (m, a))
-
   let _Meta x = box (Meta x)
-
   let _Knd s = box (Knd s)
-
   let _Var = box_var
-
   let _Pi s = box_apply2 (fun a b -> Pi (s, a, b))
-
   let _Lam s = box_apply (fun m -> Lam (s, m))
-
   let _mLam s xs m = List.fold_right (fun x acc -> _Lam s (bind_var x acc)) xs m
-
   let _App = box_apply2 (fun m n -> App (m, n))
-
   let _mApp m sp = List.fold_left (fun acc x -> _App acc x) m sp
-
   let _Let = box_apply2 (fun m n -> Let (m, n))
-
   let _Ind id = box_apply (fun ts -> Ind (id, ts))
-
   let _Constr id = box_apply (fun ts -> Constr (id, ts))
-
   let _Match = box_apply3 (fun m mot cls -> Match (m, mot, cls))
-
   let _Fix = box_apply (fun m -> Fix m)
-
   let _Main = box Main
-
   let _Proto = box Proto
-
   let _End = box End
-
-  let _Inp = box_apply2 (fun a b -> Inp (a, b))
-
-  let _Out = box_apply2 (fun a b -> Out (a, b))
-
-  let _Dual = box_apply (fun m -> Dual m)
-
-  let _Ch = box_apply (fun m -> Ch m)
-
+  let _Act r = box_apply2 (fun a b -> Act (r, a, b))
+  let _Ch r = box_apply (fun m -> Ch (r, m))
   let _Fork = box_apply3 (fun a m n -> Fork (a, m, n))
-
   let _Send = box_apply (fun m -> Send m)
-
   let _Recv = box_apply (fun m -> Recv m)
-
   let _Close = box_apply (fun m -> Close m)
-
   let _Axiom id = box_apply (fun m -> Axiom (id, m))
-
   let _Mot0 = box Mot0
-
   let _Mot1 = box_apply (fun mot -> Mot1 mot)
-
   let _Mot2 = box_apply (fun mot -> Mot2 mot)
-
   let _Mot3 = box_apply (fun mot -> Mot3 mot)
 
   let rec lift m =
@@ -455,10 +416,8 @@ module Tm = struct
     | Main -> _Main
     | Proto -> _Proto
     | End -> _End
-    | Inp (a, b) -> _Inp (lift a) (box_binder lift b)
-    | Out (a, b) -> _Out (lift a) (box_binder lift b)
-    | Dual m -> _Dual (lift m)
-    | Ch m -> _Ch (lift m)
+    | Act (r, a, b) -> _Act r (lift a) (box_binder lift b)
+    | Ch (r, m) -> _Ch r (lift m)
     | Fork (a, m, n) -> _Fork (lift a) (lift m) (box_binder lift n)
     | Send m -> _Send (lift m)
     | Recv m -> _Recv (lift m)
@@ -516,29 +475,7 @@ module Tm = struct
       match opt with
       | Some m -> zdnf env m
       | None -> Match (m, mot, cls))
-    | Dual m -> (
-      match zdnf env m with
-      | End -> End
-      | Inp (a, b) ->
-        let x, ub = unbind b in
-        let b = unbox (bind_var x (lift (Dual ub))) in
-        Out (a, b)
-      | Out (a, b) ->
-        let x, ub = unbind b in
-        let b = unbox (bind_var x (lift (Dual ub))) in
-        Inp (a, b)
-      | Match (m, mot, cls) ->
-        let cls =
-          List.map
-            (fun cl ->
-              let p, ucl = unbind_p cl in
-              unbox (bind_p p (lift (Dual ucl))))
-            cls
-        in
-        Match (m, mot, cls)
-      | Dual m -> m
-      | m -> Dual m)
-    | Ch m -> Ch (zdnf env m)
+    | Ch (r, m) -> Ch (r, zdnf env m)
     | _ -> m
 
   let rec eq_m eq mot1 mot2 =
@@ -574,10 +511,9 @@ module Tm = struct
       | Main, Main -> true
       | Proto, Proto -> true
       | End, End -> true
-      | Inp (a1, b1), Inp (a2, b2) -> aeq a1 a2 && eq_binder aeq b1 b2
-      | Out (a1, b1), Out (a2, b2) -> aeq a1 a2 && eq_binder aeq b1 b2
-      | Dual m1, Dual m2 -> aeq m1 m2
-      | Ch m1, Ch m2 -> aeq m1 m2
+      | Act (r1, a1, b1), Act (r2, a2, b2) ->
+        r1 = r2 && aeq a1 a2 && eq_binder aeq b1 b2
+      | Ch (r1, m1), Ch (r2, m2) -> r1 = r2 && aeq m1 m2
       | Fork (a1, m1, n1), Fork (a2, m2, n2) ->
         aeq a1 a2 && aeq m1 m2 && eq_binder aeq n1 n2
       | Send m1, Send m2 -> aeq m1 m2
@@ -634,29 +570,7 @@ module Tm = struct
       match opt with
       | Some m -> whnf m
       | None -> Match (m, mot, cls))
-    | Dual m -> (
-      match whnf m with
-      | End -> End
-      | Inp (a, b) ->
-        let x, ub = unbind b in
-        let b = unbox (bind_var x (lift (Dual ub))) in
-        Out (a, b)
-      | Out (a, b) ->
-        let x, ub = unbind b in
-        let b = unbox (bind_var x (lift (Dual ub))) in
-        Inp (a, b)
-      | Match (m, mot, cls) ->
-        let cls =
-          List.map
-            (fun cl ->
-              let p, ucl = unbind_p cl in
-              unbox (bind_p p (lift (Dual ucl))))
-            cls
-        in
-        Match (m, mot, cls)
-      | Dual m -> m
-      | m -> Dual m)
-    | Ch m -> Ch (whnf m)
+    | Ch (r, m) -> Ch (r, whnf m)
     | _ -> m
 
   let rec equal env m1 m2 =
@@ -688,12 +602,9 @@ module Tm = struct
       | Main, Main -> true
       | Proto, Proto -> true
       | End, End -> true
-      | Inp (a1, b1), Inp (a2, b2) ->
-        equal env a1 a2 && eq_binder (equal env) b1 b2
-      | Out (a1, b1), Out (a2, b2) ->
-        equal env a1 a2 && eq_binder (equal env) b1 b2
-      | Dual m1, Dual m2 -> equal env m1 m2
-      | Ch m1, Ch m2 -> equal env m1 m2
+      | Act (r1, a1, b1), Act (r2, a2, b2) ->
+        r1 = r2 && equal env a1 a2 && eq_binder (equal env) b1 b2
+      | Ch (r1, m1), Ch (r2, m2) -> r1 = r2 && equal env m1 m2
       | Fork (a1, m1, n1), Fork (a2, m2, n2) ->
         equal env a1 a2 && equal env m1 m2 && eq_binder (equal env) n1 n2
       | Send m1, Send m2 -> equal env m1 m2
@@ -705,7 +616,6 @@ end
 
 module Tp = struct
   type ind = Ind of Id.t * pscope * constr list
-
   and constr = Constr of Id.t * pscope
 
   and pscope =
@@ -717,7 +627,6 @@ module Tp = struct
     | TBind of Tm.t * tsbinder
 
   and psbinder = (Tm.t, pscope) binder
-
   and tsbinder = (Tm.t, tscope) binder
 
   type t =
@@ -773,26 +682,15 @@ module Tp = struct
         fprintf fmt "@[(%a) ->@;<1 2>%a@]" Tm.pp a pp_tscope ub
 
   let _PBase = box_apply (fun a -> PBase a)
-
   let _PBind = box_apply2 (fun a b -> PBind (a, b))
-
   let _PBnd a b = _PBind a (bind_var Tm.__ b)
-
   let _TBase = box_apply (fun m -> TBase m)
-
   let _TBind = box_apply2 (fun a b -> TBind (a, b))
-
   let _TBnd a b = _TBind a (bind_var Tm.__ b)
-
   let _Ind id = box_apply2 (fun a cs -> Ind (id, a, cs))
-
   let _Constr id = box_apply (fun a -> Constr (id, a))
-
   let _Main = box_apply (fun m -> Main m)
-
   let _Define = box_apply2 (fun m t -> Define (m, t))
-
   let _Induct = box_apply2 (fun ind t -> Induct (ind, t))
-
   let _Import id = box_apply2 (fun m t -> Import (id, m, t))
 end

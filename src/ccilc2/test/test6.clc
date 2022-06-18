@@ -1,0 +1,28 @@
+Import stdin 1 as _stdin_.
+Import stdout 2 as _stdout_.
+
+Definition forker (p : proto) : 
+  (channel p -o unit) -o main -o tnsr (channel- p) (main) :=
+  lin h m =>
+    fork (ch : channel p) := m in h ch.
+
+Definition sender : (channel !string, !string, $) -o unit := 
+  lin ch =>
+    let [msg, _stdin_] := recv _stdin_ in
+    let ch := send ch msg in
+    let ch := send ch msg in
+    let () := close ch in
+    let () := close _stdin_ in
+    ().
+
+Definition Main := 
+  let ⟨ch, _main_⟩ := 
+    forker _ sender _main_
+  in
+  let [msg1, ch] := recv ch in
+  let [msg2, ch] := recv ch in
+  let _stdout_ := send _stdout_ (cat msg1 "\n") in
+  let _stdout_ := send _stdout_ (cat msg2 "\n") in
+  let () := close ch in
+  let () := close _stdout_ in
+  _main_.

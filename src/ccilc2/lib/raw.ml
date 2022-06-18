@@ -129,24 +129,15 @@ module RTm = struct
     | Main -> _Main
     | Proto -> _Proto
     | End -> _End
-    | Inp (x, a, b) ->
+    | Act (r, x, a, b) ->
       let _x = var x in
       let _a = _core ctx a in
       let ctx = VMap.add x _x ctx in
       let _b = _core ctx b in
-      _Inp _a (bind_var _x _b)
-    | Out (x, a, b) ->
-      let _x = var x in
-      let _a = _core ctx a in
-      let ctx = VMap.add x _x ctx in
-      let _b = _core ctx b in
-      _Out _a (bind_var _x _b)
-    | Dual m ->
+      _Act r _a (bind_var _x _b)
+    | Ch (r, m) ->
       let _m = _core ctx m in
-      _Dual _m
-    | Ch m ->
-      let _m = _core ctx m in
-      _Ch _m
+      _Ch r _m
     | Fork (x, a, m, n) ->
       let _x = var x in
       let _a = _core ctx a in
@@ -215,13 +206,11 @@ module RTp = struct
   open RTm
 
   exception EmptyTop
-
   exception AppendMain
 
   type v = Var.t
 
   type ind = Ind of Id.t * pscope * constr list
-
   and constr = Constr of Id.t * pscope
 
   and pscope =
