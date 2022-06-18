@@ -1,4 +1,4 @@
-Import stdout 2 as _stdout_.
+Import stdout : stdout_t.
 
 Inductive ref_msg : U :=
 | GET  : ref_msg
@@ -36,26 +36,26 @@ Fixpoint ref_handler
   end ch.
 
 Definition mk_ref 
-  (A : U) (m : A) (x : main) : tnsr (channel ~ref_t A) main 
+  (A : U) (m : A) (x : main) : tnsr (channel- ref_t A) main 
 :=
   fork (ref : channel ref_t A) := x in
   ref_handler A m ref.
 
 Definition set_ref
-  (A : U) (m : A) : channel ~ref_t A -o channel ~ref_t A
+  (A : U) (m : A) : channel- ref_t A -o channel- ref_t A
 :=
   lin ref =>
   let ref := send ref SET in
   send ref m.
 
 Definition get_ref 
-  (A : U) : channel ~ref_t A -o sig A (fun _ => (channel ~ref_t A)) 
+  (A : U) : channel- ref_t A -o sig A (fun _ => (channel- ref_t A)) 
 :=
   lin ref =>
   let ref := send ref GET in
   recv ref.
 
-Definition free_ref (A : U) : channel ~ref_t A -o unit :=
+Definition free_ref (A : U) : channel- ref_t A -o unit :=
   lin ref =>
   let ref := send ref FREE in
   let () := close ref in
@@ -66,8 +66,8 @@ Definition Main :=
   let [msg1, ref] := get_ref _ ref in
   let ref := set_ref _ "world\n" ref in
   let [msg2, ref] := get_ref _ ref in
-  let _stdout_ := send _stdout_ msg1 in
-  let _stdout_ := send _stdout_ msg2 in
+  let stdout := printline stdout msg1 in
+  let stdout := printline stdout msg2 in
   let () := free_ref _ ref in
-  let () := close _stdout_ in
+  let () := close_out stdout in
   _main_.

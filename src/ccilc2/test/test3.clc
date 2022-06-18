@@ -1,4 +1,4 @@
-Import stdout 1 as _stdout_.
+Import stdout : stdout_t.
 
 Definition handler : (channel ?main, !main, $) -o unit := 
   lin ch0 =>
@@ -7,10 +7,10 @@ Definition handler : (channel ?main, !main, $) -o unit :=
       fork (ch : channel ?main, ?string, !main, $) := _main_ in
       let ⟨_main_, ch⟩ := recv ch in
       let [msg, ch] := recv ch in
-      let _stdout_ := send _stdout_ msg in
+      let stdout := printline stdout msg in
       let ch := send ch _main_ in
       let () := close ch in
-      let () := close _stdout_ in
+      let () := close_out stdout in
       ()
     in
     let ch1 := send ch1 _main_ in

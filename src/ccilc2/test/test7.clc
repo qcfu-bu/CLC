@@ -1,10 +1,14 @@
 Import stdout : stdout_t.
 Import stdin : stdin_t.
 
+Fixpoint loop (s : string) : channel stdout_t -o unit :=
+  lin ch =>
+    let ch := printline ch s in
+    loop s ch.
+
 Definition Main := 
   let [msg, stdin] := readline stdin in
   let stdout := printline stdout "hello\n" in
-  let stdout := printline stdout msg in
-  let () := close_out stdout in
+  let () := loop msg stdout in
   let () := close_in stdin in
   _main_.
