@@ -108,21 +108,6 @@ L  L  L
 
 ## Session typing rules
 
-### Duality
-```
-¬end! = end?
-
-¬end? = end!
-
-¬!(x :s A).B = ?(x :s A).¬B
-
-¬?(x :s A).B = !(x :s A).¬B
-
-¬if m then n1 else n2 = if m then ¬n1 else ¬n2
-```
-
-### Typing rules
-
 ```
 Γ ▹ U
 ————————————————
