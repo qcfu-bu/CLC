@@ -226,7 +226,7 @@ module RTp = struct
     | Main of RTm.t
     | Define of v * RTm.t * t
     | Induct of ind * t
-    | Import of Id.t * RTm.t * v * t
+    | Import of Id.t * v * RTm.t * t
 
   let rec append_t t1 t2 =
     match t1 with
@@ -254,7 +254,7 @@ module RTp = struct
       let _cs = box_list _cs in
       let _t = _core ctx t in
       _Induct (_Ind id _a _cs) _t
-    | Import (id, m, x, t) ->
+    | Import (id, x, m, t) ->
       let _x = var x in
       let _m = RTm._core ctx m in
       let ctx = VMap.add x _x ctx in

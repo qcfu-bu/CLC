@@ -469,17 +469,7 @@ module CheckTp = struct
       let ictx = IMap.add id (Ind (id, a, cs)) ictx in
       infer vctx ictx env tp
     | Import (id, m, tp) ->
-      let n =
-        if Id.equal id Id.stdin_id then
-          Prelude.stdin_t
-        else if Id.equal id Id.stdout_id then
-          Prelude.stdout_t
-        else if Id.equal id Id.stderr_id then
-          Prelude.stderr_t
-        else
-          failwith (asprintf "unknown import id(%a)" Id.pp id)
-      in
-      let a = Ch (true, App (n, m)) in
+      let a = Ch (true, m) in
       let ctx1 = CheckTm.check vctx ictx env a (Knd L) in
       let x, utp = unbind tp in
       let ctx2, ictx = infer (VMap.add x (a, L) vctx) ictx env utp in

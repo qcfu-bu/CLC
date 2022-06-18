@@ -1,1 +1,10 @@
-Definition Main := _main_.
+Import stdout : stdout_t.
+Import stdin : stdin_t.
+
+Definition Main := 
+  let [msg, stdin] := readline stdin in
+  let stdout := printline stdout "hello\n" in
+  let stdout := printline stdout msg in
+  let () := close_out stdout in
+  let () := close_in stdin in
+  _main_.

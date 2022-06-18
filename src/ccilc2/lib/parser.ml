@@ -42,9 +42,6 @@ module ParseTm = struct
       ; "send"
       ; "recv"
       ; "close"
-      ; "stdin"
-      ; "stdout"
-      ; "stderr"
       ]
 
   type 'a parser = ('a, Var.t SMap.t * id_info SMap.t) MParser.t
@@ -717,13 +714,22 @@ module ParseTp = struct
 
   and import_parser () =
     let* _ = kw "Import" in
-    let* id_info = id_parser () in
-    let* m = t_parser () in
-    let* _ = kw "as" in
     let* x = var_parser () in
+    let* _ = kw ":" in
+    let* v = var_parser () in
     let* _ = kw "." in
     let* tp = tp_parser () in
-    return (Import (id_info.id, m, x, tp))
+    let id =
+      if Var.equal v Prelude.stdin_t then
+        Id.stdin_id
+      else if Var.equal v Prelude.stdout_t then
+        Id.stdout_id
+      else if Var.equal v Prelude.stderr_t then
+        Id.stdout_id
+      else
+        failwith (asprintf "unknown import id(%a)" Var.pp v)
+    in
+    return (Import (id, x, Var v, tp))
 
   and axiom_parser () =
     let* _ = kw "Axiom" in

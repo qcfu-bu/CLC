@@ -653,8 +653,7 @@ module Tp = struct
         pp_constr cs pp t
     | Import (id, m, t) ->
       let x, ut = unbind t in
-      fprintf fmt "@[Import %a@;<1 2>%a as %a.@.@.%a@]" Id.pp id Tm.pp m pp_v x
-        pp ut
+      fprintf fmt "@[Import %a : %a.@.@.%a@]" pp_v x Tm.pp m pp ut
 
   and pp_constr fmt cs =
     match cs with

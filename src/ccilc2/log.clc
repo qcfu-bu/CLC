@@ -8,14 +8,15 @@ Inductive bool : U :=
 | false : bool.
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
-| ex_intro (A : U) (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#85 P#86).
+| ex_intro (A : U)
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#102 P#103).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#93 P#94).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#110 P#111).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#100 B#101).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#117 B#118).
 
 Inductive nat : U :=
 | O : nat
@@ -77,7 +78,40 @@ Definition close_out :=
   ((fun ch => let ch := (send ch) false in close ch) :
     (channel stdout_t) -> unit).
 
-Definition Main := _main_.
+Definition stderr_rec :=
+  ((fix stderr_rec _ =>
+      !(b : bool),
+        match b with
+        | true => !(_ : string), (stderr_rec) tt
+        | false => $
+        end) :
+    (unit) -> proto).
+
+Definition stderr_t := (((stderr_rec) tt) : proto).
+
+Definition printerr :=
+  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
+    (channel stderr_t) -> (string) -o channel stderr_t).
+
+Definition close_err :=
+  ((fun ch => let ch := (send ch) false in close ch) :
+    (channel stderr_t) -> unit).
+
+Import stdout : stdout_t.
+
+Import stdin : stdin_t.
+
+Definition Main :=
+  match (readline) stdin with
+  | (sig_intro msg stdin) =>
+    let stdout := ((printline) stdout) "hello\n" in
+    let stdout := ((printline) stdout) msg in
+    match (close_out) stdout with
+    | tt => match (close_in) stdin with
+            | tt => _main_
+            end
+    end
+  end.
 
 elab ok
 --------------------------------------------------------------------------------
@@ -90,14 +124,14 @@ Inductive bool : U :=
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#851 P#852).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#1210 P#1211).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#859 P#860).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#1218 P#1219).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#866 B#867).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#1225 B#1226).
 
 Inductive nat : U :=
 | O : nat
@@ -159,7 +193,40 @@ Definition close_out :=
   ((fun ch => let ch := (send ch) false in close ch) :
     (channel stdout_t) -> unit).
 
-Definition Main := _main_.
+Definition stderr_rec :=
+  ((fix stderr_rec _ =>
+      !(b : bool),
+        match b with
+        | true => !(_ : string), (stderr_rec) tt
+        | false => $
+        end) :
+    (unit) -> proto).
+
+Definition stderr_t := (((stderr_rec) tt) : proto).
+
+Definition printerr :=
+  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
+    (channel stderr_t) -> (string) -o channel stderr_t).
+
+Definition close_err :=
+  ((fun ch => let ch := (send ch) false in close ch) :
+    (channel stderr_t) -> unit).
+
+Import stdout : stdout_t.
+
+Import stdin : stdin_t.
+
+Definition Main :=
+  match (readline) stdin with
+  | (sig_intro msg stdin) =>
+    let stdout := ((printline) stdout) "hello\n" in
+    let stdout := ((printline) stdout) msg in
+    match (close_out) stdout with
+    | tt => match (close_in) stdin with
+            | tt => _main_
+            end
+    end
+  end.
 
 --------------------------------------------------------------------------------
 tcheck ok

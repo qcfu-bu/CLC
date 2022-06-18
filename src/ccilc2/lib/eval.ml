@@ -19,13 +19,13 @@ module EvalTm = struct
   exception RecvError
   exception BoolError
   exception CharError
-  exception StringError
+  exception StringError of string
 
   type ch =
     | Channel of value channel
-    | Stdin
-    | Stdout
-    | Stderr
+    | Stdin of bool
+    | Stdout of bool
+    | Stderr of bool
 
   and value =
     | VBox
@@ -55,9 +55,9 @@ module EvalTm = struct
   and pp_ch fmt ch =
     match ch with
     | Channel ch -> fprintf fmt "<ch>"
-    | Stdin -> fprintf fmt "stdin"
-    | Stdout -> fprintf fmt "stdout"
-    | Stderr -> fprintf fmt "stderr"
+    | Stdin _ -> fprintf fmt "stdin"
+    | Stdout _ -> fprintf fmt "stdout"
+    | Stderr _ -> fprintf fmt "stderr"
 
   let bin_of ms =
     List.map
@@ -84,13 +84,13 @@ module EvalTm = struct
       let c = char_of m in
       let s = string_of n in
       sprintf "%c%s" c s
-    | _ -> raise StringError
+    | _ -> raise (StringError (asprintf "%a" pp m))
 
   let of_string s =
     let ctx = Prelude.(vctx, ictx) in
     match parse_string (ParseTm.asciix_parser ()) s ctx with
     | Success t -> RTm.(core Name.VMap.empty t)
-    | Failed (s, _) -> raise StringError
+    | Failed (s, _) -> raise (StringError s)
 
   let pair_id = Id.mk "pair"
 
@@ -133,13 +133,16 @@ module EvalTm = struct
         | Channel ch ->
           let _ = sync (send ch n) in
           (VCh m, env)
-        | Stdout ->
+        | Stdin false -> (VCh (Stdin true), env)
+        | Stdout false -> (VCh (Stdout true), env)
+        | Stdout true ->
           let _ = printf "%s" (string_of n) in
-          (VCh m, env)
-        | Stderr ->
+          (VCh (Stdout false), env)
+        | Stderr false -> (VCh (Stderr true), env)
+        | Stderr true ->
           let s = asprintf "%s" (string_of n) in
           let _ = prerr_endline s in
-          (VCh m, env)
+          (VCh (Stderr false), env)
         | _ -> raise SendError)
       | _ -> raise (FunctionError (asprintf "non-functional:=@.%a" pp m)))
     | Let (m, n) ->
@@ -202,9 +205,9 @@ module EvalTm = struct
       | VCh (Channel ch) ->
         let n = sync (receive ch) in
         (VConstr (pair_id, [ n; m ]), env)
-      | VCh Stdin ->
+      | VCh (Stdin true) ->
         let s, env = read_line () |> of_string |> eval env in
-        (VConstr (pair_id, [ s; m ]), env)
+        (VConstr (pair_id, [ s; VCh (Stdin false) ]), env)
       | _ -> raise RecvError)
     | Close _ -> (VConstr (Prelude.tt_id, []), env)
     | Axiom _ -> (VBox, env)
@@ -231,13 +234,13 @@ module EvalTp = struct
       | Import (id, _, t) ->
         let x, ut = unbind t in
         if Id.equal Id.stdin_id id then
-          let env = VMap.add x (VCh Stdin) env in
+          let env = VMap.add x (VCh (Stdin false)) env in
           aux env ut
         else if Id.equal Id.stdout_id id then
-          let env = VMap.add x (VCh Stdout) env in
+          let env = VMap.add x (VCh (Stdout false)) env in
           aux env ut
         else if Id.equal Id.stderr_id id then
-          let env = VMap.add x (VCh Stderr) env in
+          let env = VMap.add x (VCh (Stderr false)) env in
           aux env ut
         else
           raise ImportError

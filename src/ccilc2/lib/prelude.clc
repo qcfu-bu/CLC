@@ -72,3 +72,23 @@ Definition printline (ch : channel (stdout_t)) :
 Definition close_out (ch : channel (stdout_t)) : unit :=
   let ch := send ch false in
   close ch.
+
+Fixpoint stderr_rec (_ : unit) : proto :=
+  !(b : bool),
+  match b with
+  | true => !(string), stderr_rec tt
+  | false => $
+  end.
+
+Definition stderr_t : proto := stderr_rec tt.
+
+Definition printerr (ch : channel (stderr_t)) : 
+  string -o channel (stderr_t)
+:=
+  lin s =>
+    let ch := send ch true in
+    send ch s.
+
+Definition close_err (ch : channel (stderr_t)) : unit :=
+  let ch := send ch false in
+  close ch.

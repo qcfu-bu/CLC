@@ -45,9 +45,6 @@ module PreTm = struct
       ; "send"
       ; "recv"
       ; "close"
-      ; "stdin"
-      ; "stdout"
-      ; "stderr"
       ]
 
   type 'a parser = ('a, Var.t SMap.t * id_info SMap.t) MParser.t
@@ -562,16 +559,6 @@ module PreTp = struct
     let* t = t_parser () in
     return (tscope_of_t t)
 
-  and import_parser () =
-    let* _ = kw "Import" in
-    let* id_info = id_parser () in
-    let* m = t_parser () in
-    let* _ = kw "as" in
-    let* x = var_parser () in
-    let* _ = kw "." in
-    let* tp, ctx = tp_parser () in
-    return (Import (id_info.id, m, x, tp), ctx)
-
   and axiom_parser () =
     let* _ = kw "Axiom" in
     let* x = var_parser () in
@@ -601,7 +588,6 @@ module PreTp = struct
          [ definition_parser ()
          ; fixpoint_parser ()
          ; induct_parser ()
-         ; import_parser ()
          ; axiom_parser ()
          ; main_parser ()
          ; empty_parser ()
@@ -610,12 +596,6 @@ module PreTp = struct
   let init =
     let vctx = Var.(SMap.singleton (string_of main) main) in
     let ictx = SMap.empty in
-    let stdin_info = { id = Id.stdin_id; is_ind = false; arity = 0 } in
-    let stdout_info = { id = Id.stdout_id; is_ind = false; arity = 0 } in
-    let stderr_info = { id = Id.stderr_id; is_ind = false; arity = 0 } in
-    let ictx = Id.(SMap.add (string_of stdin_id) stdin_info ictx) in
-    let ictx = Id.(SMap.add (string_of stdout_id) stdout_info ictx) in
-    let ictx = Id.(SMap.add (string_of stderr_id) stderr_info ictx) in
     (vctx, ictx)
 
   let parse_ch ch =
@@ -651,52 +631,7 @@ module Prelude = struct
   let string_id = (SMap.find "string" ictx).id
   let emptyString_id = (SMap.find "EmptyString" ictx).id
   let string0_id = (SMap.find "String" ictx).id
-
-  let stdin_t =
-    let f = mk "stdin_t" in
-    let n = mk "n" in
-    let _a = _Pi U (_Ind nat_id (box_list [])) @@ bind_var __ _Proto in
-    let _m =
-      _Fix @@ bind_var f @@ _Lam U @@ bind_var n
-      @@ _Match (_Var n) _Mot0
-      @@ box_list
-           [ bind_p (PConstr (o_id, [])) _End
-           ; bind_p (PConstr (s_id, [ PVar n ]))
-             @@ _Act true (_Ind string_id (box_list []))
-             @@ bind_var __ (_App (_Var f) (_Var n))
-           ]
-    in
-    unbox (_Ann _m _a)
-
-  let stdout_t =
-    let f = mk "stdout_t" in
-    let n = mk "n" in
-    let _a = _Pi U (_Ind nat_id (box_list [])) @@ bind_var __ _Proto in
-    let _m =
-      _Fix @@ bind_var f @@ _Lam U @@ bind_var n
-      @@ _Match (_Var n) _Mot0
-      @@ box_list
-           [ bind_p (PConstr (o_id, [])) _End
-           ; bind_p (PConstr (s_id, [ PVar n ]))
-             @@ _Act false (_Ind string_id (box_list []))
-             @@ bind_var __ (_App (_Var f) (_Var n))
-           ]
-    in
-    unbox (_Ann _m _a)
-
-  let stderr_t =
-    let f = mk "stderr_t" in
-    let n = mk "n" in
-    let _a = _Pi U (_Ind nat_id (box_list [])) @@ bind_var __ _Proto in
-    let _m =
-      _Fix @@ bind_var f @@ _Lam U @@ bind_var n
-      @@ _Match (_Var n) _Mot0
-      @@ box_list
-           [ bind_p (PConstr (o_id, [])) _End
-           ; bind_p (PConstr (s_id, [ PVar n ]))
-             @@ _Act false (_Ind string_id (box_list []))
-             @@ bind_var __ (_App (_Var f) (_Var n))
-           ]
-    in
-    unbox (_Ann _m _a)
+  let stdin_t = SMap.find "stdin_t" vctx
+  let stdout_t = SMap.find "stdout_t" vctx
+  let stderr_t = SMap.find "stderr_t" vctx
 end
