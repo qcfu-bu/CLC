@@ -25,16 +25,13 @@ Qed.
 Lemma pi_inv Γ A B C s r t1 t2 :
   Γ ⊢ Pi A B s r t1 : C : t2 ->
   Γ ⊢ A : Sort s : U /\ t2 = U /\
-  match s with U => A :U Γ | L => _: Γ end ⊢ B : Sort r : U.
+  [A :{s} Γ] ⊢ B : Sort r : U.
 Proof with eauto using key.
   move e:(Pi A B s r t1)=>m tp.
   elim: tp A B s r t1 e=>//{Γ C m t2}.
   move=>Γ A B s r t k tyA ihA tyB ihB A0 B0 s0 r0 t1
     [e1 e2 e3 e4 e5]; subst.
   repeat split; eauto.
-  destruct s.
-  simpl in tyB. rewrite<-pure_re in tyB...
-  simpl in tyB. rewrite<-pure_re in tyB...
 Qed.
 
 Lemma lam_invX Γ A1 A2 B C m s1 s2 r t1 t2 t3 :
@@ -72,6 +69,10 @@ Lemma lam_inv Γ m A1 A2 B s1 s2 r t1 t2 t3 x :
 Proof.
   move=> /pi_inv[tyA[_ tyB]] tyL.
   apply: lam_invX; eauto.
+  simpl.
+  simpl in tyB.
+  rewrite<-re_invo in tyB.
+  eauto.
 Qed.
 
 Lemma app_inv Γ m n C r :
@@ -239,14 +240,11 @@ Qed.
 Lemma act_inv Γ r A B C s t :
   Γ ⊢ Act r A B s : C : t ->
   Γ ⊢ A : Sort s : U /\ t = U /\
-  match s with U => A :U Γ | L => _: Γ end ⊢ B : Proto : U.
+  [A :{s} Γ] ⊢ B : Proto : U.
 Proof.
   move e:(Act r A B s)=>n tp. elim:tp r A B s e=>//{Γ C t n}.
   move=>Γ r A B s k tyA ihA tyB ihB r0 A0 B0 s0 [e1 e2 e3 e4]; subst.
   repeat split; eauto.
-  destruct s; simpl in tyB.
-  rewrite<-pure_re in tyB; eauto.
-  rewrite<-pure_re in tyB; eauto.
 Qed.
 
 Lemma ch_inv Γ r A B s :

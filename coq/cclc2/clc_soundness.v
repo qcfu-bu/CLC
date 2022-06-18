@@ -69,13 +69,15 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
         replace Γ2 with [Γ2].
         rewrite e2 e3...
         rewrite<-pure_re...
+      simpl in tyB. rewrite<-re_invo in tyB.
       have {}tyB := substitution tyB k mrg' tyn.
       apply: clc_conv.
       apply: conv_beta.
       apply: conv1i...
       apply: clc_app...
       exact: tyB. }
-    { have {}tyB := substitutionN tyB tyn.
+    { simpl in tyB. rewrite<-re_invo in tyB.
+      have {}tyB := substitutionN tyB tyn.
       apply: clc_conv.
       apply: conv_beta.
       apply: conv1i...

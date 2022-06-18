@@ -165,6 +165,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       have tyP:=validity wf1 tym.
       have[tyA[_ tyB]]:=pi_inv tyP.
       have os:of_sort (_: [Γ1]) 0 None by constructor.
+      simpl in tyB. rewrite<-re_invo in tyB.
       have oc:=narity tyB os.
       have->:=nsubst_subst c.[m0] c.[n0] oc.
       econstructor.

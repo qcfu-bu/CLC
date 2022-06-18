@@ -601,7 +601,7 @@ Proof.
       have//:=clc_linearity.narity ty2 os. inv H4.
       have os:of_sort (_: _: Γ4) 0 None by constructor.
       have//:=clc_linearity.narity ty1 os. }
-      have[wf1 wf2]:=merge_context_ok_inv H5 wf.
+    { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
       have[_[e1 e2]]:=merge_re_re H5.
       inv H7.
       have {}wf1:ok (_: Ch B :L Γ1).
@@ -611,7 +611,7 @@ Proof.
       have[G1[G2[B0[t[mrg[ty h]]]]]]:=plug_inv wf1 H4.
       inv mrg.
       have os:of_sort (_: Γ0) 0 None by constructor.
-      have//=oc:=clc_linearity.narity ty os.
+      have//=oc:=clc_linearity.narity ty os. }
     { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
       inv H7.
       have {}wf1:ok (_: _: Γ1).
