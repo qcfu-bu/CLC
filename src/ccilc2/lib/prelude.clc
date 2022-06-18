@@ -36,10 +36,10 @@ Fixpoint cat (s1 s2 : string) : string :=
 
 Fixpoint stdin_rec (_ : unit) : proto := 
   !(b : bool),
-  match b with
-  | true => ?(string), stdin_rec tt
-  | false => $
-  end.
+    match b with
+    | true => ?(string), stdin_rec tt
+    | false => $
+    end.
 
 Definition stdin_t : proto := stdin_rec tt.
 
@@ -55,10 +55,10 @@ Definition close_in (ch : channel (stdin_t)) : unit :=
 
 Fixpoint stdout_rec (_ : unit) : proto :=
   !(b : bool),
-  match b with
-  | true => !(string), stdout_rec tt
-  | false => $
-  end.
+    match b with
+    | true => !(string), stdout_rec tt
+    | false => $
+    end.
 
 Definition stdout_t : proto := stdout_rec tt.
 
@@ -75,10 +75,10 @@ Definition close_out (ch : channel (stdout_t)) : unit :=
 
 Fixpoint stderr_rec (_ : unit) : proto :=
   !(b : bool),
-  match b with
-  | true => !(string), stderr_rec tt
-  | false => $
-  end.
+    match b with
+    | true => !(string), stderr_rec tt
+    | false => $
+    end.
 
 Definition stderr_t : proto := stderr_rec tt.
 
