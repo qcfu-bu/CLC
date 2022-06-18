@@ -13,7 +13,9 @@ This repository contains the Coq formalization and implementation of the Calculu
 - cclc  : Formalization of Concurrent Calculus of Linear Constructions.
 - cclc2 : Formalization of Concurrent Calculus of Linear Constructions with interpreted duality.
 
-### src : Source code for CCILC prototype implementation.
+### src : Source code of implementations.
+- ccilc : Concurrent Calculus of Inductive Linear Constructions.
+- ccilc2 : Concurrent Calculus of Inductive Linear Constructions with interpreted duality.
 
 ### old : Legacy formalizations
 
