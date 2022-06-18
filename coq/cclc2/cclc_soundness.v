@@ -522,31 +522,28 @@ Proof.
       have os:of_sort (_: Γ0) 0 None.
       { repeat constructor. }
       have//=oc:=clc_linearity.narity ty os. } }
-
-
-
-
   move=>c d v Γ ty wf.
-  { inv ty. inv H4. inv H5; inv H6.
-    { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
-      inv H8.
+  { inv ty. inv H3. inv H2; inv H4.
+    { have[wf1 wf2]:=merge_context_ok_inv H3 wf.
+      inv H6.
       have {}wf2:ok (_: _: Γ2).
       repeat constructor; eauto.
-      have[G1[G2[B0[t[mrg[ty h]]]]]]:=plug_inv wf2 H4.
-      inv mrg. inv H8.
+      have[G1[G2[B0[t[mrg[ty h]]]]]]:=plug_inv wf2 H2.
+      inv mrg. inv H6.
       have os:of_sort (_: _: Γ4) 0 None.
       repeat constructor; eauto.
       have//=oc:=clc_linearity.narity ty os. }
-    { have[wf1 wf2]:=merge_context_ok_inv H5 wf.
-      have[_[e1 e2]]:=merge_re_re H5.
-      inv H8.
-      have {}wf2:ok (_: Ch B :L Γ2).
+    { have[wf1 wf2]:=merge_context_ok_inv H3 wf.
+      have[_[e1 e2]]:=merge_re_re H3.
+      inv H6.
+      have {}wf2:ok (_: Ch r2 A :L Γ2).
       repeat constructor; eauto.
-      econstructor; eauto.
       rewrite e2; eauto.
-      have[G1[G2[B0[t[mrg[ty h]]]]]]:=plug_inv wf2 H4.
-      inv mrg. inv H8.
-      have os:of_sort (_: Ch B :L Γ4) 0 None.
+      apply: re_pure.
+      rewrite e2; eauto.
+      have[G1[G2[B0[t[mrg[ty h]]]]]]:=plug_inv wf2 H2.
+      inv mrg. inv H6.
+      have os:of_sort (_: Ch r2 A :L Γ4) 0 None.
       repeat constructor; eauto.
       have//=oc:=clc_linearity.narity ty os.
       have os:of_sort (_: _: Γ4) 0 None.
