@@ -3,12 +3,12 @@ Import stdout : stdout_t.
 
 Definition sender : (channel !string, !string, $) -o unit := 
   lin ch =>
-    let [msg, stdin] := readline stdin in
-    let ch := send ch msg in
-    let ch := send ch msg in
-    let () := close ch in
-    let () := close_in stdin in
-    ().
+  let [msg, stdin] := readline stdin in
+  let ch := send ch msg in
+  let ch := send ch msg in
+  let () := close ch in
+  let () := close_in stdin in
+  ().
 
 Definition Main := 
   let ⟨ch, _main_⟩ := 

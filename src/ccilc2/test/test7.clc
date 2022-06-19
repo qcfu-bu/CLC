@@ -3,8 +3,8 @@ Import stdin : stdin_t.
 
 Fixpoint loop (s : string) : channel stdout_t -o unit :=
   lin ch =>
-    let ch := printline ch s in
-    loop s ch.
+  let ch := printline ch s in
+  loop s ch.
 
 Definition Main := 
   let [msg, stdin] := readline stdin in
