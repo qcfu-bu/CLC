@@ -9,14 +9,14 @@ Inductive bool : U :=
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#156 P#157).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#161 P#162).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#164 P#165).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#169 P#170).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#171 B#172).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#176 B#177).
 
 Inductive nat : U :=
 | O : nat
@@ -107,8 +107,15 @@ Definition exn :=
     (U) -> proto).
 
 Inductive Exn (A : U) : L :=
-| Error (A : U) : (Exn A#251)
-| Ok (A : U) : (A) -> (channel (exn) A) -> (Exn A#252).
+| Error (A : U) : (Exn A#256)
+| Ok (A : U) : (A) -> (channel (exn) A) -> (Exn A#257).
+
+Definition throw :=
+  ((fun A ch =>
+      let ch := (send ch) false in match close ch with
+                                   | tt => Error
+                                   end) :
+    forall (A : U), (channel (exn) A) -> (Exn A)).
 
 Definition div2_exn :=
   ((fix div2_exn n ch =>
@@ -116,10 +123,7 @@ Definition div2_exn :=
       | O => (Ok O ch)
       | (S n) =>
         match n with
-        | O =>
-          let ch := (send ch) false in match close ch with
-                                       | tt => Error
-                                       end
+        | O => ((throw) ?0) ch
         | (S n) =>
           match ((div2_exn) n) ch with
           | Error => Error
@@ -173,12 +177,12 @@ Definition string_of_nat :=
   ((fix string_of_nat n =>
       match n with
       | O => "O"
-      | (S n) => let n := (string_of_nat) n in ((cat) "S(") ((cat) n) ")"
+      | (S n) => let n := (string_of_nat) n in ((cat) "S (") ((cat) n) ")"
       end) :
     (nat) -> string).
 
 Definition Main :=
-  match ((((try) ?0) _main_) (div2_exn) 14) O with
+  match ((((try) ?1) _main_) (div2_exn) 15) O with
   | (sig_intro n _main_) =>
     let s := (string_of_nat) n in
     let out := ((printline) out) ((cat) s) "\n" in
@@ -198,14 +202,14 @@ Inductive bool : U :=
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#1980 P#1981).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2111 P#2112).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#1988 P#1989).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2119 P#2120).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#1995 B#1996).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2126 B#2127).
 
 Inductive nat : U :=
 | O : nat
@@ -296,8 +300,15 @@ Definition exn :=
     (U) -> proto).
 
 Inductive Exn (A : U) : L :=
-| Error (A : U) : (Exn A#2075)
-| Ok (A : U) : (A) -> (channel (exn) A) -> (Exn A#2076).
+| Error (A : U) : (Exn A#2206)
+| Ok (A : U) : (A) -> (channel (exn) A) -> (Exn A#2207).
+
+Definition throw :=
+  ((fun A ch =>
+      let ch := (send ch) false in match close ch with
+                                   | tt => Error
+                                   end) :
+    forall (A : U), (channel (exn) A) -> (Exn A)).
 
 Definition div2_exn :=
   ((fix div2_exn n ch =>
@@ -305,10 +316,7 @@ Definition div2_exn :=
       | O => (Ok O ch)
       | (S n) =>
         match n with
-        | O =>
-          let ch := (send ch) false in match close ch with
-                                       | tt => Error
-                                       end
+        | O => ((throw) nat) ch
         | (S n) =>
           match ((div2_exn) n) ch with
           | Error => Error
@@ -362,12 +370,12 @@ Definition string_of_nat :=
   ((fix string_of_nat n =>
       match n with
       | O => "O"
-      | (S n) => let n := (string_of_nat) n in ((cat) "S(") ((cat) n) ")"
+      | (S n) => let n := (string_of_nat) n in ((cat) "S (") ((cat) n) ")"
       end) :
     (nat) -> string).
 
 Definition Main :=
-  match ((((try) nat) _main_) (div2_exn) 14) O with
+  match ((((try) nat) _main_) (div2_exn) 15) O with
   | (sig_intro n _main_) =>
     let s := (string_of_nat) n in
     let out := ((printline) out) ((cat) s) "\n" in

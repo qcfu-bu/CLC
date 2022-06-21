@@ -186,6 +186,12 @@ let rec simpl env eqn =
         List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] sp1 sp2
       else
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
+    | Var _, _ ->
+      let m1 = zdnf env m1 in
+      simpl env (m1, m2)
+    | _, Var _ ->
+      let m2 = zdnf env m2 in
+      simpl env (m1, m2)
     | Pi (s1, a1, b1), Pi (s2, a2, b2) ->
       if s1 = s2 then
         let _, ub1, ub2 = unbind2 b1 b2 in
@@ -277,7 +283,7 @@ let rec simpl env eqn =
         eqn1 @ eqn2
       else
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
-    | _ -> failwith (asprintf "simpl failure(%a, %a)" Tm.pp m1 Tm.pp m2)
+    | _ -> failwith (asprintf "xsimpl failure(%a, %a)" Tm.pp m1 Tm.pp m2)
 
 let solve eqn =
   let strip sp =

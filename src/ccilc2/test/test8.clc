@@ -7,16 +7,19 @@ Inductive Exn (A : U) : L :=
 | Error : Exn A
 | Ok : A -> channel (exn A) -> Exn A.
 
+Definition throw (A : U) (ch : channel (exn A)) : Exn A :=
+  let ch := send ch false in
+  let () := close ch in
+  Error.
+
 Fixpoint div2_exn (n : nat) (ch : channel (exn nat)) : Exn nat :=
   match n with
   | O => Ok 0 ch
   | S n =>
     match n with
-    | O =>
-      let ch := send ch false in
-      let () := close ch in
-      Error
+    | O => throw _ ch
     | S n => 
+      let x := sx in
       match div2_exn n ch with
       | Error => Error
       | Ok n ch => Ok (S n) ch
@@ -55,11 +58,11 @@ Fixpoint string_of_nat (n : nat) : string :=
   | O => "O"
   | S n => 
     let n := string_of_nat n in
-    cat "S(" (cat n ")")
+    cat "S (" (cat n ")")
   end.
 
 Definition Main := 
-  let [n, _main_] := try _ _main_ (div2_exn 14) 0 in
+  let [n, _main_] := try _ _main_ (div2_exn 15) 0 in
   let s := string_of_nat n in
   let out := printline out (cat s "\n") in
   let () := close_out out in
