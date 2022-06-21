@@ -182,9 +182,9 @@ Definition Main :=
           ((((bind) ?6) ?7) (print) "What is your name?\n")
             lin x =>
               ((((bind) ?8) ?9) (read) x)
-                lin s1 =>
+                lin s =>
                   ((((bind) ?10) ?11)
-                     (print) ((cat) ((cat) "Hello, ") s1) "\n")
+                     (print) ((cat) ((cat) "Hello, ") s) "\n")
                     lin x => match x with
                              | tt => ((ret) ?12) tt
                              end
@@ -376,9 +376,9 @@ Definition Main :=
           ((((bind) unit) unit) (print) "What is your name?\n")
             lin x =>
               ((((bind) string) unit) (read) x)
-                lin s1 =>
+                lin s =>
                   ((((bind) unit) unit)
-                     (print) ((cat) ((cat) "Hello, ") s1) "\n")
+                     (print) ((cat) ((cat) "Hello, ") s) "\n")
                     lin x => match x with
                              | tt => ((ret) unit) tt
                              end
