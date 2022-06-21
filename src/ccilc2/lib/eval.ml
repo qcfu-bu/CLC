@@ -89,7 +89,7 @@ module EvalTm = struct
   let of_string s =
     let ctx = Prelude.(vctx, ictx) in
     match parse_string (ParseTm.asciix_parser ()) s ctx with
-    | Success t -> RTm.(core Name.VMap.empty t)
+    | Success t -> RTm.(core Name.VMap.empty None t)
     | Failed (s, _) -> raise (StringError s)
 
   let pair_id = Id.mk "pair"

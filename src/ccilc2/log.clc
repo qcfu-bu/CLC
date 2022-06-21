@@ -7,20 +7,43 @@ Inductive bool : U :=
 | true : bool
 | false : bool.
 
-Inductive ex (A : U) (P : (A) -> U) : U :=
-| ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#161 P#162).
-
-Inductive sig (A : U) (P : (A) -> L) : L :=
-| sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#169 P#170).
-
-Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#176 B#177).
-
 Inductive nat : U :=
 | O : nat
 | S : (nat) -> nat.
+
+Definition addn :=
+  ((fix addn m n => match m with
+                    | O => n
+                    | (S m) => (S ((addn) m) n)
+                    end) :
+    (nat) -> (nat) -> nat).
+
+Inductive option (A : U) : U :=
+| None (A : U) : (option A#209)
+| Some (A : U) : (A) -> (option A#210).
+
+Inductive list (A : U) : U :=
+| nil (A : U) : (list A#213)
+| cons (A : U) : (A) -> ((list A)) -> (list A#214).
+
+Inductive vec (A : U) : (nat) -> U :=
+| vnil (A : U) : (vec A#219 O)
+| vcons (A : U)
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#220 (S n#221)).
+
+Inductive ex (A : U) (P : (A) -> U) : U :=
+| ex_intro (A : U)
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#227 P#228).
+
+Inductive sig (A : U) (P : (A) -> L) : L :=
+| sig_intro (A : U)
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#235 P#236).
+
+Inductive tnsr (A : L) (B : L) : L :=
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#242 B#243).
+
+Inductive box (A : U) : L :=
+| box_intro (A : U) : (A) -> (box A#247).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -99,7 +122,7 @@ Definition close_err :=
 
 Import out : stdout_t.
 
-Definition exn :=
+Definition exn_p :=
   ((fun A => !(b : bool), match b with
                           | true => !(_ : A), $
                           | false => $
@@ -107,37 +130,46 @@ Definition exn :=
     (U) -> proto).
 
 Inductive Exn (A : U) : L :=
-| Error (A : U) : (Exn A#256)
-| Ok (A : U) : (A) -> (channel (exn) A) -> (Exn A#257).
+| Error (A : U) : (Exn A#324)
+| Ok (A : U) : (A) -> (channel (exn_p) A) -> (Exn A#325).
+
+Definition exn := ((fun A => (channel (exn_p) A) -> (Exn A)) : (U) -> U).
+
+Definition ret :=
+  ((fun A m ch => (Ok m ch)) : forall (A : U), (A) -> (exn) A).
 
 Definition throw :=
   ((fun A ch =>
       let ch := (send ch) false in match close ch with
                                    | tt => Error
                                    end) :
-    forall (A : U), (channel (exn) A) -> (Exn A)).
+    forall (A : U), (exn) A).
 
-Definition div2_exn :=
-  ((fix div2_exn n ch =>
+Definition bind :=
+  ((fun A e f ch =>
+      match (e) ch with
+      | Error => Error
+      | (Ok m ch) => ((f) m) ch
+      end) :
+    forall (A : U), ((exn) A) -> ((A) -> (exn) A) -> (exn) A).
+
+Definition div2_exn_p :=
+  ((fix div2_exn_p n =>
       match n with
-      | O => (Ok O ch)
+      | O => ((ret) ?1) O
       | (S n) =>
         match n with
-        | O => ((throw) ?0) ch
-        | (S n) =>
-          match ((div2_exn) n) ch with
-          | Error => Error
-          | (Ok n ch) => (Ok (S n) ch)
-          end
+        | O => (throw) ?2
+        | (S n) => (((bind) ?0) (div2_exn_p) n) fun n => ((ret) ?3) (S n)
         end
       end) :
-    (nat) -> (channel (exn) nat) -> (Exn nat)).
+    (nat) -> (exn) nat).
 
 Definition try :=
   ((fun A =>
-      lin m f_exn default =>
-        match fork (ch : channel (exn) A) := m in
-              match (f_exn) ch with
+      lin m f_exn_p default =>
+        match fork (ch : channel (exn_p) A) := m in
+              match (f_exn_p) ch with
               | Error => tt
               | (Ok x ch) =>
                 let ch := (send ch) true in let ch := (send ch) x in close ch
@@ -169,9 +201,7 @@ Definition try :=
              end) ch
           end
         end) :
-    forall (A : U),
-      (main) -o
-        ((channel (exn) A) -> (Exn A)) -o (A) -o (sig A fun _ => main)).
+    forall (A : U), (main) -o ((exn) A) -o (A) -o (sig A fun _ => main)).
 
 Definition string_of_nat :=
   ((fix string_of_nat n =>
@@ -182,7 +212,7 @@ Definition string_of_nat :=
     (nat) -> string).
 
 Definition Main :=
-  match ((((try) ?1) _main_) (div2_exn) 15) O with
+  match ((((try) ?4) _main_) (div2_exn_p) 14) O with
   | (sig_intro n _main_) =>
     let s := (string_of_nat) n in
     let out := ((printline) out) ((cat) s) "\n" in
@@ -200,20 +230,43 @@ Inductive bool : U :=
 | true : bool
 | false : bool.
 
-Inductive ex (A : U) (P : (A) -> U) : U :=
-| ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2111 P#2112).
-
-Inductive sig (A : U) (P : (A) -> L) : L :=
-| sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2119 P#2120).
-
-Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2126 B#2127).
-
 Inductive nat : U :=
 | O : nat
 | S : (nat) -> nat.
+
+Definition addn :=
+  ((fix addn m n => match m with
+                    | O => n
+                    | (S m) => (S ((addn) m) n)
+                    end) :
+    (nat) -> (nat) -> nat).
+
+Inductive option (A : U) : U :=
+| None (A : U) : (option A#2611)
+| Some (A : U) : (A) -> (option A#2612).
+
+Inductive list (A : U) : U :=
+| nil (A : U) : (list A#2615)
+| cons (A : U) : (A) -> ((list A)) -> (list A#2616).
+
+Inductive vec (A : U) : (nat) -> U :=
+| vnil (A : U) : (vec A#2621 O)
+| vcons (A : U)
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2622 (S n#2623)).
+
+Inductive ex (A : U) (P : (A) -> U) : U :=
+| ex_intro (A : U)
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2629 P#2630).
+
+Inductive sig (A : U) (P : (A) -> L) : L :=
+| sig_intro (A : U)
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2637 P#2638).
+
+Inductive tnsr (A : L) (B : L) : L :=
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2644 B#2645).
+
+Inductive box (A : U) : L :=
+| box_intro (A : U) : (A) -> (box A#2649).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -292,7 +345,7 @@ Definition close_err :=
 
 Import out : stdout_t.
 
-Definition exn :=
+Definition exn_p :=
   ((fun A => !(b : bool), match b with
                           | true => !(_ : A), $
                           | false => $
@@ -300,37 +353,46 @@ Definition exn :=
     (U) -> proto).
 
 Inductive Exn (A : U) : L :=
-| Error (A : U) : (Exn A#2206)
-| Ok (A : U) : (A) -> (channel (exn) A) -> (Exn A#2207).
+| Error (A : U) : (Exn A#2726)
+| Ok (A : U) : (A) -> (channel (exn_p) A) -> (Exn A#2727).
+
+Definition exn := ((fun A => (channel (exn_p) A) -> (Exn A)) : (U) -> U).
+
+Definition ret :=
+  ((fun A m ch => (Ok m ch)) : forall (A : U), (A) -> (exn) A).
 
 Definition throw :=
   ((fun A ch =>
       let ch := (send ch) false in match close ch with
                                    | tt => Error
                                    end) :
-    forall (A : U), (channel (exn) A) -> (Exn A)).
+    forall (A : U), (exn) A).
 
-Definition div2_exn :=
-  ((fix div2_exn n ch =>
+Definition bind :=
+  ((fun A e f ch =>
+      match (e) ch with
+      | Error => Error
+      | (Ok m ch) => ((f) m) ch
+      end) :
+    forall (A : U), ((exn) A) -> ((A) -> (exn) A) -> (exn) A).
+
+Definition div2_exn_p :=
+  ((fix div2_exn_p n =>
       match n with
-      | O => (Ok O ch)
+      | O => ((ret) nat) O
       | (S n) =>
         match n with
-        | O => ((throw) nat) ch
-        | (S n) =>
-          match ((div2_exn) n) ch with
-          | Error => Error
-          | (Ok n ch) => (Ok (S n) ch)
-          end
+        | O => (throw) nat
+        | (S n) => (((bind) nat) (div2_exn_p) n) fun n => ((ret) nat) (S n)
         end
       end) :
-    (nat) -> (channel (exn) nat) -> (Exn nat)).
+    (nat) -> (exn) nat).
 
 Definition try :=
   ((fun A =>
-      lin m f_exn default =>
-        match fork (ch : channel (exn) A) := m in
-              match (f_exn) ch with
+      lin m f_exn_p default =>
+        match fork (ch : channel (exn_p) A) := m in
+              match (f_exn_p) ch with
               | Error => tt
               | (Ok x ch) =>
                 let ch := (send ch) true in let ch := (send ch) x in close ch
@@ -362,9 +424,7 @@ Definition try :=
              end) ch
           end
         end) :
-    forall (A : U),
-      (main) -o
-        ((channel (exn) A) -> (Exn A)) -o (A) -o (sig A fun _ => main)).
+    forall (A : U), (main) -o ((exn) A) -o (A) -o (sig A fun _ => main)).
 
 Definition string_of_nat :=
   ((fix string_of_nat n =>
@@ -375,7 +435,7 @@ Definition string_of_nat :=
     (nat) -> string).
 
 Definition Main :=
-  match ((((try) nat) _main_) (div2_exn) 15) O with
+  match ((((try) nat) _main_) (div2_exn_p) 14) O with
   | (sig_intro n _main_) =>
     let s := (string_of_nat) n in
     let out := ((printline) out) ((cat) s) "\n" in

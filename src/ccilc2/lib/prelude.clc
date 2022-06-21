@@ -5,6 +5,28 @@ Inductive bool : U :=
 | true : bool
 | false : bool.
 
+Inductive nat : U :=
+| O : nat
+| S : nat -> nat.
+
+Fixpoint addn (m n : nat) : nat :=
+  match m with
+  | O => n
+  | S m => S (addn m n)
+  end.
+
+Inductive option (A : U) : U :=
+| None : option A
+| Some : A -> option A.
+
+Inductive list (A : U) : U :=
+| nil : list A
+| cons : A -> list A -> list A.
+
+Inductive vec (A : U) : nat -> U :=
+| vnil : vec A O
+| vcons : forall (n : nat), A -> vec A n -> vec A (S n).
+
 Inductive ex (A : U) (P : A -> U) : U :=
 | ex_intro : forall (x : A), P x -> ex A P.
 
@@ -14,9 +36,8 @@ Inductive sig (A : U) (P : A -> L) : L :=
 Inductive tnsr (A B : L) : L :=
 | tnsr_intro : A -> B -> tnsr A B.
 
-Inductive nat : U :=
-| O : nat
-| S : nat -> nat.
+Inductive box (A : U) : L :=
+| box_intro : A -> box A.
 
 Inductive ascii : U :=
 | Ascii : 

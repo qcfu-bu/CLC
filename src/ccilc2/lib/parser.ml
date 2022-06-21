@@ -42,6 +42,7 @@ module ParseTm = struct
       ; "send"
       ; "recv"
       ; "close"
+      ; "do"
       ]
 
   type 'a parser = ('a, Var.t SMap.t * id_info SMap.t) MParser.t
@@ -180,6 +181,12 @@ module ParseTm = struct
     let* _ = kw "⟩" in
     return (PConstr (Prelude.tnsr_intro_id, [ p1; p2 ]))
 
+  and p_box_parser () =
+    let* _ = kw "[" in
+    let* p = p_parser () in
+    let* _ = kw "]" in
+    return (PConstr (Prelude.box_intro_id, [ p ]))
+
   and p0_parser () =
     let* _ = return () in
     choice
@@ -190,6 +197,7 @@ module ParseTm = struct
          ; p_pair0_parser ()
          ; p_pair1_parser ()
          ; p_pair2_parser ()
+         ; p_box_parser ()
          ; parens (p_parser ())
          ])
 
@@ -202,7 +210,11 @@ module ParseTm = struct
     in
     chain_left1 (p0_parser ()) prod_parser
 
-  let rec knd_parser () = kw "U" >>$ Knd U <|> (kw "L" >>$ Knd L)
+  let sort_parser = kw "U" >>$ U <|> (kw "L" >>$ L)
+
+  let rec knd_parser () =
+    let* s = sort_parser in
+    return (Knd s)
 
   and forall_parser () =
     let* ctx = get_user_state in
@@ -295,6 +307,23 @@ module ParseTm = struct
     let* n = t_parser () in
     let* _ = set_user_state ctx in
     return (Let (x, m, n))
+
+  and do_parser () =
+    let* ctx = get_user_state in
+    let* _ = kw "do" in
+    let* x = p_parser () in
+    let* opt = option (attempt (kw ":" >> t_parser ())) in
+    let* _ = kw ":=" in
+    let* m = t_parser () in
+    let m =
+      match opt with
+      | Some a -> Ann (m, a)
+      | None -> m
+    in
+    let* _ = kw ";" in
+    let* n = t_parser () in
+    let* _ = set_user_state ctx in
+    return (Do (x, m, n))
 
   and cons_parser () =
     let* id_info = id_parser () in
@@ -395,6 +424,12 @@ module ParseTm = struct
     let* t2 = t_parser () in
     let* _ = kw "⟩" in
     return (Constr (Prelude.tnsr_intro_id, [ t1; t2 ]))
+
+  and box_parser () =
+    let* _ = kw "[" in
+    let* t = t_parser () in
+    let* _ = kw "]" in
+    return (Constr (Prelude.box_intro_id, [ t ]))
 
   and nat_parser () =
     let* s = many1_chars digit in
@@ -542,12 +577,14 @@ module ParseTm = struct
          ; fun_parser ()
          ; lin_parser ()
          ; let_parser ()
+         ; do_parser ()
          ; ifte_parser ()
          ; match_parser ()
          ; tt_parser ()
          ; pair0_parser ()
          ; pair1_parser ()
          ; pair2_parser ()
+         ; box_parser ()
          ; nat_parser ()
          ; char_parser ()
          ; string_parser ()
@@ -731,6 +768,17 @@ module ParseTp = struct
     in
     return (Import (id, x, Var v, tp))
 
+  and importdo_parser () =
+    let* _ = kw "Import" in
+    let* _ = kw "do" in
+    let* _ = kw ":" in
+    let* s = sort_parser in
+    let* _ = kw ":=" in
+    let* bind = t_parser () in
+    let* _ = kw "." in
+    let* tp = tp_parser () in
+    return (ImportDo (s, bind, tp))
+
   and axiom_parser () =
     let* _ = kw "Axiom" in
     let* x = var_parser () in
@@ -757,6 +805,7 @@ module ParseTp = struct
          ; fixpoint_parser ()
          ; induct_parser ()
          ; import_parser ()
+         ; importdo_parser ()
          ; axiom_parser ()
          ; main_parser ()
          ])
