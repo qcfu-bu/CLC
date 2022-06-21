@@ -1,0 +1,38 @@
+Definition reader (A : U) : L :=
+  channel stdin_t -o sig A (fun _ => channel stdin_t).
+
+Definition read (_ : unit) : reader string :=
+  lin ch =>
+  let ch := send ch true in
+  recv ch.
+
+Definition ret (A : U) (m : A) : reader A :=
+  lin ch => [m, ch].
+
+Definition bind (A B : U) (m : reader A) : (A -o reader B) -o reader B :=
+  lin f ch =>
+  let [a, ch] := m ch in
+  f a ch.
+
+Definition run (A : U) (ch : channel stdin_t) : reader A -o box A :=
+  lin m =>
+  let [a, ch] := m ch in
+  let () := close_in ch in
+  [a].
+
+Import stdin : stdin_t.
+Import stdout : stdout_t.
+Import do : L := bind _ _.
+
+Definition Main := 
+  let [s] :=
+    run _ stdin (
+      do s1 := read ();
+      do s2 := read ();
+      do s3 := read ();
+      do s4 := read ();
+      ret _ s3)
+  in
+  let stdout := printline stdout s in
+  let () := close_out stdout in
+  _main_.

@@ -136,12 +136,11 @@ module EvalTm = struct
         | Stdin false -> (VCh (Stdin true), env)
         | Stdout false -> (VCh (Stdout true), env)
         | Stdout true ->
-          let _ = printf "%s" (string_of n) in
+          let _ = printf "%s%!" (string_of n) in
           (VCh (Stdout false), env)
         | Stderr false -> (VCh (Stderr true), env)
         | Stderr true ->
-          let s = asprintf "%s" (string_of n) in
-          let _ = prerr_endline s in
+          let _ = eprintf "%s%!" (string_of n) in
           (VCh (Stderr false), env)
         | _ -> raise SendError)
       | _ -> raise (FunctionError (asprintf "non-functional:=@.%a" pp m)))

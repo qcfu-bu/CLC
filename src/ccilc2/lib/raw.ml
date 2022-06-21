@@ -60,7 +60,7 @@ module RTm = struct
       let _m = _core ctx opt m in
       let _a = _core ctx opt a in
       _Ann _m _a
-    | Meta x -> _Meta x
+    | Meta x -> _Meta (Meta.mk ())
     | Knd s -> _Knd s
     | Var x ->
       let x = find x ctx in
