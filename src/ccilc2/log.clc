@@ -181,13 +181,16 @@ Definition Main :=
   match (((run) ?5) (tnsr_intro stdin stdout))
           ((((bind) ?6) ?7) (print) "What is your name?\n")
             lin x =>
-              ((((bind) ?8) ?9) (read) x)
-                lin s =>
-                  ((((bind) ?10) ?11)
-                     (print) ((cat) ((cat) "Hello, ") s) "\n")
-                    lin x => match x with
-                             | tt => ((ret) ?12) tt
-                             end
+              match x with
+              | tt =>
+                ((((bind) ?8) ?9) (read) tt)
+                  lin s =>
+                    ((((bind) ?10) ?11)
+                       (print) ((cat) ((cat) "Hello, ") s) "\n")
+                      lin x => match x with
+                               | tt => ((ret) ?12) tt
+                               end
+              end
   with
   | (box_intro _) => _main_
   end.
@@ -213,31 +216,31 @@ Definition addn :=
     (nat) -> (nat) -> nat).
 
 Inductive option (A : U) : U :=
-| None (A : U) : (option A#2461)
-| Some (A : U) : (A) -> (option A#2462).
+| None (A : U) : (option A#2467)
+| Some (A : U) : (A) -> (option A#2468).
 
 Inductive list (A : U) : U :=
-| nil (A : U) : (list A#2465)
-| cons (A : U) : (A) -> ((list A)) -> (list A#2466).
+| nil (A : U) : (list A#2471)
+| cons (A : U) : (A) -> ((list A)) -> (list A#2472).
 
 Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#2471 O)
+| vnil (A : U) : (vec A#2477 O)
 | vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2472 (S n#2473)).
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2478 (S n#2479)).
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2479 P#2480).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2485 P#2486).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2487 P#2488).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2493 P#2494).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2494 B#2495).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2500 B#2501).
 
 Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#2499).
+| box_intro (A : U) : (A) -> (box A#2505).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -375,13 +378,16 @@ Definition Main :=
   match (((run) unit) (tnsr_intro stdin stdout))
           ((((bind) unit) unit) (print) "What is your name?\n")
             lin x =>
-              ((((bind) string) unit) (read) x)
-                lin s =>
-                  ((((bind) unit) unit)
-                     (print) ((cat) ((cat) "Hello, ") s) "\n")
-                    lin x => match x with
-                             | tt => ((ret) unit) tt
-                             end
+              match x with
+              | tt =>
+                ((((bind) string) unit) (read) tt)
+                  lin s =>
+                    ((((bind) unit) unit)
+                       (print) ((cat) ((cat) "Hello, ") s) "\n")
+                      lin x => match x with
+                               | tt => ((ret) unit) tt
+                               end
+              end
   with
   | (box_intro _) => _main_
   end.

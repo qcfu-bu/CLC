@@ -39,8 +39,8 @@ Import do : L := bind _ _.
 Definition Main := 
   let [_] :=
     run _ ⟨stdin, stdout⟩ (
-      do x  := print "What is your name?\n";
-      do s  := read x;
+      do ()  := print "What is your name?\n";
+      do s  := read ();
       do () := print (cat (cat "Hello, " s) "\n");
       ret _ ())
   in
