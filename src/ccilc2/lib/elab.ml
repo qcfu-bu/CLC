@@ -175,8 +175,9 @@ module ElabTm = struct
           let x, un = unbind n in
           let eqns, mmap = check vctx ictx env eqns mmap a Proto in
           let eqns, mmap = check vctx ictx env eqns mmap m Main in
-          let _, eqns, mmap =
-            elab (VMap.add x (Ch (r, a), L) vctx) ictx env eqns mmap un
+          let unit = Tm.Ind (Prelude.unit_id, []) in
+          let eqns, mmap =
+            check (VMap.add x (Ch (r, a), L) vctx) ictx env eqns mmap un unit
           in
           let a = Ch (not r, a) in
           (Ind (Prelude.tnsr_id, [ a; Main ]), eqns, mmap)

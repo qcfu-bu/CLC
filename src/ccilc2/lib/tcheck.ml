@@ -189,7 +189,8 @@ module CheckTm = struct
         let x, un = unbind n in
         let ctx1 = check vctx ictx env a Proto in
         let ctx2 = check vctx ictx env m Main in
-        let _, ctx3 = infer (VMap.add x (Ch (r, a), L) vctx) ictx env un in
+        let unit = Tm.Ind (Prelude.unit_id, []) in
+        let ctx3 = check (VMap.add x (Ch (r, a), L) vctx) ictx env un unit in
         let ctx3 = remove x ctx3 L in
         let a = Ch (not r, a) in
         if VMap.is_empty ctx1 then
