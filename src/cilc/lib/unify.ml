@@ -279,7 +279,9 @@ let solve eqn =
     else
       let xs = strip sp1 in
       let ctx = fv VSet.empty m2 in
-      if VSet.subset ctx (VSet.of_list xs) then
+      if xs = [] then
+        MMap.singleton x (Some m2, None, 1)
+      else if VSet.subset ctx (VSet.of_list xs) then
         let m = unbox (_mLam U xs (lift m2)) in
         MMap.singleton x (Some m, None, 1)
       else

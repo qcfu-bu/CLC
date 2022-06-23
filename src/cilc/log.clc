@@ -160,30 +160,7 @@ Definition nth :=
               match n with
               | O => base
               | (S n0) =>
-                ((eq
-                   (((((((((((((((((((((((((((?8) _) _main_) addn) cat) lt)
-                                          eq_trans)
-                                         eq_sym)
-                                        u_ind)
-                                       l_ind)
-                                      unsafeC)
-                                     unsafeP)
-                                    Loc)
-                                   PtsTo)
-                                  Ptr)
-                                 New)
-                                Free)
-                               Get)
-                              Set)
-                             Array)
-                            nth)
-                           A)
-                          l)
-                         m)
-                        n)
-                       pf)
-                      v)
-                     n0 m n0)) -o
+                ((eq ?8 m n0)) -o
                   (tnsr
                     ((PtsTo) ((addn) l) n0) A
                       (((PtsTo) ((addn) l) n0) A) -o (ArrVec A l n))
@@ -227,132 +204,9 @@ Definition index :=
   ((fun A m n pf a =>
       match a with
       | (sig_intro l v) =>
-        match ((((((nth)
-                     ((((((((((((((((((((((((((?9) _main_) addn) cat) lt)
-                                            eq_trans)
-                                           eq_sym)
-                                          u_ind)
-                                         l_ind)
-                                        unsafeC)
-                                       unsafeP)
-                                      Loc)
-                                     PtsTo)
-                                    Ptr)
-                                   New)
-                                  Free)
-                                 Get)
-                                Set)
-                               Array)
-                              nth)
-                             A)
-                            m)
-                           n)
-                          pf)
-                         a)
-                        l)
-                       v)
-                    ((((((((((((((((((((((((((?10) _main_) addn) cat) lt)
-                                           eq_trans)
-                                          eq_sym)
-                                         u_ind)
-                                        l_ind)
-                                       unsafeC)
-                                      unsafeP)
-                                     Loc)
-                                    PtsTo)
-                                   Ptr)
-                                  New)
-                                 Free)
-                                Get)
-                               Set)
-                              Array)
-                             nth)
-                            A)
-                           m)
-                          n)
-                         pf)
-                        a)
-                       l)
-                      v)
-                   ((((((((((((((((((((((((((?11) _main_) addn) cat) lt)
-                                          eq_trans)
-                                         eq_sym)
-                                        u_ind)
-                                       l_ind)
-                                      unsafeC)
-                                     unsafeP)
-                                    Loc)
-                                   PtsTo)
-                                  Ptr)
-                                 New)
-                                Free)
-                               Get)
-                              Set)
-                             Array)
-                            nth)
-                           A)
-                          m)
-                         n)
-                        pf)
-                       a)
-                      l)
-                     v)
-                  ((((((((((((((((((((((((((?12) _main_) addn) cat) lt)
-                                         eq_trans)
-                                        eq_sym)
-                                       u_ind)
-                                      l_ind)
-                                     unsafeC)
-                                    unsafeP)
-                                   Loc)
-                                  PtsTo)
-                                 Ptr)
-                                New)
-                               Free)
-                              Get)
-                             Set)
-                            Array)
-                           nth)
-                          A)
-                         m)
-                        n)
-                       pf)
-                      a)
-                     l)
-                    v)
-                 pf)
-                v
-        with
+        match ((((((nth) ?9) ?10) ?11) ?12) pf) v with
         | (tnsr_intro c f) =>
-          match (((Get)
-                    ((((((((((((((((((((((((((((?13) _main_) addn) cat) lt)
-                                             eq_trans)
-                                            eq_sym)
-                                           u_ind)
-                                          l_ind)
-                                         unsafeC)
-                                        unsafeP)
-                                       Loc)
-                                      PtsTo)
-                                     Ptr)
-                                    New)
-                                   Free)
-                                  Get)
-                                 Set)
-                                Array)
-                               nth)
-                              A)
-                             m)
-                            n)
-                           pf)
-                          a)
-                         l)
-                        v)
-                       c)
-                      f)
-                   ((addn) l) m)
-                  c
-          with
+          match (((Get) ?13) ((addn) l) m) c with
           | (sig_intro x c) => (sig_intro x (sig_intro l (f) c))
           end
         end
@@ -362,28 +216,7 @@ Definition index :=
         forall (n : nat),
           (((lt) m) n) -> (((Array) A) n) -> (sig A fun _ => ((Array) A) n)).
 
-Definition Just0 :=
-  (((ex
-      nat
-        fun x =>
-          (eq
-            (((((((((((((((((((((?14) _main_) addn) cat) lt) eq_trans) eq_sym)
-                            u_ind)
-                           l_ind)
-                          unsafeC)
-                         unsafeP)
-                        Loc)
-                       PtsTo)
-                      Ptr)
-                     New)
-                    Free)
-                   Get)
-                  Set)
-                 Array)
-                nth)
-               index)
-              x x O))) :
-    U).
+Definition Just0 := (((ex nat fun x => (eq ?14 x O))) : U).
 
 Definition Main := tt.
 
@@ -411,32 +244,31 @@ Definition addn :=
     (nat) -> (nat) -> nat).
 
 Inductive option (A : U) : U :=
-| None (A : U) : (option A#12087)
-| Some (A : U) : (A) -> (option A#12088).
+| None (A : U) : (option A#3819)
+| Some (A : U) : (A) -> (option A#3820).
 
 Inductive list (A : U) : U :=
-| nil (A : U) : (list A#12091)
-| cons (A : U) : (A) -> ((list A)) -> (list A#12092).
+| nil (A : U) : (list A#3823)
+| cons (A : U) : (A) -> ((list A)) -> (list A#3824).
 
 Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#12097 O)
+| vnil (A : U) : (vec A#3829 O)
 | vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#12098 (S n#12099)).
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#3830 (S n#3831)).
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#12105 P#12106).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#3837 P#3838).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L)
-                : forall (x : A), ((P) x) -> (sig A#12113 P#12114).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#3845 P#3846).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#12120 B#12121).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#3852 B#3853).
 
 Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#12125).
+| box_intro (A : U) : (A) -> (box A#3857).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -457,13 +289,13 @@ Definition cat :=
     (string) -> (string) -> string).
 
 Inductive le (n : nat) : (nat) -> U :=
-| le_n (n : nat) : (le n#12147 n#12147)
-| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#12148 (S m#12149)).
+| le_n (n : nat) : (le n#3879 n#3879)
+| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#3880 (S m#3881)).
 
 Definition lt := ((fun m n => (le (S m) n)) : (nat) -> (nat) -> U).
 
 Inductive eq (A : U) (x : A) : (A) -> U :=
-| refl (A : U) (x : A) : (eq A#12159 x#12160 x#12160).
+| refl (A : U) (x : A) : (eq A#3891 x#3892 x#3892).
 
 Definition eq_trans :=
   ((fun A x y z e1 e2 =>
@@ -526,12 +358,12 @@ Axiom Set :
     forall (B : U), (B) -> forall (l : Loc), (((PtsTo) l) A) -> ((PtsTo) l) B.
 
 Inductive ArrVec (A : U) (l : Loc) : (nat) -> L :=
-| Nil (A : U) (l : Loc) : (ArrVec A#12256 l#12257 O)
+| Nil (A : U) (l : Loc) : (ArrVec A#3988 l#3989 O)
 | Cons (A : U)
          (l : Loc)
            : forall (n : nat),
                (((PtsTo) ((addn) l) n) A) ->
-                 ((ArrVec A l n)) -> (ArrVec A#12258 l#12259 (S n#12260)).
+                 ((ArrVec A l n)) -> (ArrVec A#3990 l#3991 (S n#3992)).
 
 Definition Array :=
   ((fun A n => (sig Loc fun l => (ArrVec A l n))) : (U) -> (nat) -> L).
@@ -610,5 +442,3 @@ Definition Just0 := (((ex nat fun x => (eq nat x O))) : U).
 
 Definition Main := tt.
 
---------------------------------------------------------------------------------
-tcheck ok

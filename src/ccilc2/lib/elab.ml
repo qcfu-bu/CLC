@@ -40,7 +40,7 @@ module ElabTm = struct
     | Knd s -> (s, eqns, mmap)
     | _ ->
       let _ = printf "%a" pp_mmap mmap in
-      failwith (asprintf "unexpected type(%a)" Tm.pp a)
+      failwith (asprintf "elab_unexpected type(%a)" Tm.pp a)
 
   and elab vctx ictx env eqns mmap m =
     let h, _ = spine m in
