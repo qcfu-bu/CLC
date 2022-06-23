@@ -229,10 +229,13 @@ let rec simpl env eqn =
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | _ -> failwith (asprintf "xsimpl failure(%a, %a)" Tm.pp m1 Tm.pp m2)
 
-let strip m xs =
-  match xs with
-  | Var x -> x
-  | _ -> mk ""
+let strip sp =
+  List.map
+    (fun m ->
+      match m with
+      | Var x -> x
+      | _ -> mk "")
+    sp
 
 let solve eqn =
   let m1, m2 = eqn in
@@ -240,8 +243,8 @@ let solve eqn =
   let m2 = whnf m2 in
   match (m1, m2) with
   | Meta (x1, xs), Meta (x2, ys) ->
-    let xs = List.map (strip m1) xs in
-    let ys = List.map (strip m2) ys in
+    let xs = strip xs in
+    let ys = strip ys in
     let ctx = VSet.inter (VSet.of_list xs) (VSet.of_list ys) in
     let zs = ctx |> VSet.elements |> List.map _Var in
     let xs =
@@ -271,7 +274,7 @@ let solve eqn =
     if occurs x m2 then
       failwith (asprintf "meta(%a) occurs in term(%a)" Meta.pp x Tm.pp m2)
     else
-      let xs = List.map (strip m1) xs in
+      let xs = strip xs in
       let ctx = fv VSet.empty m2 in
       if VSet.subset ctx (VSet.of_list xs) then
         let m = unbox (_mLam U xs (lift m2)) in
@@ -291,7 +294,7 @@ module UnifyTm = struct
       try
         match MMap.find x mmap with
         | Some h, _, _ ->
-          let xs = xs |> List.map (strip m) |> List.map _Var in
+          let xs = xs |> strip |> List.map _Var in
           let t = unbox (_mApp (lift h) xs) in
           resolve mmap (whnf t)
         | _ -> m

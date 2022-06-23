@@ -81,7 +81,7 @@ module PrintTerm = struct
     in
     match m with
     | Ann (m, a) -> fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp m pp a
-    | Meta x -> Meta.pp fmt x
+    | Meta (x, _) -> Meta.pp fmt x
     | Knd s -> (
       match s with
       | U -> fprintf fmt "U"

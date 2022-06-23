@@ -54,5 +54,13 @@ Definition index
 
 Definition Just0 : U := ex nat (fun x => x = 0).
 
+Definition silly (m n : nat) (pf : lt m n) (a : Array Just0 n) : Array Just0 n := 
+  let [x_pf, a] := index _ _ _ pf a in
+  let [y_pf, a] := index _ _ _ pf a in
+  let (x, pf1) := x_pf in
+  let (y, pf2) := y_pf in
+  let pf2 := eq_sym _ _ _ pf2 in
+  let pf : x = y := eq_trans _ _ _ _ pf1 pf2 in
+  a.
 
 Definition Main := ().

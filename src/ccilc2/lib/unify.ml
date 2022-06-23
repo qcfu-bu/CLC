@@ -114,7 +114,7 @@ let rec fv ctx t =
 let rec occurs x m =
   match m with
   | Ann (m, a) -> occurs x m || occurs x a
-  | Meta y -> Meta.equal x y
+  | Meta (y, _) -> Meta.equal x y
   | Knd _ -> false
   | Var _ -> false
   | Pi (_, a, b) ->
@@ -285,24 +285,22 @@ let rec simpl env eqn =
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | _ -> failwith (asprintf "xsimpl failure(%a, %a)" Tm.pp m1 Tm.pp m2)
 
+let strip sp =
+  List.map
+    (fun m ->
+      match m with
+      | Var x -> x
+      | _ -> mk "")
+    sp
+
 let solve eqn =
-  let strip sp =
-    List.map
-      (fun m ->
-        match m with
-        | Var x -> x
-        | _ -> mk "")
-      sp
-  in
   let m1, m2 = eqn in
   let m1 = whnf m1 in
   let m2 = whnf m2 in
-  let h1, sp1 = spine m1 in
-  let h2, sp2 = spine m2 in
-  match (h1, h2) with
-  | Meta x1, Meta x2 ->
-    let xs = strip sp1 in
-    let ys = strip sp2 in
+  match (m1, m2) with
+  | Meta (x1, xs), Meta (x2, ys) ->
+    let xs = strip xs in
+    let ys = strip ys in
     let ctx = VSet.inter (VSet.of_list xs) (VSet.of_list ys) in
     let zs = List.map _Var (VSet.elements ctx) in
     let xs =
@@ -321,19 +319,18 @@ let solve eqn =
           | None -> mk "")
         ys
     in
-    let m = _Meta (Meta.mk ()) in
-    let m = _mApp m zs in
+    let m = _Meta (Meta.mk ()) (box_list zs) in
     let m1 = unbox (_mLam U xs m) in
     let m2 = unbox (_mLam U ys m) in
     let res = MMap.empty in
     let res = MMap.add x1 (Some m1, None, 0) res in
     let res = MMap.add x2 (Some m2, None, 0) res in
     res
-  | Meta x, _ ->
+  | Meta (x, xs), _ ->
     if occurs x m2 then
       failwith (asprintf "meta(%a) occurs in term(%a)" Meta.pp x Tm.pp m2)
     else
-      let xs = strip sp1 in
+      let xs = strip xs in
       let ctx = fv VSet.empty m2 in
       if VSet.subset ctx (VSet.of_list xs) then
         let m = unbox (_mLam U xs (lift m2)) in
@@ -344,108 +341,104 @@ let solve eqn =
 
 module UnifyTm = struct
   let rec resolve mmap m =
-    let h, sp = spine m in
-    match h with
-    | Meta x -> (
+    match m with
+    | Meta (x, xs) -> (
       try
         match MMap.find x mmap with
         | Some h, _, _ ->
-          let sp = List.map lift sp in
-          let t = unbox (_mApp (lift h) sp) in
+          let xs = List.map lift xs in
+          let t = unbox (_mApp (lift h) xs) in
           resolve mmap (whnf t)
         | _ -> m
       with
       | _ -> m)
-    | _ -> (
-      match m with
-      | Ann (m, a) -> Ann (resolve mmap m, resolve mmap a)
-      | Knd _ -> m
-      | Var _ -> m
-      | Pi (s, a, b) ->
-        let x, ub = unbind b in
-        let a = resolve mmap a in
-        let ub = resolve mmap ub in
-        let b = unbox (bind_var x (lift ub)) in
-        Pi (s, a, b)
-      | Lam (s, m) ->
-        let x, um = unbind m in
-        let um = resolve mmap um in
-        let m = unbox (bind_var x (lift um)) in
-        Lam (s, m)
-      | App (m, n) ->
-        let m = resolve mmap m in
-        let n = resolve mmap n in
-        App (m, n)
-      | Let (m, n) ->
-        let x, un = unbind n in
-        let m = resolve mmap m in
-        let un = resolve mmap un in
-        let n = unbox (bind_var x (lift un)) in
-        Let (m, n)
-      | Ind (id, ms) ->
-        let ms = List.map (resolve mmap) ms in
-        Ind (id, ms)
-      | Constr (id, ms) ->
-        let ms = List.map (resolve mmap) ms in
-        Constr (id, ms)
-      | Match (m, mot, cls) ->
-        let m = resolve mmap m in
-        let mot =
-          match mot with
-          | Mot0 -> Mot0
-          | Mot1 mot ->
-            let x, umot = unbind mot in
-            let umot = resolve mmap umot in
-            let mot = bind_var x (lift umot) in
-            Mot1 (unbox mot)
-          | Mot2 mot ->
-            let p, umot = unbind_p mot in
-            let umot = resolve mmap umot in
-            let mot = bind_p p (lift umot) in
-            Mot2 (unbox mot)
-          | Mot3 mot ->
-            let x, mot = unbind mot in
-            let p, umot = unbind_p mot in
-            let umot = resolve mmap umot in
-            let mot = bind_var x (bind_p p (lift umot)) in
-            Mot3 (unbox mot)
-        in
-        let cls =
-          List.map
-            (fun cl ->
-              let p, ucl = unbind_p cl in
-              let ucl = resolve mmap ucl in
-              unbox (bind_p p (lift ucl)))
-            cls
-        in
-        Match (m, mot, cls)
-      | Fix m ->
-        let x, um = unbind m in
-        let um = resolve mmap um in
-        let m = unbox (bind_var x (lift um)) in
-        Fix m
-      | Main -> m
-      | Proto -> m
-      | End -> m
-      | Act (r, a, b) ->
-        let x, ub = unbind b in
-        let a = resolve mmap a in
-        let ub = resolve mmap ub in
-        let b = unbox (bind_var x (lift ub)) in
-        Act (r, a, b)
-      | Ch (r, m) -> Ch (r, resolve mmap m)
-      | Fork (a, m, n) ->
-        let x, un = unbind n in
-        let a = resolve mmap a in
-        let m = resolve mmap m in
-        let un = resolve mmap un in
-        let n = unbox (bind_var x (lift un)) in
-        Fork (a, m, n)
-      | Send m -> Send (resolve mmap m)
-      | Recv m -> Recv (resolve mmap m)
-      | Close m -> Close (resolve mmap m)
-      | Axiom (id, m) -> Axiom (id, resolve mmap m)
-      | _ -> failwith (asprintf "resolve failure(%a)" Tm.pp m))
+    | Ann (m, a) -> Ann (resolve mmap m, resolve mmap a)
+    | Knd _ -> m
+    | Var _ -> m
+    | Pi (s, a, b) ->
+      let x, ub = unbind b in
+      let a = resolve mmap a in
+      let ub = resolve mmap ub in
+      let b = unbox (bind_var x (lift ub)) in
+      Pi (s, a, b)
+    | Lam (s, m) ->
+      let x, um = unbind m in
+      let um = resolve mmap um in
+      let m = unbox (bind_var x (lift um)) in
+      Lam (s, m)
+    | App (m, n) ->
+      let m = resolve mmap m in
+      let n = resolve mmap n in
+      App (m, n)
+    | Let (m, n) ->
+      let x, un = unbind n in
+      let m = resolve mmap m in
+      let un = resolve mmap un in
+      let n = unbox (bind_var x (lift un)) in
+      Let (m, n)
+    | Ind (id, ms) ->
+      let ms = List.map (resolve mmap) ms in
+      Ind (id, ms)
+    | Constr (id, ms) ->
+      let ms = List.map (resolve mmap) ms in
+      Constr (id, ms)
+    | Match (m, mot, cls) ->
+      let m = resolve mmap m in
+      let mot =
+        match mot with
+        | Mot0 -> Mot0
+        | Mot1 mot ->
+          let x, umot = unbind mot in
+          let umot = resolve mmap umot in
+          let mot = bind_var x (lift umot) in
+          Mot1 (unbox mot)
+        | Mot2 mot ->
+          let p, umot = unbind_p mot in
+          let umot = resolve mmap umot in
+          let mot = bind_p p (lift umot) in
+          Mot2 (unbox mot)
+        | Mot3 mot ->
+          let x, mot = unbind mot in
+          let p, umot = unbind_p mot in
+          let umot = resolve mmap umot in
+          let mot = bind_var x (bind_p p (lift umot)) in
+          Mot3 (unbox mot)
+      in
+      let cls =
+        List.map
+          (fun cl ->
+            let p, ucl = unbind_p cl in
+            let ucl = resolve mmap ucl in
+            unbox (bind_p p (lift ucl)))
+          cls
+      in
+      Match (m, mot, cls)
+    | Fix m ->
+      let x, um = unbind m in
+      let um = resolve mmap um in
+      let m = unbox (bind_var x (lift um)) in
+      Fix m
+    | Main -> m
+    | Proto -> m
+    | End -> m
+    | Act (r, a, b) ->
+      let x, ub = unbind b in
+      let a = resolve mmap a in
+      let ub = resolve mmap ub in
+      let b = unbox (bind_var x (lift ub)) in
+      Act (r, a, b)
+    | Ch (r, m) -> Ch (r, resolve mmap m)
+    | Fork (a, m, n) ->
+      let x, un = unbind n in
+      let a = resolve mmap a in
+      let m = resolve mmap m in
+      let un = resolve mmap un in
+      let n = unbox (bind_var x (lift un)) in
+      Fork (a, m, n)
+    | Send m -> Send (resolve mmap m)
+    | Recv m -> Recv (resolve mmap m)
+    | Close m -> Close (resolve mmap m)
+    | Axiom (id, m) -> Axiom (id, resolve mmap m)
 end
 
 module UnifyTp = struct
