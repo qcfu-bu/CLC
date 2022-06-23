@@ -1,0 +1,47 @@
+Definition IO_t : L :=
+  tnsr (channel stdin_t) (channel stdout_t).
+
+Definition IO (A : U) : L :=
+  IO_t -o sig A (fun _ => IO_t).
+
+Definition read (_ : unit) : IO string :=
+  lin ⟨in_ch, out_ch⟩ =>
+  let in_ch := send in_ch true in
+  let [s, in_ch] := recv in_ch in
+  [s, ⟨in_ch, out_ch⟩].
+
+Definition print (s : string) : IO unit :=
+  lin ⟨in_ch, out_ch⟩ =>
+  let out_ch := send out_ch true in
+  let out_ch := send out_ch s in
+  [(), ⟨in_ch, out_ch⟩].
+
+Definition ret (A : U) (m : A) : IO A :=
+  lin ch => [m, ch].
+
+Definition bind (A B : U) (m : IO A) : (A -o IO B) -o IO B :=
+  lin f ch =>
+  let [a, ch] := m ch in
+  f a ch.
+
+Definition run (A : U) (ch : IO_t) : IO A -o box A :=
+  lin m =>
+  let [a, ch] := m ch in
+  let ⟨in_ch, out_ch⟩ := ch in
+  let () := close_out out_ch in
+  let () := close_in in_ch in
+  [a].
+
+Import stdin : stdin_t.
+Import stdout : stdout_t.
+Import do : L := bind _ _.
+
+Definition Main := 
+  let [_] :=
+    run _ ⟨stdin, stdout⟩ (
+      do () := print "What is your name?\n";
+      do s  := read ();
+      do () := print (cat (cat "Hello, " s) "\n");
+      ret _ ())
+  in
+  _main_.

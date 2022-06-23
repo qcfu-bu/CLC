@@ -1,0 +1,81 @@
+Import out : stdout_t.
+
+Definition exn_p (A : U) : proto :=
+  !(b : bool), if b then !A, $ else $.
+
+Inductive Exn (A : U) : L :=
+| Error : Exn A
+| Ok : A -> channel (exn_p A) -> Exn A.
+
+Definition exn (A : U) : U := 
+  channel (exn_p A) -> Exn A.
+
+Definition ret (A : U) (m : A) : exn A :=
+  fun ch => Ok m ch.
+
+Definition throw (A : U) : exn A :=
+  fun ch =>
+    let ch := send ch false in
+    let () := close ch in
+    Error.
+
+Definition bind (A : U) (e : exn A) (f : A -> exn A) : exn A :=
+  fun ch =>
+    match e ch with
+    | Error => Error
+    | Ok m ch => f m ch
+    end.
+
+Import do : U := bind _.
+
+Fixpoint div2_exn_p (n : nat) : exn nat :=
+  match n with
+  | O => ret _ 0
+  | S n =>
+    match n with
+    | O => throw _
+    | S n => 
+      do n := div2_exn_p n;
+      ret _ (S n)
+    end
+  end.
+
+Definition try (A : U) : main -o exn A -o A -o sig A (fun _ => main) :=
+  lin m f_exn_p default =>
+  let ⟨ch, m⟩ := 
+    fork (ch : channel (exn_p A)) := m in 
+    match f_exn_p ch with
+    | Error => tt
+    | Ok x ch =>
+      let ch := send ch true in
+      let ch := send ch x in
+      close ch
+    end
+  in
+  let [b, ch] := recv ch in
+  match b as x return
+    channel- (if x then !A, $ else $) -o sig A (fun _ => main)
+  with
+  | true => lin ch =>
+    let [res, ch] := recv ch in
+    let () := close ch in
+    [res, m]
+  | false => lin ch =>
+    let () := close ch in
+    [default, m]
+  end ch.
+
+Fixpoint string_of_nat (n : nat) : string :=
+  match n with
+  | O => "O"
+  | S n => 
+    let n := string_of_nat n in
+    cat "S (" (cat n ")")
+  end.
+
+Definition Main := 
+  let [n, _main_] := try _ _main_ (div2_exn_p 14) 0 in
+  let s := string_of_nat n in
+  let out := printline out (cat s "\n") in
+  let () := close_out out in
+  _main_.

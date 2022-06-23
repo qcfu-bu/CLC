@@ -1,0 +1,115 @@
+Inductive unit : U :=
+| tt : unit.
+
+Inductive bool : U :=
+| true : bool
+| false : bool.
+
+Inductive nat : U :=
+| O : nat
+| S : nat -> nat.
+
+Fixpoint addn (m n : nat) : nat :=
+  match m with
+  | O => n
+  | S m => S (addn m n)
+  end.
+
+Inductive option (A : U) : U :=
+| None : option A
+| Some : A -> option A.
+
+Inductive list (A : U) : U :=
+| nil : list A
+| cons : A -> list A -> list A.
+
+Inductive vec (A : U) : nat -> U :=
+| vnil : vec A O
+| vcons : forall (n : nat), A -> vec A n -> vec A (S n).
+
+Inductive ex (A : U) (P : A -> U) : U :=
+| ex_intro : forall (x : A), P x -> ex A P.
+
+Inductive sig (A : U) (P : A -> L) : L :=
+| sig_intro : forall (x : A), P x -> sig A P.
+
+Inductive tnsr (A B : L) : L :=
+| tnsr_intro : A -> B -> tnsr A B.
+
+Inductive box (A : U) : L :=
+| box_intro : A -> box A.
+
+Inductive ascii : U :=
+| Ascii : 
+  bool -> bool -> bool -> bool ->
+  bool -> bool -> bool -> bool ->
+  ascii.
+
+Inductive string : U :=
+| EmptyString : string
+| String : ascii -> string -> string.
+
+Fixpoint cat (s1 s2 : string) : string :=
+  match s1 with
+  | EmptyString => s2
+  | String c s1 => String c (cat s1 s2)
+  end.
+
+Fixpoint stdin_rec (_ : unit) : proto := 
+  !(b : bool),
+    match b with
+    | true => ?(string), stdin_rec tt
+    | false => $
+    end.
+
+Definition stdin_t : proto := stdin_rec tt.
+
+Definition readline (ch : channel stdin_t) : 
+  sig string (fun _ => channel stdin_t) 
+:=
+  let ch := send ch true in
+  recv ch.
+
+Definition close_in (ch : channel stdin_t) : unit :=
+  let ch := send ch false in
+  close ch.
+
+Fixpoint stdout_rec (_ : unit) : proto :=
+  !(b : bool),
+    match b with
+    | true => !(string), stdout_rec tt
+    | false => $
+    end.
+
+Definition stdout_t : proto := stdout_rec tt.
+
+Definition printline (ch : channel stdout_t) : 
+  string -o channel stdout_t
+:=
+  lin s =>
+  let ch := send ch true in
+  send ch s.
+
+Definition close_out (ch : channel stdout_t) : unit :=
+  let ch := send ch false in
+  close ch.
+
+Fixpoint stderr_rec (_ : unit) : proto :=
+  !(b : bool),
+    match b with
+    | true => !(string), stderr_rec tt
+    | false => $
+    end.
+
+Definition stderr_t : proto := stderr_rec tt.
+
+Definition printerr (ch : channel stderr_t) : 
+  string -o channel stderr_t
+:=
+  lin s =>
+  let ch := send ch true in
+  send ch s.
+
+Definition close_err (ch : channel stderr_t) : unit :=
+  let ch := send ch false in
+  close ch.

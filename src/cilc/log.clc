@@ -1,0 +1,396 @@
+desugar ok
+--------------------------------------------------------------------------------
+Inductive unit : U :=
+| tt : unit.
+
+Inductive bool : U :=
+| true : bool
+| false : bool.
+
+Inductive nat : U :=
+| O : nat
+| S : (nat) -> nat.
+
+Definition addn :=
+  ((fix addn m n => match m with
+                    | O => n
+                    | (S m) => (S ((addn) m) n)
+                    end) :
+    (nat) -> (nat) -> nat).
+
+Inductive option (A : U) : U :=
+| None (A : U) : (option A#187)
+| Some (A : U) : (A) -> (option A#188).
+
+Inductive list (A : U) : U :=
+| nil (A : U) : (list A#191)
+| cons (A : U) : (A) -> ((list A)) -> (list A#192).
+
+Inductive vec (A : U) : (nat) -> U :=
+| vnil (A : U) : (vec A#197 O)
+| vcons (A : U)
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#198 (S n#199)).
+
+Inductive ex (A : U) (P : (A) -> U) : U :=
+| ex_intro (A : U)
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#205 P#206).
+
+Inductive sig (A : U) (P : (A) -> L) : L :=
+| sig_intro (A : U)
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#213 P#214).
+
+Inductive tnsr (A : L) (B : L) : L :=
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#220 B#221).
+
+Inductive box (A : U) : L :=
+| box_intro (A : U) : (A) -> (box A#225).
+
+Inductive ascii : U :=
+| Ascii : (bool) ->
+            (bool) ->
+              (bool) ->
+                (bool) -> (bool) -> (bool) -> (bool) -> (bool) -> ascii.
+
+Inductive string : U :=
+| EmptyString : string
+| String : (ascii) -> (string) -> string.
+
+Definition cat :=
+  ((fix cat s1 s2 =>
+      match s1 with
+      | EmptyString => s2
+      | (String c s1) => (String c ((cat) s1) s2)
+      end) :
+    (string) -> (string) -> string).
+
+Definition stdin_rec :=
+  ((fix stdin_rec _ =>
+      !(b : bool),
+        match b with
+        | true => ?(_ : string), (stdin_rec) tt
+        | false => $
+        end) :
+    (unit) -> proto).
+
+Definition stdin_t := (((stdin_rec) tt) : proto).
+
+Definition readline :=
+  ((fun ch => let ch := (send ch) true in recv ch) :
+    (channel stdin_t) -> (sig string fun _ => channel stdin_t)).
+
+Definition close_in :=
+  ((fun ch => let ch := (send ch) false in close ch) :
+    (channel stdin_t) -> unit).
+
+Definition stdout_rec :=
+  ((fix stdout_rec _ =>
+      !(b : bool),
+        match b with
+        | true => !(_ : string), (stdout_rec) tt
+        | false => $
+        end) :
+    (unit) -> proto).
+
+Definition stdout_t := (((stdout_rec) tt) : proto).
+
+Definition printline :=
+  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
+    (channel stdout_t) -> (string) -o channel stdout_t).
+
+Definition close_out :=
+  ((fun ch => let ch := (send ch) false in close ch) :
+    (channel stdout_t) -> unit).
+
+Definition stderr_rec :=
+  ((fix stderr_rec _ =>
+      !(b : bool),
+        match b with
+        | true => !(_ : string), (stderr_rec) tt
+        | false => $
+        end) :
+    (unit) -> proto).
+
+Definition stderr_t := (((stderr_rec) tt) : proto).
+
+Definition printerr :=
+  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
+    (channel stderr_t) -> (string) -o channel stderr_t).
+
+Definition close_err :=
+  ((fun ch => let ch := (send ch) false in close ch) :
+    (channel stderr_t) -> unit).
+
+Definition IO_t := (((tnsr channel stdin_t channel stdout_t)) : L).
+
+Definition IO := ((fun A => (IO_t) -o (sig A fun _ => IO_t)) : (U) -> L).
+
+Definition read :=
+  ((fun _ =>
+      lin x =>
+        match x with
+        | (tnsr_intro in_ch out_ch) =>
+          let in_ch := (send in_ch) true in
+          match recv in_ch with
+          | (sig_intro s in_ch) => (sig_intro s (tnsr_intro in_ch out_ch))
+          end
+        end) :
+    (unit) -> (IO) string).
+
+Definition print :=
+  ((fun s =>
+      lin x =>
+        match x with
+        | (tnsr_intro in_ch out_ch) =>
+          let out_ch := (send out_ch) true in
+          let out_ch := (send out_ch) s in
+          (sig_intro tt (tnsr_intro in_ch out_ch))
+        end) :
+    (string) -> (IO) unit).
+
+Definition ret :=
+  ((fun A m => lin ch => (sig_intro m ch)) : forall (A : U), (A) -> (IO) A).
+
+Definition bind :=
+  ((fun A B m =>
+      lin f ch => match (m) ch with
+                  | (sig_intro a ch) => ((f) a) ch
+                  end) :
+    forall (A : U), forall (B : U), ((IO) A) -> ((A) -o (IO) B) -o (IO) B).
+
+Definition run :=
+  ((fun A ch =>
+      lin m =>
+        match (m) ch with
+        | (sig_intro a ch) =>
+          match ch with
+          | (tnsr_intro in_ch out_ch) =>
+            match (close_out) out_ch with
+            | tt => match (close_in) in_ch with
+                    | tt => (box_intro a)
+                    end
+            end
+          end
+        end) :
+    forall (A : U), (IO_t) -> ((IO) A) -o (box A)).
+
+Import stdin : stdin_t.
+
+Import stdout : stdout_t.
+
+Definition Main :=
+  match (((run) ?5) (tnsr_intro stdin stdout))
+          ((((bind) ?6) ?7) (print) "What is your name?\n")
+            lin x =>
+              match x with
+              | tt =>
+                ((((bind) ?8) ?9) (read) tt)
+                  lin s =>
+                    ((((bind) ?10) ?11)
+                       (print) ((cat) ((cat) "Hello, ") s) "\n")
+                      lin x => match x with
+                               | tt => ((ret) ?12) tt
+                               end
+              end
+  with
+  | (box_intro _) => _main_
+  end.
+
+elab ok
+--------------------------------------------------------------------------------
+Inductive unit : U :=
+| tt : unit.
+
+Inductive bool : U :=
+| true : bool
+| false : bool.
+
+Inductive nat : U :=
+| O : nat
+| S : (nat) -> nat.
+
+Definition addn :=
+  ((fix addn m n => match m with
+                    | O => n
+                    | (S m) => (S ((addn) m) n)
+                    end) :
+    (nat) -> (nat) -> nat).
+
+Inductive option (A : U) : U :=
+| None (A : U) : (option A#2467)
+| Some (A : U) : (A) -> (option A#2468).
+
+Inductive list (A : U) : U :=
+| nil (A : U) : (list A#2471)
+| cons (A : U) : (A) -> ((list A)) -> (list A#2472).
+
+Inductive vec (A : U) : (nat) -> U :=
+| vnil (A : U) : (vec A#2477 O)
+| vcons (A : U)
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2478 (S n#2479)).
+
+Inductive ex (A : U) (P : (A) -> U) : U :=
+| ex_intro (A : U)
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2485 P#2486).
+
+Inductive sig (A : U) (P : (A) -> L) : L :=
+| sig_intro (A : U)
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2493 P#2494).
+
+Inductive tnsr (A : L) (B : L) : L :=
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2500 B#2501).
+
+Inductive box (A : U) : L :=
+| box_intro (A : U) : (A) -> (box A#2505).
+
+Inductive ascii : U :=
+| Ascii : (bool) ->
+            (bool) ->
+              (bool) ->
+                (bool) -> (bool) -> (bool) -> (bool) -> (bool) -> ascii.
+
+Inductive string : U :=
+| EmptyString : string
+| String : (ascii) -> (string) -> string.
+
+Definition cat :=
+  ((fix cat s1 s2 =>
+      match s1 with
+      | EmptyString => s2
+      | (String c s1) => (String c ((cat) s1) s2)
+      end) :
+    (string) -> (string) -> string).
+
+Definition stdin_rec :=
+  ((fix stdin_rec _ =>
+      !(b : bool),
+        match b with
+        | true => ?(_ : string), (stdin_rec) tt
+        | false => $
+        end) :
+    (unit) -> proto).
+
+Definition stdin_t := (((stdin_rec) tt) : proto).
+
+Definition readline :=
+  ((fun ch => let ch := (send ch) true in recv ch) :
+    (channel stdin_t) -> (sig string fun _ => channel stdin_t)).
+
+Definition close_in :=
+  ((fun ch => let ch := (send ch) false in close ch) :
+    (channel stdin_t) -> unit).
+
+Definition stdout_rec :=
+  ((fix stdout_rec _ =>
+      !(b : bool),
+        match b with
+        | true => !(_ : string), (stdout_rec) tt
+        | false => $
+        end) :
+    (unit) -> proto).
+
+Definition stdout_t := (((stdout_rec) tt) : proto).
+
+Definition printline :=
+  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
+    (channel stdout_t) -> (string) -o channel stdout_t).
+
+Definition close_out :=
+  ((fun ch => let ch := (send ch) false in close ch) :
+    (channel stdout_t) -> unit).
+
+Definition stderr_rec :=
+  ((fix stderr_rec _ =>
+      !(b : bool),
+        match b with
+        | true => !(_ : string), (stderr_rec) tt
+        | false => $
+        end) :
+    (unit) -> proto).
+
+Definition stderr_t := (((stderr_rec) tt) : proto).
+
+Definition printerr :=
+  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
+    (channel stderr_t) -> (string) -o channel stderr_t).
+
+Definition close_err :=
+  ((fun ch => let ch := (send ch) false in close ch) :
+    (channel stderr_t) -> unit).
+
+Definition IO_t := (((tnsr channel stdin_t channel stdout_t)) : L).
+
+Definition IO := ((fun A => (IO_t) -o (sig A fun _ => IO_t)) : (U) -> L).
+
+Definition read :=
+  ((fun _ =>
+      lin x =>
+        match x with
+        | (tnsr_intro in_ch out_ch) =>
+          let in_ch := (send in_ch) true in
+          match recv in_ch with
+          | (sig_intro s in_ch) => (sig_intro s (tnsr_intro in_ch out_ch))
+          end
+        end) :
+    (unit) -> (IO) string).
+
+Definition print :=
+  ((fun s =>
+      lin x =>
+        match x with
+        | (tnsr_intro in_ch out_ch) =>
+          let out_ch := (send out_ch) true in
+          let out_ch := (send out_ch) s in
+          (sig_intro tt (tnsr_intro in_ch out_ch))
+        end) :
+    (string) -> (IO) unit).
+
+Definition ret :=
+  ((fun A m => lin ch => (sig_intro m ch)) : forall (A : U), (A) -> (IO) A).
+
+Definition bind :=
+  ((fun A B m =>
+      lin f ch => match (m) ch with
+                  | (sig_intro a ch) => ((f) a) ch
+                  end) :
+    forall (A : U), forall (B : U), ((IO) A) -> ((A) -o (IO) B) -o (IO) B).
+
+Definition run :=
+  ((fun A ch =>
+      lin m =>
+        match (m) ch with
+        | (sig_intro a ch) =>
+          match ch with
+          | (tnsr_intro in_ch out_ch) =>
+            match (close_out) out_ch with
+            | tt => match (close_in) in_ch with
+                    | tt => (box_intro a)
+                    end
+            end
+          end
+        end) :
+    forall (A : U), (IO_t) -> ((IO) A) -o (box A)).
+
+Import stdin : stdin_t.
+
+Import stdout : stdout_t.
+
+Definition Main :=
+  match (((run) unit) (tnsr_intro stdin stdout))
+          ((((bind) unit) unit) (print) "What is your name?\n")
+            lin x =>
+              match x with
+              | tt =>
+                ((((bind) string) unit) (read) tt)
+                  lin s =>
+                    ((((bind) unit) unit)
+                       (print) ((cat) ((cat) "Hello, ") s) "\n")
+                      lin x => match x with
+                               | tt => ((ret) unit) tt
+                               end
+              end
+  with
+  | (box_intro _) => _main_
+  end.
+
+--------------------------------------------------------------------------------
+tcheck ok

@@ -1,0 +1,85 @@
+Import stdout : stdout_t.
+
+Inductive ref_msg : U :=
+| GET  : ref_msg
+| SET  : ref_msg
+| FREE : ref_msg.
+
+Fixpoint ref_t (n : nat) (A : U) : proto :=
+  match n with
+  | O => $
+  | S n => 
+    ?(msg : ref_msg), 
+      match msg with
+      | GET => !A, ref_t n A
+      | SET => ?A, ref_t n A
+      | FREE => $
+      end
+  end.
+
+Fixpoint ref_handler 
+  (A : U) (n : nat) (m : A) : (channel ref_t n A) -o unit 
+:= 
+  lin ch =>
+  match n as x return
+    channel ref_t x A -> unit
+  with
+  | O => fun ch => close ch
+  | S n => fun ch =>
+    let [msg, ch] := recv ch in
+    match msg as x return
+      channel
+        match x with
+        | GET => !A, ref_t n A
+        | SET => ?A, ref_t n A
+        | FREE => $
+        end -> unit
+    with
+    | GET => fun ch =>
+      let ch := send ch m in
+      ref_handler A n m ch
+    | SET => fun ch =>
+      let [m, ch] := recv ch in
+      ref_handler A n m ch
+    | FREE => fun ch => close ch
+    end ch
+  end ch.
+
+Definition mk_ref 
+  (A : U) (n : nat) (m : A) (x : main) : tnsr (channel- ref_t n A) main 
+:=
+  fork (ref : channel ref_t n A) := x in
+  ref_handler A n m ref.
+
+Definition set_ref
+  (A : U) (n : nat) (m : A) : channel- ref_t (S n) A -o channel- ref_t n A
+:=
+  lin ref =>
+  let ref := send ref SET in
+  send ref m.
+
+Definition get_ref
+  (A : U) (n : nat)
+: channel- ref_t (S n) A -o sig A (fun _ => (channel- ref_t n A)) :=
+  lin ref =>
+  let ref := send ref GET in
+  recv ref.
+
+Definition free_ref
+  (A : U) (n : nat) : channel- ref_t (S n) A -o unit
+:=
+  lin ref =>
+  let ref := send ref FREE in
+  let () := close ref in
+  ().
+
+Definition Main :=
+  let ⟨ref, _main_⟩ := mk_ref _ 10000 "hello\n" _main_ in
+  let [msg1, ref] := get_ref _ _ ref in
+  let ref := set_ref _ _ "world\n" ref in
+  let [msg2, ref] := get_ref _ _ ref in
+  let stdout := printline stdout msg1 in
+  let stdout := printline stdout msg2 in
+  let () := free_ref _ _ ref in
+  let () := close_out stdout in
+  _main_.

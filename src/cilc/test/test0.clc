@@ -1,0 +1,7 @@
+Import stdout : stdout_t.
+
+Definition Main := 
+  let stdout := printline stdout (cat "hello" "\n") in
+  let stdout := printline stdout "world\n" in
+  let () := close_out stdout in
+  _main_.
