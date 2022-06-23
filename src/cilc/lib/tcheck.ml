@@ -35,7 +35,7 @@ module CheckTm = struct
       | _ ->
         let ctx = check vctx ictx env m a in
         (a, ctx))
-    | Meta x -> failwith (asprintf "infer meta(%a)" Meta.pp x)
+    | Meta (x, _) -> failwith (asprintf "infer meta(%a)" Meta.pp x)
     | Knd _ -> (Knd U, VMap.empty)
     | Var x -> (
       let a, s = find_v x vctx in
@@ -270,7 +270,7 @@ module CheckTm = struct
 
   and check vctx ictx env m a =
     match m with
-    | Meta x -> failwith (asprintf "check meta(%a)" Meta.pp x)
+    | Meta (x, _) -> failwith (asprintf "check meta(%a)" Meta.pp x)
     | Lam (s, m) as lm -> (
       let x, um = unbind m in
       match zdnf env a with

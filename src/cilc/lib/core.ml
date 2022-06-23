@@ -14,7 +14,7 @@ module Tm = struct
   and t =
     (* inference *)
     | Ann of t * t
-    | Meta of Meta.t
+    | Meta of Meta.t * t list
     (* core *)
     | Knd of sort
     | Var of v
@@ -231,7 +231,7 @@ module Tm = struct
     in
     match m with
     | Ann (m, a) -> fprintf fmt "@[((%a) :@;<1 2>%a)@]" pp m pp a
-    | Meta x -> Meta.pp fmt x
+    | Meta (x, _) -> Meta.pp fmt x
     | Knd s -> (
       match s with
       | U -> fprintf fmt "U"
@@ -329,7 +329,7 @@ module Tm = struct
   let _U = box U
   let _L = box L
   let _Ann = box_apply2 (fun m a -> Ann (m, a))
-  let _Meta x = box (Meta x)
+  let _Meta x xs = box_apply (fun xs -> Meta (x, xs)) xs
   let _Knd s = box (Knd s)
   let _Var = box_var
   let _Pi s = box_apply2 (fun a b -> Pi (s, a, b))
@@ -351,7 +351,9 @@ module Tm = struct
   let rec lift m =
     match m with
     | Ann (m, a) -> _Ann (lift m) (lift a)
-    | Meta x -> _Meta x
+    | Meta (x, xs) ->
+      let xs = List.map lift xs in
+      _Meta x (box_list xs)
     | Knd s -> _Knd s
     | Var x -> _Var x
     | Pi (s, a, b) -> _Pi s (lift a) (box_binder lift b)
@@ -442,7 +444,7 @@ module Tm = struct
     else
       match (m1, m2) with
       | Ann (m1, a1), Ann (m2, a2) -> aeq m1 m2 && aeq a1 a2
-      | Meta x1, Meta x2 -> Meta.equal x1 x2
+      | Meta (x1, _), Meta (x2, _) -> Meta.equal x1 x2
       | Knd s1, Knd s2 -> s1 = s2
       | Var x1, Var x2 -> eq_vars x1 x2
       | Pi (s1, a1, b1), Pi (s2, a2, b2) ->
@@ -519,7 +521,7 @@ module Tm = struct
       let m2 = zdnf env m2 in
       match (m1, m2) with
       | Ann (m1, a1), Ann (m2, a2) -> equal env m1 m2 && equal env a1 a2
-      | Meta x1, Meta x2 -> Meta.equal x1 x2
+      | Meta (x1, _), Meta (x2, _) -> Meta.equal x1 x2
       | Knd s1, Knd s2 -> s1 = s2
       | Var x1, Var x2 -> eq_vars x1 x2
       | Pi (s1, a1, b1), Pi (s2, a2, b2) ->

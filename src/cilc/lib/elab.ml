@@ -45,7 +45,7 @@ module ElabTm = struct
   and elab vctx ictx env eqns mmap m =
     let h, _ = spine m in
     match h with
-    | Meta x -> (
+    | Meta (x, _) -> (
       try
         let _, opt, _ = MMap.find x mmap in
         match opt with
@@ -53,8 +53,8 @@ module ElabTm = struct
         | None -> failwith (asprintf "unfound meta(%a)" Meta.pp x)
       with
       | _ ->
-        let xs = List.map fst (VMap.bindings vctx) in
-        let a = _mApp (_Meta (Meta.mk ())) (List.map _Var xs) in
+        let xs = vctx |> VMap.bindings |> List.map fst |> List.map _Var in
+        let a = _Meta (Meta.mk ()) (box_list xs) in
         (unbox a, eqns, mmap))
     | _ -> (
       match m with
@@ -69,7 +69,7 @@ module ElabTm = struct
         | _ ->
           let eqns, mmap = check vctx ictx env eqns mmap m a in
           (a, eqns, mmap))
-      | Meta x -> failwith (asprintf "elab meta(%a)" Meta.pp x)
+      | Meta (x, _) -> failwith (asprintf "elab meta(%a)" Meta.pp x)
       | Knd _ -> (Knd U, eqns, mmap)
       | Var x ->
         let a, _ = find_v x vctx in
@@ -81,7 +81,10 @@ module ElabTm = struct
           elab_sort (VMap.add x (a, t) vctx) ictx env eqns mmap ub
         in
         (Knd s, eqns, mmap)
-      | Lam _ -> (Meta (Meta.mk ()), eqns, mmap)
+      | Lam _ ->
+        let xs = vctx |> VMap.bindings |> List.map fst |> List.map _Var in
+        let a = _Meta (Meta.mk ()) (box_list xs) in
+        (unbox a, eqns, mmap)
       | App (m, n) -> (
         let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let a = UnifyTm.resolve mmap a in
@@ -154,7 +157,10 @@ module ElabTm = struct
           let _, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
           let eqns, mmap = check vctx ictx env eqns mmap m a in
           (a, eqns, mmap)
-        | _ -> (Meta (Meta.mk ()), eqns, mmap))
+        | _ ->
+          let xs = vctx |> VMap.bindings |> List.map fst |> List.map _Var in
+          let a = _Meta (Meta.mk ()) (box_list xs) in
+          (unbox a, eqns, mmap))
       | Axiom (id, m) ->
         let _, eqns, mmap = elab_sort vctx ictx env eqns mmap m in
         (m, eqns, mmap))
@@ -247,7 +253,7 @@ module ElabTm = struct
 
   and check vctx ictx env eqns mmap m a =
     match m with
-    | Meta x ->
+    | Meta (x, _) ->
       let mmap = MMap.add x (None, Some a, 0) mmap in
       (eqns, mmap)
     | Lam (s, m) as lm -> (

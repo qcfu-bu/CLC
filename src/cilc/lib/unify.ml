@@ -96,7 +96,7 @@ let rec fv ctx t =
 let rec occurs x m =
   match m with
   | Ann (m, a) -> occurs x m || occurs x a
-  | Meta y -> Meta.equal x y
+  | Meta (y, _) -> Meta.equal x y
   | Knd _ -> false
   | Var _ -> false
   | Pi (_, a, b) ->
@@ -229,26 +229,21 @@ let rec simpl env eqn =
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | _ -> failwith (asprintf "xsimpl failure(%a, %a)" Tm.pp m1 Tm.pp m2)
 
+let strip m xs =
+  match xs with
+  | Var x -> x
+  | _ -> mk ""
+
 let solve eqn =
-  let strip sp =
-    List.map
-      (fun m ->
-        match m with
-        | Var x -> x
-        | _ -> mk "")
-      sp
-  in
   let m1, m2 = eqn in
   let m1 = whnf m1 in
   let m2 = whnf m2 in
-  let h1, sp1 = spine m1 in
-  let h2, sp2 = spine m2 in
-  match (h1, h2) with
-  | Meta x1, Meta x2 ->
-    let xs = strip sp1 in
-    let ys = strip sp2 in
+  match (m1, m2) with
+  | Meta (x1, xs), Meta (x2, ys) ->
+    let xs = List.map (strip m1) xs in
+    let ys = List.map (strip m2) ys in
     let ctx = VSet.inter (VSet.of_list xs) (VSet.of_list ys) in
-    let zs = List.map _Var (VSet.elements ctx) in
+    let zs = ctx |> VSet.elements |> List.map _Var in
     let xs =
       List.map
         (fun x ->
@@ -265,39 +260,39 @@ let solve eqn =
           | None -> mk "")
         ys
     in
-    let m = _Meta (Meta.mk ()) in
-    let m = _mApp m zs in
+    let m = _Meta (Meta.mk ()) (box_list zs) in
     let m1 = unbox (_mLam U xs m) in
     let m2 = unbox (_mLam U ys m) in
     let res = MMap.empty in
     let res = MMap.add x1 (Some m1, None, 0) res in
     let res = MMap.add x2 (Some m2, None, 0) res in
     res
-  | Meta x, _ ->
+  | Meta (x, xs), _ ->
     if occurs x m2 then
       failwith (asprintf "meta(%a) occurs in term(%a)" Meta.pp x Tm.pp m2)
     else
-      let xs = strip sp1 in
+      let xs = List.map (strip m1) xs in
       let ctx = fv VSet.empty m2 in
-      if xs = [] then
-        MMap.singleton x (Some m2, None, 1)
-      else if VSet.subset ctx (VSet.of_list xs) then
+      if VSet.subset ctx (VSet.of_list xs) then
         let m = unbox (_mLam U xs (lift m2)) in
         MMap.singleton x (Some m, None, 1)
       else
+        let _ = List.iter (fun x -> printf "%a; " pp_v x) xs in
+        let _ = printf "@." in
+        let _ = VSet.iter (fun x -> printf "%a; " pp_v x) ctx in
+        let _ = printf "@." in
         failwith (asprintf "solve failure(%a, %a)" Tm.pp m1 Tm.pp m2)
   | _ -> failwith (asprintf "solve failure(%a, %a)" Tm.pp m1 Tm.pp m2)
 
 module UnifyTm = struct
   let rec resolve mmap m =
-    let h, sp = spine m in
-    match h with
-    | Meta x -> (
+    match m with
+    | Meta (x, xs) -> (
       try
         match MMap.find x mmap with
         | Some h, _, _ ->
-          let sp = List.map lift sp in
-          let t = unbox (_mApp (lift h) sp) in
+          let xs = xs |> List.map (strip m) |> List.map _Var in
+          let t = unbox (_mApp (lift h) xs) in
           resolve mmap (whnf t)
         | _ -> m
       with

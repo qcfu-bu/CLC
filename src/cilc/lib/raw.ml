@@ -50,7 +50,10 @@ module RTm = struct
       let _m = _core ctx opt m in
       let _a = _core ctx opt a in
       _Ann _m _a
-    | Meta x -> _Meta (Meta.mk ())
+    | Meta x ->
+      let _xs = ctx |> VMap.bindings in
+      let _xs = _xs |> List.map snd |> List.map _Var in
+      _Meta (Meta.mk ()) (box_list _xs)
     | Knd s -> _Knd s
     | Var x ->
       let x = find x ctx in
