@@ -90,7 +90,7 @@ module ElabTm = struct
           let t, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
           let eqns, mmap = check vctx ictx env eqns mmap n a in
           (subst b n, eqns, mmap)
-        | _ -> failwith (asprintf "elab app(%a)" Tm.pp m))
+        | a -> failwith (asprintf "elab app(%a@,%a)" Tm.pp m Tm.pp a))
       | Let (m, n) ->
         let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
