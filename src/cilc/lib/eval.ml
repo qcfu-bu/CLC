@@ -97,13 +97,13 @@ module EvalTm = struct
   let rec mk_env env p m =
     match (p, m) with
     | PVar x, m -> VMap.add x m env
-    | PInd _, _ -> raise PBacktrack
+    | PInd _, _ -> raise (PBacktrack (asprintf "mk_env(%a,%a)" pp_p p pp m))
     | PConstr (id1, ps), VConstr (id2, ms) ->
       if Id.equal id1 id2 || Id.equal pair_id id2 then
         List.fold_left2 (fun acc p m -> mk_env acc p m) env ps ms
       else
-        raise PBacktrack
-    | _ -> raise PBacktrack
+        raise (PBacktrack (asprintf "mk_env(%a,%a)" pp_p p pp m))
+    | _ -> raise (PBacktrack (asprintf "mk_env(%a,%a)" pp_p p pp m))
 
   let rec eval env m =
     match m with
@@ -181,34 +181,6 @@ module EvalTm = struct
     | Fix m ->
       let x, um = unbind m in
       (VFix (x, um), env)
-    | Main -> (VBox, env)
-    | Proto -> (VBox, env)
-    | End -> (VBox, env)
-    | Act _ -> (VBox, env)
-    | Ch _ -> (VBox, env)
-    | Fork (_, m, n) ->
-      let x, un = unbind n in
-      let m, env = eval env m in
-      let ch = VCh (Channel (new_channel ())) in
-      let env = VMap.add x ch env in
-      let _ = create (fun env -> eval env un) env in
-      (VConstr (pair_id, [ ch; m ]), env)
-    | Send m -> (
-      let m, env = eval env m in
-      match m with
-      | VCh ch -> (VSend ch, env)
-      | _ -> raise SendError)
-    | Recv m -> (
-      let m, env = eval env m in
-      match m with
-      | VCh (Channel ch) ->
-        let n = sync (receive ch) in
-        (VConstr (pair_id, [ n; m ]), env)
-      | VCh (Stdin true) ->
-        let s, env = read_line () |> of_string |> eval env in
-        (VConstr (pair_id, [ s; VCh (Stdin false) ]), env)
-      | _ -> raise RecvError)
-    | Close _ -> (VConstr (Prelude.tt_id, []), env)
     | Axiom _ -> (VBox, env)
 end
 
@@ -220,7 +192,6 @@ module EvalTp = struct
   exception ImportError
 
   let eval t =
-    let env = VMap.singleton Prelude.main_v VBox in
     let rec aux env t =
       match t with
       | Main m -> EvalTm.eval env m
@@ -230,19 +201,6 @@ module EvalTp = struct
         let env = VMap.add x m env in
         aux env ut
       | Induct (_, t) -> aux env t
-      | Import (id, _, t) ->
-        let x, ut = unbind t in
-        if Id.equal Id.stdin_id id then
-          let env = VMap.add x (VCh (Stdin false)) env in
-          aux env ut
-        else if Id.equal Id.stdout_id id then
-          let env = VMap.add x (VCh (Stdout false)) env in
-          aux env ut
-        else if Id.equal Id.stderr_id id then
-          let env = VMap.add x (VCh (Stderr false)) env in
-          aux env ut
-        else
-          raise ImportError
     in
-    fst (aux env t)
+    fst (aux VMap.empty t)
 end

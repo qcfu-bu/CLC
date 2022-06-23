@@ -204,8 +204,8 @@ module ParseTm = struct
   and p_parser () =
     let prod_parser =
       choice
-        [ (kw "*" >>$ fun p1 p2 -> PInd (Prelude.ex_id, [ p1; p2 ]))
-        ; (kw "^" >>$ fun p1 p2 -> PInd (Prelude.tnsr_id, [ p1; p2 ]))
+        [ (kw "×" >>$ fun p1 p2 -> PInd (Prelude.ex_id, [ p1; p2 ]))
+        ; (kw "⊗" >>$ fun p1 p2 -> PInd (Prelude.tnsr_id, [ p1; p2 ]))
         ]
     in
     chain_left1 (p0_parser ()) prod_parser
@@ -500,69 +500,6 @@ module ParseTm = struct
     return m
 
   and string_parser () = char '\"' >> asciix_parser () << char '\"' << ws
-  and main_parser () = kw "main" >> return Main
-  and proto_parser () = kw "proto" >> return Proto
-  and end_parser () = kw "$" >> return End
-
-  and act_parser () =
-    let* ctx = get_user_state in
-    let* r = kw "?" >>$ true <|> (kw "!" >>$ false) in
-    let* args =
-      many1
-        (attempt
-           (let* _ = kw "(" in
-            let* xs = many1 (var_parser ()) in
-            let* _ = kw ":" in
-            let* a = t_parser () in
-            let* _ = kw ")" in
-            return (xs, a)))
-      <|> let* a = t_parser () in
-          return [ ([ Var.__ ], a) ]
-    in
-    let* _ = kw "," in
-    let* b = t_parser () in
-    let m =
-      List.fold_right
-        (fun (xs, a) b -> List.fold_right (fun x b -> Act (r, x, a, b)) xs b)
-        args b
-    in
-    let* _ = set_user_state ctx in
-    return m
-
-  and ch_parser () =
-    let* r = kw "channel-" >>$ false <|> (kw "channel" >>$ true) in
-    let* m = t1_parser () in
-    return (Ch (r, m))
-
-  and fork_parser () =
-    let* ctx = get_user_state in
-    let* _ = kw "fork" in
-    let* _ = kw "(" in
-    let* x = var_parser () in
-    let* _ = kw ":" in
-    let* a = t_parser () in
-    let* _ = kw ")" in
-    let* _ = kw ":=" in
-    let* m = t_parser () in
-    let* _ = kw "in" in
-    let* n = t_parser () in
-    let* _ = set_user_state ctx in
-    return (Fork (x, a, m, n))
-
-  and send_parser () =
-    let* _ = kw "send" in
-    let* m = t0_parser () in
-    return (Send m)
-
-  and recv_parser () =
-    let* _ = kw "recv" in
-    let* m = t0_parser () in
-    return (Recv m)
-
-  and close_parser () =
-    let* _ = kw "close" in
-    let* m = t0_parser () in
-    return (Close m)
 
   and t0_parser () =
     let* _ = return () in
@@ -588,15 +525,6 @@ module ParseTm = struct
          ; nat_parser ()
          ; char_parser ()
          ; string_parser ()
-         ; main_parser ()
-         ; proto_parser ()
-         ; end_parser ()
-         ; act_parser ()
-         ; ch_parser ()
-         ; fork_parser ()
-         ; send_parser ()
-         ; recv_parser ()
-         ; close_parser ()
          ; parens (t_parser ())
          ])
 
@@ -608,6 +536,36 @@ module ParseTm = struct
     return m
 
   and t2_parser () =
+    let add_parser =
+      let* _ = kw "+" in
+      return (fun m n -> App (App (Var Prelude.addn_v, m), n))
+    in
+    chain_left1 (t1_parser ()) add_parser
+
+  and t3_parser () =
+    let cmp_parser =
+      choice
+        (List.map attempt
+           [ (kw "<=" >>$ fun m n -> Ind (Prelude.le_id, [ m; n ]))
+           ; (kw "<" >>$ fun m n -> App (App (Var Prelude.lt_v, m), n))
+           ])
+    in
+    chain_left1 (t2_parser ()) cmp_parser
+
+  and t4_parser () =
+    let eq_parser =
+      kw "=" >>$ fun m n -> Ind (Prelude.eq_id, [ Meta (Meta.mk ()); m; n ])
+    in
+    chain_left1 (t3_parser ()) eq_parser
+
+  and t5_parser () =
+    let at_parser =
+      let* _ = kw "@" in
+      return (fun m n -> App (App (Var Prelude.ptsto_v, n), m))
+    in
+    chain_left1 (t4_parser ()) at_parser
+
+  and t6_parser () =
     let arrow_parser () =
       let* _ = kw "->" in
       return (fun a b -> Pi (U, Var.__, a, b))
@@ -616,14 +574,14 @@ module ParseTm = struct
       let* _ = kw "-o" in
       return (fun a b -> Pi (L, Var.__, a, b))
     in
-    chain_right1 (t1_parser ()) (arrow_parser () <|> lolli_parser ())
+    chain_right1 (t5_parser ()) (arrow_parser () <|> lolli_parser ())
 
   and t_parser () =
-    attempt (t2_parser ())
+    attempt (t6_parser ())
     <|> let* _ = kw "(" in
-        let* m = t2_parser () in
+        let* m = t6_parser () in
         let* _ = kw ":" in
-        let* a = t2_parser () in
+        let* a = t6_parser () in
         let* _ = kw ")" in
         return (Ann (m, a))
 end
@@ -749,25 +707,6 @@ module ParseTp = struct
     let* t = t_parser () in
     return (tscope_of_t t)
 
-  and import_parser () =
-    let* _ = kw "Import" in
-    let* x = var_parser () in
-    let* _ = kw ":" in
-    let* v = var_parser () in
-    let* _ = kw "." in
-    let* tp = tp_parser () in
-    let id =
-      if Var.equal v Prelude.stdin_t then
-        Id.stdin_id
-      else if Var.equal v Prelude.stdout_t then
-        Id.stdout_id
-      else if Var.equal v Prelude.stderr_t then
-        Id.stdout_id
-      else
-        failwith (asprintf "unknown import id(%a)" Var.pp v)
-    in
-    return (Import (id, x, Var v, tp))
-
   and importdo_parser () =
     let* _ = kw "Import" in
     let* _ = kw "do" in
@@ -804,7 +743,6 @@ module ParseTp = struct
          [ definition_parser ()
          ; fixpoint_parser ()
          ; induct_parser ()
-         ; import_parser ()
          ; importdo_parser ()
          ; axiom_parser ()
          ; main_parser ()

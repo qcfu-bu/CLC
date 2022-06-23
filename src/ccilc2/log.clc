@@ -19,31 +19,31 @@ Definition addn :=
     (nat) -> (nat) -> nat).
 
 Inductive option (A : U) : U :=
-| None (A : U) : (option A#187)
-| Some (A : U) : (A) -> (option A#188).
+| None (A : U) : (option A#212)
+| Some (A : U) : (A) -> (option A#213).
 
 Inductive list (A : U) : U :=
-| nil (A : U) : (list A#191)
-| cons (A : U) : (A) -> ((list A)) -> (list A#192).
+| nil (A : U) : (list A#216)
+| cons (A : U) : (A) -> ((list A)) -> (list A#217).
 
 Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#197 O)
+| vnil (A : U) : (vec A#222 O)
 | vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#198 (S n#199)).
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#223 (S n#224)).
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#205 P#206).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#230 P#231).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#213 P#214).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#238 P#239).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#220 B#221).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#245 B#246).
 
 Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#225).
+| box_intro (A : U) : (A) -> (box A#250).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -120,79 +120,103 @@ Definition close_err :=
   ((fun ch => let ch := (send ch) false in close ch) :
     (channel stderr_t) -> unit).
 
-Definition IO_t := (((tnsr channel stdin_t channel stdout_t)) : L).
-
-Definition IO := ((fun A => (IO_t) -o (sig A fun _ => IO_t)) : (U) -> L).
-
-Definition read :=
-  ((fun _ =>
-      lin x =>
-        match x with
-        | (tnsr_intro in_ch out_ch) =>
-          let in_ch := (send in_ch) true in
-          match recv in_ch with
-          | (sig_intro s in_ch) => (sig_intro s (tnsr_intro in_ch out_ch))
-          end
-        end) :
-    (unit) -> (IO) string).
-
-Definition print :=
-  ((fun s =>
-      lin x =>
-        match x with
-        | (tnsr_intro in_ch out_ch) =>
-          let out_ch := (send out_ch) true in
-          let out_ch := (send out_ch) s in
-          (sig_intro tt (tnsr_intro in_ch out_ch))
-        end) :
-    (string) -> (IO) unit).
-
-Definition ret :=
-  ((fun A m => lin ch => (sig_intro m ch)) : forall (A : U), (A) -> (IO) A).
-
-Definition bind :=
-  ((fun A B m =>
-      lin f ch => match (m) ch with
-                  | (sig_intro a ch) => ((f) a) ch
-                  end) :
-    forall (A : U), forall (B : U), ((IO) A) -> ((A) -o (IO) B) -o (IO) B).
-
-Definition run :=
-  ((fun A ch =>
-      lin m =>
-        match (m) ch with
-        | (sig_intro a ch) =>
-          match ch with
-          | (tnsr_intro in_ch out_ch) =>
-            match (close_out) out_ch with
-            | tt => match (close_in) in_ch with
-                    | tt => (box_intro a)
-                    end
-            end
-          end
-        end) :
-    forall (A : U), (IO_t) -> ((IO) A) -o (box A)).
-
-Import stdin : stdin_t.
-
 Import stdout : stdout_t.
 
+Inductive ref_msg : U :=
+| GET : ref_msg
+| SET : ref_msg
+| FREE : ref_msg.
+
+Definition ref_t :=
+  ((fix ref_t n A =>
+      match n with
+      | O => $
+      | (S n) =>
+        ?(msg : ref_msg),
+          match msg with
+          | GET => !(_ : A), ((ref_t) n) A
+          | SET => ?(_ : A), ((ref_t) n) A
+          | FREE => $
+          end
+      end) :
+    (nat) -> (U) -> proto).
+
+Definition ref_handler :=
+  ((fix ref_handler A n m =>
+      lin ch =>
+        (match n as x return (channel ((ref_t) x) A) -> unit with
+         | O => fun ch => close ch
+         | (S n) =>
+           fun ch =>
+             match recv ch with
+             | (sig_intro msg ch) =>
+               (match msg as x return
+                  (channel match x with
+                           | GET => !(_ : A), ((ref_t) n) A
+                           | SET => ?(_ : A), ((ref_t) n) A
+                           | FREE => $
+                           end) ->
+                    unit
+                with
+                | GET =>
+                  fun ch =>
+                    let ch := (send ch) m in ((((ref_handler) A) n) m) ch
+                | SET =>
+                  fun ch =>
+                    match recv ch with
+                    | (sig_intro m ch) => ((((ref_handler) A) n) m) ch
+                    end
+                | FREE => fun ch => close ch
+                end) ch
+             end
+         end) ch) :
+    forall (A : U), forall (n : nat), (A) -> (channel ((ref_t) n) A) -o unit).
+
+Definition mk_ref :=
+  ((fun A n m x =>
+      fork (ref : channel ((ref_t) n) A) := x in
+      ((((ref_handler) A) n) m) ref) :
+    forall (A : U),
+      forall (n : nat), (A) -> (main) -> (tnsr channel- ((ref_t) n) A main)).
+
+Definition set_ref :=
+  ((fun A n m => lin ref => let ref := (send ref) SET in (send ref) m) :
+    forall (A : U),
+      forall (n : nat),
+        (A) -> (channel- ((ref_t) (S n)) A) -o channel- ((ref_t) n) A).
+
+Definition get_ref :=
+  ((fun A n => lin ref => let ref := (send ref) GET in recv ref) :
+    forall (A : U),
+      forall (n : nat),
+        (channel- ((ref_t) (S n)) A) -o
+          (sig A fun _ => channel- ((ref_t) n) A)).
+
+Definition free_ref :=
+  ((fun A n =>
+      lin ref =>
+        let ref := (send ref) FREE in match close ref with
+                                      | tt => tt
+                                      end) :
+    forall (A : U), forall (n : nat), (channel- ((ref_t) (S n)) A) -o unit).
+
 Definition Main :=
-  match (((run) ?5) (tnsr_intro stdin stdout))
-          ((((bind) ?6) ?7) (print) "What is your name?\n")
-            lin x =>
-              match x with
-              | tt =>
-                ((((bind) ?8) ?9) (read) tt)
-                  lin s =>
-                    ((((bind) ?10) ?11)
-                       (print) ((cat) ((cat) "Hello, ") s) "\n")
-                      lin x => match x with
-                               | tt => ((ret) ?12) tt
-                               end
-              end
-  with
-  | (box_intro _) => _main_
+  match ((((mk_ref) ?9) 10000) "hello\n") _main_ with
+  | (tnsr_intro ref _main_) =>
+    match (((get_ref) ?10) ?11) ref with
+    | (sig_intro msg1 ref) =>
+      let ref := ((((set_ref) ?12) ?13) "world\n") ref in
+      match (((get_ref) ?14) ?15) ref with
+      | (sig_intro msg2 ref) =>
+        let stdout := ((printline) stdout) msg1 in
+        let stdout := ((printline) stdout) msg2 in
+        match (((free_ref) ?16) ?17) ref with
+        | tt => match (close_out) stdout with
+                | tt => _main_
+                end
+        end
+      end
+    end
   end.
 
 elab ok
@@ -216,31 +240,31 @@ Definition addn :=
     (nat) -> (nat) -> nat).
 
 Inductive option (A : U) : U :=
-| None (A : U) : (option A#2467)
-| Some (A : U) : (A) -> (option A#2468).
+| None (A : U) : (option A#5296)
+| Some (A : U) : (A) -> (option A#5297).
 
 Inductive list (A : U) : U :=
-| nil (A : U) : (list A#2471)
-| cons (A : U) : (A) -> ((list A)) -> (list A#2472).
+| nil (A : U) : (list A#5300)
+| cons (A : U) : (A) -> ((list A)) -> (list A#5301).
 
 Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#2477 O)
+| vnil (A : U) : (vec A#5306 O)
 | vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2478 (S n#2479)).
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#5307 (S n#5308)).
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2485 P#2486).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#5314 P#5315).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2493 P#2494).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#5322 P#5323).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2500 B#2501).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#5329 B#5330).
 
 Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#2505).
+| box_intro (A : U) : (A) -> (box A#5334).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -317,79 +341,103 @@ Definition close_err :=
   ((fun ch => let ch := (send ch) false in close ch) :
     (channel stderr_t) -> unit).
 
-Definition IO_t := (((tnsr channel stdin_t channel stdout_t)) : L).
-
-Definition IO := ((fun A => (IO_t) -o (sig A fun _ => IO_t)) : (U) -> L).
-
-Definition read :=
-  ((fun _ =>
-      lin x =>
-        match x with
-        | (tnsr_intro in_ch out_ch) =>
-          let in_ch := (send in_ch) true in
-          match recv in_ch with
-          | (sig_intro s in_ch) => (sig_intro s (tnsr_intro in_ch out_ch))
-          end
-        end) :
-    (unit) -> (IO) string).
-
-Definition print :=
-  ((fun s =>
-      lin x =>
-        match x with
-        | (tnsr_intro in_ch out_ch) =>
-          let out_ch := (send out_ch) true in
-          let out_ch := (send out_ch) s in
-          (sig_intro tt (tnsr_intro in_ch out_ch))
-        end) :
-    (string) -> (IO) unit).
-
-Definition ret :=
-  ((fun A m => lin ch => (sig_intro m ch)) : forall (A : U), (A) -> (IO) A).
-
-Definition bind :=
-  ((fun A B m =>
-      lin f ch => match (m) ch with
-                  | (sig_intro a ch) => ((f) a) ch
-                  end) :
-    forall (A : U), forall (B : U), ((IO) A) -> ((A) -o (IO) B) -o (IO) B).
-
-Definition run :=
-  ((fun A ch =>
-      lin m =>
-        match (m) ch with
-        | (sig_intro a ch) =>
-          match ch with
-          | (tnsr_intro in_ch out_ch) =>
-            match (close_out) out_ch with
-            | tt => match (close_in) in_ch with
-                    | tt => (box_intro a)
-                    end
-            end
-          end
-        end) :
-    forall (A : U), (IO_t) -> ((IO) A) -o (box A)).
-
-Import stdin : stdin_t.
-
 Import stdout : stdout_t.
 
+Inductive ref_msg : U :=
+| GET : ref_msg
+| SET : ref_msg
+| FREE : ref_msg.
+
+Definition ref_t :=
+  ((fix ref_t n A =>
+      match n with
+      | O => $
+      | (S n) =>
+        ?(msg : ref_msg),
+          match msg with
+          | GET => !(_ : A), ((ref_t) n) A
+          | SET => ?(_ : A), ((ref_t) n) A
+          | FREE => $
+          end
+      end) :
+    (nat) -> (U) -> proto).
+
+Definition ref_handler :=
+  ((fix ref_handler A n m =>
+      lin ch =>
+        (match n as x return (channel ((ref_t) x) A) -> unit with
+         | O => fun ch => close ch
+         | (S n) =>
+           fun ch =>
+             match recv ch with
+             | (sig_intro msg ch) =>
+               (match msg as x return
+                  (channel match x with
+                           | GET => !(_ : A), ((ref_t) n) A
+                           | SET => ?(_ : A), ((ref_t) n) A
+                           | FREE => $
+                           end) ->
+                    unit
+                with
+                | GET =>
+                  fun ch =>
+                    let ch := (send ch) m in ((((ref_handler) A) n) m) ch
+                | SET =>
+                  fun ch =>
+                    match recv ch with
+                    | (sig_intro m ch) => ((((ref_handler) A) n) m) ch
+                    end
+                | FREE => fun ch => close ch
+                end) ch
+             end
+         end) ch) :
+    forall (A : U), forall (n : nat), (A) -> (channel ((ref_t) n) A) -o unit).
+
+Definition mk_ref :=
+  ((fun A n m x =>
+      fork (ref : channel ((ref_t) n) A) := x in
+      ((((ref_handler) A) n) m) ref) :
+    forall (A : U),
+      forall (n : nat), (A) -> (main) -> (tnsr channel- ((ref_t) n) A main)).
+
+Definition set_ref :=
+  ((fun A n m => lin ref => let ref := (send ref) SET in (send ref) m) :
+    forall (A : U),
+      forall (n : nat),
+        (A) -> (channel- ((ref_t) (S n)) A) -o channel- ((ref_t) n) A).
+
+Definition get_ref :=
+  ((fun A n => lin ref => let ref := (send ref) GET in recv ref) :
+    forall (A : U),
+      forall (n : nat),
+        (channel- ((ref_t) (S n)) A) -o
+          (sig A fun _ => channel- ((ref_t) n) A)).
+
+Definition free_ref :=
+  ((fun A n =>
+      lin ref =>
+        let ref := (send ref) FREE in match close ref with
+                                      | tt => tt
+                                      end) :
+    forall (A : U), forall (n : nat), (channel- ((ref_t) (S n)) A) -o unit).
+
 Definition Main :=
-  match (((run) unit) (tnsr_intro stdin stdout))
-          ((((bind) unit) unit) (print) "What is your name?\n")
-            lin x =>
-              match x with
-              | tt =>
-                ((((bind) string) unit) (read) tt)
-                  lin s =>
-                    ((((bind) unit) unit)
-                       (print) ((cat) ((cat) "Hello, ") s) "\n")
-                      lin x => match x with
-                               | tt => ((ret) unit) tt
-                               end
-              end
-  with
-  | (box_intro _) => _main_
+  match ((((mk_ref) string) 10000) "hello\n") _main_ with
+  | (tnsr_intro ref _main_) =>
+    match (((get_ref) string) 9999) ref with
+    | (sig_intro msg1 ref) =>
+      let ref := ((((set_ref) string) 9998) "world\n") ref in
+      match (((get_ref) string) 9997) ref with
+      | (sig_intro msg2 ref) =>
+        let stdout := ((printline) stdout) msg1 in
+        let stdout := ((printline) stdout) msg2 in
+        match (((free_ref) string) 9996) ref with
+        | tt => match (close_out) stdout with
+                | tt => _main_
+                end
+        end
+      end
+    end
   end.
 
 --------------------------------------------------------------------------------

@@ -1,7 +1,58 @@
-Import stdout : stdout_t.
+Inductive ArrVec (A : U) (l : Loc) : nat -> L :=
+| Nil  : ArrVec A l 0
+| Cons : forall (n : nat), (A @ l + n) -> ArrVec A l n -> ArrVec A l (S n).
 
-Definition Main := 
-  let stdout := printline stdout (cat "hello" "\n") in
-  let stdout := printline stdout "world\n" in
-  let () := close_out stdout in
-  _main_.
+Definition Array (A : U) (n : nat) : L := 
+  sig Loc (fun l => ArrVec A l n).
+
+Fixpoint nth  
+  (A : U)
+  (l m n : nat)
+  (pf : m < n)
+  (v : ArrVec A l n) :
+  tnsr (A @ l + m) (A @ l + m -o ArrVec A l n)
+:=
+  match pf in le _ n return
+    ArrVec A l n -> tnsr (A @ l + m) (A @ l + m -o ArrVec A l n)
+  with
+  | le_n => fun v =>
+    match v in ArrVec _ _ n return
+      match n with
+      | O => base
+      | S n0 => m = n0 -o tnsr (A @ l + n0) (A @ l + n0 -o ArrVec A l n)
+      end
+    with
+    | Nil => ll
+    | Cons n c v =>
+      lin _ => ⟨c, lin c => Cons n c v⟩
+    end refl
+  | le_S _ pf => fun v =>
+    match v in ArrVec _ _ n return 
+      match n with
+      | O => base
+      | S n0 => lt m n0 -o tnsr (A @ l + m) (A @ l + m -o ArrVec A l n)
+      end
+    with
+    | Nil => ll
+    | Cons n c0 v0 => lin pf => 
+      let ⟨c, f⟩ := nth A l m n pf v0 in
+      ⟨c, lin c => Cons n c0 (f c)⟩
+    end pf
+  end v.
+
+Definition index 
+  (A : U) 
+  (m n : nat) 
+  (pf : m < n) 
+  (a : Array A n) :
+  sig A (fun _ => Array A n)
+:= 
+  let [l, v] := a in
+  let ⟨c, f⟩ := nth _ _ _ _ pf v in
+  let [x, c] := Get _ (l + m) c in
+  [x, [l, f c]].
+
+Definition Just0 : U := ex nat (fun x => x = 0).
+
+
+Definition Main := ().

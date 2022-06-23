@@ -120,7 +120,8 @@ module ElabTm = struct
         let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let mmap = unify env mmap eqns in
         let a = UnifyTm.resolve mmap a in
-        match zdnf env a with
+        let a = zdnf env a in
+        match a with
         | Ind (id, ms) -> (
           let (Tp.Ind (_, _, cs)) = find_id id ictx in
           let cover, eqns, mmap = coverage vctx ictx env eqns mmap cls cs ms in

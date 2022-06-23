@@ -27,16 +27,6 @@ module Tm = struct
     | Constr of Id.t * t list
     | Match of t * m * pbinder list
     | Fix of tbinder
-    (* session *)
-    | Main
-    | Proto
-    | End
-    | Act of bool * t * tbinder
-    | Ch of bool * t
-    | Fork of t * t * tbinder
-    | Send of t
-    | Recv of t
-    | Close of t
     (* magic *)
     | Axiom of Id.t * t
 
@@ -72,7 +62,7 @@ module Tm = struct
     let compare = compare_vars
   end)
 
-  exception PBacktrack
+  exception PBacktrack of string
 
   let rec equal_p0 p1 p2 =
     match (p1, p2) with
@@ -111,15 +101,15 @@ module Tm = struct
           (fun acc p t -> Array.append acc (mt_of_pt0 p t))
           [||] ps ts
       else
-        raise PBacktrack
+        raise (PBacktrack (asprintf "mt_of_pt0(%a, %a)" pp_p0 p0 pp t))
     | P0Constr (id1, ps), Constr (id2, ts) ->
       if Id.equal id1 id2 then
         List.fold_left2
           (fun acc p t -> Array.append acc (mt_of_pt0 p t))
           [||] ps ts
       else
-        raise PBacktrack
-    | _ -> raise PBacktrack
+        raise (PBacktrack (asprintf "mt_of_pt0(%a, %a)" pp_p0 p0 pp t))
+    | _ -> raise (PBacktrack (asprintf "mt_of_pt0(%a, %a)" pp_p0 p0 pp t))
 
   and mvar_of_p p =
     match p with
@@ -213,7 +203,7 @@ module Tm = struct
     let p2, mb2 = pb2 in
     equal_p0 p1 p2 && eq_mbinder f mb1 mb2
 
-  let rec pp_p fmt p =
+  and pp_p fmt p =
     match p with
     | PVar x -> pp_v fmt x
     | PInd (id, []) -> fprintf fmt "%a" Id.pp id
@@ -227,7 +217,7 @@ module Tm = struct
     | p :: ps -> fprintf fmt "@[%a@;<1 2>%a@]" pp_p p pp_ps ps
     | _ -> ()
 
-  let rec pp fmt m =
+  and pp fmt m =
     let rec spine s m =
       match m with
       | Lam (t, b) ->
@@ -288,27 +278,6 @@ module Tm = struct
       let x, um = unbind m in
       let xs, um = spine U um in
       fprintf fmt "@[fix %a %a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um
-    | Main -> fprintf fmt "main"
-    | Proto -> fprintf fmt "proto"
-    | End -> fprintf fmt "$"
-    | Act (r, a, b) ->
-      let x, ub = unbind b in
-      if r then
-        fprintf fmt "@[?(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
-      else
-        fprintf fmt "@[!(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
-    | Ch (r, m) ->
-      if r then
-        fprintf fmt "channel %a" pp m
-      else
-        fprintf fmt "channel- %a" pp m
-    | Fork (a, m, n) ->
-      let x, un = unbind n in
-      fprintf fmt "@[@[fork (%a :@;<1 2>%a) :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
-        pp_v x pp a pp m pp un
-    | Send m -> fprintf fmt "send %a" pp m
-    | Recv m -> fprintf fmt "recv %a" pp m
-    | Close m -> fprintf fmt "close %a" pp m
     | Axiom (id, _) -> Id.pp fmt id
 
   and pp_vs fmt xs =
@@ -373,15 +342,6 @@ module Tm = struct
   let _Constr id = box_apply (fun ts -> Constr (id, ts))
   let _Match = box_apply3 (fun m mot cls -> Match (m, mot, cls))
   let _Fix = box_apply (fun m -> Fix m)
-  let _Main = box Main
-  let _Proto = box Proto
-  let _End = box End
-  let _Act r = box_apply2 (fun a b -> Act (r, a, b))
-  let _Ch r = box_apply (fun m -> Ch (r, m))
-  let _Fork = box_apply3 (fun a m n -> Fork (a, m, n))
-  let _Send = box_apply (fun m -> Send m)
-  let _Recv = box_apply (fun m -> Recv m)
-  let _Close = box_apply (fun m -> Close m)
   let _Axiom id = box_apply (fun m -> Axiom (id, m))
   let _Mot0 = box Mot0
   let _Mot1 = box_apply (fun mot -> Mot1 mot)
@@ -413,15 +373,6 @@ module Tm = struct
       | Mot2 mot -> _Match m (_Mot2 (box_binder_p lift mot)) cls
       | Mot3 mot -> _Match m (_Mot3 (box_binder (box_binder_p lift) mot)) cls)
     | Fix m -> _Fix (box_binder lift m)
-    | Main -> _Main
-    | Proto -> _Proto
-    | End -> _End
-    | Act (r, a, b) -> _Act r (lift a) (box_binder lift b)
-    | Ch (r, m) -> _Ch r (lift m)
-    | Fork (a, m, n) -> _Fork (lift a) (lift m) (box_binder lift n)
-    | Send m -> _Send (lift m)
-    | Recv m -> _Recv (lift m)
-    | Close m -> _Close (lift m)
     | Axiom (id, m) -> _Axiom id (lift m)
 
   let rec zdnf env m =
@@ -475,7 +426,6 @@ module Tm = struct
       match opt with
       | Some m -> zdnf env m
       | None -> Match (m, mot, cls))
-    | Ch (r, m) -> Ch (r, zdnf env m)
     | _ -> m
 
   let rec eq_m eq mot1 mot2 =
@@ -508,17 +458,6 @@ module Tm = struct
         aeq m1 m2 && eq_m aeq mot1 mot2
         && List.equal (eq_binder_p aeq) cls1 cls2
       | Fix m1, Fix m2 -> eq_binder aeq m1 m2
-      | Main, Main -> true
-      | Proto, Proto -> true
-      | End, End -> true
-      | Act (r1, a1, b1), Act (r2, a2, b2) ->
-        r1 = r2 && aeq a1 a2 && eq_binder aeq b1 b2
-      | Ch (r1, m1), Ch (r2, m2) -> r1 = r2 && aeq m1 m2
-      | Fork (a1, m1, n1), Fork (a2, m2, n2) ->
-        aeq a1 a2 && aeq m1 m2 && eq_binder aeq n1 n2
-      | Send m1, Send m2 -> aeq m1 m2
-      | Recv m1, Recv m2 -> aeq m1 m2
-      | Close m1, Close m2 -> aeq m1 m2
       | Axiom (id1, m1), Axiom (id2, m2) -> Id.equal id1 id2 && aeq m1 m2
       | _ -> false
 
@@ -570,7 +509,6 @@ module Tm = struct
       match opt with
       | Some m -> whnf m
       | None -> Match (m, mot, cls))
-    | Ch (r, m) -> Ch (r, whnf m)
     | _ -> m
 
   let rec equal env m1 m2 =
@@ -599,17 +537,6 @@ module Tm = struct
         && eq_m (equal env) mot1 mot2
         && List.equal (eq_binder_p (equal env)) cls1 cls2
       | Fix m1, Fix m2 -> eq_binder (equal env) m1 m2
-      | Main, Main -> true
-      | Proto, Proto -> true
-      | End, End -> true
-      | Act (r1, a1, b1), Act (r2, a2, b2) ->
-        r1 = r2 && equal env a1 a2 && eq_binder (equal env) b1 b2
-      | Ch (r1, m1), Ch (r2, m2) -> r1 = r2 && equal env m1 m2
-      | Fork (a1, m1, n1), Fork (a2, m2, n2) ->
-        equal env a1 a2 && equal env m1 m2 && eq_binder (equal env) n1 n2
-      | Send m1, Send m2 -> equal env m1 m2
-      | Recv m1, Recv m2 -> equal env m1 m2
-      | Close m1, Close m2 -> equal env m1 m2
       | Axiom (id1, m1), Axiom (id2, m2) -> Id.equal id1 id2 && equal env m1 m2
       | _ -> false
 end
@@ -633,7 +560,6 @@ module Tp = struct
     | Main of Tm.t
     | Define of Tm.t * tbinder
     | Induct of ind * t
-    | Import of Id.t * Tm.t * tbinder
 
   and tbinder = (Tm.t, t) binder
 
@@ -651,9 +577,6 @@ module Tp = struct
     | Induct (Ind (id, a, cs), t) ->
       fprintf fmt "@[Inductive %a %a :=@.%a.@.@.%a@]" Id.pp id pp_pscope a
         pp_constr cs pp t
-    | Import (id, m, t) ->
-      let x, ut = unbind t in
-      fprintf fmt "@[Import %a : %a.@.@.%a@]" pp_v x Tm.pp m pp ut
 
   and pp_constr fmt cs =
     match cs with
@@ -691,5 +614,4 @@ module Tp = struct
   let _Main = box_apply (fun m -> Main m)
   let _Define = box_apply2 (fun m t -> Define (m, t))
   let _Induct = box_apply2 (fun ind t -> Induct (ind, t))
-  let _Import id = box_apply2 (fun m t -> Import (id, m, t))
 end

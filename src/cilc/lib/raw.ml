@@ -24,16 +24,6 @@ module RTm = struct
     | Constr of Id.t * t list
     | Match of t * m * (p * t) list
     | Fix of v * t
-    (* session *)
-    | Main
-    | Proto
-    | End
-    | Act of bool * v * t * t
-    | Ch of bool * t
-    | Fork of v * t * t * t
-    | Send of t
-    | Recv of t
-    | Close of t
     (* magic *)
     | Axiom of Id.t * t
 
@@ -60,7 +50,10 @@ module RTm = struct
       let _m = _core ctx opt m in
       let _a = _core ctx opt a in
       _Ann _m _a
-    | Meta x -> _Meta (Meta.mk ())
+    | Meta x ->
+      let xs = ctx |> VMap.bindings |> List.map snd in
+      let xs = List.map Tm._Var xs in
+      Tm._mApp (_Meta (Meta.mk ())) xs
     | Knd s -> _Knd s
     | Var x ->
       let x = find x ctx in
@@ -131,34 +124,6 @@ module RTm = struct
       let ctx = VMap.add x _x ctx in
       let _m = _core ctx opt m in
       _Fix (bind_var _x _m)
-    | Main -> _Main
-    | Proto -> _Proto
-    | End -> _End
-    | Act (r, x, a, b) ->
-      let _x = var x in
-      let _a = _core ctx opt a in
-      let ctx = VMap.add x _x ctx in
-      let _b = _core ctx opt b in
-      _Act r _a (bind_var _x _b)
-    | Ch (r, m) ->
-      let _m = _core ctx opt m in
-      _Ch r _m
-    | Fork (x, a, m, n) ->
-      let _x = var x in
-      let _a = _core ctx opt a in
-      let _m = _core ctx opt m in
-      let ctx = VMap.add x _x ctx in
-      let _n = _core ctx opt n in
-      _Fork _a _m (bind_var _x _n)
-    | Send m ->
-      let _m = _core ctx opt m in
-      _Send _m
-    | Recv m ->
-      let _m = _core ctx opt m in
-      _Recv _m
-    | Close m ->
-      let _m = _core ctx opt m in
-      _Close _m
     | Axiom (id, m) ->
       let _m = _core ctx opt m in
       _Axiom id _m
@@ -231,7 +196,6 @@ module RTp = struct
     | Main of RTm.t
     | Define of v * RTm.t * t
     | Induct of ind * t
-    | Import of Id.t * v * RTm.t * t
     | ImportDo of sort * RTm.t * t
 
   let rec append_t t1 t2 =
@@ -240,7 +204,6 @@ module RTp = struct
     | Main _ -> raise AppendMain
     | Define (v, m, t1) -> Define (v, m, append_t t1 t2)
     | Induct (ind, t1) -> Induct (ind, append_t t1 t2)
-    | Import (id, m, x, t1) -> Import (id, m, x, append_t t1 t2)
     | ImportDo (s, bind, t1) -> ImportDo (s, bind, append_t t1 t2)
 
   let rec _core ctx opt t =
@@ -261,12 +224,6 @@ module RTp = struct
       let _cs = box_list _cs in
       let _t = _core ctx opt t in
       _Induct (_Ind id _a _cs) _t
-    | Import (id, x, m, t) ->
-      let _x = var x in
-      let _m = RTm._core ctx opt m in
-      let ctx = VMap.add x _x ctx in
-      let _t = _core ctx opt t in
-      _Import id _m (bind_var _x _t)
     | ImportDo (s, bind, t) -> _core ctx (Some (s, bind)) t
 
   and _core_pscope ctx opt a =

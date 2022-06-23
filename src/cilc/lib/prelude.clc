@@ -1,6 +1,9 @@
 Inductive unit : U :=
 | tt : unit.
 
+Inductive base : U :=
+| ll : base.
+
 Inductive bool : U :=
 | true : bool
 | false : bool.
@@ -55,61 +58,69 @@ Fixpoint cat (s1 s2 : string) : string :=
   | String c s1 => String c (cat s1 s2)
   end.
 
-Fixpoint stdin_rec (_ : unit) : proto := 
-  !(b : bool),
-    match b with
-    | true => ?(string), stdin_rec tt
-    | false => $
-    end.
+Inductive le (n : nat) : nat -> U :=
+| le_n : le n n
+| le_S : forall (m : nat), le n m -> le n (S m).
 
-Definition stdin_t : proto := stdin_rec tt.
+Definition lt (m n : nat) : U := le (S m) n.
 
-Definition readline (ch : channel stdin_t) : 
-  sig string (fun _ => channel stdin_t) 
+(* identity type *)
+Inductive eq (A : U) (x : A) : A -> U :=
+| refl : eq A x x.
+
+Definition eq_trans
+  (A : U)
+  (x y z : A)
+  (e1 : eq A x y)
+  (e2 : eq A y z) :
+  eq A x z
 :=
-  let ch := send ch true in
-  recv ch.
+  match e2 in eq _ _ y return eq A x y with
+  | refl => e1
+  end.
 
-Definition close_in (ch : channel stdin_t) : unit :=
-  let ch := send ch false in
-  close ch.
-
-Fixpoint stdout_rec (_ : unit) : proto :=
-  !(b : bool),
-    match b with
-    | true => !(string), stdout_rec tt
-    | false => $
-    end.
-
-Definition stdout_t : proto := stdout_rec tt.
-
-Definition printline (ch : channel stdout_t) : 
-  string -o channel stdout_t
+Definition eq_sym 
+  (A : U) 
+  (x y : A) 
+  (e : eq A x y) :
+  eq A y x
 :=
-  lin s =>
-  let ch := send ch true in
-  send ch s.
+  match e in eq _ _ y return eq A y x with
+  | refl => refl
+  end.
 
-Definition close_out (ch : channel stdout_t) : unit :=
-  let ch := send ch false in
-  close ch.
+Definition u_ind 
+  (A : U) 
+  (x y : A)
+  (P : A -> U) 
+  (e : eq A x y)
+  (f : P x) :
+  P y
+:= 
+  match e in eq _ _ y return P y with
+  | refl => f
+  end.
 
-Fixpoint stderr_rec (_ : unit) : proto :=
-  !(b : bool),
-    match b with
-    | true => !(string), stderr_rec tt
-    | false => $
-    end.
+Definition l_ind 
+  (A : U) 
+  (x y : A)
+  (P : A -> L) 
+  (e : eq A x y)
+  (f : P x) :
+  P y
+:= 
+  match e in eq _ _ y return P y with
+  | refl => f
+  end.
 
-Definition stderr_t : proto := stderr_rec tt.
+Axiom unsafeC : forall (A : L), A -> unit.
+Axiom unsafeP : forall (A : L), A.
 
-Definition printerr (ch : channel stderr_t) : 
-  string -o channel stderr_t
-:=
-  lin s =>
-  let ch := send ch true in
-  send ch s.
+Definition Loc : U := nat.
+Axiom PtsTo : Loc -> U -> L.
 
-Definition close_err (ch : channel stderr_t) : unit :=
-  let ch := send ch false in
-  close ch.
+Definition Ptr (A : U) : L := sig Loc (fun l => PtsTo l A).
+Axiom New  : forall (A : U), A -> Ptr A.
+Axiom Free : forall (A : U), Ptr A -> unit.
+Axiom Get  : forall (A : U) (l : Loc), PtsTo l A -> sig A (fun _ => PtsTo l A).
+Axiom Set  : forall (A : U) (B : U), B -> forall (l : Loc), PtsTo l A -> PtsTo l B.

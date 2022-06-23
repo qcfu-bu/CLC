@@ -120,7 +120,8 @@ module ElabTm = struct
         let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
         let mmap = unify env mmap eqns in
         let a = UnifyTm.resolve mmap a in
-        match zdnf env a with
+        let a = zdnf env a in
+        match a with
         | Ind (id, ms) -> (
           let (Tp.Ind (_, _, cs)) = find_id id ictx in
           let cover, eqns, mmap = coverage vctx ictx env eqns mmap cls cs ms in
@@ -154,68 +155,6 @@ module ElabTm = struct
           let eqns, mmap = check vctx ictx env eqns mmap m a in
           (a, eqns, mmap)
         | _ -> (Meta (Meta.mk ()), eqns, mmap))
-      | Main -> (Knd L, eqns, mmap)
-      | Proto -> (Knd U, eqns, mmap)
-      | End -> (Proto, eqns, mmap)
-      | Act (r, a, b) ->
-        let x, ub = unbind b in
-        let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
-        let eqns, mmap =
-          check (VMap.add x (a, s) vctx) ictx env eqns mmap ub Proto
-        in
-        (Proto, eqns, mmap)
-      | Ch (r, m) ->
-        let eqns, mmap = check vctx ictx env eqns mmap m Proto in
-        (Knd L, eqns, mmap)
-      | Fork (a, m, n) -> (
-        let _, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
-        let a = UnifyTm.resolve mmap a in
-        match zdnf env a with
-        | Ch (r, a) ->
-          let x, un = unbind n in
-          let eqns, mmap = check vctx ictx env eqns mmap a Proto in
-          let eqns, mmap = check vctx ictx env eqns mmap m Main in
-          let unit = Tm.Ind (Prelude.unit_id, []) in
-          let eqns, mmap =
-            check (VMap.add x (Ch (r, a), L) vctx) ictx env eqns mmap un unit
-          in
-          let a = Ch (not r, a) in
-          (Ind (Prelude.tnsr_id, [ a; Main ]), eqns, mmap)
-        | _ -> failwith (asprintf "non-channel fork(%a)" Tm.pp a))
-      | Send m -> (
-        let a, eqns, mmap = elab vctx ictx env eqns mmap m in
-        let a = UnifyTm.resolve mmap a in
-        match zdnf env a with
-        | Ch (r1, Act (r2, a, b)) when r1 <> r2 = true ->
-          let x, ub = unbind b in
-          let b = unbox (bind_var x (lift (Ch (r1, ub)))) in
-          (Pi (L, a, b), eqns, mmap)
-        | _ ->
-          let _ = printf "%a" pp_mmap mmap in
-          let _ = printf "%a" pp_eqns eqns in
-          failwith (asprintf "send on non-out(%a, %a)" Tm.pp m Tm.pp a))
-      | Recv m -> (
-        let a, eqns, mmap = elab vctx ictx env eqns mmap m in
-        let a = UnifyTm.resolve mmap a in
-        match zdnf env a with
-        | Ch (r1, Act (r2, a, b)) when r1 <> r2 = false -> (
-          let x, ub = unbind b in
-          let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
-          match s with
-          | U ->
-            let b = unbox (bind_var x (lift (Ch (r1, ub)))) in
-            (Ind (Prelude.sig_id, [ a; Lam (U, b) ]), eqns, mmap)
-          | L -> (Ind (Prelude.tnsr_id, [ a; Ch (r1, ub) ]), eqns, mmap))
-        | _ ->
-          let _ = printf "%a" pp_mmap mmap in
-          let _ = printf "%a" pp_eqns eqns in
-          failwith (asprintf "recv on non-inp(%a, %a)" Tm.pp m Tm.pp a))
-      | Close m -> (
-        let a, eqns, mmap = elab vctx ictx env eqns mmap m in
-        let a = UnifyTm.resolve mmap a in
-        match zdnf env a with
-        | Ch (_, End) -> (Ind (Prelude.unit_id, []), eqns, mmap)
-        | _ -> failwith (asprintf "close on non-end(%a, %a)" Tm.pp m Tm.pp a))
       | Axiom (id, m) ->
         let _, eqns, mmap = elab_sort vctx ictx env eqns mmap m in
         (m, eqns, mmap))
@@ -403,7 +342,9 @@ module ElabTp = struct
   let rec elab vctx ictx env eqns mmap tp =
     match tp with
     | Main m ->
-      let eqns, mmap = ElabTm.check vctx ictx env eqns mmap m Tm.Main in
+      let eqns, mmap =
+        ElabTm.check vctx ictx env eqns mmap m (Tm.Ind (Prelude.unit_id, []))
+      in
       let mmap = unify env mmap eqns in
       (ictx, mmap)
     | Define (m, tp) ->
@@ -435,11 +376,6 @@ module ElabTp = struct
       let cs = List.map (fun x -> unbox (UnifyTp.resolve_constr mmap x)) cs in
       let ictx = IMap.add id (Ind (id, a, cs)) ictx in
       elab vctx ictx env eqns mmap tp
-    | Import (id, m, tp) ->
-      let a = Ch (true, m) in
-      let eqns, mmap = ElabTm.check vctx ictx env eqns mmap a (Knd L) in
-      let x, utp = unbind tp in
-      elab (VMap.add x (a, L) vctx) ictx env eqns mmap utp
 
   and param_pscope a id xs =
     match a with
@@ -507,6 +443,5 @@ module ElabTp = struct
 end
 
 let elab tp =
-  let vctx = VMap.singleton Prelude.main_v (Tm.Main, L) in
-  let _, mmap = ElabTp.elab vctx IMap.empty VMap.empty [] MMap.empty tp in
+  let _, mmap = ElabTp.elab VMap.empty IMap.empty VMap.empty [] MMap.empty tp in
   unbox (UnifyTp.resolve mmap tp)

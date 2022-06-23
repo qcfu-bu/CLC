@@ -144,27 +144,6 @@ module PrintTerm = struct
       let x, um = unbind m in
       let xs, um = spine U um in
       fprintf fmt "@[fix %a%a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um
-    | Main -> fprintf fmt "main"
-    | Proto -> fprintf fmt "proto"
-    | End -> fprintf fmt "$"
-    | Act (r, a, b) ->
-      let x, ub = unbind b in
-      if r then
-        fprintf fmt "@[?(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
-      else
-        fprintf fmt "@[!(%a : %a),@;<1 2>%a@]" pp_v x pp a pp ub
-    | Ch (r, m) ->
-      if r then
-        fprintf fmt "channel %a" pp m
-      else
-        fprintf fmt "channel- %a" pp m
-    | Fork (a, m, n) ->
-      let x, un = unbind n in
-      fprintf fmt "@[@[fork (%a :@;<1 2>%a) :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]"
-        pp_v x pp a pp m pp un
-    | Send m -> fprintf fmt "send %a" pp m
-    | Recv m -> fprintf fmt "recv %a" pp m
-    | Close m -> fprintf fmt "close %a" pp m
     | Axiom (id, _) -> Id.pp fmt id
 
   and pp_vs fmt xs =
@@ -221,9 +200,6 @@ module PrintTop = struct
     | Induct (Ind (id, a, cs), t) ->
       fprintf fmt "@[Inductive %a %a :=@.%a.@.@.%a@]" Id.pp id pp_pscope a
         pp_constr cs pp t
-    | Import (id, m, t) ->
-      let x, ut = unbind t in
-      fprintf fmt "@[Import %a : %a.@.@.%a@]" pp_v x PrintTerm.pp m pp ut
 
   and pp_constr fmt cs =
     match cs with

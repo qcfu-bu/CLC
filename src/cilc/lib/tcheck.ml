@@ -165,64 +165,6 @@ module CheckTm = struct
         let ctx = check vctx ictx env m a in
         (a, ctx)
       | _ -> failwith (asprintf "infer fix(%a)" Tm.pp m))
-    | Main -> (Knd L, VMap.empty)
-    | Proto -> (Knd U, VMap.empty)
-    | End -> (Proto, VMap.empty)
-    | Act (r, a, b) ->
-      let x, ub = unbind b in
-      let s = infer_sort vctx ictx env a in
-      let ctx = check (VMap.add x (a, s) vctx) ictx env ub Proto in
-      if VMap.is_empty ctx then
-        (Proto, VMap.empty)
-      else
-        failwith (asprintf "impure inp(%a)" Tm.pp m)
-    | Ch (r, m) ->
-      let ctx = check vctx ictx env m Proto in
-      if VMap.is_empty ctx then
-        (Knd L, VMap.empty)
-      else
-        failwith (asprintf "impure channel(%a)" Tm.pp m)
-    | Fork (a, m, n) -> (
-      let _ = infer_sort vctx ictx env a in
-      match zdnf env a with
-      | Ch (r, a) ->
-        let x, un = unbind n in
-        let ctx1 = check vctx ictx env a Proto in
-        let ctx2 = check vctx ictx env m Main in
-        let unit = Tm.Ind (Prelude.unit_id, []) in
-        let ctx3 = check (VMap.add x (Ch (r, a), L) vctx) ictx env un unit in
-        let ctx3 = remove x ctx3 L in
-        let a = Ch (not r, a) in
-        if VMap.is_empty ctx1 then
-          (Ind (Prelude.tnsr_id, [ a; Main ]), merge ctx2 ctx3)
-        else
-          failwith (asprintf "impure fork(%a)" Tm.pp a)
-      | _ -> failwith (asprintf "non-channel fork(%a)" Tm.pp a))
-    | Send m -> (
-      let a, ctx = infer vctx ictx env m in
-      match zdnf env a with
-      | Ch (r1, Act (r2, a, b)) when r1 <> r2 = true ->
-        let x, ub = unbind b in
-        let b = unbox (bind_var x (lift (Ch (r1, ub)))) in
-        (Pi (L, a, b), ctx)
-      | _ -> failwith (asprintf "send on non-out(%a, %a)" Tm.pp m Tm.pp a))
-    | Recv m -> (
-      let a, ctx = infer vctx ictx env m in
-      match zdnf env a with
-      | Ch (r1, Act (r2, a, b)) when r1 <> r2 = false -> (
-        let x, ub = unbind b in
-        let s = infer_sort vctx ictx env a in
-        match s with
-        | U ->
-          let b = unbox (bind_var x (lift (Ch (r1, ub)))) in
-          (Ind (Prelude.sig_id, [ a; Lam (U, b) ]), ctx)
-        | L -> (Ind (Prelude.tnsr_id, [ a; Ch (r1, ub) ]), ctx))
-      | _ -> failwith (asprintf "recv on non-inp(%a)" Tm.pp m))
-    | Close m -> (
-      let a, ctx = infer vctx ictx env m in
-      match zdnf env a with
-      | Ch (_, End) -> (Ind (Prelude.unit_id, []), ctx)
-      | _ -> failwith (asprintf "close on non-end(%a, %a)" Tm.pp m Tm.pp a))
     | Axiom (id, m) ->
       let _ = infer_sort vctx ictx env m in
       (m, VMap.empty)
@@ -439,7 +381,7 @@ module CheckTp = struct
   let rec infer vctx ictx env tp =
     match tp with
     | Main m ->
-      let ctx = CheckTm.check vctx ictx env m Tm.Main in
+      let ctx = CheckTm.check vctx ictx env m (Tm.Ind (Prelude.unit_id, [])) in
       (ctx, ictx)
     | Define (m, tp) ->
       let a, ctx1 = CheckTm.infer vctx ictx env m in
@@ -469,13 +411,6 @@ module CheckTp = struct
       in
       let ictx = IMap.add id (Ind (id, a, cs)) ictx in
       infer vctx ictx env tp
-    | Import (id, m, tp) ->
-      let a = Ch (true, m) in
-      let ctx1 = CheckTm.check vctx ictx env a (Knd L) in
-      let x, utp = unbind tp in
-      let ctx2, ictx = infer (VMap.add x (a, L) vctx) ictx env utp in
-      let ctx2 = remove x ctx2 L in
-      (merge ctx1 ctx2, ictx)
 
   and param_pscope a id xs =
     match a with
@@ -543,9 +478,7 @@ module CheckTp = struct
 end
 
 let infer tp =
-  let vctx = VMap.singleton Prelude.main_v (Tm.Main, L) in
-  let ctx, _ = CheckTp.infer vctx IMap.empty VMap.empty tp in
-  let ctx = remove Prelude.main_v ctx L in
+  let ctx, _ = CheckTp.infer VMap.empty IMap.empty VMap.empty tp in
   if VMap.is_empty ctx then
     ()
   else

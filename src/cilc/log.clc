@@ -3,6 +3,9 @@ desugar ok
 Inductive unit : U :=
 | tt : unit.
 
+Inductive base : U :=
+| ll : base.
+
 Inductive bool : U :=
 | true : bool
 | false : bool.
@@ -19,31 +22,31 @@ Definition addn :=
     (nat) -> (nat) -> nat).
 
 Inductive option (A : U) : U :=
-| None (A : U) : (option A#187)
-| Some (A : U) : (A) -> (option A#188).
+| None (A : U) : (option A#269)
+| Some (A : U) : (A) -> (option A#270).
 
 Inductive list (A : U) : U :=
-| nil (A : U) : (list A#191)
-| cons (A : U) : (A) -> ((list A)) -> (list A#192).
+| nil (A : U) : (list A#273)
+| cons (A : U) : (A) -> ((list A)) -> (list A#274).
 
 Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#197 O)
+| vnil (A : U) : (vec A#279 O)
 | vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#198 (S n#199)).
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#280 (S n#281)).
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#205 P#206).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#287 P#288).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#213 P#214).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#295 P#296).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#220 B#221).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#302 B#303).
 
 Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#225).
+| box_intro (A : U) : (A) -> (box A#307).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -63,143 +66,335 @@ Definition cat :=
       end) :
     (string) -> (string) -> string).
 
-Definition stdin_rec :=
-  ((fix stdin_rec _ =>
-      !(b : bool),
-        match b with
-        | true => ?(_ : string), (stdin_rec) tt
-        | false => $
-        end) :
-    (unit) -> proto).
+Inductive le (n : nat) : (nat) -> U :=
+| le_n (n : nat) : (le n#329 n#329)
+| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#330 (S m#331)).
 
-Definition stdin_t := (((stdin_rec) tt) : proto).
+Definition lt := ((fun m n => (le (S m) n)) : (nat) -> (nat) -> U).
 
-Definition readline :=
-  ((fun ch => let ch := (send ch) true in recv ch) :
-    (channel stdin_t) -> (sig string fun _ => channel stdin_t)).
+Inductive eq (A : U) (x : A) : (A) -> U :=
+| refl (A : U) (x : A) : (eq A#341 x#342 x#342).
 
-Definition close_in :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stdin_t) -> unit).
+Definition eq_trans :=
+  ((fun A x y z e1 e2 =>
+      match e2 in (eq _ _ y) return (eq A x y) with
+      | refl => e1
+      end) :
+    forall (A : U),
+      forall (x : A),
+        forall (y : A),
+          forall (z : A), ((eq A x y)) -> ((eq A y z)) -> (eq A x z)).
 
-Definition stdout_rec :=
-  ((fix stdout_rec _ =>
-      !(b : bool),
-        match b with
-        | true => !(_ : string), (stdout_rec) tt
-        | false => $
-        end) :
-    (unit) -> proto).
+Definition eq_sym :=
+  ((fun A x y e =>
+      match e in (eq _ _ y) return (eq A y x) with
+      | refl => refl
+      end) :
+    forall (A : U),
+      forall (x : A), forall (y : A), ((eq A x y)) -> (eq A y x)).
 
-Definition stdout_t := (((stdout_rec) tt) : proto).
+Definition u_ind :=
+  ((fun A x y P e f =>
+      match e in (eq _ _ y) return (P) y with
+      | refl => f
+      end) :
+    forall (A : U),
+      forall (x : A),
+        forall (y : A),
+          forall (P : (A) -> U), ((eq A x y)) -> ((P) x) -> (P) y).
 
-Definition printline :=
-  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
-    (channel stdout_t) -> (string) -o channel stdout_t).
+Definition l_ind :=
+  ((fun A x y P e f =>
+      match e in (eq _ _ y) return (P) y with
+      | refl => f
+      end) :
+    forall (A : U),
+      forall (x : A),
+        forall (y : A),
+          forall (P : (A) -> L), ((eq A x y)) -> ((P) x) -> (P) y).
 
-Definition close_out :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stdout_t) -> unit).
+Axiom unsafeC : forall (A : L), (A) -> unit.
 
-Definition stderr_rec :=
-  ((fix stderr_rec _ =>
-      !(b : bool),
-        match b with
-        | true => !(_ : string), (stderr_rec) tt
-        | false => $
-        end) :
-    (unit) -> proto).
+Axiom unsafeP : forall (A : L), A.
 
-Definition stderr_t := (((stderr_rec) tt) : proto).
+Definition Loc := ((nat) : U).
 
-Definition printerr :=
-  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
-    (channel stderr_t) -> (string) -o channel stderr_t).
+Axiom PtsTo : (Loc) -> (U) -> L.
 
-Definition close_err :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stderr_t) -> unit).
+Definition Ptr := ((fun A => (sig Loc fun l => ((PtsTo) l) A)) : (U) -> L).
 
-Definition IO_t := (((tnsr channel stdin_t channel stdout_t)) : L).
+Axiom New : forall (A : U), (A) -> (Ptr) A.
 
-Definition IO := ((fun A => (IO_t) -o (sig A fun _ => IO_t)) : (U) -> L).
+Axiom Free : forall (A : U), ((Ptr) A) -> unit.
 
-Definition read :=
-  ((fun _ =>
-      lin x =>
-        match x with
-        | (tnsr_intro in_ch out_ch) =>
-          let in_ch := (send in_ch) true in
-          match recv in_ch with
-          | (sig_intro s in_ch) => (sig_intro s (tnsr_intro in_ch out_ch))
-          end
-        end) :
-    (unit) -> (IO) string).
+Axiom Get :
+  forall (A : U),
+    forall (l : Loc), (((PtsTo) l) A) -> (sig A fun _ => ((PtsTo) l) A).
 
-Definition print :=
-  ((fun s =>
-      lin x =>
-        match x with
-        | (tnsr_intro in_ch out_ch) =>
-          let out_ch := (send out_ch) true in
-          let out_ch := (send out_ch) s in
-          (sig_intro tt (tnsr_intro in_ch out_ch))
-        end) :
-    (string) -> (IO) unit).
+Axiom Set :
+  forall (A : U),
+    forall (B : U), (B) -> forall (l : Loc), (((PtsTo) l) A) -> ((PtsTo) l) B.
 
-Definition ret :=
-  ((fun A m => lin ch => (sig_intro m ch)) : forall (A : U), (A) -> (IO) A).
+Inductive ArrVec (A : U) (l : Loc) : (nat) -> L :=
+| Nil (A : U) (l : Loc) : (ArrVec A#438 l#439 O)
+| Cons (A : U)
+         (l : Loc)
+           : forall (n : nat),
+               (((PtsTo) ((addn) l) n) A) ->
+                 ((ArrVec A l n)) -> (ArrVec A#440 l#441 (S n#442)).
 
-Definition bind :=
-  ((fun A B m =>
-      lin f ch => match (m) ch with
-                  | (sig_intro a ch) => ((f) a) ch
-                  end) :
-    forall (A : U), forall (B : U), ((IO) A) -> ((A) -o (IO) B) -o (IO) B).
+Definition Array :=
+  ((fun A n => (sig Loc fun l => (ArrVec A l n))) : (U) -> (nat) -> L).
 
-Definition run :=
-  ((fun A ch =>
-      lin m =>
-        match (m) ch with
-        | (sig_intro a ch) =>
-          match ch with
-          | (tnsr_intro in_ch out_ch) =>
-            match (close_out) out_ch with
-            | tt => match (close_in) in_ch with
-                    | tt => (box_intro a)
-                    end
-            end
-          end
-        end) :
-    forall (A : U), (IO_t) -> ((IO) A) -o (box A)).
-
-Import stdin : stdin_t.
-
-Import stdout : stdout_t.
-
-Definition Main :=
-  match (((run) ?5) (tnsr_intro stdin stdout))
-          ((((bind) ?6) ?7) (print) "What is your name?\n")
-            lin x =>
-              match x with
-              | tt =>
-                ((((bind) ?8) ?9) (read) tt)
-                  lin s =>
-                    ((((bind) ?10) ?11)
-                       (print) ((cat) ((cat) "Hello, ") s) "\n")
-                      lin x => match x with
-                               | tt => ((ret) ?12) tt
-                               end
+Definition nth :=
+  ((fix nth A l m n pf v =>
+      (match pf in (le _ n) return
+         ((ArrVec A l n)) ->
+           (tnsr
+             ((PtsTo) ((addn) l) m) A
+               (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))
+       with
+       | le_n =>
+         fun v =>
+           (match v in (ArrVec _ _ n) return
+              match n with
+              | O => base
+              | (S n0) =>
+                ((eq
+                   (((((((((((((((((((((((((((?8) _) _main_) addn) cat) lt)
+                                          eq_trans)
+                                         eq_sym)
+                                        u_ind)
+                                       l_ind)
+                                      unsafeC)
+                                     unsafeP)
+                                    Loc)
+                                   PtsTo)
+                                  Ptr)
+                                 New)
+                                Free)
+                               Get)
+                              Set)
+                             Array)
+                            nth)
+                           A)
+                          l)
+                         m)
+                        n)
+                       pf)
+                      v)
+                     n0 m n0)) -o
+                  (tnsr
+                    ((PtsTo) ((addn) l) n0) A
+                      (((PtsTo) ((addn) l) n0) A) -o (ArrVec A l n))
               end
-  with
-  | (box_intro _) => _main_
-  end.
+            with
+            | Nil => ll
+            | (Cons n c v) => lin _ => (tnsr_intro c lin c => (Cons n c v))
+            end) refl
+       | (le_S _ pf) =>
+         fun v =>
+           (match v in (ArrVec _ _ n) return
+              match n with
+              | O => base
+              | (S n0) =>
+                (((lt) m) n0) -o
+                  (tnsr
+                    ((PtsTo) ((addn) l) m) A
+                      (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))
+              end
+            with
+            | Nil => ll
+            | (Cons n c0 v0) =>
+              lin pf =>
+                match ((((((nth) A) l) m) n) pf) v0 with
+                | (tnsr_intro c f) =>
+                  (tnsr_intro c lin c => (Cons n c0 (f) c))
+                end
+            end) pf
+       end) v) :
+    forall (A : U),
+      forall (l : nat),
+        forall (m : nat),
+          forall (n : nat),
+            (((lt) m) n) ->
+              ((ArrVec A l n)) ->
+                (tnsr
+                  ((PtsTo) ((addn) l) m) A
+                    (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))).
+
+Definition index :=
+  ((fun A m n pf a =>
+      match a with
+      | (sig_intro l v) =>
+        match ((((((nth)
+                     ((((((((((((((((((((((((((?9) _main_) addn) cat) lt)
+                                            eq_trans)
+                                           eq_sym)
+                                          u_ind)
+                                         l_ind)
+                                        unsafeC)
+                                       unsafeP)
+                                      Loc)
+                                     PtsTo)
+                                    Ptr)
+                                   New)
+                                  Free)
+                                 Get)
+                                Set)
+                               Array)
+                              nth)
+                             A)
+                            m)
+                           n)
+                          pf)
+                         a)
+                        l)
+                       v)
+                    ((((((((((((((((((((((((((?10) _main_) addn) cat) lt)
+                                           eq_trans)
+                                          eq_sym)
+                                         u_ind)
+                                        l_ind)
+                                       unsafeC)
+                                      unsafeP)
+                                     Loc)
+                                    PtsTo)
+                                   Ptr)
+                                  New)
+                                 Free)
+                                Get)
+                               Set)
+                              Array)
+                             nth)
+                            A)
+                           m)
+                          n)
+                         pf)
+                        a)
+                       l)
+                      v)
+                   ((((((((((((((((((((((((((?11) _main_) addn) cat) lt)
+                                          eq_trans)
+                                         eq_sym)
+                                        u_ind)
+                                       l_ind)
+                                      unsafeC)
+                                     unsafeP)
+                                    Loc)
+                                   PtsTo)
+                                  Ptr)
+                                 New)
+                                Free)
+                               Get)
+                              Set)
+                             Array)
+                            nth)
+                           A)
+                          m)
+                         n)
+                        pf)
+                       a)
+                      l)
+                     v)
+                  ((((((((((((((((((((((((((?12) _main_) addn) cat) lt)
+                                         eq_trans)
+                                        eq_sym)
+                                       u_ind)
+                                      l_ind)
+                                     unsafeC)
+                                    unsafeP)
+                                   Loc)
+                                  PtsTo)
+                                 Ptr)
+                                New)
+                               Free)
+                              Get)
+                             Set)
+                            Array)
+                           nth)
+                          A)
+                         m)
+                        n)
+                       pf)
+                      a)
+                     l)
+                    v)
+                 pf)
+                v
+        with
+        | (tnsr_intro c f) =>
+          match (((Get)
+                    ((((((((((((((((((((((((((((?13) _main_) addn) cat) lt)
+                                             eq_trans)
+                                            eq_sym)
+                                           u_ind)
+                                          l_ind)
+                                         unsafeC)
+                                        unsafeP)
+                                       Loc)
+                                      PtsTo)
+                                     Ptr)
+                                    New)
+                                   Free)
+                                  Get)
+                                 Set)
+                                Array)
+                               nth)
+                              A)
+                             m)
+                            n)
+                           pf)
+                          a)
+                         l)
+                        v)
+                       c)
+                      f)
+                   ((addn) l) m)
+                  c
+          with
+          | (sig_intro x c) => (sig_intro x (sig_intro l (f) c))
+          end
+        end
+      end) :
+    forall (A : U),
+      forall (m : nat),
+        forall (n : nat),
+          (((lt) m) n) -> (((Array) A) n) -> (sig A fun _ => ((Array) A) n)).
+
+Definition Just0 :=
+  (((ex
+      nat
+        fun x =>
+          (eq
+            (((((((((((((((((((((?14) _main_) addn) cat) lt) eq_trans) eq_sym)
+                            u_ind)
+                           l_ind)
+                          unsafeC)
+                         unsafeP)
+                        Loc)
+                       PtsTo)
+                      Ptr)
+                     New)
+                    Free)
+                   Get)
+                  Set)
+                 Array)
+                nth)
+               index)
+              x x O))) :
+    U).
+
+Definition Main := tt.
 
 elab ok
 --------------------------------------------------------------------------------
 Inductive unit : U :=
 | tt : unit.
 
+Inductive base : U :=
+| ll : base.
+
 Inductive bool : U :=
 | true : bool
 | false : bool.
@@ -216,31 +411,32 @@ Definition addn :=
     (nat) -> (nat) -> nat).
 
 Inductive option (A : U) : U :=
-| None (A : U) : (option A#2467)
-| Some (A : U) : (A) -> (option A#2468).
+| None (A : U) : (option A#12087)
+| Some (A : U) : (A) -> (option A#12088).
 
 Inductive list (A : U) : U :=
-| nil (A : U) : (list A#2471)
-| cons (A : U) : (A) -> ((list A)) -> (list A#2472).
+| nil (A : U) : (list A#12091)
+| cons (A : U) : (A) -> ((list A)) -> (list A#12092).
 
 Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#2477 O)
+| vnil (A : U) : (vec A#12097 O)
 | vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2478 (S n#2479)).
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#12098 (S n#12099)).
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2485 P#2486).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#12105 P#12106).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2493 P#2494).
+              (P : (A) -> L)
+                : forall (x : A), ((P) x) -> (sig A#12113 P#12114).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2500 B#2501).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#12120 B#12121).
 
 Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#2505).
+| box_intro (A : U) : (A) -> (box A#12125).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -260,137 +456,159 @@ Definition cat :=
       end) :
     (string) -> (string) -> string).
 
-Definition stdin_rec :=
-  ((fix stdin_rec _ =>
-      !(b : bool),
-        match b with
-        | true => ?(_ : string), (stdin_rec) tt
-        | false => $
-        end) :
-    (unit) -> proto).
+Inductive le (n : nat) : (nat) -> U :=
+| le_n (n : nat) : (le n#12147 n#12147)
+| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#12148 (S m#12149)).
 
-Definition stdin_t := (((stdin_rec) tt) : proto).
+Definition lt := ((fun m n => (le (S m) n)) : (nat) -> (nat) -> U).
 
-Definition readline :=
-  ((fun ch => let ch := (send ch) true in recv ch) :
-    (channel stdin_t) -> (sig string fun _ => channel stdin_t)).
+Inductive eq (A : U) (x : A) : (A) -> U :=
+| refl (A : U) (x : A) : (eq A#12159 x#12160 x#12160).
 
-Definition close_in :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stdin_t) -> unit).
+Definition eq_trans :=
+  ((fun A x y z e1 e2 =>
+      match e2 in (eq _ _ y) return (eq A x y) with
+      | refl => e1
+      end) :
+    forall (A : U),
+      forall (x : A),
+        forall (y : A),
+          forall (z : A), ((eq A x y)) -> ((eq A y z)) -> (eq A x z)).
 
-Definition stdout_rec :=
-  ((fix stdout_rec _ =>
-      !(b : bool),
-        match b with
-        | true => !(_ : string), (stdout_rec) tt
-        | false => $
-        end) :
-    (unit) -> proto).
+Definition eq_sym :=
+  ((fun A x y e =>
+      match e in (eq _ _ y) return (eq A y x) with
+      | refl => refl
+      end) :
+    forall (A : U),
+      forall (x : A), forall (y : A), ((eq A x y)) -> (eq A y x)).
 
-Definition stdout_t := (((stdout_rec) tt) : proto).
+Definition u_ind :=
+  ((fun A x y P e f =>
+      match e in (eq _ _ y) return (P) y with
+      | refl => f
+      end) :
+    forall (A : U),
+      forall (x : A),
+        forall (y : A),
+          forall (P : (A) -> U), ((eq A x y)) -> ((P) x) -> (P) y).
 
-Definition printline :=
-  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
-    (channel stdout_t) -> (string) -o channel stdout_t).
+Definition l_ind :=
+  ((fun A x y P e f =>
+      match e in (eq _ _ y) return (P) y with
+      | refl => f
+      end) :
+    forall (A : U),
+      forall (x : A),
+        forall (y : A),
+          forall (P : (A) -> L), ((eq A x y)) -> ((P) x) -> (P) y).
 
-Definition close_out :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stdout_t) -> unit).
+Axiom unsafeC : forall (A : L), (A) -> unit.
 
-Definition stderr_rec :=
-  ((fix stderr_rec _ =>
-      !(b : bool),
-        match b with
-        | true => !(_ : string), (stderr_rec) tt
-        | false => $
-        end) :
-    (unit) -> proto).
+Axiom unsafeP : forall (A : L), A.
 
-Definition stderr_t := (((stderr_rec) tt) : proto).
+Definition Loc := ((nat) : U).
 
-Definition printerr :=
-  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
-    (channel stderr_t) -> (string) -o channel stderr_t).
+Axiom PtsTo : (Loc) -> (U) -> L.
 
-Definition close_err :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stderr_t) -> unit).
+Definition Ptr := ((fun A => (sig Loc fun l => ((PtsTo) l) A)) : (U) -> L).
 
-Definition IO_t := (((tnsr channel stdin_t channel stdout_t)) : L).
+Axiom New : forall (A : U), (A) -> (Ptr) A.
 
-Definition IO := ((fun A => (IO_t) -o (sig A fun _ => IO_t)) : (U) -> L).
+Axiom Free : forall (A : U), ((Ptr) A) -> unit.
 
-Definition read :=
-  ((fun _ =>
-      lin x =>
-        match x with
-        | (tnsr_intro in_ch out_ch) =>
-          let in_ch := (send in_ch) true in
-          match recv in_ch with
-          | (sig_intro s in_ch) => (sig_intro s (tnsr_intro in_ch out_ch))
-          end
-        end) :
-    (unit) -> (IO) string).
+Axiom Get :
+  forall (A : U),
+    forall (l : Loc), (((PtsTo) l) A) -> (sig A fun _ => ((PtsTo) l) A).
 
-Definition print :=
-  ((fun s =>
-      lin x =>
-        match x with
-        | (tnsr_intro in_ch out_ch) =>
-          let out_ch := (send out_ch) true in
-          let out_ch := (send out_ch) s in
-          (sig_intro tt (tnsr_intro in_ch out_ch))
-        end) :
-    (string) -> (IO) unit).
+Axiom Set :
+  forall (A : U),
+    forall (B : U), (B) -> forall (l : Loc), (((PtsTo) l) A) -> ((PtsTo) l) B.
 
-Definition ret :=
-  ((fun A m => lin ch => (sig_intro m ch)) : forall (A : U), (A) -> (IO) A).
+Inductive ArrVec (A : U) (l : Loc) : (nat) -> L :=
+| Nil (A : U) (l : Loc) : (ArrVec A#12256 l#12257 O)
+| Cons (A : U)
+         (l : Loc)
+           : forall (n : nat),
+               (((PtsTo) ((addn) l) n) A) ->
+                 ((ArrVec A l n)) -> (ArrVec A#12258 l#12259 (S n#12260)).
 
-Definition bind :=
-  ((fun A B m =>
-      lin f ch => match (m) ch with
-                  | (sig_intro a ch) => ((f) a) ch
-                  end) :
-    forall (A : U), forall (B : U), ((IO) A) -> ((A) -o (IO) B) -o (IO) B).
+Definition Array :=
+  ((fun A n => (sig Loc fun l => (ArrVec A l n))) : (U) -> (nat) -> L).
 
-Definition run :=
-  ((fun A ch =>
-      lin m =>
-        match (m) ch with
-        | (sig_intro a ch) =>
-          match ch with
-          | (tnsr_intro in_ch out_ch) =>
-            match (close_out) out_ch with
-            | tt => match (close_in) in_ch with
-                    | tt => (box_intro a)
-                    end
-            end
-          end
-        end) :
-    forall (A : U), (IO_t) -> ((IO) A) -o (box A)).
-
-Import stdin : stdin_t.
-
-Import stdout : stdout_t.
-
-Definition Main :=
-  match (((run) unit) (tnsr_intro stdin stdout))
-          ((((bind) unit) unit) (print) "What is your name?\n")
-            lin x =>
-              match x with
-              | tt =>
-                ((((bind) string) unit) (read) tt)
-                  lin s =>
-                    ((((bind) unit) unit)
-                       (print) ((cat) ((cat) "Hello, ") s) "\n")
-                      lin x => match x with
-                               | tt => ((ret) unit) tt
-                               end
+Definition nth :=
+  ((fix nth A l m n pf v =>
+      (match pf in (le _ n) return
+         ((ArrVec A l n)) ->
+           (tnsr
+             ((PtsTo) ((addn) l) m) A
+               (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))
+       with
+       | le_n =>
+         fun v =>
+           (match v in (ArrVec _ _ n) return
+              match n with
+              | O => base
+              | (S n0) =>
+                ((eq nat m n0)) -o
+                  (tnsr
+                    ((PtsTo) ((addn) l) n0) A
+                      (((PtsTo) ((addn) l) n0) A) -o (ArrVec A l n))
               end
-  with
-  | (box_intro _) => _main_
-  end.
+            with
+            | Nil => ll
+            | (Cons n c v) => lin _ => (tnsr_intro c lin c => (Cons n c v))
+            end) refl
+       | (le_S _ pf) =>
+         fun v =>
+           (match v in (ArrVec _ _ n) return
+              match n with
+              | O => base
+              | (S n0) =>
+                (((lt) m) n0) -o
+                  (tnsr
+                    ((PtsTo) ((addn) l) m) A
+                      (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))
+              end
+            with
+            | Nil => ll
+            | (Cons n c0 v0) =>
+              lin pf =>
+                match ((((((nth) A) l) m) n) pf) v0 with
+                | (tnsr_intro c f) =>
+                  (tnsr_intro c lin c => (Cons n c0 (f) c))
+                end
+            end) pf
+       end) v) :
+    forall (A : U),
+      forall (l : nat),
+        forall (m : nat),
+          forall (n : nat),
+            (((lt) m) n) ->
+              ((ArrVec A l n)) ->
+                (tnsr
+                  ((PtsTo) ((addn) l) m) A
+                    (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))).
+
+Definition index :=
+  ((fun A m n pf a =>
+      match a with
+      | (sig_intro l v) =>
+        match ((((((nth) A) l) m) n) pf) v with
+        | (tnsr_intro c f) =>
+          match (((Get) A) ((addn) l) m) c with
+          | (sig_intro x c) => (sig_intro x (sig_intro l (f) c))
+          end
+        end
+      end) :
+    forall (A : U),
+      forall (m : nat),
+        forall (n : nat),
+          (((lt) m) n) -> (((Array) A) n) -> (sig A fun _ => ((Array) A) n)).
+
+Definition Just0 := (((ex nat fun x => (eq nat x O))) : U).
+
+Definition Main := tt.
 
 --------------------------------------------------------------------------------
 tcheck ok

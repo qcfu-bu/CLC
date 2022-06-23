@@ -91,24 +91,6 @@ let rec fv ctx t =
   | Fix m ->
     let x, um = unbind m in
     fv (VSet.add x ctx) um
-  | Main -> VSet.empty
-  | Proto -> VSet.empty
-  | End -> VSet.empty
-  | Act (_, a, b) ->
-    let x, ub = unbind b in
-    let fv1 = fv ctx a in
-    let fv2 = fv (VSet.add x ctx) ub in
-    VSet.union fv1 fv2
-  | Ch (_, m) -> fv ctx m
-  | Fork (a, m, n) ->
-    let x, un = unbind n in
-    let fv1 = fv ctx a in
-    let fv2 = fv ctx m in
-    let fv3 = fv (VSet.add x ctx) un in
-    VSet.union (VSet.union fv1 fv2) fv3
-  | Send m -> fv ctx m
-  | Recv m -> fv ctx m
-  | Close m -> fv ctx m
   | Axiom (_, m) -> fv ctx m
 
 let rec occurs x m =
@@ -149,19 +131,6 @@ let rec occurs x m =
   | Fix m ->
     let _, um = unbind m in
     occurs x um
-  | Main -> false
-  | Proto -> false
-  | End -> false
-  | Act (_, a, b) ->
-    let _, ub = unbind b in
-    occurs x a || occurs x ub
-  | Ch (_, m) -> occurs x m
-  | Fork (a, m, n) ->
-    let _, un = unbind n in
-    occurs x a || occurs x m || occurs x un
-  | Send m -> occurs x m
-  | Recv m -> occurs x m
-  | Close m -> occurs x m
   | Axiom (_, m) -> occurs x m
 
 let rec simpl env eqn =
@@ -174,16 +143,16 @@ let rec simpl env eqn =
     let h1, sp1 = spine m1 in
     let h2, sp2 = spine m2 in
     match (h1, h2) with
+    | Var x1, Var x2 ->
+      if eq_vars x1 x2 then
+        List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] sp1 sp2
+      else
+        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Meta _, _ -> [ eqn ]
     | _, Meta _ -> [ (m2, m1) ]
     | Knd s1, Knd s2 ->
       if s1 = s2 then
         []
-      else
-        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
-    | Var x1, Var x2 ->
-      if eq_vars x1 x2 then
-        List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] sp1 sp2
       else
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Var _, _ ->
@@ -249,31 +218,6 @@ let rec simpl env eqn =
     | Fix m1, Fix m2 ->
       let _, um1, um2 = unbind2 m1 m2 in
       simpl env (um1, um2)
-    | Main, Main -> []
-    | Proto, Proto -> []
-    | End, End -> []
-    | Act (r1, a1, b1), Act (r2, a2, b2) ->
-      if r1 = r2 then
-        let _, ub1, ub2 = unbind2 b1 b2 in
-        let eqn1 = simpl env (a1, a2) in
-        let eqn2 = simpl env (ub1, ub2) in
-        eqn1 @ eqn2
-      else
-        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
-    | Ch (r1, m1), Ch (r2, m2) ->
-      if r1 = r2 then
-        simpl env (m1, m2)
-      else
-        failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
-    | Fork (a1, m1, n1), Fork (a2, m2, n2) ->
-      let _, un1, un2 = unbind2 n1 n2 in
-      let eqn1 = simpl env (a1, a2) in
-      let eqn2 = simpl env (m1, m2) in
-      let eqn3 = simpl env (un1, un2) in
-      eqn1 @ eqn2 @ eqn3
-    | Send m1, Send m2 -> simpl env (m1, m2)
-    | Recv m1, Recv m2 -> simpl env (m1, m2)
-    | Close m1, Close m2 -> simpl env (m1, m2)
     | Axiom (id1, m1), Axiom (id2, m2) ->
       if Id.equal id1 id2 then
         let eqn1 = simpl env (m1, m2) in
@@ -424,26 +368,6 @@ module UnifyTm = struct
         let um = resolve mmap um in
         let m = unbox (bind_var x (lift um)) in
         Fix m
-      | Main -> m
-      | Proto -> m
-      | End -> m
-      | Act (r, a, b) ->
-        let x, ub = unbind b in
-        let a = resolve mmap a in
-        let ub = resolve mmap ub in
-        let b = unbox (bind_var x (lift ub)) in
-        Act (r, a, b)
-      | Ch (r, m) -> Ch (r, resolve mmap m)
-      | Fork (a, m, n) ->
-        let x, un = unbind n in
-        let a = resolve mmap a in
-        let m = resolve mmap m in
-        let un = resolve mmap un in
-        let n = unbox (bind_var x (lift un)) in
-        Fork (a, m, n)
-      | Send m -> Send (resolve mmap m)
-      | Recv m -> Recv (resolve mmap m)
-      | Close m -> Close (resolve mmap m)
       | Axiom (id, m) -> Axiom (id, resolve mmap m)
       | _ -> failwith (asprintf "resolve failure(%a)" Tm.pp m))
 end
@@ -468,12 +392,6 @@ module UnifyTp = struct
       let ind = resolve_ind mmap ind in
       let tp = resolve mmap tp in
       _Induct ind tp
-    | Import (id, m, tp) ->
-      let x, utp = unbind tp in
-      let m = UnifyTm.resolve mmap m in
-      let utp = resolve mmap utp in
-      let tp = bind_var x utp in
-      _Import id (lift m) tp
 
   and resolve_ind mmap (Ind (id, a, cs)) =
     let a = resolve_pscope mmap a in
