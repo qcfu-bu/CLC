@@ -1,6 +1,6 @@
 Axiom ptsto : forall (A : U), nat -> A -> L.
 
-Axiom new  : (A : U) -> (x : A) -> [l : nat | ptsto _ l x].
+Axiom new  : forall (A : U) (x : A), [l : nat | ptsto _ l x].
 Axiom free : (A : U) -> (l : nat) -> (x : A) -> ptsto _ l x -> unit.
 Axiom get  : (A : U) -> (l : nat) -> (x : A) -> ptsto _ l x -> 
   [(y : A | eq _ x y) | ptsto _ l x].
