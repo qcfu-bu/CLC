@@ -24,7 +24,7 @@ let pp_mmap fmt mmap =
 
 let pp_eqns fmt eqns =
   let aux fmt eqns =
-    List.iter (fun (m1, m2) -> fprintf fmt "%a ?= %a" Tm.pp m1 Tm.pp m2) eqns
+    List.iter (fun (_, m1, m2) -> fprintf fmt "%a ?= %a" Tm.pp m1 Tm.pp m2) eqns
   in
   fprintf fmt "eqns(@.%a)@." aux eqns
 
@@ -137,7 +137,9 @@ module ElabTm = struct
             match ms with
             | [] -> failwith "elab motive error"
             | m :: ms ->
-              let eqns = List.fold_left (fun acc n -> (m, n) :: acc) eqns ms in
+              let eqns =
+                List.fold_left (fun acc n -> (env, m, n) :: acc) eqns ms
+              in
               (m, eqns, mmap))
           | U, Mot1 mt ->
             let a = subst mt m in
@@ -382,7 +384,7 @@ module ElabTm = struct
     if Tm.equal env a b then
       (eqns, mmap)
     else
-      ((a, b) :: eqns, mmap)
+      ((env, a, b) :: eqns, mmap)
 
   and check_cover cover ictx env eqns mmap a =
     match cover with
