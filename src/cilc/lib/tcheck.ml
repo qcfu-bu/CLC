@@ -57,10 +57,10 @@ module CheckTm = struct
         match t with
         | U ->
           if VMap.is_empty ctx2 then
-            (subst b n, merge ctx1 ctx2)
+            (subst b (Ann (n, a)), merge ctx1 ctx2)
           else
             failwith (asprintf "impure arg(%a)" Tm.pp n)
-        | L -> (subst b n, merge ctx1 ctx2))
+        | L -> (subst b (Ann (n, a)), merge ctx1 ctx2))
       | _ -> failwith (asprintf "infer app(%a)" Tm.pp m))
     | Let (m, n) ->
       let a, ctx1 = infer vctx ictx env m in

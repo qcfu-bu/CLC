@@ -1,0 +1,39 @@
+Inductive proto : U :=
+| SEND : forall (A : U), (A -> proto) -> proto
+| RECV : forall (A : U), (A -> proto) -> proto
+| END : proto.
+
+Axiom channel : proto -> L.
+Axiom open : forall (p : proto), channel p.
+Axiom close : channel END -> unit.
+Axiom send : 
+  forall (A : U) (p : A -> proto), 
+    channel (SEND A p) -> linear (m : A), channel (p m).
+Axiom recv :
+  forall (A : U) (p : A -> proto),
+    channel (RECV A p) -> sig A (fun m => channel (p m)).
+
+Definition Main :=
+  let p := 
+    RECV bool 
+      (fun b =>
+        match b with
+        | true => SEND nat (fun _ => END)
+        | false => END
+        end)
+  in
+  let ch := open p in
+  let [msg, ch] := recv _ _ ch in
+  match msg as b return
+    channel
+      match b with
+      | true => SEND nat (fun _ => END)
+      | false => END
+      end -o unit
+  with
+  | true => lin ch =>
+    let ch := send _ _ ch 2 in
+    close ch
+  | false => lin ch =>
+    close ch
+  end ch.

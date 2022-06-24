@@ -258,7 +258,7 @@ module Tm = struct
       match s with
       | U -> fprintf fmt "@[fun %a %a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um
       | L -> fprintf fmt "@[lin %a %a =>@;<1 2>%a@]" pp_v x pp_vs xs pp um)
-    | App (m, n) -> fprintf fmt "@[(%a)@;<1 2>%a@]" pp m pp n
+    | App (m, n) -> fprintf fmt "@[((%a)@;<1 2>%a)@]" pp m pp n
     | Let (m, n) ->
       let x, un = unbind n in
       fprintf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" pp_v x pp m pp
