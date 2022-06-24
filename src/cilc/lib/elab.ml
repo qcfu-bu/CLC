@@ -97,7 +97,7 @@ module ElabTm = struct
       | Let (m, n) ->
         let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
-        let mmap = unify env mmap eqns in
+        let mmap = unify mmap eqns in
         let m = UnifyTm.resolve mmap m in
         let a = UnifyTm.resolve mmap a in
         let b, eqns, mmap =
@@ -121,7 +121,7 @@ module ElabTm = struct
       | Match (m, mot, cls) -> (
         let a, eqns, mmap = elab vctx ictx env eqns mmap m in
         let s, eqns, mmap = elab_sort vctx ictx env eqns mmap a in
-        let mmap = unify env mmap eqns in
+        let mmap = unify mmap eqns in
         let a = UnifyTm.resolve mmap a in
         let a = zdnf env a in
         match a with
@@ -134,7 +134,9 @@ module ElabTm = struct
             match ms with
             | [] -> failwith "elab motive error"
             | m :: ms ->
-              let eqns = List.fold_left (fun acc n -> (m, n) :: acc) eqns ms in
+              let eqns =
+                List.fold_left (fun acc n -> (env, m, n) :: acc) eqns ms
+              in
               (m, eqns, mmap))
           | U, Mot1 mt ->
             let a = subst mt m in
@@ -296,7 +298,7 @@ module ElabTm = struct
       match mot with
       | Mot0 -> (
         let b, eqns, mmap = elab vctx ictx env eqns mmap m in
-        let mmap = unify env mmap eqns in
+        let mmap = unify mmap eqns in
         let b = UnifyTm.resolve mmap b in
         match zdnf env b with
         | Ind (id, ms) ->
@@ -317,7 +319,7 @@ module ElabTm = struct
     if Tm.equal env a b then
       (eqns, mmap)
     else
-      ((a, b) :: eqns, mmap)
+      ((env, a, b) :: eqns, mmap)
 
   and check_cover cover ictx env eqns mmap a =
     match cover with
@@ -351,12 +353,12 @@ module ElabTp = struct
       let eqns, mmap =
         ElabTm.check vctx ictx env eqns mmap m (Tm.Ind (Prelude.unit_id, []))
       in
-      let mmap = unify env mmap eqns in
+      let mmap = unify mmap eqns in
       (ictx, mmap)
     | Define (m, tp) ->
       let a, eqns, mmap = ElabTm.elab vctx ictx env eqns mmap m in
       let s, eqns, mmap = ElabTm.elab_sort vctx ictx env eqns mmap a in
-      let mmap = unify env mmap eqns in
+      let mmap = unify mmap eqns in
       let m = UnifyTm.resolve mmap m in
       let a = UnifyTm.resolve mmap a in
       if s = U then
@@ -367,7 +369,7 @@ module ElabTp = struct
         elab (VMap.add x (a, s) vctx) ictx env eqns mmap utp
     | Induct (Ind (id, a, cs), tp) ->
       let eqns, mmap = check_pscope vctx ictx env eqns mmap a U in
-      let mmap = unify env mmap eqns in
+      let mmap = unify mmap eqns in
       let a = unbox (UnifyTp.resolve_pscope mmap a) in
       let ictx = IMap.add id (Ind (id, a, [])) ictx in
       let eqns, mmap =
@@ -378,7 +380,7 @@ module ElabTp = struct
             (eqns, mmap))
           (eqns, mmap) cs
       in
-      let mmap = unify env mmap eqns in
+      let mmap = unify mmap eqns in
       let cs = List.map (fun x -> unbox (UnifyTp.resolve_constr mmap x)) cs in
       let ictx = IMap.add id (Ind (id, a, cs)) ictx in
       elab vctx ictx env eqns mmap tp

@@ -133,8 +133,7 @@ let rec occurs x m =
     occurs x um
   | Axiom (_, m) -> occurs x m
 
-let rec simpl env eqn =
-  let m1, m2 = eqn in
+let rec simpl (env, m1, m2) =
   if equal env m1 m2 then
     []
   else
@@ -145,11 +144,11 @@ let rec simpl env eqn =
     match (h1, h2) with
     | Var x1, Var x2 ->
       if eq_vars x1 x2 then
-        List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] sp1 sp2
+        List.fold_left2 (fun acc m1 m2 -> acc @ simpl (env, m1, m2)) [] sp1 sp2
       else
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
-    | Meta _, _ -> [ eqn ]
-    | _, Meta _ -> [ (m2, m1) ]
+    | Meta _, _ -> [ (env, m1, m2) ]
+    | _, Meta _ -> [ (env, m2, m1) ]
     | Knd s1, Knd s2 ->
       if s1 = s2 then
         []
@@ -157,72 +156,74 @@ let rec simpl env eqn =
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Var _, _ ->
       let m1 = zdnf env m1 in
-      simpl env (m1, m2)
+      simpl (env, m1, m2)
     | _, Var _ ->
       let m2 = zdnf env m2 in
-      simpl env (m1, m2)
+      simpl (env, m2, m1)
     | Pi (s1, a1, b1), Pi (s2, a2, b2) ->
       if s1 = s2 then
         let _, ub1, ub2 = unbind2 b1 b2 in
-        let eqn1 = simpl env (a1, a2) in
-        let eqn2 = simpl env (ub1, ub2) in
+        let eqn1 = simpl (env, a1, a2) in
+        let eqn2 = simpl (env, ub1, ub2) in
         eqn1 @ eqn2
       else
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Lam (s1, m1), Lam (s2, m2) ->
       if s1 = s2 then
         let _, um1, um2 = unbind2 m1 m2 in
-        simpl env (um1, um2)
+        simpl (env, um1, um2)
       else
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Let (m1, n1), Let (m2, n2) ->
       let _, un1, un2 = unbind2 n1 n2 in
-      let eqn1 = simpl env (m1, m2) in
-      let eqn2 = simpl env (un1, un2) in
+      let eqn1 = simpl (env, m1, m2) in
+      let eqn2 = simpl (env, un1, un2) in
       eqn1 @ eqn2
     | Ind (id1, ms1), Ind (id2, ms2) ->
       if Id.equal id1 id2 then
-        List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] ms1 ms2
+        List.fold_left2 (fun acc m1 m2 -> acc @ simpl (env, m1, m2)) [] ms1 ms2
       else
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Constr (id1, ms1), Constr (id2, ms2) ->
       if Id.equal id1 id2 then
-        List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] ms1 ms2
+        List.fold_left2 (fun acc m1 m2 -> acc @ simpl (env, m1, m2)) [] ms1 ms2
       else
         failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
     | Match (m1, mot1, cls1), Match (m2, mot2, cls2) ->
-      let eqn1 = simpl env (m1, m2) in
+      let eqn1 = simpl (env, m1, m2) in
       let eqn2 =
         match (mot1, mot2) with
         | Mot0, Mot0 -> []
         | Mot1 mot1, Mot1 mot2 ->
           let _, umot1, umot2 = unbind2 mot1 mot2 in
-          simpl env (umot1, umot2)
+          simpl (env, umot1, umot2)
         | Mot2 mot1, Mot2 mot2 ->
           let _, umot1, umot2 = unbind_p2 mot1 mot2 in
-          simpl env (umot1, umot2)
+          simpl (env, umot1, umot2)
         | Mot3 mot1, Mot3 mot2 ->
           let _, mot1, mot2 = unbind2 mot1 mot2 in
           let _, umot1, umot2 = unbind_p2 mot1 mot2 in
-          simpl env (umot1, umot2)
+          simpl (env, umot1, umot2)
         | _ -> failwith (asprintf "simpl failure(%a, %a)" Tm.pp h1 Tm.pp h2)
       in
       let eqn3 =
         List.fold_left2
           (fun acc cl1 cl2 ->
             let _, ucl1, ucl2 = unbind_p2 cl1 cl2 in
-            acc @ simpl env (ucl1, ucl2))
+            acc @ simpl (env, ucl1, ucl2))
           [] cls1 cls2
       in
       eqn1 @ eqn2 @ eqn3
     | Fix m1, Fix m2 ->
       let _, um1, um2 = unbind2 m1 m2 in
-      simpl env (um1, um2)
+      simpl (env, um1, um2)
     | Axiom (id1, m1), Axiom (id2, m2) ->
       if Id.equal id1 id2 then
-        let eqn1 = simpl env (m1, m2) in
+        let eqn1 = simpl (env, m1, m2) in
         let eqn2 =
-          List.fold_left2 (fun acc m1 m2 -> acc @ simpl env (m1, m2)) [] sp1 sp2
+          List.fold_left2
+            (fun acc m1 m2 -> acc @ simpl (env, m1, m2))
+            [] sp1 sp2
         in
         eqn1 @ eqn2
       else
@@ -237,8 +238,7 @@ let strip sp =
       | _ -> mk "")
     sp
 
-let solve eqn =
-  let m1, m2 = eqn in
+let solve (_, m1, m2) =
   let m1 = whnf m1 in
   let m2 = whnf m2 in
   match (m1, m2) with
@@ -423,15 +423,16 @@ module UnifyTp = struct
       _TBind (lift a) b
 end
 
-let rec unify env mmap eqns =
-  match List.concat_map (simpl env) eqns with
+let rec unify mmap eqns =
+  match List.concat_map simpl eqns with
   | [] -> mmap
   | eqns ->
     let mmaps = List.map solve eqns in
     let mmap = List.fold_left (fun acc mmap -> union acc mmap) mmap mmaps in
     let eqns =
       List.map
-        (fun (m1, m2) -> (UnifyTm.resolve mmap m1, UnifyTm.resolve mmap m2))
+        (fun (env, m1, m2) ->
+          (env, UnifyTm.resolve mmap m1, UnifyTm.resolve mmap m2))
         eqns
     in
-    unify env mmap eqns
+    unify mmap eqns

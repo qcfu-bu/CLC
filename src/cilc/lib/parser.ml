@@ -35,13 +35,6 @@ module ParseTm = struct
       ; "return"
       ; "with"
       ; "end"
-      ; "main"
-      ; "proto"
-      ; "channel"
-      ; "fork"
-      ; "send"
-      ; "recv"
-      ; "close"
       ; "do"
       ]
 

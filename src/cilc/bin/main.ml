@@ -8,7 +8,6 @@ open Parser
 open Elab
 open Tcheck
 open Pprint
-open Eval
 
 let _ =
   if Array.length Sys.argv < 1 then
@@ -40,5 +39,4 @@ let _ =
       Printf.fprintf log "----------------------------------------\n"
     in
     let _ = Printf.fprintf log "tcheck ok" in
-    let _ = EvalTp.eval tp in
     ()

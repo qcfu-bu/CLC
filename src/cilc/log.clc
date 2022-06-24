@@ -1,0 +1,340 @@
+desugar ok
+--------------------------------------------------------------------------------
+Inductive unit : U :=
+| tt : unit.
+
+Inductive base : U :=
+| ll : base.
+
+Inductive bool : U :=
+| true : bool
+| false : bool.
+
+Inductive nat : U :=
+| O : nat
+| S : (nat) -> nat.
+
+Definition addn#184 :=
+  ((fix addn#185 m#186 n#187 =>
+      match m#186 with
+      | O => n#187
+      | (S m#188) => (S ((addn#185) m#188) n#187)
+      end) :
+    (nat) -> (nat) -> nat).
+
+Inductive option (A#191 : U) : U :=
+| None (A#192 : U) : (option A#192)
+| Some (A#193 : U) : (A#193) -> (option A#193).
+
+Inductive list (A#195 : U) : U :=
+| nil (A#196 : U) : (list A#196)
+| cons (A#197 : U) : (A#197) -> ((list A#197)) -> (list A#197).
+
+Inductive vec (A#200 : U) : (nat) -> U :=
+| vnil (A#202 : U) : (vec A#202 O)
+| vcons (A#203 : U)
+          : forall (n#204 : nat),
+              (A#203) -> ((vec A#203 n#204)) -> (vec A#203 (S n#204)).
+
+Inductive ex (A#207 : U) (P#208 : (A#207) -> U) : U :=
+| ex_intro (A#210 : U)
+             (P#211 : (A#210) -> U)
+               : forall (x#213 : A#210), ((P#211) x#213) -> (ex A#210 P#211).
+
+Inductive sig (A#215 : U) (P#216 : (A#215) -> L) : L :=
+| sig_intro (A#218 : U)
+              (P#219 : (A#218) -> L)
+                : forall (x#221 : A#218),
+                    ((P#219) x#221) -> (sig A#218 P#219).
+
+Inductive tnsr (A#223 : L) (B#224 : L) : L :=
+| tnsr_intro (A#225 : L)
+               (B#226 : L) : (A#225) -> (B#226) -> (tnsr A#225 B#226).
+
+Inductive box (A#229 : U) : L :=
+| box_intro (A#230 : U) : (A#230) -> (box A#230).
+
+Inductive ascii : U :=
+| Ascii : (bool) ->
+            (bool) ->
+              (bool) ->
+                (bool) -> (bool) -> (bool) -> (bool) -> (bool) -> ascii.
+
+Inductive string : U :=
+| EmptyString : string
+| String : (ascii) -> (string) -> string.
+
+Definition cat#242 :=
+  ((fix cat#243 s1#244 s2#245 =>
+      match s1#244 with
+      | EmptyString => s2#245
+      | (String c#246 s1#247) => (String c#246 ((cat#243) s1#247) s2#245)
+      end) :
+    (string) -> (string) -> string).
+
+Inductive le (n#250 : nat) : (nat) -> U :=
+| le_n (n#252 : nat) : (le n#252 n#252)
+| le_S (n#253 : nat)
+         : forall (m#254 : nat), ((le n#253 m#254)) -> (le n#253 (S m#254)).
+
+Definition lt#256 :=
+  ((fun m#257 n#258 => (le (S m#257) n#258)) : (nat) -> (nat) -> U).
+
+Inductive eq (A#261 : U) (x#262 : A#261) : (A#261) -> U :=
+| refl (A#264 : U) (x#265 : A#264) : (eq A#264 x#265 x#265).
+
+Definition eq_trans#266 :=
+  ((fun A#267 x#268 y#269 z#270 e1#271 e2#272 =>
+      match e2#272 in (eq _#273 _#274 y#275) return (eq A#267 x#268 y#275)
+      with
+      | refl => e1#271
+      end) :
+    forall (A#276 : U),
+      forall (x#277 : A#276),
+        forall (y#278 : A#276),
+          forall (z#279 : A#276),
+            ((eq A#276 x#277 y#278)) ->
+              ((eq A#276 y#278 z#279)) -> (eq A#276 x#277 z#279)).
+
+Definition eq_sym#282 :=
+  ((fun A#283 x#284 y#285 e#286 =>
+      match e#286 in (eq _#287 _#288 y#289) return (eq A#283 y#289 x#284)
+      with
+      | refl => refl
+      end) :
+    forall (A#290 : U),
+      forall (x#291 : A#290),
+        forall (y#292 : A#290),
+          ((eq A#290 x#291 y#292)) -> (eq A#290 y#292 x#291)).
+
+Definition u_ind#294 :=
+  ((fun A#295 x#296 y#297 P#298 e#299 f#300 =>
+      match e#299 in (eq _#301 _#302 y#303) return (P#298) y#303 with
+      | refl => f#300
+      end) :
+    forall (A#304 : U),
+      forall (x#305 : A#304),
+        forall (y#306 : A#304),
+          forall (P#307 : (A#304) -> U),
+            ((eq A#304 x#305 y#306)) -> ((P#307) x#305) -> (P#307) y#306).
+
+Definition l_ind#311 :=
+  ((fun A#312 x#313 y#314 P#315 e#316 f#317 =>
+      match e#316 in (eq _#318 _#319 y#320) return (P#315) y#320 with
+      | refl => f#317
+      end) :
+    forall (A#321 : U),
+      forall (x#322 : A#321),
+        forall (y#323 : A#321),
+          forall (P#324 : (A#321) -> L),
+            ((eq A#321 x#322 y#323)) -> ((P#324) x#322) -> (P#324) y#323).
+
+Axiom unsafeC#328 : forall (A#329 : L), (A#329) -> unit.
+
+Axiom unsafeP#331 : forall (A#332 : L), A#332.
+
+Definition Loc#333 := ((nat) : U).
+
+Axiom PtsTo#334 : (Loc#333) -> (U) -> L.
+
+Definition Ptr#337 :=
+  ((fun A#338 => (sig Loc#333 fun l#339 => ((PtsTo#334) l#339) A#338)) :
+    (U) -> L).
+
+Axiom New#341 : forall (A#342 : U), (A#342) -> (Ptr#337) A#342.
+
+Axiom Free#344 : forall (A#345 : U), ((Ptr#337) A#345) -> unit.
+
+Axiom Get#347 :
+  forall (A#348 : U),
+    forall (l#349 : Loc#333),
+      (((PtsTo#334) l#349) A#348) ->
+        (sig A#348 fun _#351 => ((PtsTo#334) l#349) A#348).
+
+Axiom Set#352 :
+  forall (A#353 : U),
+    forall (B#354 : U),
+      (B#354) ->
+        forall (l#356 : Loc#333),
+          (((PtsTo#334) l#356) A#353) -> ((PtsTo#334) l#356) B#354.
+
+Definition id#358 :=
+  ((fun A#359 => lin x#360 => x#360) : forall (A#361 : U), (A#361) -o A#361).
+
+Definition Main := let x#363 := ((id#358) ?1) 5 in tt.
+
+elab ok
+--------------------------------------------------------------------------------
+Inductive unit : U :=
+| tt : unit.
+
+Inductive base : U :=
+| ll : base.
+
+Inductive bool : U :=
+| true : bool
+| false : bool.
+
+Inductive nat : U :=
+| O : nat
+| S : (nat) -> nat.
+
+Definition addn#1708 :=
+  ((fix addn#1709 m#1710 n#1711 =>
+      match m#1710 with
+      | O => n#1711
+      | (S m#1712) => (S ((addn#1709) m#1712) n#1711)
+      end) :
+    (nat) -> (nat) -> nat).
+
+Inductive option (A#1715 : U) : U :=
+| None (A#1716 : U) : (option A#1716)
+| Some (A#1717 : U) : (A#1717) -> (option A#1717).
+
+Inductive list (A#1719 : U) : U :=
+| nil (A#1720 : U) : (list A#1720)
+| cons (A#1721 : U) : (A#1721) -> ((list A#1721)) -> (list A#1721).
+
+Inductive vec (A#1724 : U) : (nat) -> U :=
+| vnil (A#1726 : U) : (vec A#1726 O)
+| vcons (A#1727 : U)
+          : forall (n#1728 : nat),
+              (A#1727) -> ((vec A#1727 n#1728)) -> (vec A#1727 (S n#1728)).
+
+Inductive ex (A#1731 : U) (P#1732 : (A#1731) -> U) : U :=
+| ex_intro (A#1734 : U)
+             (P#1735 : (A#1734) -> U)
+               : forall (x#1737 : A#1734),
+                   ((P#1735) x#1737) -> (ex A#1734 P#1735).
+
+Inductive sig (A#1739 : U) (P#1740 : (A#1739) -> L) : L :=
+| sig_intro (A#1742 : U)
+              (P#1743 : (A#1742) -> L)
+                : forall (x#1745 : A#1742),
+                    ((P#1743) x#1745) -> (sig A#1742 P#1743).
+
+Inductive tnsr (A#1747 : L) (B#1748 : L) : L :=
+| tnsr_intro (A#1749 : L)
+               (B#1750 : L) : (A#1749) -> (B#1750) -> (tnsr A#1749 B#1750).
+
+Inductive box (A#1753 : U) : L :=
+| box_intro (A#1754 : U) : (A#1754) -> (box A#1754).
+
+Inductive ascii : U :=
+| Ascii : (bool) ->
+            (bool) ->
+              (bool) ->
+                (bool) -> (bool) -> (bool) -> (bool) -> (bool) -> ascii.
+
+Inductive string : U :=
+| EmptyString : string
+| String : (ascii) -> (string) -> string.
+
+Definition cat#1766 :=
+  ((fix cat#1767 s1#1768 s2#1769 =>
+      match s1#1768 with
+      | EmptyString => s2#1769
+      | (String c#1770 s1#1771) =>
+        (String c#1770 ((cat#1767) s1#1771) s2#1769)
+      end) :
+    (string) -> (string) -> string).
+
+Inductive le (n#1774 : nat) : (nat) -> U :=
+| le_n (n#1776 : nat) : (le n#1776 n#1776)
+| le_S (n#1777 : nat)
+         : forall (m#1778 : nat),
+             ((le n#1777 m#1778)) -> (le n#1777 (S m#1778)).
+
+Definition lt#1780 :=
+  ((fun m#1781 n#1782 => (le (S m#1781) n#1782)) : (nat) -> (nat) -> U).
+
+Inductive eq (A#1785 : U) (x#1786 : A#1785) : (A#1785) -> U :=
+| refl (A#1788 : U) (x#1789 : A#1788) : (eq A#1788 x#1789 x#1789).
+
+Definition eq_trans#1790 :=
+  ((fun A#1791 x#1792 y#1793 z#1794 e1#1795 e2#1796 =>
+      match e2#1796 in (eq _#1797 _#1798 y#1799) return
+        (eq A#1791 x#1792 y#1799)
+      with
+      | refl => e1#1795
+      end) :
+    forall (A#1800 : U),
+      forall (x#1801 : A#1800),
+        forall (y#1802 : A#1800),
+          forall (z#1803 : A#1800),
+            ((eq A#1800 x#1801 y#1802)) ->
+              ((eq A#1800 y#1802 z#1803)) -> (eq A#1800 x#1801 z#1803)).
+
+Definition eq_sym#1806 :=
+  ((fun A#1807 x#1808 y#1809 e#1810 =>
+      match e#1810 in (eq _#1811 _#1812 y#1813) return
+        (eq A#1807 y#1813 x#1808)
+      with
+      | refl => refl
+      end) :
+    forall (A#1814 : U),
+      forall (x#1815 : A#1814),
+        forall (y#1816 : A#1814),
+          ((eq A#1814 x#1815 y#1816)) -> (eq A#1814 y#1816 x#1815)).
+
+Definition u_ind#1818 :=
+  ((fun A#1819 x#1820 y#1821 P#1822 e#1823 f#1824 =>
+      match e#1823 in (eq _#1825 _#1826 y#1827) return (P#1822) y#1827 with
+      | refl => f#1824
+      end) :
+    forall (A#1828 : U),
+      forall (x#1829 : A#1828),
+        forall (y#1830 : A#1828),
+          forall (P#1831 : (A#1828) -> U),
+            ((eq A#1828 x#1829 y#1830)) ->
+              ((P#1831) x#1829) -> (P#1831) y#1830).
+
+Definition l_ind#1835 :=
+  ((fun A#1836 x#1837 y#1838 P#1839 e#1840 f#1841 =>
+      match e#1840 in (eq _#1842 _#1843 y#1844) return (P#1839) y#1844 with
+      | refl => f#1841
+      end) :
+    forall (A#1845 : U),
+      forall (x#1846 : A#1845),
+        forall (y#1847 : A#1845),
+          forall (P#1848 : (A#1845) -> L),
+            ((eq A#1845 x#1846 y#1847)) ->
+              ((P#1848) x#1846) -> (P#1848) y#1847).
+
+Axiom unsafeC#1852 : forall (A#1853 : L), (A#1853) -> unit.
+
+Axiom unsafeP#1855 : forall (A#1856 : L), A#1856.
+
+Definition Loc#1857 := ((nat) : U).
+
+Axiom PtsTo#1858 : (Loc#1857) -> (U) -> L.
+
+Definition Ptr#1861 :=
+  ((fun A#1862 => (sig Loc#1857 fun l#1863 => ((PtsTo#1858) l#1863) A#1862)) :
+    (U) -> L).
+
+Axiom New#1865 : forall (A#1866 : U), (A#1866) -> (Ptr#1861) A#1866.
+
+Axiom Free#1868 : forall (A#1869 : U), ((Ptr#1861) A#1869) -> unit.
+
+Axiom Get#1871 :
+  forall (A#1872 : U),
+    forall (l#1873 : Loc#1857),
+      (((PtsTo#1858) l#1873) A#1872) ->
+        (sig A#1872 fun _#1875 => ((PtsTo#1858) l#1873) A#1872).
+
+Axiom Set#1876 :
+  forall (A#1877 : U),
+    forall (B#1878 : U),
+      (B#1878) ->
+        forall (l#1880 : Loc#1857),
+          (((PtsTo#1858) l#1880) A#1877) -> ((PtsTo#1858) l#1880) B#1878.
+
+Definition id#1882 :=
+  ((fun A#1883 => lin x#1884 => x#1884) :
+    forall (A#1885 : U), (A#1885) -o A#1885).
+
+Definition Main := let x#1887 := ((id#1882) nat) 5 in tt.
+
+--------------------------------------------------------------------------------
+tcheck ok
