@@ -1,0 +1,3 @@
+Definition Main :=
+  let x : 1 = 1 := refl in
+  _main_.

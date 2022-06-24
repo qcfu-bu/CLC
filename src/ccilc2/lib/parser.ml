@@ -205,7 +205,8 @@ module ParseTm = struct
     let prod_parser =
       choice
         [ (kw "*" >>$ fun p1 p2 -> PInd (Prelude.ex_id, [ p1; p2 ]))
-        ; (kw "^" >>$ fun p1 p2 -> PInd (Prelude.tnsr_id, [ p1; p2 ]))
+        ; (kw "×" >>$ fun p1 p2 -> PInd (Prelude.sig_id, [ p1; p2 ]))
+        ; (kw "⊗" >>$ fun p1 p2 -> PInd (Prelude.tnsr_id, [ p1; p2 ]))
         ]
     in
     chain_left1 (p0_parser ()) prod_parser
@@ -608,6 +609,40 @@ module ParseTm = struct
     return m
 
   and t2_parser () =
+    let prod_parser =
+      choice
+        [ ( kw "*" >>$ fun a b ->
+            Ind (Prelude.ex_id, [ a; Lam (U, PVar Var.__, b) ]) )
+        ; ( kw "×" >>$ fun a b ->
+            Ind (Prelude.sig_id, [ a; Lam (U, PVar Var.__, b) ]) )
+        ; (kw "⊗" >>$ fun a b -> Ind (Prelude.tnsr_id, [ a; b ]))
+        ]
+    in
+    chain_left1 (t1_parser ()) prod_parser
+
+  and t3_parser () =
+    let add_parser =
+      kw "+" >>$ fun m n -> App (App (Var Prelude.addn_v, m), n)
+    in
+    chain_left1 (t2_parser ()) add_parser
+
+  and t4_parser () =
+    let cmp_parser =
+      choice
+        (List.map attempt
+           [ (kw "<=" >>$ fun m n -> Ind (Prelude.le_id, [ m; n ]))
+           ; (kw "<" >>$ fun m n -> App (App (Var Prelude.lt_v, m), n))
+           ])
+    in
+    chain_left1 (t3_parser ()) cmp_parser
+
+  and t5_parser () =
+    let eq_parser =
+      kw "=" >>$ fun m n -> Ind (Prelude.eq_id, [ Meta (Meta.mk ()); m; n ])
+    in
+    chain_left1 (t4_parser ()) eq_parser
+
+  and t6_parser () =
     let arrow_parser () =
       let* _ = kw "->" in
       return (fun a b -> Pi (U, Var.__, a, b))
@@ -616,14 +651,14 @@ module ParseTm = struct
       let* _ = kw "-o" in
       return (fun a b -> Pi (L, Var.__, a, b))
     in
-    chain_right1 (t1_parser ()) (arrow_parser () <|> lolli_parser ())
+    chain_right1 (t5_parser ()) (arrow_parser () <|> lolli_parser ())
 
   and t_parser () =
-    attempt (t2_parser ())
+    attempt (t6_parser ())
     <|> let* _ = kw "(" in
-        let* m = t2_parser () in
+        let* m = t6_parser () in
         let* _ = kw ":" in
-        let* a = t2_parser () in
+        let* a = t6_parser () in
         let* _ = kw ")" in
         return (Ann (m, a))
 end

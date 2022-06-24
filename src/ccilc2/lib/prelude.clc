@@ -55,6 +55,61 @@ Fixpoint cat (s1 s2 : string) : string :=
   | String c s1 => String c (cat s1 s2)
   end.
 
+Inductive le (n : nat) : nat -> U :=
+| le_n : le n n
+| le_S : forall (m : nat), le n m -> le n (S m).
+
+Definition lt (m n : nat) : U := le (S m) n.
+
+(* identity type *)
+Inductive eq (A : U) (x : A) : A -> U :=
+| refl : eq A x x.
+
+Definition eq_trans
+  (A : U)
+  (x y z : A)
+  (e1 : eq A x y)
+  (e2 : eq A y z) :
+  eq A x z
+:=
+  match e2 in eq _ _ y return eq A x y with
+  | refl => e1
+  end.
+
+Definition eq_sym 
+  (A : U) 
+  (x y : A) 
+  (e : eq A x y) :
+  eq A y x
+:=
+  match e in eq _ _ y return eq A y x with
+  | refl => refl
+  end.
+
+Definition u_ind 
+  (A : U) 
+  (x y : A)
+  (P : A -> U) 
+  (e : eq A x y)
+  (f : P x) :
+  P y
+:= 
+  match e in eq _ _ y return P y with
+  | refl => f
+  end.
+
+Definition l_ind 
+  (A : U) 
+  (x y : A)
+  (P : A -> L) 
+  (e : eq A x y)
+  (f : P x) :
+  P y
+:= 
+  match e in eq _ _ y return P y with
+  | refl => f
+  end.
+
 Fixpoint stdin_rec (_ : unit) : proto := 
   !(b : bool),
     match b with
