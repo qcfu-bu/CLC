@@ -4,7 +4,7 @@ open Name
 open Core
 open Prelude
 
-(* let pp_v fmt x = fprintf fmt "%s" (name_of x) *)
+let pp_v fmt x = fprintf fmt "%s" (name_of x)
 
 module PrintTerm = struct
   open Tm
