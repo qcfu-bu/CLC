@@ -12,13 +12,13 @@ Unset Printing Implicit Defensive.
 
 Inductive eval : context term -> term -> context term -> term -> Prop :=
 | eval_sort Θ s i l :
-  l = length Θ ->
+  l = size Θ ->
   eval Θ (s @ i) (s @ i :U Θ) (Ptr l)
 | eval_pi Θ A B s r t l :
-  l = length Θ ->
+  l = size Θ ->
   eval Θ (Pi A B s r t) (Pi A B s r t :U Θ) (Ptr l)
 | eval_lam Θ A m s t l :
-  l = length Θ ->
+  l = size Θ ->
   eval Θ (Lam A m s t) (Lam A m s t :{t} Θ) (Ptr l)
 | eval_appL Θ Θ' m m' n :
   eval Θ m Θ' m' ->
@@ -30,19 +30,19 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   free Θ l1 (Lam A m s t) Θ' ->
   eval Θ (App (Ptr l1) (Ptr l2)) Θ' m.[Ptr l2/]
 | eval_indd Θ l A Cs s :
-  l = length Θ ->
+  l = size Θ ->
   eval Θ (Ind A Cs s) (Ind A Cs s :U Θ) (Ptr l)
 | eval_appI Θ Θ' l1 l2 l A Cs s ms :
-  l = length Θ ->
+  l = size Θ ->
   free Θ l1 (spine (Ind A Cs s) ms) Θ' ->
   eval 
     Θ (App (Ptr l1) (Ptr l2)) 
     (spine (Ind A Cs s) (rcons ms (Ptr l2)) :U Θ') (Ptr l)
 | eval_constr Θ l i I s :
-  l = length Θ ->
+  l = size Θ ->
   eval Θ (Constr i I s) (Constr i I s :{s} Θ) (Ptr l)
 | eval_appC Θ Θ' l1 l2 l i I s ms :
-  l = length Θ ->
+  l = size Θ ->
   free Θ l1 (spine (Constr i I s) ms) Θ' ->
   eval
     Θ (App (Ptr l1) (Ptr l2))
@@ -54,9 +54,25 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   iget i Fs F ->
   free Θ l (spine (Constr i I s) ms) Θ' ->
   eval Θ (Case (Ptr l) Q Fs) Θ' (spine F ms)
-| step_fix Θ l A m :
-  l = length Θ ->
-  eval Θ (Fix A m) (Fix A m :U Θ) m.[Ptr l/].
+| eval_fix1 Θ l k A m :
+  l = size Θ ->
+  eval Θ (Fix k A m) (Fix k A m :U Θ) (Ptr l)
+| eval_fix2 Θ Θ1 Θ2 l k A m ms n n' :
+  1 <= size ms ->
+  size ms <= k ->
+  all_ptr ms ->
+  free Θ l (Fix k A m) Θ1 ->
+  eval Θ1 n Θ2 n' ->
+  eval Θ (spine (Ptr l) (rcons ms n)) Θ2 (spine (Ptr l) (rcons ms n'))
+| eval_iota2 Θ Θ1 Θ2 i l l1 l2 k A I m ms ns s :
+  k = size ms ->
+  l = size Θ ->
+  all_ptr ms ->
+  free Θ l1 (Fix k A m) Θ1 ->
+  free Θ1 l2 (spine (Constr i I s) ns) Θ2 ->
+  eval
+    Θ (spine (Ptr l1) (rcons ms (Ptr l2)))
+    ((spine (Constr i I s) ns) :{s} Θ2) (spine m.[Ptr l1/] (rcons ms (Ptr l))).
 
 Inductive agree_resolve :
   context term -> context term -> 
@@ -156,7 +172,7 @@ Proof with eauto using agree_resolve.
     elim: ihFs=>{Fs nfFs}...
     move=>F Fs hd ih tl.
     asimpl. f_equal... }
-  move=>i A m nfA ihA nfm ihm Γ Θ σ σ' j leq agr.
+  move=>i k A m nfA ihA nfm ihm Γ Θ σ σ' j leq agr.
   { have lt : i < j.+1 by eauto. asimpl. f_equal.
     apply: ihA; eauto.
     apply: ihm. exact: lt.
@@ -224,7 +240,7 @@ Proof.
     elim: ihFs=>//{Fs nfFs}.
     move=>F Fs ih hd tl.
     asimpl. f_equal; eauto. }
-  move=>i A m nfA ihA nfm ihm ξ idr.
+  move=>i k A m nfA ihA nfm ihm ξ idr.
   { asimpl.
     rewrite<-ihA; eauto.
     rewrite<-ihm; eauto.
@@ -250,7 +266,7 @@ Proof.
     constructor. }
   move=>i m ihm s ξ h. inv h. exfalso. solve_spine.
   move=>m ihm Q ihQ Fs ξ h. inv h. exfalso. solve_spine.
-  move=>A ihA m ihm ξ h. inv h. exfalso. solve_spine.
+  move=>k A ihA m ihm ξ h. inv h. exfalso. solve_spine.
 Qed.
 
 Lemma resolve_ren Θ m m' i ξ :
@@ -291,7 +307,7 @@ Proof with eauto using resolve, All2.
     apply: ihQ...
     apply: wr_heap_re...
     elim: ihFs=>{Fs Fs' rFs}... }
-  move=>Θ A A' m m' k rA ihA rm ihm i ξ wr idr.
+  move=>Θ k0 A A' m m' k rA ihA rm ihm i ξ wr idr.
   { asimpl.
     econstructor...
     apply: ihm...
@@ -636,7 +652,7 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       exfalso. solve_spine.
       exfalso. solve_spine.
       exfalso. apply: free_wr_ptr... } }
-  move=>Γ A m l k tyA ihA tym ihm Θ1 Θ2 Θ m0 σ σ' x mrg rsm wr agr.
+  move=>Γ k0 A m l k tyA ihA tym ihm Θ1 Θ2 Θ m0 σ σ' x mrg rsm wr agr.
   { inv rsm; asimpl.
     { have k2:=agree_resolve_key agr k.
       econstructor...
@@ -652,7 +668,7 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       have lt: 0 < x.+1 by eauto.
       econstructor...
       econstructor...
-      have->:=nf_agree_resolve H4 leq agr.
+      have->:=nf_agree_resolve H3 leq agr.
       apply: ihA...
       have agr': agree_resolve (A :U Γ) Θ2 (up σ) (up σ') x.+1.
       { apply: agree_resolve_upTy... }
@@ -713,25 +729,27 @@ Proof with eauto 6 using
   move: Γ n A t tyn Θ1 Θ2 Θ Θ' m m' rm e.
   apply: clc_type_ind_nested.
   move=>Γ s l k Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
-  { inv rsm; inv ev.
+  { inv rsm; inv ev; try solve_spine.
     exists ((s @ l) :U Θ1).
     exists ((s @ l) :U Θ2).
     exists (s @ l).
     repeat split...
     econstructor.
-    move:mrg=>/merge_length[<-_]... 
+    move:mrg=>/merge_size[<-_]...
     econstructor... 
-    econstructor... }
+    econstructor...
+    have[e mrg']:=free_subset mrg H5 H; subst. inv H0.
+    have[e mrg']:=free_subset mrg H5 H; subst. inv H0. }
   move=>Γ A B s r t i k tyA ihA tyB ihB Θ1 Θ2 Θ Θ' 
     m m' rsm e wr mrg ev; subst.
-  { inv rsm; inv ev.
+  { inv rsm; inv ev; try solve_spine.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
     exists ((Pi A0 B0 s r t) :U Θ1).
     exists ((Pi A0 B0 s r t) :U Θ2).
     exists (Pi A B s r t).
     repeat split...
     econstructor.
-    move:mrg=>/merge_length[<-_]... 
+    move:mrg=>/merge_size[<-_]...
     econstructor... 
     econstructor... 
     have//=nfA:=nf_typing tyA.
@@ -740,13 +758,17 @@ Proof with eauto 6 using
     have//=nfB:=nf_typing tyB.
     have//:=resolve_wr_nfi H8 wr1 nfB.
     have//=nfB:=nf_typing tyB.
-    have//:=resolve_wr_nfi H8 wr1 nfB. }
+    have//:=resolve_wr_nfi H8 wr1 nfB.
+    have[e mrg']:=free_subset mrg H5 H; subst. inv H0.
+    have[e mrg']:=free_subset mrg H5 H; subst. inv H0. }
   move=>Γ x A s hs Θ1 Θ2 Θ Θ' m m' rsm e tyA mrg ev.
-  { inv rsm; inv ev. }
+  { inv rsm; inv ev; try solve_spine.
+    have[e mrg']:=free_subset mrg H5 H; subst. inv H0.
+    have[e mrg']:=free_subset mrg H5 H; subst. inv H0. }
   move=>Γ A B m s r t i k tyP ihP tym ihm 
     Θ1 Θ2 Θ Θx n m' rsL e wr mrg ev.
-  { inv rsL; inv ev.
-    have[<-_]:=merge_length mrg.
+  { inv rsL; inv ev; try solve_spine.
+    have[<-_]:=merge_size mrg.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
     destruct t.
     { exists ((Lam A0 m0 s U) :U Θ1).
@@ -774,16 +796,18 @@ Proof with eauto 6 using
       have//=nfm:=nf_typing tym.
       have//:=resolve_wr_nfi H7 wr1 nfm.
       have//=nfm:=nf_typing tym.
-      have//:=resolve_wr_nfi H7 wr1 nfm. } }
+      have//:=resolve_wr_nfi H7 wr1 nfm. }
+    { have[e mrg']:=free_subset mrg H5 H; subst. inv H0. }
+    { have[e mrg']:=free_subset mrg H5 H; subst. inv H0. } }
   move=>Γ1 Γ2 Γ A B m n s r t k mrg1 tym ihm tyn ihn
     Θ1 Θ2 Θ Θ' x x' rx e wf mrg2 ev; subst.
   { inv mrg1.
     have[l tyP]:= validity nil_ok tym.
     have[l0[tyA[_[_ tyB]]]]:= pi_inv tyP.
-    inv rx; inv ev.
-    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
+    inv ev; inv rx.
+    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H5.
       have[Θx1[Θx2[mx[wr[wf'[pd[mrgx rx]]]]]]]:=
-        ihm _ _ _ _ _ _ H4 erefl wf mrg4 H7.
+        ihm _ _ _ _ _ _ H6 erefl wf mrg4 H.
       have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
       have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
       inv wr.
@@ -795,9 +819,9 @@ Proof with eauto 6 using
       eauto.
       apply: resolve_pad...
       apply: red_app... }
-    { have[Θx[mrg3 mrg4]]:=merge_splitL mrg2 H1.
+    { have[Θx[mrg3 mrg4]]:=merge_splitL mrg2 H5.
       have{ihn}[Θx1[Θx2[nx[wr[wf'[pd[mrgx rx]]]]]]]:=
-        ihn _ _ _ _ _ _ H5 erefl wf (merge_sym mrg4) H7.
+        ihn _ _ _ _ _ _ H7 erefl wf (merge_sym mrg4) H.
       have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
       have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
       inv wr.
@@ -825,19 +849,20 @@ Proof with eauto 6 using
         apply: rx.
         apply: clc_app...
         have h:=substitutionN tyB tyn... }
-      apply: red_app... }
+      eauto.
+      apply: red_app... } 
     { move=>{ihm ihn}.
-      have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
-      have[G[mrg rs]]:=resolve_free H7 H4 mrg4.
+      have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H5.
+      have[G[mrg rs]]:=resolve_free H H6 mrg4.
       have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
       exists Gx. exists Θ2. inv rs. exists (m'.[n/]).
       have tym':=lam_inv tyP tym.
       repeat split...
       have[wf1 wf2]:=wr_merge_inv mrg2 wf.
-      have[wf0 wf3]:=wr_merge_inv H1 wf1.
-      have vn:=wr_resolve_value wf3 H5.
-      have key:=resolution tyn vn wf3 H5.
-      have wr':=free_wr H7 wf.
+      have[wf0 wf3]:=wr_merge_inv H5 wf1.
+      have vn:=wr_resolve_value wf3 H7.
+      have key:=resolution tyn vn wf3 H7.
+      have wr':=free_wr H wf.
       have [wr1 wr2]:=wr_merge_inv mrg wr'.
       destruct s.
       { apply: resolve_substU...
@@ -850,12 +875,12 @@ Proof with eauto 6 using
       apply: free_wr...
       apply: star1.
       apply: step_beta. }
-    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
-      have[G[mrg rs]]:=resolve_free H8 H4 mrg4.
+    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H5.
+      have[G[mrg rs]]:=resolve_free H0 H6 mrg4.
       have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
-      have[e1 e2]:=merge_length mrg6.
-      have[e3 e4]:=merge_length mrg.
-      have[e5 e6]:=merge_length mrg4.
+      have[e1 e2]:=merge_size mrg6.
+      have[e3 e4]:=merge_size mrg.
+      have[e5 e6]:=merge_size mrg4.
       exists (spine (Ind A0 Cs s0) (rcons ms (Ptr l2)) :U Gx). 
       exists (spine (Ind A0 Cs s0) (rcons ms (Ptr l2)) :U Θ2). 
       exists (App m n).
@@ -872,16 +897,16 @@ Proof with eauto 6 using
         apply: merge_sym mrg7.
         apply: resolve_wkU...
         apply: resolve_wkU... }
-      have[nfA[nfCs pms]]:=free_wr_ind_inv H8 wf.
-      have wr:=free_wr H8 wf.
+      have[nfA[nfCs pms]]:=free_wr_ind_inv H0 wf.
+      have wr:=free_wr H0 wf.
       constructor...
       apply: all_ptr_rcons... }
-    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
-      have[G[mrg rs]]:=resolve_free H8 H4 mrg4.
+    { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H5.
+      have[G[mrg rs]]:=resolve_free H0 H6 mrg4.
       have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
-      have[e1 e2]:=merge_length mrg6.
-      have[e3 e4]:=merge_length mrg.
-      have[e5 e6]:=merge_length mrg4.
+      have[e1 e2]:=merge_size mrg6.
+      have[e3 e4]:=merge_size mrg.
+      have[e5 e6]:=merge_size mrg4.
       destruct s0.
       { exists (spine (Constr i I U) (rcons ms (Ptr l2)) :U Gx). 
         exists (spine (Constr i I U) (rcons ms (Ptr l2)) :U Θ2). 
@@ -899,8 +924,8 @@ Proof with eauto 6 using
           apply: merge_sym mrg7.
           apply: resolve_wkU...
           apply: resolve_wkU... }
-        have[nfI pms]:=free_wr_constr_inv H8 wf.
-        have wr:=free_wr H8 wf.
+        have[nfI pms]:=free_wr_constr_inv H0 wf.
+        have wr:=free_wr H0 wf.
         constructor...
         apply: all_ptr_rcons... }
       { exists (spine (Constr i I L) (rcons ms (Ptr l2)) :L Gx).
@@ -916,15 +941,156 @@ Proof with eauto 6 using
           apply: merge_sym mrg7.
           apply: resolve_wkN...
           apply: resolve_wkN... }
-        have[nfI pms]:=free_wr_constr_inv H8 wf.
-        have wr:=free_wr H8 wf.
+        have[nfI pms]:=free_wr_constr_inv H0 wf.
+        have wr:=free_wr H0 wf.
         constructor...
-        apply: all_ptr_rcons... } } }
-  move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs 
+        apply: all_ptr_rcons... } }
+    { have[Θx[mrg3 mrg4]]:=merge_splitL mrg2 H8.
+      have e:=free_wr_fix H2 wf; subst.
+      rewrite<-spine_app_rcons in H4. inv H4.
+      have{ihn}[Θx1[Θx2[nx[wr[wf'[pd[mrgx rx]]]]]]]:=
+        ihn _ _ _ _ _ _ H10 erefl wf (merge_sym mrg4) H3.
+      have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
+      have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
+      inv wr.
+      exists Θy. exists Θ2p.
+      exists (App m nx).
+      repeat split...
+      rewrite<-spine_app_rcons.
+      econstructor.
+      apply: mrp1.
+      apply: resolve_pad... eauto.
+      destruct s.
+      { apply: clc_conv.
+        apply: conv_sub.
+        apply: conv_beta.
+        apply: conv_sym.
+        apply: star_conv.
+        apply: rx.
+        apply: clc_app...
+        have mrgs:[@nil (elem term)] ∘ nil => nil. simpl...
+        have h:=substitution tyB k mrgs tyn... }
+      { apply: clc_conv.
+        apply: conv_sub.
+        apply: conv_beta.
+        apply: conv_sym.
+        apply: star_conv.
+        apply: rx.
+        apply: clc_app...
+        have h:=substitutionN tyB tyn... }
+      apply: red_app... }
+    { rewrite<-spine_app_rcons in H4.
+      inv H4. }
+    { move=>{ihn}.
+      rewrite<-spine_app_rcons in H. inv H.
+      have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H6.
+      have[G1[G2[m1[ms1[mrg1[e[rm1 rms1]]]]]]]:=ptr_spine_inv H7; subst.
+      have sz:=resolve_spine_size rms1.
+      have[G3[mrg5 mrg6]]:=merge_splitR mrg4 mrg1.
+      have[G[mrg rs]]:=resolve_free H2 rm1 mrg6.
+      have[Gx[mrg7 mrg8]]:=merge_splitL (merge_sym mrg) mrg5.
+      inv rs.
+      have[wf1 wf2]:=wr_merge_inv mrg6 wf.
+      have k1:=resolve_fix_inv wf1 rm1.
+      have[G4[G5[A1[s1[mrg9[tyF sp]]]]]]:=spine_inv nil_ok tym. inv mrg9.
+      have[l4[sb[e[_[tyA' tym']]]]]:=fix_inv tyF; subst.
+      have[l5 tyA1]:=validity nil_ok tyF.
+      have[e1[e2 e3]]:=merge_re_re mrg5.
+      have[e4[e5 e6]]:=merge_re_re mrg6.
+      have[e7[e8 e9]]:=merge_re_re mrg7.
+      have[G6[mg1 mg2]]:=merge_splitR (merge_sym mrg8) mrg3.
+      have[G7[mg3 rsn]]:=resolve_free H3 H8 mg2.
+      have[i1[I1[s1[ms2 e]]]]:=resolve_constr_spine rsn; subst.
+      have e:=merge_pureR mrg7 H9; subst.
+      have[G8[mg5 mg6]]:=merge_splitR (merge_sym mg3) mg1.
+      have[sz1 sz2]:=merge_size mrg2.
+      have[sz3 sz4]:=merge_size mg1.
+      have[sz5 sz6]:=merge_size mg3.
+      have wf3:=free_wr H2 wf.
+      have wf4:=free_wr H3 wf3.
+      have[nfI ap]:=free_wr_constr_inv H3 wf3.
+      have mrg9: G ∘ G1 => G1.
+      { replace G with [G].
+        replace G1 with [G1].
+        rewrite<-e7.
+        rewrite e4.
+        rewrite e2.
+        apply: merge_re_id.
+        rewrite<-pure_re; eauto.
+        rewrite<-pure_re; eauto. }
+      have rm:=resolve_substU tym' k1 H12 rm1 wf1 mrg9.
+      have{}rm: resolve G2 (spine m0.[Ptr l2/] ms) (spine m'.[Fix (size ms) A' m'/] ms1).
+      { apply: app_resolve_spine; eauto.
+        replace G1 with [G1].
+        rewrite e4. rewrite<-e2.
+        apply: merge_reL.
+        rewrite<-pure_re; eauto. }
+      have tyF': nil ⊢ Fix (size ms) A' m' : A' : U.
+      { apply: clc_fix; eauto... }
+      have tymf:=substitution tym' (key_nil _ _) (merge_nil _) tyF'.
+      asimpl in tymf.
+      have tymf':=clc_conv sb tymf tyA1.
+      have tysp:=app_typing_spine tymf' sp (merge_nil _).
+      destruct s0.
+      { exists (spine (Constr i I U) ns :U G8).
+        exists (spine (Constr i I U) ns :U Θ2).
+        exists (spine m'.[Fix (size ms) A' m'/] (rcons ms1 (spine (Constr i1 I1 s1) ms2))).
+        repeat split...
+        rewrite<-!spine_app_rcons.
+        econstructor.
+        constructor.
+        apply: mg5.
+        apply:resolve_wkU; eauto.
+        econstructor.
+        constructor.
+        rewrite<-sz2.
+        by rewrite sz3 sz5 sz6.
+        apply: resolve_wkU; eauto.
+        rewrite<-spine_app_rcons.
+        apply: clc_app.
+        apply: key_nil.
+        constructor.
+        all: eauto.
+        constructor; eauto.
+        constructor.
+        apply: merge_sym...
+        apply: star1.
+        rewrite spine_app_rcons.
+        rewrite sz.
+        constructor; eauto. }
+      { exists (spine (Constr i I L) ns :L G8).
+        exists (_: Θ2).
+        exists (spine m'.[Fix (size ms) A' m'/] (rcons ms1 (spine (Constr i1 I1 s1) ms2))).
+        repeat split...
+        rewrite<-!spine_app_rcons.
+        econstructor.
+        apply: merge_right2.
+        apply: mg5.
+        apply: resolve_wkN; eauto.
+        econstructor.
+        constructor.
+        rewrite<-sz2.
+        by rewrite sz3 sz5 sz6.
+        apply: resolve_wkN; eauto.
+        rewrite<-spine_app_rcons.
+        apply: clc_app.
+        apply: key_nil.
+        constructor.
+        all: eauto.
+        constructor; eauto.
+        constructor.
+        apply: merge_sym...
+        apply: star1.
+        rewrite spine_app_rcons.
+        rewrite sz.
+        constructor; eauto. } }
+    { rewrite<-spine_app_rcons in H.
+      inv H. } }
+  move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs
     Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
-  { inv rsm; inv ev.
+  { inv rsm; inv ev; try solve_spine.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
-    have[<-_]:=merge_length mrg.
+    have[<-_]:=merge_size mrg.
     exists (Ind A0 Cs0 s :U Θ1).
     exists (Ind A0 Cs0 s :U Θ2).
     exists (Ind A Cs s).
@@ -937,12 +1103,14 @@ Proof with eauto 6 using
     move=>C1 C2 Cs1 Cs2 rC rCs ih tl. inv tl.
     constructor...
     have//=nfC:=nf_typing H1.
-    have//:=resolve_wr_nfi rC wr1 nfC. }
+    have//:=resolve_wr_nfi rC wr1 nfC.
+    have[e mrg']:=free_subset mrg H5 H; subst. inv H0.
+    have[e mrg']:=free_subset mrg H5 H; subst. inv H0. }
   move=>Γ A s i C Cs//=k ig tyI ihI 
     Θ1 Θ2 Θ Θ' m m' rsm e  wr mrg ev; subst.
-  { inv rsm; inv ev.
+  { inv rsm; inv ev; try solve_spine.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
-    have[<-_]:=merge_length mrg.
+    have[<-_]:=merge_size mrg.
     destruct s.
     { exists (Constr i I U :U Θ1).
       exists (Constr i I U :U Θ2).
@@ -959,11 +1127,13 @@ Proof with eauto 6 using
       replace (Constr i I L) with (spine (Constr i I L) nil) by eauto.
       constructor...
       have//=nfI:=nf_typing tyI.
-      have//:=resolve_wr_nfi H5 wr1 nfI. } }
+      have//:=resolve_wr_nfi H5 wr1 nfI. }
+    { have[e mrg']:=free_subset mrg H5 H; subst. inv H0. }
+    { have[e mrg']:=free_subset mrg H5 H; subst. inv H0. } }
   move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms//=leq ar key mrg1 
     tym ihm tyQ ihQ tyFs ihFs Θ1 Θ2 Θ Θ' m0 m' rsm e wr mrg2 ev; subst.
   { inv mrg1.
-    inv rsm; inv ev.
+    inv rsm; inv ev; try solve_spine.
     { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H2.
       have[Θx1[Θx2[mx[wrs[wf'[pd[mrgx rx]]]]]]]:=
         ihm _ _ _ _ _ _ H5 erefl wr mrg4 H9.
@@ -1072,39 +1242,27 @@ Proof with eauto 6 using
         move=>x; asimpl=>h. inv h.
         eauto. }
       apply: star1.
-      constructor... } }
-  move=>Γ A m l _ tyA ihA tym ihm Θ1 Θ2 Θ Θ' m0 m' rsm e wr mrg ev.
-  { inv rsm; inv ev.
-    have[<-_]:=merge_length mrg.
+      constructor... }
+    { have[e mrg']:=free_subset mrg2 H5 H; subst. inv H0. }
+    { have[e mrg']:=free_subset mrg2 H5 H; subst. inv H0. } }
+  move=>Γ k A m l _ tyA ihA tym ihm Θ1 Θ2 Θ Θ' m0 m' rsm e wr mrg ev.
+  { inv rsm; inv ev; try solve[solve_spine].
+    have[<-_]:=merge_size mrg.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
-    have tyF:nil ⊢ Fix A m : A : U.
+    have tyF:nil ⊢ Fix k A m : A : U.
       econstructor...
     have//=nfA:=nf_typing tyA.
     have//=nfm:=nf_typing tym.
-    have nfA0:=resolve_wr_nfi H4 wr1 nfA.
-    have nfm1:=resolve_wr_nfi H5 wr1 nfm.
-    exists (Fix A0 m1 :U Θ1).
-    exists (Fix A0 m1 :U Θ2).
-    exists m.[Fix A m/].
+    have nfA0:=resolve_wr_nfi H5 wr1 nfA.
+    have nfm1:=resolve_wr_nfi H6 wr1 nfm.
+    exists (Fix k A0 m1 :U Θ1).
+    exists (Fix k A0 m1 :U Θ2).
+    exists (Fix k A m).
     repeat split...
-    have k: Fix A0 m1 :U Θ1 |> U by constructor.
-    have rsm: resolve (Fix A0 m1 :U Θ1) m1 m...
-    apply: resolve_substU.
-    apply: tym.
-    apply: k.
-    apply: rsm.
-    econstructor.
     constructor...
-    constructor...
-    constructor...
-    constructor.
-    apply: merge_pure...
-    have:=substitution tym (key_nil _ _) (merge_nil _) tyF.
-    asimpl=>//.
-    constructor...
-    apply: star1.
-    constructor. }
-  move=>Γ A B m s i sb tym ihm tyB ihB 
+    rewrite<-spine_app_rcons in H1. inv H1.
+    rewrite<-spine_app_rcons in H1. inv H1. }
+  move=>Γ A B m s i sb tym ihm tyB ihB
     Θ1 Θ2 Θ Θ' m1 m2 rsm e wr mrg ev; subst.
   { have[G1[G2[n'[wrs[wr1[pd1[mrg' st]]]]]]]:=
       ihm _ _ _ _ _ _ rsm erefl wr mrg ev.
