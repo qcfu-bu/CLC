@@ -74,16 +74,16 @@ Inductive pad (Θ : context term) : context term -> Prop :=
 | pad_U Θ' m : pad Θ Θ' -> pad Θ (m :U Θ')
 | pad_N Θ' : pad Θ Θ' -> pad Θ (_: Θ').
 
-Inductive free : context term -> nat -> term -> context term -> Prop :=
-| free_U Θ m l :
+Inductive lookup : context term -> nat -> term -> context term -> Prop :=
+| lookup_U Θ m l :
   l = size Θ ->
-  free (Some (m, U) :: Θ) l m (Some (m, U) :: Θ)
-| free_L Θ m l :
+  lookup (Some (m, U) :: Θ) l m (Some (m, U) :: Θ)
+| lookup_L Θ m l :
   l = size Θ ->
-  free (Some (m, L) :: Θ) l m (None :: Θ)
-| free_S Θ Θ' m n l :
-  free Θ l m Θ' ->
-  free (n :: Θ) l m (n :: Θ').
+  lookup (Some (m, L) :: Θ) l m (None :: Θ)
+| lookup_S Θ Θ' m n l :
+  lookup Θ l m Θ' ->
+  lookup (n :: Θ) l m (n :: Θ').
 
 Inductive ind_head : term -> Prop :=
 | Ind_head A Cs s ms :
@@ -136,7 +136,7 @@ Inductive resolve : context term -> term -> term -> Prop :=
   resolve Θ m m' ->
   resolve Θ (Fix k A m) (Fix k A' m')
 | resolve_ptr Θ Θ' l m m' :
-  free Θ l m Θ' ->
+  lookup Θ l m Θ' ->
   resolve Θ' m m' ->
   resolve Θ (Ptr l) m'.
 
@@ -190,7 +190,7 @@ Section resolve_ind_nested.
       P Θ (Fix k A m) (Fix k A' m').
   Hypothesis ih_ptr :
     forall Θ Θ' l m m',
-      free Θ l m Θ' ->
+      lookup Θ l m Θ' ->
       resolve Θ' m m' -> P Θ' m m' ->
       P Θ (Ptr l) m'.
 
@@ -521,7 +521,7 @@ Proof with eauto using resolve, re_pure, merge_re_id, re_pure, All1.
   Unshelve. all: eauto.
 Qed.
 
-Lemma free_size Θ l n Θ' : free Θ l n Θ' -> l < size Θ.
+Lemma lookup_size Θ l n Θ' : lookup Θ l n Θ' -> l < size Θ.
 Proof.
   elim=>{Θ l n Θ'}.
   move=>Θ m l->//=.
@@ -532,8 +532,8 @@ Proof.
   eauto.
 Qed.
 
-Lemma free_inv Θ Θ' m n t :
-  free (m :{t} Θ) (size Θ) n Θ' ->
+Lemma lookup_inv Θ Θ' m n t :
+  lookup (m :{t} Θ) (size Θ) n Θ' ->
   m = n /\
   match t with
   | U => m :{t} Θ
@@ -553,7 +553,7 @@ Proof.
   by rewrite H5.
   rewrite subnn.
   rewrite subSnn=>//.
-  move/free_size in H5.
+  move/lookup_size in H5.
   have le :size Θ < (size Θ).+2 by eauto.
   have h:= leq_trans H5 le.
   unfold leq in h.
@@ -561,7 +561,7 @@ Proof.
   move/eqnP in h; inv h.
 Qed.
 
-Lemma free_empty Θ Θ' n : ~free (_: Θ) (size Θ) n Θ'.
+Lemma lookup_empty Θ Θ' n : ~lookup (_: Θ) (size Θ) n Θ'.
 Proof.
   elim: Θ Θ' n=>//=.
   move=>Θ' n fr. inv fr. inv H4.
@@ -576,7 +576,7 @@ Proof.
   by rewrite H5.
   rewrite subnn.
   rewrite subSnn=>//.
-  move/free_size in H5.
+  move/lookup_size in H5.
   have le :size Θ < (size Θ).+2 by eauto.
   have h:= leq_trans H5 le.
   unfold leq in h.
@@ -584,10 +584,10 @@ Proof.
   move/eqnP in h; inv h.
 Qed.
 
-Lemma free_merge Θ1 Θ2 Θ3 Θ l m :
-  free Θ1 l m Θ3 -> Θ1 ∘ Θ2 => Θ ->
-    exists Θ4, free Θ l m Θ4 /\ Θ3 ∘ Θ2 => Θ4.
-Proof with eauto using free, merge.
+Lemma lookup_merge Θ1 Θ2 Θ3 Θ l m :
+  lookup Θ1 l m Θ3 -> Θ1 ∘ Θ2 => Θ ->
+    exists Θ4, lookup Θ l m Θ4 /\ Θ3 ∘ Θ2 => Θ4.
+Proof with eauto using lookup, merge.
   move=>fr. elim: fr Θ2 Θ=>{Θ1 Θ3 l m}.
   move=>Θ m l e Θ2 Θ0 mrg. inv mrg.
   exists (m :U Γ). split...
@@ -608,7 +608,7 @@ Proof with eauto using free, merge.
     exists (_: Θ4). split...
 Qed.
 
-Lemma free_pure Θ Θ' m l : free Θ l m Θ' -> Θ |> U -> Θ' |> U.
+Lemma lookup_pure Θ Θ' m l : lookup Θ l m Θ' -> Θ |> U -> Θ' |> U.
 Proof.
   elim=>//{Θ Θ' m l}.
   move=>Θ m l e k. inv k.
@@ -617,18 +617,18 @@ Proof.
   econstructor; eauto.
 Qed.
 
-Lemma free_subset Θ Θ1 Θ2 Θ' Θ1' l m n :
-  Θ1 ∘ Θ2 => Θ ->free Θ l m Θ' -> free Θ1 l n Θ1' ->  m = n /\ Θ1' ∘ Θ2 => Θ'.
+Lemma lookup_subset Θ Θ1 Θ2 Θ' Θ1' l m n :
+  Θ1 ∘ Θ2 => Θ ->lookup Θ l m Θ' -> lookup Θ1 l n Θ1' ->  m = n /\ Θ1' ∘ Θ2 => Θ'.
 Proof with eauto 6 using merge.
   move=>mrg. elim: mrg l m n Θ' Θ1'=>{Θ Θ1 Θ2}.
   move=>l m n G1 G2 fr. inv fr.
   move=>G1 G2 G m mrg ih l n x G3 G4 fr1 fr2.
   { have[e1 e2]:=merge_size mrg.
     inv fr1; inv fr2...
-    move/free_size in H4.
+    move/lookup_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
-    move/free_size in H4.
+    move/lookup_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
     have:=ih _ _ _ _ _ H4 H5.
@@ -636,10 +636,10 @@ Proof with eauto 6 using merge.
   move=>G1 G2 G m mrg ih l n x G3 G4 fr1 fr2.
   { have[e1 e2]:=merge_size mrg.
     inv fr1; inv fr2...
-    move/free_size in H4.
+    move/lookup_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
-    move/free_size in H4.
+    move/lookup_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
     have:=ih _ _ _ _ _ H4 H5.
@@ -647,7 +647,7 @@ Proof with eauto 6 using merge.
   move=>G1 G2 G m mrg ih l n x G3 G4 fr1 fr2.
   { have[e1 e2]:=merge_size mrg.
     inv fr1; inv fr2.
-    move/free_size in H4.
+    move/lookup_size in H4.
     rewrite e1 in H4.
     rewrite ltnn in H4. inv H4.
     have:=ih _ _ _ _ _ H4 H5.
@@ -690,13 +690,13 @@ Proof with eauto using
     econstructor... }
 Qed.
 
-Lemma resolve_free Θ1 Θ2 Θ Θ' l m n :
-  free Θ l n Θ' -> resolve Θ1 (Ptr l) m -> Θ1 ∘ Θ2 => Θ ->
+Lemma resolve_lookup Θ1 Θ2 Θ Θ' l m n :
+  lookup Θ l n Θ' -> resolve Θ1 (Ptr l) m -> Θ1 ∘ Θ2 => Θ ->
   exists Θ1', Θ1' ∘ Θ2 => Θ' /\ resolve Θ1' n m.
 Proof with eauto using merge.
   intros.
   inv H0.
-  have [e mrg]:=free_subset H1 H H3; subst.
+  have [e mrg]:=lookup_subset H1 H H3; subst.
   exists Θ'0.
   split...
 Qed.
@@ -957,8 +957,8 @@ Lemma all_ptr_nf ms i :
   all_ptr ms -> All1 (nf i) ms.
 Proof with eauto using All1, nf. elim=>{ms}... Qed.
 
-Lemma free_wr_nf Θ l m Θ' :
-  free Θ l m Θ' -> wr_heap Θ -> nf 0 m.
+Lemma lookup_wr_nf Θ l m Θ' :
+  lookup Θ l m Θ' -> wr_heap Θ -> nf 0 m.
 Proof with eauto using nf.
   elim=>//{Θ l m Θ'}.
   move=>Θ m l e wr. inv wr...
@@ -1007,8 +1007,8 @@ Proof with eauto using wr_heap.
     move:H0=>/ih[wr1 wr2]...
 Qed.
 
-Lemma free_wr Θ Θ' l m :
-  free Θ l m Θ' -> wr_heap Θ -> wr_heap Θ'.
+Lemma lookup_wr Θ Θ' l m :
+  lookup Θ l m Θ' -> wr_heap Θ -> wr_heap Θ'.
 Proof with eauto using wr_heap.
   elim=>{Θ l m Θ'}; eauto.
   move=>Θ m l e wr. inv wr...
@@ -1077,13 +1077,13 @@ Proof with eauto using nf, wr_heap_re, All1.
   move=>Θ k0 A A' m m' k rA ihA rm ihm i wr nfF. inv nfF...
   move=>Θ Θ' l m m' fr rs ih i wr nfP.
   { apply: ih...
-    apply: free_wr...
-    have n:=free_wr_nf fr wr.
+    apply: lookup_wr...
+    have n:=lookup_wr_nf fr wr.
     apply: nf_weaken... }
 Qed.
 
-Lemma free_wr_ptr Θ Θ' l i :
-  free Θ l (Ptr i) Θ' -> wr_heap Θ -> False.
+Lemma lookup_wr_ptr Θ Θ' l i :
+  lookup Θ l (Ptr i) Θ' -> wr_heap Θ -> False.
 Proof.
   move e:(Ptr i)=>m fr. elim: fr i e=>{Θ Θ' l m}.
   move=>Θ m l e1 i e2 wr; subst. inv wr.
@@ -1095,8 +1095,8 @@ Proof.
   inv wr; apply: ih; eauto.
 Qed.
 
-Lemma free_wr_sort Θ Θ' l s i :
-  free Θ l (s @ i) Θ' -> wr_heap Θ -> Θ = Θ'.
+Lemma lookup_wr_sort Θ Θ' l s i :
+  lookup Θ l (s @ i) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(s @ i)=>m fr. elim: fr s i e=>//{Θ Θ' l m}.
   move=>Θ m l e1 s i e2 wr; subst. inv wr.
@@ -1107,8 +1107,8 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_pi Θ Θ' l A B s r t :
-  free Θ l (Pi A B s r t) Θ' -> wr_heap Θ -> Θ = Θ'.
+Lemma lookup_wr_pi Θ Θ' l A B s r t :
+  lookup Θ l (Pi A B s r t) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(Pi A B s r t)=>m fr. elim: fr A B s r t e=>//{Θ Θ' l m}.
   move=>Θ m l e1 A B s r t e2 wr; subst. inv wr.
@@ -1119,8 +1119,8 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_var Θ Θ' l x :
-  free Θ l (Var x) Θ' -> wr_heap Θ -> False.
+Lemma lookup_wr_var Θ Θ' l x :
+  lookup Θ l (Var x) Θ' -> wr_heap Θ -> False.
 Proof.
   move e:(Var x)=>m fr. elim: fr x e=>//{Θ Θ' l m}.
   move=>Θ m l e1 x e2 wr; subst. inv wr.
@@ -1133,8 +1133,8 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_lam Θ Θ' l A m s :
-  free Θ l (Lam A m s U) Θ' -> wr_heap Θ -> Θ = Θ'.
+Lemma lookup_wr_lam Θ Θ' l A m s :
+  lookup Θ l (Lam A m s U) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(Lam A m s U)=>n fr. elim: fr A m s e=>//{Θ Θ' l n}.
   move=>Θ m l e1 A n s e2 wr; subst. inv wr. inv H4.
@@ -1161,8 +1161,8 @@ Proof.
   apply: ind_constr_spine'.
 Qed.
 
-Lemma free_wr_ind Θ Θ' l A Cs s ms :
-  free Θ l (spine (Ind A Cs s) ms) Θ' -> wr_heap Θ -> Θ = Θ'.
+Lemma lookup_wr_ind Θ Θ' l A Cs s ms :
+  lookup Θ l (spine (Ind A Cs s) ms) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(spine (Ind A Cs s) ms)=>n fr.
   elim: fr A Cs s ms e=>//{Θ Θ' l n}.
@@ -1176,8 +1176,8 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_ind_inv Θ Θ' l A Cs s ms :
-  free Θ l (spine (Ind A Cs s) ms) Θ' -> wr_heap Θ -> 
+Lemma lookup_wr_ind_inv Θ Θ' l A Cs s ms :
+  lookup Θ l (spine (Ind A Cs s) ms) Θ' -> wr_heap Θ -> 
   nf 0 A /\ All1 (nf 1) Cs /\ all_ptr ms.
 Proof.
   move e:(spine (Ind A Cs s) ms)=>n fr.
@@ -1212,8 +1212,8 @@ Proof.
   apply: constr_constr_spine'.
 Qed.
 
-Lemma free_wr_constr Θ Θ' l i I ms :
-  free Θ l (spine (Constr i I U) ms) Θ' -> wr_heap Θ -> Θ = Θ'.
+Lemma lookup_wr_constr Θ Θ' l i I ms :
+  lookup Θ l (spine (Constr i I U) ms) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(spine (Constr i I U) ms)=>n fr.
   elim: fr i I ms e=>//{Θ Θ' l n}.
@@ -1227,8 +1227,8 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_constr_inv Θ Θ' l i I ms s :
-  free Θ l (spine (Constr i I s) ms) Θ' -> wr_heap Θ -> 
+Lemma lookup_wr_constr_inv Θ Θ' l i I ms s :
+  lookup Θ l (spine (Constr i I s) ms) Θ' -> wr_heap Θ -> 
   nf 0 I /\ all_ptr ms.
 Proof.
   move e:(spine (Constr i I s) ms)=>n fr.
@@ -1245,8 +1245,8 @@ Proof.
   inv wr; eauto.
 Qed.
 
-Lemma free_wr_fix Θ Θ' l k A m :
-  free Θ l (Fix k A m) Θ' -> wr_heap Θ -> Θ = Θ'.
+Lemma lookup_wr_fix Θ Θ' l k A m :
+  lookup Θ l (Fix k A m) Θ' -> wr_heap Θ -> Θ = Θ'.
 Proof.
   move e:(Fix k A m)=>n fr. elim: fr A m e=>//{Θ Θ' l n}.
   move=>Θ m l e1 A n e2 wr; subst. inv wr.
@@ -1326,8 +1326,8 @@ Proof.
   by rewrite revK.
 Qed.
 
-Lemma free_wr_app Θ Θ' l m n :
-  free Θ l (App m n) Θ' -> wr_heap Θ -> ind_head m \/ constr_head m.
+Lemma lookup_wr_app Θ Θ' l m n :
+  lookup Θ l (App m n) Θ' -> wr_heap Θ -> ind_head m \/ constr_head m.
 Proof.
   move e:(App m n)=>x fr. elim: fr m n e=>//{Θ Θ' l x}.
   move=>Θ m l e1 m0 n e2 wr; subst.
@@ -1353,8 +1353,8 @@ Proof.
   apply: resolve_ind_nested=>//.
   move=>Θ Θ' l m m' fr rm ihm s i e wr; subst.
   destruct m; inv rm.
-  have->//:=free_wr_sort fr wr.
-  exfalso. apply: free_wr_ptr; eauto.
+  have->//:=lookup_wr_sort fr wr.
+  exfalso. apply: lookup_wr_ptr; eauto.
 Qed.
 
 Lemma resolve_pi_inv Θ m A B s r t :
@@ -1365,8 +1365,8 @@ Proof.
   apply: resolve_ind_nested=>//.
   move=>Θ Θ' l m m' fr rm ihm A B s r t e wr; subst.
   destruct m; inv rm.
-  have->//:=free_wr_pi fr wr.
-  exfalso. apply: free_wr_ptr; eauto.
+  have->//:=lookup_wr_pi fr wr.
+  exfalso. apply: lookup_wr_ptr; eauto.
 Qed.
 
 Lemma resolve_var_inv Θ m x :
@@ -1377,8 +1377,8 @@ Proof.
   apply: resolve_ind_nested=>//.
   move=>Θ Θ' l m m' fr rm ihm x e wr; subst.
   destruct m; inv rm.
-  exfalso. apply: free_wr_var; eauto.
-  exfalso. apply: free_wr_ptr; eauto.
+  exfalso. apply: lookup_wr_var; eauto.
+  exfalso. apply: lookup_wr_ptr; eauto.
 Qed.
 
 Lemma resolve_lam_inv Θ m A n s t :
@@ -1391,9 +1391,9 @@ Proof.
   move=>Θ Θ' l m m' fr rm ihm A n s t e wr; subst.
   destruct m; inv rm.
   destruct t.
-  have->//:=free_wr_lam fr wr.
+  have->//:=lookup_wr_lam fr wr.
   apply: key_impure.
-  exfalso. apply: free_wr_ptr; eauto.
+  exfalso. apply: lookup_wr_ptr; eauto.
 Qed.
 
 Lemma resolve_ind_inv Θ m A Cs s :
@@ -1404,9 +1404,9 @@ Proof.
   apply: resolve_ind_nested=>//.
   move=>Θ Θ' l m m' fr rm ihm A Cs s e wr; subst.
   destruct m; inv rm.
-  have{}fr:free Θ l (spine (Ind m Cs0 s) nil) Θ' by eauto.
-  have->//:=free_wr_ind fr wr.
-  exfalso. apply: free_wr_ptr; eauto.
+  have{}fr:lookup Θ l (spine (Ind m Cs0 s) nil) Θ' by eauto.
+  have->//:=lookup_wr_ind fr wr.
+  exfalso. apply: lookup_wr_ptr; eauto.
 Qed.
 
 Lemma resolve_constr_inv Θ m i I :
@@ -1417,9 +1417,9 @@ Proof.
   apply: resolve_ind_nested=>//.
   move=>Θ Θ' l m m' fr rm ihm i I e wr; subst.
   destruct m; inv rm.
-  have{}fr:free Θ l (spine (Constr i m U) nil) Θ' by eauto.
-  have->//:=free_wr_constr fr wr.
-  exfalso. apply: free_wr_ptr; eauto.
+  have{}fr:lookup Θ l (spine (Constr i m U) nil) Θ' by eauto.
+  have->//:=lookup_wr_constr fr wr.
+  exfalso. apply: lookup_wr_ptr; eauto.
 Qed.
 
 Lemma resolve_fix_inv Θ m k A n :
@@ -1430,8 +1430,8 @@ Proof.
   apply: resolve_ind_nested=>//.
   move=>Θ Θ' l m m' fr rm ihm A n e wr; subst.
   destruct m; inv rm.
-  have->//:=free_wr_fix fr wr.
-  exfalso. apply: free_wr_ptr; eauto.
+  have->//:=lookup_wr_fix fr wr.
+  exfalso. apply: lookup_wr_ptr; eauto.
 Qed.
 
 Lemma resolve_constr_ind Θ A I Cs i s1 s2 ms1 ms2 :
@@ -1629,15 +1629,15 @@ Proof with eauto using key_impure.
     have k2:=ihn _ _ erefl vn wr2 H8.
     apply: merge_pure_pure; eauto.
     inv H3.
-    have[wr1 wr2]:=wr_merge_inv H6 (free_wr H2 wr).
-    have[hd|hd]:=free_wr_app H2 wr; inv hd.
+    have[wr1 wr2]:=wr_merge_inv H6 (lookup_wr H2 wr).
+    have[hd|hd]:=lookup_wr_app H2 wr; inv hd.
     rewrite spine_app_rcons in H2.
-    have e:=free_wr_ind H2 wr; subst.
+    have e:=lookup_wr_ind H2 wr; subst.
     have k1:=ihm _ _ erefl (value_indd _ _ _ vms) wr1 H9.
     have k2:=ihn _ _ erefl vn wr2 H10.
     apply: merge_pure_pure; eauto.
     exfalso. apply: resolve_constr_ind; eauto.
-    exfalso. apply: free_wr_ptr; eauto. }
+    exfalso. apply: lookup_wr_ptr; eauto. }
   { inv mrg.
     have[ms'[e1 e2]]:=constr_spine_app_inv H; subst.
     have[G1[G2[A0[s1[mrg[tyC sp]]]]]]:=spine_inv nil_ok tym.
@@ -1661,21 +1661,21 @@ Proof with eauto using key_impure.
       apply: merge_pure_pure; eauto. }
     { apply: key_impure. }
     inv H2.
-    have[wr1 wr2]:=wr_merge_inv H5 (free_wr H1 wr).
+    have[wr1 wr2]:=wr_merge_inv H5 (lookup_wr H1 wr).
     have[vms vn]:=All1_rcons_value H0.
     have vC:value (spine (Constr i (Ind A1 Cs s1) s1) ms') by constructor.
     have{}ihm:=ihm _ _ erefl vC wr1 H8.
     have{}ihn:=ihn _ _ erefl vn wr2 H9.
     destruct s1.
     { inv leq.
-      have[hd|hd]:=free_wr_app H1 wr; inv hd.
+      have[hd|hd]:=lookup_wr_app H1 wr; inv hd.
       exfalso. apply: resolve_ind_constr; eauto.
       have e:=resolve_constr_constr H8; subst.
       rewrite spine_app_rcons in H1.
-      have e:=free_wr_constr H1 wr; subst.
+      have e:=lookup_wr_constr H1 wr; subst.
       apply: merge_pure_pure; eauto. }
     { apply: key_impure. }
-    exfalso. apply: free_wr_ptr; eauto. }
+    exfalso. apply: lookup_wr_ptr; eauto. }
   move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs Θ m e v wr rs; subst.
   { apply: resolve_ind_inv; eauto. }
   move=>Γ A s i C Cs I k ig tyI ihI Θ m e v wr rs; subst.
@@ -1695,8 +1695,8 @@ Qed.
 Lemma all_ptr_value ms : all_ptr ms -> All1 value ms.
 Proof with eauto using value, All1. elim=>{ms}... Qed.
 
-Lemma wr_free_value Θ l m Θ' :
-  free Θ l m Θ' -> wr_heap Θ -> value m.
+Lemma wr_lookup_value Θ l m Θ' :
+  lookup Θ l m Θ' -> wr_heap Θ -> value m.
 Proof with eauto using wr_heap, value, all_ptr_value.
   elim=>{Θ l m Θ'}.
   move=>Θ m l e wr. inv wr...
@@ -1801,16 +1801,16 @@ Proof with eauto using value, All1.
   { exfalso. solve_spine. }
   { exfalso. solve_spine. }
   move=>Θ Θ' l m m' fr rm ih _ wr.
-  { have v:=wr_free_value fr wr.
+  { have v:=wr_lookup_value fr wr.
     apply: ih...
-    apply: free_wr; eauto. }
+    apply: lookup_wr; eauto. }
 Qed.
 
 Lemma wr_resolve_value Θ l n :
   wr_heap Θ -> resolve Θ (Ptr l) n -> value n.
 Proof.
   move=>wr rs. inv rs.
-  have fr:=free_wr H0 wr.
-  have vm:=wr_free_value H0 wr.
+  have fr:=lookup_wr H0 wr.
+  have vm:=wr_lookup_value H0 wr.
   apply: resolve_value; eauto.
 Qed.

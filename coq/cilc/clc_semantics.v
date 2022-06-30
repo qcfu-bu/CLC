@@ -27,14 +27,14 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   eval Θ n Θ' n' ->
   eval Θ (App (Ptr l) n) Θ' (App (Ptr l) n')
 | eval_beta Θ Θ' l1 l2 A m s t :
-  free Θ l1 (Lam A m s t) Θ' ->
+  lookup Θ l1 (Lam A m s t) Θ' ->
   eval Θ (App (Ptr l1) (Ptr l2)) Θ' m.[Ptr l2/]
 | eval_indd Θ l A Cs s :
   l = length Θ ->
   eval Θ (Ind A Cs s) (Ind A Cs s :U Θ) (Ptr l)
 | eval_appI Θ Θ' l1 l2 l A Cs s ms :
   l = length Θ ->
-  free Θ l1 (spine (Ind A Cs s) ms) Θ' ->
+  lookup Θ l1 (spine (Ind A Cs s) ms) Θ' ->
   eval 
     Θ (App (Ptr l1) (Ptr l2)) 
     (spine (Ind A Cs s) (rcons ms (Ptr l2)) :U Θ') (Ptr l)
@@ -43,7 +43,7 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   eval Θ (Constr i I s) (Constr i I s :{s} Θ) (Ptr l)
 | eval_appC Θ Θ' l1 l2 l i I s ms :
   l = length Θ ->
-  free Θ l1 (spine (Constr i I s) ms) Θ' ->
+  lookup Θ l1 (spine (Constr i I s) ms) Θ' ->
   eval
     Θ (App (Ptr l1) (Ptr l2))
     (spine (Constr i I s) (rcons ms (Ptr l2)) :{s} Θ') (Ptr l)
@@ -52,7 +52,7 @@ Inductive eval : context term -> term -> context term -> term -> Prop :=
   eval Θ (Case m Q Fs) Θ' (Case m' Q Fs)
 | eval_iota1 Θ Θ' l i I s ms Q Fs F :
   iget i Fs F ->
-  free Θ l (spine (Constr i I s) ms) Θ' ->
+  lookup Θ l (spine (Constr i I s) ms) Θ' ->
   eval Θ (Case (Ptr l) Q Fs) Θ' (spine F ms)
 | step_fix Θ l A m :
   l = length Θ ->
@@ -298,8 +298,8 @@ Proof with eauto using resolve, All2.
     apply: id_ren_up... }
   move=>Θ Θ' l m m' fr rm ihm i ξ wr idr.
   { asimpl.
-    have nf0:=free_wr_nf fr wr.
-    have {}wr:=free_wr fr wr.
+    have nf0:=lookup_wr_nf fr wr.
+    have {}wr:=lookup_wr fr wr.
     have nf0':=resolve_wr_nfi' rm wr nf0.
     have leq : 0 <= i by eauto.
     have nfi:=nf_weaken nf0' leq.
@@ -450,11 +450,11 @@ Proof with eauto using resolve, merge_pure_pure, All2.
     { have k2:=agree_resolve_key agr k.
       econstructor... }
     { inv H0.
-      have e:=free_wr_sort H wr; subst.
+      have e:=lookup_wr_sort H wr; subst.
       have p:=agree_resolve_key agr k.
       have [e1 e2]:=merge_pure_eq mrg H4 p; subst.
       econstructor...
-      exfalso. apply: free_wr_ptr; eauto. } }
+      exfalso. apply: lookup_wr_ptr; eauto. } }
   move=>Γ A B s r t i k tyA ihA tyB ihB Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
   { inv rsm; asimpl.
     { constructor.
@@ -469,8 +469,8 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       apply: ihB...
       destruct s... }
     { inv H0.
-      have nfP:=free_wr_nf H wr.
-      have e:=free_wr_pi H wr; subst.
+      have nfP:=lookup_wr_nf H wr.
+      have e:=lookup_wr_pi H wr; subst.
       have k1:=agree_resolve_key agr k.
       have[e1 e2]:=merge_pure_eq mrg H6 k1; subst.
       inv nfP.
@@ -489,14 +489,14 @@ Proof with eauto using resolve, merge_pure_pure, All2.
         apply: agree_resolve_upN.
         rewrite<-pure_re...
         have->:=nf_agree_resolve H8 le2 agr'... }
-      exfalso. apply: free_wr_ptr; eauto. } }
+      exfalso. apply: lookup_wr_ptr; eauto. } }
   move=>Γ x A s hs Θ1 Θ2 Θ m σ σ' x0 mrg rsm wr agr.
   { inv rsm; asimpl.
     { have e:=merge_pureL mrg H2; subst.
       apply: agree_resolve_id... }
     { inv H0.
-      have//:=free_wr_var H wr.
-      have//:=free_wr_ptr H wr. } }
+      have//:=lookup_wr_var H wr.
+      have//:=lookup_wr_ptr H wr. } }
   move=>Γ A B m s r t i k tyP ihP tym ihm Θ1 Θ2 Θ n σ σ' x mrg rsL wr agr.
   { have[lP[tyA[_[_ tyB]]]]:=pi_inv tyP.
     inv rsL; asimpl.
@@ -516,11 +516,11 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       { econstructor... }
       { econstructor... } }
     { inv H0.
-      have nfL:=free_wr_nf H wr.
+      have nfL:=lookup_wr_nf H wr.
       have k2:=agree_resolve_key agr k.
       inv nfL.
-      have[G[fr mrg']]:=free_merge H mrg.
-      have wr':=free_wr H wr.
+      have[G[fr mrg']]:=lookup_merge H mrg.
+      have wr':=lookup_wr H wr.
       econstructor...
       econstructor...
       apply: merge_key...
@@ -542,7 +542,7 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       { have agr': agree_resolve (A :L Γ) Θ2 (up σ) (up σ') x.+1.
           apply: agree_resolve_upTy...
         have->:=nf_agree_resolve H7 le2 agr'... }
-      exfalso. apply: free_wr_ptr; eauto. } }
+      exfalso. apply: lookup_wr_ptr; eauto. } }
   move=>Γ1 Γ2 Γ A B m n s r t k mrg1 tym ihm tyn ihn 
     Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
   { inv rsm; asimpl.
@@ -551,12 +551,12 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg2 H1 mrg5.
       econstructor... }
     { inv H0.
-      have nfa:=free_wr_nf H wr.
+      have nfa:=lookup_wr_nf H wr.
       inv nfa.
-      have[G[fr mrg']]:=free_merge H mrg2.
+      have[G[fr mrg']]:=lookup_merge H mrg2.
       have[G1[G2[mrg5[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
       have[D1[D2[mrg6[mrg7 mrg8]]]]:=merge_distr mrg' H3 mrg5.
-      have wr':=free_wr H wr.
+      have wr':=lookup_wr H wr.
       have[wr1 wr2]:=wr_merge_inv H3 wr'.
       have le:0 <= x by eauto.
       econstructor...
@@ -564,7 +564,7 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       apply: mrg6.
       have->:=nf_agree_resolve H4 le agr1. apply:ihm...
       have->:=nf_agree_resolve H5 le agr2. apply:ihn...
-      exfalso. apply: free_wr_ptr; eauto. } }
+      exfalso. apply: lookup_wr_ptr; eauto. } }
   move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
   { inv rsm; asimpl.
     { have k2:=agree_resolve_key agr k.
@@ -575,9 +575,9 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       apply: H1...
       apply: agree_resolve_upTy... }
     { inv H0.
-      have nfI:=free_wr_nf H wr.
-      have fr:free Θ1 l0 (spine (Ind A0 Cs0 s) nil) Θ' by eauto.
-      have e:=free_wr_ind fr wr; subst.
+      have nfI:=lookup_wr_nf H wr.
+      have fr:lookup Θ1 l0 (spine (Ind A0 Cs0 s) nil) Θ' by eauto.
+      have e:=lookup_wr_ind fr wr; subst.
       have k2:=agree_resolve_key agr k.
       have[e1 e2]:=merge_pure_eq mrg H6 k2; subst.
       inv nfI.
@@ -595,13 +595,13 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       constructor...
       have->:=nf_agree_resolve H2 lt agr'.
       apply: H5...
-      exfalso. apply: free_wr_ptr... } }
+      exfalso. apply: lookup_wr_ptr... } }
   move=>Γ A s i C Cs//=k ig tyI ihI Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
   { inv rsm; asimpl.
     { have k2:=agree_resolve_key agr k.
       econstructor... }
     { inv H0.
-      have nfC:=free_wr_nf H wr.
+      have nfC:=lookup_wr_nf H wr.
       have k2:=agree_resolve_key agr k.
       have e:=merge_pureR mrg k2; subst.
       econstructor...
@@ -610,10 +610,10 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       have leq:0 <= x by eauto.
       have->:=nf_agree_resolve H2 leq agr.
       apply: ihI...
-      have[G[_ mrg1]]:=free_merge H mrg.
+      have[G[_ mrg1]]:=lookup_merge H mrg.
       have e:=merge_pureR mrg1 k2; subst=>//.
-      apply: free_wr...
-      exfalso. apply: free_wr_ptr... } }
+      apply: lookup_wr...
+      exfalso. apply: lookup_wr_ptr... } }
   move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms//=leq ar key mrg1 
     tym ihm tyQ ihQ tyFs ihFs Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
   { inv rsm; asimpl.
@@ -632,10 +632,10 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       apply: agree_resolve_re...
       apply: All2i_resolve_subst... }
     { inv H0.
-      have v:=wr_free_value H wr. inv v.
+      have v:=wr_lookup_value H wr. inv v.
       exfalso. solve_spine.
       exfalso. solve_spine.
-      exfalso. apply: free_wr_ptr... } }
+      exfalso. apply: lookup_wr_ptr... } }
   move=>Γ A m l k tyA ihA tym ihm Θ1 Θ2 Θ m0 σ σ' x mrg rsm wr agr.
   { inv rsm; asimpl.
     { have k2:=agree_resolve_key agr k.
@@ -643,9 +643,9 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       apply: ihm...
       apply: agree_resolve_upTy... }
     { inv H0.
-      have nfF:=free_wr_nf H wr.
+      have nfF:=lookup_wr_nf H wr.
       inv nfF.
-      have e:=free_wr_fix H wr; subst.
+      have e:=lookup_wr_fix H wr; subst.
       have k2:=agree_resolve_key agr k.
       have e:=merge_pureR mrg k2; subst.
       have leq: 0 <= x by eauto.
@@ -658,7 +658,7 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       { apply: agree_resolve_upTy... }
       have->:=nf_agree_resolve H5 lt agr'.
       apply: ihm...
-      exfalso. apply: free_wr_ptr... } }
+      exfalso. apply: lookup_wr_ptr... } }
 Qed.
 
 Lemma resolve_substU Θ1 Θ2 Θ m m' n n' A B r :
@@ -706,7 +706,7 @@ Lemma eval_split Θ1 Θ2 Θ Θ' m n m' A t :
     well_resolved Θ1' m' n' A t /\ wr_heap Θ' /\
     pad Θ2 Θ2' /\ Θ1' ∘ Θ2' => Θ' /\ n ~>* n'.
 Proof with eauto 6 using 
-  clc_type, key, free, pad, merge, 
+  clc_type, key, lookup, pad, merge, 
   well_resolved, resolve, resolve_wkU, resolve_wkN, 
   all_ptr, All1, All2.
   move=>{Θ1 m n A t}[Θ1 m n A t rm]. move e:(nil)=>Γ tyn.
@@ -828,7 +828,7 @@ Proof with eauto 6 using
       apply: red_app... }
     { move=>{ihm ihn}.
       have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
-      have[G[mrg rs]]:=resolve_free H7 H4 mrg4.
+      have[G[mrg rs]]:=resolve_lookup H7 H4 mrg4.
       have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
       exists Gx. exists Θ2. inv rs. exists (m'.[n/]).
       have tym':=lam_inv tyP tym.
@@ -837,7 +837,7 @@ Proof with eauto 6 using
       have[wf0 wf3]:=wr_merge_inv H1 wf1.
       have vn:=wr_resolve_value wf3 H5.
       have key:=resolution tyn vn wf3 H5.
-      have wr':=free_wr H7 wf.
+      have wr':=lookup_wr H7 wf.
       have [wr1 wr2]:=wr_merge_inv mrg wr'.
       destruct s.
       { apply: resolve_substU...
@@ -847,11 +847,11 @@ Proof with eauto 6 using
         apply: wr_merge...
         apply: merge_sym... }
       apply: substitution...
-      apply: free_wr...
+      apply: lookup_wr...
       apply: star1.
       apply: step_beta. }
     { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
-      have[G[mrg rs]]:=resolve_free H8 H4 mrg4.
+      have[G[mrg rs]]:=resolve_lookup H8 H4 mrg4.
       have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
       have[e1 e2]:=merge_length mrg6.
       have[e3 e4]:=merge_length mrg.
@@ -872,12 +872,12 @@ Proof with eauto 6 using
         apply: merge_sym mrg7.
         apply: resolve_wkU...
         apply: resolve_wkU... }
-      have[nfA[nfCs pms]]:=free_wr_ind_inv H8 wf.
-      have wr:=free_wr H8 wf.
+      have[nfA[nfCs pms]]:=lookup_wr_ind_inv H8 wf.
+      have wr:=lookup_wr H8 wf.
       constructor...
       apply: all_ptr_rcons... }
     { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H1.
-      have[G[mrg rs]]:=resolve_free H8 H4 mrg4.
+      have[G[mrg rs]]:=resolve_lookup H8 H4 mrg4.
       have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
       have[e1 e2]:=merge_length mrg6.
       have[e3 e4]:=merge_length mrg.
@@ -899,8 +899,8 @@ Proof with eauto 6 using
           apply: merge_sym mrg7.
           apply: resolve_wkU...
           apply: resolve_wkU... }
-        have[nfI pms]:=free_wr_constr_inv H8 wf.
-        have wr:=free_wr H8 wf.
+        have[nfI pms]:=lookup_wr_constr_inv H8 wf.
+        have wr:=lookup_wr H8 wf.
         constructor...
         apply: all_ptr_rcons... }
       { exists (spine (Constr i I L) (rcons ms (Ptr l2)) :L Gx).
@@ -916,8 +916,8 @@ Proof with eauto 6 using
           apply: merge_sym mrg7.
           apply: resolve_wkN...
           apply: resolve_wkN... }
-        have[nfI pms]:=free_wr_constr_inv H8 wf.
-        have wr:=free_wr H8 wf.
+        have[nfI pms]:=lookup_wr_constr_inv H8 wf.
+        have wr:=lookup_wr H8 wf.
         constructor...
         apply: all_ptr_rcons... } } }
   move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs 
@@ -1003,13 +1003,13 @@ Proof with eauto 6 using
         { apply: clc_conv... } }
       { apply: red_case... } }
     { have[Θx[mrg3 mrg4]]:=merge_splitR mrg2 H2.
-      have[G[mrg rs]]:=resolve_free H10 H5 mrg4.
+      have[G[mrg rs]]:=resolve_lookup H10 H5 mrg4.
       have[Gx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
       exists Gx. exists Θ2. 
       have[I'[ms'[e[rI sp]]]]:=constr_spine_inv rs; subst.
       have[F'[ig' rF]]:=iget_All2 H7 H9.
       exists (spine F' ms').
-      have wr':=free_wr H10 wr.
+      have wr':=lookup_wr H10 wr.
       have[wr1 wr2]:=wr_merge_inv mrg wr'.
       repeat split...
       apply: app_resolve_spine...

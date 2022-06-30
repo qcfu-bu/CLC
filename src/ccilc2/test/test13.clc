@@ -1,3 +1,20 @@
+
+Definition foo (b : bool) : U :=
+  match b with
+  | true => bool
+  | false => nat
+  end.
+
+Definition bar (b : bool) : foo b :=
+  match b as x return 
+    foo x
+  with
+  | true => false
+  | false => 2
+  end.
+
+
+
 Definition Main :=
   let x : 1 = 1 := refl in
   _main_.
