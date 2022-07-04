@@ -1,4 +1,3 @@
-
 Definition foo (b : bool) : U :=
   match b with
   | true => bool
@@ -12,8 +11,6 @@ Definition bar (b : bool) : foo b :=
   | true => false
   | false => 2
   end.
-
-
 
 Definition Main :=
   let x : 1 = 1 := refl in
