@@ -1,0 +1,22 @@
+Inductive list (A : L) : nat -> L :=
+| nil : list A 0
+| cons : forall (n : nat), A -> list A n -> list A (S n).
+
+Fixpoint kappend (A B : L) (m n : nat) :
+  list A m -o list A n -o (list A (m + n) -o B) -o B
+:= 
+  lin ls1 ls2 k =>
+  match ls1 in list _ x return
+    (list A (x + n) -o B) -o B
+  with
+  | nil => lin k => k ls2
+  | cons m hd tl => lin k =>
+    kappend A B m n tl ls2 (lin res => k (cons (m + n) hd res))
+  end k.
+
+Definition append (A : L) (m n : nat) :  
+  list A m -o list A n -o list A (m + n) := 
+  lin ls1 ls2 =>
+  kappend A (list A (m + n)) m n ls1 ls2 (lin res => res).
+
+Definition Main := ().

@@ -141,30 +141,28 @@ Inductive list (A : L) : (nat) -> L :=
          : forall (n : nat), (A) -> ((list A n)) -> (list A#401 (S n#402)).
 
 Definition kappend :=
-  ((fix kappend A m n o =>
+  ((fix kappend A B m n =>
       lin ls1 ls2 k =>
-        (match ls1 in (list _ x) return
-           (((list A ((addn) x) n)) -o (list A ((addn) o) n)) -o
-             (list A ((addn) o) n)
+        (match ls1 in (list _ x) return (((list A ((addn) x) n)) -o B) -o B
          with
          | nil => lin k => (k) ls2
          | (cons m hd tl) =>
            lin k =>
-             (((((((kappend) A) m) n) o) tl) ls2)
+             (((((((kappend) A) B) m) n) tl) ls2)
                lin res => (k) (cons ((addn) m) n hd res)
          end) k) :
     forall (A : L),
-      forall (m : nat),
-        forall (n : nat),
-          forall (o : nat),
+      forall (B : L),
+        forall (m : nat),
+          forall (n : nat),
             ((list A m)) -o
-              ((list A n)) -o
-                (((list A ((addn) m) n)) -o (list A ((addn) o) n)) -o
-                  (list A ((addn) o) n)).
+              ((list A n)) -o (((list A ((addn) m) n)) -o B) -o B).
 
 Definition append :=
   ((fun A m n =>
-      lin ls1 ls2 => (((((((kappend) A) m) n) m) ls1) ls2) lin res => res) :
+      lin ls1 ls2 =>
+        (((((((kappend) A) (list A ((addn) m) n)) m) n) ls1) ls2)
+          lin res => res) :
     forall (A : L),
       forall (m : nat),
         forall (n : nat),
@@ -196,31 +194,31 @@ Definition addn :=
     (nat) -> (nat) -> nat).
 
 Inductive option (A : U) : U :=
-| None (A : U) : (option A#2883)
-| Some (A : U) : (A) -> (option A#2884).
+| None (A : U) : (option A#2827)
+| Some (A : U) : (A) -> (option A#2828).
 
 Inductive list (A : U) : U :=
-| nil (A : U) : (list A#2887)
-| cons (A : U) : (A) -> ((list A)) -> (list A#2888).
+| nil (A : U) : (list A#2831)
+| cons (A : U) : (A) -> ((list A)) -> (list A#2832).
 
 Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#2893 O)
+| vnil (A : U) : (vec A#2837 O)
 | vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2894 (S n#2895)).
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2838 (S n#2839)).
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2901 P#2902).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2845 P#2846).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2909 P#2910).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2853 P#2854).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2916 B#2917).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2860 B#2861).
 
 Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#2921).
+| box_intro (A : U) : (A) -> (box A#2865).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -241,13 +239,13 @@ Definition cat :=
     (string) -> (string) -> string).
 
 Inductive le (n : nat) : (nat) -> U :=
-| le_n (n : nat) : (le n#2943 n#2943)
-| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#2944 (S m#2945)).
+| le_n (n : nat) : (le n#2887 n#2887)
+| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#2888 (S m#2889)).
 
 Definition lt := ((fun m n => (le (S m) n)) : (nat) -> (nat) -> U).
 
 Inductive eq (A : U) (x : A) : (A) -> U :=
-| refl (A : U) (x : A) : (eq A#2955 x#2956 x#2956).
+| refl (A : U) (x : A) : (eq A#2899 x#2900 x#2900).
 
 Definition eq_trans :=
   ((fun A x y z e1 e2 =>
@@ -310,35 +308,33 @@ Axiom Set :
     forall (B : U), (B) -> forall (l : Loc), (((PtsTo) l) A) -> ((PtsTo) l) B.
 
 Inductive list (A : L) : (nat) -> L :=
-| nil (A : L) : (list A#3051 O)
+| nil (A : L) : (list A#2995 O)
 | cons (A : L)
-         : forall (n : nat), (A) -> ((list A n)) -> (list A#3052 (S n#3053)).
+         : forall (n : nat), (A) -> ((list A n)) -> (list A#2996 (S n#2997)).
 
 Definition kappend :=
-  ((fix kappend A m n o =>
+  ((fix kappend A B m n =>
       lin ls1 ls2 k =>
-        (match ls1 in (list _ x) return
-           (((list A ((addn) x) n)) -o (list A ((addn) o) n)) -o
-             (list A ((addn) o) n)
+        (match ls1 in (list _ x) return (((list A ((addn) x) n)) -o B) -o B
          with
          | nil => lin k => (k) ls2
          | (cons m hd tl) =>
            lin k =>
-             (((((((kappend) A) m) n) o) tl) ls2)
+             (((((((kappend) A) B) m) n) tl) ls2)
                lin res => (k) (cons ((addn) m) n hd res)
          end) k) :
     forall (A : L),
-      forall (m : nat),
-        forall (n : nat),
-          forall (o : nat),
+      forall (B : L),
+        forall (m : nat),
+          forall (n : nat),
             ((list A m)) -o
-              ((list A n)) -o
-                (((list A ((addn) m) n)) -o (list A ((addn) o) n)) -o
-                  (list A ((addn) o) n)).
+              ((list A n)) -o (((list A ((addn) m) n)) -o B) -o B).
 
 Definition append :=
   ((fun A m n =>
-      lin ls1 ls2 => (((((((kappend) A) m) n) m) ls1) ls2) lin res => res) :
+      lin ls1 ls2 =>
+        (((((((kappend) A) (list A ((addn) m) n)) m) n) ls1) ls2)
+          lin res => res) :
     forall (A : L),
       forall (m : nat),
         forall (n : nat),
