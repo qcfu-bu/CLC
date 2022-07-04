@@ -1,5 +1,5 @@
 # when updating ocamlformat version, update the version in Makefile `deps` target
-version=0.21.0
+version=0.22.4
 profile=conventional
 break-separators=before
 dock-collection-brackets=false

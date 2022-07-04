@@ -12,18 +12,25 @@ let failwith s =
 
 let union m1 m2 =
   MMap.union
-    (fun _ (x, opt1, ord1) (y, opt2, ord2) ->
-      let opt =
-        match (opt1, opt2) with
-        | Some a, Some _ -> Some a
-        | Some _, None -> opt1
-        | None, Some _ -> opt2
-        | _, _ -> None
+    (fun _ (opt11, opt12, ord1) (opt21, opt22, ord2) ->
+      let opt1 =
+        match (opt11, opt21) with
+        | Some m, Some n ->
+          if ord1 < ord2 then
+            Some n
+          else
+            Some m
+        | Some _, _ -> opt11
+        | _, Some _ -> opt21
+        | _ -> None
       in
-      if ord1 < ord2 then
-        Some (y, opt, ord2)
-      else
-        Some (x, opt, ord1))
+      let opt2 =
+        match (opt12, opt22) with
+        | Some _, _ -> opt12
+        | _, Some _ -> opt22
+        | _ -> None
+      in
+      Some (opt1, opt2, max ord1 ord2))
     m1 m2
 
 let rec fv ctx t =
