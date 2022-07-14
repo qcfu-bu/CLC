@@ -339,7 +339,7 @@ let rec equal_p p1 p2 =
   | PAbsurd, PAbsurd -> true
   | _ -> false
 
-let unbindp2 (PAbs (ps1, m)) (PAbs (ps2, n)) =
+let unbindp2_tm (PAbs (ps1, m)) (PAbs (ps2, n)) =
   if List.equal equal_p ps1 ps2 then
     let ps = freshen_ps ps1 in
     let xs = xs_of_ps ps in
