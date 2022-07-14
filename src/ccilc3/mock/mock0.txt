@@ -1,5 +1,9 @@
 open @stdout as stdout
 
+data bot : U
+
+data base : L
+
 data nat : U
   | zero : nat
   | succ : nat -> nat
@@ -9,7 +13,10 @@ data vec (A : U) : nat -> U
   | cons : ∀ (n : nat) -> A -> vec A n -> vec A (succ n)
 
 def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
-  | _ _ (cons hd tl) x => tl
+  | _ _ (cons hd tl) x =>
+    match hd, tl with
+    | (cons x y), nil => x
+    | nil, zero => x
 
 def main :=
   let ch := send stdout msg in

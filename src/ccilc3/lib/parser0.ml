@@ -13,8 +13,8 @@ let reserved =
     ; "let"
     ; "in"
     ; "rec"
-    ; "case"
-    ; "of"
+    ; "match"
+    ; "with"
     ; "absurd"
     ; "end"
     ; "axiom"
@@ -277,10 +277,10 @@ and branch_parser () =
 
 and branches_parser () = many1 (branch_parser ())
 
-and case_parser () =
-  let* _ = kw "case" in
+and match_parser () =
+  let* _ = kw "match" in
   let* ms = sep_by1 (tm_parser ()) (kw ",") in
-  let* _ = kw "of" in
+  let* _ = kw "with" in
   let* cls = branches_parser () in
   return (Match (ms, cls))
 
@@ -354,7 +354,7 @@ and tm0_parser () =
     ; pi_parser ()
     ; fun_parser ()
     ; let_parser ()
-    ; case_parser ()
+    ; match_parser ()
     ; main_parser ()
     ; proto_parser ()
     ; end_parser ()
