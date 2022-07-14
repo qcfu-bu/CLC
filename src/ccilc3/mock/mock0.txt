@@ -1,1 +1,17 @@
-fun foo | x y z => foo hd tl
+open @stdout as stdout
+
+data nat : U
+  | zero : nat
+  | succ : nat -> nat
+
+data vec (A : U) : nat -> U
+  | nil : vec A zero
+  | cons : ∀ (n : nat) -> A -> vec A n -> vec A (succ n)
+
+def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
+  | _ _ (cons hd tl) x => tl
+
+def main :=
+  let ch := send stdout msg in
+  let _ := close ch in
+  tt

@@ -13,8 +13,8 @@ let reserved =
     ; "let"
     ; "in"
     ; "rec"
-    ; "match"
-    ; "with"
+    ; "case"
+    ; "of"
     ; "absurd"
     ; "end"
     ; "axiom"
@@ -168,13 +168,18 @@ and arg1_parser () =
      return arg)
 
 and args_parser () =
+  let* args = many (arg0_parser () <|> arg1_parser ()) in
+  let args = List.concat args in
+  return args
+
+and args1_parser () =
   let* args = many1 (arg0_parser () <|> arg1_parser ()) in
   let args = List.concat args in
   return args
 
 and pi_parser () =
   let* _ = kw "∀" <|> kw "forall" in
-  let* args = args_parser () in
+  let* args = args1_parser () in
   let* srt = kw "→" <|> kw "->" >>$ U <|> (kw "⊸" <|> kw "-o" >>$ L) in
   let* b = tm_parser () in
   return (Pi (srt, args, b))
@@ -272,10 +277,10 @@ and branch_parser () =
 
 and branches_parser () = many1 (branch_parser ())
 
-and match_parser () =
-  let* _ = kw "match" in
+and case_parser () =
+  let* _ = kw "case" in
   let* ms = sep_by1 (tm_parser ()) (kw ",") in
-  let* _ = kw "with" in
+  let* _ = kw "of" in
   let* cls = branches_parser () in
   return (Match (ms, cls))
 
@@ -293,7 +298,7 @@ and proto_parser () = kw "proto" >>$ Proto
 and end_parser () = kw "end" >>$ End
 
 and act0_parser () =
-  let* args = args_parser () in
+  let* args = args1_parser () in
   return args
 
 and act1_parser () =
@@ -349,7 +354,7 @@ and tm0_parser () =
     ; pi_parser ()
     ; fun_parser ()
     ; let_parser ()
-    ; match_parser ()
+    ; case_parser ()
     ; main_parser ()
     ; proto_parser ()
     ; end_parser ()
@@ -368,7 +373,7 @@ and tm1_parser () =
   let* tl = many (tm0_parser ()) in
   match tl with
   | [] -> return hd
-  | _ -> return (App (hd, tl))
+  | _ -> return (App (hd :: tl))
 
 and tm2_parser () =
   let arrow_parser =
@@ -383,5 +388,71 @@ and tm2_parser () =
 
 and tm_parser () = tm2_parser ()
 
-let parse_string s = parse_string (tm_parser ()) s SS.empty
-let parse_channel ch = parse_channel (tm_parser ()) ch SS.empty
+let def_parser =
+  let* _ = kw "def" in
+  let* id = id_parser in
+  let* opt = option (kw ":" >> tm_parser ()) in
+  (let* cls = cls_parser () in
+   match opt with
+   | Some a -> return (DFun (id, a, cls))
+   | None -> fail "type annotation required for toplevel function")
+  <|> let* _ = kw ":=" in
+      let* m = tm_parser () in
+      return (DTm (id, opt, m))
+
+let rec make_tl a =
+  match a with
+  | Pi (U, args1, a) ->
+    let (Tl (args2, a)) = make_tl a in
+    Tl (args1 @ args2, a)
+  | _ -> Tl ([], a)
+
+let cons_parser args =
+  let* _ = kw "|" in
+  let* id = id_parser in
+  let* _ = update_user_state (fun cs -> SS.add id cs) in
+  let* _ = kw ":" in
+  let* a = tm_parser () in
+  let ptl = PTl (args, make_tl a) in
+  return (Cons (id, ptl))
+
+let conss_parser args = many (cons_parser args)
+
+let ddata_parser =
+  let* _ = kw "data" in
+  let* id = id_parser in
+  let* args = args_parser () in
+  let* _ = kw ":" in
+  let* a = tm_parser () in
+  let ptl = PTl (args, make_tl a) in
+  let* conss = conss_parser args in
+  return (DData (id, ptl, conss))
+
+let directive_parser =
+  choice
+    [ kw "@stdin" >>$ "@stdin"
+    ; kw "@stdout" >>$ "@stdout"
+    ; kw "@stderr" >>$ "@stderr"
+    ; kw "@main" >>$ "@main"
+    ]
+
+let dopen_parser =
+  let* _ = kw "open" in
+  let* id1 = directive_parser in
+  let* _ = kw "as" in
+  let* id2 = id_parser in
+  return (DOpen (id1, id2))
+
+let daxiom_parser =
+  let* _ = kw "axiom" in
+  let* id = id_parser in
+  let* _ = kw ":" in
+  let* a = tm_parser () in
+  return (DAxiom (id, a))
+
+let decl_parser =
+  choice [ def_parser; ddata_parser; dopen_parser; daxiom_parser ]
+
+let decls_parser = many1 decl_parser
+let parse_string s = parse_string (ws >> decls_parser) s SS.empty
+let parse_channel ch = parse_channel (ws >> decls_parser) ch SS.empty
