@@ -3,8 +3,9 @@ open Names
 type sort =
   | U
   | L
+[@@deriving show { with_path = false }]
 
-type 'a abs = Abs of V.t * 'a
+type 'a abs = Abs of V.t * 'a [@@deriving show { with_path = false }]
 and 'a pabs = PAbs of ps * 'a
 
 and tm =
@@ -47,12 +48,14 @@ type target =
   | TStdout
   | TStderr
   | TMain
+[@@deriving show { with_path = false }]
 
 type decl =
   | DTm of V.t * tm_opt * tm
   | DFun of V.t * tm * cls abs
   | DData of D.t * ptl * conss
   | DOpen of target * V.t
+[@@deriving show { with_path = false }]
 
 and decls = decl list
 and cons = Cons of C.t * ptl

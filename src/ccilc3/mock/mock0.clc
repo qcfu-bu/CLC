@@ -12,11 +12,15 @@ data vec (A : U) : nat -> U
   | nil : vec A zero
   | cons : ∀ (n : nat) -> A -> vec A n -> vec A (succ n)
 
+axiom fext : 
+  ∀ (A B : U) (f g : A -> B) -> 
+    (∀ (x : A) -> eq (f x) (g x)) -> eq f g
+
 def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
   | _ _ (cons hd tl) x =>
-    fork (x : ch) in
+    fork (x : ch<?(x : A) >> end>) in
       match send ch with
-      | intros x => x
+      | succ x => x
     and
       match hd, tl with
       | (cons x y), nil => x
