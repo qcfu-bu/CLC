@@ -348,3 +348,16 @@ let unbindp2_tm (PAbs (ps1, m)) (PAbs (ps2, n)) =
     (ps, m, n)
   else
     failwith "unbindp2"
+
+let rec mkApps hd ms =
+  match ms with
+  | m :: ms -> mkApps (App (hd, m)) ms
+  | [] -> hd
+
+let unApps m =
+  let rec aux m ns =
+    match m with
+    | App (m, n) -> aux m (n :: ns)
+    | _ -> (m, ns)
+  in
+  aux m []

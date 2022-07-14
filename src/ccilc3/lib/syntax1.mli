@@ -77,3 +77,5 @@ val unbind_tm : tm abs -> V.t * tm
 val unbindp_tm : tm pabs -> ps * tm
 val unbind2_tm : tm abs -> tm abs -> V.t * tm * tm
 val unbindp2_tm : tm pabs -> tm pabs -> ps * tm * tm
+val mkApps : tm -> tms -> tm
+val unApps : tm -> tm * tms
