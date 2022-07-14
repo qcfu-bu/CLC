@@ -326,9 +326,9 @@ and fork_parser () =
   let* _ = kw ":" in
   let* a = tm_parser () in
   let* _ = kw ")" in
-  let* _ = kw "in" in
+  let* _ = kw "<-" in
   let* m = tm_parser () in
-  let* _ = kw "and" in
+  let* _ = kw "with" in
   let* n = tm_parser () in
   return (Fork (id, a, m, n))
 
@@ -455,5 +455,5 @@ let decl_parser =
   choice [ def_parser; ddata_parser; dopen_parser; daxiom_parser ]
 
 let decls_parser = many1 decl_parser
-let parse_string s = parse_string (ws >> decls_parser) s SS.empty
-let parse_channel ch = parse_channel (ws >> decls_parser) ch SS.empty
+let parse_string s = parse_string (ws >> decls_parser << eof) s SS.empty
+let parse_channel ch = parse_channel (ws >> decls_parser << eof) ch SS.empty

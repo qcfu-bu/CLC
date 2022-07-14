@@ -18,13 +18,9 @@ axiom fext :
 
 def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
   | _ _ (cons hd tl) x =>
-    fork (x : ch<?(x : A) >> end>) in
+    fork (x : ch<?(x : A) >> end>) <- main with
       match send ch with
       | succ x => x
-    and
-      match hd, tl with
-      | (cons x y), nil => x
-      | nil, zero => x
 
 def main :=
   let ch := send stdout msg in
