@@ -7,7 +7,7 @@
       "include": "#comments"
     },
     {
-      "match": "\\b(Prop|Type|Sort|U|L)\\b",
+      "match": "\\b(Prop|Type|Sort|U|L|end)\\b",
       "name": "storage.type.clc"
     },
     {
@@ -15,7 +15,7 @@
       "name": "storage.modifier.clc"
     },
     {
-      "match": "@stdout|@stdin|@main|end",
+      "match": "@stdout|@stdin|@main",
       "name": "storage.type.clc"
     },
     {

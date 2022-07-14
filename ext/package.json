@@ -21,6 +21,14 @@
                     ".clc"
                 ],
                 "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "clcmarkdown",
+                "aliases": [],
+                "extensions": [
+                    ".clcmarkdown"
+                ],
+                "configuration": "./language-configuration.json"
             }
         ],
         "grammars": [
@@ -28,6 +36,21 @@
                 "language": "clc",
                 "scopeName": "source.clc",
                 "path": "./syntaxes/clc.json"
+            },
+            {
+                "language": "clcmarkdown",
+                "scopeName": "source.clc.markdown",
+                "path": "./syntaxes/clc-markdown.json"
+            },
+            {
+                "scopeName": "markdown.clc.codeblock",
+                "path": "./syntaxes/codeblock.json",
+                "injectTo": [
+                    "text.html.markdown"
+                ],
+                "embeddedLanguages": {
+                    "meta.embedded.block.clc": "clc"
+                }
             }
         ]
     }
