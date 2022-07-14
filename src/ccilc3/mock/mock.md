@@ -26,7 +26,7 @@ hc<!(x : A) >> end>
 
 ### match expressions
 ```lean
-case x, y of
+match x, y with
   | zero, (succ y) => y
 ```
 

@@ -2,7 +2,7 @@ open @stdout as stdout
 
 data bot : U
 
-data base : L
+def base := ?(x : A) >> end
 
 data nat : U
   | zero : nat
@@ -14,9 +14,12 @@ data vec (A : U) : nat -> U
 
 def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
   | _ _ (cons hd tl) x =>
-    match hd, tl with
-    | (cons x y), nil => x
-    | nil, zero => x
+    fork (x : ch) in
+      m
+    then
+      match hd, tl with
+      | (cons x y), nil => x
+      | nil, zero => x
 
 def main :=
   let ch := send stdout msg in

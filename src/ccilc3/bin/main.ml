@@ -9,4 +9,4 @@ let parse s =
   | Success dcl -> pr "%a\n" (list ~sep:cut pp_decl) dcl
   | Failed (s, _) -> pr "%s\n" s
 
-let _ = parse "mock/mock0.txt"
+let _ = parse "mock/mock0.clc"

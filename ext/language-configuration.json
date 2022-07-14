@@ -1,9 +1,10 @@
 {
     "comments": {
         "blockComment": [
-            "(*",
-            "*)"
-        ]
+            "/-",
+            "-/"
+        ],
+        "lineComment": "--"
     },
     "brackets": [
         [
@@ -22,30 +23,6 @@
             "⟨",
             "⟩"
         ],
-        [
-            "Proof.",
-            "Qed."
-        ],
-        [
-            "Proof.",
-            "Admitted."
-        ],
-        [
-            "Proof.",
-            "Abort."
-        ],
-        [
-            "match",
-            "end"
-        ],
-        [
-            "repeat match",
-            "end"
-        ],
-        [
-            "repeat lazymatch",
-            "end"
-        ]
     ],
     "colorizedBracketPairs": [
         [
@@ -83,8 +60,8 @@
             "close": "⟩"
         },
         {
-            "open": "(*",
-            "close": "*"
+            "open": "/-",
+            "close": "-/"
         }
     ],
     "_indentation": "Is instead set in EditorAssist.reload",

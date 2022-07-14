@@ -26,8 +26,8 @@
         "grammars": [
             {
                 "language": "clc",
-                "scopeName": "source.coq",
-                "path": "./syntaxes/clc.tmLanguage"
+                "scopeName": "source.clc",
+                "path": "./syntaxes/clc.json"
             }
         ]
     }

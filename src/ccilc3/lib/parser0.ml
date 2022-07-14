@@ -325,9 +325,9 @@ and fork_parser () =
   let* _ = kw ":" in
   let* a = tm_parser () in
   let* _ = kw ")" in
-  let* _ = kw ":=" in
-  let* m = tm_parser () in
   let* _ = kw "in" in
+  let* m = tm_parser () in
+  let* _ = kw "then" in
   let* n = tm_parser () in
   return (Fork (id, a, m, n))
 

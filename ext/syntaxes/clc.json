@@ -1,0 +1,199 @@
+{
+  "name": "CLC",
+  "scopeName": "source.clc",
+  "fileTypes": [],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "match": "\\b(Prop|Type|Sort|U|L)\\b",
+      "name": "storage.type.clc"
+    },
+    {
+      "match": "\\battribute\\b\\s*\\[[^\\]]*\\]",
+      "name": "storage.modifier.clc"
+    },
+    {
+      "match": "@stdout|@stdin|@main|end",
+      "name": "storage.type.clc"
+    },
+    {
+      "match": "@\\[[^\\]]*\\]",
+      "name": "storage.modifier.clc"
+    },
+    {
+      "match": "\\b(?<!\\.)(global|local|scoped|partial|unsafe|private|protected|noncomputable)(?!\\.)\\b",
+      "name": "storage.modifier.clc"
+    },
+    {
+      "match": "\\bsorry\\b",
+      "name": "invalid.illegal.clc"
+    },
+    {
+      "match": "#(print|eval|reduce|check|check_failure)\\b",
+      "name": "keyword.other.clc"
+    },
+    {
+      "match": "\\bderiving\\s+instance\\b",
+      "name": "keyword.other.command.clc"
+    },
+    {
+      "begin": "\\b(?<!\\.)(data|structure|theorem|axiom|abbrev|lemma|def|instance|class|constant)\\b\\s+(\\{[^}]*\\})?",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.definitioncommand.clc"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#definitionName"
+        },
+        {
+          "match": ","
+        }
+      ],
+      "end": "(?=\\bwith\\b|\\bextends\\b|\\bwhere\\b|[:\\|\\(\\[\\{⦃<>])",
+      "name": "meta.definitioncommand.clc"
+    },
+    {
+      "match": "\\b(?<!\\.)(theorem|show|have|from|suffices|nomatch|data|def|class|structure|instance|set_option|initialize|builtin_initialize|example|inductive|coinductive|axiom|constant|universe|universes|variable|variables|import|open|as|export|theory|prelude|renaming|hiding|exposing|do|by|let|fork|in|extends|mutual|mut|where|rec|syntax|macro_rules|macro|deriving|fun|section|namespace|infix|infixl|infixr|postfix|prefix|notation|abbrev|if|then|else|calc|match|with|for|in|unless|try|catch|finally|return|continue|break)(?!\\.)\\b",
+      "name": "keyword.other.clc"
+    },
+    {
+      "begin": "«",
+      "end": "»",
+      "contentName": "entity.name.clc"
+    },
+    {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.clc",
+      "patterns": [
+        {
+          "match": "\\\\[\\\\\"ntr']",
+          "name": "constant.character.escape.clc"
+        },
+        {
+          "match": "\\\\x[0-9A-Fa-f][0-9A-Fa-f]",
+          "name": "constant.character.escape.clc"
+        },
+        {
+          "match": "\\\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]",
+          "name": "constant.character.escape.clc"
+        }
+      ]
+    },
+    {
+      "name": "constant.language.clc",
+      "match": "\\b(true|false)\\b"
+    },
+    {
+      "name": "string.quoted.single.clc",
+      "match": "'[^\\\\']'"
+    },
+    {
+      "name": "string.quoted.single.clc",
+      "match": "'(\\\\(x[0-9A-Fa-f][0-9A-Fa-f]|u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]|.))'",
+      "captures": {
+        "1": {
+          "name": "constant.character.escape.clc"
+        }
+      }
+    },
+    {
+      "match": "`+[^\\[(]\\S+",
+      "name": "entity.name.clc"
+    },
+    {
+      "match": "\\b([0-9]+|0([xX][0-9a-fA-F]+)|[-]?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?)\\b",
+      "name": "constant.numeric.clc"
+    }
+  ],
+  "repository": {
+    "definitionName": {
+      "patterns": [
+        {
+          "match": "\\b[^:«»\\(\\)\\{\\}[:space:]=→λ∀?][^:«»\\(\\)\\{\\}[:space:]]*",
+          "name": "entity.name.function.clc"
+        },
+        {
+          "begin": "«",
+          "end": "»",
+          "contentName": "entity.name.function.clc"
+        }
+      ]
+    },
+    "dashComment": {
+      "begin": "--",
+      "end": "$",
+      "name": "comment.line.double-dash.clc",
+      "patterns": [
+        {
+          "include": "source.clc.markdown"
+        }
+      ]
+    },
+    "docComment": {
+      "begin": "/--",
+      "end": "-/",
+      "name": "comment.block.documentation.clc",
+      "patterns": [
+        {
+          "include": "source.clc.markdown"
+        },
+        {
+          "include": "#blockComment"
+        }
+      ]
+    },
+    "modDocComment": {
+      "begin": "/-!",
+      "end": "-/",
+      "name": "comment.block.documentation.clc",
+      "patterns": [
+        {
+          "include": "source.clc.markdown"
+        },
+        {
+          "include": "#blockComment"
+        }
+      ]
+    },
+    "blockComment": {
+      "begin": "/-",
+      "end": "-/",
+      "name": "comment.block.clc",
+      "patterns": [
+        {
+          "include": "source.clc.markdown"
+        },
+        {
+          "include": "#blockComment"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "include": "#dashComment"
+        },
+        {
+          "include": "#docComment"
+        },
+        {
+          "include": "#stringBlock"
+        },
+        {
+          "include": "#modDocComment"
+        },
+        {
+          "include": "#blockComment"
+        }
+      ]
+    }
+  }
+}

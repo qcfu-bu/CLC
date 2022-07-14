@@ -1,0 +1,1 @@
+Syntax highlighting for the CCILC language. Adapted from Lean4.
