@@ -15,8 +15,8 @@ data vec (A : U) : nat -> U
 def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
   | _ _ (cons hd tl) x =>
     fork (x : ch) in
-      m
-    then
+      m 
+    and
       match hd, tl with
       | (cons x y), nil => x
       | nil, zero => x

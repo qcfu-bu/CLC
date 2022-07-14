@@ -179,3 +179,25 @@ let bindn_tm k xs m =
     | Close m -> Close (aux k m)
   in
   aux k m
+
+let rec bindn_ptl k xs ptl =
+  let rec aux k ptl =
+    match ptl with
+    | PBase tl -> PBase (bindn_tl k xs tl)
+    | PBind (a, Abs (x, ptl)) ->
+      let a = bindn_tm k xs a in
+      let ptl = aux (k + 1) ptl in
+      PBind (a, Abs (x, ptl))
+  in
+  aux k ptl
+
+and bindn_tl k xs tl =
+  let rec aux k tl =
+    match tl with
+    | TBase b -> TBase (bindn_tm k xs b)
+    | TBind (a, Abs (x, tl)) ->
+      let a = bindn_tm k xs a in
+      let tl = aux (k + 1) tl in
+      TBind (a, Abs (x, tl))
+  in
+  aux k tl

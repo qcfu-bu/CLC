@@ -23,6 +23,7 @@ let reserved =
     ; "then"
     ; "else"
     ; "fork"
+    ; "and"
     ; "send"
     ; "recv"
     ; "close"
@@ -327,7 +328,7 @@ and fork_parser () =
   let* _ = kw ")" in
   let* _ = kw "in" in
   let* m = tm_parser () in
-  let* _ = kw "then" in
+  let* _ = kw "and" in
   let* n = tm_parser () in
   return (Fork (id, a, m, n))
 
