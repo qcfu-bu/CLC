@@ -1,30 +1,31 @@
-type id = string [@@deriving show]
+type id = string [@@deriving show { with_path = false }]
+and id_opt = id option
 
 type sort =
   | U
   | L
-[@@deriving show]
+[@@deriving show { with_path = false }]
 
 type tm =
   | Ann of tm * tm
-  | Meta
-  | Knd of sort
+  | Type of sort
   | Id of id
   | Pi of sort * args * tm
-  | Fun of sort * id * tm_opt * cls
+  | Fun of id_opt * tm_opt * cls
   | App of tm * tms
   | Let of p * tm * tm
-  | Match of tms * tm_opt * cls
+  | Match of tms * cls
+  | If of tm * tm * tm
   | Main
   | Proto
   | End
-  | Act of bool * id * tm * tm
+  | Act of bool * args * tm
   | Ch of bool * tm
   | Fork of id * tm * tm * tm
   | Send of tm
   | Recv of tm
   | Close of tm
-[@@deriving show]
+[@@deriving show { with_path = false }]
 
 and tms = tm list
 and tm_opt = tm option
@@ -32,11 +33,12 @@ and tm_opt = tm option
 and p =
   | PVar of id
   | PCons of id * ps
+  | PAbsurd
 
 and ps = p list
-and arg = id * tm * bool
+and arg = id_opt * tm * bool
 and args = arg list
-and cl = Cl of (p * tm)
+and cl = Cl of (ps * tm_opt)
 and cls = cl list
 
 type def =
@@ -44,7 +46,7 @@ type def =
   | DFun of id * tm * cls
   | DInd of ind
   | DOpen of id
-[@@deriving show]
+[@@deriving show { with_path = false }]
 
 and ind = Ind of id * ptl * constrs
 and constr = Constr of id * ptl
