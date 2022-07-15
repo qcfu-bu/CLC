@@ -1,9 +1,4 @@
 open @stdout as stdout
-open @main as main
-
-data bot : U
-
-def base := ?(A : U) ⋅ ?(x : A) ⋅ end
 
 data unit : U
   | tt : unit
@@ -16,15 +11,16 @@ data vec (A : U) : nat -> U
   | nil : vec A zero
   | cons : ∀ {n : nat} -> A -> vec A n -> vec A (succ n)
 
-def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
-  | A _ (cons hd tl) x =>
-    fork (ch : ch<?(x : A) ⋅ end>) <- main with
-      match send ch with
-      | succ x => foo x
+def addn : nat -> nat -> nat
+  | zero x => x
+  | (succ x) y => succ (addn x y)
 
-def main :=
-  let rec foo : ∀ (x : nat) -> x
-    | zero => foo zero
-  in
-  let _ := close foo in
-  foo _
+def length : ∀ {A : U} {n : nat} -> vec A n -> nat
+  | nil => zero
+  | (cons _ tl) => succ (length tl)
+
+def one := succ zero
+
+def foo := cons one (cons one (cons one nil))
+
+def main := length foo

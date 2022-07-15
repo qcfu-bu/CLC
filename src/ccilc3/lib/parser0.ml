@@ -30,7 +30,7 @@ let reserved =
     ; "close"
     ]
 
-type 'a parser = ('a, SSet.t) MParser.t
+type 'a parser = ('a, int SMap.t) MParser.t
 
 let ( let* ) = bind
 let choice ls = choice (List.map attempt ls)
@@ -111,7 +111,8 @@ let rec pvar_parser () =
 and pcons_parser () =
   let* cs = get_user_state in
   let* id = id_parser in
-  match SSet.find_opt id cs with
+  match SMap.find_opt id cs with
+  | Some 0 -> return (PCons (id, []), false)
   | Some _ ->
     let* ps, absurd = ps_parser () in
     return (PCons (id, ps), absurd)
@@ -423,18 +424,18 @@ let def_parser =
 let rec make_tl a =
   match a with
   | Pi (U, args1, a) ->
-    let (Tl (args2, a)) = make_tl a in
-    Tl (args1 @ args2, a)
-  | _ -> Tl ([], a)
+    let Tl (args2, a), sz = make_tl a in
+    (Tl (args1 @ args2, a), sz + List.length args1)
+  | _ -> (Tl ([], a), 0)
 
 let cons_parser args =
   let* _ = kw "|" in
   let* id = id_parser in
-  let* _ = update_user_state (fun cs -> SSet.add id cs) in
   let* _ = kw ":" in
-  let* a = tm_parser () in
-  let ptl = PTl (args, make_tl a) in
-  return (Cons (id, ptl))
+  let* b = tm_parser () in
+  let b, sz = make_tl b in
+  let* _ = update_user_state (fun cs -> SMap.add id sz cs) in
+  return (DCons (id, PTl (args, b)))
 
 let conss_parser args = many (cons_parser args)
 
@@ -443,10 +444,10 @@ let ddata_parser =
   let* id = id_parser in
   let* args = args_parser () in
   let* _ = kw ":" in
-  let* a = tm_parser () in
-  let ptl = PTl (args, make_tl a) in
+  let* b = tm_parser () in
+  let b, _ = make_tl b in
   let* conss = conss_parser args in
-  return (DData (id, ptl, conss))
+  return (DData (id, PTl (args, b), conss))
 
 let directive_parser =
   choice
@@ -474,5 +475,5 @@ let decl_parser =
   choice [ def_parser; ddata_parser; dopen_parser; daxiom_parser ]
 
 let decls_parser = many1 decl_parser
-let parse_string s = parse_string (ws >> decls_parser << eof) s SSet.empty
-let parse_channel ch = parse_channel (ws >> decls_parser << eof) ch SSet.empty
+let parse_string s = parse_string (ws >> decls_parser << eof) s SMap.empty
+let parse_channel ch = parse_channel (ws >> decls_parser << eof) ch SMap.empty

@@ -53,14 +53,14 @@ type target =
 type decl =
   | DTm of V.t * tm_opt * tm
   | DFun of V.t * tm * cls abs
-  | DData of D.t * ptl * conss
+  | DData of D.t * ptl * dconss
   | DOpen of target * V.t
   | DAxiom of V.t * tm
 [@@deriving show { with_path = false }]
 
 and decls = decl list
-and cons = Cons of C.t * ptl
-and conss = cons list
+and dcons = DCons of C.t * ptl
+and dconss = dcons list
 
 and ptl =
   | PBase of tl
@@ -378,6 +378,101 @@ let unbindp2_tm (PAbs (ps1, m)) (PAbs (ps2, n)) =
     (ps, m, n)
   else
     failwith "unbindp2"
+
+let rec msubst vmap m =
+  match m with
+  | Ann (a, m) ->
+    let a = msubst vmap a in
+    let m = msubst vmap m in
+    Ann (a, m)
+  | Meta (x, ms) ->
+    let ms = List.map (msubst vmap) ms in
+    Meta (x, ms)
+  | Type s -> Type s
+  | Var x -> (
+    match VMap.find_opt x vmap with
+    | Some m -> m
+    | None -> Var x)
+  | Pi (s, a, impl, abs) ->
+    let a = msubst vmap a in
+    let x, b = unbind_tm abs in
+    let b = msubst vmap b in
+    Pi (s, a, impl, bind_tm x b)
+  | Fun (a_opt, abs) ->
+    let a_opt = Option.map (msubst vmap) a_opt in
+    let x, cls = unbind_cls abs in
+    let cls =
+      List.map
+        (fun (Cl pabs) ->
+          let p, m_opt = unbindp_tm_opt pabs in
+          let m_opt = Option.map (msubst vmap) m_opt in
+          Cl (bindp_tm_opt p m_opt))
+        cls
+    in
+    Fun (a_opt, bind_cls x cls)
+  | App (m, n) ->
+    let m = msubst vmap m in
+    let n = msubst vmap n in
+    App (m, n)
+  | Let (m, abs) ->
+    let m = msubst vmap m in
+    let x, n = unbind_tm abs in
+    let n = msubst vmap n in
+    Let (m, bind_tm x n)
+  | Data (d, ms) ->
+    let ms = List.map (msubst vmap) ms in
+    Data (d, ms)
+  | Cons (c, ms) ->
+    let ms = List.map (msubst vmap) ms in
+    Cons (c, ms)
+  | Match (ms, cls) ->
+    let ms = List.map (msubst vmap) ms in
+    let cls =
+      List.map
+        (fun (Cl pabs) ->
+          let p, m_opt = unbindp_tm_opt pabs in
+          let m_opt = Option.map (msubst vmap) m_opt in
+          Cl (bindp_tm_opt p m_opt))
+        cls
+    in
+    Match (ms, cls)
+  | If (m, n1, n2) ->
+    let m = msubst vmap m in
+    let n1 = msubst vmap n1 in
+    let n2 = msubst vmap n2 in
+    If (m, n1, n2)
+  | Main -> Main
+  | Proto -> Proto
+  | End -> End
+  | Act (r, a, abs) ->
+    let a = msubst vmap a in
+    let x, b = unbind_tm abs in
+    let b = msubst vmap b in
+    Act (r, a, bind_tm x b)
+  | Ch (r, a) ->
+    let a = msubst vmap a in
+    Ch (r, a)
+  | Fork (a, m, abs) ->
+    let a = msubst vmap a in
+    let m = msubst vmap m in
+    let x, n = unbind_tm abs in
+    let n = msubst vmap n in
+    Fork (a, m, bind_tm x n)
+  | Send m ->
+    let m = msubst vmap m in
+    Send m
+  | Recv m ->
+    let m = msubst vmap m in
+    Recv m
+  | Close m ->
+    let m = msubst vmap m in
+    Close m
+
+let subst x m n =
+  if V.is_blank x then
+    m
+  else
+    msubst (VMap.singleton x n) m
 
 let rec mkApps hd ms =
   match ms with

@@ -53,14 +53,14 @@ type target =
 type decl =
   | DTm of V.t * tm_opt * tm
   | DFun of V.t * tm * cls abs
-  | DData of D.t * ptl * conss
+  | DData of D.t * ptl * dconss
   | DOpen of target * V.t
   | DAxiom of V.t * tm
 [@@deriving show { with_path = false }]
 
 and decls = decl list
-and cons = Cons of C.t * ptl
-and conss = cons list
+and dcons = DCons of C.t * ptl
+and dconss = dcons list
 
 and ptl =
   | PBase of tl
@@ -82,5 +82,7 @@ val unbind_ptl : ptl abs -> V.t * ptl
 val unbind_tl : tl abs -> V.t * tl
 val unbind2_tm : tm abs -> tm abs -> V.t * tm * tm
 val unbindp2_tm : tm pabs -> tm pabs -> ps * tm * tm
+val msubst : tm VMap.t -> tm -> tm
+val subst : V.t -> tm -> tm -> tm
 val mkApps : tm -> tms -> tm
 val unApps : tm -> tm * tms

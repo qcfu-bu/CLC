@@ -97,7 +97,7 @@ and pp_cls sep fmt cls =
   match cls with
   | [] -> ()
   | [ cl ] -> pf fmt "@[%a@]" (pp_cl sep) cl
-  | cl :: cls -> pf fmt "@[%a@;<1 2>%a@]" (pp_cl sep) cl (pp_cls sep) cls
+  | cl :: cls -> pf fmt "@[%a@]@;<1 2>%a" (pp_cl sep) cl (pp_cls sep) cls
 
 let pp_target fmt targ =
   match targ with
@@ -125,13 +125,13 @@ and pp_tl fmt tl =
     | false, false ->
       pf fmt "@[@[∀ (%a :@;<1 2>%a) ->@]@;<1 2>%a@]" V.pp x pp_tm a pp_tl tl)
 
-let pp_cons fmt (Cons (c, ptl)) = pf fmt "| %a %a" C.pp c pp_ptl ptl
+let pp_dcons fmt (DCons (c, ptl)) = pf fmt "| %a %a" C.pp c pp_ptl ptl
 
-let rec pp_conss fmt conss =
-  match conss with
+let rec pp_dconss fmt dconss =
+  match dconss with
   | [] -> ()
-  | [ cons ] -> pf fmt "@[%a@]" pp_cons cons
-  | cons :: conss -> pf fmt "@[%a@]@;<1 2>%a" pp_cons cons pp_conss conss
+  | [ dcons ] -> pf fmt "@[%a@]" pp_dcons dcons
+  | dcons :: dconss -> pf fmt "@[%a@]@;<1 2>%a" pp_dcons dcons pp_dconss dconss
 
 let pp_decl fmt dcl =
   match dcl with
@@ -144,8 +144,8 @@ let pp_decl fmt dcl =
     let y, cls = unbind_cls abs in
     pf fmt "@[<v 0>@[def (%a := %a) :@;<1 2>%a@]@;<1 2>%a@]" V.pp x V.pp y pp_tm
       a (pp_cls " ") cls
-  | DData (d, ptl, conss) ->
-    pf fmt "@[<v 0>@[data %a %a@]@;<1 2>%a@]" D.pp d pp_ptl ptl pp_conss conss
+  | DData (d, ptl, dconss) ->
+    pf fmt "@[<v 0>@[data %a %a@]@;<1 2>%a@]" D.pp d pp_ptl ptl pp_dconss dconss
   | DOpen (targ, x) -> pf fmt "open %a as %a" pp_target targ V.pp x
   | DAxiom (x, a) -> pf fmt "@[axiom %a :@;<1 2>%a@]" V.pp x pp_tm a
 

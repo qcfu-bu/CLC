@@ -44,13 +44,13 @@ and cls = cl list
 type decl =
   | DTm of id_opt * tm_opt * tm
   | DFun of id * tm * cls
-  | DData of id * ptl * conss
+  | DData of id * ptl * dconss
   | DOpen of id * id
   | DAxiom of id * tm
 [@@deriving show { with_path = false }]
 
 and decls = decl list
-and cons = Cons of id * ptl
-and conss = cons list
+and dcons = DCons of id * ptl
+and dconss = dcons list
 and ptl = PTl of args * tl
 and tl = Tl of args * tm

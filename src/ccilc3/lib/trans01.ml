@@ -216,20 +216,20 @@ and trans_tl nspc cs (Tl (args, b)) =
       Syntax1.TBind (a, impl, b))
     (List.rev args) b
 
-let trans_cons nspc cs (Cons (id, ptl)) =
+let trans_dcons nspc cs (DCons (id, ptl)) =
   let c = C.mk id in
   let ptl = trans_ptl nspc cs ptl in
   let nspc = SMap.add id (C c) nspc in
   let cs = SMap.add id c cs in
-  (nspc, cs, Syntax1.Cons (c, ptl))
+  (nspc, cs, Syntax1.DCons (c, ptl))
 
-let rec trans_conss npsc cs conss =
-  match conss with
+let rec trans_dconss npsc cs dconss =
+  match dconss with
   | [] -> (npsc, cs, [])
-  | cons :: conss ->
-    let nspc, cs, cons = trans_cons npsc cs cons in
-    let nspc, cs, conss = trans_conss nspc cs conss in
-    (nspc, cs, cons :: conss)
+  | dcons :: dconss ->
+    let nspc, cs, dcons = trans_dcons npsc cs dcons in
+    let nspc, cs, dconss = trans_dconss nspc cs dconss in
+    (nspc, cs, dcons :: dconss)
 
 let trans_decl nspc cs dcl =
   match dcl with
@@ -249,12 +249,12 @@ let trans_decl nspc cs dcl =
     let nspc = SMap.add id (V x) nspc in
     let cls = trans_cls nspc cs cls in
     (nspc, cs, Syntax1.DFun (x, a, Syntax1.bind_cls x cls))
-  | DData (id, ptl, conss) ->
+  | DData (id, ptl, dconss) ->
     let d = D.mk id in
     let ptl = trans_ptl nspc cs ptl in
     let nspc = SMap.add id (D d) nspc in
-    let nspc, cs, conss = trans_conss nspc cs conss in
-    (nspc, cs, Syntax1.DData (d, ptl, conss))
+    let nspc, cs, dconss = trans_dconss nspc cs dconss in
+    (nspc, cs, Syntax1.DData (d, ptl, dconss))
   | DOpen (id1, id2) ->
     let targ = trans_target id1 in
     let x = V.mk id2 in
