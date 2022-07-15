@@ -1,8 +1,12 @@
 open @stdout as stdout
+open @main as main
 
 data bot : U
 
-def base := ?(x : A) >> end
+def base := ?(A : U) >> ?(x : A) >> end
+
+data unit : U
+  | tt : unit
 
 data nat : U
   | zero : nat
@@ -12,17 +16,13 @@ data vec (A : U) : nat -> U
   | nil : vec A zero
   | cons : ∀ (n : nat) -> A -> vec A n -> vec A (succ n)
 
-axiom fext : 
-  ∀ (A B : U) (f g : A -> B) -> 
-    (∀ (x : A) -> eq (f x) (g x)) -> eq f g
-
 def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
-  | _ _ (cons hd tl) x =>
-    fork (x : ch<?(x : A) >> end>) <- main with
+  | A _ (cons hd tl) x =>
+    fork (ch : ch<?(x : A) >> end>) <- main with
       match send ch with
       | succ x => x
 
 def main :=
-  let ch := send stdout msg in
+  let ch := send stdout foo in
   let _ := close ch in
   tt

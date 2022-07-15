@@ -29,8 +29,8 @@ let rec trans_p nspc cs p =
     let x = V.mk id in
     (SMap.add id (V x) nspc, Syntax1.PVar x)
   | PCons (id, ps) -> (
-    match SMap.find id cs with
-    | C c ->
+    match SMap.find_opt id cs with
+    | Some c ->
       let nspc, ps = trans_ps nspc cs ps in
       (nspc, Syntax1.PCons (c, ps))
     | _ -> failwith "trans_of_p")
@@ -95,10 +95,11 @@ let rec trans_tm nspc cs m =
     match ms with
     | Id id :: ms -> (
       let ms = List.map (trans_tm nspc cs) ms in
-      match SMap.find id nspc with
-      | V x -> Syntax1.mkApps (Var x) ms
-      | D d -> Data (d, ms)
-      | C c -> Cons (c, ms))
+      match SMap.find_opt id nspc with
+      | Some (V x) -> Syntax1.mkApps (Var x) ms
+      | Some (D d) -> Data (d, ms)
+      | Some (C c) -> Cons (c, ms)
+      | None -> failwith "trans_tm(%a)" pp_tm m)
     | m :: ms ->
       let m = trans_tm nspc cs m in
       let ms = List.map (trans_tm nspc cs) ms in
@@ -167,3 +168,109 @@ and trans_cl nspc cs (Cl (ps, m_opt)) =
   Syntax1.Cl (Syntax1.bindp_tm_opt ps m_opt)
 
 and trans_cls nspc cs cls = List.map (trans_cl nspc cs) cls
+
+let trans_target s =
+  match s with
+  | "@stdin" -> Syntax1.TStdin
+  | "@stdout" -> Syntax1.TStdout
+  | "@stderr" -> Syntax1.TStdout
+  | "@main" -> Syntax1.TMain
+  | _ -> failwith "trans_target(%s)" s
+
+let rec trans_ptl nspc cs (PTl (args, tl)) =
+  let nspc, args =
+    List.fold_left
+      (fun (nspc, acc) (id_opt, a, impl) ->
+        let a = trans_tm nspc cs a in
+        match id_opt with
+        | Some id ->
+          let x = V.mk id in
+          let nspc = SMap.add id (V x) nspc in
+          (nspc, (x, a, impl) :: acc)
+        | None ->
+          let x = V.mk "" in
+          (nspc, (x, a, impl) :: acc))
+      (nspc, []) args
+  in
+  let tl = Syntax1.PBase (trans_tl nspc cs tl) in
+  List.fold_right
+    (fun (x, a, impl) acc ->
+      let b = Syntax1.bind_ptl x acc in
+      Syntax1.PBind (a, impl, b))
+    args tl
+
+and trans_tl nspc cs (Tl (args, b)) =
+  let nspc, args =
+    List.fold_left
+      (fun (nspc, acc) (id_opt, a, impl) ->
+        let a = trans_tm nspc cs a in
+        match id_opt with
+        | Some id ->
+          let x = V.mk id in
+          let nspc = SMap.add id (V x) nspc in
+          (nspc, (x, a, impl) :: acc)
+        | None ->
+          let x = V.mk "" in
+          (nspc, (x, a, impl) :: acc))
+      (nspc, []) args
+  in
+  let b = Syntax1.TBase (trans_tm nspc cs b) in
+  List.fold_right
+    (fun (x, a, impl) acc ->
+      let b = Syntax1.bind_tl x acc in
+      Syntax1.TBind (a, impl, b))
+    args b
+
+let trans_cons nspc cs (Cons (id, ptl)) =
+  let c = C.mk id in
+  let ptl = trans_ptl nspc cs ptl in
+  let nspc = SMap.add id (C c) nspc in
+  let cs = SMap.add id c cs in
+  (nspc, cs, Syntax1.Cons (c, ptl))
+
+let rec trans_conss npsc cs conss =
+  match conss with
+  | [] -> (npsc, cs, [])
+  | cons :: conss ->
+    let nspc, cs, cons = trans_cons npsc cs cons in
+    let nspc, cs, conss = trans_conss nspc cs conss in
+    (nspc, cs, cons :: conss)
+
+let trans_decl nspc cs dcl =
+  match dcl with
+  | DTm (id, a_opt, m) ->
+    let x = V.mk id in
+    let a_opt = Option.map (trans_tm nspc cs) a_opt in
+    let m = trans_tm nspc cs m in
+    let nspc = SMap.add id (V x) nspc in
+    (nspc, cs, Syntax1.DTm (x, a_opt, m))
+  | DFun (id, a, cls) ->
+    let x = V.mk id in
+    let a = trans_tm nspc cs a in
+    let cls = trans_cls (SMap.add id (V x) nspc) cs cls in
+    let nspc = SMap.add id (V x) nspc in
+    (nspc, cs, Syntax1.DFun (x, a, Syntax1.bind_cls x cls))
+  | DData (id, ptl, conss) ->
+    let d = D.mk id in
+    let ptl = trans_ptl nspc cs ptl in
+    let nspc = SMap.add id (D d) nspc in
+    let nspc, cs, conss = trans_conss nspc cs conss in
+    (nspc, cs, Syntax1.DData (d, ptl, conss))
+  | DOpen (id1, id2) ->
+    let targ = trans_target id1 in
+    let x = V.mk id2 in
+    let nspc = SMap.add id2 (V x) nspc in
+    (nspc, cs, Syntax1.DOpen (targ, x))
+  | DAxiom (id, a) ->
+    let x = V.mk id in
+    let a = trans_tm nspc cs a in
+    let nspc = SMap.add id (V x) nspc in
+    (nspc, cs, Syntax1.DAxiom (x, a))
+
+let rec trans_decls nspc cs dcls =
+  match dcls with
+  | [] -> (nspc, cs, [])
+  | dcl :: dcls ->
+    let nspc, cs, dcl = trans_decl nspc cs dcl in
+    let nspc, cs, dcls = trans_decls nspc cs dcls in
+    (nspc, cs, dcl :: dcls)

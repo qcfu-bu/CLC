@@ -55,6 +55,7 @@ type decl =
   | DFun of V.t * tm * cls abs
   | DData of D.t * ptl * conss
   | DOpen of target * V.t
+  | DAxiom of V.t * tm
 [@@deriving show { with_path = false }]
 
 and decls = decl list
@@ -63,11 +64,11 @@ and conss = cons list
 
 and ptl =
   | PBase of tl
-  | PBind of tm * ptl abs
+  | PBind of tm * bool * ptl abs
 
 and tl =
   | TBase of tm
-  | TBind of tm * tl abs
+  | TBind of tm * bool * tl abs
 
 let freshen_ps ps =
   let rec aux p =
@@ -276,10 +277,10 @@ let rec bindn_ptl k xs ptl =
   let rec aux k ptl =
     match ptl with
     | PBase tl -> PBase (bindn_tl k xs tl)
-    | PBind (a, Abs (x, ptl)) ->
+    | PBind (a, impl, Abs (x, ptl)) ->
       let a = bindn_tm k xs a in
       let ptl = aux (k + 1) ptl in
-      PBind (a, Abs (x, ptl))
+      PBind (a, impl, Abs (x, ptl))
   in
   aux k ptl
 
@@ -287,10 +288,10 @@ and bindn_tl k xs tl =
   let rec aux k tl =
     match tl with
     | TBase b -> TBase (bindn_tm k xs b)
-    | TBind (a, Abs (x, tl)) ->
+    | TBind (a, impl, Abs (x, tl)) ->
       let a = bindn_tm k xs a in
       let tl = aux (k + 1) tl in
-      TBind (a, Abs (x, tl))
+      TBind (a, impl, Abs (x, tl))
   in
   aux k tl
 
@@ -307,10 +308,10 @@ let rec unbindn_ptl k xs ptl =
   let rec aux k ptl =
     match ptl with
     | PBase tl -> PBase (unbindn_tl k xs tl)
-    | PBind (a, Abs (x, ptl)) ->
+    | PBind (a, impl, Abs (x, ptl)) ->
       let a = unbindn_tm k xs a in
       let ptl = aux (k + 1) ptl in
-      PBind (a, Abs (x, ptl))
+      PBind (a, impl, Abs (x, ptl))
   in
   aux k ptl
 
@@ -318,10 +319,10 @@ and unbindn_tl k xs tl =
   let rec aux k tl =
     match tl with
     | TBase a -> TBase (unbindn_tm k xs a)
-    | TBind (a, Abs (x, tl)) ->
+    | TBind (a, impl, Abs (x, tl)) ->
       let a = unbindn_tm k xs a in
       let tl = aux (k + 1) tl in
-      TBind (a, Abs (x, tl))
+      TBind (a, impl, Abs (x, tl))
   in
   aux k tl
 

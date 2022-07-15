@@ -55,6 +55,7 @@ type decl =
   | DFun of V.t * tm * cls abs
   | DData of D.t * ptl * conss
   | DOpen of target * V.t
+  | DAxiom of V.t * tm
 [@@deriving show { with_path = false }]
 
 and decls = decl list
@@ -63,11 +64,11 @@ and conss = cons list
 
 and ptl =
   | PBase of tl
-  | PBind of tm * ptl abs
+  | PBind of tm * bool * ptl abs
 
 and tl =
   | TBase of tm
-  | TBind of tm * tl abs
+  | TBind of tm * bool * tl abs
 
 val bind_tm : V.t -> tm -> tm abs
 val bindp_tm_opt : ps -> tm_opt -> tm_opt pabs

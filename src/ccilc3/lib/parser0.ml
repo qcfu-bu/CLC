@@ -54,18 +54,19 @@ let rec nested_comment () : unit parser =
   return ()
 
 let rec line_comment () : unit parser =
+  let terminal = newline >>$ () <|> eof in
   let* _ = string "--" in
   let* _ =
     many
       (let* opt =
-         look_ahead (char '\n') >> return true <|> (trivial >> return false)
+         look_ahead terminal >> return true <|> (trivial >> return false)
        in
        if opt then
          zero
        else
          return ())
   in
-  let* _ = char '\n' in
+  let* _ = terminal in
   return ()
 
 let ws : unit parser =
