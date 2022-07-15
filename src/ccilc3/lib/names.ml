@@ -5,6 +5,8 @@ module V : sig
 
   val mk : string -> t
   val bind : int -> t
+  val blank : t
+  val is_blank : t -> bool
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val freshen : t -> t
@@ -14,14 +16,21 @@ end = struct
   type t =
     | Free of string * int
     | Bound of int
+    | Blank
 
   let stamp = ref 0
+  let blank = Blank
 
   let mk s =
     incr stamp;
     Free (s, !stamp)
 
   let bind k = Bound k
+
+  let is_blank x =
+    match x with
+    | Blank -> true
+    | _ -> false
 
   let equal x y =
     match (x, y) with
@@ -37,6 +46,7 @@ end = struct
     | Free (x, _) ->
       incr stamp;
       Free (x, !stamp)
+    | Blank -> Blank
 
   let is_bound x sz k =
     match x with
@@ -46,11 +56,13 @@ end = struct
       else
         None
     | Free _ -> None
+    | Blank -> None
 
   let pp fmt x =
     match x with
     | Bound x -> pf fmt "_%d" x
     | Free (x, id) -> pf fmt "%s_%d" x id
+    | Blank -> pf fmt "_"
 end
 
 module D : sig

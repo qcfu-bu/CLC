@@ -25,4 +25,4 @@ def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
 def main :=
   let ch := send stdout foo in
   let _ := close ch in
-  tt
+  main

@@ -71,7 +71,7 @@ let rec trans_tm nspc cs m =
             let nspc = SMap.add id (V x) nspc in
             (nspc, (x, a, impl) :: acc)
           | None ->
-            let x = V.mk "" in
+            let x = V.blank in
             (nspc, (x, a, impl) :: acc))
         (nspc, []) args
     in
@@ -88,7 +88,7 @@ let rec trans_tm nspc cs m =
       let cls = trans_cls (SMap.add id (V x) nspc) cs cls in
       Fun (a_opt, Syntax1.bind_cls x cls)
     | None ->
-      let x = V.mk "" in
+      let x = V.blank in
       let cls = trans_cls nspc cs cls in
       Fun (a_opt, Syntax1.bind_cls x cls))
   | App ms -> (
@@ -141,7 +141,7 @@ let rec trans_tm nspc cs m =
             let nspc = SMap.add id (V x) nspc in
             (nspc, (x, a) :: acc)
           | None, false ->
-            let x = V.mk "" in
+            let x = V.blank in
             (nspc, (x, a) :: acc)
           | _, true -> failwith "trans_tm(%a)" pp_tm m)
         (nspc, []) args
@@ -188,7 +188,7 @@ let rec trans_ptl nspc cs (PTl (args, tl)) =
           let nspc = SMap.add id (V x) nspc in
           (nspc, (x, a, impl) :: acc)
         | None ->
-          let x = V.mk "" in
+          let x = V.blank in
           (nspc, (x, a, impl) :: acc))
       (nspc, []) args
   in
@@ -210,7 +210,7 @@ and trans_tl nspc cs (Tl (args, b)) =
           let nspc = SMap.add id (V x) nspc in
           (nspc, (x, a, impl) :: acc)
         | None ->
-          let x = V.mk "" in
+          let x = V.blank in
           (nspc, (x, a, impl) :: acc))
       (nspc, []) args
   in
