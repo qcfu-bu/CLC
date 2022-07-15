@@ -5,7 +5,7 @@
 - [x] syntax1 : abstraction (with meta vars)
 - [ ] syntax2 : annotated (no meta vars)
 - [ ] syntax3 : high level ir (case trees)
-- [ ] syntax4 : low level ir
+- [ ] syntax4 : low level ir (instruction set)
 
 ## TRANS
 - [x] trans01 : variable binding and infix precedence
