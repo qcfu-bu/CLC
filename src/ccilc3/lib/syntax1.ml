@@ -267,8 +267,7 @@ let unbindn_tm k xs m =
 let bindn_cls k xs cls =
   List.map
     (fun (Cl (PAbs (ps, m_opt))) ->
-      let xs = xs_of_ps ps in
-      let k = k + List.length xs in
+      let k = k + List.length (xs_of_ps ps) in
       let m_opt = Option.map (bindn_tm k xs) m_opt in
       Cl (PAbs (ps, m_opt)))
     cls
@@ -298,8 +297,7 @@ and bindn_tl k xs tl =
 let unbindn_cls k xs cls =
   List.map
     (fun (Cl (PAbs (ps, m_opt))) ->
-      let xs = xs_of_ps ps in
-      let k = k + List.length xs in
+      let k = k + List.length (xs_of_ps ps) in
       let m_opt = Option.map (unbindn_tm k xs) m_opt in
       Cl (PAbs (ps, m_opt)))
     cls

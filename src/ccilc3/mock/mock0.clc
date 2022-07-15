@@ -14,17 +14,17 @@ data nat : U
 
 data vec (A : U) : nat -> U
   | nil : vec A zero
-  | cons : ∀ (n : nat) -> A -> vec A n -> vec A (succ n)
+  | cons : ∀ {n : nat} -> A -> vec A n -> vec A (succ n)
 
 def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
   | A _ (cons hd tl) x =>
     fork (ch : ch<?(x : A) ⋅ end>) <- main with
       match send ch with
-      | succ x => x
+      | succ x => foo x
 
 def main :=
   let rec foo : ∀ (x : nat) -> x
-    | zero => zero
+    | zero => foo zero
   in
   let _ := close foo in
   foo _

@@ -6,9 +6,150 @@ let rec pp_p fmt p =
   match p with
   | PVar x -> V.pp fmt x
   | PCons (c, []) -> C.pp fmt c
-  | PCons (c, ps) -> pf fmt "%a %a" C.pp c (pp_ps sp) ps
+  | PCons (c, ps) -> pf fmt "(%a %a)" C.pp c (pp_ps " ") ps
   | PAbsurd -> pf fmt "absurd"
 
-and pp_ps sep fmt ps = pf fmt "%a" (list ~sep pp_p) ps
+and pp_ps sep fmt ps =
+  match ps with
+  | [] -> ()
+  | [ p ] -> pp_p fmt p
+  | p :: ps -> pf fmt "%a%s%a" pp_p p sep (pp_ps sep) ps
 
-(* let rec pp_tm fmt m = *)
+let rec pp_tm fmt m =
+  match m with
+  | Ann (a, m) -> pf fmt "@[@@[%a]@;<1 0>%a@]" pp_tm a pp_tm m
+  | Meta (x, ms) -> pf fmt "??%a{%a}" V.pp x (list ~sep:semi pp_tm) ms
+  | Type s -> pp_sort fmt s
+  | Var x -> V.pp fmt x
+  | Pi (s, a, impl, abs) -> (
+    let x, b = unbind_tm abs in
+    match (s, V.is_blank x, impl) with
+    | U, true, _ -> pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tm b
+    | U, false, true ->
+      pf fmt "@[@[∀ {%a :@;<1 2>%a} ->@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
+    | U, false, false ->
+      pf fmt "@[@[∀ (%a :@;<1 2>%a) ->@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
+    | L, true, _ -> pf fmt "@[%a -o@;<1 2>%a@]" pp_tm a pp_tm b
+    | L, false, true ->
+      pf fmt "@[@[∀ {%a :@;<1 2>%a} -o@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
+    | L, false, false ->
+      pf fmt "@[@[∀ (%a :@;<1 2>%a) -o@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b)
+  | Fun (a_opt, abs) -> (
+    let x, cls = unbind_cls abs in
+    match (a_opt, V.is_blank x) with
+    | Some a, true ->
+      pf fmt "@[<v 0>(@[fun : %a@]@;<1 2>%a)@]" pp_tm a (pp_cls " ") cls
+    | Some a, false ->
+      pf fmt "@[<v 0>(@[fun %a : %a@]@;<1 2>%a)@]" V.pp x pp_tm a (pp_cls " ")
+        cls
+    | None, true -> pf fmt "@[<v 0>(fun@;<1 2>%a)@]" (pp_cls " ") cls
+    | None, false ->
+      pf fmt "@[<v 0>(@[fun %a@]@;<1 2>%a)@]" V.pp x (pp_cls " ") cls)
+  | App _ ->
+    let m, ms = unApps m in
+    pf fmt "@[((%a) %a)@]" pp_tm m (list ~sep:sp pp_tm) ms
+  | Let (m, abs) ->
+    let x, n = unbind_tm abs in
+    pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x pp_tm m pp_tm n
+  | Data (d, ms) -> (
+    match ms with
+    | [] -> D.pp fmt d
+    | _ -> pf fmt "@[(%a@;<1 2>%a)@]" D.pp d (list ~sep:sp pp_tm) ms)
+  | Cons (c, ms) -> (
+    match ms with
+    | [] -> C.pp fmt c
+    | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
+  | Match (ms, cls) ->
+    pf fmt "@[<v 0>(match %a with@;<1 0>%a)@]" (list ~sep:comma pp_tm) ms
+      (pp_cls ", ") cls
+  | If (m, n1, n2) ->
+    pf fmt "@[if %a then@;<1 2>%a@.else@;<1 2>%a@]" pp_tm m pp_tm n1 pp_tm n2
+  | Main -> pf fmt "@main"
+  | Proto -> pf fmt "proto"
+  | End -> pf fmt "end"
+  | Act (r, a, abs) -> (
+    let x, b = unbind_tm abs in
+    match (r, V.is_blank x) with
+    | true, true -> pf fmt "@[?%a ⋅@;<1 2>%a@]" pp_tm a pp_tm b
+    | true, false -> pf fmt "@[?(%a : %a) ⋅@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
+    | false, true -> pf fmt "@[!%a ⋅ @;<1 2>%a@]" pp_tm a pp_tm b
+    | false, false -> pf fmt "@[!(%a : %a) ⋅@;<1 2>%a@]" V.pp x pp_tm a pp_tm b)
+  | Ch (r, m) ->
+    if r then
+      pf fmt "ch<%a>" pp_tm m
+    else
+      pf fmt "hc<%a>" pp_tm m
+  | Fork (a, m, abs) ->
+    let x, n = unbind_tm abs in
+    pf fmt "@[@[fork (%a :@;<1 2>%a) <-@;<1 2>%a@;<1 0>in@]@;<1 2>%a@]" V.pp x
+      pp_tm a pp_tm m pp_tm n
+  | Send m -> pf fmt "send %a" pp_tm m
+  | Recv m -> pf fmt "recv %a" pp_tm m
+  | Close m -> pf fmt "close %a" pp_tm m
+
+and pp_cl sep fmt (Cl abs) =
+  let ps, m_opt = unbindp_tm_opt abs in
+  match m_opt with
+  | Some m -> pf fmt "| %a =>@;<1 2>%a" (pp_ps sep) ps pp_tm m
+  | None -> pf fmt "| %a" (pp_ps sep) ps
+
+and pp_cls sep fmt cls =
+  match cls with
+  | [] -> ()
+  | [ cl ] -> pf fmt "@[%a@]" (pp_cl sep) cl
+  | cl :: cls -> pf fmt "@[%a@;<1 2>%a@]" (pp_cl sep) cl (pp_cls sep) cls
+
+let pp_target fmt targ =
+  match targ with
+  | TStdin -> pf fmt "@stdin"
+  | TStdout -> pf fmt "@stdout"
+  | TStderr -> pf fmt "@stderr"
+  | TMain -> pf fmt "@main"
+
+let rec pp_ptl fmt ptl =
+  match ptl with
+  | PBase tl -> pf fmt ":@;<1 2>%a" pp_tl tl
+  | PBind (a, impl, abs) ->
+    let x, ptl = unbind_ptl abs in
+    pf fmt "(%a : %a) %a" V.pp x pp_tm a pp_ptl ptl
+
+and pp_tl fmt tl =
+  match tl with
+  | TBase b -> pp_tm fmt b
+  | TBind (a, impl, abs) -> (
+    let x, tl = unbind_tl abs in
+    match (V.is_blank x, impl) with
+    | true, _ -> pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tl tl
+    | false, true ->
+      pf fmt "@[@[∀ {%a :@;<1 2>%a} ->@]@;<1 2>%a@]" V.pp x pp_tm a pp_tl tl
+    | false, false ->
+      pf fmt "@[@[∀ (%a :@;<1 2>%a) ->@]@;<1 2>%a@]" V.pp x pp_tm a pp_tl tl)
+
+let pp_cons fmt (Cons (c, ptl)) = pf fmt "| %a %a" C.pp c pp_ptl ptl
+
+let rec pp_conss fmt conss =
+  match conss with
+  | [] -> ()
+  | [ cons ] -> pf fmt "@[%a@]" pp_cons cons
+  | cons :: conss -> pf fmt "@[%a@]@;<1 2>%a" pp_cons cons pp_conss conss
+
+let pp_decl fmt dcl =
+  match dcl with
+  | DTm (x, a_opt, m) -> (
+    match a_opt with
+    | Some a ->
+      pf fmt "@[def %a :@;<1 2>%a :=@;<1 2>%a@]" V.pp x pp_tm a pp_tm m
+    | None -> pf fmt "@[def %a :=@;<1 2>%a@]" V.pp x pp_tm m)
+  | DFun (x, a, abs) ->
+    let y, cls = unbind_cls abs in
+    pf fmt "@[<v 0>@[def (%a := %a) :@;<1 2>%a@]@;<1 2>%a@]" V.pp x V.pp y pp_tm
+      a (pp_cls " ") cls
+  | DData (d, ptl, conss) ->
+    pf fmt "@[<v 0>@[data %a %a@]@;<1 2>%a@]" D.pp d pp_ptl ptl pp_conss conss
+  | DOpen (targ, x) -> pf fmt "open %a as %a" pp_target targ V.pp x
+  | DAxiom (x, a) -> pf fmt "@[axiom %a :@;<1 2>%a@]" V.pp x pp_tm a
+
+let rec pp_decls fmt dcls =
+  match dcls with
+  | [] -> ()
+  | dcl :: dcls -> pf fmt "%a@.@.%a" pp_decl dcl pp_decls dcls

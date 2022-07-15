@@ -1,0 +1,230 @@
+[(DOpen ("@stdout", "stdout")); (DOpen ("@main", "main"));
+  (DData ("bot", (PTl ([], (Tl ([], (Type U))))), []));
+  (DTm ((Some "base"), None,
+     (Act (true, [((Some "A"), (Type U), false)],
+        (Act (true, [((Some "x"), (Id "A"), false)], End))))
+     ));
+  (DData ("unit", (PTl ([], (Tl ([], (Type U))))),
+     [(Cons ("tt", (PTl ([], (Tl ([], (Id "unit")))))))]));
+  (DData ("nat", (PTl ([], (Tl ([], (Type U))))),
+     [(Cons ("zero", (PTl ([], (Tl ([], (Id "nat")))))));
+       (Cons ("succ",
+          (PTl ([], (Tl ([(None, (Id "nat"), false)], (Id "nat")))))))
+       ]
+     ));
+  (DData ("vec",
+     (PTl ([((Some "A"), (Type U), false)],
+        (Tl ([(None, (Id "nat"), false)], (Type U))))),
+     [(Cons ("nil",
+         (PTl ([((Some "A"), (Type U), false)],
+            (Tl ([], (App [(Id "vec"); (Id "A"); (Id "zero")])))))
+         ));
+       (Cons ("cons",
+          (PTl ([((Some "A"), (Type U), false)],
+             (Tl (
+                [((Some "n"), (Id "nat"), true); (None, (Id "A"), false);
+                  (None, (App [(Id "vec"); (Id "A"); (Id "n")]), false)],
+                (App [(Id "vec"); (Id "A"); (App [(Id "succ"); (Id "n")])])))
+             ))
+          ))
+       ]
+     ));
+  (DFun ("foo",
+     (Pi (U,
+        [((Some "A"), (Type U), false); ((Some "x"), (Id "nat"), false)],
+        (Pi (U,
+           [(None,
+             (App [(Id "vec"); (Id "A"); (App [(Id "succ"); (Id "x")])]),
+             false)],
+           (App [(Id "vec"); (Id "A"); (Id "x")])))
+        )),
+     [(Cl
+         ([(PVar (Some "A")); (PVar None);
+            (PCons ("cons", [(PVar (Some "hd")); (PVar (Some "tl"))]));
+            (PVar (Some "x"))],
+          (Some (Fork ("ch",
+                   (Ch (true,
+                      (Act (true, [((Some "x"), (Id "A"), false)], End)))),
+                   (Id "main"),
+                   (Match ([(Send (Id "ch"))],
+                      [(Cl
+                          ([(PCons ("succ", [(PVar (Some "x"))]))],
+                           (Some (App [(Id "foo"); (Id "x")]))))
+                        ]
+                      ))
+                   )))))
+       ]
+     ));
+  (DTm ((Some "main"), None,
+     (Let ((PVar (Some "foo")),
+        (Fun ((Some "foo"),
+           (Some (Pi (U, [((Some "x"), (Id "nat"), false)], (Id "x")))),
+           [(Cl
+               ([(PCons ("zero", []))],
+                (Some (App [(Id "foo"); (Id "zero")]))))
+             ]
+           )),
+        (Let ((PVar None), (Close (Id "foo")), (App [(Id "foo"); (Id "_")])))
+        ))
+     ))
+  ]
+----------------------------------------------
+[(DOpen (TStdout, stdout_1)); (DOpen (TMain, main_2));
+  (DData (bot_d1, (PBase (TBase (Type U))), []));
+  (DTm (base_3, None,
+     (Act (true, (Type U),
+        (Abs (A_4, (Act (true, (Var _0), (Abs (x_5, End))))))))
+     ));
+  (DData (unit_d2, (PBase (TBase (Type U))),
+     [(Cons (tt_c1, (PBase (TBase (Data (unit_d2, []))))))]));
+  (DData (nat_d3, (PBase (TBase (Type U))),
+     [(Cons (zero_c2, (PBase (TBase (Data (nat_d3, []))))));
+       (Cons (succ_c3,
+          (PBase
+             (TBind ((Data (nat_d3, [])), false,
+                (Abs (_, (TBase (Data (nat_d3, []))))))))
+          ))
+       ]
+     ));
+  (DData (vec_d4,
+     (PBind ((Type U), false,
+        (Abs (A_6,
+           (PBase
+              (TBind ((Data (nat_d3, [])), false, (Abs (_, (TBase (Type U))))
+                 )))
+           ))
+        )),
+     [(Cons (nil_c4,
+         (PBind ((Type U), false,
+            (Abs (A_7,
+               (PBase
+                  (TBase (Data (vec_d4, [(Var _0); (Cons (zero_c2, []))]))))
+               ))
+            ))
+         ));
+       (Cons (cons_c5,
+          (PBind ((Type U), false,
+             (Abs (A_8,
+                (PBase
+                   (TBind ((Data (nat_d3, [])), true,
+                      (Abs (n_9,
+                         (TBind ((Var _1), false,
+                            (Abs (_,
+                               (TBind ((Data (vec_d4, [(Var _2); (Var _1)])),
+                                  false,
+                                  (Abs (_,
+                                     (TBase
+                                        (Data (vec_d4,
+                                           [(Var _3);
+                                             (Cons (succ_c3, [(Var _2)]))]
+                                           )))
+                                     ))
+                                  ))
+                               ))
+                            ))
+                         ))
+                      )))
+                ))
+             ))
+          ))
+       ]
+     ));
+  (DFun (foo_10,
+     (Pi (U, (Type U), false,
+        (Abs (A_11,
+           (Pi (U, (Data (nat_d3, [])), false,
+              (Abs (x_12,
+                 (Pi (U,
+                    (Data (vec_d4, [(Var _1); (Cons (succ_c3, [(Var _0)]))])),
+                    false, (Abs (_, (Data (vec_d4, [(Var _2); (Var _1)]))))))
+                 ))
+              ))
+           ))
+        )),
+     (Abs (foo_10,
+        [(Cl
+            (PAbs (
+               [(PVar A_13); (PVar _);
+                 (PCons (cons_c5, [(PVar hd_14); (PVar tl_15)])); (PVar x_16)
+                 ],
+               (Some (Fork (
+                        (Ch (true, (Act (true, (Var _0), (Abs (x_18, End))))
+                           )),
+                        (Var main_2),
+                        (Abs (ch_17,
+                           (Match ([(Send (Var _0))],
+                              [(Cl
+                                  (PAbs ([(PCons (succ_c3, [(PVar x_19)]))],
+                                     (Some (App ((Var _7), (Var _0)))))))
+                                ]
+                              ))
+                           ))
+                        )))
+               )))
+          ]
+        ))
+     ));
+  (DTm (main_20, None,
+     (Let (
+        (Fun (
+           (Some (Pi (U, (Data (nat_d3, [])), false, (Abs (x_22, (Var _0)))))),
+           (Abs (foo_23,
+              [(Cl
+                  (PAbs ([(PCons (zero_c2, []))],
+                     (Some (App ((Var _0), (Cons (zero_c2, []))))))))
+                ]
+              ))
+           )),
+        (Abs (foo_21,
+           (Let ((Close (Var _0)),
+              (Abs (_,
+                 (App ((Var _1),
+                    (Meta (_24,
+                       [(Var stdout_1); (Var main_2); (Var _1); (Var base_3)]
+                       ))
+                    ))
+                 ))
+              ))
+           ))
+        ))
+     ))
+  ]
+----------------------------------------------
+open @stdout as stdout_1
+
+open @main as main_2
+
+data bot_d1 : U
+  
+
+def base_3 := ?(A_25 : U) ⋅ ?(x_26 : A_25) ⋅ end
+
+data unit_d2 : U
+  | tt_c1 : unit_d2
+
+data nat_d3 : U
+  | zero_c2 : nat_d3
+  | succ_c3 : nat_d3 -> nat_d3
+
+data vec_d4 (A_27 : U) : nat_d3 -> U
+  | nil_c4 (A_28 : U) : (vec_d4 A_28 zero_c2)
+  | cons_c5 (A_29 : U) :
+    ∀ {n_30 : nat_d3} ->
+      A_29 -> (vec_d4 A_29 n_30) -> (vec_d4 A_29 (succ_c3 n_30))
+
+def (foo_10 := foo_31) :
+  ∀ (A_32 : U) ->
+    ∀ (x_33 : nat_d3) -> (vec_d4 A_32 (succ_c3 x_33)) -> (vec_d4 A_32 x_33)
+  | A_34 _ (cons_c5 hd_35 tl_36) x_37 =>
+    fork (ch_38 : ch<?(x_39 : A_34) ⋅ end>) <- main_2 in
+      (match send ch_38 with
+      | (succ_c3 x_40) => ((foo_31) x_40))
+
+def main_20 :=
+  let foo_41 :=
+    (fun foo_42 : ∀ (x_43 : nat_d3) -> x_43
+      | zero_c2 => ((foo_42) zero_c2))
+  in
+  let _ := close foo_41 in ((foo_41) ??_24{stdout_1; main_2; foo_41; base_3})
+
+

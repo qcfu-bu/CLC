@@ -82,7 +82,7 @@ let rec trans_tm nspc cs m =
       (fun (x, a, impl) acc ->
         let b = Syntax1.bind_tm x acc in
         Syntax1.Pi (trans_sort s, a, impl, b))
-      args (trans_tm nspc cs b)
+      (List.rev args) (trans_tm nspc cs b)
   | Fun (id_opt, a_opt, cls) -> (
     let a_opt = Option.map (trans_tm nspc cs) a_opt in
     let x = trans_id_opt id_opt in
@@ -153,7 +153,7 @@ let rec trans_tm nspc cs m =
       (fun (x, a) acc ->
         let b = Syntax1.bind_tm x acc in
         Syntax1.Act (r, a, b))
-      args (trans_tm nspc cs b)
+      (List.rev args) (trans_tm nspc cs b)
   | Ch (r, a) -> Syntax1.Ch (r, trans_tm nspc cs a)
   | Fork (id, a, m, n) ->
     let x = V.mk id in
@@ -196,7 +196,7 @@ let rec trans_ptl nspc cs (PTl (args, tl)) =
     (fun (x, a, impl) acc ->
       let b = Syntax1.bind_ptl x acc in
       Syntax1.PBind (a, impl, b))
-    args tl
+    (List.rev args) tl
 
 and trans_tl nspc cs (Tl (args, b)) =
   let nspc, args =
@@ -214,7 +214,7 @@ and trans_tl nspc cs (Tl (args, b)) =
     (fun (x, a, impl) acc ->
       let b = Syntax1.bind_tl x acc in
       Syntax1.TBind (a, impl, b))
-    args b
+    (List.rev args) b
 
 let trans_cons nspc cs (Cons (id, ptl)) =
   let c = C.mk id in
@@ -246,8 +246,8 @@ let trans_decl nspc cs dcl =
   | DFun (id, a, cls) ->
     let x = V.mk id in
     let a = trans_tm nspc cs a in
-    let cls = trans_cls (SMap.add id (V x) nspc) cs cls in
     let nspc = SMap.add id (V x) nspc in
+    let cls = trans_cls nspc cs cls in
     (nspc, cs, Syntax1.DFun (x, a, Syntax1.bind_cls x cls))
   | DData (id, ptl, conss) ->
     let d = D.mk id in

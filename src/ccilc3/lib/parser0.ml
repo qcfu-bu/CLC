@@ -22,6 +22,7 @@ let reserved =
     ; "if"
     ; "then"
     ; "else"
+    ; "proto"
     ; "fork"
     ; "and"
     ; "send"

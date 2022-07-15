@@ -12,6 +12,8 @@ let parse s =
       let _ = pr "----------------------------------------------@." in
       let _, _, dcl = Trans01.trans_decls SMap.empty SMap.empty dcl in
       let _ = pr "%a\n" Syntax1.pp_decls dcl in
+      let _ = pr "----------------------------------------------@." in
+      let _ = pr "%a\n" Pprint1.pp_decls dcl in
       ()
     | Failed (s, _) -> epr "%s\n" s
   with
