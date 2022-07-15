@@ -310,7 +310,7 @@ and act1_parser () =
 and act_parser () =
   let* r = kw "?" >>$ true <|> (kw "!" >>$ false) in
   let* args = act0_parser () <|> act1_parser () in
-  let* _ = kw ">>" in
+  let* _ = kw "⋅" in
   let* b = tm_parser () in
   return (Act (r, args, b))
 

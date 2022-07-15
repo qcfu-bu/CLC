@@ -3,7 +3,7 @@ open @main as main
 
 data bot : U
 
-def base := ?(A : U) >> ?(x : A) >> end
+def base := ?(A : U) ⋅ ?(x : A) ⋅ end
 
 data unit : U
   | tt : unit
@@ -18,7 +18,7 @@ data vec (A : U) : nat -> U
 
 def foo : ∀ (A : U) (x : nat) -> vec A (succ x) -> vec A x
   | A _ (cons hd tl) x =>
-    fork (ch : ch<?(x : A) >> end>) <- main with
+    fork (ch : ch<?(x : A) ⋅ end>) <- main with
       match send ch with
       | succ x => x
 
