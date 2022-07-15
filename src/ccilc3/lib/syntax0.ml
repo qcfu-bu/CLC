@@ -31,7 +31,7 @@ and tms = tm list
 and tm_opt = tm option
 
 and p =
-  | PVar of id
+  | PVar of id_opt
   | PCons of id * ps
   | PAbsurd
 
@@ -42,7 +42,7 @@ and cl = Cl of (ps * tm_opt)
 and cls = cl list
 
 type decl =
-  | DTm of id * tm_opt * tm
+  | DTm of id_opt * tm_opt * tm
   | DFun of id * tm * cls
   | DData of id * ptl * conss
   | DOpen of id * id

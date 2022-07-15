@@ -9,6 +9,11 @@ type entry =
 
 type nspc = entry SMap.t
 
+let trans_id_opt id_opt =
+  match id_opt with
+  | Some id -> V.mk id
+  | None -> V.blank
+
 let trans_sort s =
   match s with
   | U -> Syntax1.U
@@ -25,9 +30,11 @@ let rec spine_of_nspc nspc =
 
 let rec trans_p nspc cs p =
   match p with
-  | PVar id ->
-    let x = V.mk id in
-    (SMap.add id (V x) nspc, Syntax1.PVar x)
+  | PVar id_opt -> (
+    let x = trans_id_opt id_opt in
+    match id_opt with
+    | Some id -> (SMap.add id (V x) nspc, Syntax1.PVar x)
+    | None -> (nspc, Syntax1.PVar x))
   | PCons (id, ps) -> (
     match SMap.find_opt id cs with
     | Some c ->
@@ -65,14 +72,10 @@ let rec trans_tm nspc cs m =
       List.fold_left
         (fun (nspc, acc) (id_opt, a, impl) ->
           let a = trans_tm nspc cs a in
+          let x = trans_id_opt id_opt in
           match id_opt with
-          | Some id ->
-            let x = V.mk id in
-            let nspc = SMap.add id (V x) nspc in
-            (nspc, (x, a, impl) :: acc)
-          | None ->
-            let x = V.blank in
-            (nspc, (x, a, impl) :: acc))
+          | Some id -> (SMap.add id (V x) nspc, (x, a, impl) :: acc)
+          | None -> (nspc, (x, a, impl) :: acc))
         (nspc, []) args
     in
     List.fold_right
@@ -82,13 +85,12 @@ let rec trans_tm nspc cs m =
       args (trans_tm nspc cs b)
   | Fun (id_opt, a_opt, cls) -> (
     let a_opt = Option.map (trans_tm nspc cs) a_opt in
+    let x = trans_id_opt id_opt in
     match id_opt with
     | Some id ->
-      let x = V.mk id in
       let cls = trans_cls (SMap.add id (V x) nspc) cs cls in
       Fun (a_opt, Syntax1.bind_cls x cls)
     | None ->
-      let x = V.blank in
       let cls = trans_cls nspc cs cls in
       Fun (a_opt, Syntax1.bind_cls x cls))
   | App ms -> (
@@ -107,10 +109,15 @@ let rec trans_tm nspc cs m =
     | _ -> failwith "trans(%a)" pp_tm m)
   | Let (p, m, n) -> (
     match p with
-    | PVar id ->
-      let x = V.mk id in
+    | PVar id_opt ->
+      let x = trans_id_opt id_opt in
       let m = trans_tm nspc cs m in
-      let n = trans_tm (SMap.add id (V x) nspc) cs n in
+      let nspc =
+        match id_opt with
+        | Some id -> SMap.add id (V x) nspc
+        | None -> nspc
+      in
+      let n = trans_tm nspc cs n in
       Let (m, Syntax1.bind_tm x n)
     | _ ->
       let m = trans_tm nspc cs m in
@@ -135,14 +142,10 @@ let rec trans_tm nspc cs m =
       List.fold_left
         (fun (nspc, acc) (id_opt, a, impl) ->
           let a = trans_tm nspc cs a in
+          let x = trans_id_opt id_opt in
           match (id_opt, impl) with
-          | Some id, false ->
-            let x = V.mk id in
-            let nspc = SMap.add id (V x) nspc in
-            (nspc, (x, a) :: acc)
-          | None, false ->
-            let x = V.blank in
-            (nspc, (x, a) :: acc)
+          | Some id, false -> (SMap.add id (V x) nspc, (x, a) :: acc)
+          | None, false -> (nspc, (x, a) :: acc)
           | _, true -> failwith "trans_tm(%a)" pp_tm m)
         (nspc, []) args
     in
@@ -160,7 +163,7 @@ let rec trans_tm nspc cs m =
     Syntax1.Fork (a, m, Syntax1.bind_tm x n)
   | Send a -> Syntax1.Send (trans_tm nspc cs a)
   | Recv a -> Syntax1.Recv (trans_tm nspc cs a)
-  | Close a -> Syntax1.Recv (trans_tm nspc cs a)
+  | Close a -> Syntax1.Close (trans_tm nspc cs a)
 
 and trans_cl nspc cs (Cl (ps, m_opt)) =
   let nspc, ps = trans_ps nspc cs ps in
@@ -182,14 +185,10 @@ let rec trans_ptl nspc cs (PTl (args, tl)) =
     List.fold_left
       (fun (nspc, acc) (id_opt, a, impl) ->
         let a = trans_tm nspc cs a in
+        let x = trans_id_opt id_opt in
         match id_opt with
-        | Some id ->
-          let x = V.mk id in
-          let nspc = SMap.add id (V x) nspc in
-          (nspc, (x, a, impl) :: acc)
-        | None ->
-          let x = V.blank in
-          (nspc, (x, a, impl) :: acc))
+        | Some id -> (SMap.add id (V x) nspc, (x, a, impl) :: acc)
+        | None -> (nspc, (x, a, impl) :: acc))
       (nspc, []) args
   in
   let tl = Syntax1.PBase (trans_tl nspc cs tl) in
@@ -204,14 +203,10 @@ and trans_tl nspc cs (Tl (args, b)) =
     List.fold_left
       (fun (nspc, acc) (id_opt, a, impl) ->
         let a = trans_tm nspc cs a in
+        let x = trans_id_opt id_opt in
         match id_opt with
-        | Some id ->
-          let x = V.mk id in
-          let nspc = SMap.add id (V x) nspc in
-          (nspc, (x, a, impl) :: acc)
-        | None ->
-          let x = V.blank in
-          (nspc, (x, a, impl) :: acc))
+        | Some id -> (SMap.add id (V x) nspc, (x, a, impl) :: acc)
+        | None -> (nspc, (x, a, impl) :: acc))
       (nspc, []) args
   in
   let b = Syntax1.TBase (trans_tm nspc cs b) in
@@ -238,11 +233,15 @@ let rec trans_conss npsc cs conss =
 
 let trans_decl nspc cs dcl =
   match dcl with
-  | DTm (id, a_opt, m) ->
-    let x = V.mk id in
+  | DTm (id_opt, a_opt, m) ->
+    let x = trans_id_opt id_opt in
     let a_opt = Option.map (trans_tm nspc cs) a_opt in
     let m = trans_tm nspc cs m in
-    let nspc = SMap.add id (V x) nspc in
+    let nspc =
+      match id_opt with
+      | Some id -> SMap.add id (V x) nspc
+      | None -> nspc
+    in
     (nspc, cs, Syntax1.DTm (x, a_opt, m))
   | DFun (id, a, cls) ->
     let x = V.mk id in

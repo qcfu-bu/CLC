@@ -3,9 +3,9 @@ open Fmt
 module V : sig
   type t
 
+  val blank : t
   val mk : string -> t
   val bind : int -> t
-  val blank : t
   val is_blank : t -> bool
   val equal : t -> t -> bool
   val compare : t -> t -> int

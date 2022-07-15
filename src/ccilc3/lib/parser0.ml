@@ -81,7 +81,7 @@ let angles p = kw "<" >> p << kw ">"
 let braces p = kw "{" >> p << kw "}"
 let bracks p = kw "[" >> p << kw "]"
 
-let id_parser : string parser =
+let id_parser : id parser =
   let* s1 = many1_chars (letter <|> char '_') in
   let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
   let* _ = ws in
@@ -90,9 +90,22 @@ let id_parser : string parser =
   | Some _ -> fail (str "not a valid identifier(%s)" s)
   | None -> return s
 
+let id_opt_parser : id_opt parser =
+  let* s1 = many1_chars (letter <|> char '_') in
+  let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
+  let* _ = ws in
+  let s = s1 ^ s2 in
+  match SSet.find_opt s reserved with
+  | Some _ -> fail (str "not a valid identifier(%s)" s)
+  | None ->
+    if s = "_" then
+      return None
+    else
+      return (Some s)
+
 let rec pvar_parser () =
-  let* x = id_parser in
-  return (PVar x, false)
+  let* id_opt = id_opt_parser in
+  return (PVar id_opt, false)
 
 and pcons_parser () =
   let* cs = get_user_state in
@@ -229,22 +242,25 @@ and fun_parser () =
 
 and let0_parser () =
   let* _ = kw "rec" in
-  let* id = id_parser in
-  let* _ = kw ":" in
-  let* a = tm_parser () in
-  let* cls = cls_parser () in
-  let* _ = kw "in" in
-  let* n = tm_parser () in
-  return (Let (PVar id, Fun (Some id, Some a, cls), n))
+  let* id_opt = id_opt_parser in
+  match id_opt with
+  | None -> fail "recursive functions must be named"
+  | Some id ->
+    let* _ = kw ":" in
+    let* a = tm_parser () in
+    let* cls = cls_parser () in
+    let* _ = kw "in" in
+    let* n = tm_parser () in
+    return (Let (PVar (Some id), Fun (Some id, Some a, cls), n))
 
 and let1_parser () =
-  let* id = id_parser in
+  let* id_opt = id_opt_parser in
   let* _ = kw ":" in
   let* a = tm_parser () in
   let* cls = cls_parser () in
   let* _ = kw "in" in
   let* n = tm_parser () in
-  return (Let (PVar id, Fun (None, Some a, cls), n))
+  return (Let (PVar id_opt, Fun (None, Some a, cls), n))
 
 and let2_parser () =
   let* p, absurd = p_parser () in
@@ -392,15 +408,16 @@ and tm_parser () = tm2_parser ()
 
 let def_parser =
   let* _ = kw "def" in
-  let* id = id_parser in
-  let* opt = option (kw ":" >> tm_parser ()) in
+  let* id_opt = id_opt_parser in
+  let* a_opt = option (kw ":" >> tm_parser ()) in
   (let* cls = cls_parser () in
-   match opt with
-   | Some a -> return (DFun (id, a, cls))
-   | None -> fail "type annotation required for toplevel function")
+   match (id_opt, a_opt) with
+   | Some id, Some a -> return (DFun (id, a, cls))
+   | None, _ -> fail "toplevel functions must be named"
+   | _, None -> fail "type annotation required for toplevel functions")
   <|> let* _ = kw ":=" in
       let* m = tm_parser () in
-      return (DTm (id, opt, m))
+      return (DTm (id_opt, a_opt, m))
 
 let rec make_tl a =
   match a with
