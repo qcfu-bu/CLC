@@ -35,6 +35,14 @@
       "name": "keyword.other.clc"
     },
     {
+      "match": "\\|[~!?$&*+\\-/=>@^|%<:.]+",
+      "name": "keyword.operator.clc"
+    },
+    {
+      "match": "(?<!\\[)(\\|)(?!\\])",
+      "name": "keyword.other.clc"
+    },
+    {
       "match": "\\bderiving\\s+instance\\b",
       "name": "keyword.other.command.clc"
     },
