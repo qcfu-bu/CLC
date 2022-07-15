@@ -13,7 +13,7 @@ and tm =
   | Meta of V.t * tms
   | Type of sort
   | Var of V.t
-  | Pi of sort * tm * tm abs
+  | Pi of sort * tm * bool * tm abs
   | Fun of tm_opt * cls abs
   | App of tm * tm
   | Let of tm * tm abs
@@ -115,10 +115,10 @@ let bindn_tm k xs m =
       match opt with
       | Some (i, _) -> Var (V.bind (i + k))
       | None -> Var y)
-    | Pi (s, a, Abs (x, b)) ->
+    | Pi (s, a, impl, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Pi (s, a, Abs (x, b))
+      Pi (s, a, impl, Abs (x, b))
     | Fun (a_opt, Abs (x, cls)) ->
       let a_opt = Option.map (aux k) a_opt in
       let cls =
@@ -197,10 +197,10 @@ let unbindn_tm k xs m =
       match V.is_bound y sz k with
       | Some i -> Var (List.nth xs (i - k))
       | None -> Var y)
-    | Pi (s, a, Abs (x, b)) ->
+    | Pi (s, a, impl, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Pi (s, a, Abs (x, b))
+      Pi (s, a, impl, Abs (x, b))
     | Fun (a_opt, Abs (x, cls)) ->
       let a_opt = Option.map (aux k) a_opt in
       let cls =
@@ -263,6 +263,15 @@ let unbindn_tm k xs m =
   in
   aux k m
 
+let bindn_cls k xs cls =
+  List.map
+    (fun (Cl (PAbs (ps, m_opt))) ->
+      let xs = xs_of_ps ps in
+      let k = k + List.length xs in
+      let m_opt = Option.map (bindn_tm k xs) m_opt in
+      Cl (PAbs (ps, m_opt)))
+    cls
+
 let rec bindn_ptl k xs ptl =
   let rec aux k ptl =
     match ptl with
@@ -284,6 +293,15 @@ and bindn_tl k xs tl =
       TBind (a, Abs (x, tl))
   in
   aux k tl
+
+let unbindn_cls k xs cls =
+  List.map
+    (fun (Cl (PAbs (ps, m_opt))) ->
+      let xs = xs_of_ps ps in
+      let k = k + List.length xs in
+      let m_opt = Option.map (unbindn_tm k xs) m_opt in
+      Cl (PAbs (ps, m_opt)))
+    cls
 
 let rec unbindn_ptl k xs ptl =
   let rec aux k ptl =
@@ -309,21 +327,34 @@ and unbindn_tl k xs tl =
 
 let bind_tm x m = Abs (x, bindn_tm 0 [ x ] m)
 
-let bindp_tm p m =
+let bindp_tm_opt p m_opt =
   let xs = xs_of_ps p in
-  PAbs (p, bindn_tm 0 xs m)
+  PAbs (p, Option.map (bindn_tm 0 xs) m_opt)
 
+let bind_cls x cls = Abs (x, bindn_cls 0 [ x ] cls)
 let bind_ptl x ptl = Abs (x, bindn_ptl 0 [ x ] ptl)
 let bind_tl x tl = Abs (x, bindn_tl 0 [ x ] tl)
+
+let unbind_cls (Abs (x, cls)) =
+  let x = V.freshen x in
+  (x, unbindn_cls 0 [ x ] cls)
 
 let unbind_tm (Abs (x, m)) =
   let x = V.freshen x in
   (x, unbindn_tm 0 [ x ] m)
 
-let unbindp_tm (PAbs (ps, m)) =
+let unbindp_tm_opt (PAbs (ps, m_opt)) =
   let ps = freshen_ps ps in
   let xs = xs_of_ps ps in
-  (ps, unbindn_tm 0 xs m)
+  (ps, Option.map (unbindn_tm 0 xs) m_opt)
+
+let unbind_ptl (Abs (x, ptl)) =
+  let x = V.freshen x in
+  (x, unbindn_ptl 0 [ x ] ptl)
+
+let unbind_tl (Abs (x, tl)) =
+  let x = V.freshen x in
+  (x, unbindn_tl 0 [ x ] tl)
 
 let unbind2_tm (Abs (x, m)) (Abs (_, n)) =
   let x = V.freshen x in

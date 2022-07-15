@@ -13,7 +13,7 @@ and tm =
   | Meta of V.t * tms
   | Type of sort
   | Var of V.t
-  | Pi of sort * tm * tm abs
+  | Pi of sort * tm * bool * tm abs
   | Fun of tm_opt * cls abs
   | App of tm * tm
   | Let of tm * tm abs
@@ -70,11 +70,15 @@ and tl =
   | TBind of tm * tl abs
 
 val bind_tm : V.t -> tm -> tm abs
-val bindp_tm : ps -> tm -> tm pabs
+val bindp_tm_opt : ps -> tm_opt -> tm_opt pabs
+val bind_cls : V.t -> cls -> cls abs
 val bind_ptl : V.t -> ptl -> ptl abs
 val bind_tl : V.t -> tl -> tl abs
 val unbind_tm : tm abs -> V.t * tm
-val unbindp_tm : tm pabs -> ps * tm
+val unbindp_tm_opt : tm_opt pabs -> ps * tm_opt
+val unbind_cls : cls abs -> V.t * cls
+val unbind_ptl : ptl abs -> V.t * ptl
+val unbind_tl : tl abs -> V.t * tl
 val unbind2_tm : tm abs -> tm abs -> V.t * tm * tm
 val unbindp2_tm : tm pabs -> tm pabs -> ps * tm * tm
 val mkApps : tm -> tms -> tm

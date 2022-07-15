@@ -95,9 +95,11 @@ end = struct
   let pp fmt (s, id) = pf fmt "%s_c%d" s id
 end
 
+module SSet = Set.Make (String)
 module VSet = Set.Make (V)
 module CSet = Set.Make (C)
 module DSet = Set.Make (D)
+module SMap = Map.Make (String)
 module VMap = Map.Make (V)
 module CMap = Map.Make (C)
 module DMap = Map.Make (D)

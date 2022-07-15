@@ -1,0 +1,169 @@
+open Fmt
+open Names
+open Syntax0
+
+type entry =
+  | V of V.t
+  | D of D.t
+  | C of C.t
+
+type nspc = entry SMap.t
+
+let trans_sort s =
+  match s with
+  | U -> Syntax1.U
+  | L -> Syntax1.L
+
+let rec spine_of_nspc nspc =
+  List.fold_left
+    (fun acc (_, entry) ->
+      match entry with
+      | V x -> Syntax1.Var x :: acc
+      | D _ -> acc
+      | C _ -> acc)
+    [] (SMap.bindings nspc)
+
+let rec trans_p nspc cs p =
+  match p with
+  | PVar id ->
+    let x = V.mk id in
+    (SMap.add id (V x) nspc, Syntax1.PVar x)
+  | PCons (id, ps) -> (
+    match SMap.find id cs with
+    | C c ->
+      let nspc, ps = trans_ps nspc cs ps in
+      (nspc, Syntax1.PCons (c, ps))
+    | _ -> failwith "trans_of_p")
+  | PAbsurd -> (nspc, Syntax1.PAbsurd)
+
+and trans_ps nspc cs ps =
+  match ps with
+  | [] -> (nspc, [])
+  | p :: ps ->
+    let nspc, p = trans_p nspc cs p in
+    let nspc, ps = trans_ps nspc cs ps in
+    (nspc, p :: ps)
+
+let rec trans_tm nspc cs m =
+  match m with
+  | Ann (a, m) ->
+    let a = trans_tm nspc cs a in
+    let m = trans_tm nspc cs m in
+    Syntax1.Ann (a, m)
+  | Type s -> Syntax1.Type (trans_sort s)
+  | Id "_" ->
+    let x = V.mk "" in
+    Syntax1.Meta (x, spine_of_nspc nspc)
+  | Id id -> (
+    match SMap.find_opt id nspc with
+    | Some (V x) -> Syntax1.Var x
+    | Some (D d) -> Syntax1.Data (d, [])
+    | Some (C c) -> Syntax1.Cons (c, [])
+    | _ -> failwith "trans_tm unbound(%s)" id)
+  | Pi (s, args, b) ->
+    let nspc, args =
+      List.fold_left
+        (fun (nspc, acc) (id_opt, a, impl) ->
+          let a = trans_tm nspc cs a in
+          match id_opt with
+          | Some id ->
+            let x = V.mk id in
+            let nspc = SMap.add id (V x) nspc in
+            (nspc, (x, a, impl) :: acc)
+          | None ->
+            let x = V.mk "" in
+            (nspc, (x, a, impl) :: acc))
+        (nspc, []) args
+    in
+    List.fold_right
+      (fun (x, a, impl) acc ->
+        let b = Syntax1.bind_tm x acc in
+        Syntax1.Pi (trans_sort s, a, impl, b))
+      args (trans_tm nspc cs b)
+  | Fun (id_opt, a_opt, cls) -> (
+    let a_opt = Option.map (trans_tm nspc cs) a_opt in
+    match id_opt with
+    | Some id ->
+      let x = V.mk id in
+      let cls = trans_cls (SMap.add id (V x) nspc) cs cls in
+      Fun (a_opt, Syntax1.bind_cls x cls)
+    | None ->
+      let x = V.mk "" in
+      let cls = trans_cls nspc cs cls in
+      Fun (a_opt, Syntax1.bind_cls x cls))
+  | App ms -> (
+    match ms with
+    | Id id :: ms -> (
+      let ms = List.map (trans_tm nspc cs) ms in
+      match SMap.find id nspc with
+      | V x -> Syntax1.mkApps (Var x) ms
+      | D d -> Data (d, ms)
+      | C c -> Cons (c, ms))
+    | m :: ms ->
+      let m = trans_tm nspc cs m in
+      let ms = List.map (trans_tm nspc cs) ms in
+      Syntax1.mkApps m ms
+    | _ -> failwith "trans(%a)" pp_tm m)
+  | Let (p, m, n) -> (
+    match p with
+    | PVar id ->
+      let x = V.mk id in
+      let m = trans_tm nspc cs m in
+      let n = trans_tm (SMap.add id (V x) nspc) cs n in
+      Let (m, Syntax1.bind_tm x n)
+    | _ ->
+      let m = trans_tm nspc cs m in
+      let nspc, p = trans_p nspc cs p in
+      let n = trans_tm nspc cs n in
+      let cl = Syntax1.bindp_tm_opt [ p ] (Some n) in
+      Syntax1.Match ([ m ], [ Syntax1.Cl cl ]))
+  | Match (ms, cls) ->
+    let ms = List.map (trans_tm nspc cs) ms in
+    let cls = trans_cls nspc cs cls in
+    Syntax1.Match (ms, cls)
+  | If (m, n1, n2) ->
+    let m = trans_tm nspc cs m in
+    let n1 = trans_tm nspc cs n1 in
+    let n2 = trans_tm nspc cs n2 in
+    Syntax1.If (m, n1, n2)
+  | Main -> Syntax1.Main
+  | Proto -> Syntax1.Proto
+  | End -> Syntax1.End
+  | Act (r, args, b) ->
+    let nspc, args =
+      List.fold_left
+        (fun (nspc, acc) (id_opt, a, impl) ->
+          let a = trans_tm nspc cs a in
+          match (id_opt, impl) with
+          | Some id, false ->
+            let x = V.mk id in
+            let nspc = SMap.add id (V x) nspc in
+            (nspc, (x, a) :: acc)
+          | None, false ->
+            let x = V.mk "" in
+            (nspc, (x, a) :: acc)
+          | _, true -> failwith "trans_tm(%a)" pp_tm m)
+        (nspc, []) args
+    in
+    List.fold_right
+      (fun (x, a) acc ->
+        let b = Syntax1.bind_tm x acc in
+        Syntax1.Act (r, a, b))
+      args (trans_tm nspc cs b)
+  | Ch (r, a) -> Syntax1.Ch (r, trans_tm nspc cs a)
+  | Fork (id, a, m, n) ->
+    let x = V.mk id in
+    let a = trans_tm nspc cs a in
+    let m = trans_tm nspc cs m in
+    let n = trans_tm (SMap.add id (V x) nspc) cs n in
+    Syntax1.Fork (a, m, Syntax1.bind_tm x n)
+  | Send a -> Syntax1.Send (trans_tm nspc cs a)
+  | Recv a -> Syntax1.Recv (trans_tm nspc cs a)
+  | Close a -> Syntax1.Recv (trans_tm nspc cs a)
+
+and trans_cl nspc cs (Cl (ps, m_opt)) =
+  let nspc, ps = trans_ps nspc cs ps in
+  let m_opt = Option.map (trans_tm nspc cs) m_opt in
+  Syntax1.Cl (Syntax1.bindp_tm_opt ps m_opt)
+
+and trans_cls nspc cs cls = List.map (trans_cl nspc cs) cls

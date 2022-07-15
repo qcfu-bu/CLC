@@ -1,10 +1,10 @@
 open Fmt
+open Names
 open MParser
 open Syntax0
-module SS = Set.Make (String)
 
 let reserved =
-  SS.of_list
+  SSet.of_list
     [ "def"
     ; "data"
     ; "open"
@@ -29,7 +29,7 @@ let reserved =
     ; "close"
     ]
 
-type 'a parser = ('a, SS.t) MParser.t
+type 'a parser = ('a, SSet.t) MParser.t
 
 let ( let* ) = bind
 let choice ls = choice (List.map attempt ls)
@@ -85,7 +85,7 @@ let id_parser : string parser =
   let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
   let* _ = ws in
   let s = s1 ^ s2 in
-  match SS.find_opt s reserved with
+  match SSet.find_opt s reserved with
   | Some _ -> fail (str "not a valid identifier(%s)" s)
   | None -> return s
 
@@ -96,7 +96,7 @@ let rec pvar_parser () =
 and pcons_parser () =
   let* cs = get_user_state in
   let* id = id_parser in
-  match SS.find_opt id cs with
+  match SSet.find_opt id cs with
   | Some _ ->
     let* ps, absurd = ps_parser () in
     return (PCons (id, ps), absurd)
@@ -411,7 +411,7 @@ let rec make_tl a =
 let cons_parser args =
   let* _ = kw "|" in
   let* id = id_parser in
-  let* _ = update_user_state (fun cs -> SS.add id cs) in
+  let* _ = update_user_state (fun cs -> SSet.add id cs) in
   let* _ = kw ":" in
   let* a = tm_parser () in
   let ptl = PTl (args, make_tl a) in
@@ -455,5 +455,5 @@ let decl_parser =
   choice [ def_parser; ddata_parser; dopen_parser; daxiom_parser ]
 
 let decls_parser = many1 decl_parser
-let parse_string s = parse_string (ws >> decls_parser << eof) s SS.empty
-let parse_channel ch = parse_channel (ws >> decls_parser << eof) ch SS.empty
+let parse_string s = parse_string (ws >> decls_parser << eof) s SSet.empty
+let parse_channel ch = parse_channel (ws >> decls_parser << eof) ch SSet.empty
