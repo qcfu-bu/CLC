@@ -379,6 +379,9 @@ let unbindp2_tm (PAbs (ps1, m)) (PAbs (ps2, n)) =
   else
     failwith "unbindp2"
 
+let equal_abs eq (Abs (_, m)) (Abs (_, n)) = eq m n
+let equal_pabs eq (PAbs (_, m)) (PAbs (_, n)) = eq m n
+
 let rec msubst vmap m =
   match m with
   | Ann (a, m) ->

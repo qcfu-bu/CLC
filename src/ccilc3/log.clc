@@ -191,21 +191,28 @@ def main_16 := ((length_10) foo_15)
 
 
 ----------------------------------------------
-def (addn_6 := addn_36) : nat_d2 -> nat_d2 -> nat_d2
-  | zero_c2 x_37 => x_37
-  | (succ_c3 x_38) y_39 => (succ_c3 ((addn_36) x_38 y_39))
+def (addn_6 := addn_31) : nat_d2 -> nat_d2 -> nat_d2
+  | zero_c2 x_32 => x_32
+  | (succ_c3 x_33) y_34 => (succ_c3 ((addn_31) x_33 y_34))
 
-def (length_10 := length_40) :
-  ∀ {A_41 : U} -> ∀ {n_42 : nat_d2} -> (vec_d3 A_41 n_42) -> nat_d2
+def (length_10 := length_35) :
+  ∀ {A_36 : U} -> ∀ {n_37 : nat_d2} -> (vec_d3 A_36 n_37) -> nat_d2
   | nil_c4 => zero_c2
-  | (cons_c5 _ tl_43) => (succ_c3 ((length_40) tl_43))
+  | (cons_c5 _ tl_38) => (succ_c3 ((length_35) tl_38))
 
 def one_14 := (succ_c3 zero_c2)
 
-def foo_15 :=
-  (cons_c5 (succ_c3 zero_c2)
-  (cons_c5 (succ_c3 zero_c2) (cons_c5 (succ_c3 zero_c2) nil_c4)))
+def foo_15 := (cons_c5 one_14 (cons_c5 one_14 (cons_c5 one_14 nil_c4)))
 
-def main_16 := (succ_c3 (succ_c3 (succ_c3 zero_c2)))
+def main_16 :=
+  (succ_c3
+    (((fun length_39 : ∀ {A_40 : U} ->
+                         ∀ {n_41 : nat_d2} -> (vec_d3 A_40 n_41) -> nat_d2
+        | nil_c4 => zero_c2
+        | (cons_c5 _ tl_42) => (succ_c3 ((length_39) tl_42)))) (cons_c5
+                                                                 one_14
+                                                               (cons_c5
+                                                                 one_14
+                                                               nil_c4))))
 
 

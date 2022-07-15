@@ -82,6 +82,8 @@ val unbind_ptl : ptl abs -> V.t * ptl
 val unbind_tl : tl abs -> V.t * tl
 val unbind2_tm : tm abs -> tm abs -> V.t * tm * tm
 val unbindp2_tm : tm pabs -> tm pabs -> ps * tm * tm
+val equal_abs : ('a -> 'b -> bool) -> 'a abs -> 'b abs -> bool
+val equal_pabs : ('a -> 'b -> bool) -> 'a pabs -> 'b pabs -> bool
 val msubst : tm VMap.t -> tm -> tm
 val subst : V.t -> tm -> tm -> tm
 val mkApps : tm -> tms -> tm
