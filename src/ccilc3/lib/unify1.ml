@@ -238,6 +238,15 @@ module HigherOrder = struct
     in
     pf fmt "@[<v 0>eqns{@;<1 2>%a}@]" aux eqns
 
+  (* let union vmap1 vmap2 =
+     VMap.union
+       (fun _ (m1, ord1) (m2, ord2) ->
+         if ord1 < ord2 then
+           Some (m1, ord1)
+         else
+           Some (m2, ord2))
+       vmap1 vmap2 *)
+
   let rec fv ctx m =
     match m with
     | Ann (a, m) -> VSet.union (fv ctx a) (fv ctx m)
@@ -515,42 +524,10 @@ module HigherOrder = struct
         | _ -> V.mk "")
       sp
 
-  let solve (Eq (env, m1, m2)) =
+  let solve vmap (Eq (env, m1, m2)) =
     let m1 = whnf [ Beta; Iota; Zeta ] env m1 in
     let m2 = whnf [ Beta; Iota; Zeta ] env m2 in
     match (m1, m2) with
-    | Meta (x1, ms1), Meta (x2, ms2) ->
-      let xs1 = meta_spine ms1 in
-      let xs2 = meta_spine ms2 in
-      let ctx = VSet.inter (VSet.of_list xs1) (VSet.of_list xs2) in
-      let zs = List.map (fun x -> Var x) (VSet.elements ctx) in
-      let xs1 =
-        List.map
-          (fun x ->
-            match VSet.find_opt x ctx with
-            | Some _ -> x
-            | None -> V.blank)
-          xs1
-      in
-      let xs2 =
-        List.map
-          (fun x ->
-            match VSet.find_opt x ctx with
-            | Some _ -> x
-            | None -> V.blank)
-          xs2
-      in
-      let m = Meta (V.mk "", zs) in
-      let ps1 = List.map (fun x -> PVar x) xs1 in
-      let ps2 = List.map (fun x -> PVar x) xs2 in
-      let cls1 = Cl (bindp_tm_opt ps1 (Some m)) in
-      let cls2 = Cl (bindp_tm_opt ps2 (Some m)) in
-      let m1 = Fun (None, bind_cls V.blank [ cls1 ]) in
-      let m2 = Fun (None, bind_cls V.blank [ cls2 ]) in
-      let vmap = VMap.empty in
-      let vmap = VMap.add x1 (Some m1, None, 0) vmap in
-      let vmap = VMap.add x2 (Some m2, None, 0) vmap in
-      vmap
     | Meta (x, xs), _ ->
       if occurs x m2 then
         failwith "occurs(%a, %a)" V.pp x pp_tm m2
@@ -561,7 +538,7 @@ module HigherOrder = struct
           let ps = List.map (fun x -> PVar x) xs in
           let cls = Cl (bindp_tm_opt ps (Some m2)) in
           let m = Fun (None, bind_cls V.blank [ cls ]) in
-          VMap.singleton x (Some m, None, 1)
+          VMap.add x (m, 1) vmap
         else
           failwith "solve(%a, %a)" pp_tm m1 pp_tm m2
     | _ -> failwith "solve(%a, %a)" pp_tm m1 pp_tm m2
@@ -570,11 +547,9 @@ module HigherOrder = struct
     match m with
     | Meta (x, xs) -> (
       try
-        match VMap.find x vmap with
-        | Some h, _, _ ->
-          let m = mkApps h xs in
-          resolve_tm vmap (whnf [ Beta; Iota; Zeta ] VMap.empty m)
-        | _ -> m
+        let h, _ = VMap.find x vmap in
+        let m = mkApps h xs in
+        resolve_tm vmap (whnf [ Beta; Iota; Zeta ] VMap.empty m)
       with
       | _ -> m)
     | Ann (a, m) -> Ann (resolve_tm vmap a, resolve_tm vmap m)
@@ -693,4 +668,17 @@ module HigherOrder = struct
     | DAxiom (x, a) -> DAxiom (x, resolve_tm vmap a)
 
   let resolve_dcls vmap dcls = List.map (resolve_dcl vmap) dcls
+
+  let rec unify vmap eqns =
+    let eqns =
+      List.map
+        (fun (Eq (env, m1, m2)) ->
+          Eq (env, resolve_tm vmap m1, resolve_tm vmap m2))
+        eqns
+    in
+    match List.concat_map simpl eqns with
+    | [] -> vmap
+    | eqn :: eqns ->
+      let vmap = solve vmap eqn in
+      unify vmap eqns
 end
