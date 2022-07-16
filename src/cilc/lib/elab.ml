@@ -11,7 +11,7 @@ open Unify
 let pp_mmap fmt mmap =
   let aux fmt mmap =
     MMap.iter
-      (fun x (m, opt, _) ->
+      (fun x (m, opt) ->
         match (m, opt) with
         | Some m, Some a ->
           fprintf fmt "%a : %a => %a@." Meta.pp x Tm.pp a Tm.pp m
@@ -47,7 +47,7 @@ module ElabTm = struct
     match h with
     | Meta (x, _) -> (
       try
-        let _, opt, _ = MMap.find x mmap in
+        let _, opt = MMap.find x mmap in
         match opt with
         | Some a -> (a, eqns, mmap)
         | None -> failwith (asprintf "unfound meta(%a)" Meta.pp x)
@@ -259,7 +259,7 @@ module ElabTm = struct
   and check vctx ictx env eqns mmap m a =
     match m with
     | Meta (x, _) ->
-      let mmap = MMap.add x (None, Some a, 0) mmap in
+      let mmap = MMap.add x (None, Some a) mmap in
       (eqns, mmap)
     | Lam (s, m) as lm -> (
       let x, um = unbind m in

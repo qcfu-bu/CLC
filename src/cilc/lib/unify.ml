@@ -10,29 +10,6 @@ let failwith s =
   let _ = printf "%s\n" s in
   failwith "unify"
 
-let union m1 m2 =
-  MMap.union
-    (fun _ (opt11, opt12, ord1) (opt21, opt22, ord2) ->
-      let opt1 =
-        match (opt11, opt21) with
-        | Some m, Some n ->
-          if ord1 < ord2 then
-            Some n
-          else
-            Some m
-        | Some _, _ -> opt11
-        | _, Some _ -> opt21
-        | _ -> None
-      in
-      let opt2 =
-        match (opt12, opt22) with
-        | Some _, _ -> opt12
-        | _, Some _ -> opt22
-        | _ -> None
-      in
-      Some (opt1, opt2, max ord1 ord2))
-    m1 m2
-
 let rec fv ctx t =
   match t with
   | Ann (m, a) -> VSet.union (fv ctx m) (fv ctx a)
@@ -245,38 +222,10 @@ let strip sp =
       | _ -> mk "")
     sp
 
-let solve (_, m1, m2) =
+let solve mmap (_, m1, m2) =
   let m1 = whnf m1 in
   let m2 = whnf m2 in
   match (m1, m2) with
-  | Meta (x1, xs), Meta (x2, ys) ->
-    let xs = strip xs in
-    let ys = strip ys in
-    let ctx = VSet.inter (VSet.of_list xs) (VSet.of_list ys) in
-    let zs = ctx |> VSet.elements |> List.map _Var in
-    let xs =
-      List.map
-        (fun x ->
-          match VSet.find_opt x ctx with
-          | Some _ -> x
-          | None -> mk "")
-        xs
-    in
-    let ys =
-      List.map
-        (fun y ->
-          match VSet.find_opt y ctx with
-          | Some _ -> y
-          | None -> mk "")
-        ys
-    in
-    let m = _Meta (Meta.mk ()) (box_list zs) in
-    let m1 = unbox (_mLam U xs m) in
-    let m2 = unbox (_mLam U ys m) in
-    let res = MMap.empty in
-    let res = MMap.add x1 (Some m1, None, 0) res in
-    let res = MMap.add x2 (Some m2, None, 0) res in
-    res
   | Meta (x, xs), _ ->
     if occurs x m2 then
       failwith (asprintf "meta(%a) occurs in term(%a)" Meta.pp x Tm.pp m2)
@@ -285,7 +234,7 @@ let solve (_, m1, m2) =
       let ctx = fv VSet.empty m2 in
       if VSet.subset ctx (VSet.of_list xs) then
         let m = unbox (_mLam U xs (lift m2)) in
-        MMap.singleton x (Some m, None, 1)
+        MMap.add x (Some m, None) mmap
       else
         let _ = List.iter (fun x -> printf "%a; " pp_v x) xs in
         let _ = printf "@." in
@@ -300,7 +249,7 @@ module UnifyTm = struct
     | Meta (x, xs) -> (
       try
         match MMap.find x mmap with
-        | Some h, _, _ ->
+        | Some h, _ ->
           let xs = List.map lift xs in
           let t = unbox (_mApp (lift h) xs) in
           resolve mmap (whnf t)
@@ -431,15 +380,18 @@ module UnifyTp = struct
 end
 
 let rec unify mmap eqns =
+  let eqns =
+    List.map
+      (fun (env, m1, m2) ->
+        (env, UnifyTm.resolve mmap m1, UnifyTm.resolve mmap m2))
+      eqns
+  in
   match List.concat_map simpl eqns with
   | [] -> mmap
-  | eqns ->
-    let mmaps = List.map solve eqns in
-    let mmap = List.fold_left (fun acc mmap -> union acc mmap) mmap mmaps in
-    let eqns =
-      List.map
-        (fun (env, m1, m2) ->
-          (env, UnifyTm.resolve mmap m1, UnifyTm.resolve mmap m2))
-        eqns
-    in
+  | eqn :: eqns ->
+    let mmap = solve mmap eqn in
     unify mmap eqns
+(* match List.concat_map simpl eqns with | [] -> mmap | eqns -> let mmaps =
+   List.map solve eqns in let mmap = List.fold_left (fun acc mmap -> union acc
+   mmap) mmap mmaps in let eqns = List.map (fun (env, m1, m2) -> (env,
+   UnifyTm.resolve mmap m1, UnifyTm.resolve mmap m2)) eqns in unify mmap eqns *)

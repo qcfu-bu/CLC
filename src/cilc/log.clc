@@ -22,31 +22,31 @@ Definition addn :=
     (nat) -> (nat) -> nat).
 
 Inductive option (A : U) : U :=
-| None (A : U) : (option A#232)
-| Some (A : U) : (A) -> (option A#233).
+| None (A : U) : (option A#288)
+| Some (A : U) : (A) -> (option A#289).
 
 Inductive list (A : U) : U :=
-| nil (A : U) : (list A#236)
-| cons (A : U) : (A) -> ((list A)) -> (list A#237).
+| nil (A : U) : (list A#292)
+| cons (A : U) : (A) -> ((list A)) -> (list A#293).
 
 Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#242 O)
+| vnil (A : U) : (vec A#298 O)
 | vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#243 (S n#244)).
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#299 (S n#300)).
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#250 P#251).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#306 P#307).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#258 P#259).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#314 P#315).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#265 B#266).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#321 B#322).
 
 Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#270).
+| box_intro (A : U) : (A) -> (box A#326).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -67,13 +67,13 @@ Definition cat :=
     (string) -> (string) -> string).
 
 Inductive le (n : nat) : (nat) -> U :=
-| le_n (n : nat) : (le n#292 n#292)
-| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#293 (S m#294)).
+| le_n (n : nat) : (le n#348 n#348)
+| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#349 (S m#350)).
 
 Definition lt := ((fun m n => (le (S m) n)) : (nat) -> (nat) -> U).
 
 Inductive eq (A : U) (x : A) : (A) -> U :=
-| refl (A : U) (x : A) : (eq A#304 x#305 x#305).
+| refl (A : U) (x : A) : (eq A#360 x#361 x#361).
 
 Definition eq_trans :=
   ((fun A x y z e1 e2 =>
@@ -135,38 +135,111 @@ Axiom Set :
   forall (A : U),
     forall (B : U), (B) -> forall (l : Loc), (((PtsTo) l) A) -> ((PtsTo) l) B.
 
-Inductive list (A : L) : (nat) -> L :=
-| nil (A : L) : (list A#400 O)
-| cons (A : L)
-         : forall (n : nat), (A) -> ((list A n)) -> (list A#401 (S n#402)).
+Inductive ArrVec (A : U) (l : Loc) : (nat) -> L :=
+| Nil (A : U) (l : Loc) : (ArrVec A#457 l#458 O)
+| Cons (A : U)
+         (l : Loc)
+           : forall (n : nat),
+               (((PtsTo) ((addn) l) n) A) ->
+                 ((ArrVec A l n)) -> (ArrVec A#459 l#460 (S n#461)).
 
-Definition kappend :=
-  ((fix kappend A B m n =>
-      lin ls1 ls2 k =>
-        (match ls1 in (list _ x) return (((list A ((addn) x) n)) -o B) -o B
-         with
-         | nil => lin k => (k) ls2
-         | (cons m hd tl) =>
-           lin k =>
-             (((((((kappend) A) B) m) n) tl) ls2)
-               lin res => (k) (cons ((addn) m) n hd res)
-         end) k) :
-    forall (A : L),
-      forall (B : L),
+Definition Array :=
+  ((fun A n => (sig Loc fun l => (ArrVec A l n))) : (U) -> (nat) -> L).
+
+Definition nth :=
+  ((fix nth A l m n pf v =>
+      (match pf in (le _ n) return
+         ((ArrVec A l n)) ->
+           (tnsr
+             ((PtsTo) ((addn) l) m) A
+               (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))
+       with
+       | le_n =>
+         fun v =>
+           (match v in (ArrVec _ _ n) return
+              match n with
+              | O => base
+              | (S n0) =>
+                ((eq ?22 m n0)) -o
+                  (tnsr
+                    ((PtsTo) ((addn) l) n0) A
+                      (((PtsTo) ((addn) l) n0) A) -o (ArrVec A l n))
+              end
+            with
+            | Nil => ll
+            | (Cons n c v) => lin _ => (tnsr_intro c lin c => (Cons n c v))
+            end) refl
+       | (le_S _ pf) =>
+         fun v =>
+           (match v in (ArrVec _ _ n) return
+              match n with
+              | O => base
+              | (S n0) =>
+                (((lt) m) n0) -o
+                  (tnsr
+                    ((PtsTo) ((addn) l) m) A
+                      (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))
+              end
+            with
+            | Nil => ll
+            | (Cons n c0 v0) =>
+              lin pf =>
+                match ((((((nth) A) l) m) n) pf) v0 with
+                | (tnsr_intro c f) =>
+                  (tnsr_intro c lin c => (Cons n c0 (f) c))
+                end
+            end) pf
+       end) v) :
+    forall (A : U),
+      forall (l : nat),
         forall (m : nat),
           forall (n : nat),
-            ((list A m)) -o
-              ((list A n)) -o (((list A ((addn) m) n)) -o B) -o B).
+            (((lt) m) n) ->
+              ((ArrVec A l n)) ->
+                (tnsr
+                  ((PtsTo) ((addn) l) m) A
+                    (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))).
 
-Definition append :=
-  ((fun A m n =>
-      lin ls1 ls2 =>
-        (((((((kappend) A) (list A ((addn) m) n)) m) n) ls1) ls2)
-          lin res => res) :
-    forall (A : L),
+Definition index :=
+  ((fun A m n pf a =>
+      match a with
+      | (sig_intro l v) =>
+        match ((((((nth) ?23) ?24) ?25) ?26) pf) v with
+        | (tnsr_intro c f) =>
+          match (((Get) ?27) ((addn) l) m) c with
+          | (sig_intro x c) => (sig_intro x (sig_intro l (f) c))
+          end
+        end
+      end) :
+    forall (A : U),
       forall (m : nat),
         forall (n : nat),
-          ((list A m)) -o ((list A n)) -o (list A ((addn) m) n)).
+          (((lt) m) n) -> (((Array) A) n) -> (sig A fun _ => ((Array) A) n)).
+
+Definition Just0 := (((ex nat fun x => (eq ?28 x O))) : U).
+
+Definition silly :=
+  ((fun m n pf a =>
+      match (((((index) ?29) ?30) ?31) pf) a with
+      | (sig_intro x_pf a) =>
+        match (((((index) ?32) ?33) ?34) pf) a with
+        | (sig_intro y_pf a) =>
+          match x_pf with
+          | (ex_intro x pf1) =>
+            match y_pf with
+            | (ex_intro y pf2) =>
+              let pf2 := ((((eq_sym) ?35) ?36) ?37) pf2 in
+              let pf :=
+                ((((((((eq_trans) ?38) ?39) ?40) ?41) pf1) pf2) :
+                  (eq ?42 x y))
+              in a
+            end
+          end
+        end
+      end) :
+    forall (m : nat),
+      forall (n : nat),
+        (((lt) m) n) -> (((Array) Just0) n) -> ((Array) Just0) n).
 
 Definition Main := tt.
 
@@ -194,31 +267,31 @@ Definition addn :=
     (nat) -> (nat) -> nat).
 
 Inductive option (A : U) : U :=
-| None (A : U) : (option A#2827)
-| Some (A : U) : (A) -> (option A#2828).
+| None (A : U) : (option A#4622)
+| Some (A : U) : (A) -> (option A#4623).
 
 Inductive list (A : U) : U :=
-| nil (A : U) : (list A#2831)
-| cons (A : U) : (A) -> ((list A)) -> (list A#2832).
+| nil (A : U) : (list A#4626)
+| cons (A : U) : (A) -> ((list A)) -> (list A#4627).
 
 Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#2837 O)
+| vnil (A : U) : (vec A#4632 O)
 | vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2838 (S n#2839)).
+          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#4633 (S n#4634)).
 
 Inductive ex (A : U) (P : (A) -> U) : U :=
 | ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2845 P#2846).
+             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#4640 P#4641).
 
 Inductive sig (A : U) (P : (A) -> L) : L :=
 | sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2853 P#2854).
+              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#4648 P#4649).
 
 Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2860 B#2861).
+| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#4655 B#4656).
 
 Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#2865).
+| box_intro (A : U) : (A) -> (box A#4660).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -239,13 +312,13 @@ Definition cat :=
     (string) -> (string) -> string).
 
 Inductive le (n : nat) : (nat) -> U :=
-| le_n (n : nat) : (le n#2887 n#2887)
-| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#2888 (S m#2889)).
+| le_n (n : nat) : (le n#4682 n#4682)
+| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#4683 (S m#4684)).
 
 Definition lt := ((fun m n => (le (S m) n)) : (nat) -> (nat) -> U).
 
 Inductive eq (A : U) (x : A) : (A) -> U :=
-| refl (A : U) (x : A) : (eq A#2899 x#2900 x#2900).
+| refl (A : U) (x : A) : (eq A#4694 x#4695 x#4695).
 
 Definition eq_trans :=
   ((fun A x y z e1 e2 =>
@@ -307,38 +380,110 @@ Axiom Set :
   forall (A : U),
     forall (B : U), (B) -> forall (l : Loc), (((PtsTo) l) A) -> ((PtsTo) l) B.
 
-Inductive list (A : L) : (nat) -> L :=
-| nil (A : L) : (list A#2995 O)
-| cons (A : L)
-         : forall (n : nat), (A) -> ((list A n)) -> (list A#2996 (S n#2997)).
+Inductive ArrVec (A : U) (l : Loc) : (nat) -> L :=
+| Nil (A : U) (l : Loc) : (ArrVec A#4791 l#4792 O)
+| Cons (A : U)
+         (l : Loc)
+           : forall (n : nat),
+               (((PtsTo) ((addn) l) n) A) ->
+                 ((ArrVec A l n)) -> (ArrVec A#4793 l#4794 (S n#4795)).
 
-Definition kappend :=
-  ((fix kappend A B m n =>
-      lin ls1 ls2 k =>
-        (match ls1 in (list _ x) return (((list A ((addn) x) n)) -o B) -o B
-         with
-         | nil => lin k => (k) ls2
-         | (cons m hd tl) =>
-           lin k =>
-             (((((((kappend) A) B) m) n) tl) ls2)
-               lin res => (k) (cons ((addn) m) n hd res)
-         end) k) :
-    forall (A : L),
-      forall (B : L),
+Definition Array :=
+  ((fun A n => (sig Loc fun l => (ArrVec A l n))) : (U) -> (nat) -> L).
+
+Definition nth :=
+  ((fix nth A l m n pf v =>
+      (match pf in (le _ n) return
+         ((ArrVec A l n)) ->
+           (tnsr
+             ((PtsTo) ((addn) l) m) A
+               (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))
+       with
+       | le_n =>
+         fun v =>
+           (match v in (ArrVec _ _ n) return
+              match n with
+              | O => base
+              | (S n0) =>
+                ((eq nat m n0)) -o
+                  (tnsr
+                    ((PtsTo) ((addn) l) n0) A
+                      (((PtsTo) ((addn) l) n0) A) -o (ArrVec A l n))
+              end
+            with
+            | Nil => ll
+            | (Cons n c v) => lin _ => (tnsr_intro c lin c => (Cons n c v))
+            end) refl
+       | (le_S _ pf) =>
+         fun v =>
+           (match v in (ArrVec _ _ n) return
+              match n with
+              | O => base
+              | (S n0) =>
+                (((lt) m) n0) -o
+                  (tnsr
+                    ((PtsTo) ((addn) l) m) A
+                      (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))
+              end
+            with
+            | Nil => ll
+            | (Cons n c0 v0) =>
+              lin pf =>
+                match ((((((nth) A) l) m) n) pf) v0 with
+                | (tnsr_intro c f) =>
+                  (tnsr_intro c lin c => (Cons n c0 (f) c))
+                end
+            end) pf
+       end) v) :
+    forall (A : U),
+      forall (l : nat),
         forall (m : nat),
           forall (n : nat),
-            ((list A m)) -o
-              ((list A n)) -o (((list A ((addn) m) n)) -o B) -o B).
+            (((lt) m) n) ->
+              ((ArrVec A l n)) ->
+                (tnsr
+                  ((PtsTo) ((addn) l) m) A
+                    (((PtsTo) ((addn) l) m) A) -o (ArrVec A l n))).
 
-Definition append :=
-  ((fun A m n =>
-      lin ls1 ls2 =>
-        (((((((kappend) A) (list A ((addn) m) n)) m) n) ls1) ls2)
-          lin res => res) :
-    forall (A : L),
+Definition index :=
+  ((fun A m n pf a =>
+      match a with
+      | (sig_intro l v) =>
+        match ((((((nth) A) l) m) n) pf) v with
+        | (tnsr_intro c f) =>
+          match (((Get) A) ((addn) l) m) c with
+          | (sig_intro x c) => (sig_intro x (sig_intro l (f) c))
+          end
+        end
+      end) :
+    forall (A : U),
       forall (m : nat),
         forall (n : nat),
-          ((list A m)) -o ((list A n)) -o (list A ((addn) m) n)).
+          (((lt) m) n) -> (((Array) A) n) -> (sig A fun _ => ((Array) A) n)).
+
+Definition Just0 := (((ex nat fun x => (eq nat x O))) : U).
+
+Definition silly :=
+  ((fun m n pf a =>
+      match (((((index) Just0) m) n) pf) a with
+      | (sig_intro x_pf a) =>
+        match (((((index) Just0) m) n) pf) a with
+        | (sig_intro y_pf a) =>
+          match x_pf with
+          | (ex_intro x pf1) =>
+            match y_pf with
+            | (ex_intro y pf2) =>
+              let pf2 := ((((eq_sym) nat) y) O) pf2 in
+              let pf :=
+                ((((((((eq_trans) nat) x) O) y) pf1) pf2) : (eq nat x y))
+              in a
+            end
+          end
+        end
+      end) :
+    forall (m : nat),
+      forall (n : nat),
+        (((lt) m) n) -> (((Array) Just0) n) -> ((Array) Just0) n).
 
 Definition Main := tt.
 
