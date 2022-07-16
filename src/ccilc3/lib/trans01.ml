@@ -172,13 +172,13 @@ and trans_cl nspc cs (Cl (ps, m_opt)) =
 
 and trans_cls nspc cs cls = List.map (trans_cl nspc cs) cls
 
-let trans_target s =
+let trans_trg s =
   match s with
   | "@stdin" -> Syntax1.TStdin
   | "@stdout" -> Syntax1.TStdout
   | "@stderr" -> Syntax1.TStdout
   | "@main" -> Syntax1.TMain
-  | _ -> failwith "trans_target(%s)" s
+  | _ -> failwith "trans_trg(%s)" s
 
 let rec trans_ptl nspc cs (PTl (args, tl)) =
   let nspc, args =
@@ -231,7 +231,7 @@ let rec trans_dconss npsc cs dconss =
     let nspc, cs, dconss = trans_dconss nspc cs dconss in
     (nspc, cs, dcons :: dconss)
 
-let trans_decl nspc cs dcl =
+let trans_dcl nspc cs dcl =
   match dcl with
   | DTm (id_opt, a_opt, m) ->
     let x = trans_id_opt id_opt in
@@ -256,7 +256,7 @@ let trans_decl nspc cs dcl =
     let nspc, cs, dconss = trans_dconss nspc cs dconss in
     (nspc, cs, Syntax1.DData (d, ptl, dconss))
   | DOpen (id1, id2) ->
-    let targ = trans_target id1 in
+    let targ = trans_trg id1 in
     let x = V.mk id2 in
     let nspc = SMap.add id2 (V x) nspc in
     (nspc, cs, Syntax1.DOpen (targ, x))
@@ -266,10 +266,10 @@ let trans_decl nspc cs dcl =
     let nspc = SMap.add id (V x) nspc in
     (nspc, cs, Syntax1.DAxiom (x, a))
 
-let rec trans_decls nspc cs dcls =
+let rec trans_dcls nspc cs dcls =
   match dcls with
   | [] -> (nspc, cs, [])
   | dcl :: dcls ->
-    let nspc, cs, dcl = trans_decl nspc cs dcl in
-    let nspc, cs, dcls = trans_decls nspc cs dcls in
+    let nspc, cs, dcl = trans_dcl nspc cs dcl in
+    let nspc, cs, dcls = trans_dcls nspc cs dcls in
     (nspc, cs, dcl :: dcls)

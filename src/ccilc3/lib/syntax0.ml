@@ -41,7 +41,7 @@ and args = arg list
 and cl = Cl of (ps * tm_opt)
 and cls = cl list
 
-type decl =
+type dcl =
   | DTm of id_opt * tm_opt * tm
   | DFun of id * tm * cls
   | DData of id * ptl * dconss
@@ -49,7 +49,7 @@ type decl =
   | DAxiom of id * tm
 [@@deriving show { with_path = false }]
 
-and decls = decl list
+and dcls = dcl list
 and dcons = DCons of id * ptl
 and dconss = dcons list
 and ptl = PTl of args * tl

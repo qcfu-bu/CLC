@@ -43,22 +43,22 @@ and ps = p list
 and cl = Cl of tm_opt pabs
 and cls = cl list
 
-type target =
+type trg =
   | TStdin
   | TStdout
   | TStderr
   | TMain
 [@@deriving show { with_path = false }]
 
-type decl =
+type dcl =
   | DTm of V.t * tm_opt * tm
   | DFun of V.t * tm * cls abs
   | DData of D.t * ptl * dconss
-  | DOpen of target * V.t
+  | DOpen of trg * V.t
   | DAxiom of V.t * tm
 [@@deriving show { with_path = false }]
 
-and decls = decl list
+and dcls = dcl list
 and dcons = DCons of C.t * ptl
 and dconss = dcons list
 
@@ -324,23 +324,47 @@ and unbindn_tl k xs tl =
   in
   aux k tl
 
-let bind_tm x m = Abs (x, bindn_tm 0 [ x ] m)
+let bind_tm x m =
+  if V.is_blank x then
+    Abs (x, m)
+  else
+    Abs (x, bindn_tm 0 [ x ] m)
 
 let bindp_tm_opt p m_opt =
   let xs = xs_of_ps p in
   PAbs (p, Option.map (bindn_tm 0 xs) m_opt)
 
-let bind_cls x cls = Abs (x, bindn_cls 0 [ x ] cls)
-let bind_ptl x ptl = Abs (x, bindn_ptl 0 [ x ] ptl)
-let bind_tl x tl = Abs (x, bindn_tl 0 [ x ] tl)
+let bind_cls x cls =
+  if V.is_blank x then
+    Abs (x, cls)
+  else
+    Abs (x, bindn_cls 0 [ x ] cls)
+
+let bind_ptl x ptl =
+  if V.is_blank x then
+    Abs (x, ptl)
+  else
+    Abs (x, bindn_ptl 0 [ x ] ptl)
+
+let bind_tl x tl =
+  if V.is_blank x then
+    Abs (x, tl)
+  else
+    Abs (x, bindn_tl 0 [ x ] tl)
 
 let unbind_cls (Abs (x, cls)) =
-  let x = V.freshen x in
-  (x, unbindn_cls 0 [ x ] cls)
+  if V.is_blank x then
+    (x, cls)
+  else
+    let x = V.freshen x in
+    (x, unbindn_cls 0 [ x ] cls)
 
 let unbind_tm (Abs (x, m)) =
-  let x = V.freshen x in
-  (x, unbindn_tm 0 [ x ] m)
+  if V.is_blank x then
+    (x, m)
+  else
+    let x = V.freshen x in
+    (x, unbindn_tm 0 [ x ] m)
 
 let unbindp_tm_opt (PAbs (ps, m_opt)) =
   let ps = freshen_ps ps in
@@ -348,12 +372,18 @@ let unbindp_tm_opt (PAbs (ps, m_opt)) =
   (ps, Option.map (unbindn_tm 0 xs) m_opt)
 
 let unbind_ptl (Abs (x, ptl)) =
-  let x = V.freshen x in
-  (x, unbindn_ptl 0 [ x ] ptl)
+  if V.is_blank x then
+    (x, ptl)
+  else
+    let x = V.freshen x in
+    (x, unbindn_ptl 0 [ x ] ptl)
 
 let unbind_tl (Abs (x, tl)) =
-  let x = V.freshen x in
-  (x, unbindn_tl 0 [ x ] tl)
+  if V.is_blank x then
+    (x, tl)
+  else
+    let x = V.freshen x in
+    (x, unbindn_tl 0 [ x ] tl)
 
 let unbind2_tm (Abs (x, m)) (Abs (_, n)) =
   let x = V.freshen x in
@@ -369,15 +399,21 @@ let rec equal_p p1 p2 =
   | PAbsurd, PAbsurd -> true
   | _ -> false
 
-let unbindp2_tm (PAbs (ps1, m)) (PAbs (ps2, n)) =
+let unbindp2_tm_opt (PAbs (ps1, m_opt)) (PAbs (ps2, n_opt)) =
   if List.equal equal_p ps1 ps2 then
     let ps = freshen_ps ps1 in
     let xs = xs_of_ps ps in
-    let m = unbindn_tm 0 xs m in
-    let n = unbindn_tm 0 xs n in
+    let m = Option.map (unbindn_tm 0 xs) m_opt in
+    let n = Option.map (unbindn_tm 0 xs) n_opt in
     (ps, m, n)
   else
     failwith "unbindp2"
+
+let unbind2_cls (Abs (x, cls1)) (Abs (_, cls2)) =
+  let x = V.freshen x in
+  let cls1 = unbindn_cls 0 [ x ] cls1 in
+  let cls2 = unbindn_cls 0 [ x ] cls2 in
+  (x, cls1, cls2)
 
 let equal_abs eq (Abs (_, m)) (Abs (_, n)) = eq m n
 let equal_pabs eq (PAbs (_, m)) (PAbs (_, n)) = eq m n

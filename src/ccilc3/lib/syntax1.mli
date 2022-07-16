@@ -43,22 +43,22 @@ and ps = p list
 and cl = Cl of tm_opt pabs
 and cls = cl list
 
-type target =
+type trg =
   | TStdin
   | TStdout
   | TStderr
   | TMain
 [@@deriving show { with_path = false }]
 
-type decl =
+type dcl =
   | DTm of V.t * tm_opt * tm
   | DFun of V.t * tm * cls abs
   | DData of D.t * ptl * dconss
-  | DOpen of target * V.t
+  | DOpen of trg * V.t
   | DAxiom of V.t * tm
 [@@deriving show { with_path = false }]
 
-and decls = decl list
+and dcls = dcl list
 and dcons = DCons of C.t * ptl
 and dconss = dcons list
 
@@ -70,6 +70,7 @@ and tl =
   | TBase of tm
   | TBind of tm * bool * tl abs
 
+val xs_of_ps : ps -> V.t list
 val bind_tm : V.t -> tm -> tm abs
 val bindp_tm_opt : ps -> tm_opt -> tm_opt pabs
 val bind_cls : V.t -> cls -> cls abs
@@ -81,7 +82,8 @@ val unbind_cls : cls abs -> V.t * cls
 val unbind_ptl : ptl abs -> V.t * ptl
 val unbind_tl : tl abs -> V.t * tl
 val unbind2_tm : tm abs -> tm abs -> V.t * tm * tm
-val unbindp2_tm : tm pabs -> tm pabs -> ps * tm * tm
+val unbindp2_tm_opt : tm_opt pabs -> tm_opt pabs -> ps * tm_opt * tm_opt
+val unbind2_cls : cls abs -> cls abs -> V.t * cls * cls
 val equal_abs : ('a -> 'b -> bool) -> 'a abs -> 'b abs -> bool
 val equal_pabs : ('a -> 'b -> bool) -> 'a pabs -> 'b pabs -> bool
 val msubst : tm VMap.t -> tm -> tm

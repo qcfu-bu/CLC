@@ -99,7 +99,7 @@ and pp_cls sep fmt cls =
   | [ cl ] -> pf fmt "@[%a@]" (pp_cl sep) cl
   | cl :: cls -> pf fmt "@[%a@]@;<1 2>%a" (pp_cl sep) cl (pp_cls sep) cls
 
-let pp_target fmt targ =
+let pp_trg fmt targ =
   match targ with
   | TStdin -> pf fmt "@stdin"
   | TStdout -> pf fmt "@stdout"
@@ -133,7 +133,7 @@ let rec pp_dconss fmt dconss =
   | [ dcons ] -> pf fmt "@[%a@]" pp_dcons dcons
   | dcons :: dconss -> pf fmt "@[%a@]@;<1 2>%a" pp_dcons dcons pp_dconss dconss
 
-let pp_decl fmt dcl =
+let pp_dcl fmt dcl =
   match dcl with
   | DTm (x, a_opt, m) -> (
     match a_opt with
@@ -146,10 +146,10 @@ let pp_decl fmt dcl =
       a (pp_cls " ") cls
   | DData (d, ptl, dconss) ->
     pf fmt "@[<v 0>@[data %a %a@]@;<1 2>%a@]" D.pp d pp_ptl ptl pp_dconss dconss
-  | DOpen (targ, x) -> pf fmt "open %a as %a" pp_target targ V.pp x
+  | DOpen (targ, x) -> pf fmt "open %a as %a" pp_trg targ V.pp x
   | DAxiom (x, a) -> pf fmt "@[axiom %a :@;<1 2>%a@]" V.pp x pp_tm a
 
-let rec pp_decls fmt dcls =
+let rec pp_dcls fmt dcls =
   match dcls with
   | [] -> ()
-  | dcl :: dcls -> pf fmt "%a@.@.%a" pp_decl dcl pp_decls dcls
+  | dcl :: dcls -> pf fmt "%a@.@.%a" pp_dcl dcl pp_dcls dcls
