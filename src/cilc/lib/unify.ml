@@ -391,7 +391,3 @@ let rec unify mmap eqns =
   | eqn :: eqns ->
     let mmap = solve mmap eqn in
     unify mmap eqns
-(* match List.concat_map simpl eqns with | [] -> mmap | eqns -> let mmaps =
-   List.map solve eqns in let mmap = List.fold_left (fun acc mmap -> union acc
-   mmap) mmap mmaps in let eqns = List.map (fun (env, m1, m2) -> (env,
-   UnifyTm.resolve mmap m1, UnifyTm.resolve mmap m2)) eqns in unify mmap eqns *)
