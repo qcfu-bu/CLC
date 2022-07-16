@@ -60,7 +60,7 @@ let rec pp_tm fmt m =
     | [] -> C.pp fmt c
     | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
   | Match (ms, cls) ->
-    pf fmt "@[<v 0>(match %a with@;<1 0>%a)@]" (list ~sep:comma pp_tm) ms
+    pf fmt "@[<v 0>(@[match %a with@]@;<1 2>%a)@]" (list ~sep:comma pp_tm) ms
       (pp_cls ", ") cls
   | If (m, n1, n2) ->
     pf fmt "@[if %a then@;<1 2>%a@.else@;<1 2>%a@]" pp_tm m pp_tm n1 pp_tm n2
@@ -72,7 +72,7 @@ let rec pp_tm fmt m =
     match (r, V.is_blank x) with
     | true, true -> pf fmt "@[?%a ⋅@;<1 2>%a@]" pp_tm a pp_tm b
     | true, false -> pf fmt "@[?(%a : %a) ⋅@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
-    | false, true -> pf fmt "@[!%a ⋅ @;<1 2>%a@]" pp_tm a pp_tm b
+    | false, true -> pf fmt "@[!%a ⋅@;<1 2>%a@]" pp_tm a pp_tm b
     | false, false -> pf fmt "@[!(%a : %a) ⋅@;<1 2>%a@]" V.pp x pp_tm a pp_tm b)
   | Ch (r, m) ->
     if r then

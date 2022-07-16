@@ -238,15 +238,6 @@ module HigherOrder = struct
     in
     pf fmt "@[<v 0>eqns{@;<1 2>%a}@]" aux eqns
 
-  (* let union vmap1 vmap2 =
-     VMap.union
-       (fun _ (m1, ord1) (m2, ord2) ->
-         if ord1 < ord2 then
-           Some (m1, ord1)
-         else
-           Some (m2, ord2))
-       vmap1 vmap2 *)
-
   let rec fv ctx m =
     match m with
     | Ann (a, m) -> VSet.union (fv ctx a) (fv ctx m)
