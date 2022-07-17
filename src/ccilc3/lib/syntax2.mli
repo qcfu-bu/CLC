@@ -12,7 +12,7 @@ and tm =
   | Ann of tm * tm
   | Type of sort
   | Var of V.t
-  | Pi of sort * tm * bool * tm abs
+  | Pi of sort * tm * tm abs
   | Fun of tm * cls abs
   | App of tm * tm
   | Let of tm * tm abs
@@ -63,11 +63,11 @@ and dconss = dcons list
 
 and ptl =
   | PBase of tl
-  | PBind of tm * bool * ptl abs
+  | PBind of tm * ptl abs
 
 and tl =
   | TBase of tm
-  | TBind of tm * bool * tl abs
+  | TBind of tm * tl abs
 
 val xs_of_ps : ps -> V.t list
 val bind_tm : V.t -> tm -> tm abs

@@ -58,9 +58,7 @@ let rec trans_tm nspc cs m =
     let m = trans_tm nspc cs m in
     Syntax1.Ann (a, m)
   | Type s -> Syntax1.Type (trans_sort s)
-  | Id "_" ->
-    let x = V.mk "" in
-    Syntax1.Meta (x, spine_of_nspc nspc)
+  | Id "_" -> Syntax1.Meta (M.mk (), spine_of_nspc nspc)
   | Id id -> (
     match SMap.find_opt id nspc with
     | Some (V x) -> Syntax1.Var x

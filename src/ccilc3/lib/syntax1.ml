@@ -10,7 +10,7 @@ and 'a pabs = PAbs of ps * 'a
 
 and tm =
   | Ann of tm * tm
-  | Meta of V.t * tms
+  | Meta of M.t * tms
   | Type of sort
   | Var of V.t
   | Pi of sort * tm * bool * tm abs
@@ -512,6 +512,36 @@ let subst x m n =
     m
   else
     msubst (VMap.singleton x n) m
+
+let rec msubst_tl map tl =
+  match tl with
+  | TBase b -> TBase (msubst map b)
+  | TBind (a, impl, abs) ->
+    let a = msubst map a in
+    let x, tl = unbind_tl abs in
+    let tl = msubst_tl map tl in
+    TBind (a, impl, bind_tl x tl)
+
+let rec msubst_ptl map ptl =
+  match ptl with
+  | PBase tl -> PBase (msubst_tl map tl)
+  | PBind (a, impl, abs) ->
+    let a = msubst map a in
+    let x, ptl = unbind_ptl abs in
+    let ptl = msubst_ptl map ptl in
+    PBind (a, impl, bind_ptl x ptl)
+
+let subst_tl x tl m =
+  if V.is_blank x then
+    tl
+  else
+    msubst_tl (VMap.singleton x m) tl
+
+let subst_ptl x ptl m =
+  if V.is_blank x then
+    ptl
+  else
+    msubst_ptl (VMap.singleton x m) ptl
 
 let rec mkApps hd ms =
   match ms with

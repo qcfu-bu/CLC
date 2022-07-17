@@ -65,6 +65,27 @@ end = struct
     | Blank -> pf fmt "_"
 end
 
+module M : sig
+  type t
+
+  val mk : unit -> t
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val pp : Format.formatter -> t -> unit
+end = struct
+  type t = int
+
+  let stamp = ref 0
+
+  let mk () =
+    incr stamp;
+    !stamp
+
+  let equal x y = x = y
+  let compare x y = compare x y
+  let pp fmt id = pf fmt "??%d" id
+end
+
 module D : sig
   type t
 
@@ -109,9 +130,11 @@ end
 
 module SSet = Set.Make (String)
 module VSet = Set.Make (V)
+module MSet = Set.Make (M)
 module CSet = Set.Make (C)
 module DSet = Set.Make (D)
 module SMap = Map.Make (String)
 module VMap = Map.Make (V)
+module MMap = Map.Make (M)
 module CMap = Map.Make (C)
 module DMap = Map.Make (D)

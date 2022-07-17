@@ -259,18 +259,22 @@ module HigherOrder : sig
   type eqn = Eq of tm VMap.t * tm * tm
   and eqns = eqn list
 
+  type map = (tm_opt * tm_opt) MMap.t
+
   val pp_eqn : Format.formatter -> eqn -> unit
   val pp_eqns : Format.formatter -> eqns -> unit
-  val resolve_tm : tm VMap.t -> tm -> tm
-  val resolve_tl : tm VMap.t -> tl -> tl
-  val resolve_ptl : tm VMap.t -> ptl -> ptl
-  val resolve_dcons : tm VMap.t -> dcons -> dcons
-  val resolve_dcl : tm VMap.t -> dcl -> dcl
-  val resolve_dcls : tm VMap.t -> dcls -> dcls
-  val unify : tm VMap.t -> eqns -> tm VMap.t
+  val resolve_tm : map -> tm -> tm
+  val resolve_tl : map -> tl -> tl
+  val resolve_ptl : map -> ptl -> ptl
+  val resolve_dcons : map -> dcons -> dcons
+  val resolve_dcl : map -> dcl -> dcl
+  val resolve_dcls : map -> dcls -> dcls
+  val unify : map -> eqns -> map
 end = struct
   type eqn = Eq of tm VMap.t * tm * tm
   and eqns = eqn list
+
+  type map = (tm_opt * tm_opt) MMap.t
 
   let pp_eqn fmt (Eq (_, m, n)) = pf fmt "%a ?= %a" pp_tm m pp_tm n
 
@@ -370,14 +374,14 @@ end = struct
   let rec occurs x m =
     match m with
     | Ann (a, m) -> occurs x a || occurs x m
-    | Meta (y, _) -> V.equal x y
+    | Meta (y, _) -> M.equal x y
     | Type _ -> false
     | Var y -> false
     | Pi (_, a, _, abs) ->
       let _, b = unbind_tm abs in
       occurs x a || occurs x b
     | Fun (a_opt, abs) ->
-      let x, cls = unbind_cls abs in
+      let _, cls = unbind_cls abs in
       let a_res =
         match a_opt with
         | Some a -> occurs x a
@@ -393,7 +397,7 @@ end = struct
            cls
     | App (m, n) -> occurs x m || occurs x n
     | Let (m, abs) ->
-      let x, n = unbind_tm abs in
+      let _, n = unbind_tm abs in
       occurs x m || occurs x n
     | Data (_, ms) -> List.exists (occurs x) ms
     | Cons (_, ms) -> List.exists (occurs x) ms
@@ -411,11 +415,11 @@ end = struct
     | Proto -> false
     | End -> false
     | Act (_, a, abs) ->
-      let x, b = unbind_tm abs in
+      let _, b = unbind_tm abs in
       occurs x a || occurs x b
     | Ch (_, a) -> occurs x a
     | Fork (a, m, abs) ->
-      let x, n = unbind_tm abs in
+      let _, n = unbind_tm abs in
       occurs x a || occurs x m || occurs x n
     | Send m -> occurs x m
     | Recv m -> occurs x m
@@ -566,7 +570,7 @@ end = struct
     match (m1, m2) with
     | Meta (x, xs), _ ->
       if occurs x m2 then
-        failwith "occurs(%a, %a)" V.pp x pp_tm m2
+        failwith "occurs(%a, %a)" M.pp x pp_tm m2
       else
         let xs = meta_spine xs in
         let ctx = fv VSet.empty m2 in
@@ -574,7 +578,7 @@ end = struct
           let ps = List.map (fun x -> PVar x) xs in
           let cls = Cl (bindp_tm_opt ps (Some m2)) in
           let m = Fun (None, bind_cls V.blank [ cls ]) in
-          VMap.add x m map
+          MMap.add x (Some m, None) map
         else
           failwith "solve(%a, %a)" pp_tm m1 pp_tm m2
     | _ -> failwith "solve(%a, %a)" pp_tm m1 pp_tm m2
@@ -583,9 +587,11 @@ end = struct
     match m with
     | Meta (x, xs) -> (
       try
-        let h = VMap.find x map in
-        let m = mkApps h xs in
-        resolve_tm map (whnf [ Beta; Iota; Zeta ] VMap.empty m)
+        match MMap.find x map with
+        | Some h, _ ->
+          let m = mkApps h xs in
+          resolve_tm map (whnf [ Beta; Iota; Zeta ] VMap.empty m)
+        | _ -> m
       with
       | _ -> m)
     | Ann (a, m) -> Ann (resolve_tm map a, resolve_tm map m)

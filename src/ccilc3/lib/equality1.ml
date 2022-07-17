@@ -121,7 +121,7 @@ let rec aeq m1 m2 =
   else
     match (m1, m2) with
     | Ann (a1, m1), Ann (a2, m2) -> aeq a1 a2 && aeq m1 m2
-    | Meta (x1, _), Meta (x2, _) -> V.equal x1 x2
+    | Meta (x1, _), Meta (x2, _) -> M.equal x1 x2
     | Type s1, Type s2 -> s1 = s2
     | Var x1, Var x2 -> V.equal x1 x2
     | Pi (s1, a1, _, abs1), Pi (s2, a2, _, abs2) ->
@@ -168,7 +168,7 @@ let rec equal rds env m1 m2 =
     let m2 = whnf rds env m2 in
     match (m1, m2) with
     | Ann (a1, m1), Ann (a2, m2) -> equal rds env a1 a2 && equal rds env m1 m2
-    | Meta (x1, _), Meta (x2, _) -> V.equal x1 x2
+    | Meta (x1, _), Meta (x2, _) -> M.equal x1 x2
     | Type s1, Type s2 -> s1 = s2
     | Var x1, Var x2 -> V.equal x1 x2
     | Pi (s1, a1, _, abs1), Pi (s2, a2, _, abs2) ->

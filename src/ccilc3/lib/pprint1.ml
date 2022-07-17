@@ -18,7 +18,7 @@ and pp_ps sep fmt ps =
 let rec pp_tm fmt m =
   match m with
   | Ann (a, m) -> pf fmt "@[@@[%a]@;<1 0>%a@]" pp_tm a pp_tm m
-  | Meta (x, ms) -> pf fmt "??%a{%a}" V.pp x (list ~sep:semi pp_tm) ms
+  | Meta (x, ms) -> pf fmt "%a{%a}" M.pp x (list ~sep:semi pp_tm) ms
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
   | Pi (s, a, impl, abs) -> (

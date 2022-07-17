@@ -10,7 +10,7 @@ and 'a pabs
 
 and tm =
   | Ann of tm * tm
-  | Meta of V.t * tms
+  | Meta of M.t * tms
   | Type of sort
   | Var of V.t
   | Pi of sort * tm * bool * tm abs
@@ -88,5 +88,7 @@ val equal_abs : ('a -> 'b -> bool) -> 'a abs -> 'b abs -> bool
 val equal_pabs : ('a -> 'b -> bool) -> 'a pabs -> 'b pabs -> bool
 val msubst : tm VMap.t -> tm -> tm
 val subst : V.t -> tm -> tm -> tm
+val subst_tl : V.t -> tl -> tm -> tl
+val subst_ptl : V.t -> ptl -> tm -> ptl
 val mkApps : tm -> tms -> tm
 val unApps : tm -> tm * tms
