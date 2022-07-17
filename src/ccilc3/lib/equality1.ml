@@ -76,20 +76,20 @@ and match_cls cls ms =
       | None -> (
         let ps, m_opt = unbindp_tm_opt pabs in
         try
-          let vmap =
+          let map =
             List.fold_left2 (fun acc p m -> match_p acc p m) VMap.empty ps ms
           in
-          Some (Option.map (msubst vmap) m_opt)
+          Some (Option.map (msubst map) m_opt)
         with
         | _ -> None))
     None cls
 
-and match_p vmap p m =
+and match_p map p m =
   match (p, m) with
-  | PVar x, _ -> VMap.add x m vmap
+  | PVar x, _ -> VMap.add x m map
   | PCons (c1, ps), Cons (c2, ms) ->
     if C.equal c1 c2 then
-      List.fold_left2 (fun acc p m -> match_p acc p m) vmap ps ms
+      List.fold_left2 (fun acc p m -> match_p acc p m) map ps ms
     else
       failwith "match_p"
   | _ -> failwith "match_p"

@@ -418,93 +418,93 @@ let unbind2_cls (Abs (x, cls1)) (Abs (_, cls2)) =
 let equal_abs eq (Abs (_, m)) (Abs (_, n)) = eq m n
 let equal_pabs eq (PAbs (_, m)) (PAbs (_, n)) = eq m n
 
-let rec msubst vmap m =
+let rec msubst map m =
   match m with
   | Ann (a, m) ->
-    let a = msubst vmap a in
-    let m = msubst vmap m in
+    let a = msubst map a in
+    let m = msubst map m in
     Ann (a, m)
   | Meta (x, ms) ->
-    let ms = List.map (msubst vmap) ms in
+    let ms = List.map (msubst map) ms in
     Meta (x, ms)
   | Type s -> Type s
   | Var x -> (
-    match VMap.find_opt x vmap with
+    match VMap.find_opt x map with
     | Some m -> m
     | None -> Var x)
   | Pi (s, a, impl, abs) ->
-    let a = msubst vmap a in
+    let a = msubst map a in
     let x, b = unbind_tm abs in
-    let b = msubst vmap b in
+    let b = msubst map b in
     Pi (s, a, impl, bind_tm x b)
   | Fun (a_opt, abs) ->
-    let a_opt = Option.map (msubst vmap) a_opt in
+    let a_opt = Option.map (msubst map) a_opt in
     let x, cls = unbind_cls abs in
     let cls =
       List.map
         (fun (Cl pabs) ->
           let p, m_opt = unbindp_tm_opt pabs in
-          let m_opt = Option.map (msubst vmap) m_opt in
+          let m_opt = Option.map (msubst map) m_opt in
           Cl (bindp_tm_opt p m_opt))
         cls
     in
     Fun (a_opt, bind_cls x cls)
   | App (m, n) ->
-    let m = msubst vmap m in
-    let n = msubst vmap n in
+    let m = msubst map m in
+    let n = msubst map n in
     App (m, n)
   | Let (m, abs) ->
-    let m = msubst vmap m in
+    let m = msubst map m in
     let x, n = unbind_tm abs in
-    let n = msubst vmap n in
+    let n = msubst map n in
     Let (m, bind_tm x n)
   | Data (d, ms) ->
-    let ms = List.map (msubst vmap) ms in
+    let ms = List.map (msubst map) ms in
     Data (d, ms)
   | Cons (c, ms) ->
-    let ms = List.map (msubst vmap) ms in
+    let ms = List.map (msubst map) ms in
     Cons (c, ms)
   | Match (ms, cls) ->
-    let ms = List.map (msubst vmap) ms in
+    let ms = List.map (msubst map) ms in
     let cls =
       List.map
         (fun (Cl pabs) ->
           let p, m_opt = unbindp_tm_opt pabs in
-          let m_opt = Option.map (msubst vmap) m_opt in
+          let m_opt = Option.map (msubst map) m_opt in
           Cl (bindp_tm_opt p m_opt))
         cls
     in
     Match (ms, cls)
   | If (m, n1, n2) ->
-    let m = msubst vmap m in
-    let n1 = msubst vmap n1 in
-    let n2 = msubst vmap n2 in
+    let m = msubst map m in
+    let n1 = msubst map n1 in
+    let n2 = msubst map n2 in
     If (m, n1, n2)
   | Main -> Main
   | Proto -> Proto
   | End -> End
   | Act (r, a, abs) ->
-    let a = msubst vmap a in
+    let a = msubst map a in
     let x, b = unbind_tm abs in
-    let b = msubst vmap b in
+    let b = msubst map b in
     Act (r, a, bind_tm x b)
   | Ch (r, a) ->
-    let a = msubst vmap a in
+    let a = msubst map a in
     Ch (r, a)
   | Fork (a, m, abs) ->
-    let a = msubst vmap a in
-    let m = msubst vmap m in
+    let a = msubst map a in
+    let m = msubst map m in
     let x, n = unbind_tm abs in
-    let n = msubst vmap n in
+    let n = msubst map n in
     Fork (a, m, bind_tm x n)
   | Send m ->
-    let m = msubst vmap m in
+    let m = msubst map m in
     Send m
   | Recv m ->
-    let m = msubst vmap m in
+    let m = msubst map m in
     Recv m
   | Close m ->
-    let m = msubst vmap m in
+    let m = msubst map m in
     Close m
 
 let subst x m n =
