@@ -59,7 +59,13 @@ and infer_tm ctx env eqns map m =
     let ctx = { ctx with vs = VMap.add x a ctx.vs } in
     let _, eqns, map = infer_sort ctx env eqns map b in
     (Type s, eqns, map)
-  | Fun _ -> failwith "TODO"
+  | Fun (a_opt, cls) -> (
+    match a_opt with
+    | Some a ->
+      let _, eqns, map = infer_sort ctx env eqns map a in
+      let eqns, map = check_tm ctx env eqns map (Fun (a_opt, cls)) a in
+      (a, eqns, map)
+    | None -> failwith "infer_tm(%a)" pp_tm m)
   | App (m, n) -> (
     let a, eqns, map = infer_tm ctx env eqns map m in
     let a = HigherOrder.resolve_tm map a in
@@ -207,4 +213,39 @@ and infer_tl ctx env eqns map ms tl =
 and check_tm ctx env eqns map m a =
   match m with
   | Meta (x, _) -> (eqns, MMap.add x (None, Some a) map)
+  | Fun (b_opt, cls) ->
+    let eqns, map =
+      match b_opt with
+      | Some b -> assert_equal env eqns map a b
+      | None -> (eqns, map)
+    in
+    check_cls ctx env eqns map cls a
+  | Let (m, abs) ->
+    let x, n = unbind_tm abs in
+    let abs = bind_tm x (Ann (a, n)) in
+    let b, eqns, map = infer_tm ctx env eqns map (Let (m, abs)) in
+    assert_equal env eqns map a b
+  | Cons (c, ms) -> (
+    let a = HigherOrder.resolve_tm map a in
+    match whnf rd_all env a with
+    | Data (_, ns) ->
+      let ptl = CMap.find c ctx.cs in
+      let ptl =
+        List.fold_left
+          (fun ptl n ->
+            match ptl with
+            | PBind (a, _, abs) ->
+              let x, ptl = unbind_ptl abs in
+              subst_ptl x ptl (Ann (a, n))
+            | PBase _ -> ptl)
+          ptl ns
+      in
+      let b, eqns, map = infer_ptl ctx env eqns map ms ptl in
+      assert_equal env eqns map a b
+    | _ ->
+      let b, eqns, map = infer_tm ctx env eqns map m in
+      assert_equal env eqns map a b)
+  | Match (ms, cls) -> failwith "TODO"
   | _ -> failwith "TODO"
+
+and check_cls ctx env eqns map cls a = failwith "TODO"
