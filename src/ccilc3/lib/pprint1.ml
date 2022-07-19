@@ -59,6 +59,7 @@ let rec pp_tm fmt m =
     match ms with
     | [] -> C.pp fmt c
     | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
+  | Absurd -> pf fmt "absurd"
   | Match (ms, cls) ->
     pf fmt "@[<v 0>(@[match %a with@]@;<1 2>%a)@]" (list ~sep:comma pp_tm) ms
       (pp_cls ", ") cls

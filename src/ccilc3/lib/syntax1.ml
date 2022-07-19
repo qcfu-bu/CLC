@@ -19,6 +19,7 @@ and tm =
   | Let of tm * tm abs
   | Data of D.t * tms
   | Cons of C.t * tms
+  | Absurd
   | Match of tms * cls
   | If of tm * tm * tm
   | Main
@@ -146,6 +147,7 @@ let bindn_tm k xs m =
     | Cons (c, ms) ->
       let ms = List.map (aux k) ms in
       Cons (c, ms)
+    | Absurd -> Absurd
     | Match (ms, cls) ->
       let ms = List.map (aux k) ms in
       let cls =
@@ -228,6 +230,7 @@ let unbindn_tm k xs m =
     | Cons (c, ms) ->
       let ms = List.map (aux k) ms in
       Cons (c, ms)
+    | Absurd -> Absurd
     | Match (ms, cls) ->
       let ms = List.map (aux k) ms in
       let cls =
@@ -464,6 +467,7 @@ let rec msubst map m =
   | Cons (c, ms) ->
     let ms = List.map (msubst map) ms in
     Cons (c, ms)
+  | Absurd -> Absurd
   | Match (ms, cls) ->
     let ms = List.map (msubst map) ms in
     let cls =
@@ -542,6 +546,22 @@ let subst_ptl x ptl m =
     ptl
   else
     msubst_ptl (VMap.singleton x m) ptl
+
+let rec fold_tl f acc tl =
+  match tl with
+  | TBase b -> (acc, b)
+  | TBind (a, _, abs) ->
+    let x, tl = unbind_tl abs in
+    let acc, tl = f acc a x tl in
+    fold_tl f acc tl
+
+let rec fold_ptl f acc ptl =
+  match ptl with
+  | PBase tl -> (acc, tl)
+  | PBind (a, _, abs) ->
+    let x, ptl = unbind_ptl abs in
+    let acc, ptl = f acc a x ptl in
+    fold_ptl f acc ptl
 
 let rec mkApps hd ms =
   match ms with

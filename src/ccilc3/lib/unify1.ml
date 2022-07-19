@@ -10,7 +10,7 @@ let pp_map fmt map =
   in
   pf fmt "@[<v 0>map{@;<1 2>%a}@]" aux map
 
-module FirstOrder : sig
+module Var : sig
   type eqn = Eq of tm VMap.t * tm * tm * tm
   and eqns = eqn list
 
@@ -22,6 +22,7 @@ module FirstOrder : sig
   val pp_eqn : Format.formatter -> eqn -> unit
   val pp_eqns : Format.formatter -> eqns -> unit
   val pp_prbm : Format.formatter -> prbm -> unit
+  val prbm_of_cls : cls -> prbm
   val unify : eqns -> tm VMap.t
 end = struct
   type eqn = Eq of tm VMap.t * tm * tm * tm
@@ -57,6 +58,14 @@ end = struct
     pf fmt "@[<v 0>{@;<1 2>@[global=(%a)@]@;<1 2>@[clause=(%a)@]@;<1 2>}@]"
       pp_eqns prbm.global pp_clause prbm.clause
 
+  let rec prbm_of_cls cls : prbm =
+    match cls with
+    | [] -> { global = []; clause = [] }
+    | Cl pabs :: cls ->
+      let ps, rhs = unbindp_tm_opt pabs in
+      let prbm = prbm_of_cls cls in
+      { prbm with clause = ([], ps, rhs) :: prbm.clause }
+
   let rec occurs x m =
     match m with
     | Ann (a, m) -> occurs x a || occurs x m
@@ -87,6 +96,7 @@ end = struct
       occurs x m || occurs x n
     | Data (_, ms) -> List.exists (occurs x) ms
     | Cons (_, ms) -> List.exists (occurs x) ms
+    | Absurd -> false
     | Match (ms, cls) ->
       List.exists (occurs x) ms
       || List.exists
@@ -255,7 +265,7 @@ end = struct
     aux VMap.empty eqns
 end
 
-module HigherOrder : sig
+module Meta : sig
   type eqn = Eq of tm VMap.t * tm * tm
   and eqns = eqn list
 
@@ -347,6 +357,7 @@ end = struct
           VSet.empty cls
       in
       VSet.union fv1 fv2
+    | Absurd -> VSet.empty
     | If (m, tt, ff) ->
       let fv1 = fv ctx m in
       let fv2 = fv ctx tt in
@@ -401,6 +412,7 @@ end = struct
       occurs x m || occurs x n
     | Data (_, ms) -> List.exists (occurs x) ms
     | Cons (_, ms) -> List.exists (occurs x) ms
+    | Absurd -> false
     | Match (ms, cls) ->
       List.exists (occurs x) ms
       || List.exists
@@ -629,6 +641,7 @@ end = struct
     | Cons (c, ms) ->
       let ms = List.map (resolve_tm map) ms in
       Cons (c, ms)
+    | Absurd -> Absurd
     | Match (ms, cls) ->
       let ms = List.map (resolve_tm map) ms in
       let cls =

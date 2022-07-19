@@ -19,6 +19,7 @@ and tm =
   | Let of tm * tm abs
   | Data of D.t * tms
   | Cons of C.t * tms
+  | Absurd
   | Match of tms * cls
   | If of tm * tm * tm
   | Main
@@ -90,5 +91,7 @@ val msubst : tm VMap.t -> tm -> tm
 val subst : V.t -> tm -> tm -> tm
 val subst_tl : V.t -> tl -> tm -> tl
 val subst_ptl : V.t -> ptl -> tm -> ptl
+val fold_tl : ('a -> tm -> V.t -> tl -> 'a * tl) -> 'a -> tl -> 'a * tm
+val fold_ptl : ('a -> tm -> V.t -> ptl -> 'a * ptl) -> 'a -> ptl -> 'a * tl
 val mkApps : tm -> tms -> tm
 val unApps : tm -> tm * tms
