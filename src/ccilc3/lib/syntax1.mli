@@ -65,7 +65,7 @@ and dconss = dcons list
 
 and ptl =
   | PBase of tl
-  | PBind of tm * bool * ptl abs
+  | PBind of tm * ptl abs
 
 and tl =
   | TBase of tm
@@ -95,6 +95,5 @@ val subst : V.t -> tm -> tm -> tm
 val subst_tl : V.t -> tl -> tm -> tl
 val subst_ptl : V.t -> ptl -> tm -> ptl
 val fold_tl : ('a -> tm -> V.t -> tl -> 'a * tl) -> 'a -> tl -> 'a * tm
-val fold_ptl : ('a -> tm -> V.t -> ptl -> 'a * ptl) -> 'a -> ptl -> 'a * tl
 val mkApps : tm -> tms -> tm
 val unApps : tm -> tm * tms

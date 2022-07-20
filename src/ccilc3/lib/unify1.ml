@@ -34,7 +34,7 @@ end = struct
     }
 
   let pp_eqn fmt (Eq (_, m, n, a)) =
-    pf fmt "%a ?= %a : %a" pp_tm m pp_tm n pp_tm a
+    pf fmt "(%a ?= %a : %a)" pp_tm m pp_tm n pp_tm a
 
   let pp_eqns fmt eqns =
     let rec aux fmt eqns =
@@ -644,11 +644,11 @@ end = struct
   let rec resolve_ptl map ptl =
     match ptl with
     | PBase tl -> PBase (resolve_tl map tl)
-    | PBind (a, impl, abs) ->
+    | PBind (a, abs) ->
       let x, ptl = unbind_ptl abs in
       let a = resolve_tm map a in
       let ptl = resolve_ptl map ptl in
-      PBind (a, impl, bind_ptl x ptl)
+      PBind (a, bind_ptl x ptl)
 
   let rec resolve_dcons map (DCons (c, ptl)) = DCons (c, resolve_ptl map ptl)
 

@@ -17,7 +17,7 @@ and pp_ps sep fmt ps =
 
 let rec pp_tm fmt m =
   match m with
-  | Ann (a, m) -> pf fmt "@[@@[%a]@;<1 0>%a@]" pp_tm a pp_tm m
+  | Ann (a, m) -> pf fmt "@[(@@[%a]%a)@]" pp_tm a pp_tm m
   | Meta (x, ms) -> pf fmt "%a{%a}" M.pp x (list ~sep:semi pp_tm) ms
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
@@ -110,7 +110,7 @@ let pp_trg fmt targ =
 let rec pp_ptl fmt ptl =
   match ptl with
   | PBase tl -> pf fmt ":@;<1 2>%a" pp_tl tl
-  | PBind (a, impl, abs) ->
+  | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
     pf fmt "(%a : %a) %a" V.pp x pp_tm a pp_ptl ptl
 

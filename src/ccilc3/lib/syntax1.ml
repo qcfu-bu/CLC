@@ -65,7 +65,7 @@ and dconss = dcons list
 
 and ptl =
   | PBase of tl
-  | PBind of tm * bool * ptl abs
+  | PBind of tm * ptl abs
 
 and tl =
   | TBase of tm
@@ -279,10 +279,10 @@ let rec bindn_ptl k xs ptl =
   let rec aux k ptl =
     match ptl with
     | PBase tl -> PBase (bindn_tl k xs tl)
-    | PBind (a, impl, Abs (x, ptl)) ->
+    | PBind (a, Abs (x, ptl)) ->
       let a = bindn_tm k xs a in
       let ptl = aux (k + 1) ptl in
-      PBind (a, impl, Abs (x, ptl))
+      PBind (a, Abs (x, ptl))
   in
   aux k ptl
 
@@ -309,10 +309,10 @@ let rec unbindn_ptl k xs ptl =
   let rec aux k ptl =
     match ptl with
     | PBase tl -> PBase (unbindn_tl k xs tl)
-    | PBind (a, impl, Abs (x, ptl)) ->
+    | PBind (a, Abs (x, ptl)) ->
       let a = unbindn_tm k xs a in
       let ptl = aux (k + 1) ptl in
-      PBind (a, impl, Abs (x, ptl))
+      PBind (a, Abs (x, ptl))
   in
   aux k ptl
 
@@ -572,11 +572,11 @@ let rec msubst_tl map tl =
 let rec msubst_ptl map ptl =
   match ptl with
   | PBase tl -> PBase (msubst_tl map tl)
-  | PBind (a, impl, abs) ->
+  | PBind (a, abs) ->
     let a = msubst map a in
     let x, ptl = unbind_ptl abs in
     let ptl = msubst_ptl map ptl in
-    PBind (a, impl, bind_ptl x ptl)
+    PBind (a, bind_ptl x ptl)
 
 let subst_tl x tl m = msubst_tl (VMap.singleton x m) tl
 let subst_ptl x ptl m = msubst_ptl (VMap.singleton x m) ptl
@@ -588,14 +588,6 @@ let rec fold_tl f acc tl =
     let x, tl = unbind_tl abs in
     let acc, tl = f acc a x tl in
     fold_tl f acc tl
-
-let rec fold_ptl f acc ptl =
-  match ptl with
-  | PBase tl -> (acc, tl)
-  | PBind (a, _, abs) ->
-    let x, ptl = unbind_ptl abs in
-    let acc, ptl = f acc a x ptl in
-    fold_ptl f acc ptl
 
 let rec mkApps hd ms =
   match ms with

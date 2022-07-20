@@ -193,7 +193,10 @@ let rec trans_ptl nspc cs (PTl (args, tl)) =
   List.fold_right
     (fun (x, a, impl) acc ->
       let b = Syntax1.bind_ptl x acc in
-      Syntax1.PBind (a, impl, b))
+      if impl then
+        failwith "trans_ptl"
+      else
+        Syntax1.PBind (a, b))
     (List.rev args) tl
 
 and trans_tl nspc cs (Tl (args, b)) =

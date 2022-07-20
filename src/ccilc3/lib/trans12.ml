@@ -239,17 +239,11 @@ and infer_tm ctx env eqns map m =
 and check_ptl ctx env eqns map ms ptl =
   let _ = pr "check_ptl(%a, %a)@." pp_tms ms pp_ptl ptl in
   match (ms, ptl) with
-  | m :: ms, PBind (a, impl, abs) ->
-    if impl then
-      let meta, meta_x = meta_mk ctx in
-      let map = MMap.add meta_x (None, Some a) map in
-      let x, ptl = unbind_ptl abs in
-      check_ptl ctx env eqns map (m :: ms) (subst_ptl x ptl meta)
-    else
-      let s, eqns, map = infer_sort ctx env eqns map a in
-      let eqns, map = check_tm ctx env eqns map m a in
-      let x, ptl = unbind_ptl abs in
-      check_ptl ctx env eqns map ms (subst_ptl x ptl (Ann (a, m)))
+  | m :: ms, PBind (a, abs) ->
+    let s, eqns, map = infer_sort ctx env eqns map a in
+    let eqns, map = check_tm ctx env eqns map m a in
+    let x, ptl = unbind_ptl abs in
+    check_ptl ctx env eqns map ms (subst_ptl x ptl (Ann (a, m)))
   | ms, PBase tl -> check_tl ctx env eqns map ms tl
   | _ -> failwith "check_ptl"
 
@@ -300,7 +294,7 @@ and check_tm ctx env eqns map m a =
         List.fold_left
           (fun ptl n ->
             match ptl with
-            | PBind (a, _, abs) ->
+            | PBind (a, abs) ->
               let x, ptl = unbind_ptl abs in
               subst_ptl x ptl (Ann (a, n))
             | PBase _ -> ptl)
@@ -334,12 +328,12 @@ and check_tm ctx env eqns map m a =
     assert_equal env eqns map a b
 
 and check_prbm ctx env eqns map prbm a =
+  let _ = pr "----------------------------------------------@." in
   let _ = pr "%a@." pp_ctx ctx in
   let _ =
     pr "@[<v 0>check_prbm(@;<1 2>@[%a@]@;<1 2>: %a)@]@." Var.pp_prbm prbm pp_tm
       a
   in
-  let _ = pr "----------------------------------------------@." in
   let rec absurd_split es rhs =
     match (es, rhs) with
     | Var.Eq (_, Var _, Absurd, _) :: _, None -> true
@@ -358,6 +352,16 @@ and check_prbm ctx env eqns map prbm a =
     | Var.Eq (_, Var x, Cons (c, ms), a) :: _ -> (x, a)
     | _ :: es -> first_split es
     | [] -> failwith "first_split"
+  in
+  let rec tl_of_ptl ptl ns =
+    match (ptl, ns) with
+    | PBind (a, abs), n :: ns ->
+      let x, ptl = unbind_ptl abs in
+      let ptl = subst_ptl x ptl (Ann (a, n)) in
+      let tl, ns = tl_of_ptl ptl ns in
+      (tl, n :: ns)
+    | PBase tl, _ -> (tl, [])
+    | _ -> failwith "tl_of_ptl"
   in
   match prbm.clause with
   | [] -> (
@@ -378,7 +382,9 @@ and check_prbm ctx env eqns map prbm a =
             let _ = pr "contradiction found@." in
             (eqns, map)
         | _ -> failwith "check_prbm2")
-      | _ -> failwith "check_prbm3")
+      | _ ->
+        let _ = pr "%a@." Var.pp_prbm prbm in
+        failwith "check_prbm3")
   | (es, ps, rhs) :: _ when absurd_split es rhs ->
     if has_failed (fun () -> Var.unify prbm.global) then
       let _ = pr "contradiction found@." in
@@ -390,7 +396,7 @@ and check_prbm ctx env eqns map prbm a =
     let s, eqns, map = infer_sort ctx env eqns map b in
     let b = whnf rd_all env b in
     match b with
-    | Data (d, _) ->
+    | Data (d, ns) ->
       let _, cs = DMap.find d ctx.ds in
       let _ = pr "%a@." pp_ctx ctx in
       let ptls = List.map (fun c -> CMap.find c ctx.cs) cs in
@@ -401,15 +407,7 @@ and check_prbm ctx env eqns map prbm a =
         (fun (eqns, map) ptl c ->
           let _ = pr "c := %a@." C.pp c in
           let _ = pr "ptl := %a@." pp_ptl ptl in
-          let (ctx, args), tl =
-            fold_ptl
-              (fun (ctx, acc) a x ptl ->
-                let y = V.freshen x in
-                let ctx = { ctx with vs = VMap.add y a ctx.vs } in
-                let ptl = subst_ptl x ptl (Var y) in
-                ((ctx, Var y :: acc), ptl))
-              (ctx, []) ptl
-          in
+          let tl, pargs = tl_of_ptl ptl ns in
           let (ctx, args), targ =
             fold_tl
               (fun (ctx, acc) a x tl ->
@@ -419,7 +417,7 @@ and check_prbm ctx env eqns map prbm a =
                 ((ctx, Var y :: acc), tl))
               (ctx, []) tl
           in
-          let c = Cons (c, List.rev args) in
+          let c = Cons (c, pargs @ List.rev args) in
           let a = subst x a c in
           let ctx = subst_ctx x ctx c in
           let prbm = prbm_subst ctx x prbm c in
@@ -455,23 +453,47 @@ and check_prbm ctx env eqns map prbm a =
     | Pi (_, a, false, abs), p :: ps ->
       let x, b = unbind_tm abs in
       let ctx = { ctx with vs = VMap.add x a ctx.vs } in
-      let prbm = prbm_add env prbm x a in
+      let prbm = prbm_add ctx env prbm x a in
       check_prbm ctx env eqns map prbm b
     | _ -> failwith "check_prbm7")
 
-and prbm_add env prbm x a =
-  let rec aux p =
+and prbm_add ctx env prbm x a =
+  let _ = pr "prbm_add(%a)@." Var.pp_prbm prbm in
+  let _ = pr "%a : %a@." V.pp x pp_tm a in
+  let rec tm_of_p p =
+    let _ = pr "tm_of_p(%a)@." pp_p p in
     match p with
     | PVar x -> Var x
-    | PCons (c, ps) -> Cons (c, List.map aux ps)
+    | PCons (c, ps) ->
+      let ptl = CMap.find c ctx.cs in
+      let ps = ps_of_ptl ps ptl in
+      let ps = List.map tm_of_p ps in
+      Cons (c, ps)
     | PAbsurd -> Absurd
+  and ps_of_ptl ps ptl =
+    let _ = pr "ps_of_ptl([%a], %a)@." (pp_ps ", ") ps pp_ptl ptl in
+    match ptl with
+    | PBase tl -> ps_of_tl ps tl
+    | PBind (_, abs) ->
+      let _, ptl = unbind_ptl abs in
+      PVar (V.mk "") :: ps_of_ptl ps ptl
+  and ps_of_tl ps tl =
+    let _ = pr "ps_of_tl([%a], %a)@." (pp_ps ", ") ps pp_tl tl in
+    match tl with
+    | TBase _ -> ps
+    | TBind (_, impl, abs) -> (
+      let _, tl = unbind_tl abs in
+      match (ps, impl) with
+      | _, true -> PVar (V.mk "") :: ps_of_tl ps tl
+      | p :: ps, false -> p :: ps_of_tl ps tl
+      | _ -> failwith "ps_of_tl")
   in
   match prbm.clause with
   | [] -> prbm
   | (es, p :: ps, rhs) :: clause ->
-    let prbm = prbm_add env { prbm with clause } x a in
+    let prbm = prbm_add ctx env { prbm with clause } x a in
     let clause =
-      (Var.Eq (env, Var x, aux p, a) :: es, ps, rhs) :: prbm.clause
+      (Var.Eq (env, Var x, tm_of_p p, a) :: es, ps, rhs) :: prbm.clause
     in
     { prbm with clause }
   | _ -> failwith "prbm_add"
@@ -498,12 +520,14 @@ and prbm_subst ctx x prbm m =
     in
     match opt with
     | Some es -> { prbm with clause = (es, ps, rhs) :: prbm.clause }
-    | None -> prbm)
+    | None ->
+      let _ = pr "prbm_none@." in
+      prbm)
 
 and p_simpl ctx env m n a =
-  let _ = pr "p_simpl(%a, %a, %a)@." pp_tm m pp_tm n pp_tm a in
   let m = whnf rd_all env m in
   let n = whnf rd_all env n in
+  let _ = pr "p_simpl(%a, %a, %a)@." pp_tm m pp_tm n pp_tm a in
   match (m, n) with
   | Cons (c1, xs), Cons (c2, ys) ->
     if C.equal c1 c2 then
@@ -512,13 +536,18 @@ and p_simpl ctx env m n a =
       | Data (d, ms) ->
         let ptl = CMap.find c1 ctx.cs in
         ps_simpl_ptl ctx env xs ys ptl
-      | _ -> None
+      | _ ->
+        let _ = pr "p_simpl_bad(%a, %a, %a)@." pp_tm m pp_tm n pp_tm a in
+        None
     else
+      let _ = pr "p_simpl_bad(%a, %a, %a)@." pp_tm m pp_tm n pp_tm a in
       None
-  | _ -> Some [ Var.Eq (env, m, n, a) ]
+  | _ ->
+    let _ = pr "p_simpl_good(%a, %a, %a)@." pp_tm m pp_tm n pp_tm a in
+    Some [ Var.Eq (env, m, n, a) ]
 
 and ps_simpl_tl ctx env ms ns tl =
-  let _ = pr "ps_simpl_tl(%a)@." pp_tl tl in
+  (* let _ = pr "ps_simpl_tl(%a)@." pp_tl tl in *)
   match (ms, ns, tl) with
   | m :: ms, n :: ns, TBind (a, _, abs) -> (
     let opt1 = p_simpl ctx env m n a in
@@ -532,9 +561,9 @@ and ps_simpl_tl ctx env ms ns tl =
   | _ -> None
 
 and ps_simpl_ptl ctx env ms ns ptl =
-  let _ = pr "ps_simpl_ptl(%a)@." pp_ptl ptl in
+  (* let _ = pr "ps_simpl_ptl(%a)@." pp_ptl ptl in *)
   match (ms, ns, ptl) with
-  | m :: ms, n :: ns, PBind (a, _, abs) -> (
+  | m :: ms, n :: ns, PBind (a, abs) -> (
     let opt1 = p_simpl ctx env m n a in
     let x, ptl = unbind_ptl abs in
     let ptl = subst_ptl x ptl m in
@@ -650,7 +679,7 @@ and infer_dcls ctx env eqns map dcls =
 and param_ptl ptl d xs =
   match ptl with
   | PBase a -> param_tl a d (List.rev xs)
-  | PBind (_, _, abs) ->
+  | PBind (_, abs) ->
     let x, ptl = unbind_ptl abs in
     param_ptl ptl d (x :: xs)
 
@@ -695,7 +724,7 @@ and infer_tl ctx env eqns map tl s =
 and infer_ptl ctx env eqns map ptl s =
   match ptl with
   | PBase tl -> infer_tl ctx env eqns map tl s
-  | PBind (a, _, abs) ->
+  | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
     let t, eqns, map = infer_sort ctx env eqns map a in
     let ctx = { ctx with vs = VMap.add x a ctx.vs } in
