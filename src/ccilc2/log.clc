@@ -11,39 +11,45 @@ Inductive nat : U :=
 | O : nat
 | S : (nat) -> nat.
 
-Definition addn :=
-  ((fix addn m n => match m with
-                    | O => n
-                    | (S m) => (S ((addn) m) n)
-                    end) :
+Definition addn_220 :=
+  ((fix addn_221 m_222 n_223 =>
+      match m_222 with
+      | O => n_223
+      | (S m_224) => (S ((addn_221) m_224) n_223)
+      end) :
     (nat) -> (nat) -> nat).
 
-Inductive option (A : U) : U :=
-| None (A : U) : (option A#228)
-| Some (A : U) : (A) -> (option A#229).
+Inductive option (A_227 : U) : U :=
+| None (A_228 : U) : (option A#228)
+| Some (A_229 : U) : (A_229) -> (option A#229).
 
-Inductive list (A : U) : U :=
-| nil (A : U) : (list A#232)
-| cons (A : U) : (A) -> ((list A)) -> (list A#233).
+Inductive list (A_231 : U) : U :=
+| nil (A_232 : U) : (list A#232)
+| cons (A_233 : U) : (A_233) -> ((list A_233)) -> (list A#233).
 
-Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#238 O)
-| vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#239 (S n#240)).
+Inductive vec (A_236 : U) : (nat) -> U :=
+| vnil (A_238 : U) : (vec A#238 O)
+| vcons (A_239 : U)
+          : forall (n_240 : nat),
+              (A_239) -> ((vec A_239 n_240)) -> (vec A#239 (S n#240)).
 
-Inductive ex (A : U) (P : (A) -> U) : U :=
-| ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#246 P#247).
+Inductive ex (A_243 : U) (P_244 : (A_243) -> U) : U :=
+| ex_intro (A_246 : U)
+             (P_247 : (A_246) -> U)
+               : forall (x_249 : A_246), ((P_247) x_249) -> (ex A#246 P#247).
 
-Inductive sig (A : U) (P : (A) -> L) : L :=
-| sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#254 P#255).
+Inductive sig (A_251 : U) (P_252 : (A_251) -> L) : L :=
+| sig_intro (A_254 : U)
+              (P_255 : (A_254) -> L)
+                : forall (x_257 : A_254),
+                    ((P_255) x_257) -> (sig A#254 P#255).
 
-Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#261 B#262).
+Inductive tnsr (A_259 : L) (B_260 : L) : L :=
+| tnsr_intro (A_261 : L)
+               (B_262 : L) : (A_261) -> (B_262) -> (tnsr A#261 B#262).
 
-Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#266).
+Inductive box (A_265 : U) : L :=
+| box_intro (A_266 : U) : (A_266) -> (box A#266).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -55,150 +61,167 @@ Inductive string : U :=
 | EmptyString : string
 | String : (ascii) -> (string) -> string.
 
-Definition cat :=
-  ((fix cat s1 s2 =>
-      match s1 with
-      | EmptyString => s2
-      | (String c s1) => (String c ((cat) s1) s2)
+Definition cat_278 :=
+  ((fix cat_279 s1_280 s2_281 =>
+      match s1_280 with
+      | EmptyString => s2_281
+      | (String c_282 s1_283) => (String c_282 ((cat_279) s1_283) s2_281)
       end) :
     (string) -> (string) -> string).
 
-Inductive le (n : nat) : (nat) -> U :=
-| le_n (n : nat) : (le n#288 n#288)
-| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#289 (S m#290)).
+Inductive le (n_286 : nat) : (nat) -> U :=
+| le_n (n_288 : nat) : (le n#288 n#288)
+| le_S (n_289 : nat)
+         : forall (m_290 : nat), ((le n_289 m_290)) -> (le n#289 (S m#290)).
 
-Definition lt := ((fun m n => (le (S m) n)) : (nat) -> (nat) -> U).
+Definition lt_292 :=
+  ((fun m_293 n_294 => (le (S m_293) n_294)) : (nat) -> (nat) -> U).
 
-Inductive eq (A : U) (x : A) : (A) -> U :=
-| refl (A : U) (x : A) : (eq A#300 x#301 x#301).
+Inductive eq (A_297 : U) (x_298 : A_297) : (A_297) -> U :=
+| refl (A_300 : U) (x_301 : A_300) : (eq A#300 x#301 x#301).
 
-Definition eq_trans :=
-  ((fun A x y z e1 e2 =>
-      match e2 in (eq _ _ y) return (eq A x y) with
-      | refl => e1
+Definition eq_trans_302 :=
+  ((fun A_303 x_304 y_305 z_306 e1_307 e2_308 =>
+      match e2_308 in (eq __309 __310 y_311) return (eq A_303 x_304 y_311)
+      with
+      | refl => e1_307
       end) :
-    forall (A : U),
-      forall (x : A),
-        forall (y : A),
-          forall (z : A), ((eq A x y)) -> ((eq A y z)) -> (eq A x z)).
+    forall (A_312 : U),
+      forall (x_313 : A_312),
+        forall (y_314 : A_312),
+          forall (z_315 : A_312),
+            ((eq A_312 x_313 y_314)) ->
+              ((eq A_312 y_314 z_315)) -> (eq A_312 x_313 z_315)).
 
-Definition eq_sym :=
-  ((fun A x y e =>
-      match e in (eq _ _ y) return (eq A y x) with
+Definition eq_sym_318 :=
+  ((fun A_319 x_320 y_321 e_322 =>
+      match e_322 in (eq __323 __324 y_325) return (eq A_319 y_325 x_320)
+      with
       | refl => refl
       end) :
-    forall (A : U),
-      forall (x : A), forall (y : A), ((eq A x y)) -> (eq A y x)).
+    forall (A_326 : U),
+      forall (x_327 : A_326),
+        forall (y_328 : A_326),
+          ((eq A_326 x_327 y_328)) -> (eq A_326 y_328 x_327)).
 
-Definition u_ind :=
-  ((fun A x y P e f =>
-      match e in (eq _ _ y) return (P) y with
-      | refl => f
+Definition u_ind_330 :=
+  ((fun A_331 x_332 y_333 P_334 e_335 f_336 =>
+      match e_335 in (eq __337 __338 y_339) return (P_334) y_339 with
+      | refl => f_336
       end) :
-    forall (A : U),
-      forall (x : A),
-        forall (y : A),
-          forall (P : (A) -> U), ((eq A x y)) -> ((P) x) -> (P) y).
+    forall (A_340 : U),
+      forall (x_341 : A_340),
+        forall (y_342 : A_340),
+          forall (P_343 : (A_340) -> U),
+            ((eq A_340 x_341 y_342)) -> ((P_343) x_341) -> (P_343) y_342).
 
-Definition l_ind :=
-  ((fun A x y P e f =>
-      match e in (eq _ _ y) return (P) y with
-      | refl => f
+Definition l_ind_347 :=
+  ((fun A_348 x_349 y_350 P_351 e_352 f_353 =>
+      match e_352 in (eq __354 __355 y_356) return (P_351) y_356 with
+      | refl => f_353
       end) :
-    forall (A : U),
-      forall (x : A),
-        forall (y : A),
-          forall (P : (A) -> L), ((eq A x y)) -> ((P) x) -> (P) y).
+    forall (A_357 : U),
+      forall (x_358 : A_357),
+        forall (y_359 : A_357),
+          forall (P_360 : (A_357) -> L),
+            ((eq A_357 x_358 y_359)) -> ((P_360) x_358) -> (P_360) y_359).
 
-Definition stdin_rec :=
-  ((fix stdin_rec _ =>
-      !(b : bool),
-        match b with
-        | true => ?(_ : string), (stdin_rec) tt
+Definition stdin_rec_364 :=
+  ((fix stdin_rec_365 __366 =>
+      !(b_367 : bool),
+        match b_367 with
+        | true => ?(__368 : string), (stdin_rec_365) tt
         | false => $
         end) :
     (unit) -> proto).
 
-Definition stdin_t := (((stdin_rec) tt) : proto).
+Definition stdin_t_370 := (((stdin_rec_364) tt) : proto).
 
-Definition readline :=
-  ((fun ch => let ch := (send ch) true in recv ch) :
-    (channel stdin_t) -> (sig string fun _ => channel stdin_t)).
+Definition readline_371 :=
+  ((fun ch_372 => let ch_373 := (send ch_372) true in recv ch_373) :
+    (channel stdin_t_370) -> (sig string fun __375 => channel stdin_t_370)).
 
-Definition close_in :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stdin_t) -> unit).
+Definition close_in_376 :=
+  ((fun ch_377 => let ch_378 := (send ch_377) false in close ch_378) :
+    (channel stdin_t_370) -> unit).
 
-Definition stdout_rec :=
-  ((fix stdout_rec _ =>
-      !(b : bool),
-        match b with
-        | true => !(_ : string), (stdout_rec) tt
+Definition stdout_rec_380 :=
+  ((fix stdout_rec_381 __382 =>
+      !(b_383 : bool),
+        match b_383 with
+        | true => !(__384 : string), (stdout_rec_381) tt
         | false => $
         end) :
     (unit) -> proto).
 
-Definition stdout_t := (((stdout_rec) tt) : proto).
+Definition stdout_t_386 := (((stdout_rec_380) tt) : proto).
 
-Definition printline :=
-  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
-    (channel stdout_t) -> (string) -o channel stdout_t).
+Definition printline_387 :=
+  ((fun ch_388 =>
+      lin s_389 => let ch_390 := (send ch_388) true in (send ch_390) s_389) :
+    (channel stdout_t_386) -> (string) -o channel stdout_t_386).
 
-Definition close_out :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stdout_t) -> unit).
+Definition close_out_393 :=
+  ((fun ch_394 => let ch_395 := (send ch_394) false in close ch_395) :
+    (channel stdout_t_386) -> unit).
 
-Definition stderr_rec :=
-  ((fix stderr_rec _ =>
-      !(b : bool),
-        match b with
-        | true => !(_ : string), (stderr_rec) tt
+Definition stderr_rec_397 :=
+  ((fix stderr_rec_398 __399 =>
+      !(b_400 : bool),
+        match b_400 with
+        | true => !(__401 : string), (stderr_rec_398) tt
         | false => $
         end) :
     (unit) -> proto).
 
-Definition stderr_t := (((stderr_rec) tt) : proto).
+Definition stderr_t_403 := (((stderr_rec_397) tt) : proto).
 
-Definition printerr :=
-  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
-    (channel stderr_t) -> (string) -o channel stderr_t).
+Definition printerr_404 :=
+  ((fun ch_405 =>
+      lin s_406 => let ch_407 := (send ch_405) true in (send ch_407) s_406) :
+    (channel stderr_t_403) -> (string) -o channel stderr_t_403).
 
-Definition close_err :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stderr_t) -> unit).
+Definition close_err_410 :=
+  ((fun ch_411 => let ch_412 := (send ch_411) false in close ch_412) :
+    (channel stderr_t_403) -> unit).
 
-Import stdin : stdin_t.
+Import stdin_414 : stdin_t_370.
 
-Import stdout : stdout_t.
+Import stdout_415 : stdout_t_386.
 
-Definition sender :=
-  ((lin ch =>
-      match (readline) stdin with
-      | (sig_intro msg stdin) =>
-        let ch := (send ch) msg in
-        let ch := (send ch) msg in
-        match close ch with
-        | tt => match (close_in) stdin with
+Definition sender_416 :=
+  ((lin ch_417 =>
+      match (readline_371) stdin_414 with
+      | (sig_intro msg_418 stdin_419) =>
+        let ch_420 := (send ch_417) msg_418 in
+        let ch_421 := (send ch_420) msg_418 in
+        match close ch_421 with
+        | tt => match (close_in_376) stdin_419 with
                 | tt => tt
                 end
         end
       end) :
-    (channel !(_ : string), !(_ : string), $) -o unit).
+    (channel !(__423 : string), !(__424 : string), $) -o unit).
 
 Definition Main :=
-  match fork (ch : channel !(_ : string), !(_ : string), $) := _main_ in
-        (sender) ch
+  match fork (ch_425 : channel !(__426 : string), !(__427 : string), $) :=
+          _main__1
+        in (sender_416) ch_425
   with
-  | (tnsr_intro ch _main_) =>
-    match recv ch with
-    | (sig_intro msg1 ch) =>
-      match recv ch with
-      | (sig_intro msg2 ch) =>
-        let stdout := ((printline) stdout) ((cat) msg1) "\n" in
-        let stdout := ((printline) stdout) ((cat) msg2) "\n" in
-        match close ch with
-        | tt => match (close_out) stdout with
-                | tt => _main_
+  | (tnsr_intro ch_428 _main__429) =>
+    match recv ch_428 with
+    | (sig_intro msg1_430 ch_431) =>
+      match recv ch_431 with
+      | (sig_intro msg2_432 ch_433) =>
+        let stdout_434 :=
+          ((printline_387) stdout_415) ((cat_278) msg1_430) "\n"
+        in
+        let stdout_435 :=
+          ((printline_387) stdout_434) ((cat_278) msg2_432) "\n"
+        in
+        match close ch_433 with
+        | tt => match (close_out_393) stdout_435 with
+                | tt => _main__429
                 end
         end
       end
@@ -218,39 +241,46 @@ Inductive nat : U :=
 | O : nat
 | S : (nat) -> nat.
 
-Definition addn :=
-  ((fix addn m n => match m with
-                    | O => n
-                    | (S m) => (S ((addn) m) n)
-                    end) :
+Definition addn_2518 :=
+  ((fix addn_2519 m_2520 n_2521 =>
+      match m_2520 with
+      | O => n_2521
+      | (S m_2522) => (S ((addn_2519) m_2522) n_2521)
+      end) :
     (nat) -> (nat) -> nat).
 
-Inductive option (A : U) : U :=
-| None (A : U) : (option A#2526)
-| Some (A : U) : (A) -> (option A#2527).
+Inductive option (A_2525 : U) : U :=
+| None (A_2526 : U) : (option A#2526)
+| Some (A_2527 : U) : (A_2527) -> (option A#2527).
 
-Inductive list (A : U) : U :=
-| nil (A : U) : (list A#2530)
-| cons (A : U) : (A) -> ((list A)) -> (list A#2531).
+Inductive list (A_2529 : U) : U :=
+| nil (A_2530 : U) : (list A#2530)
+| cons (A_2531 : U) : (A_2531) -> ((list A_2531)) -> (list A#2531).
 
-Inductive vec (A : U) : (nat) -> U :=
-| vnil (A : U) : (vec A#2536 O)
-| vcons (A : U)
-          : forall (n : nat), (A) -> ((vec A n)) -> (vec A#2537 (S n#2538)).
+Inductive vec (A_2534 : U) : (nat) -> U :=
+| vnil (A_2536 : U) : (vec A#2536 O)
+| vcons (A_2537 : U)
+          : forall (n_2538 : nat),
+              (A_2537) -> ((vec A_2537 n_2538)) -> (vec A#2537 (S n#2538)).
 
-Inductive ex (A : U) (P : (A) -> U) : U :=
-| ex_intro (A : U)
-             (P : (A) -> U) : forall (x : A), ((P) x) -> (ex A#2544 P#2545).
+Inductive ex (A_2541 : U) (P_2542 : (A_2541) -> U) : U :=
+| ex_intro (A_2544 : U)
+             (P_2545 : (A_2544) -> U)
+               : forall (x_2547 : A_2544),
+                   ((P_2545) x_2547) -> (ex A#2544 P#2545).
 
-Inductive sig (A : U) (P : (A) -> L) : L :=
-| sig_intro (A : U)
-              (P : (A) -> L) : forall (x : A), ((P) x) -> (sig A#2552 P#2553).
+Inductive sig (A_2549 : U) (P_2550 : (A_2549) -> L) : L :=
+| sig_intro (A_2552 : U)
+              (P_2553 : (A_2552) -> L)
+                : forall (x_2555 : A_2552),
+                    ((P_2553) x_2555) -> (sig A#2552 P#2553).
 
-Inductive tnsr (A : L) (B : L) : L :=
-| tnsr_intro (A : L) (B : L) : (A) -> (B) -> (tnsr A#2559 B#2560).
+Inductive tnsr (A_2557 : L) (B_2558 : L) : L :=
+| tnsr_intro (A_2559 : L)
+               (B_2560 : L) : (A_2559) -> (B_2560) -> (tnsr A#2559 B#2560).
 
-Inductive box (A : U) : L :=
-| box_intro (A : U) : (A) -> (box A#2564).
+Inductive box (A_2563 : U) : L :=
+| box_intro (A_2564 : U) : (A_2564) -> (box A#2564).
 
 Inductive ascii : U :=
 | Ascii : (bool) ->
@@ -262,151 +292,177 @@ Inductive string : U :=
 | EmptyString : string
 | String : (ascii) -> (string) -> string.
 
-Definition cat :=
-  ((fix cat s1 s2 =>
-      match s1 with
-      | EmptyString => s2
-      | (String c s1) => (String c ((cat) s1) s2)
+Definition cat_2576 :=
+  ((fix cat_2577 s1_2578 s2_2579 =>
+      match s1_2578 with
+      | EmptyString => s2_2579
+      | (String c_2580 s1_2581) =>
+        (String c_2580 ((cat_2577) s1_2581) s2_2579)
       end) :
     (string) -> (string) -> string).
 
-Inductive le (n : nat) : (nat) -> U :=
-| le_n (n : nat) : (le n#2586 n#2586)
-| le_S (n : nat) : forall (m : nat), ((le n m)) -> (le n#2587 (S m#2588)).
+Inductive le (n_2584 : nat) : (nat) -> U :=
+| le_n (n_2586 : nat) : (le n#2586 n#2586)
+| le_S (n_2587 : nat)
+         : forall (m_2588 : nat),
+             ((le n_2587 m_2588)) -> (le n#2587 (S m#2588)).
 
-Definition lt := ((fun m n => (le (S m) n)) : (nat) -> (nat) -> U).
+Definition lt_2590 :=
+  ((fun m_2591 n_2592 => (le (S m_2591) n_2592)) : (nat) -> (nat) -> U).
 
-Inductive eq (A : U) (x : A) : (A) -> U :=
-| refl (A : U) (x : A) : (eq A#2598 x#2599 x#2599).
+Inductive eq (A_2595 : U) (x_2596 : A_2595) : (A_2595) -> U :=
+| refl (A_2598 : U) (x_2599 : A_2598) : (eq A#2598 x#2599 x#2599).
 
-Definition eq_trans :=
-  ((fun A x y z e1 e2 =>
-      match e2 in (eq _ _ y) return (eq A x y) with
-      | refl => e1
+Definition eq_trans_2600 :=
+  ((fun A_2601 x_2602 y_2603 z_2604 e1_2605 e2_2606 =>
+      match e2_2606 in (eq __2607 __2608 y_2609) return
+        (eq A_2601 x_2602 y_2609)
+      with
+      | refl => e1_2605
       end) :
-    forall (A : U),
-      forall (x : A),
-        forall (y : A),
-          forall (z : A), ((eq A x y)) -> ((eq A y z)) -> (eq A x z)).
+    forall (A_2610 : U),
+      forall (x_2611 : A_2610),
+        forall (y_2612 : A_2610),
+          forall (z_2613 : A_2610),
+            ((eq A_2610 x_2611 y_2612)) ->
+              ((eq A_2610 y_2612 z_2613)) -> (eq A_2610 x_2611 z_2613)).
 
-Definition eq_sym :=
-  ((fun A x y e =>
-      match e in (eq _ _ y) return (eq A y x) with
+Definition eq_sym_2616 :=
+  ((fun A_2617 x_2618 y_2619 e_2620 =>
+      match e_2620 in (eq __2621 __2622 y_2623) return
+        (eq A_2617 y_2623 x_2618)
+      with
       | refl => refl
       end) :
-    forall (A : U),
-      forall (x : A), forall (y : A), ((eq A x y)) -> (eq A y x)).
+    forall (A_2624 : U),
+      forall (x_2625 : A_2624),
+        forall (y_2626 : A_2624),
+          ((eq A_2624 x_2625 y_2626)) -> (eq A_2624 y_2626 x_2625)).
 
-Definition u_ind :=
-  ((fun A x y P e f =>
-      match e in (eq _ _ y) return (P) y with
-      | refl => f
+Definition u_ind_2628 :=
+  ((fun A_2629 x_2630 y_2631 P_2632 e_2633 f_2634 =>
+      match e_2633 in (eq __2635 __2636 y_2637) return (P_2632) y_2637 with
+      | refl => f_2634
       end) :
-    forall (A : U),
-      forall (x : A),
-        forall (y : A),
-          forall (P : (A) -> U), ((eq A x y)) -> ((P) x) -> (P) y).
+    forall (A_2638 : U),
+      forall (x_2639 : A_2638),
+        forall (y_2640 : A_2638),
+          forall (P_2641 : (A_2638) -> U),
+            ((eq A_2638 x_2639 y_2640)) ->
+              ((P_2641) x_2639) -> (P_2641) y_2640).
 
-Definition l_ind :=
-  ((fun A x y P e f =>
-      match e in (eq _ _ y) return (P) y with
-      | refl => f
+Definition l_ind_2645 :=
+  ((fun A_2646 x_2647 y_2648 P_2649 e_2650 f_2651 =>
+      match e_2650 in (eq __2652 __2653 y_2654) return (P_2649) y_2654 with
+      | refl => f_2651
       end) :
-    forall (A : U),
-      forall (x : A),
-        forall (y : A),
-          forall (P : (A) -> L), ((eq A x y)) -> ((P) x) -> (P) y).
+    forall (A_2655 : U),
+      forall (x_2656 : A_2655),
+        forall (y_2657 : A_2655),
+          forall (P_2658 : (A_2655) -> L),
+            ((eq A_2655 x_2656 y_2657)) ->
+              ((P_2658) x_2656) -> (P_2658) y_2657).
 
-Definition stdin_rec :=
-  ((fix stdin_rec _ =>
-      !(b : bool),
-        match b with
-        | true => ?(_ : string), (stdin_rec) tt
+Definition stdin_rec_2662 :=
+  ((fix stdin_rec_2663 __2664 =>
+      !(b_2665 : bool),
+        match b_2665 with
+        | true => ?(__2666 : string), (stdin_rec_2663) tt
         | false => $
         end) :
     (unit) -> proto).
 
-Definition stdin_t := (((stdin_rec) tt) : proto).
+Definition stdin_t_2668 := (((stdin_rec_2662) tt) : proto).
 
-Definition readline :=
-  ((fun ch => let ch := (send ch) true in recv ch) :
-    (channel stdin_t) -> (sig string fun _ => channel stdin_t)).
+Definition readline_2669 :=
+  ((fun ch_2670 => let ch_2671 := (send ch_2670) true in recv ch_2671) :
+    (channel stdin_t_2668) -> (sig string fun __2673 => channel stdin_t_2668)).
 
-Definition close_in :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stdin_t) -> unit).
+Definition close_in_2674 :=
+  ((fun ch_2675 => let ch_2676 := (send ch_2675) false in close ch_2676) :
+    (channel stdin_t_2668) -> unit).
 
-Definition stdout_rec :=
-  ((fix stdout_rec _ =>
-      !(b : bool),
-        match b with
-        | true => !(_ : string), (stdout_rec) tt
+Definition stdout_rec_2678 :=
+  ((fix stdout_rec_2679 __2680 =>
+      !(b_2681 : bool),
+        match b_2681 with
+        | true => !(__2682 : string), (stdout_rec_2679) tt
         | false => $
         end) :
     (unit) -> proto).
 
-Definition stdout_t := (((stdout_rec) tt) : proto).
+Definition stdout_t_2684 := (((stdout_rec_2678) tt) : proto).
 
-Definition printline :=
-  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
-    (channel stdout_t) -> (string) -o channel stdout_t).
+Definition printline_2685 :=
+  ((fun ch_2686 =>
+      lin s_2687 =>
+        let ch_2688 := (send ch_2686) true in (send ch_2688) s_2687) :
+    (channel stdout_t_2684) -> (string) -o channel stdout_t_2684).
 
-Definition close_out :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stdout_t) -> unit).
+Definition close_out_2691 :=
+  ((fun ch_2692 => let ch_2693 := (send ch_2692) false in close ch_2693) :
+    (channel stdout_t_2684) -> unit).
 
-Definition stderr_rec :=
-  ((fix stderr_rec _ =>
-      !(b : bool),
-        match b with
-        | true => !(_ : string), (stderr_rec) tt
+Definition stderr_rec_2695 :=
+  ((fix stderr_rec_2696 __2697 =>
+      !(b_2698 : bool),
+        match b_2698 with
+        | true => !(__2699 : string), (stderr_rec_2696) tt
         | false => $
         end) :
     (unit) -> proto).
 
-Definition stderr_t := (((stderr_rec) tt) : proto).
+Definition stderr_t_2701 := (((stderr_rec_2695) tt) : proto).
 
-Definition printerr :=
-  ((fun ch => lin s => let ch := (send ch) true in (send ch) s) :
-    (channel stderr_t) -> (string) -o channel stderr_t).
+Definition printerr_2702 :=
+  ((fun ch_2703 =>
+      lin s_2704 =>
+        let ch_2705 := (send ch_2703) true in (send ch_2705) s_2704) :
+    (channel stderr_t_2701) -> (string) -o channel stderr_t_2701).
 
-Definition close_err :=
-  ((fun ch => let ch := (send ch) false in close ch) :
-    (channel stderr_t) -> unit).
+Definition close_err_2708 :=
+  ((fun ch_2709 => let ch_2710 := (send ch_2709) false in close ch_2710) :
+    (channel stderr_t_2701) -> unit).
 
-Import stdin : stdin_t.
+Import stdin_2712 : stdin_t_2668.
 
-Import stdout : stdout_t.
+Import stdout_2713 : stdout_t_2684.
 
-Definition sender :=
-  ((lin ch =>
-      match (readline) stdin with
-      | (sig_intro msg stdin) =>
-        let ch := (send ch) msg in
-        let ch := (send ch) msg in
-        match close ch with
-        | tt => match (close_in) stdin with
+Definition sender_2714 :=
+  ((lin ch_2715 =>
+      match (readline_2669) stdin_2712 with
+      | (sig_intro msg_2716 stdin_2717) =>
+        let ch_2718 := (send ch_2715) msg_2716 in
+        let ch_2719 := (send ch_2718) msg_2716 in
+        match close ch_2719 with
+        | tt => match (close_in_2674) stdin_2717 with
                 | tt => tt
                 end
         end
       end) :
-    (channel !(_ : string), !(_ : string), $) -o unit).
+    (channel !(__2721 : string), !(__2722 : string), $) -o unit).
 
 Definition Main :=
-  match fork (ch : channel !(_ : string), !(_ : string), $) := _main_ in
-        (sender) ch
+  match fork (ch_2723 : channel !(__2724 : string), !(__2725 : string), $) :=
+          _main__1
+        in (sender_2714) ch_2723
   with
-  | (tnsr_intro ch _main_) =>
-    match recv ch with
-    | (sig_intro msg1 ch) =>
-      match recv ch with
-      | (sig_intro msg2 ch) =>
-        let stdout := ((printline) stdout) ((cat) msg1) "\n" in
-        let stdout := ((printline) stdout) ((cat) msg2) "\n" in
-        match close ch with
-        | tt => match (close_out) stdout with
-                | tt => _main_
-                end
+  | (tnsr_intro ch_2726 _main__2727) =>
+    match recv ch_2726 with
+    | (sig_intro msg1_2728 ch_2729) =>
+      match recv ch_2729 with
+      | (sig_intro msg2_2730 ch_2731) =>
+        let stdout_2732 :=
+          ((printline_2685) stdout_2713) ((cat_2576) msg1_2728) "\n"
+        in
+        let stdout_2733 :=
+          ((printline_2685) stdout_2732) ((cat_2576) msg2_2730) "\n"
+        in
+        match close ch_2731 with
+        | tt =>
+          match (close_out_2691) stdout_2733 with
+          | tt => _main__2727
+          end
         end
       end
     end
