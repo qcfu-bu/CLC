@@ -12,7 +12,7 @@ type nspc = entry SMap.t
 let trans_id_opt id_opt =
   match id_opt with
   | Some id -> V.mk id
-  | None -> V.mk ""
+  | None -> V.blank ()
 
 let trans_sort s =
   match s with
@@ -68,18 +68,18 @@ let rec trans_tm nspc cs m =
   | Pi (s, args, b) ->
     let nspc, args =
       List.fold_left
-        (fun (nspc, acc) (id_opt, a, impl) ->
+        (fun (nspc, acc) (id_opt, a) ->
           let a = trans_tm nspc cs a in
           let x = trans_id_opt id_opt in
           match id_opt with
-          | Some id -> (SMap.add id (V x) nspc, (x, a, impl) :: acc)
-          | None -> (nspc, (x, a, impl) :: acc))
+          | Some id -> (SMap.add id (V x) nspc, (x, a) :: acc)
+          | None -> (nspc, (x, a) :: acc))
         (nspc, []) args
     in
     List.fold_right
-      (fun (x, a, impl) acc ->
+      (fun (x, a) acc ->
         let b = Syntax1.bind_tm x acc in
-        Syntax1.Pi (trans_sort s, a, impl, b))
+        Syntax1.Pi (trans_sort s, a, b))
       (List.rev args) (trans_tm nspc cs b)
   | Fun (id_opt, a_opt, cls) -> (
     let a_opt = Option.map (trans_tm nspc cs) a_opt in
@@ -138,13 +138,12 @@ let rec trans_tm nspc cs m =
   | Act (r, args, b) ->
     let nspc, args =
       List.fold_left
-        (fun (nspc, acc) (id_opt, a, impl) ->
+        (fun (nspc, acc) (id_opt, a) ->
           let a = trans_tm nspc cs a in
           let x = trans_id_opt id_opt in
-          match (id_opt, impl) with
-          | Some id, false -> (SMap.add id (V x) nspc, (x, a) :: acc)
-          | None, false -> (nspc, (x, a) :: acc)
-          | _, true -> failwith "trans_tm(%a)" pp_tm m)
+          match id_opt with
+          | Some id -> (SMap.add id (V x) nspc, (x, a) :: acc)
+          | None -> (nspc, (x, a) :: acc))
         (nspc, []) args
     in
     List.fold_right
@@ -181,40 +180,33 @@ let trans_trg s =
 let rec trans_ptl nspc cs (PTl (args, tl)) =
   let nspc, args =
     List.fold_left
-      (fun (nspc, acc) (id_opt, a, impl) ->
+      (fun (nspc, acc) (id_opt, a) ->
         let a = trans_tm nspc cs a in
         let x = trans_id_opt id_opt in
         match id_opt with
-        | Some id -> (SMap.add id (V x) nspc, (x, a, impl) :: acc)
-        | None -> (nspc, (x, a, impl) :: acc))
+        | Some id -> (SMap.add id (V x) nspc, (x, a) :: acc)
+        | None -> (nspc, (x, a) :: acc))
       (nspc, []) args
   in
   let tl = Syntax1.PBase (trans_tl nspc cs tl) in
   List.fold_right
-    (fun (x, a, impl) acc ->
-      let b = Syntax1.bind_ptl x acc in
-      if impl then
-        failwith "trans_ptl"
-      else
-        Syntax1.PBind (a, b))
+    (fun (x, a) acc -> Syntax1.PBind (a, Syntax1.bind_ptl x acc))
     (List.rev args) tl
 
 and trans_tl nspc cs (Tl (args, b)) =
   let nspc, args =
     List.fold_left
-      (fun (nspc, acc) (id_opt, a, impl) ->
+      (fun (nspc, acc) (id_opt, a) ->
         let a = trans_tm nspc cs a in
         let x = trans_id_opt id_opt in
         match id_opt with
-        | Some id -> (SMap.add id (V x) nspc, (x, a, impl) :: acc)
-        | None -> (nspc, (x, a, impl) :: acc))
+        | Some id -> (SMap.add id (V x) nspc, (x, a) :: acc)
+        | None -> (nspc, (x, a) :: acc))
       (nspc, []) args
   in
   let b = Syntax1.TBase (trans_tm nspc cs b) in
   List.fold_right
-    (fun (x, a, impl) acc ->
-      let b = Syntax1.bind_tl x acc in
-      Syntax1.TBind (a, impl, b))
+    (fun (x, a) acc -> Syntax1.TBind (a, Syntax1.bind_tl x acc))
     (List.rev args) b
 
 let trans_dcons nspc cs (DCons (id, ptl)) =

@@ -5,6 +5,7 @@ module V : sig
 
   val mk : string -> t
   val bind : int -> t
+  val blank : unit -> t
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val freshen : t -> t
@@ -22,6 +23,7 @@ end = struct
     Free (s, !stamp)
 
   let bind k = Bound k
+  let blank () = mk ""
 
   let equal x y =
     match (x, y) with

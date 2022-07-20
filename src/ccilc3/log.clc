@@ -6,61 +6,52 @@
      ));
   (DData ("nat", (PTl ([], (Tl ([], (Type U))))),
      [(DCons ("zero", (PTl ([], (Tl ([], (Id "nat")))))));
-       (DCons ("succ",
-          (PTl ([], (Tl ([(None, (Id "nat"), false)], (Id "nat")))))))
-       ]
+       (DCons ("succ", (PTl ([], (Tl ([(None, (Id "nat"))], (Id "nat")))))))]
      ));
   (DFun ("addn",
-     (Pi (U, [(None, (Id "nat"), false)],
-        (Pi (U, [(None, (Id "nat"), false)], (Id "nat"))))),
+     (Pi (U, [(None, (Id "nat"))], (Pi (U, [(None, (Id "nat"))], (Id "nat")))
+        )),
      [(Cl ([(PCons ("zero", [])); (PVar (Some "x"))], (Some (Id "x"))));
        (Cl
           ([(PCons ("succ", [(PVar (Some "x"))])); (PVar (Some "y"))],
            (Some (App [(Id "succ"); (App [(Id "addn"); (Id "x"); (Id "y")])]))))
        ]
      ));
-  (DData ("option",
-     (PTl ([((Some "A"), (Type U), false)], (Tl ([], (Type U))))),
+  (DData ("option", (PTl ([((Some "A"), (Type U))], (Tl ([], (Type U))))),
      [(DCons ("none",
-         (PTl ([((Some "A"), (Type U), false)],
+         (PTl ([((Some "A"), (Type U))],
             (Tl ([], (App [(Id "option"); (Id "A")])))))
          ));
        (DCons ("some",
-          (PTl ([((Some "A"), (Type U), false)],
-             (Tl ([(None, (Id "A"), false)], (App [(Id "option"); (Id "A")])
-                ))
-             ))
+          (PTl ([((Some "A"), (Type U))],
+             (Tl ([(None, (Id "A"))], (App [(Id "option"); (Id "A")])))))
           ))
        ]
      ));
-  (DData ("list",
-     (PTl ([((Some "A"), (Type U), false)], (Tl ([], (Type U))))),
+  (DData ("list", (PTl ([((Some "A"), (Type U))], (Tl ([], (Type U))))),
      [(DCons ("nil",
-         (PTl ([((Some "A"), (Type U), false)],
+         (PTl ([((Some "A"), (Type U))],
             (Tl ([], (App [(Id "list"); (Id "A")])))))
          ));
        (DCons ("cons",
-          (PTl ([((Some "A"), (Type U), false)],
-             (Tl (
-                [(None, (Id "A"), false);
-                  (None, (App [(Id "list"); (Id "A")]), false)],
+          (PTl ([((Some "A"), (Type U))],
+             (Tl ([(None, (Id "A")); (None, (App [(Id "list"); (Id "A")]))],
                 (App [(Id "list"); (Id "A")])))
              ))
           ))
        ]
      ));
   (DData ("vec",
-     (PTl ([((Some "A"), (Type U), false)],
-        (Tl ([(None, (Id "nat"), false)], (Type U))))),
+     (PTl ([((Some "A"), (Type U))], (Tl ([(None, (Id "nat"))], (Type U))))),
      [(DCons ("vnil",
-         (PTl ([((Some "A"), (Type U), false)],
+         (PTl ([((Some "A"), (Type U))],
             (Tl ([], (App [(Id "vec"); (Id "A"); (Id "zero")])))))
          ));
        (DCons ("vcons",
-          (PTl ([((Some "A"), (Type U), false)],
+          (PTl ([((Some "A"), (Type U))],
              (Tl (
-                [((Some "n"), (Id "nat"), true); (None, (Id "A"), false);
-                  (None, (App [(Id "vec"); (Id "A"); (Id "n")]), false)],
+                [((Some "n"), (Id "nat")); (None, (Id "A"));
+                  (None, (App [(Id "vec"); (Id "A"); (Id "n")]))],
                 (App [(Id "vec"); (Id "A"); (App [(Id "succ"); (Id "n")])])))
              ))
           ))
@@ -68,36 +59,26 @@
      ));
   (DTm ((Some "foo"),
      (Some (App [(Id "vec"); (Id "nat"); (App [(Id "succ"); (Id "zero")])])),
-     (App [(Id "vcons"); (Id "zero"); (Id "vnil")])));
+     (App [(Id "vcons"); (Id "_"); (Id "zero"); (Id "vnil")])));
   (DFun ("tail",
-     (Pi (U, [((Some "A"), (Type U), true); ((Some "n"), (Id "nat"), true)],
+     (Pi (U, [((Some "A"), (Type U)); ((Some "n"), (Id "nat"))],
         (Pi (U,
            [(None,
-             (App
-                [(Id "vec"); (Id "A");
-                  (App
-                     [(Id "succ");
-                       (App [(Id "succ"); (App [(Id "succ"); (Id "n")])])])
-                  ]),
-             false)],
+             (App [(Id "vec"); (Id "A"); (App [(Id "succ"); (Id "n")])]))],
            (App [(Id "vec"); (Id "A"); (Id "n")])))
         )),
      [(Cl
-         ([(PCons ("vcons",
-              [(PVar None);
-                (PCons ("vcons",
-                   [(PVar None);
-                     (PCons ("vcons", [(PVar None); (PVar (Some "tl"))]))]
-                   ))
-                ]
-              ))
+         ([(PVar None); (PVar None);
+            (PCons ("vcons", [(PVar None); (PVar None); (PVar (Some "tl"))]))
             ],
           (Some (Id "tl"))))
        ]
      ));
+  (DTm ((Some "bar"), None,
+     (App [(Id "tail"); (Id "_"); (Id "_"); (Id "foo")])));
   (DFun ("max",
-     (Pi (U, [(None, (Id "nat"), false)],
-        (Pi (U, [(None, (Id "nat"), false)], (Id "nat"))))),
+     (Pi (U, [(None, (Id "nat"))], (Pi (U, [(None, (Id "nat"))], (Id "nat")))
+        )),
      [(Cl ([(PCons ("zero", [])); (PVar (Some "j"))], (Some (Id "j"))));
        (Cl ([(PVar (Some "i")); (PCons ("zero", []))], (Some (Id "i"))));
        (Cl
@@ -108,18 +89,15 @@
      ));
   (DData ("ex",
      (PTl (
-        [((Some "A"), (Type U), false);
-          ((Some "P"), (Pi (U, [(None, (Id "A"), false)], (Type U))), false)],
+        [((Some "A"), (Type U));
+          ((Some "P"), (Pi (U, [(None, (Id "A"))], (Type U))))],
         (Tl ([], (Type U))))),
      [(DCons ("ex_intro",
          (PTl (
-            [((Some "A"), (Type U), false);
-              ((Some "P"), (Pi (U, [(None, (Id "A"), false)], (Type U))),
-               false)
-              ],
+            [((Some "A"), (Type U));
+              ((Some "P"), (Pi (U, [(None, (Id "A"))], (Type U))))],
             (Tl (
-               [((Some "x"), (Id "A"), false);
-                 (None, (App [(Id "P"); (Id "x")]), false)],
+               [((Some "x"), (Id "A")); (None, (App [(Id "P"); (Id "x")]))],
                (App [(Id "ex"); (Id "A"); (Id "P")])))
             ))
          ))
@@ -127,40 +105,35 @@
      ));
   (DData ("sig",
      (PTl (
-        [((Some "A"), (Type U), false);
-          ((Some "P"), (Pi (U, [(None, (Id "A"), false)], (Type L))), false)],
+        [((Some "A"), (Type U));
+          ((Some "P"), (Pi (U, [(None, (Id "A"))], (Type L))))],
         (Tl ([], (Type L))))),
      [(DCons ("sig_intro",
          (PTl (
-            [((Some "A"), (Type U), false);
-              ((Some "P"), (Pi (U, [(None, (Id "A"), false)], (Type L))),
-               false)
-              ],
+            [((Some "A"), (Type U));
+              ((Some "P"), (Pi (U, [(None, (Id "A"))], (Type L))))],
             (Tl (
-               [((Some "x"), (Id "A"), false);
-                 (None, (App [(Id "P"); (Id "x")]), false)],
+               [((Some "x"), (Id "A")); (None, (App [(Id "P"); (Id "x")]))],
                (App [(Id "sig"); (Id "A"); (Id "P")])))
             ))
          ))
        ]
      ));
   (DData ("tnsr",
-     (PTl ([((Some "A"), (Type L), false); ((Some "B"), (Type L), false)],
+     (PTl ([((Some "A"), (Type L)); ((Some "B"), (Type L))],
         (Tl ([], (Type L))))),
      [(DCons ("tnsr_intro",
-         (PTl (
-            [((Some "A"), (Type L), false); ((Some "B"), (Type L), false)],
-            (Tl ([(None, (Id "A"), false); (None, (Id "B"), false)],
+         (PTl ([((Some "A"), (Type L)); ((Some "B"), (Type L))],
+            (Tl ([(None, (Id "A")); (None, (Id "B"))],
                (App [(Id "tnsr"); (Id "A"); (Id "B")])))
             ))
          ))
        ]
      ));
-  (DData ("box",
-     (PTl ([((Some "A"), (Type U), false)], (Tl ([], (Type L))))),
+  (DData ("box", (PTl ([((Some "A"), (Type U))], (Tl ([], (Type L))))),
      [(DCons ("box_intro",
-         (PTl ([((Some "A"), (Type U), false)],
-            (Tl ([(None, (Id "A"), false)], (App [(Id "box"); (Id "A")])))))
+         (PTl ([((Some "A"), (Type U))],
+            (Tl ([(None, (Id "A"))], (App [(Id "box"); (Id "A")])))))
          ))
        ]
      ));
@@ -168,10 +141,10 @@
      [(DCons ("Ascii",
          (PTl ([],
             (Tl (
-               [(None, (Id "bool"), false); (None, (Id "bool"), false);
-                 (None, (Id "bool"), false); (None, (Id "bool"), false);
-                 (None, (Id "bool"), false); (None, (Id "bool"), false);
-                 (None, (Id "bool"), false); (None, (Id "bool"), false)],
+               [(None, (Id "bool")); (None, (Id "bool"));
+                 (None, (Id "bool")); (None, (Id "bool"));
+                 (None, (Id "bool")); (None, (Id "bool"));
+                 (None, (Id "bool")); (None, (Id "bool"))],
                (Id "ascii")))
             ))
          ))
@@ -181,49 +154,48 @@
      [(DCons ("EmptyString", (PTl ([], (Tl ([], (Id "string")))))));
        (DCons ("String",
           (PTl ([],
-             (Tl (
-                [(None, (Id "ascii"), false); (None, (Id "string"), false)],
+             (Tl ([(None, (Id "ascii")); (None, (Id "string"))],
                 (Id "string")))
              ))
           ))
        ]
      ));
-  (DFun ("stdin_rec", (Pi (U, [(None, (Id "unit"), false)], Proto)),
+  (DFun ("stdin_rec", (Pi (U, [(None, (Id "unit"))], Proto)),
      [(Cl
          ([(PCons ("tt", []))],
-          (Some (Act (false, [((Some "b"), (Id "bool"), false)],
+          (Some (Act (false, [((Some "b"), (Id "bool"))],
                    (Match ([(Id "b")],
                       [(Cl
                           ([(PCons ("true", []))],
-                           (Some (Act (true, [(None, (Id "string"), false)],
+                           (Some (Act (true, [(None, (Id "string"))],
                                     (App [(Id "stdin_rec"); (Id "tt")]))))));
                         (Cl ([(PCons ("false", []))], (Some End)))]
                       ))
                    )))))
        ]
      ));
-  (DFun ("stdout_rec", (Pi (U, [(None, (Id "unit"), false)], Proto)),
+  (DFun ("stdout_rec", (Pi (U, [(None, (Id "unit"))], Proto)),
      [(Cl
          ([(PCons ("tt", []))],
-          (Some (Act (false, [((Some "b"), (Id "bool"), false)],
+          (Some (Act (false, [((Some "b"), (Id "bool"))],
                    (Match ([(Id "b")],
                       [(Cl
                           ([(PCons ("true", []))],
-                           (Some (Act (false, [(None, (Id "string"), false)],
+                           (Some (Act (false, [(None, (Id "string"))],
                                     (App [(Id "stdout_rec"); (Id "tt")]))))));
                         (Cl ([(PCons ("false", []))], (Some End)))]
                       ))
                    )))))
        ]
      ));
-  (DFun ("stderr_rec", (Pi (U, [(None, (Id "unit"), false)], Proto)),
+  (DFun ("stderr_rec", (Pi (U, [(None, (Id "unit"))], Proto)),
      [(Cl
          ([(PCons ("tt", []))],
-          (Some (Act (false, [((Some "b"), (Id "bool"), false)],
+          (Some (Act (false, [((Some "b"), (Id "bool"))],
                    (Match ([(Id "b")],
                       [(Cl
                           ([(PCons ("true", []))],
-                           (Some (Act (false, [(None, (Id "string"), false)],
+                           (Some (Act (false, [(None, (Id "string"))],
                                     (App [(Id "stderr_rec"); (Id "tt")]))))));
                         (Cl ([(PCons ("false", []))], (Some End)))]
                       ))
@@ -232,83 +204,70 @@
      ));
   (DTm ((Some "stdin_t"), None, (App [(Id "stdin_rec"); (Id "tt")])));
   (DTm ((Some "stdout_t"), None, (App [(Id "stdout_rec"); (Id "tt")])));
-  (DTm ((Some "stderr_t"), None, (App [(Id "stderr_rec"); (Id "tt")])));
-  (DData ("bottom", (PTl ([], (Tl ([], (Type U))))), []));
-  (DFun ("foo", (Pi (U, [(None, (Id "bool"), false)], (Type U))),
-     [(Cl ([(PCons ("true", []))], (Some (Id "nat"))));
-       (Cl ([(PCons ("false", []))], (Some (Id "bottom"))))]
-     ));
-  (DFun ("bar",
-     (Pi (U, [((Some "b"), (Id "bool"), false)],
-        (Pi (U, [(None, (App [(Id "foo"); (Id "b")]), false)], (Id "nat"))))),
-     [(Cl ([(PCons ("true", [])); (PVar (Some "x"))], (Some (Id "x"))))]));
-  (DFun ("baz", (Pi (U, [(None, (Id "bottom"), false)], (Id "nat"))),
-     [(Cl ([PAbsurd], None))]))
-  ]
+  (DTm ((Some "stderr_t"), None, (App [(Id "stderr_rec"); (Id "tt")])))]
 ----------------------------------------------
-[(DData (unit_d14, (PBase (TBase (Type U))),
-    [(DCons (tt_c19, (PBase (TBase (Data (unit_d14, []))))))]));
-  (DData (bool_d15, (PBase (TBase (Type U))),
-     [(DCons (true_c20, (PBase (TBase (Data (bool_d15, []))))));
-       (DCons (false_c21, (PBase (TBase (Data (bool_d15, []))))))]
+[(DData (unit_d13, (PBase (TBase (Type U))),
+    [(DCons (tt_c19, (PBase (TBase (Data (unit_d13, []))))))]));
+  (DData (bool_d14, (PBase (TBase (Type U))),
+     [(DCons (true_c20, (PBase (TBase (Data (bool_d14, []))))));
+       (DCons (false_c21, (PBase (TBase (Data (bool_d14, []))))))]
      ));
-  (DData (nat_d16, (PBase (TBase (Type U))),
-     [(DCons (zero_c22, (PBase (TBase (Data (nat_d16, []))))));
+  (DData (nat_d15, (PBase (TBase (Type U))),
+     [(DCons (zero_c22, (PBase (TBase (Data (nat_d15, []))))));
        (DCons (succ_c23,
           (PBase
-             (TBind ((Data (nat_d16, [])), false,
-                (Abs (_98, (TBase (Data (nat_d16, []))))))))
+             (TBind ((Data (nat_d15, [])),
+                (Abs (_92, (TBase (Data (nat_d15, []))))))))
           ))
        ]
      ));
-  (DFun (addn_99,
-     (Pi (U, (Data (nat_d16, [])), false,
-        (Abs (_100,
-           (Pi (U, (Data (nat_d16, [])), false,
-              (Abs (_101, (Data (nat_d16, []))))))
+  (DFun (addn_93,
+     (Pi (U, (Data (nat_d15, [])),
+        (Abs (_94,
+           (Pi (U, (Data (nat_d15, [])), (Abs (_95, (Data (nat_d15, []))))))
            ))
         )),
-     (Abs (addn_99,
-        [(Cl (PAbs ([(PCons (zero_c22, [])); (PVar x_102)], (Some (Var _0)))));
+     (Abs (addn_93,
+        [(Cl (PAbs ([(PCons (zero_c22, [])); (PVar x_96)], (Some (Var _0)))));
           (Cl
-             (PAbs ([(PCons (succ_c23, [(PVar x_103)])); (PVar y_104)],
+             (PAbs ([(PCons (succ_c23, [(PVar x_97)])); (PVar y_98)],
                 (Some (Cons (succ_c23,
                          [(App ((App ((Var _2), (Var _0))), (Var _1)))])))
                 )))
           ]
         ))
      ));
-  (DData (option_d17,
-     (PBind ((Type U), (Abs (A_105, (PBase (TBase (Type U))))))),
+  (DData (option_d16,
+     (PBind ((Type U), (Abs (A_99, (PBase (TBase (Type U))))))),
      [(DCons (none_c24,
          (PBind ((Type U),
-            (Abs (A_106, (PBase (TBase (Data (option_d17, [(Var _0)]))))))))
+            (Abs (A_100, (PBase (TBase (Data (option_d16, [(Var _0)]))))))))
          ));
        (DCons (some_c25,
           (PBind ((Type U),
-             (Abs (A_107,
+             (Abs (A_101,
                 (PBase
-                   (TBind ((Var _0), false,
-                      (Abs (_108, (TBase (Data (option_d17, [(Var _1)]))))))))
+                   (TBind ((Var _0),
+                      (Abs (_102, (TBase (Data (option_d16, [(Var _1)]))))))))
                 ))
              ))
           ))
        ]
      ));
-  (DData (list_d18,
-     (PBind ((Type U), (Abs (A_109, (PBase (TBase (Type U))))))),
+  (DData (list_d17,
+     (PBind ((Type U), (Abs (A_103, (PBase (TBase (Type U))))))),
      [(DCons (nil_c26,
          (PBind ((Type U),
-            (Abs (A_110, (PBase (TBase (Data (list_d18, [(Var _0)]))))))))
+            (Abs (A_104, (PBase (TBase (Data (list_d17, [(Var _0)]))))))))
          ));
        (DCons (cons_c27,
           (PBind ((Type U),
-             (Abs (A_111,
+             (Abs (A_105,
                 (PBase
-                   (TBind ((Var _0), false,
-                      (Abs (_112,
-                         (TBind ((Data (list_d18, [(Var _1)])), false,
-                            (Abs (_113, (TBase (Data (list_d18, [(Var _2)])))
+                   (TBind ((Var _0),
+                      (Abs (_106,
+                         (TBind ((Data (list_d17, [(Var _1)])),
+                            (Abs (_107, (TBase (Data (list_d17, [(Var _2)])))
                                ))
                             ))
                          ))
@@ -318,36 +277,34 @@
           ))
        ]
      ));
-  (DData (vec_d19,
+  (DData (vec_d18,
      (PBind ((Type U),
-        (Abs (A_114,
+        (Abs (A_108,
            (PBase
-              (TBind ((Data (nat_d16, [])), false,
-                 (Abs (_115, (TBase (Type U)))))))
+              (TBind ((Data (nat_d15, [])), (Abs (_109, (TBase (Type U)))))))
            ))
         )),
      [(DCons (vnil_c28,
          (PBind ((Type U),
-            (Abs (A_116,
+            (Abs (A_110,
                (PBase
-                  (TBase (Data (vec_d19, [(Var _0); (Cons (zero_c22, []))]))))
+                  (TBase (Data (vec_d18, [(Var _0); (Cons (zero_c22, []))]))))
                ))
             ))
          ));
        (DCons (vcons_c29,
           (PBind ((Type U),
-             (Abs (A_117,
+             (Abs (A_111,
                 (PBase
-                   (TBind ((Data (nat_d16, [])), true,
-                      (Abs (n_118,
-                         (TBind ((Var _1), false,
-                            (Abs (_119,
+                   (TBind ((Data (nat_d15, [])),
+                      (Abs (n_112,
+                         (TBind ((Var _1),
+                            (Abs (_113,
                                (TBind (
-                                  (Data (vec_d19, [(Var _2); (Var _1)])),
-                                  false,
-                                  (Abs (_120,
+                                  (Data (vec_d18, [(Var _2); (Var _1)])),
+                                  (Abs (_114,
                                      (TBase
-                                        (Data (vec_d19,
+                                        (Data (vec_d18,
                                            [(Var _3);
                                              (Cons (succ_c23, [(Var _2)]))]
                                            )))
@@ -362,89 +319,87 @@
           ))
        ]
      ));
-  (DTm (foo_121,
-     (Some (Data (vec_d19,
-              [(Data (nat_d16, []));
+  (DTm (foo_115,
+     (Some (Data (vec_d18,
+              [(Data (nat_d15, []));
                 (Cons (succ_c23, [(Cons (zero_c22, []))]))]
               ))),
-     (Cons (vcons_c29, [(Cons (zero_c22, [])); (Cons (vnil_c28, []))]))));
-  (DFun (tail_122,
-     (Pi (U, (Type U), true,
-        (Abs (A_123,
-           (Pi (U, (Data (nat_d16, [])), true,
-              (Abs (n_124,
+     (Cons (vcons_c29,
+        [(Meta (??4, [(Var addn_93)])); (Cons (zero_c22, []));
+          (Cons (vnil_c28, []))]
+        ))
+     ));
+  (DFun (tail_116,
+     (Pi (U, (Type U),
+        (Abs (A_117,
+           (Pi (U, (Data (nat_d15, [])),
+              (Abs (n_118,
                  (Pi (U,
-                    (Data (vec_d19,
-                       [(Var _1);
-                         (Cons (succ_c23,
-                            [(Cons (succ_c23, [(Cons (succ_c23, [(Var _0)]))]
-                                ))
-                              ]
-                            ))
-                         ]
+                    (Data (vec_d18, [(Var _1); (Cons (succ_c23, [(Var _0)]))]
                        )),
-                    false,
-                    (Abs (_125, (Data (vec_d19, [(Var _2); (Var _1)]))))))
+                    (Abs (_119, (Data (vec_d18, [(Var _2); (Var _1)]))))))
                  ))
               ))
            ))
         )),
-     (Abs (tail_122,
+     (Abs (tail_116,
         [(Cl
             (PAbs (
-               [(PCons (vcons_c29,
-                   [(PVar _126);
-                     (PCons (vcons_c29,
-                        [(PVar _127);
-                          (PCons (vcons_c29, [(PVar _128); (PVar tl_129)]))]
-                        ))
-                     ]
-                   ))
+               [(PVar _120); (PVar _121);
+                 (PCons (vcons_c29, [(PVar _122); (PVar _123); (PVar tl_124)]
+                    ))
                  ],
-               (Some (Var _3)))))
+               (Some (Var _4)))))
           ]
         ))
      ));
-  (DFun (max_130,
-     (Pi (U, (Data (nat_d16, [])), false,
-        (Abs (_131,
-           (Pi (U, (Data (nat_d16, [])), false,
-              (Abs (_132, (Data (nat_d16, []))))))
+  (DTm (bar_125, None,
+     (App (
+        (App (
+           (App ((Var tail_116),
+              (Meta (??5, [(Var tail_116); (Var foo_115); (Var addn_93)])))),
+           (Meta (??6, [(Var tail_116); (Var foo_115); (Var addn_93)])))),
+        (Var foo_115)))
+     ));
+  (DFun (max_126,
+     (Pi (U, (Data (nat_d15, [])),
+        (Abs (_127,
+           (Pi (U, (Data (nat_d15, [])), (Abs (_128, (Data (nat_d15, []))))))
            ))
         )),
-     (Abs (max_130,
-        [(Cl (PAbs ([(PCons (zero_c22, [])); (PVar j_133)], (Some (Var _0)))));
+     (Abs (max_126,
+        [(Cl (PAbs ([(PCons (zero_c22, [])); (PVar j_129)], (Some (Var _0)))));
           (Cl
-             (PAbs ([(PVar i_134); (PCons (zero_c22, []))], (Some (Var _0)))));
+             (PAbs ([(PVar i_130); (PCons (zero_c22, []))], (Some (Var _0)))));
           (Cl
              (PAbs (
-                [(PCons (succ_c23, [(PVar k_135)]));
-                  (PCons (succ_c23, [(PVar l_136)]))],
+                [(PCons (succ_c23, [(PVar k_131)]));
+                  (PCons (succ_c23, [(PVar l_132)]))],
                 (Some (Cons (succ_c23,
                          [(App ((App ((Var _2), (Var _0))), (Var _1)))])))
                 )))
           ]
         ))
      ));
-  (DData (ex_d20,
+  (DData (ex_d19,
      (PBind ((Type U),
-        (Abs (A_137,
-           (PBind ((Pi (U, (Var _0), false, (Abs (_138, (Type U))))),
-              (Abs (P_139, (PBase (TBase (Type U)))))))
+        (Abs (A_133,
+           (PBind ((Pi (U, (Var _0), (Abs (_134, (Type U))))),
+              (Abs (P_135, (PBase (TBase (Type U)))))))
            ))
         )),
      [(DCons (ex_intro_c30,
          (PBind ((Type U),
-            (Abs (A_140,
-               (PBind ((Pi (U, (Var _0), false, (Abs (_141, (Type U))))),
-                  (Abs (P_142,
+            (Abs (A_136,
+               (PBind ((Pi (U, (Var _0), (Abs (_137, (Type U))))),
+                  (Abs (P_138,
                      (PBase
-                        (TBind ((Var _1), false,
-                           (Abs (x_143,
-                              (TBind ((App ((Var _1), (Var _0))), false,
-                                 (Abs (_144,
+                        (TBind ((Var _1),
+                           (Abs (x_139,
+                              (TBind ((App ((Var _1), (Var _0))),
+                                 (Abs (_140,
                                     (TBase
-                                       (Data (ex_d20, [(Var _3); (Var _2)])))
+                                       (Data (ex_d19, [(Var _3); (Var _2)])))
                                     ))
                                  ))
                               ))
@@ -456,25 +411,25 @@
          ))
        ]
      ));
-  (DData (sig_d21,
+  (DData (sig_d20,
      (PBind ((Type U),
-        (Abs (A_145,
-           (PBind ((Pi (U, (Var _0), false, (Abs (_146, (Type L))))),
-              (Abs (P_147, (PBase (TBase (Type L)))))))
+        (Abs (A_141,
+           (PBind ((Pi (U, (Var _0), (Abs (_142, (Type L))))),
+              (Abs (P_143, (PBase (TBase (Type L)))))))
            ))
         )),
      [(DCons (sig_intro_c31,
          (PBind ((Type U),
-            (Abs (A_148,
-               (PBind ((Pi (U, (Var _0), false, (Abs (_149, (Type L))))),
-                  (Abs (P_150,
+            (Abs (A_144,
+               (PBind ((Pi (U, (Var _0), (Abs (_145, (Type L))))),
+                  (Abs (P_146,
                      (PBase
-                        (TBind ((Var _1), false,
-                           (Abs (x_151,
-                              (TBind ((App ((Var _1), (Var _0))), false,
-                                 (Abs (_152,
+                        (TBind ((Var _1),
+                           (Abs (x_147,
+                              (TBind ((App ((Var _1), (Var _0))),
+                                 (Abs (_148,
                                     (TBase
-                                       (Data (sig_d21, [(Var _3); (Var _2)])))
+                                       (Data (sig_d20, [(Var _3); (Var _2)])))
                                     ))
                                  ))
                               ))
@@ -486,23 +441,23 @@
          ))
        ]
      ));
-  (DData (tnsr_d22,
+  (DData (tnsr_d21,
      (PBind ((Type L),
-        (Abs (A_153,
-           (PBind ((Type L), (Abs (B_154, (PBase (TBase (Type L)))))))))
+        (Abs (A_149,
+           (PBind ((Type L), (Abs (B_150, (PBase (TBase (Type L)))))))))
         )),
      [(DCons (tnsr_intro_c32,
          (PBind ((Type L),
-            (Abs (A_155,
+            (Abs (A_151,
                (PBind ((Type L),
-                  (Abs (B_156,
+                  (Abs (B_152,
                      (PBase
-                        (TBind ((Var _1), false,
-                           (Abs (_157,
-                              (TBind ((Var _1), false,
-                                 (Abs (_158,
+                        (TBind ((Var _1),
+                           (Abs (_153,
+                              (TBind ((Var _1),
+                                 (Abs (_154,
                                     (TBase
-                                       (Data (tnsr_d22, [(Var _3); (Var _2)]
+                                       (Data (tnsr_d21, [(Var _3); (Var _2)]
                                           )))
                                     ))
                                  ))
@@ -515,47 +470,44 @@
          ))
        ]
      ));
-  (DData (box_d23,
-     (PBind ((Type U), (Abs (A_159, (PBase (TBase (Type L))))))),
+  (DData (box_d22,
+     (PBind ((Type U), (Abs (A_155, (PBase (TBase (Type L))))))),
      [(DCons (box_intro_c33,
          (PBind ((Type U),
-            (Abs (A_160,
+            (Abs (A_156,
                (PBase
-                  (TBind ((Var _0), false,
-                     (Abs (_161, (TBase (Data (box_d23, [(Var _1)]))))))))
+                  (TBind ((Var _0),
+                     (Abs (_157, (TBase (Data (box_d22, [(Var _1)]))))))))
                ))
             ))
          ))
        ]
      ));
-  (DData (ascii_d24, (PBase (TBase (Type U))),
+  (DData (ascii_d23, (PBase (TBase (Type U))),
      [(DCons (Ascii_c34,
          (PBase
-            (TBind ((Data (bool_d15, [])), false,
-               (Abs (_162,
-                  (TBind ((Data (bool_d15, [])), false,
-                     (Abs (_163,
-                        (TBind ((Data (bool_d15, [])), false,
-                           (Abs (_164,
-                              (TBind ((Data (bool_d15, [])), false,
-                                 (Abs (_165,
-                                    (TBind ((Data (bool_d15, [])), false,
-                                       (Abs (_166,
-                                          (TBind ((Data (bool_d15, [])),
-                                             false,
-                                             (Abs (_167,
+            (TBind ((Data (bool_d14, [])),
+               (Abs (_158,
+                  (TBind ((Data (bool_d14, [])),
+                     (Abs (_159,
+                        (TBind ((Data (bool_d14, [])),
+                           (Abs (_160,
+                              (TBind ((Data (bool_d14, [])),
+                                 (Abs (_161,
+                                    (TBind ((Data (bool_d14, [])),
+                                       (Abs (_162,
+                                          (TBind ((Data (bool_d14, [])),
+                                             (Abs (_163,
                                                 (TBind (
-                                                   (Data (bool_d15, [])),
-                                                   false,
-                                                   (Abs (_168,
+                                                   (Data (bool_d14, [])),
+                                                   (Abs (_164,
                                                       (TBind (
-                                                         (Data (bool_d15, 
+                                                         (Data (bool_d14, 
                                                             [])),
-                                                         false,
-                                                         (Abs (_169,
+                                                         (Abs (_165,
                                                             (TBase
                                                                (Data (
-                                                                  ascii_d24,
+                                                                  ascii_d23,
                                                                   [])))
                                                             ))
                                                          ))
@@ -576,31 +528,59 @@
          ))
        ]
      ));
-  (DData (string_d25, (PBase (TBase (Type U))),
-     [(DCons (EmptyString_c35, (PBase (TBase (Data (string_d25, []))))));
+  (DData (string_d24, (PBase (TBase (Type U))),
+     [(DCons (EmptyString_c35, (PBase (TBase (Data (string_d24, []))))));
        (DCons (String_c36,
           (PBase
-             (TBind ((Data (ascii_d24, [])), false,
-                (Abs (_170,
-                   (TBind ((Data (string_d25, [])), false,
-                      (Abs (_171, (TBase (Data (string_d25, [])))))))
+             (TBind ((Data (ascii_d23, [])),
+                (Abs (_166,
+                   (TBind ((Data (string_d24, [])),
+                      (Abs (_167, (TBase (Data (string_d24, [])))))))
                    ))
                 )))
           ))
        ]
      ));
-  (DFun (stdin_rec_172,
-     (Pi (U, (Data (unit_d14, [])), false, (Abs (_173, Proto)))),
-     (Abs (stdin_rec_172,
+  (DFun (stdin_rec_168, (Pi (U, (Data (unit_d13, [])), (Abs (_169, Proto)))),
+     (Abs (stdin_rec_168,
         [(Cl
             (PAbs ([(PCons (tt_c19, []))],
-               (Some (Act (false, (Data (bool_d15, [])),
-                        (Abs (b_174,
+               (Some (Act (false, (Data (bool_d14, [])),
+                        (Abs (b_170,
                            (Match ([(Var _0)],
                               [(Cl
                                   (PAbs ([(PCons (true_c20, []))],
                                      (Some (Act (true,
-                                              (Data (string_d25, [])),
+                                              (Data (string_d24, [])),
+                                              (Abs (_171,
+                                                 (App ((Var _2),
+                                                    (Cons (tt_c19, []))))
+                                                 ))
+                                              )))
+                                     )));
+                                (Cl
+                                   (PAbs ([(PCons (false_c21, []))],
+                                      (Some End))))
+                                ]
+                              ))
+                           ))
+                        )))
+               )))
+          ]
+        ))
+     ));
+  (DFun (stdout_rec_172,
+     (Pi (U, (Data (unit_d13, [])), (Abs (_173, Proto)))),
+     (Abs (stdout_rec_172,
+        [(Cl
+            (PAbs ([(PCons (tt_c19, []))],
+               (Some (Act (false, (Data (bool_d14, [])),
+                        (Abs (b_174,
+                           (Match ([(Var _0)],
+                              [(Cl
+                                  (PAbs ([(PCons (true_c20, []))],
+                                     (Some (Act (false,
+                                              (Data (string_d24, [])),
                                               (Abs (_175,
                                                  (App ((Var _2),
                                                     (Cons (tt_c19, []))))
@@ -618,18 +598,18 @@
           ]
         ))
      ));
-  (DFun (stdout_rec_176,
-     (Pi (U, (Data (unit_d14, [])), false, (Abs (_177, Proto)))),
-     (Abs (stdout_rec_176,
+  (DFun (stderr_rec_176,
+     (Pi (U, (Data (unit_d13, [])), (Abs (_177, Proto)))),
+     (Abs (stderr_rec_176,
         [(Cl
             (PAbs ([(PCons (tt_c19, []))],
-               (Some (Act (false, (Data (bool_d15, [])),
+               (Some (Act (false, (Data (bool_d14, [])),
                         (Abs (b_178,
                            (Match ([(Var _0)],
                               [(Cl
                                   (PAbs ([(PCons (true_c20, []))],
                                      (Some (Act (false,
-                                              (Data (string_d25, [])),
+                                              (Data (string_d24, [])),
                                               (Abs (_179,
                                                  (App ((Var _2),
                                                     (Cons (tt_c19, []))))
@@ -647,386 +627,297 @@
           ]
         ))
      ));
-  (DFun (stderr_rec_180,
-     (Pi (U, (Data (unit_d14, [])), false, (Abs (_181, Proto)))),
-     (Abs (stderr_rec_180,
-        [(Cl
-            (PAbs ([(PCons (tt_c19, []))],
-               (Some (Act (false, (Data (bool_d15, [])),
-                        (Abs (b_182,
-                           (Match ([(Var _0)],
-                              [(Cl
-                                  (PAbs ([(PCons (true_c20, []))],
-                                     (Some (Act (false,
-                                              (Data (string_d25, [])),
-                                              (Abs (_183,
-                                                 (App ((Var _2),
-                                                    (Cons (tt_c19, []))))
-                                                 ))
-                                              )))
-                                     )));
-                                (Cl
-                                   (PAbs ([(PCons (false_c21, []))],
-                                      (Some End))))
-                                ]
-                              ))
-                           ))
-                        )))
-               )))
-          ]
-        ))
+  (DTm (stdin_t_180, None, (App ((Var stdin_rec_168), (Cons (tt_c19, []))))));
+  (DTm (stdout_t_181, None, (App ((Var stdout_rec_172), (Cons (tt_c19, []))))
      ));
-  (DTm (stdin_t_184, None, (App ((Var stdin_rec_172), (Cons (tt_c19, []))))));
-  (DTm (stdout_t_185, None, (App ((Var stdout_rec_176), (Cons (tt_c19, []))))
-     ));
-  (DTm (stderr_t_186, None, (App ((Var stderr_rec_180), (Cons (tt_c19, []))))
-     ));
-  (DData (bottom_d26, (PBase (TBase (Type U))), []));
-  (DFun (foo_187,
-     (Pi (U, (Data (bool_d15, [])), false, (Abs (_188, (Type U))))),
-     (Abs (foo_187,
-        [(Cl (PAbs ([(PCons (true_c20, []))], (Some (Data (nat_d16, []))))));
-          (Cl
-             (PAbs ([(PCons (false_c21, []))], (Some (Data (bottom_d26, [])))
-                )))
-          ]
-        ))
-     ));
-  (DFun (bar_189,
-     (Pi (U, (Data (bool_d15, [])), false,
-        (Abs (b_190,
-           (Pi (U, (App ((Var foo_187), (Var _0))), false,
-              (Abs (_191, (Data (nat_d16, []))))))
-           ))
-        )),
-     (Abs (bar_189,
-        [(Cl (PAbs ([(PCons (true_c20, [])); (PVar x_192)], (Some (Var _0)))))
-          ]
-        ))
-     ));
-  (DFun (baz_193,
-     (Pi (U, (Data (bottom_d26, [])), false,
-        (Abs (_194, (Data (nat_d16, [])))))),
-     (Abs (baz_193, [(Cl (PAbs ([PAbsurd], None)))]))))
+  (DTm (stderr_t_182, None, (App ((Var stderr_rec_176), (Cons (tt_c19, []))))
+     ))
   ]
 ----------------------------------------------
-data unit_d14 : U
-  | tt_c19 : unit_d14
+data unit_d13 : U
+  | tt_c19 : unit_d13
 
-data bool_d15 : U
-  | true_c20 : bool_d15
-  | false_c21 : bool_d15
+data bool_d14 : U
+  | true_c20 : bool_d14
+  | false_c21 : bool_d14
 
-data nat_d16 : U
-  | zero_c22 : nat_d16
-  | succ_c23 : nat_d16 -> nat_d16
+data nat_d15 : U
+  | zero_c22 : nat_d15
+  | succ_c23 : nat_d15 -> nat_d15
 
-def (addn_99 := addn_196) : nat_d16 -> nat_d16 -> nat_d16
-  | zero_c22 x_200 => x_200
-  | (succ_c23 x_201) y_202 => (succ_c23 ((addn_196) x_201 y_202))
+def (addn_93 := addn_184) : nat_d15 -> nat_d15 -> nat_d15
+  | zero_c22 x_188 => x_188
+  | (succ_c23 x_189) y_190 => (succ_c23 ((addn_184) x_189 y_190))
 
-data option_d17 (A_203 : U) : U
-  | none_c24 (A_204 : U) : (option_d17 A_204)
-  | some_c25 (A_205 : U) : A_205 -> (option_d17 A_205)
+data option_d16 (A_191 : U) : U
+  | none_c24 (A_192 : U) : (option_d16 A_192)
+  | some_c25 (A_193 : U) : A_193 -> (option_d16 A_193)
 
-data list_d18 (A_207 : U) : U
-  | nil_c26 (A_208 : U) : (list_d18 A_208)
-  | cons_c27 (A_209 : U) : A_209 -> (list_d18 A_209) -> (list_d18 A_209)
+data list_d17 (A_195 : U) : U
+  | nil_c26 (A_196 : U) : (list_d17 A_196)
+  | cons_c27 (A_197 : U) : A_197 -> (list_d17 A_197) -> (list_d17 A_197)
 
-data vec_d19 (A_213 : U) : nat_d16 -> U
-  | vnil_c28 (A_215 : U) : (vec_d19 A_215 zero_c22)
-  | vcons_c29 (A_216 : U) :
-    ∀ {n_217 : nat_d16} ->
-      A_216 -> (vec_d19 A_216 n_217) -> (vec_d19 A_216 (succ_c23 n_217))
+data vec_d18 (A_201 : U) : nat_d15 -> U
+  | vnil_c28 (A_203 : U) : (vec_d18 A_203 zero_c22)
+  | vcons_c29 (A_204 : U) :
+    ∀ (n_205 : nat_d15) ->
+      A_204 -> (vec_d18 A_204 n_205) -> (vec_d18 A_204 (succ_c23 n_205))
 
-def foo_121 : (vec_d19 nat_d16 (succ_c23 zero_c22)) :=
-  (vcons_c29 zero_c22 vnil_c28)
+def foo_115 : (vec_d18 nat_d15 (succ_c23 zero_c22)) :=
+  (vcons_c29 ??4{addn_93} zero_c22 vnil_c28)
 
-def (tail_122 := tail_222) :
-  ∀ {A_223 : U} ->
-    ∀ {n_226 : nat_d16} ->
-      (vec_d19 A_223 (succ_c23 (succ_c23 (succ_c23 n_226)))) ->
-        (vec_d19 A_223 n_226)
-  | (vcons_c29 _229 (vcons_c29 _230 (vcons_c29 _231 tl_232))) => tl_232
+def (tail_116 := tail_210) :
+  ∀ (A_211 : U) ->
+    ∀ (n_214 : nat_d15) ->
+      (vec_d18 A_211 (succ_c23 n_214)) -> (vec_d18 A_211 n_214)
+  | _217 _218 (vcons_c29 _219 _220 tl_221) => tl_221
 
-def (max_130 := max_233) : nat_d16 -> nat_d16 -> nat_d16
-  | zero_c22 j_237 => j_237
-  | i_238 zero_c22 => i_238
-  | (succ_c23 k_239) (succ_c23 l_240) => (succ_c23 ((max_233) k_239 l_240))
+def bar_125 :=
+  ((tail_116) ??5{tail_116; foo_115; addn_93} ??6{tail_116; foo_115; addn_93}
+  foo_115)
 
-data ex_d20 (A_241 : U) (P_242 : A_241 -> U) : U
-  | ex_intro_c30 (A_244 : U) (P_245 : A_244 -> U) :
-    ∀ (x_247 : A_244) -> ((P_245) x_247) -> (ex_d20 A_244 P_245)
+def (max_126 := max_222) : nat_d15 -> nat_d15 -> nat_d15
+  | zero_c22 j_226 => j_226
+  | i_227 zero_c22 => i_227
+  | (succ_c23 k_228) (succ_c23 l_229) => (succ_c23 ((max_222) k_228 l_229))
 
-data sig_d21 (A_249 : U) (P_250 : A_249 -> L) : L
-  | sig_intro_c31 (A_252 : U) (P_253 : A_252 -> L) :
-    ∀ (x_255 : A_252) -> ((P_253) x_255) -> (sig_d21 A_252 P_253)
+data ex_d19 (A_230 : U) (P_231 : A_230 -> U) : U
+  | ex_intro_c30 (A_233 : U) (P_234 : A_233 -> U) :
+    ∀ (x_236 : A_233) -> ((P_234) x_236) -> (ex_d19 A_233 P_234)
 
-data tnsr_d22 (A_257 : L) (B_258 : L) : L
-  | tnsr_intro_c32 (A_259 : L) (B_260 : L) :
-    A_259 -> B_260 -> (tnsr_d22 A_259 B_260)
+data sig_d20 (A_238 : U) (P_239 : A_238 -> L) : L
+  | sig_intro_c31 (A_241 : U) (P_242 : A_241 -> L) :
+    ∀ (x_244 : A_241) -> ((P_242) x_244) -> (sig_d20 A_241 P_242)
 
-data box_d23 (A_264 : U) : L
-  | box_intro_c33 (A_265 : U) : A_265 -> (box_d23 A_265)
+data tnsr_d21 (A_246 : L) (B_247 : L) : L
+  | tnsr_intro_c32 (A_248 : L) (B_249 : L) :
+    A_248 -> B_249 -> (tnsr_d21 A_248 B_249)
 
-data ascii_d24 : U
+data box_d22 (A_253 : U) : L
+  | box_intro_c33 (A_254 : U) : A_254 -> (box_d22 A_254)
+
+data ascii_d23 : U
   | Ascii_c34 :
-    bool_d15 ->
-      bool_d15 ->
-        bool_d15 ->
-          bool_d15 ->
-            bool_d15 -> bool_d15 -> bool_d15 -> bool_d15 -> ascii_d24
+    bool_d14 ->
+      bool_d14 ->
+        bool_d14 ->
+          bool_d14 ->
+            bool_d14 -> bool_d14 -> bool_d14 -> bool_d14 -> ascii_d23
 
-data string_d25 : U
-  | EmptyString_c35 : string_d25
-  | String_c36 : ascii_d24 -> string_d25 -> string_d25
+data string_d24 : U
+  | EmptyString_c35 : string_d24
+  | String_c36 : ascii_d23 -> string_d24 -> string_d24
 
-def (stdin_rec_172 := stdin_rec_306) : unit_d14 -> proto
+def (stdin_rec_168 := stdin_rec_295) : unit_d13 -> proto
   | tt_c19 =>
-    !(b_308 : bool_d15) ⋅
-      (match b_308 with
-        | true_c20 => ?string_d25 ⋅ ((stdin_rec_306) tt_c19)
+    !(b_297 : bool_d14) ⋅
+      (match b_297 with
+        | true_c20 => ?string_d24 ⋅ ((stdin_rec_295) tt_c19)
         | false_c21 => end)
 
-def (stdout_rec_176 := stdout_rec_310) : unit_d14 -> proto
+def (stdout_rec_172 := stdout_rec_299) : unit_d13 -> proto
   | tt_c19 =>
-    !(b_312 : bool_d15) ⋅
-      (match b_312 with
-        | true_c20 => !string_d25 ⋅ ((stdout_rec_310) tt_c19)
+    !(b_301 : bool_d14) ⋅
+      (match b_301 with
+        | true_c20 => !string_d24 ⋅ ((stdout_rec_299) tt_c19)
         | false_c21 => end)
 
-def (stderr_rec_180 := stderr_rec_314) : unit_d14 -> proto
+def (stderr_rec_176 := stderr_rec_303) : unit_d13 -> proto
   | tt_c19 =>
-    !(b_316 : bool_d15) ⋅
-      (match b_316 with
-        | true_c20 => !string_d25 ⋅ ((stderr_rec_314) tt_c19)
+    !(b_305 : bool_d14) ⋅
+      (match b_305 with
+        | true_c20 => !string_d24 ⋅ ((stderr_rec_303) tt_c19)
         | false_c21 => end)
 
-def stdin_t_184 := ((stdin_rec_172) tt_c19)
+def stdin_t_180 := ((stdin_rec_168) tt_c19)
 
-def stdout_t_185 := ((stdout_rec_176) tt_c19)
+def stdout_t_181 := ((stdout_rec_172) tt_c19)
 
-def stderr_t_186 := ((stderr_rec_180) tt_c19)
-
-data bottom_d26 : U
-  
-
-def (foo_187 := foo_318) : bool_d15 -> U
-  | true_c20 => nat_d16
-  | false_c21 => bottom_d26
-
-def (bar_189 := bar_320) :
-  ∀ (b_321 : bool_d15) -> ((foo_187) b_321) -> nat_d16
-  | true_c20 x_324 => x_324
-
-def (baz_193 := baz_325) : bottom_d26 -> nat_d16
-  | absurd
+def stderr_t_182 := ((stderr_rec_176) tt_c19)
 
 
 ----------------------------------------------
-def (addn_99 := addn_342) : nat_d16 -> nat_d16 -> nat_d16
-  | zero_c22 x_346 => x_346
-  | (succ_c23 x_347) y_348 => (succ_c23 ((addn_342) x_347 y_348))
+data unit_d13 : U
+  | tt_c19 : unit_d13
 
-def foo_121 : (vec_d19 nat_d16 (succ_c23 zero_c22)) :=
-  (vcons_c29 zero_c22 vnil_c28)
+data bool_d14 : U
+  | true_c20 : bool_d14
+  | false_c21 : bool_d14
 
-def (tail_122 := tail_349) :
-  ∀ {A_350 : U} ->
-    ∀ {n_353 : nat_d16} ->
-      (vec_d19 A_350 (succ_c23 (succ_c23 (succ_c23 n_353)))) ->
-        (vec_d19 A_350 n_353)
-  | (vcons_c29 _356 (vcons_c29 _357 (vcons_c29 _358 tl_359))) => tl_359
+data nat_d15 : U
+  | zero_c22 : nat_d15
+  | succ_c23 : nat_d15 -> nat_d15
 
-def (max_130 := max_360) : nat_d16 -> nat_d16 -> nat_d16
-  | zero_c22 j_364 => j_364
-  | i_365 zero_c22 => i_365
-  | (succ_c23 k_366) (succ_c23 l_367) => (succ_c23 ((max_360) k_366 l_367))
+def (addn_93 := addn_1280) : nat_d15 -> nat_d15 -> nat_d15
+  | zero_c22 x_1284 => x_1284
+  | (succ_c23 x_1285) y_1286 => (succ_c23 ((addn_1280) x_1285 y_1286))
 
-def (stdin_rec_172 := stdin_rec_368) : unit_d14 -> proto
+data option_d16 (A_1287 : U) : U
+  | none_c24 (A_1288 : U) : (option_d16 A_1288)
+  | some_c25 (A_1289 : U) : A_1289 -> (option_d16 A_1289)
+
+data list_d17 (A_1291 : U) : U
+  | nil_c26 (A_1292 : U) : (list_d17 A_1292)
+  | cons_c27 (A_1293 : U) : A_1293 -> (list_d17 A_1293) -> (list_d17 A_1293)
+
+data vec_d18 (A_1297 : U) : nat_d15 -> U
+  | vnil_c28 (A_1299 : U) : (vec_d18 A_1299 zero_c22)
+  | vcons_c29 (A_1300 : U) :
+    ∀ (n_1301 : nat_d15) ->
+      A_1300 -> (vec_d18 A_1300 n_1301) -> (vec_d18 A_1300 (succ_c23 n_1301))
+
+def foo_115 : (vec_d18 nat_d15 (succ_c23 zero_c22)) :=
+  (vcons_c29 zero_c22 zero_c22 vnil_c28)
+
+def (tail_116 := tail_1306) :
+  ∀ (A_1307 : U) ->
+    ∀ (n_1310 : nat_d15) ->
+      (vec_d18 A_1307 (succ_c23 n_1310)) -> (vec_d18 A_1307 n_1310)
+  | _1313 _1314 (vcons_c29 _1315 _1316 tl_1317) => tl_1317
+
+def bar_125 := ((tail_116) nat_d15 zero_c22 foo_115)
+
+def (max_126 := max_1318) : nat_d15 -> nat_d15 -> nat_d15
+  | zero_c22 j_1322 => j_1322
+  | i_1323 zero_c22 => i_1323
+  | (succ_c23 k_1324) (succ_c23 l_1325) =>
+    (succ_c23 ((max_1318) k_1324 l_1325))
+
+data ex_d19 (A_1326 : U) (P_1327 : A_1326 -> U) : U
+  | ex_intro_c30 (A_1329 : U) (P_1330 : A_1329 -> U) :
+    ∀ (x_1332 : A_1329) -> ((P_1330) x_1332) -> (ex_d19 A_1329 P_1330)
+
+data sig_d20 (A_1334 : U) (P_1335 : A_1334 -> L) : L
+  | sig_intro_c31 (A_1337 : U) (P_1338 : A_1337 -> L) :
+    ∀ (x_1340 : A_1337) -> ((P_1338) x_1340) -> (sig_d20 A_1337 P_1338)
+
+data tnsr_d21 (A_1342 : L) (B_1343 : L) : L
+  | tnsr_intro_c32 (A_1344 : L) (B_1345 : L) :
+    A_1344 -> B_1345 -> (tnsr_d21 A_1344 B_1345)
+
+data box_d22 (A_1349 : U) : L
+  | box_intro_c33 (A_1350 : U) : A_1350 -> (box_d22 A_1350)
+
+data ascii_d23 : U
+  | Ascii_c34 :
+    bool_d14 ->
+      bool_d14 ->
+        bool_d14 ->
+          bool_d14 ->
+            bool_d14 -> bool_d14 -> bool_d14 -> bool_d14 -> ascii_d23
+
+data string_d24 : U
+  | EmptyString_c35 : string_d24
+  | String_c36 : ascii_d23 -> string_d24 -> string_d24
+
+def (stdin_rec_168 := stdin_rec_1391) : unit_d13 -> proto
   | tt_c19 =>
-    !(b_370 : bool_d15) ⋅
-      (match b_370 with
-        | true_c20 => ?string_d25 ⋅ ((stdin_rec_368) tt_c19)
+    !(b_1393 : bool_d14) ⋅
+      (match b_1393 with
+        | true_c20 => ?string_d24 ⋅ ((stdin_rec_1391) tt_c19)
         | false_c21 => end)
 
-def (stdout_rec_176 := stdout_rec_372) : unit_d14 -> proto
+def (stdout_rec_172 := stdout_rec_1395) : unit_d13 -> proto
   | tt_c19 =>
-    !(b_374 : bool_d15) ⋅
-      (match b_374 with
-        | true_c20 => !string_d25 ⋅ ((stdout_rec_372) tt_c19)
+    !(b_1397 : bool_d14) ⋅
+      (match b_1397 with
+        | true_c20 => !string_d24 ⋅ ((stdout_rec_1395) tt_c19)
         | false_c21 => end)
 
-def (stderr_rec_180 := stderr_rec_376) : unit_d14 -> proto
+def (stderr_rec_176 := stderr_rec_1399) : unit_d13 -> proto
   | tt_c19 =>
-    !(b_378 : bool_d15) ⋅
-      (match b_378 with
-        | true_c20 => !string_d25 ⋅ ((stderr_rec_376) tt_c19)
+    !(b_1401 : bool_d14) ⋅
+      (match b_1401 with
+        | true_c20 => !string_d24 ⋅ ((stderr_rec_1399) tt_c19)
         | false_c21 => end)
 
-def stdin_t_184 :=
-  !(b_380 : bool_d15) ⋅
-    (match b_380 with
-      | true_c20 =>
-        ?(_381 : string_d25) ⋅
-          (((fun stdin_rec_385 : unit_d14 -> proto
-              | tt_c19 =>
-                !(b_388 : bool_d15) ⋅
-                  (match b_388 with
-                    | true_c20 => ?string_d25 ⋅ ((stdin_rec_385) tt_c19)
-                    | false_c21 => end))) tt_c19)
-      | false_c21 => end)
+def stdin_t_180 := ((stdin_rec_168) tt_c19)
 
-def stdout_t_185 :=
-  !(b_390 : bool_d15) ⋅
-    (match b_390 with
-      | true_c20 =>
-        !(_391 : string_d25) ⋅
-          (((fun stdout_rec_395 : unit_d14 -> proto
-              | tt_c19 =>
-                !(b_398 : bool_d15) ⋅
-                  (match b_398 with
-                    | true_c20 => !string_d25 ⋅ ((stdout_rec_395) tt_c19)
-                    | false_c21 => end))) tt_c19)
-      | false_c21 => end)
+def stdout_t_181 := ((stdout_rec_172) tt_c19)
 
-def stderr_t_186 :=
-  !(b_400 : bool_d15) ⋅
-    (match b_400 with
-      | true_c20 =>
-        !(_401 : string_d25) ⋅
-          (((fun stderr_rec_405 : unit_d14 -> proto
-              | tt_c19 =>
-                !(b_408 : bool_d15) ⋅
-                  (match b_408 with
-                    | true_c20 => !string_d25 ⋅ ((stderr_rec_405) tt_c19)
-                    | false_c21 => end))) tt_c19)
-      | false_c21 => end)
-
-def (foo_187 := foo_410) : bool_d15 -> U
-  | true_c20 => nat_d16
-  | false_c21 => bottom_d26
-
-def (bar_189 := bar_412) :
-  ∀ (b_413 : bool_d15) -> ((foo_187) b_413) -> nat_d16
-  | true_c20 x_416 => x_416
-
-def (baz_193 := baz_417) : bottom_d26 -> nat_d16
-  | absurd
+def stderr_t_182 := ((stderr_rec_176) tt_c19)
 
 
 ----------------------------------------------
-data unit_d14 : U
-  | tt_c19 : unit_d14
+def (addn_93 := addn_1424) : nat_d15 -> nat_d15 -> nat_d15
+  | zero_c22 x_1428 => x_1428
+  | (succ_c23 x_1429) y_1430 => (succ_c23 ((addn_1424) x_1429 y_1430))
 
-data bool_d15 : U
-  | true_c20 : bool_d15
-  | false_c21 : bool_d15
+def foo_115 : (vec_d18 nat_d15 (succ_c23 zero_c22)) :=
+  (vcons_c29 zero_c22 zero_c22 vnil_c28)
 
-data nat_d16 : U
-  | zero_c22 : nat_d16
-  | succ_c23 : nat_d16 -> nat_d16
+def (tail_116 := tail_1431) :
+  ∀ (A_1432 : U) ->
+    ∀ (n_1435 : nat_d15) ->
+      (vec_d18 A_1432 (succ_c23 n_1435)) -> (vec_d18 A_1432 n_1435)
+  | _1438 _1439 (vcons_c29 _1440 _1441 tl_1442) => tl_1442
 
-def (addn_99 := addn_1427) : nat_d16 -> nat_d16 -> nat_d16
-  | zero_c22 x_1431 => x_1431
-  | (succ_c23 x_1432) y_1433 => (succ_c23 ((addn_1427) x_1432 y_1433))
+def bar_125 := vnil_c28
 
-data option_d17 (A_1434 : U) : U
-  | none_c24 (A_1435 : U) : (option_d17 A_1435)
-  | some_c25 (A_1436 : U) : A_1436 -> (option_d17 A_1436)
+def (max_126 := max_1443) : nat_d15 -> nat_d15 -> nat_d15
+  | zero_c22 j_1447 => j_1447
+  | i_1448 zero_c22 => i_1448
+  | (succ_c23 k_1449) (succ_c23 l_1450) =>
+    (succ_c23 ((max_1443) k_1449 l_1450))
 
-data list_d18 (A_1438 : U) : U
-  | nil_c26 (A_1439 : U) : (list_d18 A_1439)
-  | cons_c27 (A_1440 : U) : A_1440 -> (list_d18 A_1440) -> (list_d18 A_1440)
-
-data vec_d19 (A_1444 : U) : nat_d16 -> U
-  | vnil_c28 (A_1446 : U) : (vec_d19 A_1446 zero_c22)
-  | vcons_c29 (A_1447 : U) :
-    ∀ {n_1448 : nat_d16} ->
-      A_1447 -> (vec_d19 A_1447 n_1448) -> (vec_d19 A_1447 (succ_c23 n_1448))
-
-def foo_121 : (vec_d19 nat_d16 (succ_c23 zero_c22)) :=
-  (vcons_c29 zero_c22 vnil_c28)
-
-def (tail_122 := tail_1453) :
-  ∀ {A_1454 : U} ->
-    ∀ {n_1457 : nat_d16} ->
-      (vec_d19 A_1454 (succ_c23 (succ_c23 (succ_c23 n_1457)))) ->
-        (vec_d19 A_1454 n_1457)
-  | (vcons_c29 _1460 (vcons_c29 _1461 (vcons_c29 _1462 tl_1463))) => tl_1463
-
-def (max_130 := max_1464) : nat_d16 -> nat_d16 -> nat_d16
-  | zero_c22 j_1468 => j_1468
-  | i_1469 zero_c22 => i_1469
-  | (succ_c23 k_1470) (succ_c23 l_1471) =>
-    (succ_c23 ((max_1464) k_1470 l_1471))
-
-data ex_d20 (A_1472 : U) (P_1473 : A_1472 -> U) : U
-  | ex_intro_c30 (A_1475 : U) (P_1476 : A_1475 -> U) :
-    ∀ (x_1478 : A_1475) -> ((P_1476) x_1478) -> (ex_d20 A_1475 P_1476)
-
-data sig_d21 (A_1480 : U) (P_1481 : A_1480 -> L) : L
-  | sig_intro_c31 (A_1483 : U) (P_1484 : A_1483 -> L) :
-    ∀ (x_1486 : A_1483) -> ((P_1484) x_1486) -> (sig_d21 A_1483 P_1484)
-
-data tnsr_d22 (A_1488 : L) (B_1489 : L) : L
-  | tnsr_intro_c32 (A_1490 : L) (B_1491 : L) :
-    A_1490 -> B_1491 -> (tnsr_d22 A_1490 B_1491)
-
-data box_d23 (A_1495 : U) : L
-  | box_intro_c33 (A_1496 : U) : A_1496 -> (box_d23 A_1496)
-
-data ascii_d24 : U
-  | Ascii_c34 :
-    bool_d15 ->
-      bool_d15 ->
-        bool_d15 ->
-          bool_d15 ->
-            bool_d15 -> bool_d15 -> bool_d15 -> bool_d15 -> ascii_d24
-
-data string_d25 : U
-  | EmptyString_c35 : string_d25
-  | String_c36 : ascii_d24 -> string_d25 -> string_d25
-
-def (stdin_rec_172 := stdin_rec_1537) : unit_d14 -> proto
+def (stdin_rec_168 := stdin_rec_1451) : unit_d13 -> proto
   | tt_c19 =>
-    !(b_1539 : bool_d15) ⋅
-      (match b_1539 with
-        | true_c20 => ?string_d25 ⋅ ((stdin_rec_1537) tt_c19)
+    !(b_1453 : bool_d14) ⋅
+      (match b_1453 with
+        | true_c20 => ?string_d24 ⋅ ((stdin_rec_1451) tt_c19)
         | false_c21 => end)
 
-def (stdout_rec_176 := stdout_rec_1541) : unit_d14 -> proto
+def (stdout_rec_172 := stdout_rec_1455) : unit_d13 -> proto
   | tt_c19 =>
-    !(b_1543 : bool_d15) ⋅
-      (match b_1543 with
-        | true_c20 => !string_d25 ⋅ ((stdout_rec_1541) tt_c19)
+    !(b_1457 : bool_d14) ⋅
+      (match b_1457 with
+        | true_c20 => !string_d24 ⋅ ((stdout_rec_1455) tt_c19)
         | false_c21 => end)
 
-def (stderr_rec_180 := stderr_rec_1545) : unit_d14 -> proto
+def (stderr_rec_176 := stderr_rec_1459) : unit_d13 -> proto
   | tt_c19 =>
-    !(b_1547 : bool_d15) ⋅
-      (match b_1547 with
-        | true_c20 => !string_d25 ⋅ ((stderr_rec_1545) tt_c19)
+    !(b_1461 : bool_d14) ⋅
+      (match b_1461 with
+        | true_c20 => !string_d24 ⋅ ((stderr_rec_1459) tt_c19)
         | false_c21 => end)
 
-def stdin_t_184 := ((stdin_rec_172) tt_c19)
+def stdin_t_180 :=
+  !(b_1463 : bool_d14) ⋅
+    (match b_1463 with
+      | true_c20 =>
+        ?(_1464 : string_d24) ⋅
+          (((fun stdin_rec_1468 : unit_d13 -> proto
+              | tt_c19 =>
+                !(b_1471 : bool_d14) ⋅
+                  (match b_1471 with
+                    | true_c20 => ?string_d24 ⋅ ((stdin_rec_1468) tt_c19)
+                    | false_c21 => end))) tt_c19)
+      | false_c21 => end)
 
-def stdout_t_185 := ((stdout_rec_176) tt_c19)
+def stdout_t_181 :=
+  !(b_1473 : bool_d14) ⋅
+    (match b_1473 with
+      | true_c20 =>
+        !(_1474 : string_d24) ⋅
+          (((fun stdout_rec_1478 : unit_d13 -> proto
+              | tt_c19 =>
+                !(b_1481 : bool_d14) ⋅
+                  (match b_1481 with
+                    | true_c20 => !string_d24 ⋅ ((stdout_rec_1478) tt_c19)
+                    | false_c21 => end))) tt_c19)
+      | false_c21 => end)
 
-def stderr_t_186 := ((stderr_rec_180) tt_c19)
-
-data bottom_d26 : U
-  
-
-def (foo_187 := foo_1549) : bool_d15 -> U
-  | true_c20 => nat_d16
-  | false_c21 => bottom_d26
-
-def (bar_189 := bar_1551) :
-  ∀ (b_1552 : bool_d15) -> ((foo_187) b_1552) -> nat_d16
-  | true_c20 x_1555 => x_1555
-
-def (baz_193 := baz_1556) : bottom_d26 -> nat_d16
-  | absurd
+def stderr_t_182 :=
+  !(b_1483 : bool_d14) ⋅
+    (match b_1483 with
+      | true_c20 =>
+        !(_1484 : string_d24) ⋅
+          (((fun stderr_rec_1488 : unit_d13 -> proto
+              | tt_c19 =>
+                !(b_1491 : bool_d14) ⋅
+                  (match b_1491 with
+                    | true_c20 => !string_d24 ⋅ ((stderr_rec_1488) tt_c19)
+                    | false_c21 => end))) tt_c19)
+      | false_c21 => end)
 
 

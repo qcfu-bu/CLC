@@ -23,12 +23,14 @@ data list (A : U) : U
 
 data vec (A : U) : nat -> U
   | vnil : vec A zero
-  | vcons : ∀ {n : nat} -> A -> vec A n -> vec A (succ n)
+  | vcons : ∀ (n : nat) -> A -> vec A n -> vec A (succ n)
 
-def foo : vec nat (succ zero) := vcons zero vnil
+def foo : vec nat (succ zero) := vcons _ zero vnil
 
-def tail : ∀ {A : U} {n : nat} -> vec A (succ (succ (succ n))) -> vec A n
-  | vcons _ (vcons _ (vcons _ tl)) => tl 
+def tail : ∀ (A : U) (n : nat) -> vec A (succ n) -> vec A n
+  | _ _ (vcons _ _ tl) => tl 
+
+def bar := tail _ _ foo
 
 def max : nat -> nat -> nat
   | zero j => j
@@ -81,15 +83,3 @@ def stderr_rec : unit -> proto
 def stdin_t := stdin_rec tt
 def stdout_t := stdout_rec tt
 def stderr_t := stderr_rec tt
-
-data bottom : U
-
-def foo : bool -> U
-  | true => nat
-  | false => bottom
-
-def bar : ∀ (b : bool) -> foo b -> nat
-  | true x => x
-
-def baz : bottom -> nat
-  | absurd

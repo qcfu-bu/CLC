@@ -13,7 +13,7 @@ and tm =
   | Meta of M.t * tms
   | Type of sort
   | Var of V.t
-  | Pi of sort * tm * bool * tm abs
+  | Pi of sort * tm * tm abs
   | Fun of tm_opt * cls abs
   | App of tm * tm
   | Let of tm * tm abs
@@ -69,7 +69,7 @@ and ptl =
 
 and tl =
   | TBase of tm
-  | TBind of tm * bool * tl abs
+  | TBind of tm * tl abs
 
 let freshen_ps ps =
   let rec aux p =
@@ -117,10 +117,10 @@ let bindn_tm k xs m =
       match opt with
       | Some (i, _) -> Var (V.bind (i + k))
       | None -> Var y)
-    | Pi (s, a, impl, Abs (x, b)) ->
+    | Pi (s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Pi (s, a, impl, Abs (x, b))
+      Pi (s, a, Abs (x, b))
     | Fun (a_opt, Abs (x, cls)) ->
       let a_opt = Option.map (aux k) a_opt in
       let cls =
@@ -200,10 +200,10 @@ let unbindn_tm k xs m =
       match V.is_bound y sz k with
       | Some i -> Var (List.nth xs (i - k))
       | None -> Var y)
-    | Pi (s, a, impl, Abs (x, b)) ->
+    | Pi (s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Pi (s, a, impl, Abs (x, b))
+      Pi (s, a, Abs (x, b))
     | Fun (a_opt, Abs (x, cls)) ->
       let a_opt = Option.map (aux k) a_opt in
       let cls =
@@ -290,10 +290,10 @@ and bindn_tl k xs tl =
   let rec aux k tl =
     match tl with
     | TBase b -> TBase (bindn_tm k xs b)
-    | TBind (a, impl, Abs (x, tl)) ->
+    | TBind (a, Abs (x, tl)) ->
       let a = bindn_tm k xs a in
       let tl = aux (k + 1) tl in
-      TBind (a, impl, Abs (x, tl))
+      TBind (a, Abs (x, tl))
   in
   aux k tl
 
@@ -320,10 +320,10 @@ and unbindn_tl k xs tl =
   let rec aux k tl =
     match tl with
     | TBase a -> TBase (unbindn_tm k xs a)
-    | TBind (a, impl, Abs (x, tl)) ->
+    | TBind (a, Abs (x, tl)) ->
       let a = unbindn_tm k xs a in
       let tl = aux (k + 1) tl in
-      TBind (a, impl, Abs (x, tl))
+      TBind (a, Abs (x, tl))
   in
   aux k tl
 
@@ -397,7 +397,7 @@ let rec occurs_tm x m =
   | Meta _ -> false
   | Type _ -> false
   | Var y -> V.equal x y
-  | Pi (_, a, _, abs) ->
+  | Pi (_, a, abs) ->
     let _, b = unbind_tm abs in
     occurs_tm x a || occurs_tm x b
   | Fun (a_opt, abs) ->
@@ -461,7 +461,7 @@ let occurs_cls x cls =
 let rec occurs_tl x tl =
   match tl with
   | TBase b -> occurs_tm x b
-  | TBind (a, _, abs) ->
+  | TBind (a, abs) ->
     if occurs_tm x a then
       true
     else
@@ -482,11 +482,11 @@ let rec msubst map m =
     match VMap.find_opt x map with
     | Some m -> m
     | None -> Var x)
-  | Pi (s, a, impl, abs) ->
+  | Pi (s, a, abs) ->
     let a = msubst map a in
     let x, b = unbind_tm abs in
     let b = msubst map b in
-    Pi (s, a, impl, bind_tm x b)
+    Pi (s, a, bind_tm x b)
   | Fun (a_opt, abs) ->
     let a_opt = Option.map (msubst map) a_opt in
     let x, cls = unbind_cls abs in
@@ -563,11 +563,11 @@ let subst x m n = msubst (VMap.singleton x n) m
 let rec msubst_tl map tl =
   match tl with
   | TBase b -> TBase (msubst map b)
-  | TBind (a, impl, abs) ->
+  | TBind (a, abs) ->
     let a = msubst map a in
     let x, tl = unbind_tl abs in
     let tl = msubst_tl map tl in
-    TBind (a, impl, bind_tl x tl)
+    TBind (a, bind_tl x tl)
 
 let rec msubst_ptl map ptl =
   match ptl with
@@ -584,7 +584,7 @@ let subst_ptl x ptl m = msubst_ptl (VMap.singleton x m) ptl
 let rec fold_tl f acc tl =
   match tl with
   | TBase b -> (acc, b)
-  | TBind (a, _, abs) ->
+  | TBind (a, abs) ->
     let x, tl = unbind_tl abs in
     let acc, tl = f acc a x tl in
     fold_tl f acc tl

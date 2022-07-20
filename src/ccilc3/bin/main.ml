@@ -17,11 +17,11 @@ let parse s =
       let _ = pr "----------------------------------------------@." in
       let _ = pr "%a@." Pprint1.pp_dcls dcls in
       let _ = pr "----------------------------------------------@." in
-      let res = eval rd_all VMap.empty dcls in
-      let _ = pr "%a@." Pprint1.pp_dcls res in
-      let _ = pr "----------------------------------------------@." in
       let dcls = Trans12.trans_dcls dcls in
       let _ = pr "%a@." Pprint1.pp_dcls dcls in
+      let _ = pr "----------------------------------------------@." in
+      let res = eval rd_all VMap.empty dcls in
+      let _ = pr "%a@." Pprint1.pp_dcls res in
       ()
     | Failed (s, _) -> epr "%s\n" s
   with

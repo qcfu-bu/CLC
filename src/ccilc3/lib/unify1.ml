@@ -10,7 +10,7 @@ let pp_map fmt map =
   in
   pf fmt "@[<v 0>map{@;<1 2>%a}@]" aux map
 
-module Var : sig
+module UVar : sig
   type eqn = Eq of tm VMap.t * tm * tm * tm
   and eqns = eqn list
 
@@ -96,7 +96,7 @@ end = struct
             []
           else
             failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-        | Pi (s1, a1, _, abs1), Pi (s2, a2, _, abs2) ->
+        | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
           if s1 = s2 then
             let _, b1, b2 = unbind2_tm abs1 abs2 in
             let eqns1 = simpl (env, a1, a2) in
@@ -216,7 +216,7 @@ end = struct
     aux VMap.empty eqns
 end
 
-module Meta : sig
+module UMeta : sig
   type eqn = Eq of tm VMap.t * tm * tm
   and eqns = eqn list
 
@@ -259,7 +259,7 @@ end = struct
       match VSet.find_opt x ctx with
       | Some _ -> VSet.empty
       | None -> VSet.singleton x)
-    | Pi (_, a, _, abs) ->
+    | Pi (_, a, abs) ->
       let x, b = unbind_tm abs in
       let fv1 = fv ctx a in
       let fv2 = fv (VSet.add x ctx) b in
@@ -340,7 +340,7 @@ end = struct
     | Meta (y, _) -> M.equal x y
     | Type _ -> false
     | Var y -> false
-    | Pi (_, a, _, abs) ->
+    | Pi (_, a, abs) ->
       let _, b = unbind_tm abs in
       occurs x a || occurs x b
     | Fun (a_opt, abs) ->
@@ -424,7 +424,7 @@ end = struct
         | _, Var _ ->
           let m2 = whnf rd_all env m2 in
           simpl (Eq (env, m1, m2))
-        | Pi (s1, a1, _, abs1), Pi (s2, a2, _, abs2) ->
+        | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
           if s1 = s2 then
             let _, b1, b2 = unbind2_tm abs1 abs2 in
             let eqns1 = simpl (Eq (env, a1, a2)) in
@@ -525,7 +525,7 @@ end = struct
       (fun m ->
         match m with
         | Var x -> x
-        | _ -> V.mk "")
+        | _ -> V.blank ())
       sp
 
   let solve map (Eq (env, m1, m2)) =
@@ -541,7 +541,7 @@ end = struct
         if VSet.subset ctx (VSet.of_list xs) then
           let ps = List.map (fun x -> PVar x) xs in
           let cls = Cl (bindp_tm_opt ps (Some m2)) in
-          let m = Fun (None, bind_cls (V.mk "") [ cls ]) in
+          let m = Fun (None, bind_cls (V.blank ()) [ cls ]) in
           MMap.add x (Some m, None) map
         else
           failwith "solve(%a, %a)" pp_tm m1 pp_tm m2
@@ -561,11 +561,11 @@ end = struct
     | Ann (a, m) -> Ann (resolve_tm map a, resolve_tm map m)
     | Type _ -> m
     | Var _ -> m
-    | Pi (s, a, impl, abs) ->
+    | Pi (s, a, abs) ->
       let x, b = unbind_tm abs in
       let a = resolve_tm map a in
       let b = resolve_tm map b in
-      Pi (s, a, impl, bind_tm x b)
+      Pi (s, a, bind_tm x b)
     | Fun (a_opt, abs) ->
       let a_opt = Option.map (resolve_tm map) a_opt in
       Fun (a_opt, resolve_cls_abs map abs)
@@ -635,11 +635,11 @@ end = struct
   let rec resolve_tl map tl =
     match tl with
     | TBase b -> TBase (resolve_tm map b)
-    | TBind (a, impl, abs) ->
+    | TBind (a, abs) ->
       let x, tl = unbind_tl abs in
       let a = resolve_tm map a in
       let tl = resolve_tl map tl in
-      TBind (a, impl, bind_tl x tl)
+      TBind (a, bind_tl x tl)
 
   let rec resolve_ptl map ptl =
     match ptl with
