@@ -12,20 +12,20 @@ module V : sig
   val pp : Format.formatter -> t -> unit
 end = struct
   type t =
-    | Free of string * int
+    | Free of string * Int64.t
     | Bound of int
 
-  let stamp = ref 0
+  let stamp = ref Int64.zero
 
   let mk s =
-    incr stamp;
+    let _ = stamp := Int64.succ !stamp in
     Free (s, !stamp)
 
   let bind k = Bound k
 
   let equal x y =
     match (x, y) with
-    | Free (_, x), Free (_, y) -> x = y
+    | Free (_, x), Free (_, y) -> Int64.equal x y
     | Bound x, Bound y -> x = y
     | _ -> false
 
@@ -35,7 +35,7 @@ end = struct
     match x with
     | Bound _ -> x
     | Free (x, _) ->
-      incr stamp;
+      let _ = stamp := Int64.succ !stamp in
       Free (x, !stamp)
 
   let is_bound x sz k =
@@ -50,7 +50,7 @@ end = struct
   let pp fmt x =
     match x with
     | Bound x -> pf fmt "_%d" x
-    | Free (x, id) -> pf fmt "%s_%d" x id
+    | Free (x, id) -> pf fmt "%s_%s" x (Int64.to_string id)
 end
 
 module M : sig
