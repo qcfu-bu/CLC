@@ -81,3 +81,15 @@ def stderr_rec : unit -> proto
 def stdin_t := stdin_rec tt
 def stdout_t := stdout_rec tt
 def stderr_t := stderr_rec tt
+
+data bottom : U
+
+def foo : bool -> U
+  | true => nat
+  | false => bottom
+
+def bar : ∀ (b : bool) -> foo b -> nat
+  | true x => x
+
+def baz : bottom -> nat
+  | absurd

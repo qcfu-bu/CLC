@@ -334,12 +334,18 @@ and check_prbm ctx env eqns map prbm a =
     pr "@[<v 0>check_prbm(@;<1 2>@[%a@]@;<1 2>: %a)@]@." Var.pp_prbm prbm pp_tm
       a
   in
-  let rec absurd_split es rhs =
+  let rec is_absurd es rhs =
     match (es, rhs) with
     | Var.Eq (_, Var _, Absurd, _) :: _, None -> true
-    | Var.Eq (_, Var _, Absurd, _) :: _, Some _ -> failwith "absurd_split"
-    | _ :: es, _ -> absurd_split es rhs
+    | Var.Eq (_, Var _, Absurd, _) :: _, Some _ -> failwith "is_absurd"
+    | _ :: es, _ -> is_absurd es rhs
     | [], _ -> false
+  in
+  let rec get_absurd es =
+    match es with
+    | Var.Eq (_, Var _, Absurd, a) :: _ -> a
+    | _ :: es -> get_absurd es
+    | [] -> failwith "get_absurd"
   in
   let rec can_split es =
     match es with
@@ -385,13 +391,26 @@ and check_prbm ctx env eqns map prbm a =
       | _ ->
         let _ = pr "%a@." Var.pp_prbm prbm in
         failwith "check_prbm3")
-  | (es, ps, rhs) :: _ when absurd_split es rhs ->
+  | (es, ps, rhs) :: _ when is_absurd es rhs -> (
     let _ = pr "check_prbm_absurd@." in
     if has_failed (fun () -> Var.unify prbm.global) then
       let _ = pr "contradiction found@." in
       (eqns, map)
     else
-      failwith "check_prbm4"
+      let a = get_absurd es in
+      let _ = pr "a := %a@." pp_tm a in
+      let _, eqns, map = infer_sort ctx env eqns map a in
+      let a = whnf rd_all env a in
+      match a with
+      | Data (d, _) ->
+        let _, cs = DMap.find d ctx.ds in
+        let _ = pr "cs := [%a]@." (list ~sep:semi C.pp) cs in
+        if cs <> [] then
+          failwith "check_prbm4"
+        else
+          let _ = pr "contradiction found@." in
+          (eqns, map)
+      | _ -> failwith "check_prbm5")
   | (es, ps, rhs) :: _ when can_split es -> (
     let _ = pr "check_prbm_split@." in
     let x, b = first_split es in
@@ -430,7 +449,7 @@ and check_prbm ctx env eqns map prbm a =
           in
           check_prbm ctx env eqns map prbm a)
         (eqns, map) ptls cs
-    | _ -> failwith "check_prbm5")
+    | _ -> failwith "check_prbm6")
   | (es, [], rhs) :: _ ->
     let _ = pr "check_prbm_finish@." in
     let es = prbm.global @ es in
@@ -440,7 +459,7 @@ and check_prbm ctx env eqns map prbm a =
     let rhs =
       match rhs with
       | Some m -> msubst vmap m
-      | None -> failwith "check_prbm6"
+      | None -> failwith "check_prbm7"
     in
     let _ = pr "checking(%a, %a)@." pp_tm rhs pp_tm a in
     let _ = pr "%a@." pp_ctx ctx in
@@ -459,7 +478,7 @@ and check_prbm ctx env eqns map prbm a =
       let ctx = { ctx with vs = VMap.add x a ctx.vs } in
       let prbm = prbm_add ctx env prbm x a in
       check_prbm ctx env eqns map prbm b
-    | _ -> failwith "check_prbm7")
+    | _ -> failwith "check_prbm8")
 
 and prbm_add ctx env prbm x a =
   let _ = pr "prbm_add(%a)@." Var.pp_prbm prbm in
