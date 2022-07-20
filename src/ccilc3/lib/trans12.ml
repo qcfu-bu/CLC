@@ -92,7 +92,7 @@ and infer_tm ctx env eqns map m =
   | Var x -> (
     match VMap.find_opt x ctx.vs with
     | Some a -> (a, eqns, map)
-    | _ -> failwith "infer_tm(%a)" V.pp x)
+    | _ -> failwith "infer_tm1(%a)" V.pp x)
   | Pi (s, a, impl, abs) ->
     let x, b = unbind_tm abs in
     let _, eqns, map = infer_sort ctx env eqns map a in
@@ -105,7 +105,7 @@ and infer_tm ctx env eqns map m =
       let _, eqns, map = infer_sort ctx env eqns map a in
       let eqns, map = check_tm ctx env eqns map (Fun (a_opt, cls)) a in
       (a, eqns, map)
-    | None -> failwith "infer_tm(%a)" pp_tm m)
+    | None -> failwith "infer_tm2(%a)" pp_tm m)
   | App (m, n) -> (
     let a, eqns, map = infer_tm ctx env eqns map m in
     let a = Meta.resolve_tm map a in
@@ -140,12 +140,12 @@ and infer_tm ctx env eqns map m =
   | Data (d, ms) -> (
     let ptl, _ = DMap.find d ctx.ds in
     try check_ptl ctx env eqns map ms ptl with
-    | _ -> failwith "infer_tm(%a)" pp_tm m)
+    | _ -> failwith "infer_tm3(%a)" pp_tm m)
   | Cons (c, ms) -> (
     let ptl = CMap.find c ctx.cs in
     try check_ptl ctx env eqns map ms ptl with
-    | _ -> failwith "infer_tm(%a)" pp_tm m)
-  | Absurd -> failwith "infer_tm(%a)" pp_tm m
+    | _ -> failwith "infer_tm4(%a)" pp_tm m)
+  | Absurd -> failwith "infer_tm5(%a)" pp_tm m
   | Match (ms, cls) ->
     let ms_ty, eqns, map =
       List.fold_left
@@ -178,8 +178,8 @@ and infer_tm ctx env eqns map m =
         let eqns, map = assert_equal env eqns map tt_ty ff_ty in
         (tt_ty, eqns, map)
       else
-        failwith "infer_tm(%a)" pp_tm m
-    | _ -> failwith "infer_tm(%a)" pp_tm m)
+        failwith "infer_tm6(%a)" pp_tm m
+    | _ -> failwith "infer_tm7(%a)" pp_tm m)
   | Main -> (Type L, eqns, map)
   | Proto -> (Type U, eqns, map)
   | End -> (Proto, eqns, map)
@@ -205,7 +205,7 @@ and infer_tm ctx env eqns map m =
       let eqns, map = check_tm ctx env eqns map n unit in
       let a = Ch (not r, a) in
       (Data (Prelude.tnsr_d, [ a; Main ]), eqns, map)
-    | _ -> failwith "infer_tm(%a)" pp_tm m)
+    | _ -> failwith "infer_tm8(%a)" pp_tm m)
   | Send m -> (
     let a, eqns, map = infer_tm ctx env eqns map m in
     let a = Meta.resolve_tm map a in
@@ -214,7 +214,7 @@ and infer_tm ctx env eqns map m =
       let x, b = unbind_tm abs in
       let abs = bind_tm x (Ch (r1, b)) in
       (Pi (L, a, false, abs), eqns, map)
-    | _ -> failwith "infer_tm(%a)" pp_tm m)
+    | _ -> failwith "infer_tm9(%a)" pp_tm m)
   | Recv m -> (
     let a, eqns, map = infer_tm ctx env eqns map m in
     let a = Meta.resolve_tm map a in
@@ -228,13 +228,13 @@ and infer_tm ctx env eqns map m =
         let abs = bind_cls (V.mk "") [ cls ] in
         (Data (Prelude.sig_d, [ a; Fun (None, abs) ]), eqns, map)
       | L -> (Data (Prelude.tnsr_d, [ a; Ch (r1, b) ]), eqns, map))
-    | _ -> failwith "infer_tm(%a)" pp_tm m)
+    | _ -> failwith "infer_tm10(%a)" pp_tm m)
   | Close m -> (
     let a, eqns, map = infer_tm ctx env eqns map m in
     let a = Meta.resolve_tm map a in
     match whnf rd_all env a with
     | Ch (_, End) -> (Data (Prelude.unit_d, []), eqns, map)
-    | _ -> failwith "infer_tm(%a)" pp_tm m)
+    | _ -> failwith "infer_tm11(%a)" pp_tm m)
 
 and check_ptl ctx env eqns map ms ptl =
   let _ = pr "check_ptl(%a, %a)@." pp_tms ms pp_ptl ptl in
@@ -386,12 +386,14 @@ and check_prbm ctx env eqns map prbm a =
         let _ = pr "%a@." Var.pp_prbm prbm in
         failwith "check_prbm3")
   | (es, ps, rhs) :: _ when absurd_split es rhs ->
+    let _ = pr "check_prbm_absurd@." in
     if has_failed (fun () -> Var.unify prbm.global) then
       let _ = pr "contradiction found@." in
       (eqns, map)
     else
       failwith "check_prbm4"
   | (es, ps, rhs) :: _ when can_split es -> (
+    let _ = pr "check_prbm_split@." in
     let x, b = first_split es in
     let s, eqns, map = infer_sort ctx env eqns map b in
     let b = whnf rd_all env b in
@@ -423,13 +425,14 @@ and check_prbm ctx env eqns map prbm a =
           let prbm = prbm_subst ctx x prbm c in
           let prbm =
             { prbm with
-              Var.global = Var.Eq (env, b, targ, Type s) :: prbm.Var.global
+              Var.global = Eq (env, b, targ, Type s) :: prbm.Var.global
             }
           in
           check_prbm ctx env eqns map prbm a)
         (eqns, map) ptls cs
     | _ -> failwith "check_prbm5")
   | (es, [], rhs) :: _ ->
+    let _ = pr "check_prbm_finish@." in
     let es = prbm.global @ es in
     let vmap = Var.unify es in
     let a = msubst vmap a in
@@ -443,6 +446,7 @@ and check_prbm ctx env eqns map prbm a =
     let _ = pr "%a@." pp_ctx ctx in
     check_tm ctx env eqns map rhs a
   | (es, ps, rhs) :: clause -> (
+    let _ = pr "check_prbm_intro@." in
     let a = whnf rd_all env a in
     match (a, ps) with
     | Pi (s, a, true, abs), _ ->
@@ -504,7 +508,21 @@ and prbm_subst ctx x prbm m =
   | [] -> prbm
   | (es, ps, rhs) :: clause -> (
     let prbm = prbm_subst ctx x { prbm with clause } m in
-    let opt =
+    let global_opt =
+      List.fold_left
+        (fun acc (Var.Eq (env, l, r, a)) ->
+          match acc with
+          | Some acc -> (
+            let l = subst x l m in
+            let r = subst x r m in
+            let a = subst x a m in
+            match p_simpl ctx env l r a with
+            | Some es -> Some (acc @ es)
+            | None -> None)
+          | None -> None)
+        (Some []) prbm.global
+    in
+    let local_opt =
       List.fold_left
         (fun acc (Var.Eq (env, l, r, a)) ->
           match acc with
@@ -518,16 +536,14 @@ and prbm_subst ctx x prbm m =
           | None -> None)
         (Some []) es
     in
-    match opt with
-    | Some es -> { prbm with clause = (es, ps, rhs) :: prbm.clause }
-    | None ->
-      let _ = pr "prbm_none@." in
-      prbm)
+    match (global_opt, local_opt) with
+    | Some global, Some es -> { global; clause = (es, ps, rhs) :: prbm.clause }
+    | _ -> prbm)
 
 and p_simpl ctx env m n a =
   let m = whnf rd_all env m in
   let n = whnf rd_all env n in
-  let _ = pr "p_simpl(%a, %a, %a)@." pp_tm m pp_tm n pp_tm a in
+  (* let _ = pr "p_simpl(%a, %a, %a)@." pp_tm m pp_tm n pp_tm a in *)
   match (m, n) with
   | Cons (c1, xs), Cons (c2, ys) ->
     if C.equal c1 c2 then

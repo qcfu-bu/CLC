@@ -78,7 +78,6 @@ end = struct
     else
       let m1 = whnf [ Beta; Iota; Zeta ] env m1 in
       let m2 = whnf [ Beta; Iota; Zeta ] env m2 in
-      let _ = pr "simpl(%a, %a)@." pp_tm m1 pp_tm m2 in
       let h1, sp1 = unApps m1 in
       let h2, sp2 = unApps m2 in
       let eqns_sp =
@@ -91,6 +90,7 @@ end = struct
       let eqns_h =
         match (h1, h2) with
         | _, Var _ -> [ (env, m1, m2) ]
+        | Var _, _ -> [ (env, m2, m1) ]
         | Type s1, Type s2 ->
           if s1 = s2 then
             []
@@ -671,7 +671,6 @@ end = struct
   let resolve_dcls map dcls = List.map (resolve_dcl map) dcls
 
   let rec unify map eqns =
-    let _ = pr "unify(%a)@." pp_eqns eqns in
     let eqns =
       List.map
         (fun (Eq (env, m1, m2)) ->
