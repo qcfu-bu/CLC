@@ -327,47 +327,23 @@ and unbindn_tl k xs tl =
   in
   aux k tl
 
-let bind_tm x m =
-  if V.is_blank x then
-    Abs (x, m)
-  else
-    Abs (x, bindn_tm 0 [ x ] m)
+let bind_tm x m = Abs (x, bindn_tm 0 [ x ] m)
 
 let bindp_tm_opt p m_opt =
   let xs = xs_of_ps p in
   PAbs (p, Option.map (bindn_tm 0 xs) m_opt)
 
-let bind_cls x cls =
-  if V.is_blank x then
-    Abs (x, cls)
-  else
-    Abs (x, bindn_cls 0 [ x ] cls)
-
-let bind_ptl x ptl =
-  if V.is_blank x then
-    Abs (x, ptl)
-  else
-    Abs (x, bindn_ptl 0 [ x ] ptl)
-
-let bind_tl x tl =
-  if V.is_blank x then
-    Abs (x, tl)
-  else
-    Abs (x, bindn_tl 0 [ x ] tl)
+let bind_cls x cls = Abs (x, bindn_cls 0 [ x ] cls)
+let bind_ptl x ptl = Abs (x, bindn_ptl 0 [ x ] ptl)
+let bind_tl x tl = Abs (x, bindn_tl 0 [ x ] tl)
 
 let unbind_cls (Abs (x, cls)) =
-  if V.is_blank x then
-    (x, cls)
-  else
-    let x = V.freshen x in
-    (x, unbindn_cls 0 [ x ] cls)
+  let x = V.freshen x in
+  (x, unbindn_cls 0 [ x ] cls)
 
 let unbind_tm (Abs (x, m)) =
-  if V.is_blank x then
-    (x, m)
-  else
-    let x = V.freshen x in
-    (x, unbindn_tm 0 [ x ] m)
+  let x = V.freshen x in
+  (x, unbindn_tm 0 [ x ] m)
 
 let unbindp_tm_opt (PAbs (ps, m_opt)) =
   let ps = freshen_ps ps in
@@ -375,18 +351,12 @@ let unbindp_tm_opt (PAbs (ps, m_opt)) =
   (ps, Option.map (unbindn_tm 0 xs) m_opt)
 
 let unbind_ptl (Abs (x, ptl)) =
-  if V.is_blank x then
-    (x, ptl)
-  else
-    let x = V.freshen x in
-    (x, unbindn_ptl 0 [ x ] ptl)
+  let x = V.freshen x in
+  (x, unbindn_ptl 0 [ x ] ptl)
 
 let unbind_tl (Abs (x, tl)) =
-  if V.is_blank x then
-    (x, tl)
-  else
-    let x = V.freshen x in
-    (x, unbindn_tl 0 [ x ] tl)
+  let x = V.freshen x in
+  (x, unbindn_tl 0 [ x ] tl)
 
 let unbind2_tm (Abs (x, m)) (Abs (_, n)) =
   let x = V.freshen x in
@@ -420,6 +390,83 @@ let unbind2_cls (Abs (x, cls1)) (Abs (_, cls2)) =
 
 let equal_abs eq (Abs (_, m)) (Abs (_, n)) = eq m n
 let equal_pabs eq (PAbs (_, m)) (PAbs (_, n)) = eq m n
+
+let rec occurs_tm x m =
+  match m with
+  | Ann (a, m) -> occurs_tm x a || occurs_tm x m
+  | Meta _ -> false
+  | Type _ -> false
+  | Var y -> V.equal x y
+  | Pi (_, a, _, abs) ->
+    let _, b = unbind_tm abs in
+    occurs_tm x a || occurs_tm x b
+  | Fun (a_opt, abs) ->
+    let x, cls = unbind_cls abs in
+    let a_res =
+      match a_opt with
+      | Some a -> occurs_tm x a
+      | None -> false
+    in
+    a_res
+    || List.exists
+         (fun (Cl pabs) ->
+           let _, m_opt = unbindp_tm_opt pabs in
+           match m_opt with
+           | Some m -> occurs_tm x m
+           | None -> false)
+         cls
+  | App (m, n) -> occurs_tm x m || occurs_tm x n
+  | Let (m, abs) ->
+    let x, n = unbind_tm abs in
+    occurs_tm x m || occurs_tm x n
+  | Data (_, ms) -> List.exists (occurs_tm x) ms
+  | Cons (_, ms) -> List.exists (occurs_tm x) ms
+  | Absurd -> false
+  | Match (ms, cls) ->
+    List.exists (occurs_tm x) ms
+    || List.exists
+         (fun (Cl pabs) ->
+           let _, m_opt = unbindp_tm_opt pabs in
+           match m_opt with
+           | Some m -> occurs_tm x m
+           | None -> false)
+         cls
+  | If (m, tt, ff) -> occurs_tm x m || occurs_tm x tt || occurs_tm x ff
+  | Main -> false
+  | Proto -> false
+  | End -> false
+  | Act (_, a, abs) ->
+    let x, b = unbind_tm abs in
+    occurs_tm x a || occurs_tm x b
+  | Ch (_, a) -> occurs_tm x a
+  | Fork (a, m, abs) ->
+    let x, n = unbind_tm abs in
+    occurs_tm x a || occurs_tm x m || occurs_tm x n
+  | Send m -> occurs_tm x m
+  | Recv m -> occurs_tm x m
+  | Close m -> occurs_tm x m
+
+let occurs_cls x cls =
+  List.fold_left
+    (fun acc (Cl pabs) ->
+      let _, m_opt = unbindp_tm_opt pabs in
+      if acc then
+        true
+      else
+        match m_opt with
+        | Some m -> occurs_tm x m
+        | None -> false)
+    false cls
+
+let rec occurs_tl x tl =
+  match tl with
+  | TBase b -> occurs_tm x b
+  | TBind (a, _, abs) ->
+    if occurs_tm x a then
+      true
+    else
+      let _, tl = unbind_tl abs in
+      occurs_tl x tl
 
 let rec msubst map m =
   match m with
@@ -511,11 +558,7 @@ let rec msubst map m =
     let m = msubst map m in
     Close m
 
-let subst x m n =
-  if V.is_blank x then
-    m
-  else
-    msubst (VMap.singleton x n) m
+let subst x m n = msubst (VMap.singleton x n) m
 
 let rec msubst_tl map tl =
   match tl with
@@ -535,17 +578,8 @@ let rec msubst_ptl map ptl =
     let ptl = msubst_ptl map ptl in
     PBind (a, impl, bind_ptl x ptl)
 
-let subst_tl x tl m =
-  if V.is_blank x then
-    tl
-  else
-    msubst_tl (VMap.singleton x m) tl
-
-let subst_ptl x ptl m =
-  if V.is_blank x then
-    ptl
-  else
-    msubst_ptl (VMap.singleton x m) ptl
+let subst_tl x tl m = msubst_tl (VMap.singleton x m) tl
+let subst_ptl x ptl m = msubst_ptl (VMap.singleton x m) ptl
 
 let rec fold_tl f acc tl =
   match tl with

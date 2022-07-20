@@ -9,18 +9,18 @@ data nat : U
 
 data vec (A : U) : nat -> U
   | nil : vec A zero
-  | cons : ∀ {n : nat} -> A -> vec A n -> vec A (succ n)
+  | cons : ∀ (n : nat) -> A -> vec A n -> vec A (succ n)
 
-def addn : nat -> nat -> nat
-  | zero x => x
-  | (succ x) y => succ (addn x y)
+-- def addn : nat -> nat -> nat
+--   | zero x => x
+--   | (succ x) y => succ (addn x y)
 
-def length : ∀ {A : U} {n : nat} -> vec A n -> nat
-  | nil => zero
-  | (cons _ tl) => succ (length tl)
+-- def length : ∀ (A : U) (n : nat) -> vec A n -> nat
+--   | _ _ nil => zero
+--   | _ _ (cons _ tl) => succ (length tl)
 
 def one := succ zero
 
-def foo := cons one (cons one (cons one nil))
+-- def foo := cons one (cons one (cons one nil))
 
 def main := length foo

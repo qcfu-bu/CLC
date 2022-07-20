@@ -3,10 +3,8 @@ open Fmt
 module V : sig
   type t
 
-  val blank : t
   val mk : string -> t
   val bind : int -> t
-  val is_blank : t -> bool
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val freshen : t -> t
@@ -16,21 +14,14 @@ end = struct
   type t =
     | Free of string * int
     | Bound of int
-    | Blank
 
   let stamp = ref 0
-  let blank = Blank
 
   let mk s =
     incr stamp;
     Free (s, !stamp)
 
   let bind k = Bound k
-
-  let is_blank x =
-    match x with
-    | Blank -> true
-    | _ -> false
 
   let equal x y =
     match (x, y) with
@@ -46,7 +37,6 @@ end = struct
     | Free (x, _) ->
       incr stamp;
       Free (x, !stamp)
-    | Blank -> Blank
 
   let is_bound x sz k =
     match x with
@@ -56,13 +46,11 @@ end = struct
       else
         None
     | Free _ -> None
-    | Blank -> None
 
   let pp fmt x =
     match x with
     | Bound x -> pf fmt "_%d" x
     | Free (x, id) -> pf fmt "%s_%d" x id
-    | Blank -> pf fmt "_"
 end
 
 module M : sig
@@ -82,7 +70,7 @@ end = struct
     !stamp
 
   let equal x y = x = y
-  let compare x y = compare x y
+  let compare x y = Int.compare x y
   let pp fmt id = pf fmt "??%d" id
 end
 
@@ -103,7 +91,7 @@ end = struct
     (s, !stamp)
 
   let equal x y = snd x = snd y
-  let compare x y = compare (snd x) (snd y)
+  let compare x y = Int.compare (snd x) (snd y)
   let pp fmt (s, id) = pf fmt "%s_d%d" s id
 end
 
@@ -124,7 +112,7 @@ end = struct
     (s, !stamp)
 
   let equal x y = snd x = snd y
-  let compare x y = compare (snd x) (snd y)
+  let compare x y = Int.compare (snd x) (snd y)
   let pp fmt (s, id) = pf fmt "%s_c%d" s id
 end
 

@@ -41,22 +41,28 @@ end = struct
       match eqns with
       | [] -> ()
       | [ eqn ] -> pf fmt "@[%a@]" pp_eqn eqn
-      | eqn :: eqns -> pf fmt "@[%a@]@;<1 2>%a" pp_eqn eqn aux eqns
+      | eqn :: eqns -> pf fmt "@[%a@]@;<1 0>%a" pp_eqn eqn aux eqns
     in
-    pf fmt "@[<v 0>eqns{@;<1 2>%a}@]" aux eqns
+    pf fmt "@[eqns{@;<1 2>%a}@]" aux eqns
 
   let rec pp_clause fmt cls =
     match cls with
     | [] -> ()
     | [ (eqns, ps, rhs) ] ->
-      pf fmt "[%a](%a)=>%a" pp_eqns eqns (pp_ps ", ") ps pp_tm_opt rhs
+      pf fmt "[%a](%a)=>@;<1 2>%a" pp_eqns eqns (pp_ps ", ") ps (option pp_tm)
+        rhs
     | (eqns, ps, rhs) :: cls ->
-      pf fmt "[%a](%a)=>%a@;<1 2>%a" pp_eqns eqns (pp_ps ", ") ps pp_tm_opt rhs
-        pp_clause cls
+      pf fmt "[%a](%a)=>@;<1 2>%a@;<1 0>%a" pp_eqns eqns (pp_ps ", ") ps
+        (option pp_tm) rhs pp_clause cls
 
   let pp_prbm fmt prbm =
-    pf fmt "@[<v 0>{@;<1 2>@[global=(%a)@]@;<1 2>@[clause=(%a)@]@;<1 2>}@]"
-      pp_eqns prbm.global pp_clause prbm.clause
+    pf fmt
+      "@[{@;\
+       <1 2>@[global=(@;\
+       <1 2>@[%a@])@]@;\
+       <1 2>@[clause=(@;\
+       <1 2>@[<v 0>%a@])@]@;\
+       <1 0>}@]" pp_eqns prbm.global pp_clause prbm.clause
 
   let rec prbm_of_cls cls : prbm =
     match cls with
@@ -65,61 +71,6 @@ end = struct
       let ps, rhs = unbindp_tm_opt pabs in
       let prbm = prbm_of_cls cls in
       { prbm with clause = ([], ps, rhs) :: prbm.clause }
-
-  let rec occurs x m =
-    match m with
-    | Ann (a, m) -> occurs x a || occurs x m
-    | Meta _ -> false
-    | Type _ -> false
-    | Var y -> V.equal x y
-    | Pi (_, a, _, abs) ->
-      let _, b = unbind_tm abs in
-      occurs x a || occurs x b
-    | Fun (a_opt, abs) ->
-      let x, cls = unbind_cls abs in
-      let a_res =
-        match a_opt with
-        | Some a -> occurs x a
-        | None -> false
-      in
-      a_res
-      || List.exists
-           (fun (Cl pabs) ->
-             let _, m_opt = unbindp_tm_opt pabs in
-             match m_opt with
-             | Some m -> occurs x m
-             | None -> false)
-           cls
-    | App (m, n) -> occurs x m || occurs x n
-    | Let (m, abs) ->
-      let x, n = unbind_tm abs in
-      occurs x m || occurs x n
-    | Data (_, ms) -> List.exists (occurs x) ms
-    | Cons (_, ms) -> List.exists (occurs x) ms
-    | Absurd -> false
-    | Match (ms, cls) ->
-      List.exists (occurs x) ms
-      || List.exists
-           (fun (Cl pabs) ->
-             let _, m_opt = unbindp_tm_opt pabs in
-             match m_opt with
-             | Some m -> occurs x m
-             | None -> false)
-           cls
-    | If (m, tt, ff) -> occurs x m || occurs x tt || occurs x ff
-    | Main -> false
-    | Proto -> false
-    | End -> false
-    | Act (_, a, abs) ->
-      let x, b = unbind_tm abs in
-      occurs x a || occurs x b
-    | Ch (_, a) -> occurs x a
-    | Fork (a, m, abs) ->
-      let x, n = unbind_tm abs in
-      occurs x a || occurs x m || occurs x n
-    | Send m -> occurs x m
-    | Recv m -> occurs x m
-    | Close m -> occurs x m
 
   let rec simpl (env, m1, m2) =
     if equal rd_all env m1 m2 then
@@ -244,7 +195,7 @@ end = struct
     let m2 = whnf [ Beta; Iota; Zeta ] env m2 in
     match (m1, m2) with
     | _, Var x ->
-      if occurs x m1 then
+      if occurs_tm x m1 then
         failwith "solve_occurs (%a, %a)" V.pp x pp_tm m1
       else
         VMap.add x m1 map
@@ -274,6 +225,7 @@ module Meta : sig
   val pp_eqn : Format.formatter -> eqn -> unit
   val pp_eqns : Format.formatter -> eqns -> unit
   val resolve_tm : map -> tm -> tm
+  val resolve_cls_abs : map -> cls abs -> cls abs
   val resolve_tl : map -> tl -> tl
   val resolve_ptl : map -> ptl -> ptl
   val resolve_dcons : map -> dcons -> dcons
@@ -589,7 +541,7 @@ end = struct
         if VSet.subset ctx (VSet.of_list xs) then
           let ps = List.map (fun x -> PVar x) xs in
           let cls = Cl (bindp_tm_opt ps (Some m2)) in
-          let m = Fun (None, bind_cls V.blank [ cls ]) in
+          let m = Fun (None, bind_cls (V.mk "") [ cls ]) in
           MMap.add x (Some m, None) map
         else
           failwith "solve(%a, %a)" pp_tm m1 pp_tm m2
@@ -615,17 +567,8 @@ end = struct
       let b = resolve_tm map b in
       Pi (s, a, impl, bind_tm x b)
     | Fun (a_opt, abs) ->
-      let x, cls = unbind_cls abs in
       let a_opt = Option.map (resolve_tm map) a_opt in
-      let cls =
-        List.map
-          (fun (Cl pabs) ->
-            let ps, m_opt = unbindp_tm_opt pabs in
-            let m_opt = Option.map (resolve_tm map) m_opt in
-            Cl (bindp_tm_opt ps m_opt))
-          cls
-      in
-      Fun (a_opt, bind_cls x cls)
+      Fun (a_opt, resolve_cls_abs map abs)
     | App (m, n) ->
       let m = resolve_tm map m in
       let n = resolve_tm map n in
@@ -677,6 +620,18 @@ end = struct
     | Recv m -> Recv (resolve_tm map m)
     | Close m -> Close (resolve_tm map m)
 
+  and resolve_cls_abs map abs =
+    let x, cls = unbind_cls abs in
+    let cls =
+      List.map
+        (fun (Cl pabs) ->
+          let ps, m_opt = unbindp_tm_opt pabs in
+          let m_opt = Option.map (resolve_tm map) m_opt in
+          Cl (bindp_tm_opt ps m_opt))
+        cls
+    in
+    bind_cls x cls
+
   let rec resolve_tl map tl =
     match tl with
     | TBase b -> TBase (resolve_tm map b)
@@ -704,17 +659,8 @@ end = struct
       let m = resolve_tm map m in
       DTm (x, a_opt, m)
     | DFun (x, a, abs) ->
-      let y, cls = unbind_cls abs in
       let a = resolve_tm map a in
-      let cls =
-        List.map
-          (fun (Cl pabs) ->
-            let ps, m_opt = unbindp_tm_opt pabs in
-            let m_opt = Option.map (resolve_tm map) m_opt in
-            Cl (bindp_tm_opt ps m_opt))
-          cls
-      in
-      DFun (x, a, bind_cls y cls)
+      DFun (x, a, resolve_cls_abs map abs)
     | DData (d, ptl, dconss) ->
       let ptl = resolve_ptl map ptl in
       let dconss = List.map (resolve_dcons map) dconss in
@@ -725,6 +671,7 @@ end = struct
   let resolve_dcls map dcls = List.map (resolve_dcl map) dcls
 
   let rec unify map eqns =
+    let _ = pr "unify(%a)@." pp_eqns eqns in
     let eqns =
       List.map
         (fun (Eq (env, m1, m2)) ->

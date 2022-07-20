@@ -317,47 +317,23 @@ and unbindn_tl k xs tl =
   in
   aux k tl
 
-let bind_tm x m =
-  if V.is_blank x then
-    Abs (x, m)
-  else
-    Abs (x, bindn_tm 0 [ x ] m)
+let bind_tm x m = Abs (x, bindn_tm 0 [ x ] m)
 
 let bindp_tm_opt p m_opt =
   let xs = xs_of_ps p in
   PAbs (p, Option.map (bindn_tm 0 xs) m_opt)
 
-let bind_cls x cls =
-  if V.is_blank x then
-    Abs (x, cls)
-  else
-    Abs (x, bindn_cls 0 [ x ] cls)
-
-let bind_ptl x ptl =
-  if V.is_blank x then
-    Abs (x, ptl)
-  else
-    Abs (x, bindn_ptl 0 [ x ] ptl)
-
-let bind_tl x tl =
-  if V.is_blank x then
-    Abs (x, tl)
-  else
-    Abs (x, bindn_tl 0 [ x ] tl)
+let bind_cls x cls = Abs (x, bindn_cls 0 [ x ] cls)
+let bind_ptl x ptl = Abs (x, bindn_ptl 0 [ x ] ptl)
+let bind_tl x tl = Abs (x, bindn_tl 0 [ x ] tl)
 
 let unbind_cls (Abs (x, cls)) =
-  if V.is_blank x then
-    (x, cls)
-  else
-    let x = V.freshen x in
-    (x, unbindn_cls 0 [ x ] cls)
+  let x = V.freshen x in
+  (x, unbindn_cls 0 [ x ] cls)
 
 let unbind_tm (Abs (x, m)) =
-  if V.is_blank x then
-    (x, m)
-  else
-    let x = V.freshen x in
-    (x, unbindn_tm 0 [ x ] m)
+  let x = V.freshen x in
+  (x, unbindn_tm 0 [ x ] m)
 
 let unbindp_tm_opt (PAbs (ps, m_opt)) =
   let ps = freshen_ps ps in
@@ -365,18 +341,12 @@ let unbindp_tm_opt (PAbs (ps, m_opt)) =
   (ps, Option.map (unbindn_tm 0 xs) m_opt)
 
 let unbind_ptl (Abs (x, ptl)) =
-  if V.is_blank x then
-    (x, ptl)
-  else
-    let x = V.freshen x in
-    (x, unbindn_ptl 0 [ x ] ptl)
+  let x = V.freshen x in
+  (x, unbindn_ptl 0 [ x ] ptl)
 
 let unbind_tl (Abs (x, tl)) =
-  if V.is_blank x then
-    (x, tl)
-  else
-    let x = V.freshen x in
-    (x, unbindn_tl 0 [ x ] tl)
+  let x = V.freshen x in
+  (x, unbindn_tl 0 [ x ] tl)
 
 let unbind2_tm (Abs (x, m)) (Abs (_, n)) =
   let x = V.freshen x in
@@ -497,11 +467,7 @@ let rec msubst map m =
     let m = msubst map m in
     Close m
 
-let subst x m n =
-  if V.is_blank x then
-    m
-  else
-    msubst (VMap.singleton x n) m
+let subst x m n = msubst (VMap.singleton x n) m
 
 let rec mkApps hd ms =
   match ms with

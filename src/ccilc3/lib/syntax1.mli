@@ -87,6 +87,9 @@ val unbindp2_tm_opt : tm_opt pabs -> tm_opt pabs -> ps * tm_opt * tm_opt
 val unbind2_cls : cls abs -> cls abs -> V.t * cls * cls
 val equal_abs : ('a -> 'b -> bool) -> 'a abs -> 'b abs -> bool
 val equal_pabs : ('a -> 'b -> bool) -> 'a pabs -> 'b pabs -> bool
+val occurs_tm : V.t -> tm -> bool
+val occurs_cls : V.t -> cls -> bool
+val occurs_tl : V.t -> tl -> bool
 val msubst : tm VMap.t -> tm -> tm
 val subst : V.t -> tm -> tm -> tm
 val subst_tl : V.t -> tl -> tm -> tl

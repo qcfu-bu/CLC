@@ -12,7 +12,7 @@ type nspc = entry SMap.t
 let trans_id_opt id_opt =
   match id_opt with
   | Some id -> V.mk id
-  | None -> V.blank
+  | None -> V.mk ""
 
 let trans_sort s =
   match s with
