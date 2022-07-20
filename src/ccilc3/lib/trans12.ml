@@ -13,7 +13,7 @@ type ctx =
 
 let pp_vs fmt vs =
   let aux fmt vs =
-    VMap.iter (fun x a -> pf fmt "%a : %a@;<1 2>" V.pp x pp_tm a) vs
+    VMap.iter (fun x a -> pf fmt "@[%a :@;<1 2>%a@]@;<1 2>" V.pp x pp_tm a) vs
   in
   pf fmt "@[<v 0>vs={@;<1 2>%a}@]" aux vs
 
@@ -32,8 +32,8 @@ let pp_cs fmt cs =
   pf fmt "@[<v 0>cs={@;<1 2>%a}@]" aux cs
 
 let pp_ctx fmt ctx =
-  pf fmt "@[<v 0>ctx{%a@;<1 2>%a@;<1 2>%a}@]" pp_vs ctx.vs pp_ds ctx.ds pp_cs
-    ctx.cs
+  pf fmt "@[<v 0>ctx{@;<1 2>%a@;<1 2>%a@;<1 2>%a}@]" pp_vs ctx.vs pp_ds ctx.ds
+    pp_cs ctx.cs
 
 let msubst_ctx map ctx =
   let vs = VMap.map (fun a -> msubst map a) ctx.vs in

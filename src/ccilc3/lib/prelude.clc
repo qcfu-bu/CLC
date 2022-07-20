@@ -27,8 +27,8 @@ data vec (A : U) : nat -> U
 
 def foo : vec nat (succ zero) := vcons zero vnil
 
-def tail : ∀ {A : U} {n : nat} -> vec A (succ (succ n)) -> vec A n
-  | vcons _ (vcons _ tl) => tl 
+def tail : ∀ {A : U} {n : nat} -> vec A (succ (succ (succ n))) -> vec A n
+  | vcons _ (vcons _ (vcons _ tl)) => tl 
 
 def max : nat -> nat -> nat
   | zero j => j
