@@ -443,9 +443,7 @@ and check_prbm ctx env eqns map prbm a =
           let ctx = subst_ctx x ctx c in
           let prbm = prbm_subst ctx x prbm c in
           let prbm =
-            { prbm with
-              Var.global = Eq (env, b, targ, Type s) :: prbm.Var.global
-            }
+            Var.{ prbm with global = Eq (env, b, targ, Type s) :: prbm.global }
           in
           check_prbm ctx env eqns map prbm a)
         (eqns, map) ptls cs
