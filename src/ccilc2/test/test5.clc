@@ -28,7 +28,7 @@ Fixpoint ref_handler
   with
   | GET => fun ch =>
     let ch := send ch m in
-    ref_handler A m ch
+    ref_handler _ m ch
   | SET => fun ch =>
     let [m, ch] := recv ch in
     ref_handler A m ch

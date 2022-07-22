@@ -4,26 +4,26 @@ open Names
 open Parser0
 open Trans01
 
-let src0 =
+let src0, state0 =
   let ch = open_in "./lib/prelude.clc" in
-  match parse_channel ch with
-  | Success dcls -> dcls
+  match parse_channel ch SMap.empty with
+  | Success res -> res
   | Failed (s, _) -> failwith "prelude"
 
-let nspc, _, src1 = trans_dcls SMap.empty SMap.empty src0
+let nspc, cs, src1 = trans_dcls [] SMap.empty src0
 
 let find_v s =
-  match SMap.find s nspc with
+  match List.assoc s nspc with
   | V x -> x
   | _ -> failwith "find_v(%s)" s
 
 let find_d s =
-  match SMap.find s nspc with
+  match List.assoc s nspc with
   | D d -> d
   | _ -> failwith "find_d(%s)" s
 
 let find_c s =
-  match SMap.find s nspc with
+  match List.assoc s nspc with
   | C c -> c
   | _ -> failwith "find_c(%s)" s
 

@@ -1,0 +1,166 @@
+simpl( channel (ref_t#2042) ((?6) : U)?=  channel (ref_t#2042) A#2052)
+simpl( (ref_t#2042) ?6?=  (ref_t#2042) A#2052)
+simpl( ?6?=  A#2052)
+simpl( ((?6) : U)?=  A#2052)
+simpl( A#2052?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( ((?7) : U)?=  string)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel- (ref_t#2042) ((?8) : U)?=
+   ((channel- (ref_t#2042) ((string) : U)) : L))
+simpl( (ref_t#2042) ?8?=  (ref_t#2042) string)
+simpl( ?8?=  string)
+simpl( ((string) : U)?=  string)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel- (ref_t#2042) ((?9) : U)?=
+   (((fun _#4155  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg1#4105)
+simpl( (ref_t#2042) ?9?=  (ref_t#2042) string)
+simpl( ?9?=  string)
+simpl( ((?9) : U)?=  string)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   ((channel- (ref_t#2042) ((string) : U)) : L))
+simpl( ((string) : U)?=  string)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( string?=  string)
+simpl( channel- (ref_t#2042) ((?10) : U)?=
+   channel- (ref_t#2042) ((string) : U))
+simpl( (ref_t#2042) ?10?=  (ref_t#2042) string)
+simpl( ?10?=  string)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   (((fun _#4274  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg1#4105)
+simpl( ((string) : U)?=  string)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   ((channel- (ref_t#2042) ((string) : U)) : L))
+simpl( ((string) : U)?=  string)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   channel- (ref_t#2042) ((string) : U))
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   (((fun _#4364  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg1#4105)
+simpl( ((string) : U)?=  string)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   ((channel- (ref_t#2042) ((string) : U)) : L))
+simpl( ((string) : U)?=  string)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   channel- (ref_t#2042) ((string) : U))
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   (((fun _#4444  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg1#4105)
+simpl( ((string) : U)?=  string)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   ((channel- (ref_t#2042) ((string) : U)) : L))
+simpl( ((string) : U)?=  string)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel- (ref_t#2042) ((?11) : U)?=
+   (((fun _#4536  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg2#4346)
+simpl( (ref_t#2042) ?11?=  (ref_t#2042) string)
+simpl( ?11?=  string)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   channel- (ref_t#2042) ((string) : U))
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   (((fun _#4561  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg1#4105)
+simpl( ((string) : U)?=  string)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   ((channel- (ref_t#2042) ((string) : U)) : L))
+simpl( ((string) : U)?=  string)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   (((fun _#4637  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg2#4346)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   channel- (ref_t#2042) ((string) : U))
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   (((fun _#4662  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg1#4105)
+simpl( ((string) : U)?=  string)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   ((channel- (ref_t#2042) ((string) : U)) : L))
+simpl( ((string) : U)?=  string)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   (((fun _#4737  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg2#4346)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   channel- (ref_t#2042) ((string) : U))
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   (((fun _#4762  => channel- (ref_t#2042) ((string) : U)) :
+      (((((string) : U)) : U)) -> L))
+     msg1#4105)
+simpl( ((string) : U)?=  string)
+simpl( channel- (ref_t#2042) ((string) : U)?=
+   ((channel- (ref_t#2042) ((string) : U)) : L))
+simpl( ((string) : U)?=  string)
+simpl( channel (ref_t#2042) ((A#2052) : U)?=  channel (ref_t#2042) A#2052)
+simpl( ((A#2052) : U)?=  A#2052)
+hello
+world

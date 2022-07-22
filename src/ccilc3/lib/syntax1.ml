@@ -401,7 +401,7 @@ let rec occurs_tm x m =
     let _, b = unbind_tm abs in
     occurs_tm x a || occurs_tm x b
   | Fun (a_opt, abs) ->
-    let x, cls = unbind_cls abs in
+    let _, cls = unbind_cls abs in
     let a_res =
       match a_opt with
       | Some a -> occurs_tm x a
@@ -417,7 +417,7 @@ let rec occurs_tm x m =
          cls
   | App (m, n) -> occurs_tm x m || occurs_tm x n
   | Let (m, abs) ->
-    let x, n = unbind_tm abs in
+    let _, n = unbind_tm abs in
     occurs_tm x m || occurs_tm x n
   | Data (_, ms) -> List.exists (occurs_tm x) ms
   | Cons (_, ms) -> List.exists (occurs_tm x) ms
@@ -436,11 +436,11 @@ let rec occurs_tm x m =
   | Proto -> false
   | End -> false
   | Act (_, a, abs) ->
-    let x, b = unbind_tm abs in
+    let _, b = unbind_tm abs in
     occurs_tm x a || occurs_tm x b
   | Ch (_, a) -> occurs_tm x a
   | Fork (a, m, abs) ->
-    let x, n = unbind_tm abs in
+    let _, n = unbind_tm abs in
     occurs_tm x a || occurs_tm x m || occurs_tm x n
   | Send m -> occurs_tm x m
   | Recv m -> occurs_tm x m

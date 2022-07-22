@@ -1,5 +1,7 @@
+open Fmt
 open Names
 open Syntax1
+open Pprint1
 
 type rd =
   | Beta
@@ -43,7 +45,7 @@ let rec whnf rds env m =
     let sp = List.map (whnf rds env) sp in
     match (m, sp) with
     | Fun (_, abs), _ :: _ ->
-      if List.exists (( = ) Iota) rds then
+      if List.exists (( = ) Beta) rds then
         let x, cls = unbind_cls abs in
         match match_cls cls sp with
         | Some (Some n) -> whnf rds env (subst x n m)
@@ -59,6 +61,7 @@ let rec whnf rds env m =
     else
       Let (m, abs)
   | Match (ms, cls) ->
+    let ms = List.map (whnf rds env) ms in
     if List.exists (( = ) Iota) rds then
       match match_cls cls ms with
       | Some (Some m) -> whnf rds env m

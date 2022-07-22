@@ -25,18 +25,6 @@ data vec (A : U) : nat -> U
   | vnil : vec A zero
   | vcons : ∀ (n : nat) -> A -> vec A n -> vec A (succ n)
 
-def foo : vec nat (succ zero) := vcons _ zero vnil
-
-def tail : ∀ (A : U) (n : nat) -> vec A (succ n) -> vec A n
-  | _ _ (vcons _ _ tl) => tl 
-
-def bar := tail _ _ foo
-
-def max : nat -> nat -> nat
-  | zero j => j
-  | i zero => i
-  | (succ k) (succ l) => succ (max k l)
-
 data ex (A : U) (P : A -> U) : U
   | ex_intro : ∀ (x : A) -> P x -> ex A P
 

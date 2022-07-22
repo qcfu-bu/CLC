@@ -107,10 +107,7 @@ and infer_tm ctx env eqns map m =
       let eqns, map = check_tm ctx env eqns map m a in
       (a, eqns, map))
   | Meta (x, xs) -> (
-    try
-      let a = find_m x map in
-      (a, eqns, map)
-    with
+    try (find_m x map, eqns, map) with
     | _ ->
       let meta, _ = meta_mk ctx in
       (meta, eqns, add_m x meta map))
@@ -227,7 +224,7 @@ and infer_tm ctx env eqns map m =
       let x, b = unbind_tm abs in
       let abs = bind_tm x (Ch (r1, b)) in
       (Pi (L, a, abs), eqns, map)
-    | _ -> failwith "infer_tm7(%a)" pp_tm m)
+    | a -> failwith "infer_tm7(%a, %a)" pp_tm m pp_tm a)
   | Recv m -> (
     let a, eqns, map = infer_tm ctx env eqns map m in
     let a = UMeta.resolve_tm map a in
@@ -241,7 +238,7 @@ and infer_tm ctx env eqns map m =
         let abs = bind_cls (V.blank ()) [ cls ] in
         (Data (Prelude.sig_d, [ a; Fun (None, abs) ]), eqns, map)
       | L -> (Data (Prelude.tnsr_d, [ a; Ch (r1, b) ]), eqns, map))
-    | _ -> failwith "infer_tm8(%a)" pp_tm m)
+    | a -> failwith "infer_tm8(%a : %a)" pp_tm m pp_tm a)
   | Close m -> (
     let a, eqns, map = infer_tm ctx env eqns map m in
     let a = UMeta.resolve_tm map a in
@@ -269,7 +266,7 @@ and check_tl ctx env eqns map ms tl =
   | [], TBase a ->
     let _, eqns, map = infer_sort ctx env eqns map a in
     (a, eqns, map)
-  | _ -> failwith "check_tl"
+  | _ -> failwith "check_tl(%a, %a)" pp_tms ms pp_tl tl
 
 and check_tm ctx env eqns map m a =
   match m with
@@ -331,6 +328,8 @@ and check_tm ctx env eqns map m a =
     assert_equal env eqns map a b
 
 and check_prbm ctx env eqns map prbm a =
+  let _ = pr "check_prbm(%a)@." UVar.pp_prbm prbm in
+  let _ = pr "a := %a@." pp_tm a in
   let rec is_absurd es rhs =
     match (es, rhs) with
     | UVar.Eq (_, Var _, Absurd, _) :: _, None -> true
@@ -422,7 +421,7 @@ and check_prbm ctx env eqns map prbm a =
           in
           check_prbm ctx env eqns map prbm a)
         (eqns, map) ptls cs
-    | _ -> failwith "check_prbm6")
+    | b -> failwith "check_prbm6(%a)" pp_tm b)
   | (es, [], rhs) :: _ ->
     let es = prbm.global @ es in
     let vmap = UVar.unify es in
@@ -595,7 +594,7 @@ let rec infer_dcl ctx env eqns map dcl =
     let eqns, map = infer_ptl ctx env eqns map ptl U in
     let map = UMeta.unify map eqns in
     let ptl = UMeta.resolve_ptl map ptl in
-    let ctx = { ctx with ds = DMap.add d (ptl, []) ctx.ds } in
+    let ctx = add_d d ptl [] ctx in
     let eqns, map =
       List.fold_left
         (fun (eqns, map) (DCons (_, ptl)) ->
@@ -609,11 +608,11 @@ let rec infer_dcl ctx env eqns map dcl =
       List.fold_left
         (fun (acc, ctx) (DCons (c, ptl)) ->
           let ptl = UMeta.resolve_ptl map ptl in
-          let ctx = { ctx with cs = CMap.add c ptl ctx.cs } in
+          let ctx = add_c c ptl ctx in
           (c :: acc, ctx))
         ([], ctx) dconss
     in
-    let ctx = { ctx with ds = DMap.add d (ptl, cs) ctx.ds } in
+    let ctx = add_d d ptl cs ctx in
     (ctx, env, eqns, map)
   | DOpen (trg, x) -> (
     match trg with

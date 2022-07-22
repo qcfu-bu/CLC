@@ -466,6 +466,10 @@ let daxiom_parser =
 let dcl_parser =
   choice [ def_parser; ddata_parser; dopen_parser; daxiom_parser ]
 
-let dcls_parser = many1 dcl_parser
-let parse_string s = parse_string (ws >> dcls_parser << eof) s SMap.empty
-let parse_channel ch = parse_channel (ws >> dcls_parser << eof) ch SMap.empty
+let dcls_parser : (dcls * int SMap.t) parser =
+  let* src = many1 dcl_parser in
+  let* state = get_user_state in
+  return (src, state)
+
+let parse_string s state = parse_string (ws >> dcls_parser << eof) s state
+let parse_channel ch state = parse_channel (ws >> dcls_parser << eof) ch state

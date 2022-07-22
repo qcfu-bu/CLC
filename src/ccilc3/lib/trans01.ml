@@ -7,7 +7,7 @@ type entry =
   | D of D.t
   | C of C.t
 
-type nspc = entry SMap.t
+type nspc = (string * entry) list
 
 let trans_id_opt id_opt =
   match id_opt with
@@ -26,14 +26,14 @@ let rec spine_of_nspc nspc =
       | V x -> Syntax1.Var x :: acc
       | D _ -> acc
       | C _ -> acc)
-    [] (SMap.bindings nspc)
+    [] nspc
 
 let rec trans_p nspc cs p =
   match p with
   | PVar id_opt -> (
     let x = trans_id_opt id_opt in
     match id_opt with
-    | Some id -> (SMap.add id (V x) nspc, Syntax1.PVar x)
+    | Some id -> ((id, V x) :: nspc, Syntax1.PVar x)
     | None -> (nspc, Syntax1.PVar x))
   | PCons (id, ps) -> (
     match SMap.find_opt id cs with
@@ -60,7 +60,7 @@ let rec trans_tm nspc cs m =
   | Type s -> Syntax1.Type (trans_sort s)
   | Id "_" -> Syntax1.Meta (M.mk (), spine_of_nspc nspc)
   | Id id -> (
-    match SMap.find_opt id nspc with
+    match List.assoc_opt id nspc with
     | Some (V x) -> Syntax1.Var x
     | Some (D d) -> Syntax1.Data (d, [])
     | Some (C c) -> Syntax1.Cons (c, [])
@@ -72,7 +72,7 @@ let rec trans_tm nspc cs m =
           let a = trans_tm nspc cs a in
           let x = trans_id_opt id_opt in
           match id_opt with
-          | Some id -> (SMap.add id (V x) nspc, (x, a) :: acc)
+          | Some id -> ((id, V x) :: nspc, (x, a) :: acc)
           | None -> (nspc, (x, a) :: acc))
         (nspc, []) args
     in
@@ -86,7 +86,7 @@ let rec trans_tm nspc cs m =
     let x = trans_id_opt id_opt in
     match id_opt with
     | Some id ->
-      let cls = trans_cls (SMap.add id (V x) nspc) cs cls in
+      let cls = trans_cls ((id, V x) :: nspc) cs cls in
       Fun (a_opt, Syntax1.bind_cls x cls)
     | None ->
       let cls = trans_cls nspc cs cls in
@@ -95,7 +95,7 @@ let rec trans_tm nspc cs m =
     match ms with
     | Id id :: ms -> (
       let ms = List.map (trans_tm nspc cs) ms in
-      match SMap.find_opt id nspc with
+      match List.assoc_opt id nspc with
       | Some (V x) -> Syntax1.mkApps (Var x) ms
       | Some (D d) -> Data (d, ms)
       | Some (C c) -> Cons (c, ms)
@@ -112,7 +112,7 @@ let rec trans_tm nspc cs m =
       let m = trans_tm nspc cs m in
       let nspc =
         match id_opt with
-        | Some id -> SMap.add id (V x) nspc
+        | Some id -> (id, V x) :: nspc
         | None -> nspc
       in
       let n = trans_tm nspc cs n in
@@ -142,7 +142,7 @@ let rec trans_tm nspc cs m =
           let a = trans_tm nspc cs a in
           let x = trans_id_opt id_opt in
           match id_opt with
-          | Some id -> (SMap.add id (V x) nspc, (x, a) :: acc)
+          | Some id -> ((id, V x) :: nspc, (x, a) :: acc)
           | None -> (nspc, (x, a) :: acc))
         (nspc, []) args
     in
@@ -156,7 +156,7 @@ let rec trans_tm nspc cs m =
     let x = V.mk id in
     let a = trans_tm nspc cs a in
     let m = trans_tm nspc cs m in
-    let n = trans_tm (SMap.add id (V x) nspc) cs n in
+    let n = trans_tm ((id, V x) :: nspc) cs n in
     Syntax1.Fork (a, m, Syntax1.bind_tm x n)
   | Send a -> Syntax1.Send (trans_tm nspc cs a)
   | Recv a -> Syntax1.Recv (trans_tm nspc cs a)
@@ -184,7 +184,7 @@ let rec trans_ptl nspc cs (PTl (args, tl)) =
         let a = trans_tm nspc cs a in
         let x = trans_id_opt id_opt in
         match id_opt with
-        | Some id -> (SMap.add id (V x) nspc, (x, a) :: acc)
+        | Some id -> ((id, V x) :: nspc, (x, a) :: acc)
         | None -> (nspc, (x, a) :: acc))
       (nspc, []) args
   in
@@ -200,7 +200,7 @@ and trans_tl nspc cs (Tl (args, b)) =
         let a = trans_tm nspc cs a in
         let x = trans_id_opt id_opt in
         match id_opt with
-        | Some id -> (SMap.add id (V x) nspc, (x, a) :: acc)
+        | Some id -> ((id, V x) :: nspc, (x, a) :: acc)
         | None -> (nspc, (x, a) :: acc))
       (nspc, []) args
   in
@@ -212,7 +212,7 @@ and trans_tl nspc cs (Tl (args, b)) =
 let trans_dcons nspc cs (DCons (id, ptl)) =
   let c = C.mk id in
   let ptl = trans_ptl nspc cs ptl in
-  let nspc = SMap.add id (C c) nspc in
+  let nspc = (id, C c) :: nspc in
   let cs = SMap.add id c cs in
   (nspc, cs, Syntax1.DCons (c, ptl))
 
@@ -232,31 +232,31 @@ let trans_dcl nspc cs dcl =
     let m = trans_tm nspc cs m in
     let nspc =
       match id_opt with
-      | Some id -> SMap.add id (V x) nspc
+      | Some id -> (id, V x) :: nspc
       | None -> nspc
     in
     (nspc, cs, Syntax1.DTm (x, a_opt, m))
   | DFun (id, a, cls) ->
     let x = V.mk id in
     let a = trans_tm nspc cs a in
-    let nspc = SMap.add id (V x) nspc in
+    let nspc = (id, V x) :: nspc in
     let cls = trans_cls nspc cs cls in
     (nspc, cs, Syntax1.DFun (x, a, Syntax1.bind_cls x cls))
   | DData (id, ptl, dconss) ->
     let d = D.mk id in
     let ptl = trans_ptl nspc cs ptl in
-    let nspc = SMap.add id (D d) nspc in
+    let nspc = (id, D d) :: nspc in
     let nspc, cs, dconss = trans_dconss nspc cs dconss in
     (nspc, cs, Syntax1.DData (d, ptl, dconss))
   | DOpen (id1, id2) ->
     let targ = trans_trg id1 in
     let x = V.mk id2 in
-    let nspc = SMap.add id2 (V x) nspc in
+    let nspc = (id2, V x) :: nspc in
     (nspc, cs, Syntax1.DOpen (targ, x))
   | DAxiom (id, a) ->
     let x = V.mk id in
     let a = trans_tm nspc cs a in
-    let nspc = SMap.add id (V x) nspc in
+    let nspc = (id, V x) :: nspc in
     (nspc, cs, Syntax1.DAxiom (x, a))
 
 let rec trans_dcls nspc cs dcls =

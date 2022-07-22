@@ -149,6 +149,7 @@ let rec occurs x m =
   | Axiom (_, m) -> occurs x m
 
 let rec simpl (env, m1, m2) =
+  let _ = Format.printf "@[simpl(@;<1 2>%a?=@;<1 2> %a)@]@." pp m1 pp m2 in
   if equal env m1 m2 then
     []
   else
