@@ -83,3 +83,6 @@ val unbind_ptl : ptl abs -> V.t * ptl
 val unbind_tl : tl abs -> V.t * tl
 val mkApps : tm -> tms -> tm
 val unApps : tm -> tm * tms
+val occurs_tm : V.t -> tm -> bool
+val occurs_cls : V.t -> cls -> bool
+val occurs_tl : V.t -> tl -> bool

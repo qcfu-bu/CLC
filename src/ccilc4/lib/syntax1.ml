@@ -369,3 +369,79 @@ let unApps m =
     | _ -> (m, ns)
   in
   aux m []
+
+let rec occurs_tm x m =
+  match m with
+  | Ann (a, m) -> occurs_tm x a || occurs_tm x m
+  | Meta _ -> false
+  | Type _ -> false
+  | Var y -> V.equal x y
+  | Pi (_, a, _, abs) ->
+    let _, b = unbind_tm abs in
+    occurs_tm x a || occurs_tm x b
+  | Fun (a_opt, abs) ->
+    let _, cls = unbind_cls abs in
+    let a_res =
+      match a_opt with
+      | Some a -> occurs_tm x a
+      | None -> false
+    in
+    a_res
+    || List.exists
+         (fun (Cl pabs) ->
+           let _, m_opt = unbindp_tm_opt pabs in
+           match m_opt with
+           | Some m -> occurs_tm x m
+           | None -> false)
+         cls
+  | App (m, n) -> occurs_tm x m || occurs_tm x n
+  | Let (m, abs) ->
+    let _, n = unbind_tm abs in
+    occurs_tm x m || occurs_tm x n
+  | Data (_, ms) -> List.exists (occurs_tm x) ms
+  | Cons (_, ms) -> List.exists (occurs_tm x) ms
+  | Match (ms, cls) ->
+    List.exists (occurs_tm x) ms
+    || List.exists
+         (fun (Cl pabs) ->
+           let _, m_opt = unbindp_tm_opt pabs in
+           match m_opt with
+           | Some m -> occurs_tm x m
+           | None -> false)
+         cls
+  | If (m, tt, ff) -> occurs_tm x m || occurs_tm x tt || occurs_tm x ff
+  | Main -> false
+  | Proto -> false
+  | End -> false
+  | Act (_, a, abs) ->
+    let _, b = unbind_tm abs in
+    occurs_tm x a || occurs_tm x b
+  | Ch (_, a) -> occurs_tm x a
+  | Fork (a, m, abs) ->
+    let _, n = unbind_tm abs in
+    occurs_tm x a || occurs_tm x m || occurs_tm x n
+  | Send m -> occurs_tm x m
+  | Recv m -> occurs_tm x m
+  | Close m -> occurs_tm x m
+
+let occurs_cls x cls =
+  List.fold_left
+    (fun acc (Cl pabs) ->
+      let _, m_opt = unbindp_tm_opt pabs in
+      if acc then
+        true
+      else
+        match m_opt with
+        | Some m -> occurs_tm x m
+        | None -> false)
+    false cls
+
+let rec occurs_tl x tl =
+  match tl with
+  | TBase b -> occurs_tm x b
+  | TBind (a, _, abs) ->
+    if occurs_tm x a then
+      true
+    else
+      let _, tl = unbind_tl abs in
+      occurs_tl x tl
