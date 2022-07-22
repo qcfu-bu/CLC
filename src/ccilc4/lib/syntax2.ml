@@ -419,3 +419,13 @@ let rec occurs_tm x m =
   | Send m -> occurs_tm x m
   | Recv m -> occurs_tm x m
   | Close m -> occurs_tm x m
+
+let rec occurs_tl x tl =
+  match tl with
+  | TBase b -> occurs_tm x b
+  | TBind (a, abs) ->
+    if occurs_tm x a then
+      true
+    else
+      let _, tl = unbind_tl abs in
+      occurs_tl x tl

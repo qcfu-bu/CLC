@@ -87,3 +87,4 @@ val unApps : tm -> tm * tms
 val equal_abs : ('a -> 'b -> bool) -> 'a abs -> 'b abs -> bool
 val equal_pabs : ('a -> 'b -> bool) -> 'a pabs -> 'b pabs -> bool
 val occurs_tm : V.t -> tm -> bool
+val occurs_tl : V.t -> tl -> bool

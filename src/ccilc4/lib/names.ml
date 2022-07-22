@@ -11,6 +11,7 @@ module V : sig
   val freshen : t -> t
   val is_bound : t -> int -> int -> int option
   val pp : Format.formatter -> t -> unit
+  val pps : Format.formatter -> t list -> unit
 end = struct
   type t =
     | Free of string * Int64.t
@@ -53,6 +54,12 @@ end = struct
     match x with
     | Bound x -> pf fmt "_%d" x
     | Free (x, id) -> pf fmt "%s_%s" x (Int64.to_string id)
+
+  let rec pps fmt xs =
+    match xs with
+    | [] -> ()
+    | [ x ] -> pf fmt "%a" pp x
+    | x :: xs -> pf fmt "%a %a" pp x pps xs
 end
 
 module M : sig
