@@ -1,2 +1,5 @@
 (library
- (name ccilc4))
+ (name lang)
+ (libraries ppxlib ppx_deriving fmt mparser)
+ (preprocess
+  (pps ppx_deriving.std)))
