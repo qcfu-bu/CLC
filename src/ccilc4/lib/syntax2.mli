@@ -32,6 +32,7 @@ and tm =
   | Close of tm
 
 and tms = tm list
+and tm_opt = tm option
 
 and p =
   | PVar of V.t
@@ -68,6 +69,7 @@ and tl =
   | TBind of tm * tl abs
 
 val var : V.t -> tm
+val xs_of_p : p -> V.t list
 val bind_tm : V.t -> tm -> tm abs
 val bindp_tm : p -> tm -> tm pabs
 val bind_ptl : V.t -> ptl -> ptl abs
@@ -82,6 +84,7 @@ val asubst_tm : tm abs -> tm -> tm
 val asubst_tl : tl abs -> tm -> tl
 val asubstp_tm : tm pabs -> tm -> tm
 val subst_tm : V.t -> tm -> tm -> tm
+val mLam : sort -> V.t list -> tm -> tm
 val mkApps : tm -> tms -> tm
 val unApps : tm -> tm * tms
 val equal_abs : ('a -> 'b -> bool) -> 'a abs -> 'b abs -> bool

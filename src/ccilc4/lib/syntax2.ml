@@ -32,6 +32,7 @@ and tm =
   | Close of tm
 
 and tms = tm list
+and tm_opt = tm option
 
 and p =
   | PVar of V.t
@@ -361,6 +362,7 @@ let asubst_tl (Abs (_, tl)) n = unbindn_tl 0 [ n ] tl
 let asubst_ptl (Abs (_, ptl)) n = unbindn_ptl 0 [ n ] ptl
 let asubstp_tm (PAbs (p, m)) n = unbindn_tm 0 (match_p p n) m
 let subst_tm x m n = unbindn_tm 0 [ n ] (bindn_tm 0 [ x ] m)
+let mLam s xs m = List.fold_right (fun x acc -> Lam (s, bind_tm x acc)) xs m
 
 let rec mkApps hd ms =
   match ms with
