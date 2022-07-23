@@ -67,6 +67,7 @@ let rec pp_tm fmt m =
   | Case (m, a, cls) ->
     pf fmt "@[<v 0>(@[case %a@[return@;<1 2>%a@]@;<1 0>of@]@;<1 2>%a)@]" pp_tm m
       pp_tm a pp_cls cls
+  | Absurd -> pf fmt "absurd"
   | Main -> pf fmt "@main"
   | Proto -> pf fmt "proto"
   | End -> pf fmt "end"

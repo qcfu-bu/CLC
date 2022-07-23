@@ -21,6 +21,7 @@ and tm =
   | Data of D.t * tms
   | Cons of C.t * tms
   | Case of tm * tm * cls
+  | Absurd
   | Main
   | Proto
   | End
@@ -146,6 +147,7 @@ let bindn_tm k xs m =
           cls
       in
       Case (m, a, cls)
+    | Absurd -> Absurd
     | Main -> Main
     | Proto -> Proto
     | End -> End
@@ -219,6 +221,7 @@ let unbindn_tm k xs m =
           cls
       in
       Case (m, a, cls)
+    | Absurd -> Absurd
     | Main -> Main
     | Proto -> Proto
     | End -> End
@@ -408,6 +411,7 @@ let rec occurs_tm x m =
            let _, rhs = unbindp_tm pabs in
            occurs_tm x rhs)
          cls
+  | Absurd -> false
   | Main -> false
   | Proto -> false
   | End -> false

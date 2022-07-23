@@ -21,6 +21,7 @@ and tm =
   | Data of D.t * tms
   | Cons of C.t * tms
   | Case of tm * tm * cls
+  | Absurd
   | Main
   | Proto
   | End

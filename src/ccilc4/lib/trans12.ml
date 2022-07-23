@@ -426,26 +426,26 @@ and check_tm ctx env eqns map m a =
 and check_prbm ctx env eqns map prbm a =
   let rec is_absurd es rhs =
     match (es, rhs) with
-    | UVar.Eq (_, Var _, PAbsurd, _) :: _, None -> true
-    | UVar.Eq (_, Var _, PAbsurd, _) :: _, Some _ -> failwith "is_absurd"
+    | UVar.Eq (_, Var _, Absurd, _) :: _, None -> true
+    | UVar.Eq (_, Var _, Absurd, _) :: _, Some _ -> failwith "is_absurd"
     | _ :: es, _ -> is_absurd es rhs
     | [], _ -> false
   in
   let rec get_absurd es =
     match es with
-    | UVar.Eq (_, Var _, PAbsurd, a) :: _ -> a
+    | UVar.Eq (_, Var _, Absurd, a) :: _ -> a
     | _ :: es -> get_absurd es
     | [] -> failwith "get_absurd"
   in
   let rec can_split es =
     match es with
-    | UVar.Eq (_, Var _, PCons (_, _), _) :: _ -> true
+    | UVar.Eq (_, Var _, Cons (_, _), _) :: _ -> true
     | _ :: es -> can_split es
     | [] -> false
   in
   let rec first_split es =
     match es with
-    | UVar.Eq (_, Var x, PCons (c, _), a) :: _ -> (x, a)
+    | UVar.Eq (_, Var x, Cons (c, _), a) :: _ -> (x, a)
     | _ :: es -> first_split es
     | [] -> failwith "first_split"
   in

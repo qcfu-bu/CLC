@@ -11,7 +11,7 @@ let pp_map fmt map =
   pf fmt "@[<v 0>map{@;<1 2>%a}@]" aux map
 
 module UVar : sig
-  type eqn = Eq of tm VMap.t * tm * Syntax1.p * tm
+  type eqn = Eq of tm VMap.t * tm * tm * tm
   and eqns = eqn list
 
   type prbm =
@@ -26,7 +26,7 @@ module UVar : sig
   val msubst_tm : tm VMap.t -> tm -> tm
   val unify : eqns -> tm VMap.t
 end = struct
-  type eqn = Eq of tm VMap.t * tm * Syntax1.p * tm
+  type eqn = Eq of tm VMap.t * tm * tm * tm
   and eqns = eqn list
 
   type prbm =
@@ -35,7 +35,7 @@ end = struct
     }
 
   let pp_eqn fmt (Eq (_, m, n, a)) =
-    pf fmt "(%a ?= %a : %a)" pp_tm m Pprint1.pp_p n pp_tm a
+    pf fmt "(%a ?= %a : %a)" pp_tm m pp_tm n pp_tm a
 
   let pp_eqns fmt eqns =
     let rec aux fmt eqns =
@@ -248,6 +248,7 @@ end = struct
           cls
       in
       Case (m, a, cls)
+    | Absurd -> Absurd
     | Main -> Main
     | Proto -> Proto
     | End -> End
@@ -275,14 +276,8 @@ end = struct
       let m = msubst_tm map m in
       Close m
 
-  let rec tm_of_p p =
-    match p with
-    | Syntax1.PVar x -> Var x
-    | Syntax1.PCons (c, ps) -> Cons (c, List.map tm_of_p ps)
-    | Syntax1.PAbsurd -> failwith "tm_of_p"
-
   let unify eqns =
-    let eqns = List.map (fun (Eq (env, m, p, _)) -> (env, m, tm_of_p p)) eqns in
+    let eqns = List.map (fun (Eq (env, m, n, _)) -> (env, m, n)) eqns in
     let rec aux map eqns =
       let eqns =
         List.map
@@ -376,6 +371,7 @@ end = struct
           VSet.empty cls
       in
       VSet.union (VSet.union fv1 fv2) fv3
+    | Absurd -> VSet.empty
     | Main -> VSet.empty
     | Proto -> VSet.empty
     | End -> VSet.empty
@@ -423,6 +419,7 @@ end = struct
              let _, rhs = unbindp_tm pabs in
              occurs x rhs)
            cls
+    | Absurd -> false
     | Main -> false
     | Proto -> false
     | End -> false
@@ -742,6 +739,7 @@ end = struct
           cls
       in
       Case (m, a, cls)
+    | Absurd -> m
     | Main -> m
     | Proto -> m
     | End -> m
