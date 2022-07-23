@@ -155,7 +155,15 @@ and infer_tm ctx env eqns map m =
     let ctx = add_v x a_elab ctx in
     let _, b_elab, eqns, map = infer_sort ctx env eqns map b in
     Syntax2.(Type s_elab, Pi (s_elab, a_elab, impl, bind_tm x b_elab), eqns, map)
-  | Fun (a_opt, cls) -> failwith "TODO"
+  | Fun (a_opt, cls) -> (
+    match a_opt with
+    | Some a ->
+      let _, a_elab, eqns, map = infer_sort ctx env eqns map a in
+      let m_elab, eqns, map =
+        check_tm ctx env eqns map (Fun (a_opt, cls)) a_elab
+      in
+      (a_elab, m_elab, eqns, map)
+    | None -> failwith "infer_tm_Fun")
   | App (m, n) -> (
     let a, m_elab, eqns, map = infer_tm ctx env eqns map m in
     let a = UMeta.resolve_tm map a in
@@ -178,7 +186,7 @@ and infer_tm ctx env eqns map m =
         let n_elab, eqns, map = check_tm ctx env eqns map n a in
         Syntax2.
           (asubst_tm abs (Ann (a, n_elab)), App (m_elab, n_elab), eqns, map)
-    | _ -> failwith "TODO")
+    | _ -> failwith "infer_tm_App")
   | Let (m, abs) ->
     let a, m_elab, eqns, map = infer_tm ctx env eqns map m in
     let m = UMeta.resolve_tm map m_elab in
@@ -202,7 +210,24 @@ and infer_tm ctx env eqns map m =
       Syntax2.(a, Cons (c, ms_elab), eqns, map)
     with
     | _ -> failwith "infer_tm_Cons")
-  | Match (ms, cls) -> failwith "TODO"
+  | Match (ms, cls) ->
+    let ms_ty, ms_elab, eqns, map =
+      List.fold_left
+        (fun (ms_ty, ms_elab, eqns, map) m ->
+          let m_ty, m_elab, eqns, map = infer_tm ctx env eqns map m in
+          (m_ty :: ms_ty, m_elab :: ms_elab, eqns, map))
+        ([], [], eqns, map) ms
+    in
+    let meta, meta_x = meta_mk ctx in
+    let a =
+      List.fold_left
+        (fun acc m_ty ->
+          Syntax2.(Pi (L, m_ty, false, bind_tm (V.blank ()) acc)))
+        meta ms_ty
+    in
+    let prbm = UVar.prbm_of_cls cls in
+    let ct, eqns, map = check_prbm ctx env eqns map prbm a in
+    Syntax2.(UMeta.resolve_tm map meta, mkApps ct (List.rev ms_elab), eqns, map)
   | If (m, tt, ff) -> (
     let a, m_elab, eqns, map = infer_tm ctx env eqns map m in
     let a = UMeta.resolve_tm map a in
@@ -329,7 +354,22 @@ and check_tm ctx env eqns map m a =
         xs ([], eqns, map)
     in
     Syntax2.(Meta (x, xs_elab), eqns, add_m x a map)
-  | Fun _ -> failwith "TODO"
+  | Fun (b_opt, abs) ->
+    let eqns, map =
+      match b_opt with
+      | Some b ->
+        let _, b_elab, eqns, map = infer_sort ctx env eqns map b in
+        assert_equal env eqns map a b_elab
+      | None -> (eqns, map)
+    in
+    let x, cls = unbind_cls abs in
+    let ctx = add_v x a ctx in
+    let prbm = UVar.prbm_of_cls cls in
+    let ct, eqns, map = check_prbm ctx env eqns map prbm a in
+    if occurs_cls x cls then
+      Syntax2.(Fix (a, bind_tm x ct), eqns, map)
+    else
+      (ct, eqns, map)
   | Let (m, abs) ->
     let m_ty, m_elab, eqns, map = infer_tm ctx env eqns map m in
     let m_ty = UMeta.resolve_tm map m_ty in
@@ -357,8 +397,26 @@ and check_tm ctx env eqns map m a =
       let b, m_elab, eqns, map = infer_tm ctx env eqns map m in
       let eqns, map = assert_equal env eqns map a b in
       (m_elab, eqns, map))
-  | Match (ms, cls) -> failwith "TODO"
+  | Match (ms, cls) ->
+    let ms_ty, ms_elab, eqns, map =
+      List.fold_left
+        (fun (ms_ty, ms_elab, eqns, map) m ->
+          let m_ty, m_elab, eqns, map = infer_tm ctx env eqns map m in
+          (m_ty :: ms_ty, m_elab :: ms_elab, eqns, map))
+        ([], [], eqns, map) ms
+    in
+    let a =
+      List.fold_left
+        (fun acc m_ty ->
+          Syntax2.(Pi (L, m_ty, false, bind_tm (V.blank ()) acc)))
+        a ms_ty
+    in
+    let prbm = UVar.prbm_of_cls cls in
+    let ct, eqns, map = check_prbm ctx env eqns map prbm a in
+    Syntax2.(mkApps ct (List.rev ms_elab), eqns, map)
   | _ ->
     let b, m_elab, eqns, map = infer_tm ctx env eqns map m in
     let eqns, map = assert_equal env eqns map a b in
     (m_elab, eqns, map)
+
+and check_prbm = failwith "TODO"
