@@ -87,7 +87,7 @@ let rec pp_tm fmt m =
     pf fmt "@[@[fork (%a :@;<1 2>%a) <-@;<1 2>%a@;<1 0>in@]@;<1 2>%a@]" V.pp x
       pp_tm a pp_tm m pp_tm n
   | Send m -> pf fmt "send %a" pp_tm m
-  | Recv m -> pf fmt "recv %a" pp_tm m
+  | Recv (_, m) -> pf fmt "recv %a" pp_tm m
   | Close m -> pf fmt "close %a" pp_tm m
 
 and pp_cl fmt (Cl abs) =

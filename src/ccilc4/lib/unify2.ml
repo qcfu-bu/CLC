@@ -172,7 +172,11 @@ end = struct
           let eqns3 = simpl (env, n1, n2) in
           eqns1 @ eqns2 @ eqns3
         | Send m1, Send m2 -> simpl (env, m1, m2)
-        | Recv m1, Recv m2 -> simpl (env, m1, m2)
+        | Recv (s1, m1), Recv (s2, m2) ->
+          if s1 = s2 then
+            simpl (env, m1, m2)
+          else
+            failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2
         | Close m1, Close m2 -> simpl (env, m1, m2)
         | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2
       in
@@ -264,9 +268,9 @@ end = struct
     | Send m ->
       let m = msubst_tm map m in
       Send m
-    | Recv m ->
+    | Recv (s, m) ->
       let m = msubst_tm map m in
-      Recv m
+      Recv (s, m)
     | Close m ->
       let m = msubst_tm map m in
       Close m
@@ -388,7 +392,7 @@ end = struct
       let fv3 = fv (VSet.add x ctx) n in
       VSet.union (VSet.union fv1 fv2) fv3
     | Send m -> fv ctx m
-    | Recv m -> fv ctx m
+    | Recv (_, m) -> fv ctx m
     | Close m -> fv ctx m
 
   let rec occurs x m =
@@ -430,7 +434,7 @@ end = struct
       let _, n = unbind_tm abs in
       occurs x a || occurs x m || occurs x n
     | Send m -> occurs x m
-    | Recv m -> occurs x m
+    | Recv (_, m) -> occurs x m
     | Close m -> occurs x m
 
   let rec asimpl (Eq (env, m1, m2)) =
@@ -540,7 +544,11 @@ end = struct
           let eqns3 = asimpl (Eq (env, n1, n2)) in
           eqns1 @ eqns2 @ eqns3
         | Send m1, Send m2 -> asimpl (Eq (env, m1, m2))
-        | Recv m1, Recv m2 -> asimpl (Eq (env, m1, m2))
+        | Recv (s1, m1), Recv (s2, m2) ->
+          if s1 = s2 then
+            asimpl (Eq (env, m1, m2))
+          else
+            failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2
         | Close m1, Close m2 -> asimpl (Eq (env, m1, m2))
         | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2
       in
@@ -646,7 +654,11 @@ end = struct
         let eqns3 = simpl (Eq (env, n1, n2)) in
         eqns1 @ eqns2 @ eqns3
       | Send m1, Send m2 -> simpl (Eq (env, m1, m2))
-      | Recv m1, Recv m2 -> simpl (Eq (env, m1, m2))
+      | Recv (s1, m1), Recv (s2, m2) ->
+        if s1 = s2 then
+          simpl (Eq (env, m1, m2))
+        else
+          failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2
       | Close m1, Close m2 -> simpl (Eq (env, m1, m2))
       | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
 
@@ -746,7 +758,7 @@ end = struct
       let n = resolve_tm map n in
       Fork (a, m, bind_tm x n)
     | Send m -> Send (resolve_tm map m)
-    | Recv m -> Recv (resolve_tm map m)
+    | Recv (s, m) -> Recv (s, resolve_tm map m)
     | Close m -> Close (resolve_tm map m)
 
   let rec resolve_tl map tl =

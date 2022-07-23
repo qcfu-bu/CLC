@@ -147,7 +147,7 @@ and infer_tm ctx env eqns map m =
       let meta, _ = meta_mk ctx in
       Syntax2.(meta, Meta (x, xs_elab), eqns, map))
   | Type s -> Syntax2.(Type U, Type (trans12_sort s), eqns, map)
-  | Var x -> (find_v x ctx, Syntax2.Var x, eqns, map)
+  | Var x -> Syntax2.(find_v x ctx, Var x, eqns, map)
   | Pi (s, a, impl, abs) ->
     let s_elab = trans12_sort s in
     let x, b = unbind_tm abs in
@@ -170,8 +170,8 @@ and infer_tm ctx env eqns map m =
     match whnf rd_all env a with
     | Syntax2.Pi (_, a, impl, abs) ->
       if impl then
-        let x, b = Syntax2.unbind_tm abs in
         let meta, meta_x = meta_mk ctx in
+        let b = Syntax2.asubst_tm abs meta in
         let z = V.blank () in
         let map = add_m meta_x a map in
         let ctx = add_v z b ctx in
@@ -300,10 +300,14 @@ and infer_tm ctx env eqns map m =
       | Syntax2.U ->
         let abs = Syntax2.(bind_tm x (Ch (r1, b))) in
         Syntax2.
-          (Data (Prelude.sig_d, [ a; Lam (U, abs) ]), Recv m_elab, eqns, map)
+          ( Data (Prelude.sig_d, [ a; Lam (U, abs) ])
+          , Recv (s, m_elab)
+          , eqns
+          , map )
       | Syntax2.L ->
         Syntax2.
-          (Data (Prelude.tnsr_d, [ a; Ch (r1, b) ]), Recv m_elab, eqns, map))
+          (Data (Prelude.tnsr_d, [ a; Ch (r1, b) ]), Recv (s, m_elab), eqns, map)
+      )
     | _ -> failwith "infer_tm_Recv")
   | Close m -> (
     let a, m_elab, eqns, map = infer_tm ctx env eqns map m in

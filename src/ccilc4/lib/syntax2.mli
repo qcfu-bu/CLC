@@ -28,7 +28,7 @@ and tm =
   | Ch of bool * tm
   | Fork of tm * tm * tm abs
   | Send of tm
-  | Recv of tm
+  | Recv of sort * tm
   | Close of tm
 
 and tms = tm list

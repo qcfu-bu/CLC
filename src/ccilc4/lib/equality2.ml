@@ -130,7 +130,7 @@ let rec aeq m1 m2 =
     | Fork (a1, m1, abs1), Fork (a2, m2, abs2) ->
       aeq a1 a2 && aeq m1 m2 && equal_abs aeq abs1 abs2
     | Send m1, Send m2 -> aeq m1 m2
-    | Recv m1, Recv m2 -> aeq m1 m2
+    | Recv (s1, m1), Recv (s2, m2) -> s1 = s2 && aeq m1 m2
     | Close m1, Close m2 -> aeq m1 m2
     | _ -> false
 
@@ -174,6 +174,6 @@ let rec equal rds env m1 m2 =
       equal rds env a1 a2 && equal rds env m1 m2
       && equal_abs (equal rds env) abs1 abs2
     | Send m1, Send m2 -> equal rds env m1 m2
-    | Recv m1, Recv m2 -> equal rds env m1 m2
+    | Recv (s1, m1), Recv (s2, m2) -> s1 = s2 && equal rds env m1 m2
     | Close m1, Close m2 -> equal rds env m1 m2
     | _ -> false
