@@ -419,4 +419,44 @@ and check_tm ctx env eqns map m a =
     let eqns, map = assert_equal env eqns map a b in
     (m_elab, eqns, map)
 
-and check_prbm = failwith "TODO"
+and check_prbm ctx env eqns map prbm a =
+  let rec is_absurd es rhs =
+    match (es, rhs) with
+    | UVar.Eq (_, Var _, PAbsurd, _) :: _, None -> true
+    | UVar.Eq (_, Var _, PAbsurd, _) :: _, Some _ -> failwith "is_absurd"
+    | _ :: es, _ -> is_absurd es rhs
+    | [], _ -> false
+  in
+  let rec get_absurd es =
+    match es with
+    | UVar.Eq (_, Var _, PAbsurd, a) :: _ -> a
+    | _ :: es -> get_absurd es
+    | [] -> failwith "get_absurd"
+  in
+  let rec can_split es =
+    match es with
+    | UVar.Eq (_, Var _, PCons (_, _), _) :: _ -> true
+    | _ :: es -> can_split es
+    | [] -> false
+  in
+  let rec first_split es =
+    match es with
+    | UVar.Eq (_, Var x, PCons (c, _), a) :: _ -> (x, a)
+    | _ :: es -> first_split es
+    | [] -> failwith "first_split"
+  in
+  let rec tl_of_ptl ptl ns =
+    match (ptl, ns) with
+    | Syntax2.PBind (a, abs), n :: ns ->
+      let ptl = Syntax2.(asubst_ptl abs (Ann (a, n))) in
+      let tl, ns = tl_of_ptl ptl ns in
+      (tl, n :: ns)
+    | Syntax2.PBase tl, _ -> (tl, [])
+    | _ -> failwith "tl_of_ptl"
+  in
+  match prbm.clause with
+  | [] -> failwith "TODO"
+  | (es, ps, rhs) :: _ when is_absurd es rhs -> failwith "TODO"
+  | (es, ps, rhs) :: _ when can_split es -> failwith "TODO"
+  | (es, [], rhs) :: _ -> failwith "TODO"
+  | (es, ps, rhs) :: clause -> failwith "TODO"
