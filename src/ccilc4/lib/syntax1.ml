@@ -30,6 +30,7 @@ and tm =
   | Send of tm
   | Recv of tm
   | Close of tm
+  | Embed of Syntax2.tm
 
 and tms = tm list
 and tm_opt = tm option
@@ -181,6 +182,7 @@ let bindn_tm k xs m =
     | Send m -> Send (aux k m)
     | Recv m -> Recv (aux k m)
     | Close m -> Close (aux k m)
+    | Embed m -> Embed m
   in
   aux k m
 
@@ -263,6 +265,7 @@ let unbindn_tm k xs m =
     | Send m -> Send (aux k m)
     | Recv m -> Recv (aux k m)
     | Close m -> Close (aux k m)
+    | Embed m -> Embed m
   in
   aux k m
 
@@ -423,6 +426,7 @@ let rec occurs_tm x m =
   | Send m -> occurs_tm x m
   | Recv m -> occurs_tm x m
   | Close m -> occurs_tm x m
+  | Embed m -> false
 
 let occurs_cls x cls =
   List.fold_left

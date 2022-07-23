@@ -30,6 +30,7 @@ and tm =
   | Send of tm
   | Recv of tm
   | Close of tm
+  | Embed of Syntax2.tm
 
 and tms = tm list
 and tm_opt = tm option

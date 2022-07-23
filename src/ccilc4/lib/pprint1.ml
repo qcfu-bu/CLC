@@ -86,6 +86,7 @@ let rec pp_tm fmt m =
   | Send m -> pf fmt "send %a" pp_tm m
   | Recv m -> pf fmt "recv %a" pp_tm m
   | Close m -> pf fmt "close %a" pp_tm m
+  | Embed m -> pf fmt "embed[%a]" Pprint2.pp_tm m
 
 and pp_cl sep fmt (Cl abs) =
   let ps, m_opt = unbindp_tm_opt abs in
