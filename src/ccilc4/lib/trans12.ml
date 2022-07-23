@@ -318,4 +318,47 @@ and check_tl ctx env eqns map ms tl =
   | [], Syntax2.TBase a -> (a, [], eqns, map)
   | _ -> failwith "check_tl"
 
-and check_tm ctx env eqns map m a = failwith "TODO"
+and check_tm ctx env eqns map m a =
+  match m with
+  | Meta (x, xs) ->
+    let xs_elab, eqns, map =
+      List.fold_right
+        (fun x (acc, eqns, map) ->
+          let _, x_elab, eqns, map = infer_tm ctx env eqns map x in
+          (x_elab :: acc, eqns, map))
+        xs ([], eqns, map)
+    in
+    Syntax2.(Meta (x, xs_elab), eqns, add_m x a map)
+  | Fun _ -> failwith "TODO"
+  | Let (m, abs) ->
+    let m_ty, m_elab, eqns, map = infer_tm ctx env eqns map m in
+    let m_ty = UMeta.resolve_tm map m_ty in
+    let m_elab = UMeta.resolve_tm map m_elab in
+    let x, n = unbind_tm abs in
+    let ctx = add_v x m_ty ctx in
+    let env = VMap.add x m_elab env in
+    let n_elab, eqns, map = check_tm ctx env eqns map n a in
+    Syntax2.(Let (m_elab, bind_tm x n_elab), eqns, map)
+  | Cons (c, ms) -> (
+    let a = UMeta.resolve_tm map a in
+    match whnf rd_all env a with
+    | Syntax2.Data (_, ns) ->
+      let ptl =
+        List.fold_left
+          (fun ptl n ->
+            match ptl with
+            | Syntax2.PBind (a, abs) -> Syntax2.(asubst_ptl abs (Ann (a, n)))
+            | Syntax2.PBase _ -> ptl)
+          (find_c c ctx) ns
+      in
+      let b, ms_elab, eqns, map = check_ptl ctx env eqns map ms ptl in
+      Syntax2.(Cons (c, ms_elab), eqns, map)
+    | _ ->
+      let b, m_elab, eqns, map = infer_tm ctx env eqns map m in
+      let eqns, map = assert_equal env eqns map a b in
+      (m_elab, eqns, map))
+  | Match (ms, cls) -> failwith "TODO"
+  | _ ->
+    let b, m_elab, eqns, map = infer_tm ctx env eqns map m in
+    let eqns, map = assert_equal env eqns map a b in
+    (m_elab, eqns, map)
