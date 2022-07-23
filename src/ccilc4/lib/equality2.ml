@@ -108,7 +108,7 @@ let rec aeq m1 m2 =
     | Meta (x1, _), Meta (x2, _) -> M.equal x1 x2
     | Type s1, Type s2 -> s1 = s2
     | Var x1, Var x2 -> V.equal x1 x2
-    | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
+    | Pi (s1, a1, _, abs1), Pi (s2, a2, _, abs2) ->
       s1 = s2 && aeq a1 a2 && equal_abs aeq abs1 abs2
     | Fix (a1, abs1), Fix (a2, abs2) -> aeq a1 a2 && equal_abs aeq abs1 abs2
     | Lam (s1, abs1), Lam (s2, abs2) -> s1 = s2 && equal_abs aeq abs1 abs2
@@ -124,8 +124,8 @@ let rec aeq m1 m2 =
     | Main, Main -> true
     | Proto, Proto -> true
     | End, End -> true
-    | Act (r1, a1, abs1), Act (r2, a2, abs2) ->
-      r1 = r2 && aeq a1 a2 && equal_abs aeq abs1 abs2
+    | Act (r1, s1, a1, abs1), Act (r2, s2, a2, abs2) ->
+      r1 = r2 && s1 = s2 && aeq a1 a2 && equal_abs aeq abs1 abs2
     | Ch (r1, a1), Ch (r2, a2) -> r1 = r2 && aeq a1 a2
     | Fork (a1, m1, abs1), Fork (a2, m2, abs2) ->
       aeq a1 a2 && aeq m1 m2 && equal_abs aeq abs1 abs2
@@ -145,7 +145,7 @@ let rec equal rds env m1 m2 =
     | Meta (x1, _), Meta (x2, _) -> M.equal x1 x2
     | Type s1, Type s2 -> s1 = s2
     | Var x1, Var x2 -> V.equal x1 x2
-    | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
+    | Pi (s1, a1, _, abs1), Pi (s2, a2, _, abs2) ->
       s1 = s2 && equal rds env a1 a2 && equal_abs (equal rds env) abs1 abs2
     | Fix (a1, abs1), Fix (a2, abs2) ->
       equal rds env a1 a2 && equal_abs (equal rds env) abs1 abs2
@@ -166,8 +166,9 @@ let rec equal rds env m1 m2 =
     | Main, Main -> true
     | Proto, Proto -> true
     | End, End -> true
-    | Act (r1, a1, abs1), Act (r2, a2, abs2) ->
-      r1 = r2 && equal rds env a1 a2 && equal_abs (equal rds env) abs1 abs2
+    | Act (r1, s1, a1, abs1), Act (r2, s2, a2, abs2) ->
+      r1 = r2 && s1 = s2 && equal rds env a1 a2
+      && equal_abs (equal rds env) abs1 abs2
     | Ch (r1, a1), Ch (r2, a2) -> r1 = r2 && equal rds env a1 a2
     | Fork (a1, m1, abs1), Fork (a2, m2, abs2) ->
       equal rds env a1 a2 && equal rds env m1 m2

@@ -31,7 +31,7 @@ let rec pp_tm fmt m =
   | Meta (x, ms) -> M.pp fmt x
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
-  | Pi (s, a, abs) -> (
+  | Pi (s, a, _, abs) -> (
     let x, b = unbind_tm abs in
     match (s, occurs_tm x b) with
     | U, false -> pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tm b
@@ -70,7 +70,7 @@ let rec pp_tm fmt m =
   | Main -> pf fmt "@main"
   | Proto -> pf fmt "proto"
   | End -> pf fmt "end"
-  | Act (r, a, abs) -> (
+  | Act (r, _, a, abs) -> (
     let x, b = unbind_tm abs in
     match (r, occurs_tm x b) with
     | true, false -> pf fmt "@[?%a ⋅@;<1 2>%a@]" pp_tm a pp_tm b
@@ -117,7 +117,7 @@ let rec pp_ptl fmt ptl =
 and pp_tl fmt tl =
   match tl with
   | TBase b -> pp_tm fmt b
-  | TBind (a, abs) -> (
+  | TBind (a, _, abs) -> (
     let x, tl = unbind_tl abs in
     match occurs_tl x tl with
     | false -> pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tl tl

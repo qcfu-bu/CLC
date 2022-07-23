@@ -13,7 +13,7 @@ and tm =
   | Meta of M.t * tms
   | Type of sort
   | Var of V.t
-  | Pi of sort * tm * tm abs
+  | Pi of sort * tm * bool * tm abs
   | Fix of tm * tm abs
   | Lam of sort * tm abs
   | App of tm * tm
@@ -24,7 +24,7 @@ and tm =
   | Main
   | Proto
   | End
-  | Act of bool * tm * tm abs
+  | Act of bool * sort * tm * tm abs
   | Ch of bool * tm
   | Fork of tm * tm * tm abs
   | Send of tm
@@ -66,7 +66,7 @@ and ptl =
 
 and tl =
   | TBase of tm
-  | TBind of tm * tl abs
+  | TBind of tm * bool * tl abs
 
 let var x = Var x
 
@@ -108,10 +108,10 @@ let bindn_tm k xs m =
       match opt with
       | Some (i, _) -> Var (V.bind (i + k))
       | None -> Var y)
-    | Pi (s, a, Abs (x, b)) ->
+    | Pi (s, a, impl, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Pi (s, a, Abs (x, b))
+      Pi (s, a, impl, Abs (x, b))
     | Fix (a, Abs (x, m)) ->
       let a = aux k a in
       let m = aux (k + 1) m in
@@ -149,10 +149,10 @@ let bindn_tm k xs m =
     | Main -> Main
     | Proto -> Proto
     | End -> End
-    | Act (r, a, Abs (x, b)) ->
+    | Act (r, s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Act (r, a, Abs (x, b))
+      Act (r, s, a, Abs (x, b))
     | Ch (r, a) -> Ch (r, aux k a)
     | Fork (a, m, Abs (x, n)) ->
       let a = aux k a in
@@ -181,10 +181,10 @@ let unbindn_tm k xs m =
       match V.is_bound y sz k with
       | Some i -> List.nth xs (i - k)
       | None -> Var y)
-    | Pi (s, a, Abs (x, b)) ->
+    | Pi (s, a, impl, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Pi (s, a, Abs (x, b))
+      Pi (s, a, impl, Abs (x, b))
     | Fix (a, Abs (x, m)) ->
       let a = aux k a in
       let m = aux (k + 1) m in
@@ -222,10 +222,10 @@ let unbindn_tm k xs m =
     | Main -> Main
     | Proto -> Proto
     | End -> End
-    | Act (r, a, Abs (x, b)) ->
+    | Act (r, s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Act (r, a, Abs (x, b))
+      Act (r, s, a, Abs (x, b))
     | Ch (r, a) -> Ch (r, aux k a)
     | Fork (a, m, Abs (x, n)) ->
       let a = aux k a in
@@ -261,10 +261,10 @@ and bindn_tl k xs tl =
   let rec aux k tl =
     match tl with
     | TBase b -> TBase (bindn_tm k xs b)
-    | TBind (a, Abs (x, tl)) ->
+    | TBind (a, impl, Abs (x, tl)) ->
       let a = bindn_tm k xs a in
       let tl = aux (k + 1) tl in
-      TBind (a, Abs (x, tl))
+      TBind (a, impl, Abs (x, tl))
   in
   aux k tl
 
@@ -291,10 +291,10 @@ and unbindn_tl k xs tl =
   let rec aux k tl =
     match tl with
     | TBase a -> TBase (unbindn_tm k xs a)
-    | TBind (a, Abs (x, tl)) ->
+    | TBind (a, impl, Abs (x, tl)) ->
       let a = unbindn_tm k xs a in
       let tl = aux (k + 1) tl in
-      TBind (a, Abs (x, tl))
+      TBind (a, impl, Abs (x, tl))
   in
   aux k tl
 
@@ -386,7 +386,7 @@ let rec occurs_tm x m =
   | Meta _ -> false
   | Type _ -> false
   | Var y -> V.equal x y
-  | Pi (_, a, abs) ->
+  | Pi (_, a, impl, abs) ->
     let _, b = unbind_tm abs in
     occurs_tm x a || occurs_tm x b
   | Fix (a, abs) ->
@@ -411,7 +411,7 @@ let rec occurs_tm x m =
   | Main -> false
   | Proto -> false
   | End -> false
-  | Act (_, a, abs) ->
+  | Act (_, _, a, abs) ->
     let _, b = unbind_tm abs in
     occurs_tm x a || occurs_tm x b
   | Ch (_, a) -> occurs_tm x a
@@ -425,7 +425,7 @@ let rec occurs_tm x m =
 let rec occurs_tl x tl =
   match tl with
   | TBase b -> occurs_tm x b
-  | TBind (a, abs) ->
+  | TBind (a, _, abs) ->
     if occurs_tm x a then
       true
     else

@@ -13,7 +13,7 @@ and tm =
   | Meta of M.t * tms
   | Type of sort
   | Var of V.t
-  | Pi of sort * tm * tm abs
+  | Pi of sort * tm * bool * tm abs
   | Fix of tm * tm abs
   | Lam of sort * tm abs
   | App of tm * tm
@@ -24,7 +24,7 @@ and tm =
   | Main
   | Proto
   | End
-  | Act of bool * tm * tm abs
+  | Act of bool * sort * tm * tm abs
   | Ch of bool * tm
   | Fork of tm * tm * tm abs
   | Send of tm
@@ -66,7 +66,7 @@ and ptl =
 
 and tl =
   | TBase of tm
-  | TBind of tm * tl abs
+  | TBind of tm * bool * tl abs
 
 val var : V.t -> tm
 val xs_of_p : p -> V.t list
@@ -82,6 +82,7 @@ val unbind2_tm : tm abs -> tm abs -> V.t * tm * tm
 val unbindp2_tm : tm pabs -> tm pabs -> p * tm * tm
 val asubst_tm : tm abs -> tm -> tm
 val asubst_tl : tl abs -> tm -> tl
+val asubst_ptl : ptl abs -> tm -> ptl
 val asubstp_tm : tm pabs -> tm -> tm
 val subst_tm : V.t -> tm -> tm -> tm
 val mLam : sort -> V.t list -> tm -> tm

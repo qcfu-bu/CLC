@@ -23,6 +23,7 @@ module UVar : sig
   val pp_eqns : Format.formatter -> eqns -> unit
   val pp_prbm : Format.formatter -> prbm -> unit
   val prbm_of_cls : Syntax1.cls -> prbm
+  val msubst_tm : tm VMap.t -> tm -> tm
   val unify : eqns -> tm VMap.t
 end = struct
   type eqn = Eq of tm VMap.t * tm * Syntax1.p * tm
@@ -99,7 +100,7 @@ end = struct
             []
           else
             failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-        | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
+        | Pi (s1, a1, _, abs1), Pi (s2, a2, _, abs2) ->
           if s1 = s2 then
             let _, b1, b2 = unbind2_tm abs1 abs2 in
             let eqns1 = simpl (env, a1, a2) in
@@ -151,8 +152,8 @@ end = struct
         | Main, Main -> []
         | Proto, Proto -> []
         | End, End -> []
-        | Act (r1, a1, abs1), Act (r2, a2, abs2) ->
-          if r1 = r2 then
+        | Act (r1, s1, a1, abs1), Act (r2, s2, a2, abs2) ->
+          if r1 = r2 && s1 = s2 then
             let _, b1, b2 = unbind2_tm abs1 abs2 in
             let eqns1 = simpl (env, a1, a2) in
             let eqns2 = simpl (env, b1, b2) in
@@ -202,11 +203,11 @@ end = struct
       match VMap.find_opt x map with
       | Some m -> m
       | None -> Var x)
-    | Pi (s, a, abs) ->
+    | Pi (s, a, impl, abs) ->
       let a = msubst_tm map a in
       let x, b = unbind_tm abs in
       let b = msubst_tm map b in
-      Pi (s, a, bind_tm x b)
+      Pi (s, a, impl, bind_tm x b)
     | Fix (a, abs) ->
       let a = msubst_tm map a in
       let x, m = unbind_tm abs in
@@ -246,11 +247,11 @@ end = struct
     | Main -> Main
     | Proto -> Proto
     | End -> End
-    | Act (r, a, abs) ->
+    | Act (r, s, a, abs) ->
       let a = msubst_tm map a in
       let x, b = unbind_tm abs in
       let b = msubst_tm map b in
-      Act (r, a, bind_tm x b)
+      Act (r, s, a, bind_tm x b)
     | Ch (r, a) ->
       let a = msubst_tm map a in
       Ch (r, a)
@@ -293,7 +294,22 @@ end = struct
     aux VMap.empty eqns
 end
 
-module UMeta : sig end = struct
+module UMeta : sig
+  type eqn = Eq of tm VMap.t * tm * tm
+  and eqns = eqn list
+
+  type map = (tm_opt * tm_opt) MMap.t
+
+  val pp_eqn : Format.formatter -> eqn -> unit
+  val pp_eqns : Format.formatter -> eqns -> unit
+  val resolve_tm : map -> tm -> tm
+  val resolve_tl : map -> tl -> tl
+  val resolve_ptl : map -> ptl -> ptl
+  val resolve_dcons : map -> dcons -> dcons
+  val resolve_dcl : map -> dcl -> dcl
+  val resolve_dcls : map -> dcls -> dcls
+  val unify : map -> eqns -> map
+end = struct
   type eqn = Eq of tm VMap.t * tm * tm
   and eqns = eqn list
 
@@ -320,7 +336,7 @@ module UMeta : sig end = struct
       match VSet.find_opt x ctx with
       | Some _ -> VSet.empty
       | None -> VSet.singleton x)
-    | Pi (_, a, abs) ->
+    | Pi (_, a, _, abs) ->
       let x, b = unbind_tm abs in
       let fv1 = fv ctx a in
       let fv2 = fv (VSet.add x ctx) b in
@@ -359,7 +375,7 @@ module UMeta : sig end = struct
     | Main -> VSet.empty
     | Proto -> VSet.empty
     | End -> VSet.empty
-    | Act (_, a, abs) ->
+    | Act (_, _, a, abs) ->
       let x, b = unbind_tm abs in
       let fv1 = fv ctx a in
       let fv2 = fv (VSet.add x ctx) b in
@@ -381,7 +397,7 @@ module UMeta : sig end = struct
     | Meta (y, _) -> M.equal x y
     | Type _ -> false
     | Var y -> false
-    | Pi (_, a, abs) ->
+    | Pi (_, a, _, abs) ->
       let _, b = unbind_tm abs in
       occurs x a || occurs x b
     | Fix (a, abs) ->
@@ -406,7 +422,7 @@ module UMeta : sig end = struct
     | Main -> false
     | Proto -> false
     | End -> false
-    | Act (_, a, abs) ->
+    | Act (_, _, a, abs) ->
       let _, b = unbind_tm abs in
       occurs x a || occurs x b
     | Ch (_, a) -> occurs x a
@@ -452,7 +468,7 @@ module UMeta : sig end = struct
           match VMap.find_opt y env with
           | Some m2 -> asimpl (Eq (env, m1, mkApps m2 sp2))
           | None -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
-        | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
+        | Pi (s1, a1, _, abs1), Pi (s2, a2, _, abs2) ->
           if s1 = s2 then
             let _, b1, b2 = unbind2_tm abs1 abs2 in
             let eqns1 = asimpl (Eq (env, a1, a2)) in
@@ -504,8 +520,8 @@ module UMeta : sig end = struct
         | Main, Main -> []
         | Proto, Proto -> []
         | End, End -> []
-        | Act (r1, a1, abs1), Act (r2, a2, abs2) ->
-          if r1 = r2 then
+        | Act (r1, s1, a1, abs1), Act (r2, s2, a2, abs2) ->
+          if r1 = r2 && s1 = s2 then
             let _, b1, b2 = unbind2_tm abs1 abs2 in
             let eqns1 = asimpl (Eq (env, a1, a2)) in
             let eqns2 = asimpl (Eq (env, b1, b2)) in
@@ -558,7 +574,7 @@ module UMeta : sig end = struct
         match VMap.find_opt y env with
         | Some m2 -> simpl (Eq (env, m1, mkApps m2 sp2))
         | None -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
-      | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
+      | Pi (s1, a1, _, abs1), Pi (s2, a2, _, abs2) ->
         if s1 = s2 then
           let _, b1, b2 = unbind2_tm abs1 abs2 in
           let eqns1 = simpl (Eq (env, a1, a2)) in
@@ -610,8 +626,8 @@ module UMeta : sig end = struct
       | Main, Main -> []
       | Proto, Proto -> []
       | End, End -> []
-      | Act (r1, a1, abs1), Act (r2, a2, abs2) ->
-        if r1 = r2 then
+      | Act (r1, s1, a1, abs1), Act (r2, s2, a2, abs2) ->
+        if r1 = r2 && s1 = s2 then
           let _, b1, b2 = unbind2_tm abs1 abs2 in
           let eqns1 = simpl (Eq (env, a1, a2)) in
           let eqns2 = simpl (Eq (env, b1, b2)) in
@@ -673,11 +689,11 @@ module UMeta : sig end = struct
     | Ann (a, m) -> Ann (resolve_tm map a, resolve_tm map m)
     | Type _ -> m
     | Var _ -> m
-    | Pi (s, a, abs) ->
+    | Pi (s, a, impl, abs) ->
       let x, b = unbind_tm abs in
       let a = resolve_tm map a in
       let b = resolve_tm map b in
-      Pi (s, a, bind_tm x b)
+      Pi (s, a, impl, bind_tm x b)
     | Fix (a, abs) ->
       let x, m = unbind_tm abs in
       let a = resolve_tm map a in
@@ -717,11 +733,11 @@ module UMeta : sig end = struct
     | Main -> m
     | Proto -> m
     | End -> m
-    | Act (r, a, abs) ->
+    | Act (r, s, a, abs) ->
       let x, b = unbind_tm abs in
       let a = resolve_tm map a in
       let b = resolve_tm map b in
-      Act (r, a, bind_tm x b)
+      Act (r, s, a, bind_tm x b)
     | Ch (r, m) -> Ch (r, resolve_tm map m)
     | Fork (a, m, abs) ->
       let x, n = unbind_tm abs in
@@ -736,11 +752,11 @@ module UMeta : sig end = struct
   let rec resolve_tl map tl =
     match tl with
     | TBase b -> TBase (resolve_tm map b)
-    | TBind (a, abs) ->
+    | TBind (a, impl, abs) ->
       let x, tl = unbind_tl abs in
       let a = resolve_tm map a in
       let tl = resolve_tl map tl in
-      TBind (a, bind_tl x tl)
+      TBind (a, impl, bind_tl x tl)
 
   let rec resolve_ptl map ptl =
     match ptl with
