@@ -20,7 +20,7 @@ and tm =
   | Data of D.t * tms
   | Cons of C.t * tms
   | Absurd
-  | Match of tms * cls
+  | Match of tms * tm * cls
   | If of tm * tm * tm
   | Main
   | Proto

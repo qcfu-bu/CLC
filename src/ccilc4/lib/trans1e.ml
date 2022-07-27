@@ -150,13 +150,12 @@ and infer_tm ctx env eqns map m =
     infer_tm ctx env eqns map n
   | Data (d, ms) ->
     let ptl, _ = find_d d ctx in
-    let a, eqns, map = check_ptl ctx env eqns map ms ptl in
-    (a, eqns, map)
+    check_ptl ctx env eqns map ms ptl
   | Cons (c, ms) ->
     let ptl = find_c c ctx in
     check_ptl ctx env eqns map ms ptl
   | Absurd -> failwith "infer_Absurd(%a)" pp_tm m
-  | Match (ms, cls) ->
+  | Match (ms, b, cls) ->
     let ms_ty, eqns, map =
       List.fold_left
         (fun (acc, eqns, map) m ->
@@ -164,24 +163,23 @@ and infer_tm ctx env eqns map m =
           (a :: acc, eqns, map))
         ([], eqns, map) ms
     in
-    let meta, meta_x = meta_mk ctx in
     let a =
       List.fold_left
         (fun acc m_ty ->
           let x = V.blank () in
           Pi (L, m_ty, bind_tm x acc))
-        meta ms_ty
+        b ms_ty
     in
     let prbm = UVar.prbm_of_cls cls in
     let eqns, map = check_prbm ctx env eqns map prbm a in
     let map = UMeta.unify map eqns in
-    (UMeta.resolve_tm map meta, eqns, map)
+    (UMeta.resolve_tm map b, eqns, map)
   | If (m, tt, ff) -> (
     let a, eqns, map = infer_tm ctx env eqns map m in
     let a = UMeta.resolve_tm map a in
     match whnf rd_all env a with
     | Data (d, _) ->
-      let _, cs = DMap.find d ctx.ds in
+      let _, cs = find_d d ctx in
       if List.length cs = 2 then
         let tt_ty, eqns, map = infer_tm ctx env eqns map tt in
         let ff_ty, eqns, map = infer_tm ctx env eqns map ff in
@@ -299,7 +297,8 @@ and check_tm ctx env eqns map m a =
     | _ ->
       let b, eqns, map = infer_tm ctx env eqns map m in
       assert_equal env eqns map a b)
-  | Match (ms, cls) ->
+  | Match (ms, b, cls) ->
+    let eqns, map = assert_equal env eqns map a b in
     let ms_ty, eqns, map =
       List.fold_left
         (fun (acc, eqns, map) m ->

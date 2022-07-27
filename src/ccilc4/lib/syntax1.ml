@@ -20,7 +20,7 @@ and tm =
   | Data of D.t * tms
   | Cons of C.t * tms
   | Absurd
-  | Match of tms * cls
+  | Match of tms * tm * cls
   | If of tm * tm * tm
   | Main
   | Proto
@@ -150,8 +150,9 @@ let bindn_tm k xs m =
       let ms = List.map (aux k) ms in
       Cons (c, ms)
     | Absurd -> Absurd
-    | Match (ms, cls) ->
+    | Match (ms, a, cls) ->
       let ms = List.map (aux k) ms in
+      let a = aux k a in
       let cls =
         List.map
           (fun (Cl (PAbs (ps, m_opt))) ->
@@ -161,7 +162,7 @@ let bindn_tm k xs m =
             Cl (PAbs (ps, m_opt)))
           cls
       in
-      Match (ms, cls)
+      Match (ms, a, cls)
     | If (m, n1, n2) ->
       let m = aux k m in
       let n1 = aux k n1 in
@@ -233,8 +234,9 @@ let unbindn_tm k xs m =
       let ms = List.map (aux k) ms in
       Cons (c, ms)
     | Absurd -> Absurd
-    | Match (ms, cls) ->
+    | Match (ms, a, cls) ->
       let ms = List.map (aux k) ms in
+      let a = aux k a in
       let cls =
         List.map
           (fun (Cl (PAbs (ps, m_opt))) ->
@@ -244,7 +246,7 @@ let unbindn_tm k xs m =
             Cl (PAbs (ps, m_opt)))
           cls
       in
-      Match (ms, cls)
+      Match (ms, a, cls)
     | If (m, n1, n2) ->
       let m = aux k m in
       let n1 = aux k n1 in
@@ -481,8 +483,9 @@ let rec occurs_tm x m =
   | Data (_, ms) -> List.exists (occurs_tm x) ms
   | Cons (_, ms) -> List.exists (occurs_tm x) ms
   | Absurd -> false
-  | Match (ms, cls) ->
+  | Match (ms, a, cls) ->
     List.exists (occurs_tm x) ms
+    || occurs_tm x a
     || List.exists
          (fun (Cl pabs) ->
            let _, m_opt = unbindp_tm_opt pabs in

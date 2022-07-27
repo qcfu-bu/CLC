@@ -20,7 +20,7 @@ let rec whnf rds env m =
       let x, n = unbind_tm abs in
       let abs = bind_tm x (Ann (a, n)) in
       whnf rds env (Let (m, abs))
-    | Match (ms, cls) ->
+    | Match (ms, b, cls) ->
       let cls =
         List.map
           (fun (Cl pabs) ->
@@ -29,7 +29,7 @@ let rec whnf rds env m =
             Cl (bindp_tm_opt ps m_opt))
           cls
       in
-      whnf rds env (Match (ms, cls))
+      whnf rds env (Match (ms, b, cls))
     | Fun (None, abs) -> Fun (Some a, abs)
     | _ -> m)
   | Var x ->
@@ -60,14 +60,15 @@ let rec whnf rds env m =
       whnf rds (VMap.add x m env) n
     else
       Let (m, abs)
-  | Match (ms, cls) ->
+  | Match (ms, a, cls) ->
     let ms = List.map (whnf rds env) ms in
+    let a = whnf rds env a in
     if List.exists (( = ) Iota) rds then
       match match_cls cls ms with
       | Some (Some m) -> whnf rds env m
-      | _ -> Match (ms, cls)
+      | _ -> Match (ms, a, cls)
     else
-      Match (ms, cls)
+      Match (ms, a, cls)
   | Ch (r, m) -> Ch (r, whnf rds env m)
   | _ -> m
 
@@ -126,8 +127,8 @@ let rec aeq m1 m2 =
     | Let (m1, abs1), Let (m2, abs2) -> aeq m1 m2 && equal_abs aeq abs1 abs2
     | Data (d1, ms1), Data (d2, ms2) -> D.equal d1 d2 && List.equal aeq ms1 ms2
     | Cons (c1, ms1), Cons (c2, ms2) -> C.equal c1 c2 && List.equal aeq ms1 ms2
-    | Match (ms1, cls1), Match (ms2, cls2) ->
-      List.equal aeq ms1 ms2
+    | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
+      List.equal aeq ms1 ms2 && aeq a1 a2
       && List.equal
            (fun (Cl pabs1) (Cl pabs2) ->
              equal_pabs (Option.equal aeq) pabs1 pabs2)
@@ -176,8 +177,9 @@ let rec equal rds env m1 m2 =
       D.equal d1 d2 && List.equal (equal rds env) ms1 ms2
     | Cons (c1, ms1), Cons (c2, ms2) ->
       C.equal c1 c2 && List.equal (equal rds env) ms1 ms2
-    | Match (ms1, cls1), Match (ms2, cls2) ->
+    | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
       List.equal (equal rds env) ms1 ms2
+      && equal rds env a1 a2
       && List.equal
            (fun (Cl pabs1) (Cl pabs2) ->
              equal_pabs (Option.equal (equal rds env)) pabs1 pabs2)

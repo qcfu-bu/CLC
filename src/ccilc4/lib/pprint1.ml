@@ -56,9 +56,9 @@ let rec pp_tm fmt m =
     | [] -> C.pp fmt c
     | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
   | Absurd -> pf fmt "absurd"
-  | Match (ms, cls) ->
-    pf fmt "@[<v 0>(@[match %a with@]@;<1 2>%a)@]" (list ~sep:comma pp_tm) ms
-      (pp_cls ", ") cls
+  | Match (ms, a, cls) ->
+    pf fmt "@[<v 0>(@[match %a return %a with@]@;<1 2>%a)@]"
+      (list ~sep:comma pp_tm) ms pp_tm a (pp_cls ", ") cls
   | If (m, n1, n2) ->
     pf fmt "@[if %a then@;<1 2>%a@.else@;<1 2>%a@]" pp_tm m pp_tm n1 pp_tm n2
   | Main -> pf fmt "@main"

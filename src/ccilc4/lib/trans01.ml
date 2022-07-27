@@ -122,11 +122,13 @@ let rec trans_tm nspc cs m =
       let nspc, p = trans_p nspc cs p in
       let n = trans_tm nspc cs n in
       let cl = Syntax1.bindp_tm_opt [ p ] (Some n) in
-      Syntax1.Match ([ m ], [ Syntax1.Cl cl ]))
+      let meta = Syntax1.Meta (M.mk (), spine_of_nspc nspc) in
+      Syntax1.Match ([ m ], meta, [ Syntax1.Cl cl ]))
   | Match (ms, cls) ->
     let ms = List.map (trans_tm nspc cs) ms in
     let cls = trans_cls nspc cs cls in
-    Syntax1.Match (ms, cls)
+    let meta = Syntax1.Meta (M.mk (), spine_of_nspc nspc) in
+    Syntax1.Match (ms, meta, cls)
   | If (m, n1, n2) ->
     let m = trans_tm nspc cs m in
     let n1 = trans_tm nspc cs n1 in
