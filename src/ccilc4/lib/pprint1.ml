@@ -21,30 +21,20 @@ let rec pp_tm fmt m =
   | Meta (x, ms) -> M.pp fmt x
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
-  | Pi (s, a, impl, abs) -> (
+  | Pi (s, a, abs) -> (
     let x, b = unbind_tm abs in
-    match (s, occurs_tm x b, impl) with
-    | U, false, _ -> pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tm b
-    | U, true, true ->
-      pf fmt "@[@[∀ {%a :@;<1 2>%a} ->@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
-    | U, true, false ->
+    match (s, occurs_tm x b) with
+    | U, false -> pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tm b
+    | U, true ->
       pf fmt "@[@[∀ (%a :@;<1 2>%a) ->@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
-    | L, false, _ -> pf fmt "@[%a -o@;<1 2>%a@]" pp_tm a pp_tm b
-    | L, true, true ->
-      pf fmt "@[@[∀ {%a :@;<1 2>%a} -o@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
-    | L, true, false ->
+    | L, false -> pf fmt "@[%a -o@;<1 2>%a@]" pp_tm a pp_tm b
+    | L, true ->
       pf fmt "@[@[∀ (%a :@;<1 2>%a) -o@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b)
-  | Fun (a_opt, abs) -> (
+  | Fun abs -> (
     let x, cls = unbind_cls abs in
-    match (a_opt, occurs_cls x cls) with
-    | Some a, false ->
-      pf fmt "@[<v 0>(@[fun : %a@]@;<1 2>%a)@]" pp_tm a (pp_cls " ") cls
-    | Some a, true ->
-      pf fmt "@[<v 0>(@[fun %a : %a@]@;<1 2>%a)@]" V.pp x pp_tm a (pp_cls " ")
-        cls
-    | None, false -> pf fmt "@[<v 0>(fun@;<1 2>%a)@]" (pp_cls " ") cls
-    | None, true ->
-      pf fmt "@[<v 0>(@[fun %a@]@;<1 2>%a)@]" V.pp x (pp_cls " ") cls)
+    match occurs_cls x cls with
+    | false -> pf fmt "@[<v 0>(fun@;<1 2>%a)@]" (pp_cls " ") cls
+    | true -> pf fmt "@[<v 0>(@[fun %a@]@;<1 2>%a)@]" V.pp x (pp_cls " ") cls)
   | App _ ->
     let m, ms = unApps m in
     pf fmt "@[((%a) %a)@]" pp_tm m (list ~sep:sp pp_tm) ms
@@ -59,6 +49,7 @@ let rec pp_tm fmt m =
     match ms with
     | [] -> C.pp fmt c
     | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
+  | Absurd -> pf fmt "absurd"
   | Match (ms, cls) ->
     pf fmt "@[<v 0>(@[match %a with@]@;<1 2>%a)@]" (list ~sep:comma pp_tm) ms
       (pp_cls ", ") cls
@@ -86,7 +77,6 @@ let rec pp_tm fmt m =
   | Send m -> pf fmt "send %a" pp_tm m
   | Recv m -> pf fmt "recv %a" pp_tm m
   | Close m -> pf fmt "close %a" pp_tm m
-  | Embed m -> pf fmt "embed[%a]" Pprint2.pp_tm m
 
 and pp_cl sep fmt (Cl abs) =
   let ps, m_opt = unbindp_tm_opt abs in
@@ -117,13 +107,11 @@ let rec pp_ptl fmt ptl =
 and pp_tl fmt tl =
   match tl with
   | TBase b -> pp_tm fmt b
-  | TBind (a, impl, abs) -> (
+  | TBind (a, abs) -> (
     let x, tl = unbind_tl abs in
-    match (occurs_tl x tl, impl) with
-    | false, _ -> pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tl tl
-    | true, true ->
-      pf fmt "@[@[∀ {%a :@;<1 2>%a} ->@]@;<1 2>%a@]" V.pp x pp_tm a pp_tl tl
-    | true, false ->
+    match occurs_tl x tl with
+    | false -> pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tl tl
+    | true ->
       pf fmt "@[@[∀ (%a :@;<1 2>%a) ->@]@;<1 2>%a@]" V.pp x pp_tm a pp_tl tl)
 
 let pp_dcons fmt (DCons (c, ptl)) = pf fmt "| %a %a" C.pp c pp_ptl ptl

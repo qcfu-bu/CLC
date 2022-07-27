@@ -3,6 +3,7 @@ open Lang
 open Names
 open Parser0
 open Prelude
+open Equality1
 
 let parse s =
   let ch = open_in s in
@@ -16,6 +17,9 @@ let parse s =
       let _ = pr "%a@." Syntax1.pp_dcls dcls in
       let _ = pr "----------------------------------------------@." in
       let _ = pr "%a@." Pprint1.pp_dcls dcls in
+      let _ = pr "----------------------------------------------@." in
+      let res = eval rd_all VMap.empty dcls in
+      let _ = pr "%a@." Pprint1.pp_dcls res in
       ()
     | Failed (s, _) -> epr "%s\n" s
   with

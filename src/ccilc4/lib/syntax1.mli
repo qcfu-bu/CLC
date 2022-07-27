@@ -13,12 +13,13 @@ and tm =
   | Meta of M.t * tms
   | Type of sort
   | Var of V.t
-  | Pi of sort * tm * bool * tm abs
-  | Fun of tm_opt * cls abs
+  | Pi of sort * tm * tm abs
+  | Fun of cls abs
   | App of tm * tm
   | Let of tm * tm abs
   | Data of D.t * tms
   | Cons of C.t * tms
+  | Absurd
   | Match of tms * cls
   | If of tm * tm * tm
   | Main
@@ -30,7 +31,6 @@ and tm =
   | Send of tm
   | Recv of tm
   | Close of tm
-  | Embed of Syntax2.tm
 
 and tms = tm list
 and tm_opt = tm option
@@ -69,9 +69,10 @@ and ptl =
 
 and tl =
   | TBase of tm
-  | TBind of tm * bool * tl abs
+  | TBind of tm * tl abs
 
 val var : V.t -> tm
+val xs_of_ps : ps -> V.t list
 val bind_tm : V.t -> tm -> tm abs
 val bindp_tm_opt : ps -> tm_opt -> tm_opt pabs
 val bind_cls : V.t -> cls -> cls abs
@@ -82,6 +83,20 @@ val unbind_tm : tm abs -> V.t * tm
 val unbindp_tm_opt : tm_opt pabs -> ps * tm_opt
 val unbind_ptl : ptl abs -> V.t * ptl
 val unbind_tl : tl abs -> V.t * tl
+val unbind2_tm : tm abs -> tm abs -> V.t * tm * tm
+val unbindp2_tm_opt : tm_opt pabs -> tm_opt pabs -> ps * tm_opt * tm_opt
+val unbind2_cls : cls abs -> cls abs -> V.t * cls * cls
+val equal_abs : ('a -> 'b -> bool) -> 'a abs -> 'b abs -> bool
+val equal_pabs : ('a -> 'b -> bool) -> 'a pabs -> 'b pabs -> bool
+val asubst_tm : tm abs -> tm -> tm
+val asubst_tl : tl abs -> tm -> tl
+val asubst_ptl : ptl abs -> tm -> ptl
+val asubst_cls : cls abs -> tm -> cls
+val substp_tm_opt : ps -> tm_opt -> tm -> ps * tm_opt
+val subst_tm : V.t -> tm -> tm -> tm
+val lam : V.t -> tm -> tm
+val mLam : V.t list -> tm -> tm
+val fold_tl : ('a -> tm -> V.t -> tl -> 'a * tl) -> 'a -> tl -> 'a * tm
 val mkApps : tm -> tms -> tm
 val unApps : tm -> tm * tms
 val occurs_tm : V.t -> tm -> bool

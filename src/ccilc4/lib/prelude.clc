@@ -23,7 +23,7 @@ data list (A : U) : U
 
 data vec (A : U) : nat -> U
   | vnil : vec A zero
-  | vcons : ∀ {n : nat} -> A -> vec A n -> vec A (succ n)
+  | vcons : ∀ (n : nat) -> A -> vec A n -> vec A (succ n)
 
 data ex (A : U) (P : A -> U) : U
   | ex_intro : ∀ (x : A) -> P x -> ex A P

@@ -1,46 +1,15 @@
-data ref_msg : U
-  | GET  : ref_msg
-  | SET  : ref_msg
-  | FREE : ref_msg
 
-def ref_t : U -> proto
-  | A =>
-    ?(msg : ref_msg) ⋅
-      match msg with
-      | GET => !A ⋅ ref_t A
-      | SET => ?A ⋅ ref_t A
-      | FREE => end
+def maxn : nat -> nat -> nat
+  | x y =>
+    match x, y with
+    | zero, _ => y
+    | _, zero => x
+    | succ x, succ y => succ (maxn x y)
 
-def ref_handler : ∀ (A : U) (m : A) -> ch<ref_t A> -o unit
-  | A m ch =>
-    match recv ch with
-    | sig_intro GET ch => ref_handler _ m (send ch m)
-    | sig_intro SET ch => 
-      let sig_intro m ch := recv ch in
-      ref_handler A m ch
-    | sig_intro FREE ch => close ch
+def one := succ zero
 
-def mk_ref : ∀ (A : U) -> A -> @main -> tnsr (hc<ref_t A>) @main
-  | A m x =>
-    fork (ref : ch<ref_t A>) <- x with
-    ref_handler A m ref
+def two := succ (succ zero)
 
-def set_ref : ∀ (A : U) -> A -> hc<ref_t A> -o hc<ref_t A>
-  | A m ref => send (send ref SET) m
+def foo := maxn one
 
-def get_ref : ∀ (A : U) -> hc<ref_t A> -o sig A (fun _ => (hc<ref_t A>))
-  | A ref => recv (send ref GET)
-
-def free_ref : ∀ (A : U) -> hc<ref_t A> -o unit
-  | A ref => close (send ref FREE)
-
-def tail : ∀ (A : U) (n : nat) -> vec A (succ n) -> nat
-  | _ _ (vcons _ _ tl) => zero
-
-open @main as main
-
-def main :=
-  let tnsr_intro ref main := mk_ref string _ main in
-  let sig_intro msg1 ref := get_ref _ ref in
-  let tt := free_ref _ ref in
-  main
+def bar := (foo two)

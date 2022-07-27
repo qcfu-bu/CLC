@@ -168,29 +168,21 @@ and ann_parser () =
   let* m = tm_parser () in
   return (Ann (a, m))
 
-and arg0_parser () =
+and arg_parser () =
   parens
     (let* ids = many1 id_parser in
      let* _ = kw ":" in
      let* a = tm_parser () in
-     let arg = List.map (fun id -> (Some id, a, false)) ids in
-     return arg)
-
-and arg1_parser () =
-  braces
-    (let* ids = many1 id_parser in
-     let* _ = kw ":" in
-     let* a = tm_parser () in
-     let arg = List.map (fun id -> (Some id, a, true)) ids in
+     let arg = List.map (fun id -> (Some id, a)) ids in
      return arg)
 
 and args_parser () =
-  let* args = many (arg0_parser () <|> arg1_parser ()) in
+  let* args = many (arg_parser ()) in
   let args = List.concat args in
   return args
 
 and args1_parser () =
-  let* args = many1 (arg0_parser () <|> arg1_parser ()) in
+  let* args = many1 (arg_parser ()) in
   let args = List.concat args in
   return args
 
@@ -323,7 +315,7 @@ and act0_parser () =
 
 and act1_parser () =
   let* a = tm_parser () in
-  return [ (None, a, false) ]
+  return [ (None, a) ]
 
 and act_parser () =
   let* r = kw "?" >>$ true <|> (kw "!" >>$ false) in
@@ -398,11 +390,11 @@ and tm1_parser () =
 and tm2_parser () =
   let arrow_parser =
     let* _ = kw "→" <|> kw "->" in
-    return (fun a b -> Pi (U, [ (None, a, false) ], b))
+    return (fun a b -> Pi (U, [ (None, a) ], b))
   in
   let lolli_parser =
     let* _ = kw "⊸" <|> kw "-o" in
-    return (fun a b -> Pi (L, [ (None, a, false) ], b))
+    return (fun a b -> Pi (L, [ (None, a) ], b))
   in
   chain_right1 (tm1_parser ()) (arrow_parser <|> lolli_parser)
 

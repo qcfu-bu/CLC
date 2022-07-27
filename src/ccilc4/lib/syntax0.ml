@@ -36,7 +36,7 @@ and p =
   | PAbsurd
 
 and ps = p list
-and arg = id_opt * tm * bool
+and arg = id_opt * tm
 and args = arg list
 and cl = Cl of (ps * tm_opt)
 and cls = cl list
