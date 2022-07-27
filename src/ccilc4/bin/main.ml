@@ -5,7 +5,7 @@ open Parser0
 open Prelude
 open Equality1
 
-let parse s =
+let run s =
   let ch = open_in s in
   try
     match parse_channel ch state0 with
@@ -18,6 +18,9 @@ let parse s =
       let _ = pr "----------------------------------------------@." in
       let _ = pr "%a@." Pprint1.pp_dcls dcls in
       let _ = pr "----------------------------------------------@." in
+      let dcls = Trans1e.trans_dcls dcls in
+      let _ = pr "%a@." Pprint1.pp_dcls dcls in
+      let _ = pr "----------------------------------------------@." in
       let res = eval rd_all VMap.empty dcls in
       let _ = pr "%a@." Pprint1.pp_dcls res in
       ()
@@ -25,4 +28,8 @@ let parse s =
   with
   | Failure s -> epr "Failure: %s" s
 
-let _ = parse "mock/mock0.clc"
+let _ =
+  if Array.length Sys.argv < 1 then
+    epr "input file expected@."
+  else
+    run Sys.argv.(1)

@@ -13,7 +13,7 @@ and tm =
   | Meta of M.t * tms
   | Type of sort
   | Var of V.t
-  | Pi of sort * tm * bool * tm abs
+  | Pi of sort * tm * tm abs
   | Fix of tm * tm abs
   | Lam of sort * tm abs
   | App of tm * tm
@@ -67,7 +67,7 @@ and ptl =
 
 and tl =
   | TBase of tm
-  | TBind of tm * bool * tl abs
+  | TBind of tm * tl abs
 
 let var x = Var x
 
@@ -109,10 +109,10 @@ let bindn_tm k xs m =
       match opt with
       | Some (i, _) -> Var (V.bind (i + k))
       | None -> Var y)
-    | Pi (s, a, impl, Abs (x, b)) ->
+    | Pi (s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Pi (s, a, impl, Abs (x, b))
+      Pi (s, a, Abs (x, b))
     | Fix (a, Abs (x, m)) ->
       let a = aux k a in
       let m = aux (k + 1) m in
@@ -183,10 +183,10 @@ let unbindn_tm k xs m =
       match V.is_bound y sz k with
       | Some i -> List.nth xs (i - k)
       | None -> Var y)
-    | Pi (s, a, impl, Abs (x, b)) ->
+    | Pi (s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Pi (s, a, impl, Abs (x, b))
+      Pi (s, a, Abs (x, b))
     | Fix (a, Abs (x, m)) ->
       let a = aux k a in
       let m = aux (k + 1) m in
@@ -264,10 +264,10 @@ and bindn_tl k xs tl =
   let rec aux k tl =
     match tl with
     | TBase b -> TBase (bindn_tm k xs b)
-    | TBind (a, impl, Abs (x, tl)) ->
+    | TBind (a, Abs (x, tl)) ->
       let a = bindn_tm k xs a in
       let tl = aux (k + 1) tl in
-      TBind (a, impl, Abs (x, tl))
+      TBind (a, Abs (x, tl))
   in
   aux k tl
 
@@ -294,10 +294,10 @@ and unbindn_tl k xs tl =
   let rec aux k tl =
     match tl with
     | TBase a -> TBase (unbindn_tm k xs a)
-    | TBind (a, impl, Abs (x, tl)) ->
+    | TBind (a, Abs (x, tl)) ->
       let a = unbindn_tm k xs a in
       let tl = aux (k + 1) tl in
-      TBind (a, impl, Abs (x, tl))
+      TBind (a, Abs (x, tl))
   in
   aux k tl
 
@@ -389,7 +389,7 @@ let rec occurs_tm x m =
   | Meta _ -> false
   | Type _ -> false
   | Var y -> V.equal x y
-  | Pi (_, a, impl, abs) ->
+  | Pi (_, a, abs) ->
     let _, b = unbind_tm abs in
     occurs_tm x a || occurs_tm x b
   | Fix (a, abs) ->
@@ -429,7 +429,7 @@ let rec occurs_tm x m =
 let rec occurs_tl x tl =
   match tl with
   | TBase b -> occurs_tm x b
-  | TBind (a, _, abs) ->
+  | TBind (a, abs) ->
     if occurs_tm x a then
       true
     else

@@ -30,11 +30,17 @@ let rec pp_tm fmt m =
     | L, false -> pf fmt "@[%a -o@;<1 2>%a@]" pp_tm a pp_tm b
     | L, true ->
       pf fmt "@[@[∀ (%a :@;<1 2>%a) -o@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b)
-  | Fun abs -> (
+  | Fun (a_opt, abs) -> (
     let x, cls = unbind_cls abs in
-    match occurs_cls x cls with
-    | false -> pf fmt "@[<v 0>(fun@;<1 2>%a)@]" (pp_cls " ") cls
-    | true -> pf fmt "@[<v 0>(@[fun %a@]@;<1 2>%a)@]" V.pp x (pp_cls " ") cls)
+    match (a_opt, occurs_cls x cls) with
+    | Some a, false ->
+      pf fmt "@[<v 0>(@[fun : %a@]@;<1 2>%a)@]" pp_tm a (pp_cls " ") cls
+    | Some a, true ->
+      pf fmt "@[<v 0>(@[fun %a : %a@]@;<1 2>%a)@]" V.pp x pp_tm a (pp_cls " ")
+        cls
+    | None, false -> pf fmt "@[<v 0>(fun@;<1 2>%a)@]" (pp_cls " ") cls
+    | None, true ->
+      pf fmt "@[<v 0>(@[fun %a@]@;<1 2>%a)@]" V.pp x (pp_cls " ") cls)
   | App _ ->
     let m, ms = unApps m in
     pf fmt "@[((%a) %a)@]" pp_tm m (list ~sep:sp pp_tm) ms

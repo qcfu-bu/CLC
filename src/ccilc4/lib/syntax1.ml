@@ -14,7 +14,7 @@ and tm =
   | Type of sort
   | Var of V.t
   | Pi of sort * tm * tm abs
-  | Fun of cls abs
+  | Fun of tm_opt * cls abs
   | App of tm * tm
   | Let of tm * tm abs
   | Data of D.t * tms
@@ -123,7 +123,8 @@ let bindn_tm k xs m =
       let a = aux k a in
       let b = aux (k + 1) b in
       Pi (s, a, Abs (x, b))
-    | Fun (Abs (x, cls)) ->
+    | Fun (a_opt, Abs (x, cls)) ->
+      let a_opt = Option.map (aux k) a_opt in
       let cls =
         List.map
           (fun (Cl (PAbs (ps, m_opt))) ->
@@ -133,7 +134,7 @@ let bindn_tm k xs m =
             Cl (PAbs (ps, m_opt)))
           cls
       in
-      Fun (Abs (x, cls))
+      Fun (a_opt, Abs (x, cls))
     | App (m, n) ->
       let m = aux k m in
       let n = aux k n in
@@ -205,7 +206,8 @@ let unbindn_tm k xs m =
       let a = aux k a in
       let b = aux (k + 1) b in
       Pi (s, a, Abs (x, b))
-    | Fun (Abs (x, cls)) ->
+    | Fun (a_opt, Abs (x, cls)) ->
+      let a_opt = Option.map (aux k) a_opt in
       let cls =
         List.map
           (fun (Cl (PAbs (ps, m_opt))) ->
@@ -215,7 +217,7 @@ let unbindn_tm k xs m =
             Cl (PAbs (ps, m_opt)))
           cls
       in
-      Fun (Abs (x, cls))
+      Fun (a_opt, Abs (x, cls))
     | App (m, n) ->
       let m = aux k m in
       let n = aux k n in
@@ -400,38 +402,32 @@ let asubst_cls (Abs (_, cls)) n = unbindn_cls 0 [ n ] cls
 
 let rec match_p p m =
   match (p, m) with
-  | PVar x, _ -> ([ x ], [ m ])
+  | PVar x, _ -> [ m ]
   | PCons (c1, ps), Cons (c2, ms) ->
     if C.equal c1 c2 then
-      List.fold_left2
-        (fun (xs1, ms1) p m ->
-          let xs2, ms2 = match_p p m in
-          (xs1 @ xs2, ms1 @ ms2))
-        ([], []) ps ms
+      List.fold_left2 (fun acc p m -> acc @ match_p p m) [] ps ms
     else
       failwith "match_p"
   | _ -> failwith "match_p"
 
-let substp_tm_opt ps rhs n =
-  match ps with
-  | p :: ps -> (
-    match rhs with
-    | Some m ->
-      let xs, ns = match_p p n in
-      (ps, Some (unbindn_tm 0 ns (bindn_tm 0 xs m)))
-    | None -> (ps, None))
-  | [] -> failwith "subst_tm_opt"
+let substp_tm_opt ps rhs ns =
+  match rhs with
+  | Some m ->
+    let ns = List.concat (List.map2 match_p ps ns) in
+    let xs = xs_of_ps ps in
+    Some (unbindn_tm 0 ns (bindn_tm 0 xs m))
+  | None -> None
 
 let subst_tm x m n = unbindn_tm 0 [ n ] (bindn_tm 0 [ x ] m)
 
 let lam x m =
   let cls = [ Cl (bindp_tm_opt [ PVar x ] (Some m)) ] in
-  Fun (bind_cls (V.blank ()) cls)
+  Fun (None, bind_cls (V.blank ()) cls)
 
 let mLam xs m =
   let ps = List.map (fun x -> PVar x) xs in
   let cls = [ Cl (bindp_tm_opt ps (Some m)) ] in
-  Fun (bind_cls (V.blank ()) cls)
+  Fun (None, bind_cls (V.blank ()) cls)
 
 let rec fold_tl f acc tl =
   match tl with
@@ -463,15 +459,21 @@ let rec occurs_tm x m =
   | Pi (_, a, abs) ->
     let _, b = unbind_tm abs in
     occurs_tm x a || occurs_tm x b
-  | Fun abs ->
+  | Fun (a_opt, abs) ->
     let _, cls = unbind_cls abs in
-    List.exists
-      (fun (Cl pabs) ->
-        let _, m_opt = unbindp_tm_opt pabs in
-        match m_opt with
-        | Some m -> occurs_tm x m
-        | None -> false)
-      cls
+    let a_res =
+      match a_opt with
+      | Some a -> occurs_tm x a
+      | None -> false
+    in
+    a_res
+    || List.exists
+         (fun (Cl pabs) ->
+           let _, m_opt = unbindp_tm_opt pabs in
+           match m_opt with
+           | Some m -> occurs_tm x m
+           | None -> false)
+         cls
   | App (m, n) -> occurs_tm x m || occurs_tm x n
   | Let (m, abs) ->
     let _, n = unbind_tm abs in

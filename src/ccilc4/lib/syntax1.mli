@@ -14,7 +14,7 @@ and tm =
   | Type of sort
   | Var of V.t
   | Pi of sort * tm * tm abs
-  | Fun of cls abs
+  | Fun of tm_opt * cls abs
   | App of tm * tm
   | Let of tm * tm abs
   | Data of D.t * tms
@@ -92,7 +92,7 @@ val asubst_tm : tm abs -> tm -> tm
 val asubst_tl : tl abs -> tm -> tl
 val asubst_ptl : ptl abs -> tm -> ptl
 val asubst_cls : cls abs -> tm -> cls
-val substp_tm_opt : ps -> tm_opt -> tm -> ps * tm_opt
+val substp_tm_opt : ps -> tm_opt -> tms -> tm_opt
 val subst_tm : V.t -> tm -> tm -> tm
 val lam : V.t -> tm -> tm
 val mLam : V.t list -> tm -> tm

@@ -84,18 +84,13 @@ let rec trans_tm nspc cs m =
   | Fun (id_opt, a_opt, cls) -> (
     let a_opt = Option.map (trans_tm nspc cs) a_opt in
     let x = trans_id_opt id_opt in
-    let m =
-      match id_opt with
-      | Some id ->
-        let cls = trans_cls ((id, V x) :: nspc) cs cls in
-        Syntax1.(Fun (bind_cls x cls))
-      | None ->
-        let cls = trans_cls nspc cs cls in
-        Syntax1.(Fun (bind_cls x cls))
-    in
-    match a_opt with
-    | Some a -> Ann (a, m)
-    | None -> m)
+    match id_opt with
+    | Some id ->
+      let cls = trans_cls ((id, V x) :: nspc) cs cls in
+      Fun (a_opt, Syntax1.bind_cls x cls)
+    | None ->
+      let cls = trans_cls nspc cs cls in
+      Fun (a_opt, Syntax1.bind_cls x cls))
   | App ms -> (
     match ms with
     | Id id :: ms -> (

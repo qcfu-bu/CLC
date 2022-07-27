@@ -16,7 +16,7 @@ module UVar : sig
 
   type prbm =
     { global : eqns
-    ; clause : (eqns * Syntax1.ps * Syntax1.tm_opt) list
+    ; clause : (eqns * ps * tm_opt) list
     }
 
   val pp_eqn : Format.formatter -> eqn -> unit
@@ -31,7 +31,7 @@ end = struct
 
   type prbm =
     { global : eqns
-    ; clause : (eqns * Syntax1.ps * Syntax1.tm_opt) list
+    ; clause : (eqns * ps * tm_opt) list
     }
 
   let pp_eqn fmt (Eq (_, m, n, a)) =
@@ -108,16 +108,24 @@ end = struct
             eqns1 @ eqns2
           else
             failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-        | Fun abs1, Fun abs2 ->
+        | Fun (a1_opt, abs1), Fun (a2_opt, abs2) ->
           let _, cls1, cls2 = unbind2_cls abs1 abs2 in
-          List.fold_left2
-            (fun acc (Cl pabs1) (Cl pabs2) ->
-              let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
-              match (m_opt, n_opt) with
-              | Some m, Some n -> simpl (env, m, n)
-              | None, None -> []
-              | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
-            [] cls1 cls2
+          let eqns1 =
+            match (a1_opt, a2_opt) with
+            | Some a1, Some a2 -> simpl (env, a1, a2)
+            | _ -> []
+          in
+          let eqns2 =
+            List.fold_left2
+              (fun acc (Cl pabs1) (Cl pabs2) ->
+                let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
+                match (m_opt, n_opt) with
+                | Some m, Some n -> simpl (env, m, n)
+                | None, None -> []
+                | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
+              [] cls1 cls2
+          in
+          eqns1 @ eqns2
         | Let (m1, abs1), Let (m2, abs2) ->
           let _, n1, n2 = unbind2_tm abs1 abs2 in
           let eqns1 = simpl (env, m1, m2) in
@@ -216,7 +224,8 @@ end = struct
       let x, b = unbind_tm abs in
       let b = msubst_tm map b in
       Pi (s, a, bind_tm x b)
-    | Fun abs ->
+    | Fun (a_opt, abs) ->
+      let a_opt = Option.map (msubst_tm map) a_opt in
       let x, cls = unbind_cls abs in
       let cls =
         List.map
@@ -226,7 +235,7 @@ end = struct
             Cl (bindp_tm_opt p m_opt))
           cls
       in
-      Fun (bind_cls x cls)
+      Fun (a_opt, bind_cls x cls)
     | App (m, n) ->
       let m = msubst_tm map m in
       let n = msubst_tm map n in
@@ -312,6 +321,7 @@ module UMeta : sig
   val pp_eqn : Format.formatter -> eqn -> unit
   val pp_eqns : Format.formatter -> eqns -> unit
   val resolve_tm : map -> tm -> tm
+  val resolve_cls_abs : map -> cls abs -> cls abs
   val resolve_tl : map -> tl -> tl
   val resolve_ptl : map -> ptl -> ptl
   val resolve_dcons : map -> dcons -> dcons
@@ -350,17 +360,25 @@ end = struct
       let fv1 = fv ctx a in
       let fv2 = fv (VSet.add x ctx) b in
       VSet.union fv1 fv2
-    | Fun abs ->
+    | Fun (a_opt, abs) ->
       let x, cls = unbind_cls abs in
-      List.fold_left
-        (fun acc (Cl pabs) ->
-          let ps, m_opt = unbindp_tm_opt pabs in
-          let xs = xs_of_ps ps in
-          let ctx = VSet.union (VSet.of_list (x :: xs)) ctx in
-          match m_opt with
-          | Some m -> VSet.union acc (fv ctx m)
-          | None -> acc)
-        VSet.empty cls
+      let fv1 =
+        match a_opt with
+        | Some a -> fv ctx a
+        | None -> VSet.empty
+      in
+      let fv2 =
+        List.fold_left
+          (fun acc (Cl pabs) ->
+            let ps, m_opt = unbindp_tm_opt pabs in
+            let xs = xs_of_ps ps in
+            let ctx = VSet.union (VSet.of_list (x :: xs)) ctx in
+            match m_opt with
+            | Some m -> VSet.union acc (fv ctx m)
+            | None -> acc)
+          VSet.empty cls
+      in
+      VSet.union fv1 fv2
     | App (m, n) -> VSet.union (fv ctx m) (fv ctx n)
     | Let (m, abs) ->
       let x, n = unbind_tm abs in
@@ -421,15 +439,21 @@ end = struct
     | Pi (_, a, abs) ->
       let _, b = unbind_tm abs in
       occurs x a || occurs x b
-    | Fun abs ->
+    | Fun (a_opt, abs) ->
       let _, cls = unbind_cls abs in
-      List.exists
-        (fun (Cl pabs) ->
-          let _, m_opt = unbindp_tm_opt pabs in
-          match m_opt with
-          | Some m -> occurs x m
-          | None -> false)
-        cls
+      let a_res =
+        match a_opt with
+        | Some a -> occurs x a
+        | None -> false
+      in
+      a_res
+      || List.exists
+           (fun (Cl pabs) ->
+             let _, m_opt = unbindp_tm_opt pabs in
+             match m_opt with
+             | Some m -> occurs x m
+             | None -> false)
+           cls
     | App (m, n) -> occurs x m || occurs x n
     | Let (m, abs) ->
       let _, n = unbind_tm abs in
@@ -504,16 +528,24 @@ end = struct
             eqns1 @ eqns2
           else
             failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-        | Fun abs1, Fun abs2 ->
+        | Fun (a1_opt, abs1), Fun (a2_opt, abs2) ->
           let _, cls1, cls2 = unbind2_cls abs1 abs2 in
-          List.fold_left2
-            (fun acc (Cl pabs1) (Cl pabs2) ->
-              let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
-              match (m_opt, n_opt) with
-              | Some m, Some n -> asimpl (Eq (env, m, n))
-              | None, None -> []
-              | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
-            [] cls1 cls2
+          let eqns1 =
+            match (a1_opt, a2_opt) with
+            | Some a1, Some a2 -> asimpl (Eq (env, a1, a2))
+            | _ -> []
+          in
+          let eqns2 =
+            List.fold_left2
+              (fun acc (Cl pabs1) (Cl pabs2) ->
+                let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
+                match (m_opt, n_opt) with
+                | Some m, Some n -> asimpl (Eq (env, m, n))
+                | None, None -> []
+                | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
+              [] cls1 cls2
+          in
+          eqns1 @ eqns2
         | Let (m1, abs1), Let (m2, abs2) ->
           let _, n1, n2 = unbind2_tm abs1 abs2 in
           let eqns1 = asimpl (Eq (env, m1, m2)) in
@@ -620,16 +652,24 @@ end = struct
           eqns1 @ eqns2
         else
           failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Fun abs1, Fun abs2 ->
+      | Fun (a1_opt, abs1), Fun (a2_opt, abs2) ->
         let _, cls1, cls2 = unbind2_cls abs1 abs2 in
-        List.fold_left2
-          (fun acc (Cl pabs1) (Cl pabs2) ->
-            let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
-            match (m_opt, n_opt) with
-            | Some m, Some n -> simpl (Eq (env, m, n))
-            | None, None -> []
-            | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
-          [] cls1 cls2
+        let eqns1 =
+          match (a1_opt, a2_opt) with
+          | Some a1, Some a2 -> simpl (Eq (env, a1, a2))
+          | _ -> []
+        in
+        let eqns2 =
+          List.fold_left2
+            (fun acc (Cl pabs1) (Cl pabs2) ->
+              let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
+              match (m_opt, n_opt) with
+              | Some m, Some n -> simpl (Eq (env, m, n))
+              | None, None -> []
+              | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
+            [] cls1 cls2
+        in
+        eqns1 @ eqns2
       | Let (m1, abs1), Let (m2, abs2) ->
         let _, n1, n2 = unbind2_tm abs1 abs2 in
         let eqns1 = simpl (Eq (env, m1, m2)) in
@@ -740,7 +780,9 @@ end = struct
       let a = resolve_tm map a in
       let b = resolve_tm map b in
       Pi (s, a, bind_tm x b)
-    | Fun abs -> Fun (resolve_cls_abs map abs)
+    | Fun (a_opt, abs) ->
+      let a_opt = Option.map (resolve_tm map) a_opt in
+      Fun (a_opt, resolve_cls_abs map abs)
     | App (m, n) ->
       let m = resolve_tm map m in
       let n = resolve_tm map n in
