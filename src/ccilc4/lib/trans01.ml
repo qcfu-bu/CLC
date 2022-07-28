@@ -176,7 +176,6 @@ let trans_trg s =
   | "@stdin" -> Syntax1.TStdin
   | "@stdout" -> Syntax1.TStdout
   | "@stderr" -> Syntax1.TStdout
-  | "@main" -> Syntax1.TMain
   | _ -> failwith "trans_trg(%s)" s
 
 let rec trans_ptl nspc cs (PTl (args, tl)) =

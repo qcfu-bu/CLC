@@ -10,7 +10,8 @@ let src0, state0 =
   | Success res -> res
   | Failed (s, _) -> failwith "prelude"
 
-let nspc, cs, src1 = trans_dcls [] SMap.empty src0
+let main_v = V.mk "main"
+let nspc, cs, src1 = trans_dcls [ ("main", V main_v) ] SMap.empty src0
 
 let find_v s =
   match List.assoc s nspc with

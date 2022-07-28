@@ -48,7 +48,6 @@ type trg =
   | TStdin
   | TStdout
   | TStderr
-  | TMain
 [@@deriving show { with_path = false }]
 
 type dcl =

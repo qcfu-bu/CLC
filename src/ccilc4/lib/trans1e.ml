@@ -610,8 +610,7 @@ let rec infer_dcl ctx env eqns map dcl =
       (add_v x a ctx, env, eqns, map)
     | TStderr ->
       let a = Ch (true, Var Prelude.stderr_t) in
-      (add_v x a ctx, env, eqns, map)
-    | TMain -> (add_v x Main ctx, env, eqns, map))
+      (add_v x a ctx, env, eqns, map))
   | DAxiom (x, a) ->
     let _, eqns, map = infer_sort ctx env eqns map a in
     (add_v x a ctx, env, eqns, map)
@@ -688,6 +687,11 @@ and cmp_sort s1 s2 =
   | _ -> true
 
 let trans_dcls dcls =
-  let ctx = { vs = VMap.empty; ds = DMap.empty; cs = CMap.empty } in
+  let ctx =
+    { vs = VMap.singleton Prelude.main_v Main
+    ; ds = DMap.empty
+    ; cs = CMap.empty
+    }
+  in
   let _, map = infer_dcls ctx VMap.empty [] MMap.empty dcls in
   UMeta.resolve_dcls map dcls

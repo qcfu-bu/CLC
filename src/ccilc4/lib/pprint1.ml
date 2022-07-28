@@ -101,7 +101,6 @@ let pp_trg fmt targ =
   | TStdin -> pf fmt "@stdin"
   | TStdout -> pf fmt "@stdout"
   | TStderr -> pf fmt "@stderr"
-  | TMain -> pf fmt "@main"
 
 let rec pp_ptl fmt ptl =
   match ptl with

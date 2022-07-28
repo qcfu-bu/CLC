@@ -11,16 +11,16 @@ let run s =
     match parse_channel ch state0 with
     | Success (dcls, _) ->
       let _ = pr "%a@." Syntax0.pp_dcls dcls in
-      let _ = pr "----------------------------------------------@." in
+      let _ = pr "parse success---------------------------------@." in
       let _, _, dcls = Trans01.trans_dcls nspc cs dcls in
       let dcls = src1 @ dcls in
-      let _ = pr "%a@." Syntax1.pp_dcls dcls in
-      let _ = pr "----------------------------------------------@." in
       let _ = pr "%a@." Pprint1.pp_dcls dcls in
-      let _ = pr "----------------------------------------------@." in
+      let _ = pr "trans01 success-------------------------------@." in
       let dcls = Trans1e.trans_dcls dcls in
       let _ = pr "%a@." Pprint1.pp_dcls dcls in
-      let _ = pr "----------------------------------------------@." in
+      let _ = pr "trans1e success-------------------------------@." in
+      let _ = Trans12.trans_dcls dcls in
+      let _ = pr "trans12 success-------------------------------@." in
       let res = eval rd_all VMap.empty dcls in
       let _ = pr "%a@." Pprint1.pp_dcls res in
       ()

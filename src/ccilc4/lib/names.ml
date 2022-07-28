@@ -14,13 +14,13 @@ module V : sig
   val pps : Format.formatter -> t list -> unit
 end = struct
   type t =
-    | Free of string * Int64.t
+    | Free of string * Z.t
     | Bound of int
 
-  let stamp = ref Int64.zero
+  let stamp = ref Z.zero
 
   let mk s =
-    let _ = stamp := Int64.succ !stamp in
+    let _ = stamp := Z.succ !stamp in
     Free (s, !stamp)
 
   let bind k = Bound k
@@ -28,7 +28,7 @@ end = struct
 
   let equal x y =
     match (x, y) with
-    | Free (_, x), Free (_, y) -> Int64.equal x y
+    | Free (_, x), Free (_, y) -> Z.equal x y
     | Bound x, Bound y -> x = y
     | _ -> false
 
@@ -38,7 +38,7 @@ end = struct
     match x with
     | Bound _ -> x
     | Free (x, _) ->
-      let _ = stamp := Int64.succ !stamp in
+      let _ = stamp := Z.succ !stamp in
       Free (x, !stamp)
 
   let is_bound x sz k =
@@ -52,8 +52,8 @@ end = struct
 
   let pp fmt x =
     match x with
-    | Bound x -> pf fmt "_%d" x
-    | Free (x, id) -> pf fmt "%s_%s" x (Int64.to_string id)
+    | Bound x -> pf fmt "_v%d" x
+    | Free (x, id) -> pf fmt "%s_%s" x (Z.to_string id)
 
   let rec pps fmt xs =
     match xs with

@@ -34,11 +34,6 @@ def get_ref : ∀ (A : U) -> hc<ref_t A> -o sig A (fun _ => (hc<ref_t A>))
 def free_ref : ∀ (A : U) -> hc<ref_t A> -o unit
   | A ref => close (send ref FREE)
 
-def tail : ∀ (A : U) (n : nat) -> vec A (succ (succ n)) -> vec A n
-  | _ _ (vcons _ _ (vcons _ _ tl)) => tl
-
-open @main as main
-
 def main :=
   let tnsr_intro ref main := mk_ref _ zero main in
   let sig_intro msg1 ref := get_ref _ ref in
