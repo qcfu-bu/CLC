@@ -156,22 +156,7 @@ and infer_tm ctx env eqns map m =
     check_ptl ctx env eqns map ms ptl
   | Absurd -> failwith "infer_Absurd(%a)" pp_tm m
   | Match (ms, b, cls) ->
-    let ms_ty, eqns, map =
-      List.fold_left
-        (fun (acc, eqns, map) m ->
-          let a, eqns, map = infer_tm ctx env eqns map m in
-          (a :: acc, eqns, map))
-        ([], eqns, map) ms
-    in
-    let a =
-      List.fold_left
-        (fun acc m_ty ->
-          let x = V.blank () in
-          Pi (L, m_ty, bind_tm x acc))
-        b ms_ty
-    in
-    let prbm = UVar.prbm_of_cls cls in
-    let eqns, map = check_prbm ctx env eqns map prbm a in
+    let eqns, map = check_tm ctx env eqns map m b in
     let map = UMeta.unify map eqns in
     (UMeta.resolve_tm map b, eqns, map)
   | If (m, tt, ff) -> (
@@ -261,7 +246,6 @@ and check_tl ctx env eqns map ms tl =
   | _ -> failwith "check_tl(%a, %a)" pp_tms ms pp_tl tl
 
 and check_tm ctx env eqns map m a =
-  let map = UMeta.unify map eqns in
   match m with
   | Meta (x, _) -> (eqns, add_m x a map)
   | Fun (b_opt, abs) ->
@@ -274,6 +258,7 @@ and check_tm ctx env eqns map m a =
     in
     let x, cls = unbind_cls abs in
     let prbm = UVar.prbm_of_cls cls in
+    let map = UMeta.unify map eqns in
     check_prbm (add_v x a ctx) env eqns map prbm a
   | Let (m, abs) ->
     let x, n = unbind_tm abs in
@@ -313,8 +298,8 @@ and check_tm ctx env eqns map m a =
         a ms_ty
     in
     let prbm = UVar.prbm_of_cls cls in
-    let eqns, map = check_prbm ctx env eqns map prbm a in
-    (eqns, map)
+    let map = UMeta.unify map eqns in
+    check_prbm ctx env eqns map prbm a
   | _ ->
     let b, eqns, map = infer_tm ctx env eqns map m in
     assert_equal env eqns map a b

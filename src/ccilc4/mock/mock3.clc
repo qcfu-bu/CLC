@@ -13,4 +13,10 @@ def length : ∀ (A : L) (n : nat) -> lvec A n -> sig nat (fun _ => lvec A n)
     let sig_intro len tl := length _ _ tl in
     sig_intro (succ len) (lcons _ hd tl)
 
+-- def length0 : ∀ (A : L) (n : nat) -> lvec A n -> box nat
+--   | _ _ lnil => box_intro zero
+--   | _ _ (lcons _ hd tl) => 
+--     let box_intro len := (length0 _ _ tl) in
+--     box_intro (succ len)
+
 def _ := main

@@ -761,6 +761,7 @@ end = struct
     let m1 = whnf [ Beta; Iota; Zeta ] env m1 in
     let m2 = whnf [ Beta; Iota; Zeta ] env m2 in
     match (m1, m2) with
+    | Meta _, Meta _ -> map
     | Meta (x, xs), _ ->
       if occurs x m2 then
         failwith "occurs(%a, %a)" M.pp x pp_tm m2
