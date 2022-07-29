@@ -155,7 +155,7 @@ and infer_tm ctx env m =
     | _ ->
       let ctx = check_tm ctx env m a in
       (a, ctx))
-  | Meta _ -> failwith "infer_tm_Meta"
+  | Meta _ -> failwith "infer_tm_Meta(%a)" pp_tm m
   | Type _ -> (Type U, VMap.empty)
   | Var x -> (
     let s, a = find_v x ctx in
