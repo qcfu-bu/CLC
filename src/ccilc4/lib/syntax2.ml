@@ -9,8 +9,6 @@ type 'a abs = Abs of V.t * 'a [@@deriving show { with_path = false }]
 and 'a pabs = PAbs of p * 'a
 
 and tm =
-  | Ann of tm * tm
-  | Meta of M.t * tms
   | Type of sort
   | Var of V.t
   | Pi of sort * tm * tm abs
@@ -47,7 +45,6 @@ type trg =
   | TStdin
   | TStdout
   | TStderr
-  | TMain
 [@@deriving show { with_path = false }]
 
 type dcl =
@@ -96,13 +93,6 @@ let findi_opt f ls =
 let bindn_tm k xs m =
   let rec aux k m =
     match m with
-    | Ann (a, m) ->
-      let a = aux k a in
-      let m = aux k m in
-      Ann (a, m)
-    | Meta (x, ms) ->
-      let ms = List.map (aux k) ms in
-      Meta (x, ms)
     | Type s -> Type s
     | Var y -> (
       let opt = findi_opt (fun _ x -> V.equal x y) xs in
@@ -171,13 +161,6 @@ let unbindn_tm k xs m =
   let sz = List.length xs in
   let rec aux k m =
     match m with
-    | Ann (a, m) ->
-      let a = aux k a in
-      let m = aux k m in
-      Ann (a, m)
-    | Meta (x, ms) ->
-      let ms = List.map (aux k) ms in
-      Meta (x, ms)
     | Type s -> Type s
     | Var y -> (
       match V.is_bound y sz k with
@@ -385,8 +368,6 @@ let equal_pabs eq (PAbs (_, m)) (PAbs (_, n)) = eq m n
 
 let rec occurs_tm x m =
   match m with
-  | Ann (a, m) -> occurs_tm x a || occurs_tm x m
-  | Meta _ -> false
   | Type _ -> false
   | Var y -> V.equal x y
   | Pi (_, a, abs) ->

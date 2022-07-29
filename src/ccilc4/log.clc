@@ -18,7 +18,7 @@
      (Pi (U,
         [((Some "A"), (Type L)); ((Some "B"), (Type L));
           ((Some "m"), (Id "nat")); ((Some "n"), (Id "nat"))],
-        (Pi (L, [(None, (App [(Id "lvec"); (Id "A"); (Id "m")]))],
+        (Pi (U, [(None, (App [(Id "lvec"); (Id "A"); (Id "m")]))],
            (Pi (L, [(None, (App [(Id "lvec"); (Id "A"); (Id "n")]))],
               (Pi (L,
                  [(None,
@@ -97,8 +97,9 @@
                     )))))
        ]
      ));
-  (DTm ((Some "main"), None, (Id "main")))]
+  (DTm (None, None, (Id "main")))]
 parse success---------------------------------
+
 data unit_d1 : U
   | tt_c1 : unit_d1
 
@@ -197,7 +198,7 @@ def (kappend_82 := kappend_236) :
     ∀ (B_242 : L) ->
       ∀ (m_249 : nat_d3) ->
         ∀ (n_252 : nat_d3) ->
-          (lvec_d13 A_237 m_249) -o
+          (lvec_d13 A_237 m_249) ->
             (lvec_d13 A_237 n_252) -o
               (lvec_d13 A_237 ((addn_3) m_249 n_252)) -o B_242 -o B_242
   | _264 _265 zero_c4 _266 lnil_c19 ls2_267 k_268 => ((k_268) ls2_267)
@@ -246,10 +247,11 @@ def (length_107 := length_281) :
           _296; _297; hd_298; tl_299; len_300; tl_301}
         hd_298 tl_301)))
 
-def main_122 := main_1
+def _122 := main_1
 
 
 trans01 success-------------------------------
+
 data unit_d1 : U
   | tt_c1 : unit_d1
 
@@ -344,7 +346,7 @@ def (kappend_82 := kappend_2501) :
     ∀ (B_2507 : L) ->
       ∀ (m_2514 : nat_d3) ->
         ∀ (n_2517 : nat_d3) ->
-          (lvec_d13 A_2502 m_2514) -o
+          (lvec_d13 A_2502 m_2514) ->
             (lvec_d13 A_2502 n_2517) -o
               (lvec_d13 A_2502 ((addn_3) m_2514 n_2517)) -o B_2507 -o B_2507
   | _2529 _2530 zero_c4 _2531 lnil_c19 ls2_2532 k_2533 => ((k_2533) ls2_2532)
@@ -369,10 +371,11 @@ def (length_107 := length_2546) :
       | (sig_intro_c13 len_2568 tl_2569) =>
         (sig_intro_c13 (succ_c5 len_2568) (lcons_c20 _2562 hd_2563 tl_2569)))
 
-def main_122 := main_1
+def _122 := main_1
 
 
 trans1e success-------------------------------
+
 def (addn_3 := addn_3486) : nat_d3 -> nat_d3 -> nat_d3
   | zero_c4 x_3490 => x_3490
   | (succ_c5 x_3491) y_3492 => (succ_c5 ((addn_3486) x_3491 y_3492))
@@ -442,7 +445,7 @@ def (kappend_82 := kappend_3541) :
     ∀ (B_3547 : L) ->
       ∀ (m_3554 : nat_d3) ->
         ∀ (n_3557 : nat_d3) ->
-          (lvec_d13 A_3542 m_3554) -o
+          (lvec_d13 A_3542 m_3554) ->
             (lvec_d13 A_3542 n_3557) -o
               (lvec_d13 A_3542 ((addn_3) m_3554 n_3557)) -o B_3547 -o B_3547
   | _3569 _3570 zero_c4 _3571 lnil_c19 ls2_3572 k_3573 => ((k_3573) ls2_3572)
@@ -467,7 +470,8 @@ def (length_107 := length_3586) :
       | (sig_intro_c13 len_3608 tl_3609) =>
         (sig_intro_c13 (succ_c5 len_3608) (lcons_c20 _3602 hd_3603 tl_3609)))
 
-def main_122 := main_1
+def _122 := main_1
 
 
 trans12 success-------------------------------
+
