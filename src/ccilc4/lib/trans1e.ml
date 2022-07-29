@@ -581,12 +581,12 @@ let rec infer_dcl ctx env eqns map dcl =
     in
     let map = UMeta.unify map eqns in
     let cs, ctx =
-      List.fold_left
-        (fun (acc, ctx) (DCons (c, ptl)) ->
+      List.fold_right
+        (fun (DCons (c, ptl)) (acc, ctx) ->
           let ptl = UMeta.resolve_ptl map ptl in
           let ctx = add_c c ptl ctx in
           (c :: acc, ctx))
-        ([], ctx) dconss
+        dconss ([], ctx)
     in
     let ctx = add_d d ptl cs ctx in
     (ctx, env, eqns, map)

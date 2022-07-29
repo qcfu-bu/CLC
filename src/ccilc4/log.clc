@@ -286,106 +286,148 @@ def _113 := main_1
 
 trans1e success-------------------------------
 
-def (addn_3 := addn_3006) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_3010 => x_3010
-  | (succ_c5 x_3011) y_3012 => (succ_c5 ((addn_3006) x_3011 y_3012))
+def addn_3 :=
+  fix addn_3002 _3003 =>
+    (case _3003 of
+      | zero_c4 => lam _3004 => _3004
+      | (succ_c5 _3005) => lam _3006 => (succ_c5 ((addn_3002) _3005 _3006)))
 
-def (stdin_rec_60 := stdin_rec_3013) : unit_d1 -> proto
-  | tt_c1 =>
-    !(b_3015 : bool_d2) ⋅
-      (match b_3015 return proto with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_3013) tt_c1)
-        | false_c3 => end)
+def stdin_rec_60 :=
+  fix stdin_rec_3007 _3008 =>
+    (case _3008 of
+      | tt_c1 =>
+        !(b_3009 : bool_d2) ⋅
+          ((lin _3012 =>
+              (case _3012 of
+                | true_c2 => ?string_d12 ⋅ ((stdin_rec_3007) tt_c1)
+                | false_c3 => end))
+            b_3009))
 
-def (stdout_rec_64 := stdout_rec_3017) : unit_d1 -> proto
-  | tt_c1 =>
-    !(b_3019 : bool_d2) ⋅
-      (match b_3019 return proto with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_3017) tt_c1)
-        | false_c3 => end)
+def stdout_rec_64 :=
+  fix stdout_rec_3014 _3015 =>
+    (case _3015 of
+      | tt_c1 =>
+        !(b_3016 : bool_d2) ⋅
+          ((lin _3019 =>
+              (case _3019 of
+                | true_c2 => !string_d12 ⋅ ((stdout_rec_3014) tt_c1)
+                | false_c3 => end))
+            b_3016))
 
-def (stderr_rec_68 := stderr_rec_3021) : unit_d1 -> proto
-  | tt_c1 =>
-    !(b_3023 : bool_d2) ⋅
-      (match b_3023 return proto with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_3021) tt_c1)
-        | false_c3 => end)
+def stderr_rec_68 :=
+  fix stderr_rec_3021 _3022 =>
+    (case _3022 of
+      | tt_c1 =>
+        !(b_3023 : bool_d2) ⋅
+          ((lin _3026 =>
+              (case _3026 of
+                | true_c2 => !string_d12 ⋅ ((stderr_rec_3021) tt_c1)
+                | false_c3 => end))
+            b_3023))
 
-def stdin_t_72 :=
-  !(b_3025 : bool_d2) ⋅
-    (match b_3025 return proto with
-      | true_c2 =>
-        ?string_d12 ⋅
-          (((fun stdin_rec_3031 : unit_d1 -> proto
-              | tt_c1 =>
-                !(b_3035 : bool_d2) ⋅
-                  (match b_3035 return proto with
-                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_3031) tt_c1)
-                    | false_c3 => end)))
-            tt_c1)
-      | false_c3 => end)
+def stdin_t_72 := ((stdin_rec_60) tt_c1)
 
-def stdout_t_73 :=
-  !(b_3037 : bool_d2) ⋅
-    (match b_3037 return proto with
-      | true_c2 =>
-        !string_d12 ⋅
-          (((fun stdout_rec_3043 : unit_d1 -> proto
-              | tt_c1 =>
-                !(b_3047 : bool_d2) ⋅
-                  (match b_3047 return proto with
-                    | true_c2 => !string_d12 ⋅ ((stdout_rec_3043) tt_c1)
-                    | false_c3 => end)))
-            tt_c1)
-      | false_c3 => end)
+def stdout_t_73 := ((stdout_rec_64) tt_c1)
 
-def stderr_t_74 :=
-  !(b_3049 : bool_d2) ⋅
-    (match b_3049 return proto with
-      | true_c2 =>
-        !string_d12 ⋅
-          (((fun stderr_rec_3055 : unit_d1 -> proto
-              | tt_c1 =>
-                !(b_3059 : bool_d2) ⋅
-                  (match b_3059 return proto with
-                    | true_c2 => !string_d12 ⋅ ((stderr_rec_3055) tt_c1)
-                    | false_c3 => end)))
-            tt_c1)
-      | false_c3 => end)
+def stderr_t_74 := ((stderr_rec_68) tt_c1)
 
-def (readline_75 := readline_3061) :
-  ch<stdin_t_72> -> (sig_d8 string_d12 (fun
-                                         | _3067 => ch<stdin_t_72>))
-  | ch_3068 => recv ((send ch_3068) true_c2)
+def readline_75 := fix readline_3028 _3029 => recv ((send _3029) true_c2)
 
-def (close_in_80 := close_in_3069) : ch<stdin_t_72> -> unit_d1
-  | ch_3071 => close ((send ch_3071) false_c3)
+def close_in_80 := fix close_in_3030 _3031 => close ((send _3031) false_c3)
 
-def (printline_83 := printline_3072) :
-  ch<stdout_t_73> -> string_d12 -o ch<stdout_t_73>
-  | ch_3076 s_3077 => ((send ((send ch_3076) true_c2)) s_3077)
+def printline_83 :=
+  fix printline_3032 _3033 =>
+    lin _3034 => ((send ((send _3033) true_c2)) _3034)
 
-def (close_out_88 := close_out_3078) : ch<stdout_t_73> -> unit_d1
-  | ch_3080 => close ((send ch_3080) false_c3)
+def close_out_88 := fix close_out_3035 _3036 => close ((send _3036) false_c3)
 
-def (printerr_91 := printerr_3081) :
-  ch<stderr_t_74> -> string_d12 -o ch<stderr_t_74>
-  | ch_3085 s_3086 => ((send ((send ch_3085) true_c2)) s_3086)
+def printerr_91 :=
+  fix printerr_3037 _3038 =>
+    lin _3039 => ((send ((send _3038) true_c2)) _3039)
 
-def (close_err_96 := close_err_3087) : ch<stderr_t_74> -> unit_d1
-  | ch_3089 => close ((send ch_3089) false_c3)
+def close_err_96 := fix close_err_3040 _3041 => close ((send _3041) false_c3)
 
-def (case_of_99 := case_of_3090) :
-  ∀ (A_3091 : U) ->
-    ∀ (x_3093 : A_3091) ->
-      ∀ (B_3098 : A_3091 -> U) ->
-        ∀ (x_3103 : A_3091) -> ((B_3098) x_3103) -> ((B_3098) x_3093)
-  | _3104 x_3105 _3106 f_3107 => ((f_3107) x_3105)
+def case_of_99 :=
+  fix case_of_3042 A_3043 x_3044 B_3045 _3046 => ((_3046) x_3044)
 
-def foo_110 := zero_c4
+def foo_110 :=
+  ((case_of_99)
+    bool_d2 true_c2
+    fix _3047 _3048 =>
+      (case _3048 of
+        | true_c2 => nat_d3
+        | false_c3 => bool_d2)
+    fix _3049 x_3050 =>
+      (case x_3050 of
+        | true_c2 => zero_c4
+        | false_c3 => true_c2))
 
 def _113 := main_1
 
 
 trans12 success-------------------------------
+
+[(addn_3,
+  (VFix (addn_3051,
+     lam _3072 =>
+       (case _3072 of
+         | zero_c4 => lam _3073 => _3073
+         | (succ_c5 _3074) =>
+           lam _3075 => (succ_c5 ((addn_3051) _3074 _3075)))
+     )));
+  (stdin_rec_60,
+   (VFix (stdin_rec_3052,
+      lam _3076 =>
+        (case _3076 of
+          | tt_c1 =>
+            !(b_3077 : bool_d2) ⋅
+              ((lin _3080 =>
+                  (case _3080 of
+                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_3052) tt_c1)
+                    | false_c3 => end))
+                b_3077))
+      )));
+  (stdout_rec_64,
+   (VFix (stdout_rec_3053,
+      lam _3082 =>
+        (case _3082 of
+          | tt_c1 =>
+            !(b_3083 : bool_d2) ⋅
+              ((lin _3086 =>
+                  (case _3086 of
+                    | true_c2 => !string_d12 ⋅ ((stdout_rec_3053) tt_c1)
+                    | false_c3 => end))
+                b_3083))
+      )));
+  (stderr_rec_68,
+   (VFix (stderr_rec_3054,
+      lam _3088 =>
+        (case _3088 of
+          | tt_c1 =>
+            !(b_3089 : bool_d2) ⋅
+              ((lin _3092 =>
+                  (case _3092 of
+                    | true_c2 => !string_d12 ⋅ ((stderr_rec_3054) tt_c1)
+                    | false_c3 => end))
+                b_3089))
+      )));
+  (stdin_t_72, VBox); (stdout_t_73, VBox); (stderr_t_74, VBox);
+  (readline_75,
+   (VFix (readline_3058, lam _3094 => recv ((send _3094) true_c2))));
+  (close_in_80,
+   (VFix (close_in_3059, lam _3095 => close ((send _3095) false_c3))));
+  (printline_83,
+   (VFix (printline_3060,
+      lam _3096 => lin _3097 => ((send ((send _3096) true_c2)) _3097))));
+  (close_out_88,
+   (VFix (close_out_3061, lam _3098 => close ((send _3098) false_c3))));
+  (printerr_91,
+   (VFix (printerr_3062,
+      lam _3099 => lin _3100 => ((send ((send _3099) true_c2)) _3100))));
+  (close_err_96,
+   (VFix (close_err_3063, lam _3101 => close ((send _3101) false_c3))));
+  (case_of_99,
+   (VFix (case_of_3064, lam A_3102 x_3103 B_3104 _3105 => ((_3105) x_3103))));
+  (foo_110, (VCons (zero_c4, []))); (_113, VBox)]
+eval2 success---------------------------------
 

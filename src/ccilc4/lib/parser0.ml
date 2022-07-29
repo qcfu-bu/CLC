@@ -367,6 +367,7 @@ and tm0_parser () =
     ; fun_parser ()
     ; let_parser ()
     ; match_parser ()
+    ; if_parser ()
     ; main_parser ()
     ; proto_parser ()
     ; end_parser ()

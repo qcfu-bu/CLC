@@ -58,7 +58,6 @@ end = struct
   let rec pps fmt xs =
     match xs with
     | [] -> ()
-    | [ x ] -> pf fmt "%a" pp x
     | x :: xs -> pf fmt "%a %a" pp x pps xs
 end
 

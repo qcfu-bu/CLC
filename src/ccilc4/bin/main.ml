@@ -19,10 +19,12 @@ let run s =
       let dcls = Trans1e.trans_dcls dcls in
       let _ = pr "%a@." Pprint1.pp_dcls dcls in
       let _ = pr "trans1e success-------------------------------@.@." in
-      let _ = Trans12.trans_dcls dcls in
-      let res = eval rd_all VMap.empty dcls in
-      let _ = pr "%a@." Pprint1.pp_dcls res in
+      let dcls = Trans12.trans_dcls dcls in
+      let _ = pr "%a@." Pprint2.pp_dcls dcls in
       let _ = pr "trans12 success-------------------------------@.@." in
+      let res = Eval2.eval_dcls dcls in
+      let _ = pr "%a@." Eval2.pp_res res in
+      let _ = pr "eval2 success---------------------------------@.@." in
       ()
     | Failed (s, _) -> epr "%s\n" s
   with

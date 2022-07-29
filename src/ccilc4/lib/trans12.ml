@@ -134,193 +134,229 @@ let has_failed f =
 
 let usage_of_ctx ctx = VMap.map (fun _ -> true) ctx.vs
 
-let rec infer_sort ctx env m =
-  let a, usage = infer_tm ctx env m in
-  match whnf rd_all env a with
+let trans_sort s =
+  match s with
+  | U -> Syntax2.U
+  | L -> Syntax2.L
+
+let trans_trg trg =
+  match trg with
+  | TStdin -> Syntax2.TStdin
+  | TStdout -> Syntax2.TStdout
+  | TStderr -> Syntax2.TStderr
+
+let rec infer_sort ctx env a =
+  let srt, a_elab, usage = infer_tm ctx env a in
+  match whnf rd_all env srt with
   | Type s ->
     let _ = assert_empty usage in
-    s
-  | _ -> failwith "infer_sort(%a : %a)" pp_tm m pp_tm a
+    (s, a_elab)
+  | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
 
-and infer_tm ctx env m =
+and infer_tm ctx env m : tm * Syntax2.tm * bool VMap.t =
+  let rec p_of_ptl c ptl =
+    let xs = xs_of_ptl ptl in
+    Syntax2.PCons (c, xs)
+  and xs_of_ptl ptl =
+    match ptl with
+    | PBase tl -> xs_of_tl tl
+    | PBind (_, abs) ->
+      let _, ptl = unbind_ptl abs in
+      xs_of_ptl ptl
+  and xs_of_tl tl =
+    match tl with
+    | TBase _ -> []
+    | TBind (_, abs) ->
+      let x, tl = unbind_tl abs in
+      Syntax2.PVar x :: xs_of_tl tl
+  in
   match m with
   | Ann (a, m) -> (
-    let _ = infer_sort ctx env a in
+    let _, _ = infer_sort ctx env a in
     match m with
     | Let (m, abs) ->
       let x, n = unbind_tm abs in
       let abs = bind_tm x (Ann (a, n)) in
-      let usage = check_tm ctx env (Let (m, abs)) a in
-      (a, usage)
+      let m_elab, usage = check_tm ctx env (Let (m, abs)) a in
+      (a, m_elab, usage)
     | _ ->
-      let ctx = check_tm ctx env m a in
-      (a, ctx))
+      let m_elab, ctx = check_tm ctx env m a in
+      (a, m_elab, ctx))
   | Meta _ -> failwith "infer_tm_Meta(%a)" pp_tm m
-  | Type _ -> (Type U, VMap.empty)
+  | Type s -> (Type U, Syntax2.Type (trans_sort s), VMap.empty)
   | Var x -> (
     let s, a = find_v x ctx in
     match s with
-    | U -> (a, VMap.empty)
-    | L -> (a, VMap.singleton x false))
+    | U -> Syntax2.(a, Var x, VMap.empty)
+    | L -> Syntax2.(a, Var x, VMap.singleton x false))
   | Pi (s, a, abs) ->
     let x, b = unbind_tm abs in
-    let t = infer_sort ctx env a in
-    let _ = infer_sort (add_v x t a ctx) env b in
-    (Type s, VMap.empty)
+    let t, a_elab = infer_sort ctx env a in
+    let _, b_elab = infer_sort (add_v x t a ctx) env b in
+    (Type s, Syntax2.(Pi (trans_sort s, a_elab, bind_tm x b_elab)), VMap.empty)
   | Fun (a_opt, abs) -> (
     match a_opt with
     | Some a ->
       let _ = infer_sort ctx env a in
-      let usage = check_tm ctx env (Fun (a_opt, abs)) a in
-      (a, usage)
+      let m_elab, usage = check_tm ctx env (Fun (a_opt, abs)) a in
+      (a, m_elab, usage)
     | None -> failwith "infer_Fun(%a)" pp_tm m)
   | App (m, n) -> (
-    let a, usage1 = infer_tm ctx env m in
+    let a, m_elab, usage1 = infer_tm ctx env m in
     match whnf rd_all env a with
     | Pi (s, a, abs) -> (
-      let t = infer_sort ctx env a in
-      let usage2 = check_tm ctx env n a in
+      let t, _ = infer_sort ctx env a in
+      let n_elab, usage2 = check_tm ctx env n a in
       match t with
       | U ->
         let _ = assert_empty usage2 in
-        (asubst_tm abs (Ann (a, n)), usage1)
-      | L -> (asubst_tm abs (Ann (a, n)), merge usage1 usage2))
+        (asubst_tm abs (Ann (a, n)), Syntax2.(App (m_elab, n_elab)), usage1)
+      | L ->
+        ( asubst_tm abs (Ann (a, n))
+        , Syntax2.(App (m_elab, n_elab))
+        , merge usage1 usage2 ))
     | _ -> failwith "infer_App(%a)" pp_tm m)
   | Let (m, abs) -> (
-    let a, usage1 = infer_tm ctx env m in
-    let s = infer_sort ctx env a in
+    let a, m_elab, usage1 = infer_tm ctx env m in
+    let s, _ = infer_sort ctx env a in
     let x, n = unbind_tm abs in
     match s with
     | U ->
       let _ = assert_empty usage1 in
-      infer_tm (add_v x s a ctx) (VMap.add x m env) n
+      let b, n_elab, usage = infer_tm (add_v x s a ctx) (VMap.add x m env) n in
+      (b, Syntax2.(Let (m_elab, bind_tm x n_elab)), usage)
     | L ->
-      let b, usage2 = infer_tm (add_v x s a ctx) env n in
-      (b, merge usage1 (remove x usage2 s)))
+      let b, n_elab, usage2 = infer_tm (add_v x s a ctx) env n in
+      ( b
+      , Syntax2.(Let (m_elab, bind_tm x n_elab))
+      , merge usage1 (remove x usage2 s) ))
   | Data (d, ms) ->
     let ptl, _ = find_d d ctx in
-    check_ptl ctx env ms ptl
+    let a, ms_elab, usage = check_ptl ctx env ms ptl in
+    (a, Syntax2.(Data (d, ms_elab)), usage)
   | Cons (c, ms) ->
     let ptl = find_c c ctx in
-    check_ptl ctx env ms ptl
+    let a, ms_elab, usage = check_ptl ctx env ms ptl in
+    (a, Syntax2.(Cons (c, ms_elab)), usage)
   | Absurd -> failwith "infer_Absurd"
   | Match (ms, a, cls) ->
-    let ms_ty, usage1 =
-      List.fold_left
-        (fun (ms_ty, acc) m ->
-          let m_ty, usage = infer_tm ctx env m in
-          (m_ty :: ms_ty, merge usage acc))
-        ([], VMap.empty) ms
-    in
-    let mot =
-      List.fold_left
-        (fun acc m_ty -> Pi (L, m_ty, bind_tm (V.blank ()) acc))
-        a ms_ty
-    in
-    let _ = infer_sort ctx env mot in
-    let prbm = UVar.prbm_of_cls cls in
-    let usage2 = check_prbm ctx env prbm mot in
-    (a, merge usage1 usage2)
+    let _ = infer_sort ctx env a in
+    let m_elab, usage = check_tm ctx env (Match (ms, a, cls)) a in
+    (a, m_elab, usage)
   | If (m, tt, ff) -> (
-    let a, usage1 = infer_tm ctx env m in
-    let s = infer_sort ctx env a in
+    let a, m_elab, usage1 = infer_tm ctx env m in
+    let s, _ = infer_sort ctx env a in
     match (whnf rd_all env a, s) with
-    | Data (d, _), U ->
+    | Data (d, _), U -> (
       let _, cs = find_d d ctx in
-      if List.length cs = 2 then
-        let tt_ty, tt_u = infer_tm ctx env tt in
-        let ff_ty, ff_u = infer_tm ctx env ff in
+      match cs with
+      | [ tt_c; ff_c ] ->
+        let tt_ty, tt_elab, tt_u = infer_tm ctx env tt in
+        let ff_ty, ff_elab, ff_u = infer_tm ctx env ff in
         let _ = assert_equal env tt_ty ff_ty in
         let usage2 = refine_equal tt_u ff_u in
-        (tt_ty, merge usage1 usage2)
-      else
-        failwith "infer_If(%a)" pp_tm m
+        let tt_ptl = find_c tt_c ctx in
+        let ff_ptl = find_c ff_c ctx in
+        let tt_cl = Syntax2.(Cl (bindp_tm (p_of_ptl tt_c tt_ptl) tt_elab)) in
+        let ff_cl = Syntax2.(Cl (bindp_tm (p_of_ptl ff_c ff_ptl) ff_elab)) in
+        (tt_ty, Syntax2.(Case (m_elab, [ tt_cl; ff_cl ])), merge usage1 usage2)
+      | _ -> failwith "infer_If")
     | _ -> failwith "infer_If(%a)" pp_tm m)
-  | Main -> (Type L, VMap.empty)
-  | Proto -> (Type U, VMap.empty)
-  | End -> (Proto, VMap.empty)
+  | Main -> (Type L, Syntax2.Main, VMap.empty)
+  | Proto -> (Type U, Syntax2.Proto, VMap.empty)
+  | End -> (Proto, Syntax2.End, VMap.empty)
   | Act (r, a, abs) ->
     let x, b = unbind_tm abs in
-    let s = infer_sort ctx env a in
-    let usage = check_tm (add_v x s a ctx) env b Proto in
+    let s, a_elab = infer_sort ctx env a in
+    let b_elab, usage = check_tm (add_v x s a ctx) env b Proto in
     let _ = assert_empty usage in
-    (Proto, VMap.empty)
+    (Proto, Syntax2.(Act (r, a_elab, bind_tm x b_elab)), VMap.empty)
   | Ch (r, m) ->
-    let usage = check_tm ctx env m Proto in
+    let m_elab, usage = check_tm ctx env m Proto in
     let _ = assert_empty usage in
-    (Type L, VMap.empty)
+    (Type L, Syntax2.(Ch (r, m_elab)), VMap.empty)
   | Fork (a, m, abs) -> (
-    let _ = infer_sort ctx env a in
+    let _, a_elab = infer_sort ctx env a in
     match whnf rd_all env a with
     | Ch (r, a) ->
       let x, n = unbind_tm abs in
-      let usage1 = check_tm ctx env a Proto in
-      let usage2 = check_tm ctx env m Main in
+      let _, usage1 = check_tm ctx env a Proto in
+      let m_elab, usage2 = check_tm ctx env m Main in
       let unit = Data (Prelude.unit_d, []) in
-      let usage3 = check_tm (add_v x L (Ch (r, a)) ctx) env n unit in
+      let n_elab, usage3 = check_tm (add_v x L (Ch (r, a)) ctx) env n unit in
       let usage3 = remove x usage3 L in
       let a = Ch (not r, a) in
       let _ = assert_empty usage1 in
-      (Data (Prelude.tnsr_d, [ a; Main ]), merge usage2 usage3)
+      ( Data (Prelude.tnsr_d, [ a; Main ])
+      , Syntax2.(Fork (a_elab, m_elab, bind_tm x n_elab))
+      , merge usage2 usage3 )
     | _ -> failwith "infer_Fork(%a)" pp_tm a)
   | Send m -> (
-    let a, usage = infer_tm ctx env m in
+    let a, m_elab, usage = infer_tm ctx env m in
     match whnf rd_all env a with
     | Ch (r1, Act (r2, a, abs)) when r1 <> r2 ->
       let x, b = unbind_tm abs in
       let abs = bind_tm x (Ch (r1, b)) in
-      (Pi (L, a, abs), usage)
+      (Pi (L, a, abs), Syntax2.(Send m_elab), usage)
     | _ -> failwith "infer_Send(%a)" pp_tm a)
   | Recv m -> (
-    let a, usage = infer_tm ctx env m in
+    let a, m_elab, usage = infer_tm ctx env m in
     match whnf rd_all env a with
     | Ch (r1, Act (r2, a, abs)) when r1 = r2 -> (
       let x, b = unbind_tm abs in
-      let s = infer_sort ctx env a in
+      let s, _ = infer_sort ctx env a in
       match s with
-      | U -> (Data (Prelude.sig_d, [ a; lam x (Ch (r1, b)) ]), usage)
-      | L -> (Data (Prelude.tnsr_d, [ a; Ch (r1, b) ]), usage))
+      | U ->
+        ( Data (Prelude.sig_d, [ a; lam x (Ch (r1, b)) ])
+        , Syntax2.(Recv (trans_sort s, m_elab))
+        , usage )
+      | L ->
+        ( Data (Prelude.tnsr_d, [ a; Ch (r1, b) ])
+        , Syntax2.(Recv (trans_sort s, m_elab))
+        , usage ))
     | _ -> failwith "infer_Recv(%a)" pp_tm a)
   | Close m -> (
-    let a, usage = infer_tm ctx env m in
+    let a, m_elab, usage = infer_tm ctx env m in
     match whnf rd_all env a with
-    | Ch (_, End) -> (Data (Prelude.unit_d, []), usage)
+    | Ch (_, End) -> (Data (Prelude.unit_d, []), Syntax2.(Close m_elab), usage)
     | a -> failwith "infer_Close(%a)" pp_tm a)
 
 and check_ptl ctx env ms ptl =
   match (ms, ptl) with
   | m :: ms, PBind (a, abs) -> (
-    let s = infer_sort ctx env a in
-    let usage1 = check_tm ctx env m a in
-    let a, usage2 = check_ptl ctx env ms (asubst_ptl abs (Ann (a, m))) in
+    let s, _ = infer_sort ctx env a in
+    let m_elab, usage1 = check_tm ctx env m a in
+    let a, ms_elab, usage2 =
+      check_ptl ctx env ms (asubst_ptl abs (Ann (a, m)))
+    in
     match s with
     | U ->
       let _ = assert_empty usage1 in
-      (a, usage2)
-    | L -> (a, merge usage1 usage2))
+      (a, m_elab :: ms_elab, usage2)
+    | L -> (a, m_elab :: ms_elab, merge usage1 usage2))
   | ms, PBase tl -> check_tl ctx env ms tl
   | _ -> failwith "check_ptl(%a, %a)" pp_tms ms pp_ptl ptl
 
 and check_tl ctx env ms tl =
   match (ms, tl) with
   | m :: ms, TBind (a, abs) -> (
-    let s = infer_sort ctx env a in
-    let usage1 = check_tm ctx env m a in
-    let a, usage2 = check_tl ctx env ms (asubst_tl abs (Ann (a, m))) in
+    let s, _ = infer_sort ctx env a in
+    let m_elab, usage1 = check_tm ctx env m a in
+    let a, ms_elab, usage2 = check_tl ctx env ms (asubst_tl abs (Ann (a, m))) in
     match s with
     | U ->
       let _ = assert_empty usage1 in
-      (a, usage2)
-    | L -> (a, merge usage1 usage2))
+      (a, m_elab :: ms_elab, usage2)
+    | L -> (a, m_elab :: ms_elab, merge usage1 usage2))
   | [], TBase a ->
     let _ = infer_sort ctx env a in
-    (a, VMap.empty)
+    (a, [], VMap.empty)
   | _ -> failwith "check_tl(%a, %a)" pp_tms ms pp_tl tl
 
-and check_tm ctx env m a =
+and check_tm ctx env m a : Syntax2.tm * bool VMap.t =
   match m with
-  | Fun (b_opt, abs) ->
-    let s =
+  | Fun (b_opt, abs) -> (
+    let s, _ =
       match b_opt with
       | Some b ->
         let s = infer_sort ctx env b in
@@ -335,13 +371,16 @@ and check_tm ctx env m a =
       | U -> add_v x s a ctx
       | L -> ctx
     in
-    check_prbm ctx env prbm a
+    let ct, usage = check_prbm ctx env prbm a in
+    match s with
+    | U -> (Syntax2.(Fix (bind_tm x ct)), usage)
+    | L -> (ct, usage))
   | Let (m, abs) ->
     let x, n = unbind_tm abs in
     let abs = bind_tm x (Ann (a, n)) in
-    let b, usage = infer_tm ctx env (Let (m, abs)) in
+    let b, m_elab, usage = infer_tm ctx env (Let (m, abs)) in
     let _ = assert_equal env a b in
-    usage
+    (m_elab, usage)
   | Cons (c, ms) -> (
     match whnf rd_all env a with
     | Data (_, ns) ->
@@ -354,20 +393,20 @@ and check_tm ctx env m a =
             | PBase _ -> ptl)
           ptl ns
       in
-      let b, usage = check_ptl ctx env ms ptl in
+      let b, ms_elab, usage = check_ptl ctx env ms ptl in
       let _ = assert_equal env a b in
-      usage
+      (Syntax2.(Cons (c, ms_elab)), usage)
     | _ ->
-      let b, usage = infer_tm ctx env m in
+      let b, m_elab, usage = infer_tm ctx env m in
       let _ = assert_equal env a b in
-      usage)
+      (m_elab, usage))
   | Match (ms, b, cls) ->
-    let ms_ty, usage1 =
+    let ms_ty, ms_elab, usage1 =
       List.fold_left
-        (fun (ms_ty, acc) m ->
-          let m_ty, usage = infer_tm ctx env m in
-          (m_ty :: ms_ty, merge usage acc))
-        ([], VMap.empty) ms
+        (fun (ms_ty, ms_elab, acc) m ->
+          let m_ty, m_elab, usage = infer_tm ctx env m in
+          (m_ty :: ms_ty, m_elab :: ms_elab, merge usage acc))
+        ([], [], VMap.empty) ms
     in
     let mot =
       List.fold_left
@@ -376,13 +415,13 @@ and check_tm ctx env m a =
     in
     let _ = infer_sort ctx env mot in
     let prbm = UVar.prbm_of_cls cls in
-    let usage2 = check_prbm ctx env prbm mot in
+    let ct, usage2 = check_prbm ctx env prbm mot in
     let _ = assert_equal env a b in
-    merge usage1 usage2
+    (Syntax2.(mkApps ct (List.rev ms_elab)), merge usage1 usage2)
   | _ ->
-    let b, usage = infer_tm ctx env m in
+    let b, m_elab, usage = infer_tm ctx env m in
     let _ = assert_equal env a b in
-    usage
+    (m_elab, usage)
 
 and check_prbm ctx env prbm a =
   let rec is_absurd es rhs =
@@ -422,7 +461,7 @@ and check_prbm ctx env prbm a =
   match prbm.clause with
   | [] -> (
     if has_failed (fun () -> UVar.unify prbm.global) then
-      usage_of_ctx ctx
+      (Syntax2.Absurd, usage_of_ctx ctx)
     else
       match whnf rd_all env a with
       | Pi (_, a, _) -> (
@@ -432,12 +471,12 @@ and check_prbm ctx env prbm a =
           if cs <> [] then
             failwith "check_Empty"
           else
-            usage_of_ctx ctx
+            (Syntax2.Absurd, usage_of_ctx ctx)
         | _ -> failwith "check_Empty")
       | _ -> failwith "check_Empty")
   | (es, ps, rhs) :: _ when is_absurd es rhs -> (
     if has_failed (fun () -> UVar.unify prbm.global) then
-      usage_of_ctx ctx
+      (Syntax2.Absurd, usage_of_ctx ctx)
     else
       let a = get_absurd es in
       let _ = infer_sort ctx env a in
@@ -447,45 +486,53 @@ and check_prbm ctx env prbm a =
         if cs <> [] then
           failwith "check_Absurd"
         else
-          usage_of_ctx ctx
+          (Syntax2.Absurd, usage_of_ctx ctx)
       | _ -> failwith "check_Absurd")
   | (es, ps, rhs) :: _ when can_split es -> (
     let x, b = first_split es in
-    let s = infer_sort ctx env b in
+    let s, _ = infer_sort ctx env b in
     match whnf rd_all env b with
     | Data (d, ns) ->
       let _, cs = find_d d ctx in
       let ptls = List.map (fun c -> find_c c ctx) cs in
-      List.fold_left2
-        (fun acc ptl c ->
-          let tl, args1 = tl_of_ptl ptl ns in
-          let (ctx, xs), targ =
-            fold_tl
-              (fun (ctx, acc) a x tl ->
-                let s = infer_sort ctx env a in
-                let ctx = add_v x s a ctx in
-                ((ctx, (x, s) :: acc), tl))
-              (ctx, []) tl
-          in
-          let args2 = List.map (fun (x, _) -> Var x) xs in
-          let c = Cons (c, args1 @ List.rev args2) in
-          let a = subst_tm x a c in
-          let ctx = subst_ctx x ctx c in
-          let prbm = prbm_subst ctx x prbm c in
-          let prbm =
-            UVar.{ prbm with global = Eq (env, b, targ, Type s) :: prbm.global }
-          in
-          let usage = check_prbm ctx env prbm a in
-          let usage =
-            List.fold_left (fun acc (x, s) -> remove x acc s) usage xs
-          in
-          let usage =
-            match s with
-            | U -> usage
-            | L -> VMap.add x false usage
-          in
-          refine_equal acc usage)
-        (usage_of_ctx ctx) ptls cs
+      let usage, cls =
+        List.fold_left2
+          (fun (acc, cls) ptl c ->
+            let tl, args1 = tl_of_ptl ptl ns in
+            let (ctx, xs), targ =
+              fold_tl
+                (fun (ctx, acc) a x tl ->
+                  let s, _ = infer_sort ctx env a in
+                  let ctx = add_v x s a ctx in
+                  ((ctx, (x, s) :: acc), tl))
+                (ctx, []) tl
+            in
+            let xs = List.rev xs in
+            let args2 = List.map (fun (x, _) -> Var x) xs in
+            let args3 = List.map (fun (x, _) -> Syntax2.PVar x) xs in
+            let cons = Cons (c, args1 @ args2) in
+            let a = subst_tm x a cons in
+            let ctx = subst_ctx x ctx cons in
+            let prbm = prbm_subst ctx x prbm cons in
+            let prbm =
+              UVar.
+                { prbm with global = Eq (env, b, targ, Type s) :: prbm.global }
+            in
+            let ct, usage = check_prbm ctx env prbm a in
+            let usage =
+              List.fold_left (fun acc (x, s) -> remove x acc s) usage xs
+            in
+            let usage =
+              match s with
+              | U -> usage
+              | L -> VMap.add x false usage
+            in
+            let cl = Syntax2.(Cl (bindp_tm (PCons (c, args3)) ct)) in
+            (refine_equal acc usage, cl :: cls))
+          (usage_of_ctx ctx, [])
+          ptls cs
+      in
+      (Syntax2.(Case (Var x, List.rev cls)), usage)
     | _ -> failwith "check_Split(%a)" pp_tm b)
   | (es, [], rhs) :: _ ->
     let es = prbm.global @ es in
@@ -504,16 +551,16 @@ and check_prbm ctx env prbm a =
     match (a, ps) with
     | Pi (s, a, abs), p :: ps -> (
       let x, b = unbind_tm abs in
-      let t = infer_sort ctx env a in
+      let t, _ = infer_sort ctx env a in
       let ctx = add_v x t a ctx in
       let prbm = prbm_add ctx env prbm x a in
-      let usage = check_prbm ctx env prbm b in
+      let ct, usage = check_prbm ctx env prbm b in
       let usage = remove x usage t in
       match s with
       | U ->
         let _ = assert_empty usage in
-        VMap.empty
-      | L -> usage)
+        (Syntax2.(Lam (trans_sort s, bind_tm x ct)), VMap.empty)
+      | L -> (Syntax2.(Lam (trans_sort s, bind_tm x ct)), usage))
     | _ -> failwith "check_Intro")
 
 and prbm_add ctx env prbm x a =
@@ -619,46 +666,58 @@ let rec infer_dcls ctx env dcls =
     | Some a ->
       let _ = infer_sort ctx env a in
       let _ = assert_equal env a Main in
-      check_tm ctx env m a
-    | None -> check_tm ctx env m Main)
+      let m_elab, usage = check_tm ctx env m a in
+      Syntax2.([ DTm (x, m_elab) ], usage)
+    | None ->
+      let m_elab, usage = check_tm ctx env m Main in
+      Syntax2.([ DTm (x, m_elab) ], usage))
   | DTm (x, a_opt, m) :: dcls -> (
     match a_opt with
     | Some a -> (
-      let s = infer_sort ctx env a in
-      let usage1 = check_tm ctx env m a in
+      let s, _ = infer_sort ctx env a in
+      let m_elab, usage1 = check_tm ctx env m a in
       match s with
       | U ->
         let _ = assert_empty usage1 in
-        infer_dcls (add_v x s a ctx) (VMap.add x m env) dcls
+        let dcls_elab, usage =
+          infer_dcls (add_v x s a ctx) (VMap.add x m env) dcls
+        in
+        Syntax2.(DTm (x, m_elab) :: dcls_elab, usage)
       | L ->
-        let usage2 = infer_dcls (add_v x s a ctx) env dcls in
-        merge usage1 (remove x usage2 s))
+        let dcls_elab, usage2 = infer_dcls (add_v x s a ctx) env dcls in
+        Syntax2.(DTm (x, m_elab) :: dcls_elab, merge usage1 (remove x usage2 s))
+      )
     | None -> (
-      let a, usage1 = infer_tm ctx env m in
-      let s = infer_sort ctx env a in
+      let a, m_elab, usage1 = infer_tm ctx env m in
+      let s, _ = infer_sort ctx env a in
       match s with
       | U ->
         let _ = assert_empty usage1 in
-        infer_dcls (add_v x s a ctx) (VMap.add x m env) dcls
+        let dcls_elab, usage =
+          infer_dcls (add_v x s a ctx) (VMap.add x m env) dcls
+        in
+        Syntax2.(DTm (x, m_elab) :: dcls_elab, usage)
       | L ->
-        let usage2 = infer_dcls (add_v x s a ctx) env dcls in
-        merge usage1 (remove x usage2 s)))
+        let dcls_elab, usage2 = infer_dcls (add_v x s a ctx) env dcls in
+        Syntax2.(DTm (x, m_elab) :: dcls_elab, merge usage1 (remove x usage2 s))
+      ))
   | DFun (x, a, abs) :: dcls ->
-    let s = infer_sort ctx env a in
+    let s, _ = infer_sort ctx env a in
     let y, cls = unbind_cls abs in
     if s = U then
       let ctx1 = add_v y s a ctx in
       let prbm = UVar.prbm_of_cls cls in
-      let usage = check_prbm ctx1 env prbm a in
+      let ct, usage = check_prbm ctx1 env prbm a in
       let ctx = add_v x s a ctx in
       let env = VMap.add x (Fun (Some a, abs)) env in
       let _ = assert_empty usage in
-      infer_dcls ctx env dcls
+      let dcls_elab, usage = infer_dcls ctx env dcls in
+      Syntax2.(DTm (x, Fix (bind_tm y ct)) :: dcls_elab, usage)
     else
       let prbm = UVar.prbm_of_cls cls in
-      let usage1 = check_prbm ctx env prbm a in
-      let usage2 = infer_dcls (add_v x s a ctx) env dcls in
-      merge usage1 (remove x usage2 s)
+      let ct, usage1 = check_prbm ctx env prbm a in
+      let dcls_elab, usage2 = infer_dcls (add_v x s a ctx) env dcls in
+      Syntax2.(DTm (x, ct) :: dcls_elab, merge usage1 (remove x usage2 s))
   | DData (d, ptl, dconss) :: dcls ->
     let _ = infer_ptl ctx env ptl U in
     let ctx = add_d d ptl [] ctx in
@@ -670,11 +729,11 @@ let rec infer_dcls ctx env dcls =
         dconss
     in
     let cs, ctx =
-      List.fold_left
-        (fun (acc, ctx) (DCons (c, ptl)) ->
+      List.fold_right
+        (fun (DCons (c, ptl)) (acc, ctx) ->
           let ctx = add_c c ptl ctx in
           (c :: acc, ctx))
-        ([], ctx) dconss
+        dconss ([], ctx)
     in
     let ctx = add_d d ptl cs ctx in
     infer_dcls ctx env dcls
@@ -682,20 +741,20 @@ let rec infer_dcls ctx env dcls =
     match trg with
     | TStdin ->
       let a = Ch (true, Var Prelude.stdin_t) in
-      let usage = infer_dcls (add_v x L a ctx) env dcls in
-      remove x usage L
+      let dcls_elab, usage = infer_dcls (add_v x L a ctx) env dcls in
+      Syntax2.(DOpen (trans_trg trg, x) :: dcls_elab, remove x usage L)
     | TStdout ->
       let a = Ch (true, Var Prelude.stdout_t) in
-      let usage = infer_dcls (add_v x L a ctx) env dcls in
-      remove x usage L
+      let dcls_elab, usage = infer_dcls (add_v x L a ctx) env dcls in
+      Syntax2.(DOpen (trans_trg trg, x) :: dcls_elab, remove x usage L)
     | TStderr ->
       let a = Ch (true, Var Prelude.stderr_t) in
-      let usage = infer_dcls (add_v x L a ctx) env dcls in
-      remove x usage L)
+      let dcls_elab, usage = infer_dcls (add_v x L a ctx) env dcls in
+      Syntax2.(DOpen (trans_trg trg, x) :: dcls_elab, remove x usage L))
   | DAxiom (x, a) :: dcls ->
-    let s = infer_sort ctx env a in
-    let usage = infer_dcls (add_v x s a ctx) env dcls in
-    remove x usage s
+    let s, _ = infer_sort ctx env a in
+    let dcls_elab, usage = infer_dcls (add_v x s a ctx) env dcls in
+    (dcls_elab, remove x usage s)
   | [] -> failwith "infer_dcls"
 
 and param_ptl ptl d xs =
@@ -732,14 +791,14 @@ and param_tl tl d xs =
 and infer_tl ctx env tl s =
   match tl with
   | TBase a ->
-    let t = infer_sort ctx env a in
+    let t, _ = infer_sort ctx env a in
     if cmp_sort t s then
       ()
     else
       failwith "infer_tl"
   | TBind (a, abs) ->
     let x, tl = unbind_tl abs in
-    let t = infer_sort ctx env a in
+    let t, _ = infer_sort ctx env a in
     let ctx = add_v x t a ctx in
     infer_tl ctx env tl (min_sort s t)
 
@@ -748,7 +807,7 @@ and infer_ptl ctx env ptl s =
   | PBase tl -> infer_tl ctx env tl s
   | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
-    let t = infer_sort ctx env a in
+    let t, _ = infer_sort ctx env a in
     let ctx = add_v x t a ctx in
     infer_ptl ctx env ptl (min_sort s t)
 
@@ -769,5 +828,6 @@ let trans_dcls dcls =
     ; cs = CMap.empty
     }
   in
-  let usage = infer_dcls ctx VMap.empty dcls in
-  refine_equal (VMap.singleton Prelude.main_v false) usage
+  let dcls_elab, usage = infer_dcls ctx VMap.empty dcls in
+  let _ = refine_equal (VMap.singleton Prelude.main_v false) usage in
+  dcls_elab

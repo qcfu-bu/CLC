@@ -6,7 +6,11 @@ def maxn : nat -> nat -> nat
     | _, zero => x
     | succ x, succ y => succ (maxn x y)
 
-def one := succ zero
+def one := 
+  if true then
+    succ zero
+  else
+    zero
 
 def two := succ (succ zero)
 

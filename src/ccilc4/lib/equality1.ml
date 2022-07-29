@@ -83,26 +83,6 @@ and match_cls cls ms =
         | _ -> None))
     None cls
 
-let rec eval rds env dcls =
-  match dcls with
-  | [] -> []
-  | DTm (x, a_opt, m) :: dcls ->
-    let a_opt = Option.map (whnf rds env) a_opt in
-    let m = whnf rds env m in
-    let env = VMap.add x m env in
-    let dcls = eval rds env dcls in
-    DTm (x, a_opt, m) :: dcls
-  | DFun (x, a, abs) :: dcls ->
-    let env = VMap.add x (Fun (Some a, abs)) env in
-    let dcls = eval rds env dcls in
-    DFun (x, a, abs) :: dcls
-  | DData _ :: dcls -> eval rds env dcls
-  | DOpen _ :: dcls -> eval rds env dcls
-  | DAxiom (x, a) :: dcls ->
-    let a = whnf rds env a in
-    let dcls = eval rds env dcls in
-    DAxiom (x, a) :: dcls
-
 let rec aeq m1 m2 =
   if m1 == m2 then
     true
