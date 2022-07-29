@@ -34,7 +34,7 @@ let rec trans_p nspc cs p =
     let x = trans_id_opt id_opt in
     match id_opt with
     | Some id -> ((id, V x) :: nspc, Syntax1.PVar x)
-    | None -> (nspc, Syntax1.PVar x))
+    | None -> (("", V x) :: nspc, Syntax1.PVar x))
   | PCons (id, ps) -> (
     match SMap.find_opt id cs with
     | Some c ->

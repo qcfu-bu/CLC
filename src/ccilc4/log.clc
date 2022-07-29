@@ -1,135 +1,103 @@
-[(DData ("ref_msg", (PTl ([], (Tl ([], (Type U))))),
-    [(DCons ("GET", (PTl ([], (Tl ([], (Id "ref_msg")))))));
-      (DCons ("SET", (PTl ([], (Tl ([], (Id "ref_msg")))))));
-      (DCons ("FREE", (PTl ([], (Tl ([], (Id "ref_msg")))))))]
+[(DData ("lvec",
+    (PTl ([((Some "A"), (Type L))], (Tl ([(None, (Id "nat"))], (Type L))))),
+    [(DCons ("lnil",
+        (PTl ([((Some "A"), (Type L))],
+           (Tl ([], (App [(Id "lvec"); (Id "A"); (Id "zero")])))))
+        ));
+      (DCons ("lcons",
+         (PTl ([((Some "A"), (Type L))],
+            (Tl (
+               [((Some "n"), (Id "nat")); (None, (Id "A"));
+                 (None, (App [(Id "lvec"); (Id "A"); (Id "n")]))],
+               (App [(Id "lvec"); (Id "A"); (App [(Id "succ"); (Id "n")])])))
+            ))
+         ))
+      ]
     ));
-  (DFun ("ref_t", (Pi (U, [(None, (Type U))], Proto)),
-     [(Cl
-         ([(PVar (Some "A"))],
-          (Some (Act (true, [((Some "msg"), (Id "ref_msg"))],
-                   (Match ([(Id "msg")],
-                      [(Cl
-                          ([(PCons ("GET", []))],
-                           (Some (Act (false, [(None, (Id "A"))],
-                                    (App [(Id "ref_t"); (Id "A")]))))));
-                        (Cl
-                           ([(PCons ("SET", []))],
-                            (Some (Act (true, [(None, (Id "A"))],
-                                     (App [(Id "ref_t"); (Id "A")]))))));
-                        (Cl ([(PCons ("FREE", []))], (Some End)))]
-                      ))
-                   )))))
-       ]
-     ));
-  (DFun ("ref_handler",
-     (Pi (U, [((Some "A"), (Type U)); ((Some "m"), (Id "A"))],
-        (Pi (L, [(None, (Ch (true, (App [(Id "ref_t"); (Id "A")]))))],
-           (Id "unit")))
-        )),
-     [(Cl
-         ([(PVar (Some "A")); (PVar (Some "m")); (PVar (Some "ch"))],
-          (Some (Match ([(Recv (Id "ch"))],
-                   [(Cl
-                       ([(PCons ("sig_intro",
-                            [(PCons ("GET", [])); (PVar (Some "ch"))]))
-                          ],
-                        (Some (App
-                                 [(Id "ref_handler"); (Id "_"); (Id "m");
-                                   (App [(Send (Id "ch")); (Id "m")])]))));
-                     (Cl
-                        ([(PCons ("sig_intro",
-                             [(PCons ("SET", [])); (PVar (Some "ch"))]))
-                           ],
-                         (Some (Let (
-                                  (PCons ("sig_intro",
-                                     [(PVar (Some "m")); (PVar (Some "ch"))]
-                                     )),
-                                  (Recv (Id "ch")),
-                                  (App
-                                     [(Id "ref_handler"); (Id "A"); (
-                                       Id "m"); (Id "ch")])
-                                  )))));
-                     (Cl
-                        ([(PCons ("sig_intro",
-                             [(PCons ("FREE", [])); (PVar (Some "ch"))]))
-                           ],
-                         (Some (Close (Id "ch")))))
-                     ]
-                   )))))
-       ]
-     ));
-  (DFun ("mk_ref",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (U, [(None, (Id "A"))],
-           (Pi (U, [(None, Main)],
-              (App
-                 [(Id "tnsr"); (Ch (false, (App [(Id "ref_t"); (Id "A")])));
-                   Main])
+  (DFun ("kappend",
+     (Pi (U,
+        [((Some "A"), (Type L)); ((Some "B"), (Type L));
+          ((Some "m"), (Id "nat")); ((Some "n"), (Id "nat"))],
+        (Pi (L, [(None, (App [(Id "lvec"); (Id "A"); (Id "m")]))],
+           (Pi (L, [(None, (App [(Id "lvec"); (Id "A"); (Id "n")]))],
+              (Pi (L,
+                 [(None,
+                   (Pi (L,
+                      [(None,
+                        (App
+                           [(Id "lvec"); (Id "A");
+                             (App [(Id "addn"); (Id "m"); (Id "n")])]))
+                        ],
+                      (Id "B"))))
+                   ],
+                 (Id "B")))
               ))
            ))
         )),
      [(Cl
-         ([(PVar (Some "A")); (PVar (Some "m")); (PVar (Some "x"))],
-          (Some (Fork ("ref", (Ch (true, (App [(Id "ref_t"); (Id "A")]))),
-                   (Id "x"),
-                   (App [(Id "ref_handler"); (Id "A"); (Id "m"); (Id "ref")])
-                   )))))
+         ([(PVar None); (PVar None); (PCons ("zero", [])); (PVar None);
+            (PCons ("lnil", [])); (PVar (Some "ls2")); (PVar (Some "k"))],
+          (Some (App [(Id "k"); (Id "ls2")]))));
+       (Cl
+          ([(PVar None); (PVar None); (PCons ("succ", [(PVar (Some "m"))]));
+             (PVar (Some "n"));
+             (PCons ("lcons",
+                [(PVar None); (PVar (Some "hd")); (PVar (Some "tl"))]));
+             (PVar (Some "ls2")); (PVar (Some "k"))],
+           (Some (App
+                    [(Id "kappend"); (Id "_"); (Id "_"); (Id "_"); (Id "_");
+                      (Id "tl"); (Id "ls2");
+                      (Fun (None, None,
+                         [(Cl
+                             ([(PVar (Some "res"))],
+                              (Some (App
+                                       [(Id "k");
+                                         (App
+                                            [(Id "lcons");
+                                              (App
+                                                 [(Id "addn"); (Id "m");
+                                                   (Id "n")]);
+                                              (Id "hd"); (Id "res")])
+                                         ]))))
+                           ]
+                         ))
+                      ]))))
        ]
      ));
-  (DFun ("set_ref",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (U, [(None, (Id "A"))],
-           (Pi (L, [(None, (Ch (false, (App [(Id "ref_t"); (Id "A")]))))],
-              (Ch (false, (App [(Id "ref_t"); (Id "A")])))))
-           ))
-        )),
-     [(Cl
-         ([(PVar (Some "A")); (PVar (Some "m")); (PVar (Some "ref"))],
-          (Some (App [(Send (App [(Send (Id "ref")); (Id "SET")])); (Id "m")]))))
-       ]
-     ));
-  (DFun ("get_ref",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (L, [(None, (Ch (false, (App [(Id "ref_t"); (Id "A")]))))],
+  (DFun ("length",
+     (Pi (U, [((Some "A"), (Type L)); ((Some "n"), (Id "nat"))],
+        (Pi (U, [(None, (App [(Id "lvec"); (Id "A"); (Id "n")]))],
            (App
-              [(Id "sig"); (Id "A");
+              [(Id "sig"); (Id "nat");
                 (Fun (None, None,
                    [(Cl
                        ([(PVar None)],
-                        (Some (Ch (false, (App [(Id "ref_t"); (Id "A")]))))))
+                        (Some (App [(Id "lvec"); (Id "A"); (Id "n")]))))
                      ]
                    ))
                 ])
            ))
         )),
      [(Cl
-         ([(PVar (Some "A")); (PVar (Some "ref"))],
-          (Some (Recv (App [(Send (Id "ref")); (Id "GET")])))))
+         ([(PVar None); (PVar None); (PCons ("lnil", []))],
+          (Some (App [(Id "sig_intro"); (Id "zero"); (Id "lnil")]))));
+       (Cl
+          ([(PVar None); (PVar None);
+             (PCons ("lcons",
+                [(PVar None); (PVar (Some "hd")); (PVar (Some "tl"))]))
+             ],
+           (Some (Let (
+                    (PCons ("sig_intro",
+                       [(PVar (Some "len")); (PVar (Some "tl"))])),
+                    (App [(Id "length"); (Id "_"); (Id "_"); (Id "tl")]),
+                    (App
+                       [(Id "sig_intro"); (App [(Id "succ"); (Id "len")]);
+                         (App [(Id "lcons"); (Id "_"); (Id "hd"); (Id "tl")])
+                         ])
+                    )))))
        ]
      ));
-  (DFun ("free_ref",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (L, [(None, (Ch (false, (App [(Id "ref_t"); (Id "A")]))))],
-           (Id "unit")))
-        )),
-     [(Cl
-         ([(PVar (Some "A")); (PVar (Some "ref"))],
-          (Some (Close (App [(Send (Id "ref")); (Id "FREE")])))))
-       ]
-     ));
-  (DTm ((Some "main"), None,
-     (Let (
-        (PCons ("tnsr_intro", [(PVar (Some "ref")); (PVar (Some "main"))])),
-        (App [(Id "mk_ref"); (Id "_"); (Id "zero"); (Id "main")]),
-        (Let (
-           (PCons ("sig_intro", [(PVar (Some "msg1")); (PVar (Some "ref"))])),
-           (App [(Id "get_ref"); (Id "_"); (Id "ref")]),
-           (Let ((PCons ("tt", [])),
-              (App [(Id "free_ref"); (Id "_"); (Id "ref")]), (Id "main")))
-           ))
-        ))
-     ))
-  ]
+  (DTm ((Some "main"), None, (Id "main")))]
 parse success---------------------------------
 data unit_d1 : U
   | tt_c1 : unit_d1
@@ -142,38 +110,38 @@ data nat_d3 : U
   | zero_c4 : nat_d3
   | succ_c5 : nat_d3 -> nat_d3
 
-def (addn_3 := addn_126) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_130 => x_130
-  | (succ_c5 x_131) y_132 => (succ_c5 ((addn_126) x_131 y_132))
+def (addn_3 := addn_124) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_128 => x_128
+  | (succ_c5 x_129) y_130 => (succ_c5 ((addn_124) x_129 y_130))
 
-data option_d4 (A_133 : U) : U
-  | none_c6 (A_134 : U) : (option_d4 A_134)
-  | some_c7 (A_135 : U) : A_135 -> (option_d4 A_135)
+data option_d4 (A_131 : U) : U
+  | none_c6 (A_132 : U) : (option_d4 A_132)
+  | some_c7 (A_133 : U) : A_133 -> (option_d4 A_133)
 
-data list_d5 (A_137 : U) : U
-  | nil_c8 (A_138 : U) : (list_d5 A_138)
-  | cons_c9 (A_139 : U) : A_139 -> (list_d5 A_139) -> (list_d5 A_139)
+data list_d5 (A_135 : U) : U
+  | nil_c8 (A_136 : U) : (list_d5 A_136)
+  | cons_c9 (A_137 : U) : A_137 -> (list_d5 A_137) -> (list_d5 A_137)
 
-data vec_d6 (A_143 : U) : nat_d3 -> U
-  | vnil_c10 (A_145 : U) : (vec_d6 A_145 zero_c4)
-  | vcons_c11 (A_146 : U) :
-    ∀ (n_147 : nat_d3) ->
-      A_146 -> (vec_d6 A_146 n_147) -> (vec_d6 A_146 (succ_c5 n_147))
+data vec_d6 (A_141 : U) : nat_d3 -> U
+  | vnil_c10 (A_143 : U) : (vec_d6 A_143 zero_c4)
+  | vcons_c11 (A_144 : U) :
+    ∀ (n_145 : nat_d3) ->
+      A_144 -> (vec_d6 A_144 n_145) -> (vec_d6 A_144 (succ_c5 n_145))
 
-data ex_d7 (A_152 : U) (P_153 : A_152 -> U) : U
-  | ex_intro_c12 (A_155 : U) (P_156 : A_155 -> U) :
-    ∀ (x_158 : A_155) -> ((P_156) x_158) -> (ex_d7 A_155 P_156)
+data ex_d7 (A_150 : U) (P_151 : A_150 -> U) : U
+  | ex_intro_c12 (A_153 : U) (P_154 : A_153 -> U) :
+    ∀ (x_156 : A_153) -> ((P_154) x_156) -> (ex_d7 A_153 P_154)
 
-data sig_d8 (A_160 : U) (P_161 : A_160 -> L) : L
-  | sig_intro_c13 (A_163 : U) (P_164 : A_163 -> L) :
-    ∀ (x_166 : A_163) -> ((P_164) x_166) -> (sig_d8 A_163 P_164)
+data sig_d8 (A_158 : U) (P_159 : A_158 -> L) : L
+  | sig_intro_c13 (A_161 : U) (P_162 : A_161 -> L) :
+    ∀ (x_164 : A_161) -> ((P_162) x_164) -> (sig_d8 A_161 P_162)
 
-data tnsr_d9 (A_168 : L) (B_169 : L) : L
-  | tnsr_intro_c14 (A_170 : L) (B_171 : L) :
-    A_170 -> B_171 -> (tnsr_d9 A_170 B_171)
+data tnsr_d9 (A_166 : L) (B_167 : L) : L
+  | tnsr_intro_c14 (A_168 : L) (B_169 : L) :
+    A_168 -> B_169 -> (tnsr_d9 A_168 B_169)
 
-data box_d10 (A_175 : U) : L
-  | box_intro_c15 (A_176 : U) : A_176 -> (box_d10 A_176)
+data box_d10 (A_173 : U) : L
+  | box_intro_c15 (A_174 : U) : A_174 -> (box_d10 A_174)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -186,25 +154,30 @@ data string_d12 : U
   | EmptyString_c17 : string_d12
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
-def (stdin_rec_60 := stdin_rec_217) : unit_d1 -> proto
+def (stdin_rec_60 := stdin_rec_215) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_219 : bool_d2) ⋅
-      (match b_219 return ??1 with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_217) tt_c1)
+    !(b_217 : bool_d2) ⋅
+      (match b_217 return ??1{main_1; addn_3; stdin_rec_215; b_217} with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_215) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_64 := stdout_rec_221) : unit_d1 -> proto
+def (stdout_rec_64 := stdout_rec_219) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_223 : bool_d2) ⋅
-      (match b_223 return ??2 with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_221) tt_c1)
+    !(b_221 : bool_d2) ⋅
+      (match b_221 return
+         ??2{main_1; addn_3; stdin_rec_60; stdout_rec_219; b_221}
+       with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_219) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_68 := stderr_rec_225) : unit_d1 -> proto
+def (stderr_rec_68 := stderr_rec_223) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_227 : bool_d2) ⋅
-      (match b_227 return ??3 with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_225) tt_c1)
+    !(b_225 : bool_d2) ⋅
+      (match b_225 return
+         ??3{main_1; addn_3; stdin_rec_60; stdout_rec_64; stderr_rec_223;
+         b_225}
+       with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_223) tt_c1)
         | false_c3 => end)
 
 def stdin_t_72 := ((stdin_rec_60) tt_c1)
@@ -213,60 +186,67 @@ def stdout_t_73 := ((stdout_rec_64) tt_c1)
 
 def stderr_t_74 := ((stderr_rec_68) tt_c1)
 
-data ref_msg_d13 : U
-  | GET_c19 : ref_msg_d13
-  | SET_c20 : ref_msg_d13
-  | FREE_c21 : ref_msg_d13
+data lvec_d13 (A_227 : L) : nat_d3 -> L
+  | lnil_c19 (A_229 : L) : (lvec_d13 A_229 zero_c4)
+  | lcons_c20 (A_230 : L) :
+    ∀ (n_231 : nat_d3) ->
+      A_230 -> (lvec_d13 A_230 n_231) -> (lvec_d13 A_230 (succ_c5 n_231))
 
-def (ref_t_75 := ref_t_229) : U -> proto
-  | A_231 =>
-    ?(msg_232 : ref_msg_d13) ⋅
-      (match msg_232 return ??4 with
-        | GET_c19 => !A_231 ⋅ ((ref_t_229) A_231)
-        | SET_c20 => ?A_231 ⋅ ((ref_t_229) A_231)
-        | FREE_c21 => end)
+def (kappend_82 := kappend_236) :
+  ∀ (A_237 : L) ->
+    ∀ (B_242 : L) ->
+      ∀ (m_249 : nat_d3) ->
+        ∀ (n_252 : nat_d3) ->
+          (lvec_d13 A_237 m_249) -o
+            (lvec_d13 A_237 n_252) -o
+              (lvec_d13 A_237 ((addn_3) m_249 n_252)) -o B_242 -o B_242
+  | _264 _265 zero_c4 _266 lnil_c19 ls2_267 k_268 => ((k_268) ls2_267)
+  | _269 _270 (succ_c5 m_271) n_272 (lcons_c20 _273 hd_274 tl_275) ls2_276 k_277 =>
+    ((kappend_236) ??4{main_1; addn_3; stdin_rec_60; stdout_rec_64;
+                   stderr_rec_68; stdin_t_72; stdout_t_73; stderr_t_74;
+                   kappend_236; _269; _270; m_271; n_272; _273; hd_274;
+                   tl_275; ls2_276; k_277}
+    ??5{main_1; addn_3; stdin_rec_60; stdout_rec_64; stderr_rec_68;
+    stdin_t_72; stdout_t_73; stderr_t_74; kappend_236; _269; _270; m_271;
+    n_272; _273; hd_274; tl_275; ls2_276; k_277}
+    ??6{main_1; addn_3; stdin_rec_60; stdout_rec_64; stderr_rec_68;
+    stdin_t_72; stdout_t_73; stderr_t_74; kappend_236; _269; _270; m_271;
+    n_272; _273; hd_274; tl_275; ls2_276; k_277}
+    ??7{main_1; addn_3; stdin_rec_60; stdout_rec_64; stderr_rec_68;
+    stdin_t_72; stdout_t_73; stderr_t_74; kappend_236; _269; _270; m_271;
+    n_272; _273; hd_274; tl_275; ls2_276; k_277} tl_275 ls2_276
+    (fun
+      | res_280 =>
+        ((k_277) (lcons_c20 ((addn_3) m_271 n_272) hd_274 res_280))))
 
-def (ref_handler_81 := ref_handler_235) :
-  ∀ (A_236 : U) -> A_236 -> ch<((ref_t_75) A_236)> -o unit_d1
-  | A_241 m_242 ch_243 =>
-    (match recv ch_243 return ??7 with
-      | (sig_intro_c13 GET_c19 ch_244) =>
-        ((ref_handler_235) ??5 m_242 ((send ch_244) m_242))
-      | (sig_intro_c13 SET_c20 ch_245) =>
-        (match recv ch_245 return ??6 with
-          | (sig_intro_c13 m_246 ch_247) =>
-            ((ref_handler_235) A_241 m_246 ch_247))
-      | (sig_intro_c13 FREE_c21 ch_248) => close ch_248)
+def (length_107 := length_281) :
+  ∀ (A_282 : L) ->
+    ∀ (n_285 : nat_d3) ->
+      (lvec_d13 A_282 n_285) ->
+        (sig_d8 nat_d3 (fun
+                         | _292 => (lvec_d13 A_282 n_285)))
+  | _293 _294 lnil_c19 => (sig_intro_c13 zero_c4 lnil_c19)
+  | _295 _296 (lcons_c20 _297 hd_298 tl_299) =>
+    (match ((length_281) ??8{main_1; addn_3; stdin_rec_60; stdout_rec_64;
+                         stderr_rec_68; stdin_t_72; stdout_t_73; stderr_t_74;
+                         kappend_82; length_281; _295; _296; _297; hd_298;
+                         tl_299}
+           ??9{main_1; addn_3; stdin_rec_60; stdout_rec_64; stderr_rec_68;
+           stdin_t_72; stdout_t_73; stderr_t_74; kappend_82; length_281;
+           _295; _296; _297; hd_298; tl_299} tl_299) return
+       ??11{main_1; addn_3; stdin_rec_60; stdout_rec_64; stderr_rec_68;
+       stdin_t_72; stdout_t_73; stderr_t_74; kappend_82; length_281; _295;
+       _296; _297; hd_298; tl_299; len_120; tl_121}
+     with
+      | (sig_intro_c13 len_300 tl_301) =>
+        (sig_intro_c13 (succ_c5 len_300)
+        (lcons_c20
+          ??10{main_1; addn_3; stdin_rec_60; stdout_rec_64; stderr_rec_68;
+          stdin_t_72; stdout_t_73; stderr_t_74; kappend_82; length_281; _295;
+          _296; _297; hd_298; tl_299; len_300; tl_301}
+        hd_298 tl_301)))
 
-def (mk_ref_93 := mk_ref_249) :
-  ∀ (A_250 : U) -> A_250 -> @main -> (tnsr_d9 hc<((ref_t_75) A_250)> @main)
-  | A_255 m_256 x_257 =>
-    fork (ref_258 : ch<((ref_t_75) A_255)>) <- x_257 in
-      ((ref_handler_81) A_255 m_256 ref_258)
-
-def (set_ref_101 := set_ref_259) :
-  ∀ (A_260 : U) ->
-    A_260 -> hc<((ref_t_75) A_260)> -o hc<((ref_t_75) A_260)>
-  | A_265 m_266 ref_267 => ((send ((send ref_267) SET_c20)) m_266)
-
-def (get_ref_108 := get_ref_268) :
-  ∀ (A_269 : U) ->
-    hc<((ref_t_75) A_269)> -o
-      (sig_d8 A_269 (fun
-                      | _276 => hc<((ref_t_75) A_269)>))
-  | A_277 ref_278 => recv ((send ref_278) GET_c19)
-
-def (free_ref_115 := free_ref_279) :
-  ∀ (A_280 : U) -> hc<((ref_t_75) A_280)> -o unit_d1
-  | A_283 ref_284 => close ((send ref_284) FREE_c21)
-
-def main_120 :=
-  (match ((mk_ref_93) ??8 zero_c4 main_1) return ??13 with
-    | (tnsr_intro_c14 ref_285 main_286) =>
-      (match ((get_ref_108) ??9 ref_285) return ??12 with
-        | (sig_intro_c13 msg1_287 ref_288) =>
-          (match ((free_ref_115) ??10 ref_288) return ??11 with
-            | tt_c1 => main_286)))
+def main_122 := main_1
 
 
 trans01 success-------------------------------
@@ -281,38 +261,38 @@ data nat_d3 : U
   | zero_c4 : nat_d3
   | succ_c5 : nat_d3 -> nat_d3
 
-def (addn_3 := addn_4726) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_4730 => x_4730
-  | (succ_c5 x_4731) y_4732 => (succ_c5 ((addn_4726) x_4731 y_4732))
+def (addn_3 := addn_2389) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_2393 => x_2393
+  | (succ_c5 x_2394) y_2395 => (succ_c5 ((addn_2389) x_2394 y_2395))
 
-data option_d4 (A_4733 : U) : U
-  | none_c6 (A_4734 : U) : (option_d4 A_4734)
-  | some_c7 (A_4735 : U) : A_4735 -> (option_d4 A_4735)
+data option_d4 (A_2396 : U) : U
+  | none_c6 (A_2397 : U) : (option_d4 A_2397)
+  | some_c7 (A_2398 : U) : A_2398 -> (option_d4 A_2398)
 
-data list_d5 (A_4737 : U) : U
-  | nil_c8 (A_4738 : U) : (list_d5 A_4738)
-  | cons_c9 (A_4739 : U) : A_4739 -> (list_d5 A_4739) -> (list_d5 A_4739)
+data list_d5 (A_2400 : U) : U
+  | nil_c8 (A_2401 : U) : (list_d5 A_2401)
+  | cons_c9 (A_2402 : U) : A_2402 -> (list_d5 A_2402) -> (list_d5 A_2402)
 
-data vec_d6 (A_4743 : U) : nat_d3 -> U
-  | vnil_c10 (A_4745 : U) : (vec_d6 A_4745 zero_c4)
-  | vcons_c11 (A_4746 : U) :
-    ∀ (n_4747 : nat_d3) ->
-      A_4746 -> (vec_d6 A_4746 n_4747) -> (vec_d6 A_4746 (succ_c5 n_4747))
+data vec_d6 (A_2406 : U) : nat_d3 -> U
+  | vnil_c10 (A_2408 : U) : (vec_d6 A_2408 zero_c4)
+  | vcons_c11 (A_2409 : U) :
+    ∀ (n_2410 : nat_d3) ->
+      A_2409 -> (vec_d6 A_2409 n_2410) -> (vec_d6 A_2409 (succ_c5 n_2410))
 
-data ex_d7 (A_4752 : U) (P_4753 : A_4752 -> U) : U
-  | ex_intro_c12 (A_4755 : U) (P_4756 : A_4755 -> U) :
-    ∀ (x_4758 : A_4755) -> ((P_4756) x_4758) -> (ex_d7 A_4755 P_4756)
+data ex_d7 (A_2415 : U) (P_2416 : A_2415 -> U) : U
+  | ex_intro_c12 (A_2418 : U) (P_2419 : A_2418 -> U) :
+    ∀ (x_2421 : A_2418) -> ((P_2419) x_2421) -> (ex_d7 A_2418 P_2419)
 
-data sig_d8 (A_4760 : U) (P_4761 : A_4760 -> L) : L
-  | sig_intro_c13 (A_4763 : U) (P_4764 : A_4763 -> L) :
-    ∀ (x_4766 : A_4763) -> ((P_4764) x_4766) -> (sig_d8 A_4763 P_4764)
+data sig_d8 (A_2423 : U) (P_2424 : A_2423 -> L) : L
+  | sig_intro_c13 (A_2426 : U) (P_2427 : A_2426 -> L) :
+    ∀ (x_2429 : A_2426) -> ((P_2427) x_2429) -> (sig_d8 A_2426 P_2427)
 
-data tnsr_d9 (A_4768 : L) (B_4769 : L) : L
-  | tnsr_intro_c14 (A_4770 : L) (B_4771 : L) :
-    A_4770 -> B_4771 -> (tnsr_d9 A_4770 B_4771)
+data tnsr_d9 (A_2431 : L) (B_2432 : L) : L
+  | tnsr_intro_c14 (A_2433 : L) (B_2434 : L) :
+    A_2433 -> B_2434 -> (tnsr_d9 A_2433 B_2434)
 
-data box_d10 (A_4775 : U) : L
-  | box_intro_c15 (A_4776 : U) : A_4776 -> (box_d10 A_4776)
+data box_d10 (A_2438 : U) : L
+  | box_intro_c15 (A_2439 : U) : A_2439 -> (box_d10 A_2439)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -325,25 +305,25 @@ data string_d12 : U
   | EmptyString_c17 : string_d12
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
-def (stdin_rec_60 := stdin_rec_4817) : unit_d1 -> proto
+def (stdin_rec_60 := stdin_rec_2480) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_4819 : bool_d2) ⋅
-      (match b_4819 return proto with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_4817) tt_c1)
+    !(b_2482 : bool_d2) ⋅
+      (match b_2482 return proto with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_2480) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_64 := stdout_rec_4821) : unit_d1 -> proto
+def (stdout_rec_64 := stdout_rec_2484) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_4823 : bool_d2) ⋅
-      (match b_4823 return proto with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_4821) tt_c1)
+    !(b_2486 : bool_d2) ⋅
+      (match b_2486 return proto with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_2484) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_68 := stderr_rec_4825) : unit_d1 -> proto
+def (stderr_rec_68 := stderr_rec_2488) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_4827 : bool_d2) ⋅
-      (match b_4827 return proto with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_4825) tt_c1)
+    !(b_2490 : bool_d2) ⋅
+      (match b_2490 return proto with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_2488) tt_c1)
         | false_c3 => end)
 
 def stdin_t_72 := ((stdin_rec_60) tt_c1)
@@ -352,179 +332,142 @@ def stdout_t_73 := ((stdout_rec_64) tt_c1)
 
 def stderr_t_74 := ((stderr_rec_68) tt_c1)
 
-data ref_msg_d13 : U
-  | GET_c19 : ref_msg_d13
-  | SET_c20 : ref_msg_d13
-  | FREE_c21 : ref_msg_d13
+data lvec_d13 (A_2492 : L) : nat_d3 -> L
+  | lnil_c19 (A_2494 : L) : (lvec_d13 A_2494 zero_c4)
+  | lcons_c20 (A_2495 : L) :
+    ∀ (n_2496 : nat_d3) ->
+      A_2495 ->
+        (lvec_d13 A_2495 n_2496) -> (lvec_d13 A_2495 (succ_c5 n_2496))
 
-def (ref_t_75 := ref_t_4829) : U -> proto
-  | A_4831 =>
-    ?(msg_4832 : ref_msg_d13) ⋅
-      (match msg_4832 return proto with
-        | GET_c19 => !A_4831 ⋅ ((ref_t_4829) A_4831)
-        | SET_c20 => ?A_4831 ⋅ ((ref_t_4829) A_4831)
-        | FREE_c21 => end)
+def (kappend_82 := kappend_2501) :
+  ∀ (A_2502 : L) ->
+    ∀ (B_2507 : L) ->
+      ∀ (m_2514 : nat_d3) ->
+        ∀ (n_2517 : nat_d3) ->
+          (lvec_d13 A_2502 m_2514) -o
+            (lvec_d13 A_2502 n_2517) -o
+              (lvec_d13 A_2502 ((addn_3) m_2514 n_2517)) -o B_2507 -o B_2507
+  | _2529 _2530 zero_c4 _2531 lnil_c19 ls2_2532 k_2533 => ((k_2533) ls2_2532)
+  | _2534 _2535 (succ_c5 m_2536) n_2537 (lcons_c20 _2538 hd_2539 tl_2540) ls2_2541 k_2542 =>
+    ((kappend_2501) _2534 _2535 m_2536 n_2537 tl_2540 ls2_2541
+    (fun
+      | res_2545 =>
+        ((k_2542) (lcons_c20 ((addn_3) m_2536 n_2537) hd_2539 res_2545))))
 
-def (ref_handler_81 := ref_handler_4835) :
-  ∀ (A_4836 : U) -> A_4836 -> ch<((ref_t_75) A_4836)> -o unit_d1
-  | A_4841 m_4842 ch_4843 =>
-    (match recv ch_4843 return unit_d1 with
-      | (sig_intro_c13 GET_c19 ch_4844) =>
-        ((ref_handler_4835) A_4841 m_4842 ((send ch_4844) m_4842))
-      | (sig_intro_c13 SET_c20 ch_4845) =>
-        (match recv ch_4845 return unit_d1 with
-          | (sig_intro_c13 m_4846 ch_4847) =>
-            ((ref_handler_4835) A_4841 m_4846 ch_4847))
-      | (sig_intro_c13 FREE_c21 ch_4848) => close ch_4848)
+def (length_107 := length_2546) :
+  ∀ (A_2547 : L) ->
+    ∀ (n_2550 : nat_d3) ->
+      (lvec_d13 A_2547 n_2550) ->
+        (sig_d8 nat_d3 (fun
+                         | _2557 => (lvec_d13 A_2547 n_2550)))
+  | _2558 _2559 lnil_c19 => (sig_intro_c13 zero_c4 lnil_c19)
+  | _2560 _2561 (lcons_c20 _2562 hd_2563 tl_2564) =>
+    (match ((length_2546) _2560 _2562 tl_2564) return
+       (sig_d8 nat_d3 (fun
+                        | _2567 => (lvec_d13 _2560 (succ_c5 _2562))))
+     with
+      | (sig_intro_c13 len_2568 tl_2569) =>
+        (sig_intro_c13 (succ_c5 len_2568) (lcons_c20 _2562 hd_2563 tl_2569)))
 
-def (mk_ref_93 := mk_ref_4849) :
-  ∀ (A_4850 : U) ->
-    A_4850 -> @main -> (tnsr_d9 hc<((ref_t_75) A_4850)> @main)
-  | A_4855 m_4856 x_4857 =>
-    fork (ref_4858 : ch<((ref_t_75) A_4855)>) <- x_4857 in
-      ((ref_handler_81) A_4855 m_4856 ref_4858)
-
-def (set_ref_101 := set_ref_4859) :
-  ∀ (A_4860 : U) ->
-    A_4860 -> hc<((ref_t_75) A_4860)> -o hc<((ref_t_75) A_4860)>
-  | A_4865 m_4866 ref_4867 => ((send ((send ref_4867) SET_c20)) m_4866)
-
-def (get_ref_108 := get_ref_4868) :
-  ∀ (A_4869 : U) ->
-    hc<((ref_t_75) A_4869)> -o
-      (sig_d8 A_4869 (fun
-                       | _4876 => hc<((ref_t_75) A_4869)>))
-  | A_4877 ref_4878 => recv ((send ref_4878) GET_c19)
-
-def (free_ref_115 := free_ref_4879) :
-  ∀ (A_4880 : U) -> hc<((ref_t_75) A_4880)> -o unit_d1
-  | A_4883 ref_4884 => close ((send ref_4884) FREE_c21)
-
-def main_120 :=
-  (match ((mk_ref_93) nat_d3 zero_c4 main_1) return @main with
-    | (tnsr_intro_c14 ref_4885 main_4886) =>
-      (match ((get_ref_108) nat_d3 ref_4885) return @main with
-        | (sig_intro_c13 msg1_4887 ref_4888) =>
-          (match ((free_ref_115) nat_d3 ref_4888) return @main with
-            | tt_c1 => main_4886)))
+def main_122 := main_1
 
 
 trans1e success-------------------------------
-trans12 success-------------------------------
-def (addn_3 := addn_9533) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_9537 => x_9537
-  | (succ_c5 x_9538) y_9539 => (succ_c5 ((addn_9533) x_9538 y_9539))
+def (addn_3 := addn_3486) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_3490 => x_3490
+  | (succ_c5 x_3491) y_3492 => (succ_c5 ((addn_3486) x_3491 y_3492))
 
-def (stdin_rec_60 := stdin_rec_9540) : unit_d1 -> proto
+def (stdin_rec_60 := stdin_rec_3493) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_9542 : bool_d2) ⋅
-      (match b_9542 return proto with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_9540) tt_c1)
+    !(b_3495 : bool_d2) ⋅
+      (match b_3495 return proto with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_3493) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_64 := stdout_rec_9544) : unit_d1 -> proto
+def (stdout_rec_64 := stdout_rec_3497) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_9546 : bool_d2) ⋅
-      (match b_9546 return proto with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_9544) tt_c1)
+    !(b_3499 : bool_d2) ⋅
+      (match b_3499 return proto with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_3497) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_68 := stderr_rec_9548) : unit_d1 -> proto
+def (stderr_rec_68 := stderr_rec_3501) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_9550 : bool_d2) ⋅
-      (match b_9550 return proto with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_9548) tt_c1)
+    !(b_3503 : bool_d2) ⋅
+      (match b_3503 return proto with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_3501) tt_c1)
         | false_c3 => end)
 
 def stdin_t_72 :=
-  !(b_9552 : bool_d2) ⋅
-    (match b_9552 return proto with
+  !(b_3505 : bool_d2) ⋅
+    (match b_3505 return proto with
       | true_c2 =>
         ?string_d12 ⋅
-          (((fun stdin_rec_9558 : unit_d1 -> proto
+          (((fun stdin_rec_3511 : unit_d1 -> proto
               | tt_c1 =>
-                !(b_9562 : bool_d2) ⋅
-                  (match b_9562 return proto with
-                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_9558) tt_c1)
+                !(b_3515 : bool_d2) ⋅
+                  (match b_3515 return proto with
+                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_3511) tt_c1)
                     | false_c3 => end))) tt_c1)
       | false_c3 => end)
 
 def stdout_t_73 :=
-  !(b_9564 : bool_d2) ⋅
-    (match b_9564 return proto with
+  !(b_3517 : bool_d2) ⋅
+    (match b_3517 return proto with
       | true_c2 =>
         !string_d12 ⋅
-          (((fun stdout_rec_9570 : unit_d1 -> proto
+          (((fun stdout_rec_3523 : unit_d1 -> proto
               | tt_c1 =>
-                !(b_9574 : bool_d2) ⋅
-                  (match b_9574 return proto with
-                    | true_c2 => !string_d12 ⋅ ((stdout_rec_9570) tt_c1)
+                !(b_3527 : bool_d2) ⋅
+                  (match b_3527 return proto with
+                    | true_c2 => !string_d12 ⋅ ((stdout_rec_3523) tt_c1)
                     | false_c3 => end))) tt_c1)
       | false_c3 => end)
 
 def stderr_t_74 :=
-  !(b_9576 : bool_d2) ⋅
-    (match b_9576 return proto with
+  !(b_3529 : bool_d2) ⋅
+    (match b_3529 return proto with
       | true_c2 =>
         !string_d12 ⋅
-          (((fun stderr_rec_9582 : unit_d1 -> proto
+          (((fun stderr_rec_3535 : unit_d1 -> proto
               | tt_c1 =>
-                !(b_9586 : bool_d2) ⋅
-                  (match b_9586 return proto with
-                    | true_c2 => !string_d12 ⋅ ((stderr_rec_9582) tt_c1)
+                !(b_3539 : bool_d2) ⋅
+                  (match b_3539 return proto with
+                    | true_c2 => !string_d12 ⋅ ((stderr_rec_3535) tt_c1)
                     | false_c3 => end))) tt_c1)
       | false_c3 => end)
 
-def (ref_t_75 := ref_t_9588) : U -> proto
-  | A_9590 =>
-    ?(msg_9591 : ref_msg_d13) ⋅
-      (match msg_9591 return proto with
-        | GET_c19 => !A_9590 ⋅ ((ref_t_9588) A_9590)
-        | SET_c20 => ?A_9590 ⋅ ((ref_t_9588) A_9590)
-        | FREE_c21 => end)
+def (kappend_82 := kappend_3541) :
+  ∀ (A_3542 : L) ->
+    ∀ (B_3547 : L) ->
+      ∀ (m_3554 : nat_d3) ->
+        ∀ (n_3557 : nat_d3) ->
+          (lvec_d13 A_3542 m_3554) -o
+            (lvec_d13 A_3542 n_3557) -o
+              (lvec_d13 A_3542 ((addn_3) m_3554 n_3557)) -o B_3547 -o B_3547
+  | _3569 _3570 zero_c4 _3571 lnil_c19 ls2_3572 k_3573 => ((k_3573) ls2_3572)
+  | _3574 _3575 (succ_c5 m_3576) n_3577 (lcons_c20 _3578 hd_3579 tl_3580) ls2_3581 k_3582 =>
+    ((kappend_3541) _3574 _3575 m_3576 n_3577 tl_3580 ls2_3581
+    (fun
+      | res_3585 =>
+        ((k_3582) (lcons_c20 ((addn_3) m_3576 n_3577) hd_3579 res_3585))))
 
-def (ref_handler_81 := ref_handler_9594) :
-  ∀ (A_9595 : U) -> A_9595 -> ch<((ref_t_75) A_9595)> -o unit_d1
-  | A_9600 m_9601 ch_9602 =>
-    (match recv ch_9602 return unit_d1 with
-      | (sig_intro_c13 GET_c19 ch_9603) =>
-        ((ref_handler_9594) A_9600 m_9601 ((send ch_9603) m_9601))
-      | (sig_intro_c13 SET_c20 ch_9604) =>
-        (match recv ch_9604 return unit_d1 with
-          | (sig_intro_c13 m_9605 ch_9606) =>
-            ((ref_handler_9594) A_9600 m_9605 ch_9606))
-      | (sig_intro_c13 FREE_c21 ch_9607) => close ch_9607)
+def (length_107 := length_3586) :
+  ∀ (A_3587 : L) ->
+    ∀ (n_3590 : nat_d3) ->
+      (lvec_d13 A_3587 n_3590) ->
+        (sig_d8 nat_d3 (fun
+                         | _3597 => (lvec_d13 A_3587 n_3590)))
+  | _3598 _3599 lnil_c19 => (sig_intro_c13 zero_c4 lnil_c19)
+  | _3600 _3601 (lcons_c20 _3602 hd_3603 tl_3604) =>
+    (match ((length_3586) _3600 _3602 tl_3604) return
+       (sig_d8 nat_d3 (fun
+                        | _3607 => (lvec_d13 _3600 (succ_c5 _3602))))
+     with
+      | (sig_intro_c13 len_3608 tl_3609) =>
+        (sig_intro_c13 (succ_c5 len_3608) (lcons_c20 _3602 hd_3603 tl_3609)))
 
-def (mk_ref_93 := mk_ref_9608) :
-  ∀ (A_9609 : U) ->
-    A_9609 -> @main -> (tnsr_d9 hc<((ref_t_75) A_9609)> @main)
-  | A_9614 m_9615 x_9616 =>
-    fork (ref_9617 : ch<((ref_t_75) A_9614)>) <- x_9616 in
-      ((ref_handler_81) A_9614 m_9615 ref_9617)
-
-def (set_ref_101 := set_ref_9618) :
-  ∀ (A_9619 : U) ->
-    A_9619 -> hc<((ref_t_75) A_9619)> -o hc<((ref_t_75) A_9619)>
-  | A_9624 m_9625 ref_9626 => ((send ((send ref_9626) SET_c20)) m_9625)
-
-def (get_ref_108 := get_ref_9627) :
-  ∀ (A_9628 : U) ->
-    hc<((ref_t_75) A_9628)> -o
-      (sig_d8 A_9628 (fun
-                       | _9635 => hc<((ref_t_75) A_9628)>))
-  | A_9636 ref_9637 => recv ((send ref_9637) GET_c19)
-
-def (free_ref_115 := free_ref_9638) :
-  ∀ (A_9639 : U) -> hc<((ref_t_75) A_9639)> -o unit_d1
-  | A_9642 ref_9643 => close ((send ref_9643) FREE_c21)
-
-def main_120 :=
-  (match fork (ref_9644 : ch<((ref_t_75) nat_d3)>) <- main_1 in
-           ((ref_handler_81) nat_d3 zero_c4 ref_9644) return @main with
-    | (tnsr_intro_c14 ref_9645 main_9646) =>
-      (match ((get_ref_108) nat_d3 ref_9645) return @main with
-        | (sig_intro_c13 msg1_9647 ref_9648) =>
-          (match ((free_ref_115) nat_d3 ref_9648) return @main with
-            | tt_c1 => main_9646)))
+def main_122 := main_1
 
 
+trans12 success-------------------------------

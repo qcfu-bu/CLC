@@ -18,7 +18,7 @@ and pp_ps sep fmt ps =
 let rec pp_tm fmt m =
   match m with
   | Ann (a, m) -> pf fmt "@[@@[%a]@;<1 0>%a@]" pp_tm a pp_tm m
-  | Meta (x, ms) -> M.pp fmt x
+  | Meta (x, ms) -> pf fmt "@[%a{%a}@]" M.pp x (list ~sep:semi pp_tm) ms
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
   | Pi (s, a, abs) -> (
@@ -57,7 +57,7 @@ let rec pp_tm fmt m =
     | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
   | Absurd -> pf fmt "absurd"
   | Match (ms, a, cls) ->
-    pf fmt "@[<v 0>(@[match %a return %a with@]@;<1 2>%a)@]"
+    pf fmt "@[<v 0>(@[@[match %a return@;<1 2>%a@;<1 0>@]with@]@;<1 2>%a)@]"
       (list ~sep:comma pp_tm) ms pp_tm a (pp_cls ", ") cls
   | If (m, n1, n2) ->
     pf fmt "@[if %a then@;<1 2>%a@.else@;<1 2>%a@]" pp_tm m pp_tm n1 pp_tm n2

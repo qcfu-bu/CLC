@@ -1,0 +1,10 @@
+
+def foo : bool -> U 
+  | true => bool
+  | false => nat
+
+def bar : ∀ (b : bool) -> foo b
+  | true => false
+  | false => zero
+
+def main := main

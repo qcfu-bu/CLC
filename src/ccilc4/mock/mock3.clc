@@ -1,0 +1,18 @@
+data lvec (A : L) : nat -> L 
+  | lnil  : lvec A zero
+  | lcons : ∀ (n : nat) -> A -> lvec A n -> lvec A (succ n)
+
+def kappend : 
+  ∀ (A B : L) (m n : nat) -> 
+    lvec A m -o lvec A n -o (lvec A (addn m n) -o B) -o B
+  | _ _ zero _ lnil ls2 k => k ls2
+  | _ _ (succ m) n (lcons _ hd tl) ls2 k =>
+    kappend _ _ _ _ tl ls2 (fun res => k (lcons (addn m n) hd res))
+
+def length : ∀ (A : L) (n : nat) -> lvec A n -> sig nat (fun _ => lvec A n)
+  | _ _ lnil => sig_intro zero lnil
+  | _ _ (lcons _ hd tl) => 
+    let sig_intro len tl := length _ _ tl in
+    sig_intro (succ len) (lcons _ hd tl)
+
+def main := main

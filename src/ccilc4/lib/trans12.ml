@@ -123,7 +123,7 @@ let assert_equal env m n =
   if equal rd_all env m n then
     ()
   else
-    failwith "assert_equal(%a != %a)" pp_tm m pp_tm n
+    failwith "@[assert_equal(@;<1 2>%a@;<1 2>!=@;<1 2>%a)@]" pp_tm m pp_tm n
 
 let has_failed f =
   try
@@ -497,6 +497,7 @@ and check_prbm ctx env prbm a =
       | Some m -> UVar.msubst_tm vmap m
       | None -> failwith "check_Finish"
     in
+    let _ = infer_sort ctx env a in
     check_tm ctx env rhs a
   | (es, ps, rhs) :: clause -> (
     let a = whnf rd_all env a in
@@ -561,7 +562,6 @@ and prbm_subst ctx x prbm m =
           match acc with
           | Some acc -> (
             let l = subst_tm x l m in
-            let r = subst_tm x r m in
             let a = subst_tm x a m in
             match p_simpl ctx env l r a with
             | Some es -> Some (acc @ es)

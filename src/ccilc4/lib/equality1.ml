@@ -162,14 +162,13 @@ let rec equal rds env m1 m2 =
     | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
       s1 = s2 && equal rds env a1 a2 && equal_abs (equal rds env) abs1 abs2
     | Fun (a1_opt, abs1), Fun (a2_opt, abs2) ->
-      Option.equal (equal rds env) a1_opt a2_opt
-      && equal_abs
-           (fun cls1 cls2 ->
-             List.equal
-               (fun (Cl pabs1) (Cl pabs2) ->
-                 equal_pabs (Option.equal (equal rds env)) pabs1 pabs2)
-               cls1 cls2)
-           abs1 abs2
+      equal_abs
+        (fun cls1 cls2 ->
+          List.equal
+            (fun (Cl pabs1) (Cl pabs2) ->
+              equal_pabs (Option.equal (equal rds env)) pabs1 pabs2)
+            cls1 cls2)
+        abs1 abs2
     | App (m1, n1), App (m2, n2) -> equal rds env m1 m2 && equal rds env n1 n2
     | Let (m1, abs1), Let (m2, abs2) ->
       equal rds env m1 m2 && equal_abs (equal rds env) abs1 abs2

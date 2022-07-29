@@ -22,6 +22,7 @@ module UVar : sig
   val pp_eqn : Format.formatter -> eqn -> unit
   val pp_eqns : Format.formatter -> eqns -> unit
   val pp_prbm : Format.formatter -> prbm -> unit
+  val pp_vmap : Format.formatter -> tm VMap.t -> unit
   val prbm_of_cls : Syntax1.cls -> prbm
   val msubst_tm : tm VMap.t -> tm -> tm
   val unify : eqns -> tm VMap.t
@@ -64,6 +65,12 @@ end = struct
        <1 2>@[clause=(@;\
        <1 2>@[<v 0>%a@])@]@;\
        <1 0>}@]" pp_eqns prbm.global pp_clause prbm.clause
+
+  let pp_vmap fmt vmap =
+    let aux fmt vmap =
+      VMap.iter (fun x m -> pf fmt "%a := %a@;<1 2>" V.pp x pp_tm m) vmap
+    in
+    pf fmt "@[<v 0>vmap{@;<1 2>%a}@]" aux vmap
 
   let rec prbm_of_cls cls : prbm =
     match cls with
@@ -191,7 +198,7 @@ end = struct
         | Send m1, Send m2 -> simpl (env, m1, m2)
         | Recv m1, Recv m2 -> simpl (env, m1, m2)
         | Close m1, Close m2 -> simpl (env, m1, m2)
-        | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2
+        | _ -> failwith "uvar_simpl(%a, %a)" pp_tm m1 pp_tm m2
       in
       eqns_h @ eqns_sp
 
@@ -764,7 +771,7 @@ end = struct
           let m = mLam xs m2 in
           MMap.add x (Some m, None) map
         else
-          failwith "solve0(%a ?= %a)" pp_tm m1 pp_tm m2
+          failwith "solve0(%a{%a} ?= %a)" pp_tm m1 V.pps xs pp_tm m2
     | _ -> failwith "solve1(%a ?= %a)" pp_tm m1 pp_tm m2
 
   let rec resolve_tm map m =

@@ -445,8 +445,8 @@ and prbm_add ctx env prbm x a =
     match ptl with
     | PBase tl -> ps_of_tl ps tl
     | PBind (_, abs) ->
-      let _, ptl = unbind_ptl abs in
-      PVar (V.blank ()) :: ps_of_ptl ps ptl
+      let x, ptl = unbind_ptl abs in
+      PVar x :: ps_of_ptl ps ptl
   and ps_of_tl ps tl =
     match tl with
     | TBase _ -> ps
@@ -477,7 +477,6 @@ and prbm_subst ctx x prbm m =
           match acc with
           | Some acc -> (
             let l = subst_tm x l m in
-            let r = subst_tm x r m in
             let a = subst_tm x a m in
             match p_simpl ctx env l r a with
             | Some es -> Some (acc @ es)
