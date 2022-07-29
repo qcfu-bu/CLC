@@ -18,7 +18,7 @@ and pp_ps sep fmt ps =
 let rec pp_tm fmt m =
   match m with
   | Ann (a, m) -> pf fmt "@[@@[%a]@;<1 0>%a@]" pp_tm a pp_tm m
-  | Meta (x, ms) -> pf fmt "@[%a{%a}@]" M.pp x (list ~sep:semi pp_tm) ms
+  | Meta (x, ms) -> pf fmt "%a{@[%a@]}" M.pp x (list ~sep:semi pp_tm) ms
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
   | Pi (s, a, abs) -> (
@@ -43,7 +43,7 @@ let rec pp_tm fmt m =
       pf fmt "@[<v 0>(@[fun %a@]@;<1 2>%a)@]" V.pp x (pp_cls " ") cls)
   | App _ ->
     let m, ms = unApps m in
-    pf fmt "@[((%a) %a)@]" pp_tm m (list ~sep:sp pp_tm) ms
+    pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm m (list ~sep:sp pp_tm) ms
   | Let (m, abs) ->
     let x, n = unbind_tm abs in
     pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x pp_tm m pp_tm n
@@ -57,8 +57,13 @@ let rec pp_tm fmt m =
     | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
   | Absurd -> pf fmt "absurd"
   | Match (ms, a, cls) ->
-    pf fmt "@[<v 0>(@[@[match %a return@;<1 2>%a@;<1 0>@]with@]@;<1 2>%a)@]"
-      (list ~sep:comma pp_tm) ms pp_tm a (pp_cls ", ") cls
+    pf fmt
+      "@[<v 0>(@[@[match@;\
+       <1 2>%a@;\
+       <1 0>return@;\
+       <1 2>%a@;\
+       <1 0>@]with@]@;\
+       <1 2>%a)@]" (list ~sep:comma pp_tm) ms pp_tm a (pp_cls ", ") cls
   | If (m, n1, n2) ->
     pf fmt "@[if %a then@;<1 2>%a@.else@;<1 2>%a@]" pp_tm m pp_tm n1 pp_tm n2
   | Main -> pf fmt "@main"
@@ -78,7 +83,7 @@ let rec pp_tm fmt m =
       pf fmt "hc<%a>" pp_tm m
   | Fork (a, m, abs) ->
     let x, n = unbind_tm abs in
-    pf fmt "@[@[fork (%a :@;<1 2>%a) <-@;<1 2>%a@;<1 0>in@]@;<1 2>%a@]" V.pp x
+    pf fmt "@[@[fork (%a :@;<1 2>%a) <-@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x
       pp_tm a pp_tm m pp_tm n
   | Send m -> pf fmt "send %a" pp_tm m
   | Recv m -> pf fmt "recv %a" pp_tm m

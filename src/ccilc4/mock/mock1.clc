@@ -11,7 +11,7 @@ def ref_t : U -> proto
       | SET => ?A ⋅ ref_t A
       | FREE => end
 
-def ref_handler : ∀ (A : U) (m : A) -> ch<ref_t A> -o unit
+def ref_handler : ∀ (A : U) -> A -> ch<ref_t A> -o unit
   | A m ch =>
     match recv ch with
     | sig_intro GET ch => ref_handler _ m (send ch m)

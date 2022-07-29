@@ -68,6 +68,24 @@ def stderr_rec : unit -> proto
       | true => !string ⋅ stderr_rec tt
       | false => end
 
-def stdin_t := stdin_rec tt
+def stdin_t  := stdin_rec tt
 def stdout_t := stdout_rec tt
 def stderr_t := stderr_rec tt
+
+def readline : ch<stdin_t> -> sig string (fun _ => ch<stdin_t>)
+  | ch => recv (send ch true)
+
+def close_in : ch<stdin_t> -> unit
+  | ch => close (send ch false)
+
+def printline : ch<stdout_t> -> string -o ch<stdout_t>
+  | ch s => send (send ch true) s
+
+def close_out : ch<stdout_t> -> unit
+  | ch => close (send ch false)
+
+def printerr : ch<stderr_t> -> string -o ch<stderr_t>
+  | ch s => send (send ch true) s
+
+def close_err : ch<stderr_t> -> unit
+  | ch => close (send ch false)

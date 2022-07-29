@@ -7,4 +7,4 @@ def bar : ∀ (b : bool) -> foo b
   | true => false
   | false => zero
 
-def main := main
+def _ := main

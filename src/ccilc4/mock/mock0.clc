@@ -13,3 +13,5 @@ def two := succ (succ zero)
 def foo := maxn one
 
 def bar := (foo two)
+
+def _ := main
