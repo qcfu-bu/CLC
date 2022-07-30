@@ -8,14 +8,21 @@ def maxn : nat -> nat -> nat
 
 def one := 
   if true then
-    succ zero
+    1
   else
-    zero
+    0
 
-def two := succ (succ zero)
+def two := 2
 
 def foo := maxn one
 
 def bar := (foo two)
 
-def _ := main
+axiom baz : ch<stdin_t> -> unit
+
+open @stdout as stdout
+
+def _ := 
+  let stdout := printline stdout ("hello" ^ " " ^ "world\n") in
+  let () := close_out stdout in
+  main

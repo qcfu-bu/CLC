@@ -154,22 +154,6 @@ let rec infer_sort ctx env a =
   | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
 
 and infer_tm ctx env m : tm * Syntax2.tm * bool VMap.t =
-  let rec p_of_ptl c ptl =
-    let xs = xs_of_ptl ptl in
-    Syntax2.PCons (c, xs)
-  and xs_of_ptl ptl =
-    match ptl with
-    | PBase tl -> xs_of_tl tl
-    | PBind (_, abs) ->
-      let _, ptl = unbind_ptl abs in
-      xs_of_ptl ptl
-  and xs_of_tl tl =
-    match tl with
-    | TBase _ -> []
-    | TBind (_, abs) ->
-      let x, tl = unbind_tl abs in
-      Syntax2.PVar x :: xs_of_tl tl
-  in
   match m with
   | Ann (a, m) -> (
     let _, _ = infer_sort ctx env a in
@@ -243,25 +227,15 @@ and infer_tm ctx env m : tm * Syntax2.tm * bool VMap.t =
     let _ = infer_sort ctx env a in
     let m_elab, usage = check_tm ctx env (Match (ms, a, cls)) a in
     (a, m_elab, usage)
-  | If (m, tt, ff) -> (
-    let a, m_elab, usage1 = infer_tm ctx env m in
-    let s, _ = infer_sort ctx env a in
-    match (whnf rd_all env a, s) with
-    | Data (d, _), U -> (
-      let _, cs = find_d d ctx in
-      match cs with
-      | [ tt_c; ff_c ] ->
-        let tt_ty, tt_elab, tt_u = infer_tm ctx env tt in
-        let ff_ty, ff_elab, ff_u = infer_tm ctx env ff in
-        let _ = assert_equal env tt_ty ff_ty in
-        let usage2 = refine_equal tt_u ff_u in
-        let tt_ptl = find_c tt_c ctx in
-        let ff_ptl = find_c ff_c ctx in
-        let tt_cl = Syntax2.(Cl (bindp_tm (p_of_ptl tt_c tt_ptl) tt_elab)) in
-        let ff_cl = Syntax2.(Cl (bindp_tm (p_of_ptl ff_c ff_ptl) ff_elab)) in
-        (tt_ty, Syntax2.(Case (m_elab, [ tt_cl; ff_cl ])), merge usage1 usage2)
-      | _ -> failwith "infer_If")
-    | _ -> failwith "infer_If(%a)" pp_tm m)
+  | If (m, tt, ff) ->
+    let m_elab, usage1 = check_tm ctx env m (Data (Prelude.bool_d, [])) in
+    let tt_ty, tt_elab, tt_u = infer_tm ctx env tt in
+    let ff_ty, ff_elab, ff_u = infer_tm ctx env ff in
+    let _ = assert_equal env tt_ty ff_ty in
+    let usage2 = refine_equal tt_u ff_u in
+    let tt_cl = Syntax2.(Cl (bindp_tm (PCons (Prelude.true_c, [])) tt_elab)) in
+    let ff_cl = Syntax2.(Cl (bindp_tm (PCons (Prelude.false_c, [])) ff_elab)) in
+    (tt_ty, Syntax2.(Case (m_elab, [ tt_cl; ff_cl ])), merge usage1 usage2)
   | Main -> (Type L, Syntax2.Main, VMap.empty)
   | Proto -> (Type U, Syntax2.Proto, VMap.empty)
   | End -> (Proto, Syntax2.End, VMap.empty)

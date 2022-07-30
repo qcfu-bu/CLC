@@ -69,6 +69,20 @@ let rec whnf rds env m =
       | _ -> Match (ms, a, cls)
     else
       Match (ms, a, cls)
+  | If (m, tt, ff) ->
+    let m = whnf rd_all env m in
+    if List.exists (( = ) Iota) rds then
+      match m with
+      | Cons (c, _) ->
+        if C.equal c Prelude.true_c then
+          whnf rds env tt
+        else if C.equal c Prelude.false_c then
+          whnf rds env ff
+        else
+          If (m, tt, ff)
+      | _ -> If (m, tt, ff)
+    else
+      If (m, tt, ff)
   | Ch (r, m) -> Ch (r, whnf rds env m)
   | _ -> m
 

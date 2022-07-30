@@ -34,8 +34,14 @@ def get_ref : ∀ (A : U) -> hc<ref_t A> -o sig A (fun _ => (hc<ref_t A>))
 def free_ref : ∀ (A : U) -> hc<ref_t A> -o unit
   | A ref => close (send ref FREE)
 
+open @stdout as stdout
+
 def main :=
-  let tnsr_intro ref main := mk_ref _ zero main in
-  let sig_intro msg1 ref := get_ref _ ref in
-  let tt := free_ref _ ref in
+  let ⟨ref, main⟩ := mk_ref _ "hello" main in
+  let [msg1, ref] := get_ref _ ref in
+  let ref := set_ref _ "world" ref in
+  let [msg2, ref] := get_ref _ ref in
+  let stdout := printline stdout (msg1 ^ msg2) in
+  let () := close_out stdout in
+  let () := free_ref _ ref in
   main

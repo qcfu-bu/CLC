@@ -47,6 +47,20 @@ data string : U
   | EmptyString : string
   | String : ascii -> string -> string
 
+def cat : string -> string -> string
+  | EmptyString s => s
+  | (String c s1) s2 => String c (cat s1 s2)
+
+data le (n : nat) : nat -> U 
+  | le_n : le n n
+  | le_succ : ∀ (m : nat) -> le n m -> le n (succ m)
+
+def lt : nat -> nat -> U
+  | m n => le (succ m) n
+
+data eq (A : U) (x : A) : A -> U
+  | refl : eq A x x
+
 def stdin_rec : unit -> proto
   | tt =>
     !(b : bool) ⋅

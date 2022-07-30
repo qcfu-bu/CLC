@@ -5,7 +5,9 @@ open Syntax0
 
 let reserved =
   SSet.of_list
-    [ "def"
+    [ "U"
+    ; "L"
+    ; "def"
     ; "data"
     ; "open"
     ; "forall"
@@ -85,24 +87,32 @@ let bracks p = kw "[" >> p << kw "]"
 let id_parser : id parser =
   let* s1 = many1_chars (letter <|> char '_') in
   let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
-  let* _ = ws in
-  let s = s1 ^ s2 in
-  match SSet.find_opt s reserved with
-  | Some _ -> fail (str "not a valid identifier(%s)" s)
-  | None -> return s
+  let* b = look_ahead (char '<') >>$ true <|> return false in
+  if b then
+    zero
+  else
+    let* _ = ws in
+    let s = s1 ^ s2 in
+    match SSet.find_opt s reserved with
+    | Some _ -> fail (str "not a valid identifier(%s)" s)
+    | None -> return s
 
 let id_opt_parser : id_opt parser =
   let* s1 = many1_chars (letter <|> char '_') in
   let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
-  let* _ = ws in
-  let s = s1 ^ s2 in
-  match SSet.find_opt s reserved with
-  | Some _ -> fail (str "not a valid identifier(%s)" s)
-  | None ->
-    if s = "_" then
-      return None
-    else
-      return (Some s)
+  let* b = look_ahead (char '<') >>$ true <|> return false in
+  if b then
+    zero
+  else
+    let* _ = ws in
+    let s = s1 ^ s2 in
+    match SSet.find_opt s reserved with
+    | Some _ -> fail (str "not a valid identifier(%s)" s)
+    | None ->
+      if s = "_" then
+        return None
+      else
+        return (Some s)
 
 let rec pvar_parser () =
   let* id_opt = id_opt_parser in
@@ -119,11 +129,51 @@ and pcons_parser () =
   | _ -> zero
 
 and pabsurd_parser () = kw "absurd" >>$ (PAbsurd, true)
+and p_tt_parser () = kw "(" >> kw ")" >>$ (PCons ("tt", []), false)
+
+and p_pair0_parser () =
+  let* _ = kw "(" in
+  let* p1, absurd1 = p_parser () in
+  let* _ = kw "," in
+  let* p2, absurd2 = p_parser () in
+  let* _ = kw ")" in
+  return (PCons ("ex_intro", [ p1; p2 ]), absurd1 || absurd2)
+
+and p_pair1_parser () =
+  let* _ = kw "[" in
+  let* p1, absurd1 = p_parser () in
+  let* _ = kw "," in
+  let* p2, absurd2 = p_parser () in
+  let* _ = kw "]" in
+  return (PCons ("sig_intro", [ p1; p2 ]), absurd1 || absurd2)
+
+and p_pair2_parser () =
+  let* _ = kw "⟨" in
+  let* p1, absurd1 = p_parser () in
+  let* _ = kw "," in
+  let* p2, absurd2 = p_parser () in
+  let* _ = kw "⟩" in
+  return (PCons ("tnsr_intro", [ p1; p2 ]), absurd1 || absurd2)
+
+and p_box_parser () =
+  let* _ = kw "[" in
+  let* p, absurd = p_parser () in
+  let* _ = kw "]" in
+  return (PCons ("box_intro", [ p ]), absurd)
 
 and p_parser () =
   let* _ = return () in
   choice
-    [ pcons_parser (); pabsurd_parser (); pvar_parser (); parens (p_parser ()) ]
+    [ pcons_parser ()
+    ; pabsurd_parser ()
+    ; pvar_parser ()
+    ; p_tt_parser ()
+    ; p_pair0_parser ()
+    ; p_pair1_parser ()
+    ; p_pair2_parser ()
+    ; p_box_parser ()
+    ; parens (p_parser ())
+    ]
 
 and ps_parser () =
   let* ps = many (p_parser ()) in
@@ -305,6 +355,106 @@ and if_parser () =
   let* ff = tm_parser () in
   return (If (m, tt, ff))
 
+and tt_parser () = kw "(" >> kw ")" >>$ Id "tt"
+
+and pair0_parser () =
+  let* _ = kw "(" in
+  let* m = tm_parser () in
+  let* _ = kw "," in
+  let* n = tm_parser () in
+  let* _ = kw ")" in
+  return (App [ Id "ex_intro"; m; n ])
+
+and pair1_parser () =
+  let* _ = kw "[" in
+  let* m = tm_parser () in
+  let* _ = kw "," in
+  let* n = tm_parser () in
+  let* _ = kw "]" in
+  return (App [ Id "sig_intro"; m; n ])
+
+and pair2_parser () =
+  let* _ = kw "⟨" in
+  let* m = tm_parser () in
+  let* _ = kw "," in
+  let* n = tm_parser () in
+  let* _ = kw "⟩" in
+  return (App [ Id "tnsr_intro"; m; n ])
+
+and box_parser () =
+  let* _ = kw "[" in
+  let* m = tm_parser () in
+  let* _ = kw "]" in
+  return (App [ Id "box_intro"; m ])
+
+and nat_parser () =
+  let* s = many1_chars digit in
+  let* _ = ws in
+  match int_of_string_opt s with
+  | Some n ->
+    let rec loop i acc =
+      if i < n then
+        loop (i + 1) (App [ Id "succ"; acc ])
+      else
+        acc
+    in
+    return (loop 0 (App [ Id "zero" ]))
+  | None -> fail "non-int"
+
+and ascii_parser () =
+  let ascii n =
+    let rec aux i n =
+      let x = n mod 2 in
+      let x =
+        if x = 0 then
+          App [ Id "false" ]
+        else
+          App [ Id "true" ]
+      in
+      let n = n / 2 in
+      if i > 0 then
+        x :: aux (i - 1) n
+      else
+        []
+    in
+    App (Id "Ascii" :: List.rev (aux 8 n))
+  in
+  let* c = any_char in
+  if c = '\\' then
+    choice
+      [ char '\\' >>$ ascii (Char.code '\\')
+      ; char '\"' >>$ ascii (Char.code '\"')
+      ; char '\'' >>$ ascii (Char.code '\'')
+      ; char 'n' >>$ ascii (Char.code '\n')
+      ; char 't' >>$ ascii (Char.code '\t')
+      ; char 'b' >>$ ascii (Char.code '\b')
+      ; char 'r' >>$ ascii (Char.code '\r')
+      ; char ' ' >>$ ascii (Char.code '\ ')
+      ; (let* n1 = digit in
+         let* n2 = digit in
+         let* n3 = digit in
+         let s = str "0o%c%c%c" n1 n2 n3 in
+         let n = int_of_string s in
+         return (ascii n))
+      ]
+  else if c = '\"' || c = '\'' then
+    zero
+  else
+    let n = Char.code c in
+    return (ascii n)
+
+and char_parser () = char '\'' >> ascii_parser () << char '\'' << ws
+
+and asciix_parser () =
+  let* ms = many (attempt (ascii_parser ())) in
+  let m =
+    List.fold_right
+      (fun m acc -> App (Id "String" :: [ m; acc ]))
+      ms (App [ Id "EmptyString" ])
+  in
+  return m
+
+and string_parser () = char '\"' >> asciix_parser () << char '\"' << ws
 and main_parser () = kw "@main" >>$ Main
 and proto_parser () = kw "proto" >>$ Proto
 and end_parser () = kw "end" >>$ End
@@ -362,12 +512,21 @@ and tm0_parser () =
   let* _ = return () in
   choice
     [ type_parser ()
+    ; (id_parser >>= fun id -> return (Id id))
     ; ann_parser ()
     ; pi_parser ()
     ; fun_parser ()
     ; let_parser ()
     ; match_parser ()
     ; if_parser ()
+    ; tt_parser ()
+    ; pair0_parser ()
+    ; pair1_parser ()
+    ; pair2_parser ()
+    ; box_parser ()
+    ; nat_parser ()
+    ; char_parser ()
+    ; string_parser ()
     ; main_parser ()
     ; proto_parser ()
     ; end_parser ()
@@ -378,7 +537,6 @@ and tm0_parser () =
     ; recv_parser ()
     ; close_parser ()
     ; parens (tm_parser ())
-    ; (id_parser >>= fun id -> return (Id id))
     ]
 
 and tm1_parser () =
@@ -389,6 +547,38 @@ and tm1_parser () =
   | _ -> return (App (hd :: tl))
 
 and tm2_parser () =
+  let prod_parser =
+    choice
+      [ (kw "*" >>$ fun a b -> App [ Id "ex"; a; lam None b ])
+      ; (kw "×" >>$ fun a b -> App [ Id "sig"; a; lam None b ])
+      ; (kw "⊗" >>$ fun a b -> App [ Id "tnsr"; a; b ])
+      ]
+  in
+  chain_left1 (tm1_parser ()) prod_parser
+
+and tm3_parser () =
+  let add_parser =
+    kw "+"
+    >>$ (fun m n -> App [ Id "addn"; m; n ])
+    <|> (kw "^" >>$ fun m n -> App [ Id "cat"; m; n ])
+  in
+  chain_left1 (tm2_parser ()) add_parser
+
+and tm4_parser () =
+  let cmp_parser =
+    choice
+      (List.map attempt
+         [ (kw "<=" >>$ fun m n -> App [ Id "le"; m; n ])
+         ; (kw "<" >>$ fun m n -> App [ Id "lt"; m; n ])
+         ])
+  in
+  chain_left1 (tm3_parser ()) cmp_parser
+
+and tm5_parser () =
+  let eq_parser = kw "=" >>$ fun m n -> App [ Id "eq"; Id "_"; m; n ] in
+  chain_left1 (tm4_parser ()) eq_parser
+
+and tm6_parser () =
   let arrow_parser =
     let* _ = kw "→" <|> kw "->" in
     return (fun a b -> Pi (U, [ (None, a) ], b))
@@ -397,9 +587,9 @@ and tm2_parser () =
     let* _ = kw "⊸" <|> kw "-o" in
     return (fun a b -> Pi (L, [ (None, a) ], b))
   in
-  chain_right1 (tm1_parser ()) (arrow_parser <|> lolli_parser)
+  chain_right1 (tm5_parser ()) (arrow_parser <|> lolli_parser)
 
-and tm_parser () = tm2_parser ()
+and tm_parser () = tm6_parser ()
 
 let def_parser =
   let* _ = kw "def" in
@@ -408,8 +598,8 @@ let def_parser =
   (let* cls = cls_parser () in
    match (id_opt, a_opt) with
    | Some id, Some a -> return (DFun (id, a, cls))
-   | None, _ -> fail "toplevel functions must be named"
-   | _, None -> fail "type annotation required for toplevel functions")
+   | None, _ -> zero
+   | _, None -> zero)
   <|> let* _ = kw ":=" in
       let* m = tm_parser () in
       return (DTm (id_opt, a_opt, m))
@@ -447,7 +637,6 @@ let directive_parser =
     [ kw "@stdin" >>$ "@stdin"
     ; kw "@stdout" >>$ "@stdout"
     ; kw "@stderr" >>$ "@stderr"
-    ; kw "@main" >>$ "@main"
     ]
 
 let dopen_parser =
@@ -472,5 +661,5 @@ let dcls_parser =
   let* state = get_user_state in
   return (src, state)
 
-let parse_string s state = parse_string (ws >> dcls_parser << eof) s state
+let parse_string p s state = parse_string p s state
 let parse_channel ch state = parse_channel (ws >> dcls_parser << eof) ch state

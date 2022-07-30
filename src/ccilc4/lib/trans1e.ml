@@ -96,7 +96,6 @@ let rec infer_sort ctx env eqns map a =
 and infer_tm ctx env eqns map m =
   match m with
   | Ann (a, m) -> (
-    let _, eqns, map = infer_sort ctx env eqns map a in
     match m with
     | Let (m, abs) ->
       let x, n = unbind_tm abs in
@@ -156,23 +155,29 @@ and infer_tm ctx env eqns map m =
     check_ptl ctx env eqns map ms ptl
   | Absurd -> failwith "infer_Absurd(%a)" pp_tm m
   | Match (ms, b, cls) ->
-    let eqns, map = check_tm ctx env eqns map m b in
+    let ms_ty, eqns, map =
+      List.fold_left
+        (fun (acc, eqns, map) m ->
+          let a, eqns, map = infer_tm ctx env eqns map m in
+          (a :: acc, eqns, map))
+        ([], eqns, map) ms
+    in
+    let a =
+      List.fold_left
+        (fun acc m_ty -> Pi (L, m_ty, bind_tm (V.blank ()) acc))
+        b ms_ty
+    in
+    let prbm = UVar.prbm_of_cls cls in
+    let map = UMeta.unify map eqns in
+    let eqns, map = check_prbm ctx env eqns map prbm a in
     let map = UMeta.unify map eqns in
     (UMeta.resolve_tm map b, eqns, map)
-  | If (m, tt, ff) -> (
-    let a, eqns, map = infer_tm ctx env eqns map m in
-    let a = UMeta.resolve_tm map a in
-    match whnf rd_all env a with
-    | Data (d, _) ->
-      let _, cs = find_d d ctx in
-      if List.length cs = 2 then
-        let tt_ty, eqns, map = infer_tm ctx env eqns map tt in
-        let ff_ty, eqns, map = infer_tm ctx env eqns map ff in
-        let eqns, map = assert_equal env eqns map tt_ty ff_ty in
-        (tt_ty, eqns, map)
-      else
-        failwith "infer_If(%a)" pp_tm m
-    | _ -> failwith "infer_If(%a)" pp_tm m)
+  | If (m, tt, ff) ->
+    let eqns, map = check_tm ctx env eqns map m (Data (Prelude.bool_d, [])) in
+    let tt_ty, eqns, map = infer_tm ctx env eqns map tt in
+    let ff_ty, eqns, map = infer_tm ctx env eqns map ff in
+    let eqns, map = assert_equal env eqns map tt_ty ff_ty in
+    (tt_ty, eqns, map)
   | Main -> (Type L, eqns, map)
   | Proto -> (Type U, eqns, map)
   | End -> (Proto, eqns, map)
@@ -299,7 +304,9 @@ and check_tm ctx env eqns map m a =
     in
     let prbm = UVar.prbm_of_cls cls in
     let map = UMeta.unify map eqns in
-    check_prbm ctx env eqns map prbm a
+    let eqns, map = check_prbm ctx env eqns map prbm a in
+    let map = UMeta.unify map eqns in
+    (eqns, map)
   | _ ->
     let b, eqns, map = infer_tm ctx env eqns map m in
     assert_equal env eqns map a b

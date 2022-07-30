@@ -1,5 +1,7 @@
 open Fmt
 open Names
+open MParser
+open Parser0
 open Syntax2
 open Pprint2
 open Thread
@@ -51,7 +53,17 @@ let rec string_of m =
     str "%c%s" c s
   | _ -> failwith "string_of(%a)" pp_value m
 
-let of_string s = failwith "TODO"
+let of_string s =
+  let rec aux m =
+    match m with
+    | Syntax1.Cons (id, ms) -> Cons (id, List.map aux ms)
+    | _ -> failwith "of_string"
+  in
+  match parse_string (asciix_parser ()) s Prelude.state0 with
+  | Success m ->
+    let m = Trans01.trans_tm Prelude.nspc Prelude.cs m in
+    aux m
+  | Failed (s, _) -> failwith "%s" s
 
 let rec mk_env env p m =
   match (p, m) with

@@ -5,26 +5,47 @@ open Parser0
 open Prelude
 open Equality1
 
-let run s =
-  let ch = open_in s in
+let run s1 s2 =
+  let ch1 = open_in s1 in
+  let ch2 = open_out s2 in
   try
-    match parse_channel ch state0 with
+    match parse_channel ch1 state0 with
     | Success (dcls, _) ->
-      let _ = pr "%a@." Syntax0.pp_dcls dcls in
-      let _ = pr "parse success---------------------------------@.@." in
+      let s = str "%a@." Syntax0.pp_dcls dcls in
+      let _ = Printf.fprintf ch2 "%s" s in
+      let _ =
+        Printf.fprintf ch2
+          "parse success---------------------------------------\n\n"
+      in
       let _, _, dcls = Trans01.trans_dcls nspc cs dcls in
       let dcls = src1 @ dcls in
-      let _ = pr "%a@." Pprint1.pp_dcls dcls in
-      let _ = pr "trans01 success-------------------------------@.@." in
+      let s = str "%a@." Pprint1.pp_dcls dcls in
+      let _ = Printf.fprintf ch2 "%s" s in
+      let _ =
+        Printf.fprintf ch2
+          "trans01 success-------------------------------------\n\n"
+      in
       let dcls = Trans1e.trans_dcls dcls in
-      let _ = pr "%a@." Pprint1.pp_dcls dcls in
-      let _ = pr "trans1e success-------------------------------@.@." in
+      let s = str "%a@." Pprint1.pp_dcls dcls in
+      let _ = Printf.fprintf ch2 "%s" s in
+      let _ =
+        Printf.fprintf ch2
+          "trans1e success-------------------------------------\n\n"
+      in
       let dcls = Trans12.trans_dcls dcls in
-      let _ = pr "%a@." Pprint2.pp_dcls dcls in
-      let _ = pr "trans12 success-------------------------------@.@." in
+      let s = str "%a@." Pprint2.pp_dcls dcls in
+      let _ = Printf.fprintf ch2 "%s" s in
+      let _ =
+        Printf.fprintf ch2
+          "trans12 success-------------------------------------\n\n"
+      in
       let res = Eval2.eval_dcls dcls in
-      let _ = pr "%a@." Eval2.pp_res res in
-      let _ = pr "eval2 success---------------------------------@.@." in
+      let s = str "%a@." Eval2.pp_res res in
+      let _ = Printf.fprintf ch2 "%s" s in
+      let _ =
+        Printf.fprintf ch2
+          "eval2 success---------------------------------------\n\n"
+      in
       ()
     | Failed (s, _) -> epr "%s\n" s
   with
@@ -34,4 +55,4 @@ let _ =
   if Array.length Sys.argv < 1 then
     epr "input file expected@."
   else
-    run Sys.argv.(1)
+    run Sys.argv.(1) "log.clc"

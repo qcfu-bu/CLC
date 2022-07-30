@@ -54,3 +54,5 @@ and dcons = DCons of id * ptl
 and dconss = dcons list
 and ptl = PTl of args * tl
 and tl = Tl of args * tm
+
+let lam x m = Fun (None, None, [ Cl ([ PVar x ], Some m) ])

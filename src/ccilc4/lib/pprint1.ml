@@ -15,10 +15,54 @@ and pp_ps sep fmt ps =
   | [ p ] -> pp_p fmt p
   | p :: ps -> pf fmt "%a%s%a" pp_p p sep (pp_ps sep) ps
 
+let rec nat_of m =
+  match m with
+  | Cons (c, []) when C.equal c Prelude.zero_c -> Some 0
+  | Cons (c, [ m ]) when C.equal c Prelude.succ_c -> (
+    match nat_of m with
+    | Some n -> Some (1 + n)
+    | None -> None)
+  | _ -> None
+
+let bin_of ms =
+  List.map
+    (fun m ->
+      match m with
+      | Cons (c, []) when C.equal Prelude.true_c c -> Some 1
+      | Cons (c, []) when C.equal Prelude.false_c c -> Some 0
+      | _ -> None)
+    ms
+
+let dec_of ns =
+  List.fold_left
+    (fun acc opt ->
+      match (acc, opt) with
+      | Some acc, Some n -> Some ((acc * 2) + n)
+      | _ -> None)
+    (Some 0) ns
+
+let char_of m =
+  match m with
+  | Cons (c, ms) when C.equal Prelude.ascii0_c c -> (
+    let n = ms |> bin_of |> dec_of in
+    match n with
+    | Some n -> Some (Char.chr n)
+    | None -> None)
+  | _ -> None
+
+let rec string_of m =
+  match m with
+  | Cons (c, []) when C.equal Prelude.emptyString_c c -> Some ""
+  | Cons (c, [ m; n ]) when C.equal Prelude.string0_c c -> (
+    match (char_of m, string_of n) with
+    | Some c, Some s -> Some (str "%c%s" c s)
+    | _ -> None)
+  | _ -> None
+
 let rec pp_tm fmt m =
   match m with
   | Ann (a, m) -> pf fmt "@[@@[%a]@;<1 0>%a@]" pp_tm a pp_tm m
-  | Meta (x, ms) -> pf fmt "%a{@[%a@]}" M.pp x (list ~sep:semi pp_tm) ms
+  | Meta (x, ms) -> pf fmt "%a" M.pp x
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
   | Pi (s, a, abs) -> (
@@ -54,7 +98,22 @@ let rec pp_tm fmt m =
   | Cons (c, ms) -> (
     match ms with
     | [] -> C.pp fmt c
-    | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
+    | _ ->
+      if C.equal c Prelude.zero_c || C.equal c Prelude.succ_c then
+        match nat_of m with
+        | Some n -> pf fmt "%d" n
+        | None -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms
+      else if C.equal c Prelude.string0_c || C.equal c Prelude.emptyString_c
+      then
+        match string_of m with
+        | Some s -> pf fmt "\"%s\"" (String.escaped s)
+        | None -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms
+      else if C.equal c Prelude.ascii0_c then
+        match char_of m with
+        | Some c -> pf fmt "\'%s\'" (Char.escaped c)
+        | None -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms
+      else
+        pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
   | Absurd -> pf fmt "absurd"
   | Match (ms, a, cls) ->
     pf fmt
