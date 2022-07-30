@@ -317,20 +317,17 @@ and check_prbm ctx env eqns map prbm a =
     | _ :: es, _ -> is_absurd es rhs
     | [], _ -> false
   in
-  let rec get_absurd es =
-    match es with
+  let rec get_absurd = function
     | UVar.Eq (_, Var _, Absurd, a) :: _ -> a
     | _ :: es -> get_absurd es
     | [] -> failwith "get_absurd"
   in
-  let rec can_split es =
-    match es with
+  let rec can_split = function
     | UVar.Eq (_, Var _, Cons (_, _), _) :: _ -> true
     | _ :: es -> can_split es
     | [] -> false
   in
-  let rec first_split es =
-    match es with
+  let rec first_split = function
     | UVar.Eq (_, Var x, Cons (c, ms), a) :: _ -> (x, a)
     | _ :: es -> first_split es
     | [] -> failwith "first_split"
@@ -344,6 +341,23 @@ and check_prbm ctx env eqns map prbm a =
     | PBase tl, _ -> (tl, [])
     | _ -> failwith "tl_of_ptl"
   in
+  let fail_on_d ctx eqns map d ns s a =
+    let _, cs = find_d d ctx in
+    let ptls = List.map (fun c -> find_c c ctx) cs in
+    let rec loop b = function
+      | [] when b -> (eqns, map)
+      | [] -> failwith "fail_on_d(%a)" pp_tm (Data (d, ns))
+      | ptl :: ptls ->
+        let tl, _ = tl_of_ptl ptl ns in
+        let _, targ = fold_tl (fun () _ _ tl -> ((), tl)) () tl in
+        let global = UVar.Eq (env, a, targ, Type s) :: prbm.global in
+        if has_failed (fun () -> UVar.unify global) then
+          (eqns, map)
+        else
+          loop false ptls
+    in
+    loop true ptls
+  in
   match prbm.clause with
   | [] -> (
     if has_failed (fun () -> UVar.unify prbm.global) then
@@ -352,13 +366,9 @@ and check_prbm ctx env eqns map prbm a =
       let a = UMeta.resolve_tm map a in
       match whnf rd_all env a with
       | Pi (_, a, _) -> (
+        let s, eqns, map = infer_sort ctx env eqns map a in
         match whnf rd_all env a with
-        | Data (d, _) ->
-          let _, cs = find_d d ctx in
-          if cs <> [] then
-            failwith "check_Empty"
-          else
-            (eqns, map)
+        | Data (d, ns) -> fail_on_d ctx eqns map d ns s a
         | _ -> failwith "check_Empty")
       | a -> failwith "check_Empty(%a)" pp_tm a)
   | (es, ps, rhs) :: _ when is_absurd es rhs -> (
@@ -366,15 +376,10 @@ and check_prbm ctx env eqns map prbm a =
       (eqns, map)
     else
       let a = get_absurd es in
-      let _, eqns, map = infer_sort ctx env eqns map a in
+      let s, eqns, map = infer_sort ctx env eqns map a in
       let a = UMeta.resolve_tm map a in
       match whnf rd_all env a with
-      | Data (d, _) ->
-        let _, cs = find_d d ctx in
-        if cs <> [] then
-          failwith "check_Absurd"
-        else
-          (eqns, map)
+      | Data (d, ns) -> fail_on_d ctx eqns map d ns s a
       | _ -> failwith "check_Absurd")
   | (es, ps, rhs) :: _ when can_split es -> (
     let x, b = first_split es in

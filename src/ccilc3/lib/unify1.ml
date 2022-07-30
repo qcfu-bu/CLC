@@ -84,8 +84,8 @@ end = struct
     if equal rd_all env m1 m2 then
       []
     else
-      let m1 = whnf [ Beta; Iota; Zeta; Delta ] env m1 in
-      let m2 = whnf [ Beta; Iota; Zeta; Delta ] env m2 in
+      let m1 = whnf rd_all env m1 in
+      let m2 = whnf rd_all env m2 in
       match (m1, m2) with
       | _, Var _ -> [ (env, m1, m2) ]
       | Var _, _ -> [ (env, m2, m1) ]
@@ -188,8 +188,8 @@ end = struct
       | _ -> failwith "uvar_simpl(%a, %a)" pp_tm m1 pp_tm m2
 
   let solve map (env, m1, m2) =
-    let m1 = whnf [ Beta; Iota; Zeta ] env m1 in
-    let m2 = whnf [ Beta; Iota; Zeta ] env m2 in
+    let m1 = whnf rd_all env m1 in
+    let m2 = whnf rd_all env m2 in
     match (m1, m2) with
     | _, Var x ->
       if occurs_tm x m1 then

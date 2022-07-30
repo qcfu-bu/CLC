@@ -2,6 +2,9 @@ data lvec (A : L) : nat -> L
   | lnil  : lvec A zero
   | lcons : ∀ (n : nat) -> A -> lvec A n -> lvec A (succ n)
 
+def head : ∀ (A : L) (n : nat) -> lvec A (succ n) -> A ⊗ lvec A n
+  | _ _ (lcons _ hd tl) => ⟨hd, tl⟩
+
 def kappend : ∀ (A B : L) (m n : nat) -> lvec A m -> lvec A n -o (lvec A (m + n) -o B) -o B
   | _ _ zero _ lnil ls2 k => k ls2
   | _ _ (succ m) n (lcons _ hd tl) ls2 k =>

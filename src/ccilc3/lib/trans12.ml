@@ -405,20 +405,17 @@ and check_prbm ctx env prbm a =
     | _ :: es, _ -> is_absurd es rhs
     | [], _ -> false
   in
-  let rec get_absurd es =
-    match es with
+  let rec get_absurd = function
     | UVar.Eq (_, Var _, Absurd, a) :: _ -> a
     | _ :: es -> get_absurd es
     | [] -> failwith "get_absurd"
   in
-  let rec can_split es =
-    match es with
+  let rec can_split = function
     | UVar.Eq (_, Var _, Cons (_, _), _) :: _ -> true
     | _ :: es -> can_split es
     | [] -> false
   in
-  let rec first_split es =
-    match es with
+  let rec first_split = function
     | UVar.Eq (_, Var x, Cons (c, ms), a) :: _ -> (x, a)
     | _ :: es -> first_split es
     | [] -> failwith "first_split"
@@ -432,6 +429,23 @@ and check_prbm ctx env prbm a =
     | PBase tl, _ -> (tl, [])
     | _ -> failwith "tl_of_ptl"
   in
+  let fail_on_d ctx d ns s a =
+    let _, cs = find_d d ctx in
+    let ptls = List.map (fun c -> find_c c ctx) cs in
+    let rec loop b = function
+      | [] when b -> (Syntax2.Absurd, usage_of_ctx ctx)
+      | [] -> failwith "fail_on_d(%a)" pp_tm (Data (d, ns))
+      | ptl :: ptls ->
+        let tl, _ = tl_of_ptl ptl ns in
+        let _, targ = fold_tl (fun () a x tl -> ((), tl)) () tl in
+        let global = UVar.Eq (env, a, targ, Type s) :: prbm.global in
+        if has_failed (fun () -> UVar.unify global) then
+          (Syntax2.Absurd, usage_of_ctx ctx)
+        else
+          loop false ptls
+    in
+    loop true ptls
+  in
   match prbm.clause with
   | [] -> (
     if has_failed (fun () -> UVar.unify prbm.global) then
@@ -439,13 +453,9 @@ and check_prbm ctx env prbm a =
     else
       match whnf rd_all env a with
       | Pi (_, a, _) -> (
+        let s, _ = infer_sort ctx env a in
         match whnf rd_all env a with
-        | Data (d, _) ->
-          let _, cs = find_d d ctx in
-          if cs <> [] then
-            failwith "check_Empty"
-          else
-            (Syntax2.Absurd, usage_of_ctx ctx)
+        | Data (d, ns) -> fail_on_d ctx d ns s a
         | _ -> failwith "check_Empty")
       | _ -> failwith "check_Empty")
   | (es, ps, rhs) :: _ when is_absurd es rhs -> (
@@ -453,14 +463,9 @@ and check_prbm ctx env prbm a =
       (Syntax2.Absurd, usage_of_ctx ctx)
     else
       let a = get_absurd es in
-      let _ = infer_sort ctx env a in
+      let s, _ = infer_sort ctx env a in
       match whnf rd_all env a with
-      | Data (d, _) ->
-        let _, cs = find_d d ctx in
-        if cs <> [] then
-          failwith "check_Absurd"
-        else
-          (Syntax2.Absurd, usage_of_ctx ctx)
+      | Data (d, ns) -> fail_on_d ctx d ns s a
       | _ -> failwith "check_Absurd")
   | (es, ps, rhs) :: _ when can_split es -> (
     let x, b = first_split es in
