@@ -16,7 +16,7 @@ def Array : U -> loc -> L
 def nth : 
   ∀ (A : U) (l m n : loc) -> m < n -> 
     ArrVec A l n -> (at A (l + m)) ⊗ (at A (l + m) -o ArrVec A l n)
-  | _ _ _ _ le_n (Cons n c v) => ⟨c, fun c => Cons n c v⟩
+  | _ _ _ _ le_refl (Cons n c v) => ⟨c, fun c => Cons n c v⟩
   | _ _ m _ (le_succ _ pf) (Cons n c0 v0) =>
     let ⟨c, f⟩ := nth _ _ m n pf v0 in
     ⟨c, fun c => Cons n c0 (f c)⟩

@@ -52,7 +52,7 @@ def cat : string -> string -> string
   | (String c s1) s2 => String c (cat s1 s2)
 
 data le (n : nat) : nat -> U 
-  | le_n : le n n
+  | le_refl : le n n
   | le_succ : ∀ (m : nat) -> le n m -> le n (succ m)
 
 def lt : nat -> nat -> U

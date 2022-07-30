@@ -123,7 +123,7 @@
         )),
      [(Cl
          ([(PVar None); (PVar None); (PVar None); (PVar None);
-            (PCons ("le_n", []));
+            (PCons ("le_refl", []));
             (PCons ("Cons",
                [(PVar (Some "n")); (PVar (Some "c")); (PVar (Some "v"))]))
             ],
@@ -277,7 +277,7 @@ def (cat_60 := cat_308) : string_d12 -> string_d12 -> string_d12
     (String_c18 c_313 ((cat_308) s1_314 s2_315))
 
 data le_d13 (n_316 : nat_d3) : nat_d3 -> U
-  | le_n_c19 (n_318 : nat_d3) : (le_d13 n_318 n_318)
+  | le_refl_c19 (n_318 : nat_d3) : (le_d13 n_318 n_318)
   | le_succ_c20 (n_319 : nat_d3) :
     ∀ (m_320 : nat_d3) ->
       (le_d13 n_319 m_320) -> (le_d13 n_319 (succ_c5 m_320))
@@ -386,7 +386,7 @@ def (nth_166 := nth_443) :
               (tnsr_d9 ((at_123) A_444 ((addn_3) l_450 m_455))
               ((at_123) A_444 ((addn_3) l_450 m_455)) -o
                 (ArrVec_d15 A_444 l_450 n_458))
-  | _466 _467 _468 _469 le_n_c19 (Cons_c23 n_470 c_471 v_472) =>
+  | _466 _467 _468 _469 le_refl_c19 (Cons_c23 n_470 c_471 v_472) =>
     (tnsr_intro_c14 c_471 (fun
                             | c_475 => (Cons_c23 n_470 c_475 v_472)))
   | _476 _477 m_478 _479 (le_succ_c20 _480 pf_481) (Cons_c23 n_482 c0_483 v0_484) =>
@@ -481,7 +481,7 @@ def (cat_60 := cat_10896) : string_d12 -> string_d12 -> string_d12
     (String_c18 c_10901 ((cat_10896) s1_10902 s2_10903))
 
 data le_d13 (n_10904 : nat_d3) : nat_d3 -> U
-  | le_n_c19 (n_10906 : nat_d3) : (le_d13 n_10906 n_10906)
+  | le_refl_c19 (n_10906 : nat_d3) : (le_d13 n_10906 n_10906)
   | le_succ_c20 (n_10907 : nat_d3) :
     ∀ (m_10908 : nat_d3) ->
       (le_d13 n_10907 m_10908) -> (le_d13 n_10907 (succ_c5 m_10908))
@@ -594,7 +594,7 @@ def (nth_166 := nth_11031) :
               (tnsr_d9 ((at_123) A_11032 ((addn_3) l_11038 m_11043))
               ((at_123) A_11032 ((addn_3) l_11038 m_11043)) -o
                 (ArrVec_d15 A_11032 l_11038 n_11046))
-  | _11054 _11055 _11056 _11057 le_n_c19 (Cons_c23 n_11058 c_11059 v_11060) =>
+  | _11054 _11055 _11056 _11057 le_refl_c19 (Cons_c23 n_11058 c_11059 v_11060) =>
     (tnsr_intro_c14 c_11059
     (fun
       | c_11063 => (Cons_c23 n_11058 c_11063 v_11060)))
@@ -726,7 +726,7 @@ def Array_159 :=
 def nth_166 :=
   fix nth_14384 A_14385 l_14386 m_14387 n_14388 _14389 =>
     (case _14389 of
-      | le_n_c19 =>
+      | le_refl_c19 =>
         lam _14390 =>
           (case _14390 of
             | Nil_c22 => absurd
@@ -848,7 +848,7 @@ trans12 success-------------------------------------
    (VFix (nth_14436,
       lam A_14479 l_14480 m_14481 n_14482 _14483 =>
         (case _14483 of
-          | le_n_c19 =>
+          | le_refl_c19 =>
             lam _14484 =>
               (case _14484 of
                 | Nil_c22 => absurd
