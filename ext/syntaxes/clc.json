@@ -7,7 +7,7 @@
       "include": "#comments"
     },
     {
-      "match": "\\b(Prop|Type|Sort|U|L|end)\\b",
+      "match": "\\b(Prop|Type|Sort|U|L)\\b",
       "name": "storage.type.clc"
     },
     {

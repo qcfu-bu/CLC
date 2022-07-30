@@ -14,11 +14,11 @@ def ref_t : U -> proto
 def ref_handler : ∀ (A : U) -> A -> ch<ref_t A> -o unit
   | A m ch =>
     match recv ch with
-    | sig_intro GET ch => ref_handler _ m (send ch m)
-    | sig_intro SET ch => 
+    | [GET, ch] => ref_handler _ m (send ch m)
+    | [SET, ch] => 
       let sig_intro m ch := recv ch in
       ref_handler A m ch
-    | sig_intro FREE ch => close ch
+    | [FREE, ch] => close ch
 
 def mk_ref : ∀ (A : U) -> A -> @main -> tnsr (hc<ref_t A>) @main
   | A m x =>

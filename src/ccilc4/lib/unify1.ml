@@ -630,124 +630,139 @@ end = struct
 
   let rec simpl (Eq (env, m1, m2)) =
     try asimpl (Eq (env, m1, m2)) with
-    | _ -> (
+    | _ ->
       let m1 = whnf [ Beta; Iota; Zeta ] env m1 in
       let m2 = whnf [ Beta; Iota; Zeta ] env m2 in
       let h1, sp1 = unApps m1 in
       let h2, sp2 = unApps m2 in
-      match (h1, h2) with
-      | Meta _, _ -> [ Eq (env, m1, m2) ]
-      | _, Meta _ -> [ Eq (env, m2, m1) ]
-      | Type s1, Type s2 ->
-        if s1 = s2 then
-          []
-        else
-          failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Var x1, Var x2 ->
-        if V.equal x1 x2 then
-          []
-        else
-          failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Var x, _ -> (
-        match VMap.find_opt x env with
-        | Some m1 -> simpl (Eq (env, mkApps m1 sp1, m2))
-        | None -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
-      | _, Var y -> (
-        match VMap.find_opt y env with
-        | Some m2 -> simpl (Eq (env, m1, mkApps m2 sp2))
-        | None -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
-      | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
-        if s1 = s2 then
-          let _, b1, b2 = unbind2_tm abs1 abs2 in
-          let eqns1 = simpl (Eq (env, a1, a2)) in
-          let eqns2 = simpl (Eq (env, b1, b2)) in
+      let eqns_sp =
+        try
+          List.fold_left2
+            (fun acc m n ->
+              let eqns = simpl (Eq (env, m, n)) in
+              acc @ eqns)
+            [] sp1 sp2
+        with
+        | _ -> []
+      in
+      let eqns_h =
+        match (h1, h2) with
+        | Meta _, _ -> [ Eq (env, m1, m2) ]
+        | _, Meta _ -> [ Eq (env, m2, m1) ]
+        | Type s1, Type s2 ->
+          if s1 = s2 then
+            []
+          else
+            failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
+        | Var x1, Var x2 ->
+          if V.equal x1 x2 then
+            []
+          else
+            failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
+        | Var x, _ -> (
+          match VMap.find_opt x env with
+          | Some m1 -> simpl (Eq (env, mkApps m1 sp1, m2))
+          | None -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
+        | _, Var y -> (
+          match VMap.find_opt y env with
+          | Some m2 -> simpl (Eq (env, m1, mkApps m2 sp2))
+          | None -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
+        | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
+          if s1 = s2 then
+            let _, b1, b2 = unbind2_tm abs1 abs2 in
+            let eqns1 = simpl (Eq (env, a1, a2)) in
+            let eqns2 = simpl (Eq (env, b1, b2)) in
+            eqns1 @ eqns2
+          else
+            failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
+        | Fun (a1_opt, abs1), Fun (a2_opt, abs2) ->
+          let _, cls1, cls2 = unbind2_cls abs1 abs2 in
+          let eqns1 =
+            match (a1_opt, a2_opt) with
+            | Some a1, Some a2 -> simpl (Eq (env, a1, a2))
+            | _ -> []
+          in
+          let eqns2 =
+            List.fold_left2
+              (fun acc (Cl pabs1) (Cl pabs2) ->
+                let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
+                match (m_opt, n_opt) with
+                | Some m, Some n -> simpl (Eq (env, m, n))
+                | None, None -> []
+                | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
+              [] cls1 cls2
+          in
           eqns1 @ eqns2
-        else
-          failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Fun (a1_opt, abs1), Fun (a2_opt, abs2) ->
-        let _, cls1, cls2 = unbind2_cls abs1 abs2 in
-        let eqns1 =
-          match (a1_opt, a2_opt) with
-          | Some a1, Some a2 -> simpl (Eq (env, a1, a2))
-          | _ -> []
-        in
-        let eqns2 =
-          List.fold_left2
-            (fun acc (Cl pabs1) (Cl pabs2) ->
-              let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
-              match (m_opt, n_opt) with
-              | Some m, Some n -> simpl (Eq (env, m, n))
-              | None, None -> []
-              | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
-            [] cls1 cls2
-        in
-        eqns1 @ eqns2
-      | Let (m1, abs1), Let (m2, abs2) ->
-        let _, n1, n2 = unbind2_tm abs1 abs2 in
-        let eqns1 = simpl (Eq (env, m1, m2)) in
-        let eqns2 = simpl (Eq (env, n1, n2)) in
-        eqns1 @ eqns2
-      | Data (d1, ms1), Data (d2, ms2) ->
-        if D.equal d1 d2 then
-          List.fold_left2
-            (fun acc m1 m2 -> acc @ simpl (Eq (env, m1, m2)))
-            [] ms1 ms2
-        else
-          failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Cons (c1, ms1), Cons (c2, ms2) ->
-        if C.equal c1 c2 then
-          List.fold_left2
-            (fun acc m1 m2 -> acc @ simpl (Eq (env, m1, m2)))
-            [] ms1 ms2
-        else
-          failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
-        let eqns1 =
-          List.fold_left2 (fun acc m1 m2 -> simpl (Eq (env, m1, m2))) [] ms1 ms2
-        in
-        let eqns2 = simpl (Eq (env, a1, a2)) in
-        let eqns3 =
-          List.fold_left2
-            (fun acc (Cl pabs1) (Cl pabs2) ->
-              let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
-              match (m_opt, n_opt) with
-              | Some m, Some n -> simpl (Eq (env, m, n))
-              | None, None -> []
-              | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
-            [] cls1 cls2
-        in
-        eqns1 @ eqns2 @ eqns3
-      | If (m1, tt1, ff1), If (m2, tt2, ff2) ->
-        let eqns1 = simpl (Eq (env, m1, m2)) in
-        let eqns2 = simpl (Eq (env, tt1, tt2)) in
-        let eqns3 = simpl (Eq (env, ff1, ff2)) in
-        eqns1 @ eqns2 @ eqns3
-      | Main, Main -> []
-      | Proto, Proto -> []
-      | End, End -> []
-      | Act (r1, a1, abs1), Act (r2, a2, abs2) ->
-        if r1 = r2 then
-          let _, b1, b2 = unbind2_tm abs1 abs2 in
-          let eqns1 = simpl (Eq (env, a1, a2)) in
-          let eqns2 = simpl (Eq (env, b1, b2)) in
+        | Let (m1, abs1), Let (m2, abs2) ->
+          let _, n1, n2 = unbind2_tm abs1 abs2 in
+          let eqns1 = simpl (Eq (env, m1, m2)) in
+          let eqns2 = simpl (Eq (env, n1, n2)) in
           eqns1 @ eqns2
-        else
-          failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Ch (r1, a1), Ch (r2, a2) ->
-        if r1 = r2 then
-          simpl (Eq (env, a1, a2))
-        else
-          failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Fork (a1, m1, abs1), Fork (a2, m2, abs2) ->
-        let _, n1, n2 = unbind2_tm abs1 abs2 in
-        let eqns1 = simpl (Eq (env, a1, a2)) in
-        let eqns2 = simpl (Eq (env, m1, m2)) in
-        let eqns3 = simpl (Eq (env, n1, n2)) in
-        eqns1 @ eqns2 @ eqns3
-      | Send m1, Send m2 -> simpl (Eq (env, m1, m2))
-      | Recv m1, Recv m2 -> simpl (Eq (env, m1, m2))
-      | Close m1, Close m2 -> simpl (Eq (env, m1, m2))
-      | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
+        | Data (d1, ms1), Data (d2, ms2) ->
+          if D.equal d1 d2 then
+            List.fold_left2
+              (fun acc m1 m2 -> acc @ simpl (Eq (env, m1, m2)))
+              [] ms1 ms2
+          else
+            failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
+        | Cons (c1, ms1), Cons (c2, ms2) ->
+          if C.equal c1 c2 then
+            List.fold_left2
+              (fun acc m1 m2 -> acc @ simpl (Eq (env, m1, m2)))
+              [] ms1 ms2
+          else
+            failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
+        | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
+          let eqns1 =
+            List.fold_left2
+              (fun acc m1 m2 -> simpl (Eq (env, m1, m2)))
+              [] ms1 ms2
+          in
+          let eqns2 = simpl (Eq (env, a1, a2)) in
+          let eqns3 =
+            List.fold_left2
+              (fun acc (Cl pabs1) (Cl pabs2) ->
+                let _, m_opt, n_opt = unbindp2_tm_opt pabs1 pabs2 in
+                match (m_opt, n_opt) with
+                | Some m, Some n -> simpl (Eq (env, m, n))
+                | None, None -> []
+                | _ -> failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2)
+              [] cls1 cls2
+          in
+          eqns1 @ eqns2 @ eqns3
+        | If (m1, tt1, ff1), If (m2, tt2, ff2) ->
+          let eqns1 = simpl (Eq (env, m1, m2)) in
+          let eqns2 = simpl (Eq (env, tt1, tt2)) in
+          let eqns3 = simpl (Eq (env, ff1, ff2)) in
+          eqns1 @ eqns2 @ eqns3
+        | Main, Main -> []
+        | Proto, Proto -> []
+        | End, End -> []
+        | Act (r1, a1, abs1), Act (r2, a2, abs2) ->
+          if r1 = r2 then
+            let _, b1, b2 = unbind2_tm abs1 abs2 in
+            let eqns1 = simpl (Eq (env, a1, a2)) in
+            let eqns2 = simpl (Eq (env, b1, b2)) in
+            eqns1 @ eqns2
+          else
+            failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
+        | Ch (r1, a1), Ch (r2, a2) ->
+          if r1 = r2 then
+            simpl (Eq (env, a1, a2))
+          else
+            failwith "simpl(%a, %a)" pp_tm h1 pp_tm h2
+        | Fork (a1, m1, abs1), Fork (a2, m2, abs2) ->
+          let _, n1, n2 = unbind2_tm abs1 abs2 in
+          let eqns1 = simpl (Eq (env, a1, a2)) in
+          let eqns2 = simpl (Eq (env, m1, m2)) in
+          let eqns3 = simpl (Eq (env, n1, n2)) in
+          eqns1 @ eqns2 @ eqns3
+        | Send m1, Send m2 -> simpl (Eq (env, m1, m2))
+        | Recv m1, Recv m2 -> simpl (Eq (env, m1, m2))
+        | Close m1, Close m2 -> simpl (Eq (env, m1, m2))
+        | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2
+      in
+      eqns_h @ eqns_sp
 
   let meta_spine sp =
     List.map
