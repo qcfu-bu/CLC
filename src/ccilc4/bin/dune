@@ -1,4 +1,0 @@
-(executable
- (public_name ccilc4)
- (name main)
- (libraries lang))

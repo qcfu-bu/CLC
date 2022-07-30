@@ -5,13 +5,56 @@ open Pprint1
 open Equality1
 open Unify1
 
+let pp_usage fmt usage =
+  let aux fmt usage =
+    VMap.iter (fun x b -> pf fmt "%a ?%b@;<1 2>" V.pp x b) usage
+  in
+  pf fmt "@[<v 0>{@;<1 2>%a}]" aux usage
+
+let merge usage1 usage2 =
+  VMap.merge
+    (fun _ opt1 opt2 ->
+      match (opt1, opt2) with
+      | Some false, Some false -> failwith "merge"
+      | Some b1, Some b2 -> Some (b1 && b2)
+      | Some b, None -> Some b
+      | None, Some b -> Some b
+      | _ -> None)
+    usage1 usage2
+
+let refine_equal usage1 usage2 =
+  VMap.merge
+    (fun _ opt1 opt2 ->
+      match (opt1, opt2) with
+      | Some b1, Some b2 -> Some (b1 && b2)
+      | Some true, None -> None
+      | None, Some true -> None
+      | None, None -> None
+      | _ -> failwith "refine_equal")
+    usage1 usage2
+
+let assert_empty usage =
+  if VMap.for_all (fun _ b -> b) usage then
+    ()
+  else
+    failwith "assert_empty"
+
+let remove x usage s =
+  match s with
+  | U -> usage
+  | L ->
+    if VMap.exists (fun y _ -> V.equal x y) usage then
+      VMap.remove x usage
+    else
+      failwith "remove(%a)" V.pp x
+
 type ctx =
-  { vs : tm VMap.t
+  { vs : (sort * tm) VMap.t
   ; ds : (ptl * C.t list) DMap.t
   ; cs : ptl CMap.t
   }
 
-let add_v x a ctx = { ctx with vs = VMap.add x a ctx.vs }
+let add_v x s a ctx = { ctx with vs = VMap.add x (s, a) ctx.vs }
 let add_d d ptl cs ctx = { ctx with ds = DMap.add d (ptl, cs) ctx.ds }
 let add_c c ptl ctx = { ctx with cs = CMap.add c ptl ctx.cs }
 let add_m x a map = MMap.add x (None, Some a) map
@@ -38,7 +81,10 @@ let find_m x map =
 
 let pp_vs fmt vs =
   let aux fmt vs =
-    VMap.iter (fun x a -> pf fmt "@[%a :@;<1 2>%a@]@;<1 2>" V.pp x pp_tm a) vs
+    VMap.iter
+      (fun x (s, a) ->
+        pf fmt "@[%a :%a@;<1 2>%a@]@;<1 2>" V.pp x pp_sort s pp_tm a)
+      vs
   in
   pf fmt "@[<v 0>vs={@;<1 2>%a}@]" aux vs
 
@@ -61,7 +107,7 @@ let pp_ctx fmt ctx =
     pp_cs ctx.cs
 
 let msubst_ctx map ctx =
-  let vs = VMap.map (fun a -> msubst map a) ctx.vs in
+  let vs = VMap.map (fun (s, a) -> (s, UVar.msubst_tm map a)) ctx.vs in
   { ctx with vs }
 
 let subst_ctx x ctx m =
@@ -73,11 +119,11 @@ let meta_mk ctx =
   let xs = ctx.vs |> VMap.bindings |> List.map (fun x -> Var (fst x)) in
   (Meta (x, xs), x)
 
-let assert_equal env eqns map m n =
+let assert_equal env m n =
   if equal rd_all env m n then
-    (eqns, map)
+    ()
   else
-    (UMeta.Eq (env, m, n) :: eqns, map)
+    failwith "@[assert_equal(@;<1 2>%a@;<1 2>!=@;<1 2>%a)@]" pp_tm m pp_tm n
 
 let has_failed f =
   try
@@ -86,209 +132,230 @@ let has_failed f =
   with
   | _ -> true
 
-let rec infer_sort ctx env eqns map a =
-  let srt, eqns, map = infer_tm ctx env eqns map a in
-  let srt = UMeta.resolve_tm map srt in
+let usage_of_ctx ctx = VMap.map (fun _ -> true) ctx.vs
+
+let trans_sort s =
+  match s with
+  | U -> Syntax2.U
+  | L -> Syntax2.L
+
+let trans_trg trg =
+  match trg with
+  | TStdin -> Syntax2.TStdin
+  | TStdout -> Syntax2.TStdout
+  | TStderr -> Syntax2.TStderr
+
+let rec infer_sort ctx env a =
+  let srt, a_elab, usage = infer_tm ctx env a in
   match whnf rd_all env srt with
-  | Type s -> (s, eqns, map)
+  | Type s ->
+    let _ = assert_empty usage in
+    (s, a_elab)
   | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
 
-and infer_tm ctx env eqns map m =
+and infer_tm ctx env m : tm * Syntax2.tm * bool VMap.t =
   match m with
   | Ann (a, m) -> (
-    let _, eqns, map = infer_sort ctx env eqns map a in
+    let _, _ = infer_sort ctx env a in
     match m with
     | Let (m, abs) ->
       let x, n = unbind_tm abs in
       let abs = bind_tm x (Ann (a, n)) in
-      let eqns, map = check_tm ctx env eqns map (Let (m, abs)) a in
-      (a, eqns, map)
+      let m_elab, usage = check_tm ctx env (Let (m, abs)) a in
+      (a, m_elab, usage)
     | _ ->
-      let eqns, map = check_tm ctx env eqns map m a in
-      (a, eqns, map))
-  | Meta (x, xs) -> (
-    try (find_m x map, eqns, map) with
-    | _ ->
-      let meta, _ = meta_mk ctx in
-      (meta, eqns, add_m x meta map))
-  | Type _ -> (Type U, eqns, map)
-  | Var x -> (find_v x ctx, eqns, map)
+      let m_elab, ctx = check_tm ctx env m a in
+      (a, m_elab, ctx))
+  | Meta _ -> failwith "infer_tm_Meta(%a)" pp_tm m
+  | Type s -> (Type U, Syntax2.Type (trans_sort s), VMap.empty)
+  | Var x -> (
+    let s, a = find_v x ctx in
+    match s with
+    | U -> Syntax2.(a, Var x, VMap.empty)
+    | L -> Syntax2.(a, Var x, VMap.singleton x false))
   | Pi (s, a, abs) ->
     let x, b = unbind_tm abs in
-    let _, eqns, map = infer_sort ctx env eqns map a in
-    let ctx = add_v x a ctx in
-    let _, eqns, map = infer_sort ctx env eqns map b in
-    (Type s, eqns, map)
-  | Fun (a_opt, cls) -> (
+    let t, a_elab = infer_sort ctx env a in
+    let _, b_elab = infer_sort (add_v x t a ctx) env b in
+    (Type s, Syntax2.(Pi (trans_sort s, a_elab, bind_tm x b_elab)), VMap.empty)
+  | Fun (a_opt, abs) -> (
     match a_opt with
     | Some a ->
-      let _, eqns, map = infer_sort ctx env eqns map a in
-      let eqns, map = check_tm ctx env eqns map (Fun (a_opt, cls)) a in
-      (a, eqns, map)
-    | None -> failwith "infer_tm2(%a)" pp_tm m)
+      let _ = infer_sort ctx env a in
+      let m_elab, usage = check_tm ctx env (Fun (a_opt, abs)) a in
+      (a, m_elab, usage)
+    | None -> failwith "infer_Fun(%a)" pp_tm m)
   | App (m, n) -> (
-    let a, eqns, map = infer_tm ctx env eqns map m in
-    let a = UMeta.resolve_tm map a in
+    let a, m_elab, usage1 = infer_tm ctx env m in
     match whnf rd_all env a with
-    | Pi (_, a, abs) ->
-      let x, b = unbind_tm abs in
-      let eqns, map = check_tm ctx env eqns map n a in
-      (subst x b (Ann (a, n)), eqns, map)
-    | a -> (fst (meta_mk ctx), eqns, map))
-  | Let (m, abs) ->
-    let a, eqns, map = infer_tm ctx env eqns map m in
-    let s, eqns, map = infer_sort ctx env eqns map a in
-    let map = UMeta.unify map eqns in
-    let m = UMeta.resolve_tm map m in
-    let a = UMeta.resolve_tm map a in
+    | Pi (s, a, abs) -> (
+      let t, _ = infer_sort ctx env a in
+      let n_elab, usage2 = check_tm ctx env n a in
+      match t with
+      | U ->
+        let _ = assert_empty usage2 in
+        (asubst_tm abs (Ann (a, n)), Syntax2.(App (m_elab, n_elab)), usage1)
+      | L ->
+        ( asubst_tm abs (Ann (a, n))
+        , Syntax2.(App (m_elab, n_elab))
+        , merge usage1 usage2 ))
+    | _ -> failwith "infer_App(%a)" pp_tm m)
+  | Let (m, abs) -> (
+    let a, m_elab, usage1 = infer_tm ctx env m in
+    let s, _ = infer_sort ctx env a in
     let x, n = unbind_tm abs in
-    let ctx = add_v x a ctx in
-    let env =
-      match s with
-      | U -> VMap.add x m env
-      | L -> env
-    in
-    infer_tm ctx env eqns map n
+    match s with
+    | U ->
+      let _ = assert_empty usage1 in
+      let b, n_elab, usage = infer_tm (add_v x s a ctx) (VMap.add x m env) n in
+      (b, Syntax2.(Let (m_elab, bind_tm x n_elab)), usage)
+    | L ->
+      let b, n_elab, usage2 = infer_tm (add_v x s a ctx) env n in
+      ( b
+      , Syntax2.(Let (m_elab, bind_tm x n_elab))
+      , merge usage1 (remove x usage2 s) ))
   | Data (d, ms) ->
     let ptl, _ = find_d d ctx in
-    let a, eqns, map = check_ptl ctx env eqns map ms ptl in
-    (a, eqns, map)
+    let a, ms_elab, usage = check_ptl ctx env ms ptl in
+    (a, Syntax2.(Data (d, ms_elab)), usage)
   | Cons (c, ms) ->
     let ptl = find_c c ctx in
-    check_ptl ctx env eqns map ms ptl
-  | Absurd -> failwith "infer_tm3(%a)" pp_tm m
-  | Match (ms, cls) ->
-    let ms_ty, eqns, map =
-      List.fold_left
-        (fun (acc, eqns, map) m ->
-          let a, eqns, map = infer_tm ctx env eqns map m in
-          (a :: acc, eqns, map))
-        ([], eqns, map) ms
-    in
-    let meta, meta_x = meta_mk ctx in
-    let a =
-      List.fold_left
-        (fun acc m_ty ->
-          let x = V.blank () in
-          Pi (L, m_ty, bind_tm x acc))
-        meta ms_ty
-    in
-    let prbm = UVar.prbm_of_cls cls in
-    let eqns, map = check_prbm ctx env eqns map prbm a in
-    let map = UMeta.unify map eqns in
-    (UMeta.resolve_tm map meta, eqns, map)
-  | If (m, tt, ff) -> (
-    let a, eqns, map = infer_tm ctx env eqns map m in
-    let a = UMeta.resolve_tm map a in
-    match whnf rd_all env a with
-    | Data (d, _) ->
-      let _, cs = DMap.find d ctx.ds in
-      if List.length cs = 2 then
-        let tt_ty, eqns, map = infer_tm ctx env eqns map tt in
-        let ff_ty, eqns, map = infer_tm ctx env eqns map ff in
-        let eqns, map = assert_equal env eqns map tt_ty ff_ty in
-        (tt_ty, eqns, map)
-      else
-        failwith "infer_tm4(%a)" pp_tm m
-    | _ -> failwith "infer_tm5(%a)" pp_tm m)
-  | Main -> (Type L, eqns, map)
-  | Proto -> (Type U, eqns, map)
-  | End -> (Proto, eqns, map)
+    let a, ms_elab, usage = check_ptl ctx env ms ptl in
+    (a, Syntax2.(Cons (c, ms_elab)), usage)
+  | Absurd -> failwith "infer_Absurd"
+  | Match (ms, a, cls) ->
+    let _ = infer_sort ctx env a in
+    let m_elab, usage = check_tm ctx env (Match (ms, a, cls)) a in
+    (a, m_elab, usage)
+  | If (m, tt, ff) ->
+    let m_elab, usage1 = check_tm ctx env m (Data (Prelude.bool_d, [])) in
+    let tt_ty, tt_elab, tt_u = infer_tm ctx env tt in
+    let ff_ty, ff_elab, ff_u = infer_tm ctx env ff in
+    let _ = assert_equal env tt_ty ff_ty in
+    let usage2 = refine_equal tt_u ff_u in
+    let tt_cl = Syntax2.(Cl (bindp_tm (PCons (Prelude.true_c, [])) tt_elab)) in
+    let ff_cl = Syntax2.(Cl (bindp_tm (PCons (Prelude.false_c, [])) ff_elab)) in
+    (tt_ty, Syntax2.(Case (m_elab, [ tt_cl; ff_cl ])), merge usage1 usage2)
+  | Main -> (Type L, Syntax2.Main, VMap.empty)
+  | Proto -> (Type U, Syntax2.Proto, VMap.empty)
+  | End -> (Proto, Syntax2.End, VMap.empty)
   | Act (r, a, abs) ->
-    let s, eqns, map = infer_sort ctx env eqns map a in
     let x, b = unbind_tm abs in
-    let eqns, map = check_tm (add_v x a ctx) env eqns map b Proto in
-    (Proto, eqns, map)
+    let s, a_elab = infer_sort ctx env a in
+    let b_elab, usage = check_tm (add_v x s a ctx) env b Proto in
+    let _ = assert_empty usage in
+    (Proto, Syntax2.(Act (r, a_elab, bind_tm x b_elab)), VMap.empty)
   | Ch (r, m) ->
-    let eqns, map = check_tm ctx env eqns map m Proto in
-    (Type L, eqns, map)
+    let m_elab, usage = check_tm ctx env m Proto in
+    let _ = assert_empty usage in
+    (Type L, Syntax2.(Ch (r, m_elab)), VMap.empty)
   | Fork (a, m, abs) -> (
-    let _, eqns, map = infer_sort ctx env eqns map a in
-    let a = UMeta.resolve_tm map a in
+    let _, a_elab = infer_sort ctx env a in
     match whnf rd_all env a with
     | Ch (r, a) ->
       let x, n = unbind_tm abs in
-      let eqns, map = check_tm ctx env eqns map a Proto in
-      let eqns, map = check_tm ctx env eqns map m Main in
+      let _, usage1 = check_tm ctx env a Proto in
+      let m_elab, usage2 = check_tm ctx env m Main in
       let unit = Data (Prelude.unit_d, []) in
-      let ctx = add_v x (Ch (r, a)) ctx in
-      let eqns, map = check_tm ctx env eqns map n unit in
+      let n_elab, usage3 = check_tm (add_v x L (Ch (r, a)) ctx) env n unit in
+      let usage3 = remove x usage3 L in
       let a = Ch (not r, a) in
-      (Data (Prelude.tnsr_d, [ a; Main ]), eqns, map)
-    | _ -> failwith "infer_tm6(%a)" pp_tm m)
+      let _ = assert_empty usage1 in
+      ( Data (Prelude.tnsr_d, [ a; Main ])
+      , Syntax2.(Fork (a_elab, m_elab, bind_tm x n_elab))
+      , merge usage2 usage3 )
+    | _ -> failwith "infer_Fork(%a)" pp_tm a)
   | Send m -> (
-    let a, eqns, map = infer_tm ctx env eqns map m in
-    let a = UMeta.resolve_tm map a in
+    let a, m_elab, usage = infer_tm ctx env m in
     match whnf rd_all env a with
-    | Ch (r1, Act (r2, a, abs)) when r1 <> r2 = true ->
+    | Ch (r1, Act (r2, a, abs)) when r1 <> r2 ->
       let x, b = unbind_tm abs in
       let abs = bind_tm x (Ch (r1, b)) in
-      (Pi (L, a, abs), eqns, map)
-    | a -> failwith "infer_tm7(%a, %a)" pp_tm m pp_tm a)
+      (Pi (L, a, abs), Syntax2.(Send m_elab), usage)
+    | _ -> failwith "infer_Send(%a)" pp_tm a)
   | Recv m -> (
-    let a, eqns, map = infer_tm ctx env eqns map m in
-    let a = UMeta.resolve_tm map a in
+    let a, m_elab, usage = infer_tm ctx env m in
     match whnf rd_all env a with
-    | Ch (r1, Act (r2, a, abs)) when r1 <> r2 = false -> (
+    | Ch (r1, Act (r2, a, abs)) when r1 = r2 -> (
       let x, b = unbind_tm abs in
-      let s, eqns, map = infer_sort ctx env eqns map a in
+      let s, _ = infer_sort ctx env a in
       match s with
       | U ->
-        let cls = Cl (bindp_tm_opt [ PVar x ] (Some (Ch (r1, b)))) in
-        let abs = bind_cls (V.blank ()) [ cls ] in
-        (Data (Prelude.sig_d, [ a; Fun (None, abs) ]), eqns, map)
-      | L -> (Data (Prelude.tnsr_d, [ a; Ch (r1, b) ]), eqns, map))
-    | a -> failwith "infer_tm8(%a : %a)" pp_tm m pp_tm a)
+        ( Data (Prelude.sig_d, [ a; lam x (Ch (r1, b)) ])
+        , Syntax2.(Recv (trans_sort s, m_elab))
+        , usage )
+      | L ->
+        ( Data (Prelude.tnsr_d, [ a; Ch (r1, b) ])
+        , Syntax2.(Recv (trans_sort s, m_elab))
+        , usage ))
+    | _ -> failwith "infer_Recv(%a)" pp_tm a)
   | Close m -> (
-    let a, eqns, map = infer_tm ctx env eqns map m in
-    let a = UMeta.resolve_tm map a in
+    let a, m_elab, usage = infer_tm ctx env m in
     match whnf rd_all env a with
-    | Ch (_, End) -> (Data (Prelude.unit_d, []), eqns, map)
-    | _ -> failwith "infer_tm9(%a)" pp_tm m)
+    | Ch (_, End) -> (Data (Prelude.unit_d, []), Syntax2.(Close m_elab), usage)
+    | a -> failwith "infer_Close(%a)" pp_tm a)
 
-and check_ptl ctx env eqns map ms ptl =
+and check_ptl ctx env ms ptl =
   match (ms, ptl) with
-  | m :: ms, PBind (a, abs) ->
-    let s, eqns, map = infer_sort ctx env eqns map a in
-    let eqns, map = check_tm ctx env eqns map m a in
-    let x, ptl = unbind_ptl abs in
-    check_ptl ctx env eqns map ms (subst_ptl x ptl (Ann (a, m)))
-  | ms, PBase tl -> check_tl ctx env eqns map ms tl
+  | m :: ms, PBind (a, abs) -> (
+    let s, _ = infer_sort ctx env a in
+    let m_elab, usage1 = check_tm ctx env m a in
+    let a, ms_elab, usage2 =
+      check_ptl ctx env ms (asubst_ptl abs (Ann (a, m)))
+    in
+    match s with
+    | U ->
+      let _ = assert_empty usage1 in
+      (a, m_elab :: ms_elab, usage2)
+    | L -> (a, m_elab :: ms_elab, merge usage1 usage2))
+  | ms, PBase tl -> check_tl ctx env ms tl
   | _ -> failwith "check_ptl(%a, %a)" pp_tms ms pp_ptl ptl
 
-and check_tl ctx env eqns map ms tl =
+and check_tl ctx env ms tl =
   match (ms, tl) with
-  | m :: ms, TBind (a, abs) ->
-    let s, eqns, mpa = infer_sort ctx env eqns map a in
-    let eqns, map = check_tm ctx env eqns map m a in
-    let x, tl = unbind_tl abs in
-    check_tl ctx env eqns map ms (subst_tl x tl (Ann (a, m)))
+  | m :: ms, TBind (a, abs) -> (
+    let s, _ = infer_sort ctx env a in
+    let m_elab, usage1 = check_tm ctx env m a in
+    let a, ms_elab, usage2 = check_tl ctx env ms (asubst_tl abs (Ann (a, m))) in
+    match s with
+    | U ->
+      let _ = assert_empty usage1 in
+      (a, m_elab :: ms_elab, usage2)
+    | L -> (a, m_elab :: ms_elab, merge usage1 usage2))
   | [], TBase a ->
-    let _, eqns, map = infer_sort ctx env eqns map a in
-    (a, eqns, map)
+    let _ = infer_sort ctx env a in
+    (a, [], VMap.empty)
   | _ -> failwith "check_tl(%a, %a)" pp_tms ms pp_tl tl
 
-and check_tm ctx env eqns map m a =
+and check_tm ctx env m a : Syntax2.tm * bool VMap.t =
   match m with
-  | Meta (x, _) -> (eqns, add_m x a map)
-  | Fun (b_opt, abs) ->
-    let eqns, map =
+  | Fun (b_opt, abs) -> (
+    let s, _ =
       match b_opt with
       | Some b ->
-        let _, eqns, map = infer_sort ctx env eqns map b in
-        assert_equal env eqns map a b
-      | None -> (eqns, map)
+        let s = infer_sort ctx env b in
+        let _ = assert_equal env a b in
+        s
+      | None -> infer_sort ctx env a
     in
     let x, cls = unbind_cls abs in
     let prbm = UVar.prbm_of_cls cls in
-    check_prbm (add_v x a ctx) env eqns map prbm a
+    let ctx =
+      match s with
+      | U -> add_v x s a ctx
+      | L -> ctx
+    in
+    let ct, usage = check_prbm ctx env prbm a in
+    match s with
+    | U -> (Syntax2.(Fix (bind_tm x ct)), usage)
+    | L -> (ct, usage))
   | Let (m, abs) ->
     let x, n = unbind_tm abs in
     let abs = bind_tm x (Ann (a, n)) in
-    let b, eqns, map = infer_tm ctx env eqns map (Let (m, abs)) in
-    assert_equal env eqns map a b
+    let b, m_elab, usage = infer_tm ctx env (Let (m, abs)) in
+    let _ = assert_equal env a b in
+    (m_elab, usage)
   | Cons (c, ms) -> (
-    let a = UMeta.resolve_tm map a in
     match whnf rd_all env a with
     | Data (_, ns) ->
       let ptl = find_c c ctx in
@@ -296,40 +363,41 @@ and check_tm ctx env eqns map m a =
         List.fold_left
           (fun ptl n ->
             match ptl with
-            | PBind (a, abs) ->
-              let x, ptl = unbind_ptl abs in
-              subst_ptl x ptl (Ann (a, n))
+            | PBind (a, abs) -> asubst_ptl abs (Ann (a, n))
             | PBase _ -> ptl)
           ptl ns
       in
-      let b, eqns, map = check_ptl ctx env eqns map ms ptl in
-      assert_equal env eqns map a b
+      let b, ms_elab, usage = check_ptl ctx env ms ptl in
+      let _ = assert_equal env a b in
+      (Syntax2.(Cons (c, ms_elab)), usage)
     | _ ->
-      let b, eqns, map = infer_tm ctx env eqns map m in
-      assert_equal env eqns map a b)
-  | Match (ms, cls) ->
-    let ms_ty, eqns, map =
+      let b, m_elab, usage = infer_tm ctx env m in
+      let _ = assert_equal env a b in
+      (m_elab, usage))
+  | Match (ms, b, cls) ->
+    let ms_ty, ms_elab, usage1 =
       List.fold_left
-        (fun (acc, eqns, map) m ->
-          let a, eqns, map = infer_tm ctx env eqns map m in
-          (a :: acc, eqns, map))
-        ([], eqns, map) ms
+        (fun (ms_ty, ms_elab, acc) m ->
+          let m_ty, m_elab, usage = infer_tm ctx env m in
+          (m_ty :: ms_ty, m_elab :: ms_elab, merge usage acc))
+        ([], [], VMap.empty) ms
     in
-    let a =
+    let mot =
       List.fold_left
         (fun acc m_ty -> Pi (L, m_ty, bind_tm (V.blank ()) acc))
-        a ms_ty
+        b ms_ty
     in
+    let _ = infer_sort ctx env mot in
     let prbm = UVar.prbm_of_cls cls in
-    let eqns, map = check_prbm ctx env eqns map prbm a in
-    (eqns, map)
+    let ct, usage2 = check_prbm ctx env prbm mot in
+    let _ = assert_equal env a b in
+    (Syntax2.(mkApps ct (List.rev ms_elab)), merge usage1 usage2)
   | _ ->
-    let b, eqns, map = infer_tm ctx env eqns map m in
-    assert_equal env eqns map a b
+    let b, m_elab, usage = infer_tm ctx env m in
+    let _ = assert_equal env a b in
+    (m_elab, usage)
 
-and check_prbm ctx env eqns map prbm a =
-  let _ = pr "check_prbm(%a)@." UVar.pp_prbm prbm in
-  let _ = pr "a := %a@." pp_tm a in
+and check_prbm ctx env prbm a =
   let rec is_absurd es rhs =
     match (es, rhs) with
     | UVar.Eq (_, Var _, Absurd, _) :: _, None -> true
@@ -358,8 +426,7 @@ and check_prbm ctx env eqns map prbm a =
   let rec tl_of_ptl ptl ns =
     match (ptl, ns) with
     | PBind (a, abs), n :: ns ->
-      let x, ptl = unbind_ptl abs in
-      let ptl = subst_ptl x ptl (Ann (a, n)) in
+      let ptl = asubst_ptl abs (Ann (a, n)) in
       let tl, ns = tl_of_ptl ptl ns in
       (tl, n :: ns)
     | PBase tl, _ -> (tl, [])
@@ -368,7 +435,7 @@ and check_prbm ctx env eqns map prbm a =
   match prbm.clause with
   | [] -> (
     if has_failed (fun () -> UVar.unify prbm.global) then
-      (eqns, map)
+      (Syntax2.Absurd, usage_of_ctx ctx)
     else
       match whnf rd_all env a with
       | Pi (_, a, _) -> (
@@ -376,72 +443,99 @@ and check_prbm ctx env eqns map prbm a =
         | Data (d, _) ->
           let _, cs = find_d d ctx in
           if cs <> [] then
-            failwith "check_prbm1"
+            failwith "check_Empty"
           else
-            (eqns, map)
-        | _ -> failwith "check_prbm2")
-      | _ -> failwith "check_prbm3")
+            (Syntax2.Absurd, usage_of_ctx ctx)
+        | _ -> failwith "check_Empty")
+      | _ -> failwith "check_Empty")
   | (es, ps, rhs) :: _ when is_absurd es rhs -> (
     if has_failed (fun () -> UVar.unify prbm.global) then
-      (eqns, map)
+      (Syntax2.Absurd, usage_of_ctx ctx)
     else
       let a = get_absurd es in
-      let _, eqns, map = infer_sort ctx env eqns map a in
+      let _ = infer_sort ctx env a in
       match whnf rd_all env a with
       | Data (d, _) ->
         let _, cs = find_d d ctx in
         if cs <> [] then
-          failwith "check_prbm4"
+          failwith "check_Absurd"
         else
-          (eqns, map)
-      | _ -> failwith "check_prbm5")
+          (Syntax2.Absurd, usage_of_ctx ctx)
+      | _ -> failwith "check_Absurd")
   | (es, ps, rhs) :: _ when can_split es -> (
     let x, b = first_split es in
-    let s, eqns, map = infer_sort ctx env eqns map b in
+    let s, _ = infer_sort ctx env b in
     match whnf rd_all env b with
     | Data (d, ns) ->
       let _, cs = find_d d ctx in
       let ptls = List.map (fun c -> find_c c ctx) cs in
-      List.fold_left2
-        (fun (eqns, map) ptl c ->
-          let tl, args1 = tl_of_ptl ptl ns in
-          let (ctx, args2), targ =
-            fold_tl
-              (fun (ctx, acc) a x tl ->
-                let ctx = add_v x a ctx in
-                ((ctx, Var x :: acc), tl))
-              (ctx, []) tl
-          in
-          let c = Cons (c, args1 @ List.rev args2) in
-          let a = subst x a c in
-          let ctx = subst_ctx x ctx c in
-          let prbm = prbm_subst ctx x prbm c in
-          let prbm =
-            UVar.{ prbm with global = Eq (env, b, targ, Type s) :: prbm.global }
-          in
-          check_prbm ctx env eqns map prbm a)
-        (eqns, map) ptls cs
-    | b -> failwith "check_prbm6(%a)" pp_tm b)
+      let usage, cls =
+        List.fold_left2
+          (fun (acc, cls) ptl c ->
+            let tl, args1 = tl_of_ptl ptl ns in
+            let (ctx, xs), targ =
+              fold_tl
+                (fun (ctx, acc) a x tl ->
+                  let s, _ = infer_sort ctx env a in
+                  let ctx = add_v x s a ctx in
+                  ((ctx, (x, s) :: acc), tl))
+                (ctx, []) tl
+            in
+            let xs = List.rev xs in
+            let args2 = List.map (fun (x, _) -> Var x) xs in
+            let args3 = List.map (fun (x, _) -> Syntax2.PVar x) xs in
+            let cons = Cons (c, args1 @ args2) in
+            let a = subst_tm x a cons in
+            let ctx = subst_ctx x ctx cons in
+            let prbm = prbm_subst ctx x prbm cons in
+            let prbm =
+              UVar.
+                { prbm with global = Eq (env, b, targ, Type s) :: prbm.global }
+            in
+            let ct, usage = check_prbm ctx env prbm a in
+            let usage =
+              List.fold_left (fun acc (x, s) -> remove x acc s) usage xs
+            in
+            let usage =
+              match s with
+              | U -> usage
+              | L -> VMap.add x false usage
+            in
+            let cl = Syntax2.(Cl (bindp_tm (PCons (c, args3)) ct)) in
+            (refine_equal acc usage, cl :: cls))
+          (usage_of_ctx ctx, [])
+          ptls cs
+      in
+      (Syntax2.(Case (Var x, List.rev cls)), usage)
+    | _ -> failwith "check_Split(%a)" pp_tm b)
   | (es, [], rhs) :: _ ->
     let es = prbm.global @ es in
     let vmap = UVar.unify es in
-    let a = msubst vmap a in
+    let a = UVar.msubst_tm vmap a in
     let ctx = msubst_ctx vmap ctx in
     let rhs =
       match rhs with
-      | Some m -> msubst vmap m
-      | None -> failwith "check_prbm7"
+      | Some m -> UVar.msubst_tm vmap m
+      | None -> failwith "check_Finish"
     in
-    check_tm ctx env eqns map rhs a
+    let _ = infer_sort ctx env a in
+    check_tm ctx env rhs a
   | (es, ps, rhs) :: clause -> (
     let a = whnf rd_all env a in
     match (a, ps) with
-    | Pi (s, a, abs), p :: ps ->
+    | Pi (s, a, abs), p :: ps -> (
       let x, b = unbind_tm abs in
-      let ctx = add_v x a ctx in
+      let t, _ = infer_sort ctx env a in
+      let ctx = add_v x t a ctx in
       let prbm = prbm_add ctx env prbm x a in
-      check_prbm ctx env eqns map prbm b
-    | _ -> failwith "check_prbm8")
+      let ct, usage = check_prbm ctx env prbm b in
+      let usage = remove x usage t in
+      match s with
+      | U ->
+        let _ = assert_empty usage in
+        (Syntax2.(Lam (trans_sort s, bind_tm x ct)), VMap.empty)
+      | L -> (Syntax2.(Lam (trans_sort s, bind_tm x ct)), usage))
+    | _ -> failwith "check_Intro")
 
 and prbm_add ctx env prbm x a =
   let rec tm_of_p p =
@@ -457,8 +551,8 @@ and prbm_add ctx env prbm x a =
     match ptl with
     | PBase tl -> ps_of_tl ps tl
     | PBind (_, abs) ->
-      let _, ptl = unbind_ptl abs in
-      PVar (V.blank ()) :: ps_of_ptl ps ptl
+      let x, ptl = unbind_ptl abs in
+      PVar x :: ps_of_ptl ps ptl
   and ps_of_tl ps tl =
     match tl with
     | TBase _ -> ps
@@ -488,9 +582,8 @@ and prbm_subst ctx x prbm m =
         (fun acc (UVar.Eq (env, l, r, a)) ->
           match acc with
           | Some acc -> (
-            let l = subst x l m in
-            let r = subst x r m in
-            let a = subst x a m in
+            let l = subst_tm x l m in
+            let a = subst_tm x a m in
             match p_simpl ctx env l r a with
             | Some es -> Some (acc @ es)
             | None -> None)
@@ -520,8 +613,7 @@ and ps_simpl_tl ctx env ms ns tl =
   match (ms, ns, tl) with
   | m :: ms, n :: ns, TBind (a, abs) -> (
     let opt1 = p_simpl ctx env m n a in
-    let x, tl = unbind_tl abs in
-    let tl = subst_tl x tl m in
+    let tl = asubst_tl abs m in
     let opt2 = ps_simpl_tl ctx env ms ns tl in
     match (opt1, opt2) with
     | Some es1, Some es2 -> Some (es1 @ es2)
@@ -533,8 +625,7 @@ and ps_simpl_ptl ctx env ms ns ptl =
   match (ms, ns, ptl) with
   | m :: ms, n :: ns, PBind (a, abs) -> (
     let opt1 = p_simpl ctx env m n a in
-    let x, ptl = unbind_ptl abs in
-    let ptl = subst_ptl x ptl m in
+    let ptl = asubst_ptl abs m in
     let opt2 = ps_simpl_ptl ctx env ms ns ptl in
     match (opt1, opt2) with
     | Some es1, Some es2 -> Some (es1 @ es2)
@@ -542,100 +633,103 @@ and ps_simpl_ptl ctx env ms ns ptl =
   | ms, ns, PBase tl -> ps_simpl_tl ctx env ms ns tl
   | _ -> None
 
-let rec infer_dcl ctx env eqns map dcl =
-  match dcl with
-  | DTm (x, a_opt, m) -> (
+let rec infer_dcls ctx env dcls =
+  match dcls with
+  | [ DTm (x, a_opt, m) ] -> (
     match a_opt with
     | Some a ->
-      let s, eqns, map = infer_sort ctx env eqns map a in
-      let eqns, map = check_tm ctx env eqns map m a in
-      let map = UMeta.unify map eqns in
-      let m = UMeta.resolve_tm map m in
-      let a = UMeta.resolve_tm map a in
-      let ctx = add_v x a ctx in
-      if s = U then
-        let env = VMap.add x m env in
-        (ctx, env, eqns, map)
-      else
-        (ctx, env, eqns, map)
+      let _ = infer_sort ctx env a in
+      let _ = assert_equal env a Main in
+      let m_elab, usage = check_tm ctx env m a in
+      Syntax2.([ DTm (x, m_elab) ], usage)
     | None ->
-      let a, eqns, map = infer_tm ctx env eqns map m in
-      let s, eqns, map = infer_sort ctx env eqns map a in
-      let map = UMeta.unify map eqns in
-      let m = UMeta.resolve_tm map m in
-      let a = UMeta.resolve_tm map a in
-      let ctx = add_v x a ctx in
-      if s = U then
-        let env = VMap.add x m env in
-        (ctx, env, eqns, map)
-      else
-        (ctx, env, eqns, map))
-  | DFun (x, a, abs) ->
-    let s, eqns, map = infer_sort ctx env eqns map a in
+      let m_elab, usage = check_tm ctx env m Main in
+      Syntax2.([ DTm (x, m_elab) ], usage))
+  | DTm (x, a_opt, m) :: dcls -> (
+    match a_opt with
+    | Some a -> (
+      let s, _ = infer_sort ctx env a in
+      let m_elab, usage1 = check_tm ctx env m a in
+      match s with
+      | U ->
+        let _ = assert_empty usage1 in
+        let dcls_elab, usage =
+          infer_dcls (add_v x s a ctx) (VMap.add x m env) dcls
+        in
+        Syntax2.(DTm (x, m_elab) :: dcls_elab, usage)
+      | L ->
+        let dcls_elab, usage2 = infer_dcls (add_v x s a ctx) env dcls in
+        Syntax2.(DTm (x, m_elab) :: dcls_elab, merge usage1 (remove x usage2 s))
+      )
+    | None -> (
+      let a, m_elab, usage1 = infer_tm ctx env m in
+      let s, _ = infer_sort ctx env a in
+      match s with
+      | U ->
+        let _ = assert_empty usage1 in
+        let dcls_elab, usage =
+          infer_dcls (add_v x s a ctx) (VMap.add x m env) dcls
+        in
+        Syntax2.(DTm (x, m_elab) :: dcls_elab, usage)
+      | L ->
+        let dcls_elab, usage2 = infer_dcls (add_v x s a ctx) env dcls in
+        Syntax2.(DTm (x, m_elab) :: dcls_elab, merge usage1 (remove x usage2 s))
+      ))
+  | DFun (x, a, abs) :: dcls ->
+    let s, _ = infer_sort ctx env a in
     let y, cls = unbind_cls abs in
     if s = U then
-      let local_ctx = add_v y a ctx in
+      let ctx1 = add_v y s a ctx in
       let prbm = UVar.prbm_of_cls cls in
-      let eqns, map = check_prbm local_ctx env eqns map prbm a in
-      let map = UMeta.unify map eqns in
-      let abs = UMeta.resolve_cls_abs map abs in
-      let a = UMeta.resolve_tm map a in
-      let ctx = add_v x a ctx in
+      let ct, usage = check_prbm ctx1 env prbm a in
+      let ctx = add_v x s a ctx in
       let env = VMap.add x (Fun (Some a, abs)) env in
-      (ctx, env, eqns, map)
+      let _ = assert_empty usage in
+      let dcls_elab, usage = infer_dcls ctx env dcls in
+      Syntax2.(DTm (x, Fix (bind_tm y ct)) :: dcls_elab, usage)
     else
       let prbm = UVar.prbm_of_cls cls in
-      let eqns, map = check_prbm ctx env eqns map prbm a in
-      let map = UMeta.unify map eqns in
-      let a = UMeta.resolve_tm map a in
-      let ctx = add_v x a ctx in
-      (ctx, env, eqns, map)
-  | DData (d, ptl, dconss) ->
-    let eqns, map = infer_ptl ctx env eqns map ptl U in
-    let map = UMeta.unify map eqns in
-    let ptl = UMeta.resolve_ptl map ptl in
+      let ct, usage1 = check_prbm ctx env prbm a in
+      let dcls_elab, usage2 = infer_dcls (add_v x s a ctx) env dcls in
+      Syntax2.(DTm (x, ct) :: dcls_elab, merge usage1 (remove x usage2 s))
+  | DData (d, ptl, dconss) :: dcls ->
+    let _ = infer_ptl ctx env ptl U in
     let ctx = add_d d ptl [] ctx in
-    let eqns, map =
-      List.fold_left
-        (fun (eqns, map) (DCons (_, ptl)) ->
-          let eqns, map = infer_ptl ctx env eqns map ptl U in
-          let _ = param_ptl ptl d [] in
-          (eqns, map))
-        (eqns, map) dconss
+    let _ =
+      List.iter
+        (fun (DCons (_, ptl)) ->
+          let _ = infer_ptl ctx env ptl U in
+          param_ptl ptl d [])
+        dconss
     in
-    let map = UMeta.unify map eqns in
     let cs, ctx =
-      List.fold_left
-        (fun (acc, ctx) (DCons (c, ptl)) ->
-          let ptl = UMeta.resolve_ptl map ptl in
+      List.fold_right
+        (fun (DCons (c, ptl)) (acc, ctx) ->
           let ctx = add_c c ptl ctx in
           (c :: acc, ctx))
-        ([], ctx) dconss
+        dconss ([], ctx)
     in
     let ctx = add_d d ptl cs ctx in
-    (ctx, env, eqns, map)
-  | DOpen (trg, x) -> (
+    infer_dcls ctx env dcls
+  | DOpen (trg, x) :: dcls -> (
     match trg with
     | TStdin ->
       let a = Ch (true, Var Prelude.stdin_t) in
-      (add_v x a ctx, env, eqns, map)
+      let dcls_elab, usage = infer_dcls (add_v x L a ctx) env dcls in
+      Syntax2.(DOpen (trans_trg trg, x) :: dcls_elab, remove x usage L)
     | TStdout ->
       let a = Ch (true, Var Prelude.stdout_t) in
-      (add_v x a ctx, env, eqns, map)
+      let dcls_elab, usage = infer_dcls (add_v x L a ctx) env dcls in
+      Syntax2.(DOpen (trans_trg trg, x) :: dcls_elab, remove x usage L)
     | TStderr ->
       let a = Ch (true, Var Prelude.stderr_t) in
-      (add_v x a ctx, env, eqns, map)
-    | TMain -> (add_v x Main ctx, env, eqns, map))
-  | DAxiom (x, a) ->
-    let _, eqns, map = infer_sort ctx env eqns map a in
-    (add_v x a ctx, env, eqns, map)
-
-and infer_dcls ctx env eqns map dcls =
-  match dcls with
-  | [] -> (eqns, map)
-  | dcl :: dcls ->
-    let ctx, env, eqns, map = infer_dcl ctx env eqns map dcl in
-    infer_dcls ctx env eqns map dcls
+      let dcls_elab, usage = infer_dcls (add_v x L a ctx) env dcls in
+      Syntax2.(DOpen (trans_trg trg, x) :: dcls_elab, remove x usage L))
+  | DAxiom (x, a) :: dcls ->
+    let s, _ = infer_sort ctx env a in
+    let dcls_elab, usage = infer_dcls (add_v x s a ctx) env dcls in
+    (dcls_elab, remove x usage s)
+  | [] -> failwith "infer_dcls"
 
 and param_ptl ptl d xs =
   match ptl with
@@ -668,28 +762,28 @@ and param_tl tl d xs =
     let _, tl = unbind_tl abs in
     param_tl tl d xs
 
-and infer_tl ctx env eqns map tl s =
+and infer_tl ctx env tl s =
   match tl with
   | TBase a ->
-    let t, eqns, map = infer_sort ctx env eqns map a in
+    let t, _ = infer_sort ctx env a in
     if cmp_sort t s then
-      (eqns, map)
+      ()
     else
       failwith "infer_tl"
   | TBind (a, abs) ->
     let x, tl = unbind_tl abs in
-    let t, eqns, map = infer_sort ctx env eqns map a in
-    let ctx = add_v x a ctx in
-    infer_tl ctx env eqns map tl (min_sort s t)
+    let t, _ = infer_sort ctx env a in
+    let ctx = add_v x t a ctx in
+    infer_tl ctx env tl (min_sort s t)
 
-and infer_ptl ctx env eqns map ptl s =
+and infer_ptl ctx env ptl s =
   match ptl with
-  | PBase tl -> infer_tl ctx env eqns map tl s
+  | PBase tl -> infer_tl ctx env tl s
   | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
-    let t, eqns, map = infer_sort ctx env eqns map a in
-    let ctx = add_v x a ctx in
-    infer_ptl ctx env eqns map ptl (min_sort s t)
+    let t, _ = infer_sort ctx env a in
+    let ctx = add_v x t a ctx in
+    infer_ptl ctx env ptl (min_sort s t)
 
 and min_sort s1 s2 =
   match s1 with
@@ -702,6 +796,12 @@ and cmp_sort s1 s2 =
   | _ -> true
 
 let trans_dcls dcls =
-  let ctx = { vs = VMap.empty; ds = DMap.empty; cs = CMap.empty } in
-  let _, map = infer_dcls ctx VMap.empty [] MMap.empty dcls in
-  UMeta.resolve_dcls map dcls
+  let ctx =
+    { vs = VMap.singleton Prelude.main_v (L, Main)
+    ; ds = DMap.empty
+    ; cs = CMap.empty
+    }
+  in
+  let dcls_elab, usage = infer_dcls ctx VMap.empty dcls in
+  let _ = refine_equal (VMap.singleton Prelude.main_v false) usage in
+  dcls_elab

@@ -34,7 +34,7 @@ let rec trans_p nspc cs p =
     let x = trans_id_opt id_opt in
     match id_opt with
     | Some id -> ((id, V x) :: nspc, Syntax1.PVar x)
-    | None -> (nspc, Syntax1.PVar x))
+    | None -> (("", V x) :: nspc, Syntax1.PVar x))
   | PCons (id, ps) -> (
     match SMap.find_opt id cs with
     | Some c ->
@@ -122,11 +122,13 @@ let rec trans_tm nspc cs m =
       let nspc, p = trans_p nspc cs p in
       let n = trans_tm nspc cs n in
       let cl = Syntax1.bindp_tm_opt [ p ] (Some n) in
-      Syntax1.Match ([ m ], [ Syntax1.Cl cl ]))
+      let meta = Syntax1.Meta (M.mk (), spine_of_nspc nspc) in
+      Syntax1.Match ([ m ], meta, [ Syntax1.Cl cl ]))
   | Match (ms, cls) ->
     let ms = List.map (trans_tm nspc cs) ms in
     let cls = trans_cls nspc cs cls in
-    Syntax1.Match (ms, cls)
+    let meta = Syntax1.Meta (M.mk (), spine_of_nspc nspc) in
+    Syntax1.Match (ms, meta, cls)
   | If (m, n1, n2) ->
     let m = trans_tm nspc cs m in
     let n1 = trans_tm nspc cs n1 in
@@ -174,7 +176,6 @@ let trans_trg s =
   | "@stdin" -> Syntax1.TStdin
   | "@stdout" -> Syntax1.TStdout
   | "@stderr" -> Syntax1.TStdout
-  | "@main" -> Syntax1.TMain
   | _ -> failwith "trans_trg(%s)" s
 
 let rec trans_ptl nspc cs (PTl (args, tl)) =

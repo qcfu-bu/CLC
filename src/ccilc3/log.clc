@@ -1,820 +1,221 @@
-[(DData ("ref_msg", (PTl ([], (Tl ([], (Type U))))),
-    [(DCons ("GET", (PTl ([], (Tl ([], (Id "ref_msg")))))));
-      (DCons ("SET", (PTl ([], (Tl ([], (Id "ref_msg")))))));
-      (DCons ("FREE", (PTl ([], (Tl ([], (Id "ref_msg")))))))]
-    ));
-  (DFun ("ref_t", (Pi (U, [(None, (Type U))], Proto)),
-     [(Cl
-         ([(PVar (Some "A"))],
-          (Some (Act (true, [((Some "msg"), (Id "ref_msg"))],
-                   (Match ([(Id "msg")],
-                      [(Cl
-                          ([(PCons ("GET", []))],
-                           (Some (Act (false, [(None, (Id "A"))],
-                                    (App [(Id "ref_t"); (Id "A")]))))));
-                        (Cl
-                           ([(PCons ("SET", []))],
-                            (Some (Act (true, [(None, (Id "A"))],
-                                     (App [(Id "ref_t"); (Id "A")]))))));
-                        (Cl ([(PCons ("FREE", []))], (Some End)))]
-                      ))
-                   )))))
-       ]
+[(DTm ((Some "loc"), None, (Id "nat")));
+  (DAxiom ("at",
+     (Pi (U, [((Some "A"), (Type U))],
+        (Pi (U, [(None, (Id "loc"))], (Type L)))))
      ));
-  (DFun ("ref_handler",
-     (Pi (U, [((Some "A"), (Type U)); ((Some "m"), (Id "A"))],
-        (Pi (L, [(None, (Ch (true, (App [(Id "ref_t"); (Id "A")]))))],
-           (Id "unit")))
-        )),
-     [(Cl
-         ([(PVar (Some "A")); (PVar (Some "m")); (PVar (Some "ch"))],
-          (Some (Match ([(Recv (Id "ch"))],
+  (DAxiom ("new",
+     (Pi (U, [((Some "A"), (Type U))],
+        (Pi (U, [(None, (Id "A"))],
+           (App
+              [(Id "sig"); (Id "loc");
+                (Fun (None, None,
                    [(Cl
-                       ([(PCons ("sig_intro",
-                            [(PCons ("GET", [])); (PVar (Some "ch"))]))
-                          ],
-                        (Some (App
-                                 [(Id "ref_handler"); (Id "_"); (Id "m");
-                                   (App [(Send (Id "ch")); (Id "m")])]))));
-                     (Cl
-                        ([(PCons ("sig_intro",
-                             [(PCons ("SET", [])); (PVar (Some "ch"))]))
-                           ],
-                         (Some (Let (
-                                  (PCons ("sig_intro",
-                                     [(PVar (Some "m")); (PVar (Some "ch"))]
-                                     )),
-                                  (Recv (Id "ch")),
-                                  (App
-                                     [(Id "ref_handler"); (Id "A"); (
-                                       Id "m"); (Id "ch")])
-                                  )))));
-                     (Cl
-                        ([(PCons ("sig_intro",
-                             [(PCons ("FREE", [])); (PVar (Some "ch"))]))
-                           ],
-                         (Some (Close (Id "ch")))))
+                       ([(PVar (Some "l"))],
+                        (Some (App [(Id "at"); (Id "A"); (Id "l")]))))
                      ]
-                   )))))
-       ]
-     ));
-  (DFun ("mk_ref",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (U, [(None, (Id "A"))],
-           (Pi (U, [(None, Main)],
-              (App
-                 [(Id "tnsr"); (Ch (false, (App [(Id "ref_t"); (Id "A")])));
-                   Main])
-              ))
+                   ))
+                ])
            ))
-        )),
-     [(Cl
-         ([(PVar (Some "A")); (PVar (Some "m")); (PVar (Some "x"))],
-          (Some (Fork ("ref", (Ch (true, (App [(Id "ref_t"); (Id "A")]))),
-                   (Id "x"),
-                   (App [(Id "ref_handler"); (Id "A"); (Id "m"); (Id "ref")])
-                   )))))
-       ]
+        ))
      ));
-  (DFun ("set_ref",
-     (Pi (U, [((Some "A"), (Type U))],
+  (DAxiom ("free",
+     (Pi (U, [((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
         (Pi (U, [(None, (Id "A"))],
-           (Pi (L, [(None, (Ch (false, (App [(Id "ref_t"); (Id "A")]))))],
-              (Ch (false, (App [(Id "ref_t"); (Id "A")])))))
+           (Pi (U, [(None, (App [(Id "at"); (Id "A"); (Id "l")]))],
+              (Id "unit")))
            ))
-        )),
-     [(Cl
-         ([(PVar (Some "A")); (PVar (Some "m")); (PVar (Some "ref"))],
-          (Some (App [(Send (App [(Send (Id "ref")); (Id "SET")])); (Id "m")]))))
-       ]
+        ))
      ));
-  (DFun ("get_ref",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (L, [(None, (Ch (false, (App [(Id "ref_t"); (Id "A")]))))],
+  (DAxiom ("get",
+     (Pi (U, [((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
+        (Pi (U, [(None, (App [(Id "at"); (Id "A"); (Id "l")]))],
            (App
               [(Id "sig"); (Id "A");
                 (Fun (None, None,
                    [(Cl
                        ([(PVar None)],
-                        (Some (Ch (false, (App [(Id "ref_t"); (Id "A")]))))))
+                        (Some (App [(Id "at"); (Id "A"); (Id "l")]))))
                      ]
                    ))
                 ])
            ))
-        )),
-     [(Cl
-         ([(PVar (Some "A")); (PVar (Some "ref"))],
-          (Some (Recv (App [(Send (Id "ref")); (Id "GET")])))))
-       ]
-     ));
-  (DFun ("free_ref",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (L, [(None, (Ch (false, (App [(Id "ref_t"); (Id "A")]))))],
-           (Id "unit")))
-        )),
-     [(Cl
-         ([(PVar (Some "A")); (PVar (Some "ref"))],
-          (Some (Close (App [(Send (Id "ref")); (Id "FREE")])))))
-       ]
-     ));
-  (DFun ("tail",
-     (Pi (U, [((Some "A"), (Type U)); ((Some "n"), (Id "nat"))],
-        (Pi (U,
-           [(None,
-             (App [(Id "vec"); (Id "A"); (App [(Id "succ"); (Id "n")])]))],
-           (Id "nat")))
-        )),
-     [(Cl
-         ([(PVar None); (PVar None);
-            (PCons ("vcons", [(PVar None); (PVar None); (PVar (Some "tl"))]))
-            ],
-          (Some (Id "zero"))))
-       ]
-     ));
-  (DOpen ("@main", "main"));
-  (DTm ((Some "main"), None,
-     (Let (
-        (PCons ("tnsr_intro", [(PVar (Some "ref")); (PVar (Some "main"))])),
-        (App [(Id "mk_ref"); (Id "string"); (Id "_"); (Id "main")]),
-        (Let (
-           (PCons ("sig_intro", [(PVar (Some "msg1")); (PVar (Some "ref"))])),
-           (App [(Id "get_ref"); (Id "_"); (Id "ref")]),
-           (Let ((PCons ("tt", [])),
-              (App [(Id "free_ref"); (Id "_"); (Id "ref")]), (Id "main")))
-           ))
-        ))
-     ))
-  ]
-----------------------------------------------
-[(DData (unit_d1, (PBase (TBase (Type U))),
-    [(DCons (tt_c1, (PBase (TBase (Data (unit_d1, []))))))]));
-  (DData (bool_d2, (PBase (TBase (Type U))),
-     [(DCons (true_c2, (PBase (TBase (Data (bool_d2, []))))));
-       (DCons (false_c3, (PBase (TBase (Data (bool_d2, []))))))]
-     ));
-  (DData (nat_d3, (PBase (TBase (Type U))),
-     [(DCons (zero_c4, (PBase (TBase (Data (nat_d3, []))))));
-       (DCons (succ_c5,
-          (PBase
-             (TBind ((Data (nat_d3, [])),
-                (Abs (_1, (TBase (Data (nat_d3, []))))))))
-          ))
-       ]
-     ));
-  (DFun (addn_2,
-     (Pi (U, (Data (nat_d3, [])),
-        (Abs (_3,
-           (Pi (U, (Data (nat_d3, [])), (Abs (_4, (Data (nat_d3, []))))))))
-        )),
-     (Abs (addn_2,
-        [(Cl (PAbs ([(PCons (zero_c4, [])); (PVar x_5)], (Some (Var _0)))));
-          (Cl
-             (PAbs ([(PCons (succ_c5, [(PVar x_6)])); (PVar y_7)],
-                (Some (Cons (succ_c5,
-                         [(App ((App ((Var _2), (Var _0))), (Var _1)))])))
-                )))
-          ]
         ))
      ));
-  (DData (option_d4,
-     (PBind ((Type U), (Abs (A_8, (PBase (TBase (Type U))))))),
-     [(DCons (none_c6,
-         (PBind ((Type U),
-            (Abs (A_9, (PBase (TBase (Data (option_d4, [(Var _0)]))))))))
-         ));
-       (DCons (some_c7,
-          (PBind ((Type U),
-             (Abs (A_10,
-                (PBase
-                   (TBind ((Var _0),
-                      (Abs (_11, (TBase (Data (option_d4, [(Var _1)]))))))))
-                ))
-             ))
-          ))
-       ]
-     ));
-  (DData (list_d5,
-     (PBind ((Type U), (Abs (A_12, (PBase (TBase (Type U))))))),
-     [(DCons (nil_c8,
-         (PBind ((Type U),
-            (Abs (A_13, (PBase (TBase (Data (list_d5, [(Var _0)]))))))))
-         ));
-       (DCons (cons_c9,
-          (PBind ((Type U),
-             (Abs (A_14,
-                (PBase
-                   (TBind ((Var _0),
-                      (Abs (_15,
-                         (TBind ((Data (list_d5, [(Var _1)])),
-                            (Abs (_16, (TBase (Data (list_d5, [(Var _2)])))))
-                            ))
-                         ))
-                      )))
-                ))
-             ))
-          ))
-       ]
-     ));
-  (DData (vec_d6,
-     (PBind ((Type U),
-        (Abs (A_17,
-           (PBase
-              (TBind ((Data (nat_d3, [])), (Abs (_18, (TBase (Type U)))))))
-           ))
-        )),
-     [(DCons (vnil_c10,
-         (PBind ((Type U),
-            (Abs (A_19,
-               (PBase
-                  (TBase (Data (vec_d6, [(Var _0); (Cons (zero_c4, []))]))))
-               ))
-            ))
-         ));
-       (DCons (vcons_c11,
-          (PBind ((Type U),
-             (Abs (A_20,
-                (PBase
-                   (TBind ((Data (nat_d3, [])),
-                      (Abs (n_21,
-                         (TBind ((Var _1),
-                            (Abs (_22,
-                               (TBind ((Data (vec_d6, [(Var _2); (Var _1)])),
-                                  (Abs (_23,
-                                     (TBase
-                                        (Data (vec_d6,
-                                           [(Var _3);
-                                             (Cons (succ_c5, [(Var _2)]))]
-                                           )))
-                                     ))
-                                  ))
-                               ))
-                            ))
-                         ))
-                      )))
-                ))
-             ))
-          ))
-       ]
-     ));
-  (DData (ex_d7,
-     (PBind ((Type U),
-        (Abs (A_24,
-           (PBind ((Pi (U, (Var _0), (Abs (_25, (Type U))))),
-              (Abs (P_26, (PBase (TBase (Type U)))))))
-           ))
-        )),
-     [(DCons (ex_intro_c12,
-         (PBind ((Type U),
-            (Abs (A_27,
-               (PBind ((Pi (U, (Var _0), (Abs (_28, (Type U))))),
-                  (Abs (P_29,
-                     (PBase
-                        (TBind ((Var _1),
-                           (Abs (x_30,
-                              (TBind ((App ((Var _1), (Var _0))),
-                                 (Abs (_31,
-                                    (TBase
-                                       (Data (ex_d7, [(Var _3); (Var _2)])))
-                                    ))
-                                 ))
-                              ))
-                           )))
-                     ))
-                  ))
-               ))
-            ))
-         ))
-       ]
-     ));
-  (DData (sig_d8,
-     (PBind ((Type U),
-        (Abs (A_32,
-           (PBind ((Pi (U, (Var _0), (Abs (_33, (Type L))))),
-              (Abs (P_34, (PBase (TBase (Type L)))))))
-           ))
-        )),
-     [(DCons (sig_intro_c13,
-         (PBind ((Type U),
-            (Abs (A_35,
-               (PBind ((Pi (U, (Var _0), (Abs (_36, (Type L))))),
-                  (Abs (P_37,
-                     (PBase
-                        (TBind ((Var _1),
-                           (Abs (x_38,
-                              (TBind ((App ((Var _1), (Var _0))),
-                                 (Abs (_39,
-                                    (TBase
-                                       (Data (sig_d8, [(Var _3); (Var _2)])))
-                                    ))
-                                 ))
-                              ))
-                           )))
-                     ))
-                  ))
-               ))
-            ))
-         ))
-       ]
-     ));
-  (DData (tnsr_d9,
-     (PBind ((Type L),
-        (Abs (A_40,
-           (PBind ((Type L), (Abs (B_41, (PBase (TBase (Type L)))))))))
-        )),
-     [(DCons (tnsr_intro_c14,
-         (PBind ((Type L),
-            (Abs (A_42,
-               (PBind ((Type L),
-                  (Abs (B_43,
-                     (PBase
-                        (TBind ((Var _1),
-                           (Abs (_44,
-                              (TBind ((Var _1),
-                                 (Abs (_45,
-                                    (TBase
-                                       (Data (tnsr_d9, [(Var _3); (Var _2)])))
-                                    ))
-                                 ))
-                              ))
-                           )))
-                     ))
-                  ))
-               ))
-            ))
-         ))
-       ]
-     ));
-  (DData (box_d10,
-     (PBind ((Type U), (Abs (A_46, (PBase (TBase (Type L))))))),
-     [(DCons (box_intro_c15,
-         (PBind ((Type U),
-            (Abs (A_47,
-               (PBase
-                  (TBind ((Var _0),
-                     (Abs (_48, (TBase (Data (box_d10, [(Var _1)]))))))))
-               ))
-            ))
-         ))
-       ]
-     ));
-  (DData (ascii_d11, (PBase (TBase (Type U))),
-     [(DCons (Ascii_c16,
-         (PBase
-            (TBind ((Data (bool_d2, [])),
-               (Abs (_49,
-                  (TBind ((Data (bool_d2, [])),
-                     (Abs (_50,
-                        (TBind ((Data (bool_d2, [])),
-                           (Abs (_51,
-                              (TBind ((Data (bool_d2, [])),
-                                 (Abs (_52,
-                                    (TBind ((Data (bool_d2, [])),
-                                       (Abs (_53,
-                                          (TBind ((Data (bool_d2, [])),
-                                             (Abs (_54,
-                                                (TBind ((Data (bool_d2, [])),
-                                                   (Abs (_55,
-                                                      (TBind (
-                                                         (Data (bool_d2, [])),
-                                                         (Abs (_56,
-                                                            (TBase
-                                                               (Data (
-                                                                  ascii_d11,
-                                                                  [])))
-                                                            ))
-                                                         ))
-                                                      ))
-                                                   ))
-                                                ))
-                                             ))
-                                          ))
-                                       ))
-                                    ))
-                                 ))
-                              ))
-                           ))
-                        ))
-                     ))
-                  ))
-               )))
-         ))
-       ]
-     ));
-  (DData (string_d12, (PBase (TBase (Type U))),
-     [(DCons (EmptyString_c17, (PBase (TBase (Data (string_d12, []))))));
-       (DCons (String_c18,
-          (PBase
-             (TBind ((Data (ascii_d11, [])),
-                (Abs (_57,
-                   (TBind ((Data (string_d12, [])),
-                      (Abs (_58, (TBase (Data (string_d12, [])))))))
-                   ))
-                )))
-          ))
-       ]
-     ));
-  (DFun (stdin_rec_59, (Pi (U, (Data (unit_d1, [])), (Abs (_60, Proto)))),
-     (Abs (stdin_rec_59,
-        [(Cl
-            (PAbs ([(PCons (tt_c1, []))],
-               (Some (Act (false, (Data (bool_d2, [])),
-                        (Abs (b_61,
-                           (Match ([(Var _0)],
-                              [(Cl
-                                  (PAbs ([(PCons (true_c2, []))],
-                                     (Some (Act (true,
-                                              (Data (string_d12, [])),
-                                              (Abs (_62,
-                                                 (App ((Var _2),
-                                                    (Cons (tt_c1, []))))
-                                                 ))
-                                              )))
-                                     )));
-                                (Cl
-                                   (PAbs ([(PCons (false_c3, []))],
-                                      (Some End))))
-                                ]
-                              ))
-                           ))
-                        )))
-               )))
-          ]
-        ))
-     ));
-  (DFun (stdout_rec_63, (Pi (U, (Data (unit_d1, [])), (Abs (_64, Proto)))),
-     (Abs (stdout_rec_63,
-        [(Cl
-            (PAbs ([(PCons (tt_c1, []))],
-               (Some (Act (false, (Data (bool_d2, [])),
-                        (Abs (b_65,
-                           (Match ([(Var _0)],
-                              [(Cl
-                                  (PAbs ([(PCons (true_c2, []))],
-                                     (Some (Act (false,
-                                              (Data (string_d12, [])),
-                                              (Abs (_66,
-                                                 (App ((Var _2),
-                                                    (Cons (tt_c1, []))))
-                                                 ))
-                                              )))
-                                     )));
-                                (Cl
-                                   (PAbs ([(PCons (false_c3, []))],
-                                      (Some End))))
-                                ]
-                              ))
-                           ))
-                        )))
-               )))
-          ]
-        ))
-     ));
-  (DFun (stderr_rec_67, (Pi (U, (Data (unit_d1, [])), (Abs (_68, Proto)))),
-     (Abs (stderr_rec_67,
-        [(Cl
-            (PAbs ([(PCons (tt_c1, []))],
-               (Some (Act (false, (Data (bool_d2, [])),
-                        (Abs (b_69,
-                           (Match ([(Var _0)],
-                              [(Cl
-                                  (PAbs ([(PCons (true_c2, []))],
-                                     (Some (Act (false,
-                                              (Data (string_d12, [])),
-                                              (Abs (_70,
-                                                 (App ((Var _2),
-                                                    (Cons (tt_c1, []))))
-                                                 ))
-                                              )))
-                                     )));
-                                (Cl
-                                   (PAbs ([(PCons (false_c3, []))],
-                                      (Some End))))
-                                ]
-                              ))
-                           ))
-                        )))
-               )))
-          ]
-        ))
-     ));
-  (DTm (stdin_t_71, None, (App ((Var stdin_rec_59), (Cons (tt_c1, []))))));
-  (DTm (stdout_t_72, None, (App ((Var stdout_rec_63), (Cons (tt_c1, []))))));
-  (DTm (stderr_t_73, None, (App ((Var stderr_rec_67), (Cons (tt_c1, []))))));
-  (DData (ref_msg_d13, (PBase (TBase (Type U))),
-     [(DCons (GET_c19, (PBase (TBase (Data (ref_msg_d13, []))))));
-       (DCons (SET_c20, (PBase (TBase (Data (ref_msg_d13, []))))));
-       (DCons (FREE_c21, (PBase (TBase (Data (ref_msg_d13, []))))))]
-     ));
-  (DFun (ref_t_74, (Pi (U, (Type U), (Abs (_75, Proto)))),
-     (Abs (ref_t_74,
-        [(Cl
-            (PAbs ([(PVar A_76)],
-               (Some (Act (true, (Data (ref_msg_d13, [])),
-                        (Abs (msg_77,
-                           (Match ([(Var _0)],
-                              [(Cl
-                                  (PAbs ([(PCons (GET_c19, []))],
-                                     (Some (Act (false, (Var _1),
-                                              (Abs (_78,
-                                                 (App ((Var _3), (Var _2)))))
-                                              )))
-                                     )));
-                                (Cl
-                                   (PAbs ([(PCons (SET_c20, []))],
-                                      (Some (Act (true, (Var _1),
-                                               (Abs (_79,
-                                                  (App ((Var _3), (Var _2)))
-                                                  ))
-                                               )))
-                                      )));
-                                (Cl
-                                   (PAbs ([(PCons (FREE_c21, []))],
-                                      (Some End))))
-                                ]
-                              ))
-                           ))
-                        )))
-               )))
-          ]
-        ))
-     ));
-  (DFun (ref_handler_80,
-     (Pi (U, (Type U),
-        (Abs (A_81,
-           (Pi (U, (Var _0),
-              (Abs (m_82,
-                 (Pi (L, (Ch (true, (App ((Var ref_t_74), (Var _1))))),
-                    (Abs (_83, (Data (unit_d1, []))))))
-                 ))
+  (DAxiom ("set",
+     (Pi (U,
+        [((Some "A"), (Type U)); ((Some "B"), (Type U));
+          ((Some "l"), (Id "loc"))],
+        (Pi (U, [(None, (Id "A"))],
+           (Pi (U, [(None, (App [(Id "at"); (Id "A"); (Id "l")]))],
+              (Pi (L, [((Some "y"), (Id "B"))],
+                 (App [(Id "at"); (Id "A"); (Id "l")])))
               ))
            ))
-        )),
-     (Abs (ref_handler_80,
-        [(Cl
-            (PAbs ([(PVar A_84); (PVar m_85); (PVar ch_86)],
-               (Some (Match ([(Recv (Var _2))],
+        ))
+     ));
+  (DData ("ArrVec",
+     (PTl ([((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
+        (Tl ([(None, (Id "loc"))], (Type L))))),
+     [(DCons ("Nil",
+         (PTl ([((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
+            (Tl ([],
+               (App [(Id "ArrVec"); (Id "A"); (Id "l"); (App [(Id "zero")])])
+               ))
+            ))
+         ));
+       (DCons ("Cons",
+          (PTl ([((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
+             (Tl (
+                [((Some "n"), (Id "nat"));
+                  (None,
+                   (App
+                      [(Id "at"); (Id "A");
+                        (App [(Id "addn"); (Id "l"); (Id "n")])]));
+                  (None, (App [(Id "ArrVec"); (Id "A"); (Id "l"); (Id "n")]))
+                  ],
+                (App
+                   [(Id "ArrVec"); (Id "A"); (Id "l");
+                     (App [(Id "succ"); (Id "n")])])
+                ))
+             ))
+          ))
+       ]
+     ));
+  (DFun ("Array",
+     (Pi (U, [(None, (Type U))], (Pi (U, [(None, (Id "loc"))], (Type L))))),
+     [(Cl
+         ([(PVar (Some "A")); (PVar (Some "n"))],
+          (Some (App
+                   [(Id "sig"); (Id "loc");
+                     (Fun (None, None,
                         [(Cl
-                            (PAbs (
-                               [(PCons (sig_intro_c13,
-                                   [(PCons (GET_c19, [])); (PVar ch_87)]))
-                                 ],
-                               (Some (App (
-                                        (App (
-                                           (App ((Var _4),
-                                              (Meta (??1,
-                                                 [(Var addn_2);
-                                                   (Var stdin_rec_59);
-                                                   (Var stdout_rec_63);
-                                                   (Var stderr_rec_67);
-                                                   (Var stdin_t_71);
-                                                   (Var stdout_t_72);
-                                                   (Var stderr_t_73);
-                                                   (Var ref_t_74); (Var _4);
-                                                   (Var _1); (Var _2);
-                                                   (Var _3); (Var _0)]
-                                                 ))
-                                              )),
-                                           (Var _2))),
-                                        (App ((Send (Var _0)), (Var _2))))))
-                               )));
-                          (Cl
-                             (PAbs (
-                                [(PCons (sig_intro_c13,
-                                    [(PCons (SET_c20, [])); (PVar ch_88)]))
-                                  ],
-                                (Some (Match ([(Recv (Var _0))],
-                                         [(Cl
-                                             (PAbs (
-                                                [(PCons (sig_intro_c13,
-                                                    [(PVar m_89);
-                                                      (PVar ch_90)]
-                                                    ))
-                                                  ],
-                                                (Some (App (
-                                                         (App (
-                                                            (App ((Var _6),
-                                                               (Var _3))),
-                                                            (Var _0))),
-                                                         (Var _1))))
-                                                )))
-                                           ]
-                                         )))
-                                )));
-                          (Cl
-                             (PAbs (
-                                [(PCons (sig_intro_c13,
-                                    [(PCons (FREE_c21, [])); (PVar ch_91)]))
-                                  ],
-                                (Some (Close (Var _0))))))
+                            ([(PVar (Some "l"))],
+                             (Some (App
+                                      [(Id "ArrVec"); (Id "A"); (Id "l");
+                                        (Id "n")]))))
                           ]
-                        )))
-               )))
-          ]
-        ))
+                        ))
+                     ]))))
+       ]
      ));
-  (DFun (mk_ref_92,
-     (Pi (U, (Type U),
-        (Abs (A_93,
-           (Pi (U, (Var _0),
-              (Abs (_94,
-                 (Pi (U, Main,
-                    (Abs (_95,
-                       (Data (tnsr_d9,
-                          [(Ch (false, (App ((Var ref_t_74), (Var _2)))));
-                            Main]
-                          ))
-                       ))
-                    ))
-                 ))
+  (DFun ("nth",
+     (Pi (U,
+        [((Some "A"), (Type U)); ((Some "l"), (Id "loc"));
+          ((Some "m"), (Id "loc")); ((Some "n"), (Id "loc"))],
+        (Pi (U, [(None, (App [(Id "lt"); (Id "m"); (Id "n")]))],
+           (Pi (U,
+              [(None, (App [(Id "ArrVec"); (Id "A"); (Id "l"); (Id "n")]))],
+              (App
+                 [(Id "tnsr");
+                   (App
+                      [(Id "at"); (Id "A");
+                        (App [(Id "addn"); (Id "l"); (Id "m")])]);
+                   (Pi (L,
+                      [(None,
+                        (App
+                           [(Id "at"); (Id "A");
+                             (App [(Id "addn"); (Id "l"); (Id "m")])]))
+                        ],
+                      (App [(Id "ArrVec"); (Id "A"); (Id "l"); (Id "n")])))
+                   ])
               ))
            ))
         )),
-     (Abs (mk_ref_92,
-        [(Cl
-            (PAbs ([(PVar A_96); (PVar m_97); (PVar x_98)],
-               (Some (Fork ((Ch (true, (App ((Var ref_t_74), (Var _0))))),
-                        (Var _2),
-                        (Abs (ref_99,
-                           (App (
-                              (App ((App ((Var ref_handler_80), (Var _1))),
-                                 (Var _2))),
-                              (Var _0)))
-                           ))
-                        )))
-               )))
-          ]
-        ))
-     ));
-  (DFun (set_ref_100,
-     (Pi (U, (Type U),
-        (Abs (A_101,
-           (Pi (U, (Var _0),
-              (Abs (_102,
-                 (Pi (L, (Ch (false, (App ((Var ref_t_74), (Var _1))))),
-                    (Abs (_103,
-                       (Ch (false, (App ((Var ref_t_74), (Var _2)))))))
-                    ))
-                 ))
-              ))
-           ))
-        )),
-     (Abs (set_ref_100,
-        [(Cl
-            (PAbs ([(PVar A_104); (PVar m_105); (PVar ref_106)],
-               (Some (App (
-                        (Send (App ((Send (Var _2)), (Cons (SET_c20, []))))),
-                        (Var _1))))
-               )))
-          ]
-        ))
-     ));
-  (DFun (get_ref_107,
-     (Pi (U, (Type U),
-        (Abs (A_108,
-           (Pi (L, (Ch (false, (App ((Var ref_t_74), (Var _0))))),
-              (Abs (_109,
-                 (Data (sig_d8,
-                    [(Var _1);
-                      (Fun (None,
-                         (Abs (_110,
+     [(Cl
+         ([(PVar None); (PVar None); (PVar None); (PVar None);
+            (PCons ("le_refl", []));
+            (PCons ("Cons",
+               [(PVar (Some "n")); (PVar (Some "c")); (PVar (Some "v"))]))
+            ],
+          (Some (App
+                   [(Id "tnsr_intro"); (Id "c");
+                     (Fun (None, None,
+                        [(Cl
+                            ([(PVar (Some "c"))],
+                             (Some (App
+                                      [(Id "Cons"); (Id "n"); (Id "c");
+                                        (Id "v")]))))
+                          ]
+                        ))
+                     ]))));
+       (Cl
+          ([(PVar None); (PVar None); (PVar (Some "m")); (PVar None);
+             (PCons ("le_succ", [(PVar None); (PVar (Some "pf"))]));
+             (PCons ("Cons",
+                [(PVar (Some "n")); (PVar (Some "c0")); (PVar (Some "v0"))]))
+             ],
+           (Some (Let (
+                    (PCons ("tnsr_intro",
+                       [(PVar (Some "c")); (PVar (Some "f"))])),
+                    (App
+                       [(Id "nth"); (Id "_"); (Id "_"); (Id "m"); (Id "n");
+                         (Id "pf"); (Id "v0")]),
+                    (App
+                       [(Id "tnsr_intro"); (Id "c");
+                         (Fun (None, None,
                             [(Cl
-                                (PAbs ([(PVar _111)],
-                                   (Some (Ch (false,
-                                            (App ((Var ref_t_74), (Var _3)))
-                                            )))
-                                   )))
+                                ([(PVar (Some "c"))],
+                                 (Some (App
+                                          [(Id "Cons"); (Id "n"); (Id "c0");
+                                            (App [(Id "f"); (Id "c")])]))))
                               ]
                             ))
+                         ])
+                    )))))
+       ]
+     ));
+  (DFun ("index",
+     (Pi (U,
+        [((Some "A"), (Type U)); ((Some "m"), (Id "loc"));
+          ((Some "n"), (Id "loc"))],
+        (Pi (U, [(None, (App [(Id "lt"); (Id "m"); (Id "n")]))],
+           (Pi (U, [(None, (App [(Id "Array"); (Id "A"); (Id "n")]))],
+              (App
+                 [(Id "sig"); (Id "A");
+                   (Fun (None, None,
+                      [(Cl
+                          ([(PVar None)],
+                           (Some (App [(Id "Array"); (Id "A"); (Id "n")]))))
+                        ]
+                      ))
+                   ])
+              ))
+           ))
+        )),
+     [(Cl
+         ([(PVar None); (PVar (Some "m")); (PVar None); (PVar (Some "pf"));
+            (PVar (Some "a"))],
+          (Some (Let (
+                   (PCons ("sig_intro",
+                      [(PVar (Some "l")); (PVar (Some "v"))])),
+                   (Id "a"),
+                   (Let (
+                      (PCons ("tnsr_intro",
+                         [(PVar (Some "c")); (PVar (Some "f"))])),
+                      (App
+                         [(Id "nth"); (Id "_"); (Id "l"); (Id "_"); (
+                           Id "_"); (Id "pf"); (Id "v")]),
+                      (Let (
+                         (PCons ("sig_intro",
+                            [(PVar (Some "x")); (PVar (Some "c"))])),
+                         (App
+                            [(Id "get"); (Id "_");
+                              (App [(Id "addn"); (Id "l"); (Id "m")]);
+                              (Id "c")]),
+                         (App
+                            [(Id "sig_intro"); (Id "x");
+                              (App
+                                 [(Id "sig_intro"); (Id "l");
+                                   (App [(Id "f"); (Id "c")])])
+                              ])
                          ))
-                      ]
-                    ))
-                 ))
-              ))
-           ))
-        )),
-     (Abs (get_ref_107,
-        [(Cl
-            (PAbs ([(PVar A_112); (PVar ref_113)],
-               (Some (Recv (App ((Send (Var _1)), (Cons (GET_c19, [])))))))))
-          ]
-        ))
+                      ))
+                   )))))
+       ]
      ));
-  (DFun (free_ref_114,
-     (Pi (U, (Type U),
-        (Abs (A_115,
-           (Pi (L, (Ch (false, (App ((Var ref_t_74), (Var _0))))),
-              (Abs (_116, (Data (unit_d1, []))))))
-           ))
-        )),
-     (Abs (free_ref_114,
-        [(Cl
-            (PAbs ([(PVar A_117); (PVar ref_118)],
-               (Some (Close (App ((Send (Var _1)), (Cons (FREE_c21, []))))))
-               )))
-          ]
-        ))
-     ));
-  (DFun (tail_119,
-     (Pi (U, (Type U),
-        (Abs (A_120,
-           (Pi (U, (Data (nat_d3, [])),
-              (Abs (n_121,
-                 (Pi (U,
-                    (Data (vec_d6, [(Var _1); (Cons (succ_c5, [(Var _0)]))])),
-                    (Abs (_122, (Data (nat_d3, []))))))
-                 ))
-              ))
-           ))
-        )),
-     (Abs (tail_119,
-        [(Cl
-            (PAbs (
-               [(PVar _123); (PVar _124);
-                 (PCons (vcons_c11, [(PVar _125); (PVar _126); (PVar tl_127)]
-                    ))
-                 ],
-               (Some (Cons (zero_c4, []))))))
-          ]
-        ))
-     ));
-  (DOpen (TMain, main_128));
-  (DTm (main_129, None,
-     (Match (
-        [(App (
-            (App ((App ((Var mk_ref_92), (Data (string_d12, [])))),
-               (Meta (??2,
-                  [(Var addn_2); (Var stdin_rec_59); (Var stdout_rec_63);
-                    (Var stderr_rec_67); (Var stdin_t_71); (Var stdout_t_72);
-                    (Var stderr_t_73); (Var ref_t_74); (Var ref_handler_80);
-                    (Var mk_ref_92); (Var set_ref_100); (Var get_ref_107);
-                    (Var free_ref_114); (Var tail_119); (Var main_128)]
-                  ))
-               )),
-            (Var main_128)))
-          ],
-        [(Cl
-            (PAbs (
-               [(PCons (tnsr_intro_c14, [(PVar ref_130); (PVar main_131)]))],
-               (Some (Match (
-                        [(App (
-                            (App ((Var get_ref_107),
-                               (Meta (??3,
-                                  [(Var addn_2); (Var stdin_rec_59);
-                                    (Var stdout_rec_63); (Var stderr_rec_67);
-                                    (Var stdin_t_71); (Var stdout_t_72);
-                                    (Var stderr_t_73); (Var ref_t_74);
-                                    (Var ref_handler_80); (Var mk_ref_92);
-                                    (Var set_ref_100); (Var get_ref_107);
-                                    (Var free_ref_114); (Var tail_119);
-                                    (Var main_128); (Var _0); (Var _1)]
-                                  ))
-                               )),
-                            (Var _0)))
-                          ],
-                        [(Cl
-                            (PAbs (
-                               [(PCons (sig_intro_c13,
-                                   [(PVar msg1_132); (PVar ref_133)]))
-                                 ],
-                               (Some (Match (
-                                        [(App (
-                                            (App ((Var free_ref_114),
-                                               (Meta (??4,
-                                                  [(Var addn_2);
-                                                    (Var stdin_rec_59);
-                                                    (Var stdout_rec_63);
-                                                    (Var stderr_rec_67);
-                                                    (Var stdin_t_71);
-                                                    (Var stdout_t_72);
-                                                    (Var stderr_t_73);
-                                                    (Var ref_t_74);
-                                                    (Var ref_handler_80);
-                                                    (Var mk_ref_92);
-                                                    (Var set_ref_100);
-                                                    (Var get_ref_107);
-                                                    (Var free_ref_114);
-                                                    (Var tail_119);
-                                                    (Var main_128); (
-                                                    Var _2); (Var _3);
-                                                    (Var _0); (Var _1)]
-                                                  ))
-                                               )),
-                                            (Var _1)))
-                                          ],
-                                        [(Cl
-                                            (PAbs ([(PCons (tt_c1, []))],
-                                               (Some (Var _3)))))
-                                          ]
-                                        )))
-                               )))
-                          ]
-                        )))
-               )))
-          ]
-        ))
-     ))
-  ]
-----------------------------------------------
+  (DTm (None, None, (Id "main")))]
+parse success---------------------------------------
+
 data unit_d1 : U
   | tt_c1 : unit_d1
 
@@ -826,38 +227,38 @@ data nat_d3 : U
   | zero_c4 : nat_d3
   | succ_c5 : nat_d3 -> nat_d3
 
-def (addn_2 := addn_135) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_139 => x_139
-  | (succ_c5 x_140) y_141 => (succ_c5 ((addn_135) x_140 y_141))
+def (addn_3 := addn_217) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_221 => x_221
+  | (succ_c5 x_222) y_223 => (succ_c5 ((addn_217) x_222 y_223))
 
-data option_d4 (A_142 : U) : U
-  | none_c6 (A_143 : U) : (option_d4 A_143)
-  | some_c7 (A_144 : U) : A_144 -> (option_d4 A_144)
+data option_d4 (A_224 : U) : U
+  | none_c6 (A_225 : U) : (option_d4 A_225)
+  | some_c7 (A_226 : U) : A_226 -> (option_d4 A_226)
 
-data list_d5 (A_146 : U) : U
-  | nil_c8 (A_147 : U) : (list_d5 A_147)
-  | cons_c9 (A_148 : U) : A_148 -> (list_d5 A_148) -> (list_d5 A_148)
+data list_d5 (A_228 : U) : U
+  | nil_c8 (A_229 : U) : (list_d5 A_229)
+  | cons_c9 (A_230 : U) : A_230 -> (list_d5 A_230) -> (list_d5 A_230)
 
-data vec_d6 (A_152 : U) : nat_d3 -> U
-  | vnil_c10 (A_154 : U) : (vec_d6 A_154 zero_c4)
-  | vcons_c11 (A_155 : U) :
-    ∀ (n_156 : nat_d3) ->
-      A_155 -> (vec_d6 A_155 n_156) -> (vec_d6 A_155 (succ_c5 n_156))
+data vec_d6 (A_234 : U) : nat_d3 -> U
+  | vnil_c10 (A_236 : U) : (vec_d6 A_236 zero_c4)
+  | vcons_c11 (A_237 : U) :
+    ∀ (n_238 : nat_d3) ->
+      A_237 -> (vec_d6 A_237 n_238) -> (vec_d6 A_237 (succ_c5 n_238))
 
-data ex_d7 (A_161 : U) (P_162 : A_161 -> U) : U
-  | ex_intro_c12 (A_164 : U) (P_165 : A_164 -> U) :
-    ∀ (x_167 : A_164) -> ((P_165) x_167) -> (ex_d7 A_164 P_165)
+data ex_d7 (A_243 : U) (P_244 : A_243 -> U) : U
+  | ex_intro_c12 (A_246 : U) (P_247 : A_246 -> U) :
+    ∀ (x_249 : A_246) -> ((P_247) x_249) -> (ex_d7 A_246 P_247)
 
-data sig_d8 (A_169 : U) (P_170 : A_169 -> L) : L
-  | sig_intro_c13 (A_172 : U) (P_173 : A_172 -> L) :
-    ∀ (x_175 : A_172) -> ((P_173) x_175) -> (sig_d8 A_172 P_173)
+data sig_d8 (A_251 : U) (P_252 : A_251 -> L) : L
+  | sig_intro_c13 (A_254 : U) (P_255 : A_254 -> L) :
+    ∀ (x_257 : A_254) -> ((P_255) x_257) -> (sig_d8 A_254 P_255)
 
-data tnsr_d9 (A_177 : L) (B_178 : L) : L
-  | tnsr_intro_c14 (A_179 : L) (B_180 : L) :
-    A_179 -> B_180 -> (tnsr_d9 A_179 B_180)
+data tnsr_d9 (A_259 : L) (B_260 : L) : L
+  | tnsr_intro_c14 (A_261 : L) (B_262 : L) :
+    A_261 -> B_262 -> (tnsr_d9 A_261 B_262)
 
-data box_d10 (A_184 : U) : L
-  | box_intro_c15 (A_185 : U) : A_185 -> (box_d10 A_185)
+data box_d10 (A_266 : U) : L
+  | box_intro_c15 (A_267 : U) : A_267 -> (box_d10 A_267)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -870,2087 +271,153 @@ data string_d12 : U
   | EmptyString_c17 : string_d12
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
-def (stdin_rec_59 := stdin_rec_226) : unit_d1 -> proto
+def (cat_60 := cat_308) : string_d12 -> string_d12 -> string_d12
+  | EmptyString_c17 s_312 => s_312
+  | (String_c18 c_313 s1_314) s2_315 =>
+    (String_c18 c_313 ((cat_308) s1_314 s2_315))
+
+data le_d13 (n_316 : nat_d3) : nat_d3 -> U
+  | le_refl_c19 (n_318 : nat_d3) : (le_d13 n_318 n_318)
+  | le_succ_c20 (n_319 : nat_d3) :
+    ∀ (m_320 : nat_d3) ->
+      (le_d13 n_319 m_320) -> (le_d13 n_319 (succ_c5 m_320))
+
+def (lt_73 := lt_322) : nat_d3 -> nat_d3 -> U
+  | m_326 n_327 => (le_d13 (succ_c5 m_326) n_327)
+
+data eq_d14 (A_328 : U) (x_329 : A_328) : A_328 -> U
+  | refl_c21 (A_331 : U) (x_332 : A_331) : (eq_d14 A_331 x_332 x_332)
+
+def (stdin_rec_83 := stdin_rec_333) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_228 : bool_d2) ⋅
-      (match b_228 with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_226) tt_c1)
+    !(b_335 : bool_d2) ⋅
+      (match b_335 return ??1 with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_333) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_63 := stdout_rec_230) : unit_d1 -> proto
+def (stdout_rec_87 := stdout_rec_337) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_232 : bool_d2) ⋅
-      (match b_232 with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_230) tt_c1)
+    !(b_339 : bool_d2) ⋅
+      (match b_339 return ??2 with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_337) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_67 := stderr_rec_234) : unit_d1 -> proto
+def (stderr_rec_91 := stderr_rec_341) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_236 : bool_d2) ⋅
-      (match b_236 with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_234) tt_c1)
+    !(b_343 : bool_d2) ⋅
+      (match b_343 return ??3 with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_341) tt_c1)
         | false_c3 => end)
 
-def stdin_t_71 := ((stdin_rec_59) tt_c1)
+def stdin_t_95 := ((stdin_rec_83) tt_c1)
 
-def stdout_t_72 := ((stdout_rec_63) tt_c1)
+def stdout_t_96 := ((stdout_rec_87) tt_c1)
 
-def stderr_t_73 := ((stderr_rec_67) tt_c1)
+def stderr_t_97 := ((stderr_rec_91) tt_c1)
 
-data ref_msg_d13 : U
-  | GET_c19 : ref_msg_d13
-  | SET_c20 : ref_msg_d13
-  | FREE_c21 : ref_msg_d13
+def (readline_98 := readline_345) :
+  ch<stdin_t_95> -> (sig_d8 string_d12 (fun
+                                         | _351 => ch<stdin_t_95>))
+  | ch_352 => recv ((send ch_352) true_c2)
 
-def (ref_t_74 := ref_t_238) : U -> proto
-  | A_240 =>
-    ?(msg_241 : ref_msg_d13) ⋅
-      (match msg_241 with
-        | GET_c19 => !A_240 ⋅ ((ref_t_238) A_240)
-        | SET_c20 => ?A_240 ⋅ ((ref_t_238) A_240)
-        | FREE_c21 => end)
+def (close_in_103 := close_in_353) : ch<stdin_t_95> -> unit_d1
+  | ch_355 => close ((send ch_355) false_c3)
 
-def (ref_handler_80 := ref_handler_244) :
-  ∀ (A_245 : U) -> A_245 -> ch<((ref_t_74) A_245)> -o unit_d1
-  | A_250 m_251 ch_252 =>
-    (match recv ch_252 with
-      | (sig_intro_c13 GET_c19 ch_253) =>
-        ((ref_handler_244) ??1 m_251 ((send ch_253) m_251))
-      | (sig_intro_c13 SET_c20 ch_254) =>
-        (match recv ch_254 with
-          | (sig_intro_c13 m_255 ch_256) =>
-            ((ref_handler_244) A_250 m_255 ch_256))
-      | (sig_intro_c13 FREE_c21 ch_257) => close ch_257)
+def (printline_106 := printline_356) :
+  ch<stdout_t_96> -> string_d12 -o ch<stdout_t_96>
+  | ch_360 s_361 => ((send ((send ch_360) true_c2)) s_361)
 
-def (mk_ref_92 := mk_ref_258) :
-  ∀ (A_259 : U) -> A_259 -> @main -> (tnsr_d9 hc<((ref_t_74) A_259)> @main)
-  | A_264 m_265 x_266 =>
-    fork (ref_267 : ch<((ref_t_74) A_264)>) <- x_266 in
-      ((ref_handler_80) A_264 m_265 ref_267)
+def (close_out_111 := close_out_362) : ch<stdout_t_96> -> unit_d1
+  | ch_364 => close ((send ch_364) false_c3)
 
-def (set_ref_100 := set_ref_268) :
-  ∀ (A_269 : U) ->
-    A_269 -> hc<((ref_t_74) A_269)> -o hc<((ref_t_74) A_269)>
-  | A_274 m_275 ref_276 => ((send ((send ref_276) SET_c20)) m_275)
+def (printerr_114 := printerr_365) :
+  ch<stderr_t_97> -> string_d12 -o ch<stderr_t_97>
+  | ch_369 s_370 => ((send ((send ch_369) true_c2)) s_370)
 
-def (get_ref_107 := get_ref_277) :
-  ∀ (A_278 : U) ->
-    hc<((ref_t_74) A_278)> -o
-      (sig_d8 A_278 (fun
-                      | _285 => hc<((ref_t_74) A_278)>))
-  | A_286 ref_287 => recv ((send ref_287) GET_c19)
+def (close_err_119 := close_err_371) : ch<stderr_t_97> -> unit_d1
+  | ch_373 => close ((send ch_373) false_c3)
 
-def (free_ref_114 := free_ref_288) :
-  ∀ (A_289 : U) -> hc<((ref_t_74) A_289)> -o unit_d1
-  | A_292 ref_293 => close ((send ref_293) FREE_c21)
+def loc_122 := nat_d3
 
-def (tail_119 := tail_294) :
-  ∀ (A_295 : U) ->
-    ∀ (n_298 : nat_d3) -> (vec_d6 A_295 (succ_c5 n_298)) -> nat_d3
-  | _301 _302 (vcons_c11 _303 _304 tl_305) => zero_c4
+axiom at_123 : U -> loc_122 -> L
 
-open @main as main_128
+axiom new_126 :
+  ∀ (A_377 : U) ->
+    A_377 -> (sig_d8 loc_122 (fun
+                               | l_384 => ((at_123) A_377 l_384)))
 
-def main_129 :=
-  (match ((mk_ref_92) string_d12 ??2 main_128) with
-    | (tnsr_intro_c14 ref_306 main_307) =>
-      (match ((get_ref_107) ??3 ref_306) with
-        | (sig_intro_c13 msg1_308 ref_309) =>
-          (match ((free_ref_114) ??4 ref_309) with
-            | tt_c1 => main_307)))
+axiom free_131 :
+  ∀ (A_385 : U) ->
+    ∀ (l_388 : loc_122) -> A_385 -> ((at_123) A_385 l_388) -> unit_d1
+
+axiom get_136 :
+  ∀ (A_394 : U) ->
+    ∀ (l_397 : loc_122) ->
+      ((at_123) A_394 l_397) ->
+        (sig_d8 A_394 (fun
+                        | _404 => ((at_123) A_394 l_397)))
+
+axiom set_142 :
+  ∀ (A_405 : U) ->
+    ∀ (B_409 : U) ->
+      ∀ (l_414 : loc_122) ->
+        A_405 -> ((at_123) A_405 l_414) -> B_409 -o ((at_123) A_405 l_414)
+
+data ArrVec_d15 (A_423 : U) (l_424 : loc_122) : loc_122 -> L
+  | Nil_c22 (A_426 : U) (l_427 : loc_122) : (ArrVec_d15 A_426 l_427 zero_c4)
+  | Cons_c23 (A_428 : U) (l_429 : loc_122) :
+    ∀ (n_430 : nat_d3) ->
+      ((at_123) A_428 ((addn_3) l_429 n_430)) ->
+        (ArrVec_d15 A_428 l_429 n_430) ->
+          (ArrVec_d15 A_428 l_429 (succ_c5 n_430))
+
+def (Array_159 := Array_434) : U -> loc_122 -> L
+  | A_438 n_439 =>
+    (sig_d8 loc_122 (fun
+                      | l_442 => (ArrVec_d15 A_438 l_442 n_439)))
+
+def (nth_166 := nth_443) :
+  ∀ (A_444 : U) ->
+    ∀ (l_450 : loc_122) ->
+      ∀ (m_455 : loc_122) ->
+        ∀ (n_458 : loc_122) ->
+          ((lt_73) m_455 n_458) ->
+            (ArrVec_d15 A_444 l_450 n_458) ->
+              (tnsr_d9 ((at_123) A_444 ((addn_3) l_450 m_455))
+              ((at_123) A_444 ((addn_3) l_450 m_455)) -o
+                (ArrVec_d15 A_444 l_450 n_458))
+  | _466 _467 _468 _469 le_refl_c19 (Cons_c23 n_470 c_471 v_472) =>
+    (tnsr_intro_c14 c_471 (fun
+                            | c_475 => (Cons_c23 n_470 c_475 v_472)))
+  | _476 _477 m_478 _479 (le_succ_c20 _480 pf_481) (Cons_c23 n_482 c0_483 v0_484) =>
+    (match ((nth_443) ??4 ??5 m_478 n_482 pf_481 v0_484) return ??6 with
+      | (tnsr_intro_c14 c_485 f_486) =>
+        (tnsr_intro_c14 c_485
+        (fun
+          | c_489 => (Cons_c23 n_482 c0_483 ((f_486) c_489)))))
+
+def (index_196 := index_490) :
+  ∀ (A_491 : U) ->
+    ∀ (m_496 : loc_122) ->
+      ∀ (n_499 : loc_122) ->
+        ((lt_73) m_496 n_499) ->
+          ((Array_159) A_491 n_499) ->
+            (sig_d8 A_491 (fun
+                            | _510 => ((Array_159) A_491 n_499)))
+  | _511 m_512 _513 pf_514 a_515 =>
+    (match a_515 return ??13 with
+      | (sig_intro_c13 l_516 v_517) =>
+        (match ((nth_166) ??7 l_516 ??8 ??9 pf_514 v_517) return ??12 with
+          | (tnsr_intro_c14 c_518 f_519) =>
+            (match ((get_136) ??10 ((addn_3) l_516 m_512) c_518) return ??11 with
+              | (sig_intro_c13 x_520 c_521) =>
+                (sig_intro_c13 x_520 (sig_intro_c13 l_516 ((f_519) c_521))))))
+
+def _215 := main_1
 
 
-----------------------------------------------
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](zero_c4, x_316)=>
-                 x_316
-               [eqns{ }]((succ_c5 x_317), y_318)=>
-                 (succ_c5 ((addn_315) x_317 y_318)))
-           })
-a := nat_d3 -> nat_d3 -> nat_d3
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_322 ?= zero_c4 : nat_d3)}](x_316)=>
-                 x_316
-               [eqns{ (_322 ?= (succ_c5 x_317) : nat_d3)}](y_318)=>
-                 (succ_c5 ((addn_315) x_317 y_318)))
-           })
-a := nat_d3 -> nat_d3
-check_prbm({ global=( eqns{ (nat_d3 ?= nat_d3 : U)})
-             clause=(
-               [eqns{ (_325 ?= x_317 : nat_d3)}](y_318)=>
-                 (succ_c5 ((addn_315) x_317 y_318)))
-           })
-a := nat_d3 -> nat_d3
-check_prbm({ global=( eqns{ (nat_d3 ?= nat_d3 : U)})
-             clause=(
-               [eqns{ (_331 ?= y_318 : nat_d3) (_325 ?= x_317 : nat_d3)}]()=>
-                 (succ_c5 ((addn_315) x_317 y_318)))
-           })
-a := nat_d3
-check_prbm({ global=( eqns{ (nat_d3 ?= nat_d3 : U)})
-             clause=( [eqns{ }](x_316)=>
-                        x_316)
-           })
-a := nat_d3 -> nat_d3
-check_prbm({ global=( eqns{ (nat_d3 ?= nat_d3 : U)})
-             clause=( [eqns{ (_345 ?= x_316 : nat_d3)}]()=>
-                        x_316)
-           })
-a := nat_d3
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](tt_c1)=>
-                 !(b_527 : bool_d2) ⋅
-                   (match b_527 with
-                     | true_c2 => ?string_d12 ⋅ ((stdin_rec_526) tt_c1)
-                     | false_c3 => end))
-           })
-a := unit_d1 -> proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_530 ?= tt_c1 : unit_d1)}]()=>
-                 !(b_531 : bool_d2) ⋅
-                   (match b_531 with
-                     | true_c2 => ?string_d12 ⋅ ((stdin_rec_526) tt_c1)
-                     | false_c3 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ (unit_d1 ?= unit_d1 : U)})
-             clause=(
-               [eqns{ }]()=>
-                 !(b_536 : bool_d2) ⋅
-                   (match b_536 with
-                     | true_c2 => ?string_d12 ⋅ ((stdin_rec_526) tt_c1)
-                     | false_c3 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](true_c2)=>
-                 ?string_d12 ⋅ ((stdin_rec_526) tt_c1)
-               [eqns{ }](false_c3)=>
-                 end)
-           })
-a := bool_d2 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_547 ?= true_c2 : bool_d2)}]()=>
-                 ?string_d12 ⋅ ((stdin_rec_526) tt_c1)
-               [eqns{ (_547 ?= false_c3 : bool_d2)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (bool_d2 ?= bool_d2 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (bool_d2 ?= bool_d2 : U)})
-             clause=( [eqns{ }]()=>
-                        ?string_d12 ⋅ ((stdin_rec_526) tt_c1))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](tt_c1)=>
-                 !(b_572 : bool_d2) ⋅
-                   (match b_572 with
-                     | true_c2 => !string_d12 ⋅ ((stdout_rec_571) tt_c1)
-                     | false_c3 => end))
-           })
-a := unit_d1 -> proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_575 ?= tt_c1 : unit_d1)}]()=>
-                 !(b_576 : bool_d2) ⋅
-                   (match b_576 with
-                     | true_c2 => !string_d12 ⋅ ((stdout_rec_571) tt_c1)
-                     | false_c3 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ (unit_d1 ?= unit_d1 : U)})
-             clause=(
-               [eqns{ }]()=>
-                 !(b_582 : bool_d2) ⋅
-                   (match b_582 with
-                     | true_c2 => !string_d12 ⋅ ((stdout_rec_571) tt_c1)
-                     | false_c3 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](true_c2)=>
-                 !string_d12 ⋅ ((stdout_rec_571) tt_c1)
-               [eqns{ }](false_c3)=>
-                 end)
-           })
-a := bool_d2 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_594 ?= true_c2 : bool_d2)}]()=>
-                 !string_d12 ⋅ ((stdout_rec_571) tt_c1)
-               [eqns{ (_594 ?= false_c3 : bool_d2)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (bool_d2 ?= bool_d2 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (bool_d2 ?= bool_d2 : U)})
-             clause=( [eqns{ }]()=>
-                        !string_d12 ⋅ ((stdout_rec_571) tt_c1))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](tt_c1)=>
-                 !(b_623 : bool_d2) ⋅
-                   (match b_623 with
-                     | true_c2 => !string_d12 ⋅ ((stderr_rec_622) tt_c1)
-                     | false_c3 => end))
-           })
-a := unit_d1 -> proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_626 ?= tt_c1 : unit_d1)}]()=>
-                 !(b_627 : bool_d2) ⋅
-                   (match b_627 with
-                     | true_c2 => !string_d12 ⋅ ((stderr_rec_622) tt_c1)
-                     | false_c3 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ (unit_d1 ?= unit_d1 : U)})
-             clause=(
-               [eqns{ }]()=>
-                 !(b_634 : bool_d2) ⋅
-                   (match b_634 with
-                     | true_c2 => !string_d12 ⋅ ((stderr_rec_622) tt_c1)
-                     | false_c3 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](true_c2)=>
-                 !string_d12 ⋅ ((stderr_rec_622) tt_c1)
-               [eqns{ }](false_c3)=>
-                 end)
-           })
-a := bool_d2 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_647 ?= true_c2 : bool_d2)}]()=>
-                 !string_d12 ⋅ ((stderr_rec_622) tt_c1)
-               [eqns{ (_647 ?= false_c3 : bool_d2)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (bool_d2 ?= bool_d2 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (bool_d2 ?= bool_d2 : U)})
-             clause=( [eqns{ }]()=>
-                        !string_d12 ⋅ ((stderr_rec_622) tt_c1))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_686)=>
-                 ?(msg_687 : ref_msg_d13) ⋅
-                   (match msg_687 with
-                     | GET_c19 => !A_686 ⋅ ((ref_t_685) A_686)
-                     | SET_c20 => ?A_686 ⋅ ((ref_t_685) A_686)
-                     | FREE_c21 => end))
-           })
-a := U -> proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_691 ?= A_686 : U)}]()=>
-                 ?(msg_692 : ref_msg_d13) ⋅
-                   (match msg_692 with
-                     | GET_c19 => !A_686 ⋅ ((ref_t_685) A_686)
-                     | SET_c20 => ?A_686 ⋅ ((ref_t_685) A_686)
-                     | FREE_c21 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](GET_c19)=>
-                 !_691 ⋅ ((ref_t_685) _691)
-               [eqns{ }](SET_c20)=>
-                 ?_691 ⋅ ((ref_t_685) _691)
-               [eqns{ }](FREE_c21)=>
-                 end)
-           })
-a := ref_msg_d13 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_709 ?= GET_c19 : ref_msg_d13)}]()=>
-                 !_691 ⋅ ((ref_t_685) _691)
-               [eqns{ (_709 ?= SET_c20 : ref_msg_d13)}]()=>
-                 ?_691 ⋅ ((ref_t_685) _691)
-               [eqns{ (_709 ?= FREE_c21 : ref_msg_d13)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        ?_691 ⋅ ((ref_t_685) _691))
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        !_691 ⋅ ((ref_t_685) _691))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_770, m_771, ch_772)=>
-                 (match recv ch_772 with
-                   | (sig_intro_c13 GET_c19 ch_773) =>
-                     ((ref_handler_769) ??1 m_771 ((send ch_773) m_771))
-                   | (sig_intro_c13 SET_c20 ch_774) =>
-                     (match recv ch_774 with
-                       | (sig_intro_c13 m_775 ch_776) =>
-                         ((ref_handler_769) A_770 m_775 ch_776))
-                   | (sig_intro_c13 FREE_c21 ch_777) => close ch_777))
-           })
-a := ∀ (A_778 : U) -> A_778 -> ch<((ref_t_74) A_778)> -o unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (A_783 ?= A_770 : U)}](m_771, ch_772)=>
-                 (match recv ch_772 with
-                   | (sig_intro_c13 GET_c19 ch_784) =>
-                     ((ref_handler_769) ??1 m_771 ((send ch_784) m_771))
-                   | (sig_intro_c13 SET_c20 ch_785) =>
-                     (match recv ch_785 with
-                       | (sig_intro_c13 m_786 ch_787) =>
-                         ((ref_handler_769) A_770 m_786 ch_787))
-                   | (sig_intro_c13 FREE_c21 ch_788) => close ch_788))
-           })
-a := A_783 -> ch<((ref_t_74) A_783)> -o unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (m_792 ?= m_771 : A_783) (A_783 ?= A_770 : U)}](ch_772)=>
-                 (match recv ch_772 with
-                   | (sig_intro_c13 GET_c19 ch_793) =>
-                     ((ref_handler_769) ??1 m_771 ((send ch_793) m_771))
-                   | (sig_intro_c13 SET_c20 ch_794) =>
-                     (match recv ch_794 with
-                       | (sig_intro_c13 m_795 ch_796) =>
-                         ((ref_handler_769) A_770 m_795 ch_796))
-                   | (sig_intro_c13 FREE_c21 ch_797) => close ch_797))
-           })
-a := ch<((ref_t_74) A_783)> -o unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_799 ?= ch_772 : ch<((ref_t_74) A_783)>)
-                (m_792 ?= m_771 : A_783) (A_783 ?= A_770 : U)}]()=>
-                 (match recv ch_772 with
-                   | (sig_intro_c13 GET_c19 ch_800) =>
-                     ((ref_handler_769) ??1 m_771 ((send ch_800) m_771))
-                   | (sig_intro_c13 SET_c20 ch_801) =>
-                     (match recv ch_801 with
-                       | (sig_intro_c13 m_802 ch_803) =>
-                         ((ref_handler_769) A_770 m_802 ch_803))
-                   | (sig_intro_c13 FREE_c21 ch_804) => close ch_804))
-           })
-a := unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }]((sig_intro_c13 GET_c19 ch_830))=>
-                 ((ref_handler_769) ??1 m_792 ((send ch_830) m_792))
-               [eqns{ }]((sig_intro_c13 SET_c20 ch_831))=>
-                 (match recv ch_831 with
-                   | (sig_intro_c13 m_833 ch_834) =>
-                     ((ref_handler_769) A_783 m_833 ch_834))
-               [eqns{ }]((sig_intro_c13 FREE_c21 ch_832))=>
-                 close ch_832)
-           })
-a := (sig_d8 ref_msg_d13
-     (fun
-       | msg_852 =>
-         ch<(match msg_852 with
-              | GET_c19 =>
-                !A_783 ⋅
-                  (((fun ref_t_860 : U -> proto
-                      | A_865 =>
-                        ?(msg_866 : ref_msg_d13) ⋅
-                          (match msg_866 with
-                            | GET_c19 => !A_865 ⋅ ((ref_t_860) A_865)
-                            | SET_c20 => ?A_865 ⋅ ((ref_t_860) A_865)
-                            | FREE_c21 => end))) A_783)
-              | SET_c20 =>
-                ?A_783 ⋅
-                  (((fun ref_t_876 : U -> proto
-                      | A_881 =>
-                        ?(msg_882 : ref_msg_d13) ⋅
-                          (match msg_882 with
-                            | GET_c19 => !A_881 ⋅ ((ref_t_876) A_881)
-                            | SET_c20 => ?A_881 ⋅ ((ref_t_876) A_881)
-                            | FREE_c21 => end))) A_783)
-              | FREE_c21 => end)>)) -o
-       unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{
-                  (_885 ?= (sig_intro_c13 _903 _902 GET_c19 ch_830) : 
-                  (sig_d8 ref_msg_d13
-                  (fun
-                    | msg_920 =>
-                      ch<(match msg_920 with
-                           | GET_c19 =>
-                             !A_783 ⋅
-                               (((fun ref_t_928 : U -> proto
-                                   | A_933 =>
-                                     ?(msg_934 : ref_msg_d13) ⋅
-                                       (match msg_934 with
-                                         | GET_c19 =>
-                                           !A_933 ⋅ ((ref_t_928) A_933)
-                                         | SET_c20 =>
-                                           ?A_933 ⋅ ((ref_t_928) A_933)
-                                         | FREE_c21 => end))) A_783)
-                           | SET_c20 =>
-                             ?A_783 ⋅
-                               (((fun ref_t_944 : U -> proto
-                                   | A_949 =>
-                                     ?(msg_950 : ref_msg_d13) ⋅
-                                       (match msg_950 with
-                                         | GET_c19 =>
-                                           !A_949 ⋅ ((ref_t_944) A_949)
-                                         | SET_c20 =>
-                                           ?A_949 ⋅ ((ref_t_944) A_949)
-                                         | FREE_c21 => end))) A_783)
-                           | FREE_c21 => end)>)))}]()=>
-                 ((ref_handler_769) ??1 m_792 ((send ch_830) m_792))
-               [eqns{
-                  (_885 ?= (sig_intro_c13 _897 _896 SET_c20 ch_831) : 
-                  (sig_d8 ref_msg_d13
-                  (fun
-                    | msg_969 =>
-                      ch<(match msg_969 with
-                           | GET_c19 =>
-                             !A_783 ⋅
-                               (((fun ref_t_977 : U -> proto
-                                   | A_982 =>
-                                     ?(msg_983 : ref_msg_d13) ⋅
-                                       (match msg_983 with
-                                         | GET_c19 =>
-                                           !A_982 ⋅ ((ref_t_977) A_982)
-                                         | SET_c20 =>
-                                           ?A_982 ⋅ ((ref_t_977) A_982)
-                                         | FREE_c21 => end))) A_783)
-                           | SET_c20 =>
-                             ?A_783 ⋅
-                               (((fun ref_t_993 : U -> proto
-                                   | A_998 =>
-                                     ?(msg_999 : ref_msg_d13) ⋅
-                                       (match msg_999 with
-                                         | GET_c19 =>
-                                           !A_998 ⋅ ((ref_t_993) A_998)
-                                         | SET_c20 =>
-                                           ?A_998 ⋅ ((ref_t_993) A_998)
-                                         | FREE_c21 => end))) A_783)
-                           | FREE_c21 => end)>)))}]()=>
-                 (match recv ch_831 with
-                   | (sig_intro_c13 m_1002 ch_1003) =>
-                     ((ref_handler_769) A_783 m_1002 ch_1003))
-               [eqns{
-                  (_885 ?= (sig_intro_c13 _891 _890 FREE_c21 ch_832) : 
-                  (sig_d8 ref_msg_d13
-                  (fun
-                    | msg_1020 =>
-                      ch<(match msg_1020 with
-                           | GET_c19 =>
-                             !A_783 ⋅
-                               (((fun ref_t_1028 : U -> proto
-                                   | A_1033 =>
-                                     ?(msg_1034 : ref_msg_d13) ⋅
-                                       (match msg_1034 with
-                                         | GET_c19 =>
-                                           !A_1033 ⋅ ((ref_t_1028) A_1033)
-                                         | SET_c20 =>
-                                           ?A_1033 ⋅ ((ref_t_1028) A_1033)
-                                         | FREE_c21 => end))) A_783)
-                           | SET_c20 =>
-                             ?A_783 ⋅
-                               (((fun ref_t_1044 : U -> proto
-                                   | A_1049 =>
-                                     ?(msg_1050 : ref_msg_d13) ⋅
-                                       (match msg_1050 with
-                                         | GET_c19 =>
-                                           !A_1049 ⋅ ((ref_t_1044) A_1049)
-                                         | SET_c20 =>
-                                           ?A_1049 ⋅ ((ref_t_1044) A_1049)
-                                         | FREE_c21 => end))) A_783)
-                           | FREE_c21 => end)>)))}]()=>
-                 close ch_832)
-           })
-a := unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](msg_1058)=>
-                 ch<(match msg_1058 with
-                      | GET_c19 =>
-                        !A_783 ⋅
-                          (((fun ref_t_1066 : U -> proto
-                              | A_1071 =>
-                                ?(msg_1072 : ref_msg_d13) ⋅
-                                  (match msg_1072 with
-                                    | GET_c19 =>
-                                      !A_1071 ⋅ ((ref_t_1066) A_1071)
-                                    | SET_c20 =>
-                                      ?A_1071 ⋅ ((ref_t_1066) A_1071)
-                                    | FREE_c21 => end))) A_783)
-                      | SET_c20 =>
-                        ?A_783 ⋅
-                          (((fun ref_t_1082 : U -> proto
-                              | A_1087 =>
-                                ?(msg_1088 : ref_msg_d13) ⋅
-                                  (match msg_1088 with
-                                    | GET_c19 =>
-                                      !A_1087 ⋅ ((ref_t_1082) A_1087)
-                                    | SET_c20 =>
-                                      ?A_1087 ⋅ ((ref_t_1082) A_1087)
-                                    | FREE_c21 => end))) A_783)
-                      | FREE_c21 => end)>)
-           })
-a := (@[U]ref_msg_d13) -> L
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_1092 ?= msg_1058 : (@[U]ref_msg_d13))}]()=>
-                 ch<(match msg_1058 with
-                      | GET_c19 =>
-                        !A_783 ⋅
-                          (((fun ref_t_1100 : U -> proto
-                              | A_1105 =>
-                                ?(msg_1106 : ref_msg_d13) ⋅
-                                  (match msg_1106 with
-                                    | GET_c19 =>
-                                      !A_1105 ⋅ ((ref_t_1100) A_1105)
-                                    | SET_c20 =>
-                                      ?A_1105 ⋅ ((ref_t_1100) A_1105)
-                                    | FREE_c21 => end))) A_783)
-                      | SET_c20 =>
-                        ?A_783 ⋅
-                          (((fun ref_t_1116 : U -> proto
-                              | A_1121 =>
-                                ?(msg_1122 : ref_msg_d13) ⋅
-                                  (match msg_1122 with
-                                    | GET_c19 =>
-                                      !A_1121 ⋅ ((ref_t_1116) A_1121)
-                                    | SET_c20 =>
-                                      ?A_1121 ⋅ ((ref_t_1116) A_1121)
-                                    | FREE_c21 => end))) A_783)
-                      | FREE_c21 => end)>)
-           })
-a := L
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](GET_c19)=>
-                 !A_783 ⋅
-                   (((fun ref_t_1173 : U -> proto
-                       | A_1178 =>
-                         ?(msg_1179 : ref_msg_d13) ⋅
-                           (match msg_1179 with
-                             | GET_c19 => !A_1178 ⋅ ((ref_t_1173) A_1178)
-                             | SET_c20 => ?A_1178 ⋅ ((ref_t_1173) A_1178)
-                             | FREE_c21 => end))) A_783)
-               [eqns{ }](SET_c20)=>
-                 ?A_783 ⋅
-                   (((fun ref_t_1189 : U -> proto
-                       | A_1194 =>
-                         ?(msg_1195 : ref_msg_d13) ⋅
-                           (match msg_1195 with
-                             | GET_c19 => !A_1194 ⋅ ((ref_t_1189) A_1194)
-                             | SET_c20 => ?A_1194 ⋅ ((ref_t_1189) A_1194)
-                             | FREE_c21 => end))) A_783)
-               [eqns{ }](FREE_c21)=>
-                 end)
-           })
-a := (@[U]ref_msg_d13) -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_1199 ?= GET_c19 : (@[U]ref_msg_d13))}]()=>
-                 !A_783 ⋅
-                   (((fun ref_t_1207 : U -> proto
-                       | A_1212 =>
-                         ?(msg_1213 : ref_msg_d13) ⋅
-                           (match msg_1213 with
-                             | GET_c19 => !A_1212 ⋅ ((ref_t_1207) A_1212)
-                             | SET_c20 => ?A_1212 ⋅ ((ref_t_1207) A_1212)
-                             | FREE_c21 => end))) A_783)
-               [eqns{ (_1199 ?= SET_c20 : (@[U]ref_msg_d13))}]()=>
-                 ?A_783 ⋅
-                   (((fun ref_t_1223 : U -> proto
-                       | A_1228 =>
-                         ?(msg_1229 : ref_msg_d13) ⋅
-                           (match msg_1229 with
-                             | GET_c19 => !A_1228 ⋅ ((ref_t_1223) A_1228)
-                             | SET_c20 => ?A_1228 ⋅ ((ref_t_1223) A_1228)
-                             | FREE_c21 => end))) A_783)
-               [eqns{ (_1199 ?= FREE_c21 : (@[U]ref_msg_d13))}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ ((@[U]ref_msg_d13) ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ ((@[U]ref_msg_d13) ?= ref_msg_d13 : U)})
-             clause=(
-               [eqns{ }]()=>
-                 ?A_783 ⋅
-                   (((fun ref_t_1317 : U -> proto
-                       | A_1322 =>
-                         ?(msg_1323 : ref_msg_d13) ⋅
-                           (match msg_1323 with
-                             | GET_c19 => !A_1322 ⋅ ((ref_t_1317) A_1322)
-                             | SET_c20 => ?A_1322 ⋅ ((ref_t_1317) A_1322)
-                             | FREE_c21 => end))) A_783))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_1363)=>
-                 ?(msg_1364 : ref_msg_d13) ⋅
-                   (match msg_1364 with
-                     | GET_c19 => !A_1363 ⋅ ((ref_t_1362) A_1363)
-                     | SET_c20 => ?A_1363 ⋅ ((ref_t_1362) A_1363)
-                     | FREE_c21 => end))
-           })
-a := U -> proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_1368 ?= A_1363 : U)}]()=>
-                 ?(msg_1369 : ref_msg_d13) ⋅
-                   (match msg_1369 with
-                     | GET_c19 => !A_1363 ⋅ ((ref_t_1362) A_1363)
-                     | SET_c20 => ?A_1363 ⋅ ((ref_t_1362) A_1363)
-                     | FREE_c21 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](GET_c19)=>
-                 !_1368 ⋅ ((ref_t_1362) _1368)
-               [eqns{ }](SET_c20)=>
-                 ?_1368 ⋅ ((ref_t_1362) _1368)
-               [eqns{ }](FREE_c21)=>
-                 end)
-           })
-a := ref_msg_d13 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_1407 ?= GET_c19 : ref_msg_d13)}]()=>
-                 !_1368 ⋅ ((ref_t_1362) _1368)
-               [eqns{ (_1407 ?= SET_c20 : ref_msg_d13)}]()=>
-                 ?_1368 ⋅ ((ref_t_1362) _1368)
-               [eqns{ (_1407 ?= FREE_c21 : ref_msg_d13)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        ?_1368 ⋅ ((ref_t_1362) _1368))
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        !_1368 ⋅ ((ref_t_1362) _1368))
-           })
-a := proto
-check_prbm({ global=( eqns{ ((@[U]ref_msg_d13) ?= ref_msg_d13 : U)})
-             clause=(
-               [eqns{ }]()=>
-                 !A_783 ⋅
-                   (((fun ref_t_1617 : U -> proto
-                       | A_1622 =>
-                         ?(msg_1623 : ref_msg_d13) ⋅
-                           (match msg_1623 with
-                             | GET_c19 => !A_1622 ⋅ ((ref_t_1617) A_1622)
-                             | SET_c20 => ?A_1622 ⋅ ((ref_t_1617) A_1622)
-                             | FREE_c21 => end))) A_783))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_1663)=>
-                 ?(msg_1664 : ref_msg_d13) ⋅
-                   (match msg_1664 with
-                     | GET_c19 => !A_1663 ⋅ ((ref_t_1662) A_1663)
-                     | SET_c20 => ?A_1663 ⋅ ((ref_t_1662) A_1663)
-                     | FREE_c21 => end))
-           })
-a := U -> proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_1668 ?= A_1663 : U)}]()=>
-                 ?(msg_1669 : ref_msg_d13) ⋅
-                   (match msg_1669 with
-                     | GET_c19 => !A_1663 ⋅ ((ref_t_1662) A_1663)
-                     | SET_c20 => ?A_1663 ⋅ ((ref_t_1662) A_1663)
-                     | FREE_c21 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](GET_c19)=>
-                 !_1668 ⋅ ((ref_t_1662) _1668)
-               [eqns{ }](SET_c20)=>
-                 ?_1668 ⋅ ((ref_t_1662) _1668)
-               [eqns{ }](FREE_c21)=>
-                 end)
-           })
-a := ref_msg_d13 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_1707 ?= GET_c19 : ref_msg_d13)}]()=>
-                 !_1668 ⋅ ((ref_t_1662) _1668)
-               [eqns{ (_1707 ?= SET_c20 : ref_msg_d13)}]()=>
-                 ?_1668 ⋅ ((ref_t_1662) _1668)
-               [eqns{ (_1707 ?= FREE_c21 : ref_msg_d13)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        ?_1668 ⋅ ((ref_t_1662) _1668))
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        !_1668 ⋅ ((ref_t_1662) _1668))
-           })
-a := proto
-check_prbm({
-             global=(
-               eqns{
-                 ((sig_d8 ref_msg_d13
-                  (fun
-                    | msg_2162 =>
-                      ch<(match msg_2162 with
-                           | GET_c19 =>
-                             !A_783 ⋅
-                               (((fun ref_t_2170 : U -> proto
-                                   | A_2175 =>
-                                     ?(msg_2176 : ref_msg_d13) ⋅
-                                       (match msg_2176 with
-                                         | GET_c19 =>
-                                           !A_2175 ⋅ ((ref_t_2170) A_2175)
-                                         | SET_c20 =>
-                                           ?A_2175 ⋅ ((ref_t_2170) A_2175)
-                                         | FREE_c21 => end))) A_783)
-                           | SET_c20 =>
-                             ?A_783 ⋅
-                               (((fun ref_t_2186 : U -> proto
-                                   | A_2191 =>
-                                     ?(msg_2192 : ref_msg_d13) ⋅
-                                       (match msg_2192 with
-                                         | GET_c19 =>
-                                           !A_2191 ⋅ ((ref_t_2186) A_2191)
-                                         | SET_c20 =>
-                                           ?A_2191 ⋅ ((ref_t_2186) A_2191)
-                                         | FREE_c21 => end))) A_783)
-                           | FREE_c21 => end)>)) ?= (sig_d8 (@[U]ref_msg_d13)
-                                                    (@[(@[U]ref_msg_d13) -> L]
-                                                    (fun
-                                                      | msg_2212 =>
-                                                        ch<(match msg_2212 with
-                                                             | GET_c19 =>
-                                                               !A_783 ⋅
-                                                                 (((fun ref_t_2220 : 
-                                                                    U ->
-                                                                    proto
-                                                                    | A_2225 =>
-                                                                    ?(msg_2226 : ref_msg_d13) ⋅
-                                                                    (
-                                                                    match msg_2226 with
-                                                                    | GET_c19 =>
-                                                                    !A_2225 ⋅
-                                                                    ((ref_t_2220) A_2225)
-                                                                    | SET_c20 =>
-                                                                    ?A_2225 ⋅
-                                                                    ((ref_t_2220) A_2225)
-                                                                    | FREE_c21 =>
-                                                                    end))) A_783)
-                                                             | SET_c20 =>
-                                                               ?A_783 ⋅
-                                                                 (((fun ref_t_2236 : 
-                                                                    U ->
-                                                                    proto
-                                                                    | A_2241 =>
-                                                                    ?(msg_2242 : ref_msg_d13) ⋅
-                                                                    (
-                                                                    match msg_2242 with
-                                                                    | GET_c19 =>
-                                                                    !A_2241 ⋅
-                                                                    ((ref_t_2236) A_2241)
-                                                                    | SET_c20 =>
-                                                                    ?A_2241 ⋅
-                                                                    ((ref_t_2236) A_2241)
-                                                                    | FREE_c21 =>
-                                                                    end))) A_783)
-                                                             | FREE_c21 =>
-                                                               end)>))) : L)})
-             clause=(
-               [eqns{ (ref_msg_d13 ?= _903 : U)
-                ((fun
-                   | msg_2261 =>
-                     ch<(match msg_2261 with
-                          | GET_c19 =>
-                            !A_783 ⋅
-                              (((fun ref_t_2269 : U -> proto
-                                  | A_2274 =>
-                                    ?(msg_2275 : ref_msg_d13) ⋅
-                                      (match msg_2275 with
-                                        | GET_c19 =>
-                                          !A_2274 ⋅ ((ref_t_2269) A_2274)
-                                        | SET_c20 =>
-                                          ?A_2274 ⋅ ((ref_t_2269) A_2274)
-                                        | FREE_c21 => end))) A_783)
-                          | SET_c20 =>
-                            ?A_783 ⋅
-                              (((fun ref_t_2285 : U -> proto
-                                  | A_2290 =>
-                                    ?(msg_2291 : ref_msg_d13) ⋅
-                                      (match msg_2291 with
-                                        | GET_c19 =>
-                                          !A_2290 ⋅ ((ref_t_2285) A_2290)
-                                        | SET_c20 =>
-                                          ?A_2290 ⋅ ((ref_t_2285) A_2290)
-                                        | FREE_c21 => end))) A_783)
-                          | FREE_c21 => end)>) ?= _902 : ref_msg_d13 -> L)
-                (x_1893 ?= GET_c19 : ref_msg_d13)
-                (_1894 ?= ch_830 : (((fun
-                                       | msg_2311 =>
-                                         ch<(match msg_2311 with
-                                              | GET_c19 =>
-                                                !A_783 ⋅
-                                                  (((fun ref_t_2319 : 
-                                                     U -> proto
-                                                      | A_2324 =>
-                                                        ?(msg_2325 : ref_msg_d13) ⋅
-                                                          (match msg_2325 with
-                                                            | GET_c19 =>
-                                                              !A_2324 ⋅
-                                                                ((ref_t_2319) A_2324)
-                                                            | SET_c20 =>
-                                                              ?A_2324 ⋅
-                                                                ((ref_t_2319) A_2324)
-                                                            | FREE_c21 => end))) A_783)
-                                              | SET_c20 =>
-                                                ?A_783 ⋅
-                                                  (((fun ref_t_2335 : 
-                                                     U -> proto
-                                                      | A_2340 =>
-                                                        ?(msg_2341 : ref_msg_d13) ⋅
-                                                          (match msg_2341 with
-                                                            | GET_c19 =>
-                                                              !A_2340 ⋅
-                                                                ((ref_t_2335) A_2340)
-                                                            | SET_c20 =>
-                                                              ?A_2340 ⋅
-                                                                ((ref_t_2335) A_2340)
-                                                            | FREE_c21 => end))) A_783)
-                                              | FREE_c21 => end)>)) x_1893))}]()=>
-                 ((ref_handler_769) ??1 m_792 ((send ch_830) m_792))
-               [eqns{ (ref_msg_d13 ?= _897 : U)
-                ((fun
-                   | msg_2360 =>
-                     ch<(match msg_2360 with
-                          | GET_c19 =>
-                            !A_783 ⋅
-                              (((fun ref_t_2368 : U -> proto
-                                  | A_2373 =>
-                                    ?(msg_2374 : ref_msg_d13) ⋅
-                                      (match msg_2374 with
-                                        | GET_c19 =>
-                                          !A_2373 ⋅ ((ref_t_2368) A_2373)
-                                        | SET_c20 =>
-                                          ?A_2373 ⋅ ((ref_t_2368) A_2373)
-                                        | FREE_c21 => end))) A_783)
-                          | SET_c20 =>
-                            ?A_783 ⋅
-                              (((fun ref_t_2384 : U -> proto
-                                  | A_2389 =>
-                                    ?(msg_2390 : ref_msg_d13) ⋅
-                                      (match msg_2390 with
-                                        | GET_c19 =>
-                                          !A_2389 ⋅ ((ref_t_2384) A_2389)
-                                        | SET_c20 =>
-                                          ?A_2389 ⋅ ((ref_t_2384) A_2389)
-                                        | FREE_c21 => end))) A_783)
-                          | FREE_c21 => end)>) ?= _896 : ref_msg_d13 -> L)
-                (x_1893 ?= SET_c20 : ref_msg_d13)
-                (_1894 ?= ch_831 : (((fun
-                                       | msg_2410 =>
-                                         ch<(match msg_2410 with
-                                              | GET_c19 =>
-                                                !A_783 ⋅
-                                                  (((fun ref_t_2418 : 
-                                                     U -> proto
-                                                      | A_2423 =>
-                                                        ?(msg_2424 : ref_msg_d13) ⋅
-                                                          (match msg_2424 with
-                                                            | GET_c19 =>
-                                                              !A_2423 ⋅
-                                                                ((ref_t_2418) A_2423)
-                                                            | SET_c20 =>
-                                                              ?A_2423 ⋅
-                                                                ((ref_t_2418) A_2423)
-                                                            | FREE_c21 => end))) A_783)
-                                              | SET_c20 =>
-                                                ?A_783 ⋅
-                                                  (((fun ref_t_2434 : 
-                                                     U -> proto
-                                                      | A_2439 =>
-                                                        ?(msg_2440 : ref_msg_d13) ⋅
-                                                          (match msg_2440 with
-                                                            | GET_c19 =>
-                                                              !A_2439 ⋅
-                                                                ((ref_t_2434) A_2439)
-                                                            | SET_c20 =>
-                                                              ?A_2439 ⋅
-                                                                ((ref_t_2434) A_2439)
-                                                            | FREE_c21 => end))) A_783)
-                                              | FREE_c21 => end)>)) x_1893))}]()=>
-                 (match recv ch_831 with
-                   | (sig_intro_c13 m_2443 ch_2444) =>
-                     ((ref_handler_769) A_783 m_2443 ch_2444))
-               [eqns{ (ref_msg_d13 ?= _891 : U)
-                ((fun
-                   | msg_2461 =>
-                     ch<(match msg_2461 with
-                          | GET_c19 =>
-                            !A_783 ⋅
-                              (((fun ref_t_2469 : U -> proto
-                                  | A_2474 =>
-                                    ?(msg_2475 : ref_msg_d13) ⋅
-                                      (match msg_2475 with
-                                        | GET_c19 =>
-                                          !A_2474 ⋅ ((ref_t_2469) A_2474)
-                                        | SET_c20 =>
-                                          ?A_2474 ⋅ ((ref_t_2469) A_2474)
-                                        | FREE_c21 => end))) A_783)
-                          | SET_c20 =>
-                            ?A_783 ⋅
-                              (((fun ref_t_2485 : U -> proto
-                                  | A_2490 =>
-                                    ?(msg_2491 : ref_msg_d13) ⋅
-                                      (match msg_2491 with
-                                        | GET_c19 =>
-                                          !A_2490 ⋅ ((ref_t_2485) A_2490)
-                                        | SET_c20 =>
-                                          ?A_2490 ⋅ ((ref_t_2485) A_2490)
-                                        | FREE_c21 => end))) A_783)
-                          | FREE_c21 => end)>) ?= _890 : ref_msg_d13 -> L)
-                (x_1893 ?= FREE_c21 : ref_msg_d13)
-                (_1894 ?= ch_832 : (((fun
-                                       | msg_2511 =>
-                                         ch<(match msg_2511 with
-                                              | GET_c19 =>
-                                                !A_783 ⋅
-                                                  (((fun ref_t_2519 : 
-                                                     U -> proto
-                                                      | A_2524 =>
-                                                        ?(msg_2525 : ref_msg_d13) ⋅
-                                                          (match msg_2525 with
-                                                            | GET_c19 =>
-                                                              !A_2524 ⋅
-                                                                ((ref_t_2519) A_2524)
-                                                            | SET_c20 =>
-                                                              ?A_2524 ⋅
-                                                                ((ref_t_2519) A_2524)
-                                                            | FREE_c21 => end))) A_783)
-                                              | SET_c20 =>
-                                                ?A_783 ⋅
-                                                  (((fun ref_t_2535 : 
-                                                     U -> proto
-                                                      | A_2540 =>
-                                                        ?(msg_2541 : ref_msg_d13) ⋅
-                                                          (match msg_2541 with
-                                                            | GET_c19 =>
-                                                              !A_2540 ⋅
-                                                                ((ref_t_2535) A_2540)
-                                                            | SET_c20 =>
-                                                              ?A_2540 ⋅
-                                                                ((ref_t_2535) A_2540)
-                                                            | FREE_c21 => end))) A_783)
-                                              | FREE_c21 => end)>)) x_1893))}]()=>
-                 close ch_832)
-           })
-a := unit_d1
-check_prbm({
-             global=(
-               eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)
-               ((sig_d8 ref_msg_d13
-                (fun
-                  | msg_2653 =>
-                    ch<(match msg_2653 with
-                         | GET_c19 =>
-                           !A_783 ⋅
-                             (((fun ref_t_2661 : U -> proto
-                                 | A_2666 =>
-                                   ?(msg_2667 : ref_msg_d13) ⋅
-                                     (match msg_2667 with
-                                       | GET_c19 =>
-                                         !A_2666 ⋅ ((ref_t_2661) A_2666)
-                                       | SET_c20 =>
-                                         ?A_2666 ⋅ ((ref_t_2661) A_2666)
-                                       | FREE_c21 => end))) A_783)
-                         | SET_c20 =>
-                           ?A_783 ⋅
-                             (((fun ref_t_2677 : U -> proto
-                                 | A_2682 =>
-                                   ?(msg_2683 : ref_msg_d13) ⋅
-                                     (match msg_2683 with
-                                       | GET_c19 =>
-                                         !A_2682 ⋅ ((ref_t_2677) A_2682)
-                                       | SET_c20 =>
-                                         ?A_2682 ⋅ ((ref_t_2677) A_2682)
-                                       | FREE_c21 => end))) A_783)
-                         | FREE_c21 => end)>)) ?= (sig_d8 (@[U]ref_msg_d13)
-                                                  (@[(@[U]ref_msg_d13) -> L]
-                                                  (fun
-                                                    | msg_2703 =>
-                                                      ch<(match msg_2703 with
-                                                           | GET_c19 =>
-                                                             !A_783 ⋅
-                                                               (((fun ref_t_2711 : 
-                                                                  U -> proto
-                                                                   | A_2716 =>
-                                                                    ?(msg_2717 : ref_msg_d13) ⋅
-                                                                    (
-                                                                    match msg_2717 with
-                                                                    | GET_c19 =>
-                                                                    !A_2716 ⋅
-                                                                    ((ref_t_2711) A_2716)
-                                                                    | SET_c20 =>
-                                                                    ?A_2716 ⋅
-                                                                    ((ref_t_2711) A_2716)
-                                                                    | FREE_c21 =>
-                                                                    end))) A_783)
-                                                           | SET_c20 =>
-                                                             ?A_783 ⋅
-                                                               (((fun ref_t_2727 : 
-                                                                  U -> proto
-                                                                   | A_2732 =>
-                                                                    ?(msg_2733 : ref_msg_d13) ⋅
-                                                                    (
-                                                                    match msg_2733 with
-                                                                    | GET_c19 =>
-                                                                    !A_2732 ⋅
-                                                                    ((ref_t_2727) A_2732)
-                                                                    | SET_c20 =>
-                                                                    ?A_2732 ⋅
-                                                                    ((ref_t_2727) A_2732)
-                                                                    | FREE_c21 =>
-                                                                    end))) A_783)
-                                                           | FREE_c21 => end)>))) : L)})
-             clause=(
-               [eqns{ (ref_msg_d13 ?= _891 : U)
-                ((fun
-                   | msg_2752 =>
-                     ch<(match msg_2752 with
-                          | GET_c19 =>
-                            !A_783 ⋅
-                              (((fun ref_t_2760 : U -> proto
-                                  | A_2765 =>
-                                    ?(msg_2766 : ref_msg_d13) ⋅
-                                      (match msg_2766 with
-                                        | GET_c19 =>
-                                          !A_2765 ⋅ ((ref_t_2760) A_2765)
-                                        | SET_c20 =>
-                                          ?A_2765 ⋅ ((ref_t_2760) A_2765)
-                                        | FREE_c21 => end))) A_783)
-                          | SET_c20 =>
-                            ?A_783 ⋅
-                              (((fun ref_t_2776 : U -> proto
-                                  | A_2781 =>
-                                    ?(msg_2782 : ref_msg_d13) ⋅
-                                      (match msg_2782 with
-                                        | GET_c19 =>
-                                          !A_2781 ⋅ ((ref_t_2776) A_2781)
-                                        | SET_c20 =>
-                                          ?A_2781 ⋅ ((ref_t_2776) A_2781)
-                                        | FREE_c21 => end))) A_783)
-                          | FREE_c21 => end)>) ?= _890 : ref_msg_d13 -> L)
-                (_1894 ?= ch_832 : (((fun
-                                       | msg_2802 =>
-                                         ch<(match msg_2802 with
-                                              | GET_c19 =>
-                                                !A_783 ⋅
-                                                  (((fun ref_t_2810 : 
-                                                     U -> proto
-                                                      | A_2815 =>
-                                                        ?(msg_2816 : ref_msg_d13) ⋅
-                                                          (match msg_2816 with
-                                                            | GET_c19 =>
-                                                              !A_2815 ⋅
-                                                                ((ref_t_2810) A_2815)
-                                                            | SET_c20 =>
-                                                              ?A_2815 ⋅
-                                                                ((ref_t_2810) A_2815)
-                                                            | FREE_c21 => end))) A_783)
-                                              | SET_c20 =>
-                                                ?A_783 ⋅
-                                                  (((fun ref_t_2826 : 
-                                                     U -> proto
-                                                      | A_2831 =>
-                                                        ?(msg_2832 : ref_msg_d13) ⋅
-                                                          (match msg_2832 with
-                                                            | GET_c19 =>
-                                                              !A_2831 ⋅
-                                                                ((ref_t_2826) A_2831)
-                                                            | SET_c20 =>
-                                                              ?A_2831 ⋅
-                                                                ((ref_t_2826) A_2831)
-                                                            | FREE_c21 => end))) A_783)
-                                              | FREE_c21 => end)>)) FREE_c21))}]()=>
-                 close ch_832)
-           })
-a := unit_d1
-check_prbm({
-             global=(
-               eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)
-               ((sig_d8 ref_msg_d13
-                (fun
-                  | msg_3100 =>
-                    ch<(match msg_3100 with
-                         | GET_c19 =>
-                           !A_783 ⋅
-                             (((fun ref_t_3108 : U -> proto
-                                 | A_3113 =>
-                                   ?(msg_3114 : ref_msg_d13) ⋅
-                                     (match msg_3114 with
-                                       | GET_c19 =>
-                                         !A_3113 ⋅ ((ref_t_3108) A_3113)
-                                       | SET_c20 =>
-                                         ?A_3113 ⋅ ((ref_t_3108) A_3113)
-                                       | FREE_c21 => end))) A_783)
-                         | SET_c20 =>
-                           ?A_783 ⋅
-                             (((fun ref_t_3124 : U -> proto
-                                 | A_3129 =>
-                                   ?(msg_3130 : ref_msg_d13) ⋅
-                                     (match msg_3130 with
-                                       | GET_c19 =>
-                                         !A_3129 ⋅ ((ref_t_3124) A_3129)
-                                       | SET_c20 =>
-                                         ?A_3129 ⋅ ((ref_t_3124) A_3129)
-                                       | FREE_c21 => end))) A_783)
-                         | FREE_c21 => end)>)) ?= (sig_d8 (@[U]ref_msg_d13)
-                                                  (@[(@[U]ref_msg_d13) -> L]
-                                                  (fun
-                                                    | msg_3150 =>
-                                                      ch<(match msg_3150 with
-                                                           | GET_c19 =>
-                                                             !A_783 ⋅
-                                                               (((fun ref_t_3158 : 
-                                                                  U -> proto
-                                                                   | A_3163 =>
-                                                                    ?(msg_3164 : ref_msg_d13) ⋅
-                                                                    (
-                                                                    match msg_3164 with
-                                                                    | GET_c19 =>
-                                                                    !A_3163 ⋅
-                                                                    ((ref_t_3158) A_3163)
-                                                                    | SET_c20 =>
-                                                                    ?A_3163 ⋅
-                                                                    ((ref_t_3158) A_3163)
-                                                                    | FREE_c21 =>
-                                                                    end))) A_783)
-                                                           | SET_c20 =>
-                                                             ?A_783 ⋅
-                                                               (((fun ref_t_3174 : 
-                                                                  U -> proto
-                                                                   | A_3179 =>
-                                                                    ?(msg_3180 : ref_msg_d13) ⋅
-                                                                    (
-                                                                    match msg_3180 with
-                                                                    | GET_c19 =>
-                                                                    !A_3179 ⋅
-                                                                    ((ref_t_3174) A_3179)
-                                                                    | SET_c20 =>
-                                                                    ?A_3179 ⋅
-                                                                    ((ref_t_3174) A_3179)
-                                                                    | FREE_c21 =>
-                                                                    end))) A_783)
-                                                           | FREE_c21 => end)>))) : L)})
-             clause=(
-               [eqns{ (ref_msg_d13 ?= _897 : U)
-                ((fun
-                   | msg_3199 =>
-                     ch<(match msg_3199 with
-                          | GET_c19 =>
-                            !A_783 ⋅
-                              (((fun ref_t_3207 : U -> proto
-                                  | A_3212 =>
-                                    ?(msg_3213 : ref_msg_d13) ⋅
-                                      (match msg_3213 with
-                                        | GET_c19 =>
-                                          !A_3212 ⋅ ((ref_t_3207) A_3212)
-                                        | SET_c20 =>
-                                          ?A_3212 ⋅ ((ref_t_3207) A_3212)
-                                        | FREE_c21 => end))) A_783)
-                          | SET_c20 =>
-                            ?A_783 ⋅
-                              (((fun ref_t_3223 : U -> proto
-                                  | A_3228 =>
-                                    ?(msg_3229 : ref_msg_d13) ⋅
-                                      (match msg_3229 with
-                                        | GET_c19 =>
-                                          !A_3228 ⋅ ((ref_t_3223) A_3228)
-                                        | SET_c20 =>
-                                          ?A_3228 ⋅ ((ref_t_3223) A_3228)
-                                        | FREE_c21 => end))) A_783)
-                          | FREE_c21 => end)>) ?= _896 : ref_msg_d13 -> L)
-                (_1894 ?= ch_831 : (((fun
-                                       | msg_3249 =>
-                                         ch<(match msg_3249 with
-                                              | GET_c19 =>
-                                                !A_783 ⋅
-                                                  (((fun ref_t_3257 : 
-                                                     U -> proto
-                                                      | A_3262 =>
-                                                        ?(msg_3263 : ref_msg_d13) ⋅
-                                                          (match msg_3263 with
-                                                            | GET_c19 =>
-                                                              !A_3262 ⋅
-                                                                ((ref_t_3257) A_3262)
-                                                            | SET_c20 =>
-                                                              ?A_3262 ⋅
-                                                                ((ref_t_3257) A_3262)
-                                                            | FREE_c21 => end))) A_783)
-                                              | SET_c20 =>
-                                                ?A_783 ⋅
-                                                  (((fun ref_t_3273 : 
-                                                     U -> proto
-                                                      | A_3278 =>
-                                                        ?(msg_3279 : ref_msg_d13) ⋅
-                                                          (match msg_3279 with
-                                                            | GET_c19 =>
-                                                              !A_3278 ⋅
-                                                                ((ref_t_3273) A_3278)
-                                                            | SET_c20 =>
-                                                              ?A_3278 ⋅
-                                                                ((ref_t_3273) A_3278)
-                                                            | FREE_c21 => end))) A_783)
-                                              | FREE_c21 => end)>)) SET_c20))}]()=>
-                 (match recv ch_831 with
-                   | (sig_intro_c13 m_3282 ch_3283) =>
-                     ((ref_handler_769) A_783 m_3282 ch_3283)))
-           })
-a := unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }]((sig_intro_c13 m_3452 ch_3453))=>
-                 ((ref_handler_769) A_783 m_3452 ch_3453))
-           })
-a := (sig_d8 A_783
-     (fun
-       | _3463 =>
-         ch<(((fun ref_t_3464 : U -> proto
-                | A_3469 =>
-                  ?(msg_3470 : ref_msg_d13) ⋅
-                    (match msg_3470 with
-                      | GET_c19 => !A_3469 ⋅ ((ref_t_3464) A_3469)
-                      | SET_c20 => ?A_3469 ⋅ ((ref_t_3464) A_3469)
-                      | FREE_c21 => end))) A_783)>)) -o
-       unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{
-                  (_3473 ?= (sig_intro_c13 _3479 _3478 m_3452 ch_3453) : 
-                  (sig_d8 A_783
-                  (fun
-                    | _3488 =>
-                      ch<(((fun ref_t_3489 : U -> proto
-                             | A_3494 =>
-                               ?(msg_3495 : ref_msg_d13) ⋅
-                                 (match msg_3495 with
-                                   | GET_c19 =>
-                                     !A_3494 ⋅ ((ref_t_3489) A_3494)
-                                   | SET_c20 =>
-                                     ?A_3494 ⋅ ((ref_t_3489) A_3494)
-                                   | FREE_c21 => end))) A_783)>)))}]()=>
-                 ((ref_handler_769) A_783 m_3452 ch_3453))
-           })
-a := unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](_3503)=>
-                 ch<(((fun ref_t_3504 : U -> proto
-                        | A_3509 =>
-                          ?(msg_3510 : ref_msg_d13) ⋅
-                            (match msg_3510 with
-                              | GET_c19 => !A_3509 ⋅ ((ref_t_3504) A_3509)
-                              | SET_c20 => ?A_3509 ⋅ ((ref_t_3504) A_3509)
-                              | FREE_c21 => end))) A_783)>)
-           })
-a := (@[U]A_783) -> L
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_3514 ?= _3503 : (@[U]A_783))}]()=>
-                 ch<(((fun ref_t_3515 : U -> proto
-                        | A_3520 =>
-                          ?(msg_3521 : ref_msg_d13) ⋅
-                            (match msg_3521 with
-                              | GET_c19 => !A_3520 ⋅ ((ref_t_3515) A_3520)
-                              | SET_c20 => ?A_3520 ⋅ ((ref_t_3515) A_3520)
-                              | FREE_c21 => end))) A_783)>)
-           })
-a := L
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_3568)=>
-                 ?(msg_3569 : ref_msg_d13) ⋅
-                   (match msg_3569 with
-                     | GET_c19 => !A_3568 ⋅ ((ref_t_3567) A_3568)
-                     | SET_c20 => ?A_3568 ⋅ ((ref_t_3567) A_3568)
-                     | FREE_c21 => end))
-           })
-a := U -> proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_3573 ?= A_3568 : U)}]()=>
-                 ?(msg_3574 : ref_msg_d13) ⋅
-                   (match msg_3574 with
-                     | GET_c19 => !A_3568 ⋅ ((ref_t_3567) A_3568)
-                     | SET_c20 => ?A_3568 ⋅ ((ref_t_3567) A_3568)
-                     | FREE_c21 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](GET_c19)=>
-                 !_3573 ⋅ ((ref_t_3567) _3573)
-               [eqns{ }](SET_c20)=>
-                 ?_3573 ⋅ ((ref_t_3567) _3573)
-               [eqns{ }](FREE_c21)=>
-                 end)
-           })
-a := ref_msg_d13 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_3621 ?= GET_c19 : ref_msg_d13)}]()=>
-                 !_3573 ⋅ ((ref_t_3567) _3573)
-               [eqns{ (_3621 ?= SET_c20 : ref_msg_d13)}]()=>
-                 ?_3573 ⋅ ((ref_t_3567) _3573)
-               [eqns{ (_3621 ?= FREE_c21 : ref_msg_d13)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        ?_3573 ⋅ ((ref_t_3567) _3573))
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        !_3573 ⋅ ((ref_t_3567) _3573))
-           })
-a := proto
-check_prbm({
-             global=(
-               eqns{
-                 ((sig_d8 A_783
-                  (fun
-                    | _3949 =>
-                      ch<(((fun ref_t_3950 : U -> proto
-                             | A_3955 =>
-                               ?(msg_3956 : ref_msg_d13) ⋅
-                                 (match msg_3956 with
-                                   | GET_c19 =>
-                                     !A_3955 ⋅ ((ref_t_3950) A_3955)
-                                   | SET_c20 =>
-                                     ?A_3955 ⋅ ((ref_t_3950) A_3955)
-                                   | FREE_c21 => end))) A_783)>)) ?= 
-                 (sig_d8 (@[U]A_783)
-                 (@[(@[U]A_783) -> L](fun
-                                       | _3968 =>
-                                         ch<(((fun ref_t_3969 : U -> proto
-                                                | A_3974 =>
-                                                  ?(msg_3975 : ref_msg_d13) ⋅
-                                                    (match msg_3975 with
-                                                      | GET_c19 =>
-                                                        !A_3974 ⋅
-                                                          ((ref_t_3969) A_3974)
-                                                      | SET_c20 =>
-                                                        ?A_3974 ⋅
-                                                          ((ref_t_3969) A_3974)
-                                                      | FREE_c21 => end))) A_783)>))) : L)})
-             clause=(
-               [eqns{ (A_783 ?= _3479 : U)
-                ((fun
-                   | _3986 =>
-                     ch<(((fun ref_t_3987 : U -> proto
-                            | A_3992 =>
-                              ?(msg_3993 : ref_msg_d13) ⋅
-                                (match msg_3993 with
-                                  | GET_c19 =>
-                                    !A_3992 ⋅ ((ref_t_3987) A_3992)
-                                  | SET_c20 =>
-                                    ?A_3992 ⋅ ((ref_t_3987) A_3992)
-                                  | FREE_c21 => end))) A_783)>) ?= _3478 : 
-                A_783 -> L) (x_3861 ?= m_3452 : A_783)
-                (_3862 ?= ch_3453 : (((fun
-                                        | _4005 =>
-                                          ch<(((fun ref_t_4006 : U -> proto
-                                                 | A_4011 =>
-                                                   ?(msg_4012 : ref_msg_d13) ⋅
-                                                     (match msg_4012 with
-                                                       | GET_c19 =>
-                                                         !A_4011 ⋅
-                                                           ((ref_t_4006) A_4011)
-                                                       | SET_c20 =>
-                                                         ?A_4011 ⋅
-                                                           ((ref_t_4006) A_4011)
-                                                       | FREE_c21 => end))) A_783)>)) x_3861))}]()=>
-                 ((ref_handler_769) A_783 m_3452 ch_3453))
-           })
-a := unit_d1
-check_prbm({
-             global=(
-               eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)
-               ((sig_d8 ref_msg_d13
-                (fun
-                  | msg_4244 =>
-                    ch<(match msg_4244 with
-                         | GET_c19 =>
-                           !A_783 ⋅
-                             (((fun ref_t_4252 : U -> proto
-                                 | A_4257 =>
-                                   ?(msg_4258 : ref_msg_d13) ⋅
-                                     (match msg_4258 with
-                                       | GET_c19 =>
-                                         !A_4257 ⋅ ((ref_t_4252) A_4257)
-                                       | SET_c20 =>
-                                         ?A_4257 ⋅ ((ref_t_4252) A_4257)
-                                       | FREE_c21 => end))) A_783)
-                         | SET_c20 =>
-                           ?A_783 ⋅
-                             (((fun ref_t_4268 : U -> proto
-                                 | A_4273 =>
-                                   ?(msg_4274 : ref_msg_d13) ⋅
-                                     (match msg_4274 with
-                                       | GET_c19 =>
-                                         !A_4273 ⋅ ((ref_t_4268) A_4273)
-                                       | SET_c20 =>
-                                         ?A_4273 ⋅ ((ref_t_4268) A_4273)
-                                       | FREE_c21 => end))) A_783)
-                         | FREE_c21 => end)>)) ?= (sig_d8 (@[U]ref_msg_d13)
-                                                  (@[(@[U]ref_msg_d13) -> L]
-                                                  (fun
-                                                    | msg_4294 =>
-                                                      ch<(match msg_4294 with
-                                                           | GET_c19 =>
-                                                             !A_783 ⋅
-                                                               (((fun ref_t_4302 : 
-                                                                  U -> proto
-                                                                   | A_4307 =>
-                                                                    ?(msg_4308 : ref_msg_d13) ⋅
-                                                                    (
-                                                                    match msg_4308 with
-                                                                    | GET_c19 =>
-                                                                    !A_4307 ⋅
-                                                                    ((ref_t_4302) A_4307)
-                                                                    | SET_c20 =>
-                                                                    ?A_4307 ⋅
-                                                                    ((ref_t_4302) A_4307)
-                                                                    | FREE_c21 =>
-                                                                    end))) A_783)
-                                                           | SET_c20 =>
-                                                             ?A_783 ⋅
-                                                               (((fun ref_t_4318 : 
-                                                                  U -> proto
-                                                                   | A_4323 =>
-                                                                    ?(msg_4324 : ref_msg_d13) ⋅
-                                                                    (
-                                                                    match msg_4324 with
-                                                                    | GET_c19 =>
-                                                                    !A_4323 ⋅
-                                                                    ((ref_t_4318) A_4323)
-                                                                    | SET_c20 =>
-                                                                    ?A_4323 ⋅
-                                                                    ((ref_t_4318) A_4323)
-                                                                    | FREE_c21 =>
-                                                                    end))) A_783)
-                                                           | FREE_c21 => end)>))) : L)})
-             clause=(
-               [eqns{ (ref_msg_d13 ?= _903 : U)
-                ((fun
-                   | msg_4343 =>
-                     ch<(match msg_4343 with
-                          | GET_c19 =>
-                            !A_783 ⋅
-                              (((fun ref_t_4351 : U -> proto
-                                  | A_4356 =>
-                                    ?(msg_4357 : ref_msg_d13) ⋅
-                                      (match msg_4357 with
-                                        | GET_c19 =>
-                                          !A_4356 ⋅ ((ref_t_4351) A_4356)
-                                        | SET_c20 =>
-                                          ?A_4356 ⋅ ((ref_t_4351) A_4356)
-                                        | FREE_c21 => end))) A_783)
-                          | SET_c20 =>
-                            ?A_783 ⋅
-                              (((fun ref_t_4367 : U -> proto
-                                  | A_4372 =>
-                                    ?(msg_4373 : ref_msg_d13) ⋅
-                                      (match msg_4373 with
-                                        | GET_c19 =>
-                                          !A_4372 ⋅ ((ref_t_4367) A_4372)
-                                        | SET_c20 =>
-                                          ?A_4372 ⋅ ((ref_t_4367) A_4372)
-                                        | FREE_c21 => end))) A_783)
-                          | FREE_c21 => end)>) ?= _902 : ref_msg_d13 -> L)
-                (_1894 ?= ch_830 : (((fun
-                                       | msg_4393 =>
-                                         ch<(match msg_4393 with
-                                              | GET_c19 =>
-                                                !A_783 ⋅
-                                                  (((fun ref_t_4401 : 
-                                                     U -> proto
-                                                      | A_4406 =>
-                                                        ?(msg_4407 : ref_msg_d13) ⋅
-                                                          (match msg_4407 with
-                                                            | GET_c19 =>
-                                                              !A_4406 ⋅
-                                                                ((ref_t_4401) A_4406)
-                                                            | SET_c20 =>
-                                                              ?A_4406 ⋅
-                                                                ((ref_t_4401) A_4406)
-                                                            | FREE_c21 => end))) A_783)
-                                              | SET_c20 =>
-                                                ?A_783 ⋅
-                                                  (((fun ref_t_4417 : 
-                                                     U -> proto
-                                                      | A_4422 =>
-                                                        ?(msg_4423 : ref_msg_d13) ⋅
-                                                          (match msg_4423 with
-                                                            | GET_c19 =>
-                                                              !A_4422 ⋅
-                                                                ((ref_t_4417) A_4422)
-                                                            | SET_c20 =>
-                                                              ?A_4422 ⋅
-                                                                ((ref_t_4417) A_4422)
-                                                            | FREE_c21 => end))) A_783)
-                                              | FREE_c21 => end)>)) GET_c19))}]()=>
-                 ((ref_handler_769) ??1 m_792 ((send ch_830) m_792)))
-           })
-a := unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_4777, m_4778, x_4779)=>
-                 fork (ref_4780 : ch<((ref_t_74) A_4777)>) <- x_4779 in
-                   ((ref_handler_80) A_4777 m_4778 ref_4780))
-           })
-a := ∀ (A_4781 : U) ->
-       A_4781 -> @main -> (tnsr_d9 hc<((ref_t_74) A_4781)> @main)
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (A_4786 ?= A_4777 : U)}](m_4778, x_4779)=>
-                 fork (ref_4787 : ch<((ref_t_74) A_4777)>) <- x_4779 in
-                   ((ref_handler_80) A_4777 m_4778 ref_4787))
-           })
-a := A_4786 -> @main -> (tnsr_d9 hc<((ref_t_74) A_4786)> @main)
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_4791 ?= m_4778 : A_4786) (A_4786 ?= A_4777 : U)}](x_4779)=>
-                 fork (ref_4792 : ch<((ref_t_74) A_4777)>) <- x_4779 in
-                   ((ref_handler_80) A_4777 m_4778 ref_4792))
-           })
-a := @main -> (tnsr_d9 hc<((ref_t_74) A_4786)> @main)
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_4794 ?= x_4779 : @main) (_4791 ?= m_4778 : A_4786)
-                (A_4786 ?= A_4777 : U)}]()=>
-                 fork (ref_4795 : ch<((ref_t_74) A_4777)>) <- x_4779 in
-                   ((ref_handler_80) A_4777 m_4778 ref_4795))
-           })
-a := (tnsr_d9 hc<((ref_t_74) A_4786)> @main)
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](GET_c19)=>
-                 !A_4786 ⋅
-                   (((fun ref_t_4829 : U -> proto
-                       | A_4834 =>
-                         ?(msg_4835 : ref_msg_d13) ⋅
-                           (match msg_4835 with
-                             | GET_c19 => !A_4834 ⋅ ((ref_t_4829) A_4834)
-                             | SET_c20 => ?A_4834 ⋅ ((ref_t_4829) A_4834)
-                             | FREE_c21 => end))) A_4786)
-               [eqns{ }](SET_c20)=>
-                 ?A_4786 ⋅
-                   (((fun ref_t_4845 : U -> proto
-                       | A_4850 =>
-                         ?(msg_4851 : ref_msg_d13) ⋅
-                           (match msg_4851 with
-                             | GET_c19 => !A_4850 ⋅ ((ref_t_4845) A_4850)
-                             | SET_c20 => ?A_4850 ⋅ ((ref_t_4845) A_4850)
-                             | FREE_c21 => end))) A_4786)
-               [eqns{ }](FREE_c21)=>
-                 end)
-           })
-a := ref_msg_d13 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_4855 ?= GET_c19 : ref_msg_d13)}]()=>
-                 !A_4786 ⋅
-                   (((fun ref_t_4863 : U -> proto
-                       | A_4868 =>
-                         ?(msg_4869 : ref_msg_d13) ⋅
-                           (match msg_4869 with
-                             | GET_c19 => !A_4868 ⋅ ((ref_t_4863) A_4868)
-                             | SET_c20 => ?A_4868 ⋅ ((ref_t_4863) A_4868)
-                             | FREE_c21 => end))) A_4786)
-               [eqns{ (_4855 ?= SET_c20 : ref_msg_d13)}]()=>
-                 ?A_4786 ⋅
-                   (((fun ref_t_4879 : U -> proto
-                       | A_4884 =>
-                         ?(msg_4885 : ref_msg_d13) ⋅
-                           (match msg_4885 with
-                             | GET_c19 => !A_4884 ⋅ ((ref_t_4879) A_4884)
-                             | SET_c20 => ?A_4884 ⋅ ((ref_t_4879) A_4884)
-                             | FREE_c21 => end))) A_4786)
-               [eqns{ (_4855 ?= FREE_c21 : ref_msg_d13)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=(
-               [eqns{ }]()=>
-                 ?A_4786 ⋅
-                   (((fun ref_t_4931 : U -> proto
-                       | A_4936 =>
-                         ?(msg_4937 : ref_msg_d13) ⋅
-                           (match msg_4937 with
-                             | GET_c19 => !A_4936 ⋅ ((ref_t_4931) A_4936)
-                             | SET_c20 => ?A_4936 ⋅ ((ref_t_4931) A_4936)
-                             | FREE_c21 => end))) A_4786))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_4963)=>
-                 ?(msg_4964 : ref_msg_d13) ⋅
-                   (match msg_4964 with
-                     | GET_c19 => !A_4963 ⋅ ((ref_t_4962) A_4963)
-                     | SET_c20 => ?A_4963 ⋅ ((ref_t_4962) A_4963)
-                     | FREE_c21 => end))
-           })
-a := U -> proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_4968 ?= A_4963 : U)}]()=>
-                 ?(msg_4969 : ref_msg_d13) ⋅
-                   (match msg_4969 with
-                     | GET_c19 => !A_4963 ⋅ ((ref_t_4962) A_4963)
-                     | SET_c20 => ?A_4963 ⋅ ((ref_t_4962) A_4963)
-                     | FREE_c21 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](GET_c19)=>
-                 !_4968 ⋅ ((ref_t_4962) _4968)
-               [eqns{ }](SET_c20)=>
-                 ?_4968 ⋅ ((ref_t_4962) _4968)
-               [eqns{ }](FREE_c21)=>
-                 end)
-           })
-a := ref_msg_d13 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_4993 ?= GET_c19 : ref_msg_d13)}]()=>
-                 !_4968 ⋅ ((ref_t_4962) _4968)
-               [eqns{ (_4993 ?= SET_c20 : ref_msg_d13)}]()=>
-                 ?_4968 ⋅ ((ref_t_4962) _4968)
-               [eqns{ (_4993 ?= FREE_c21 : ref_msg_d13)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        ?_4968 ⋅ ((ref_t_4962) _4968))
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        !_4968 ⋅ ((ref_t_4962) _4968))
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=(
-               [eqns{ }]()=>
-                 !A_4786 ⋅
-                   (((fun ref_t_5105 : U -> proto
-                       | A_5110 =>
-                         ?(msg_5111 : ref_msg_d13) ⋅
-                           (match msg_5111 with
-                             | GET_c19 => !A_5110 ⋅ ((ref_t_5105) A_5110)
-                             | SET_c20 => ?A_5110 ⋅ ((ref_t_5105) A_5110)
-                             | FREE_c21 => end))) A_4786))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_5137)=>
-                 ?(msg_5138 : ref_msg_d13) ⋅
-                   (match msg_5138 with
-                     | GET_c19 => !A_5137 ⋅ ((ref_t_5136) A_5137)
-                     | SET_c20 => ?A_5137 ⋅ ((ref_t_5136) A_5137)
-                     | FREE_c21 => end))
-           })
-a := U -> proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_5142 ?= A_5137 : U)}]()=>
-                 ?(msg_5143 : ref_msg_d13) ⋅
-                   (match msg_5143 with
-                     | GET_c19 => !A_5137 ⋅ ((ref_t_5136) A_5137)
-                     | SET_c20 => ?A_5137 ⋅ ((ref_t_5136) A_5137)
-                     | FREE_c21 => end))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](GET_c19)=>
-                 !_5142 ⋅ ((ref_t_5136) _5142)
-               [eqns{ }](SET_c20)=>
-                 ?_5142 ⋅ ((ref_t_5136) _5142)
-               [eqns{ }](FREE_c21)=>
-                 end)
-           })
-a := ref_msg_d13 -o proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_5167 ?= GET_c19 : ref_msg_d13)}]()=>
-                 !_5142 ⋅ ((ref_t_5136) _5142)
-               [eqns{ (_5167 ?= SET_c20 : ref_msg_d13)}]()=>
-                 ?_5142 ⋅ ((ref_t_5136) _5142)
-               [eqns{ (_5167 ?= FREE_c21 : ref_msg_d13)}]()=>
-                 end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        end)
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        ?_5142 ⋅ ((ref_t_5136) _5142))
-           })
-a := proto
-check_prbm({ global=( eqns{ (ref_msg_d13 ?= ref_msg_d13 : U)})
-             clause=( [eqns{ }]()=>
-                        !_5142 ⋅ ((ref_t_5136) _5142))
-           })
-a := proto
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_5354, m_5355, ref_5356)=>
-                 ((send ((send ref_5356) SET_c20)) m_5355))
-           })
-a := ∀ (A_5357 : U) ->
-       A_5357 -> hc<((ref_t_74) A_5357)> -o hc<((ref_t_74) A_5357)>
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (A_5362 ?= A_5354 : U)}](m_5355, ref_5356)=>
-                 ((send ((send ref_5356) SET_c20)) m_5355))
-           })
-a := A_5362 -> hc<((ref_t_74) A_5362)> -o hc<((ref_t_74) A_5362)>
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_5366 ?= m_5355 : A_5362) (A_5362 ?= A_5354 : U)}](ref_5356)=>
-                 ((send ((send ref_5356) SET_c20)) m_5355))
-           })
-a := hc<((ref_t_74) A_5362)> -o hc<((ref_t_74) A_5362)>
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_5368 ?= ref_5356 : hc<((ref_t_74) A_5362)>)
-                (_5366 ?= m_5355 : A_5362) (A_5362 ?= A_5354 : U)}]()=>
-                 ((send ((send ref_5356) SET_c20)) m_5355))
-           })
-a := hc<((ref_t_74) A_5362)>
-check_prbm({ global=( eqns{ })
-             clause=( [eqns{ }](_5541)=>
-                        hc<((ref_t_74) A_5532)>)
-           })
-a := (@[U]A_5532) -> L
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_5543 ?= _5541 : (@[U]A_5532))}]()=>
-                 hc<((ref_t_74) A_5532)>)
-           })
-a := L
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_5564, ref_5565)=>
-                 recv ((send ref_5565) GET_c19))
-           })
-a := ∀ (A_5566 : U) ->
-       hc<((ref_t_74) A_5566)> -o
-         (sig_d8 A_5566 (fun
-                          | _5573 => hc<((ref_t_74) A_5566)>))
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (A_5574 ?= A_5564 : U)}](ref_5565)=>
-                 recv ((send ref_5565) GET_c19))
-           })
-a := hc<((ref_t_74) A_5574)> -o
-       (sig_d8 A_5574 (fun
-                        | _5580 => hc<((ref_t_74) A_5574)>))
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_5581 ?= ref_5565 : hc<((ref_t_74) A_5574)>)
-                (A_5574 ?= A_5564 : U)}]()=>
-                 recv ((send ref_5565) GET_c19))
-           })
-a := (sig_d8 A_5574 (fun
-                      | _5584 => hc<((ref_t_74) A_5574)>))
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](A_5746, ref_5747)=>
-                 close ((send ref_5747) FREE_c21))
-           })
-a := ∀ (A_5748 : U) -> hc<((ref_t_74) A_5748)> -o unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (A_5751 ?= A_5746 : U)}](ref_5747)=>
-                 close ((send ref_5747) FREE_c21))
-           })
-a := hc<((ref_t_74) A_5751)> -o unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_5753 ?= ref_5747 : hc<((ref_t_74) A_5751)>)
-                (A_5751 ?= A_5746 : U)}]()=>
-                 close ((send ref_5747) FREE_c21))
-           })
-a := unit_d1
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }](_5891, _5892, (vcons_c11 _5893 _5894 tl_5895))=>
-                 zero_c4)
-           })
-a := ∀ (A_5896 : U) ->
-       ∀ (n_5899 : nat_d3) -> (vec_d6 A_5896 (succ_c5 n_5899)) -> nat_d3
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (A_5902 ?= _5891 : U)}](_5892, (vcons_c11 _5893 _5894 tl_5895))=>
-                 zero_c4)
-           })
-a := ∀ (n_5903 : nat_d3) -> (vec_d6 A_5902 (succ_c5 n_5903)) -> nat_d3
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (n_5906 ?= _5892 : nat_d3) (A_5902 ?= _5891 : U)}]((vcons_c11 _5893 _5894 tl_5895))=>
-                 zero_c4)
-           })
-a := (vec_d6 A_5902 (succ_c5 n_5906)) -> nat_d3
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{
-                  (_5908 ?= (vcons_c11 _5913 _5893 _5894 tl_5895) : (vec_d6
-                                                                    A_5902
-                                                                    (succ_c5
-                                                                    n_5906)))
-                (n_5906 ?= _5892 : nat_d3) (A_5902 ?= _5891 : U)}]()=>
-                 zero_c4)
-           })
-a := nat_d3
-check_prbm({
-             global=(
-               eqns{
-                 ((vec_d6 A_5902 (succ_c5 n_5906)) ?= (vec_d6 (@[U]A_5902)
-                                                      (succ_c5 n_5922)) : U)})
-             clause=(
-               [eqns{ (A_5902 ?= _5913 : U) (n_5922 ?= _5893 : nat_d3)
-                (_5923 ?= _5894 : A_5902)
-                (_5924 ?= tl_5895 : (vec_d6 A_5902 n_5922))
-                (n_5906 ?= _5892 : nat_d3) (A_5902 ?= _5891 : U)}]()=>
-                 zero_c4)
-           })
-a := nat_d3
-check_prbm({
-             global=(
-               eqns{
-                 ((vec_d6 A_5902 (succ_c5 n_5906)) ?= (vec_d6 (@[U]A_5902)
-                                                      zero_c4) : U)})
-             clause=( )
-           })
-a := nat_d3
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }]((tnsr_intro_c14 ref_6080 main_6081))=>
-                 (match ((get_ref_107) ??3 ref_6080) with
-                   | (sig_intro_c13 msg1_6082 ref_6083) =>
-                     (match ((free_ref_114) ??4 ref_6083) with
-                       | tt_c1 => main_6081)))
-           })
-a := (tnsr_d9 hc<((ref_t_74) (@[U]string_d12))> @main) -o ??5
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{
-                  (_6085 ?= (tnsr_intro_c14 _6091 _6090 ref_6080 main_6081) : 
-                  (tnsr_d9 hc<((ref_t_74) (@[U]string_d12))> @main))}]()=>
-                 (match ((get_ref_107) ??3 ref_6080) with
-                   | (sig_intro_c13 msg1_6092 ref_6093) =>
-                     (match ((free_ref_114) ??4 ref_6093) with
-                       | tt_c1 => main_6081)))
-           })
-a := ??5
-check_prbm({
-             global=(
-               eqns{
-                 ((tnsr_d9 hc<((ref_t_74) (@[U]string_d12))> @main) ?= 
-                 (tnsr_d9 (@[L]hc<((ref_t_74) (@[U]string_d12))>)
-                 (@[L]@main)) : L)})
-             clause=(
-               [eqns{
-                  (hc<?(msg_6150 : ref_msg_d13) ⋅
-                        (match msg_6150 with
-                          | GET_c19 =>
-                            !string_d12 ⋅
-                              (((fun ref_t_6158 : U -> proto
-                                  | A_6163 =>
-                                    ?(msg_6164 : ref_msg_d13) ⋅
-                                      (match msg_6164 with
-                                        | GET_c19 =>
-                                          !A_6163 ⋅ ((ref_t_6158) A_6163)
-                                        | SET_c20 =>
-                                          ?A_6163 ⋅ ((ref_t_6158) A_6163)
-                                        | FREE_c21 => end))) string_d12)
-                          | SET_c20 =>
-                            ?string_d12 ⋅
-                              (((fun ref_t_6174 : U -> proto
-                                  | A_6179 =>
-                                    ?(msg_6180 : ref_msg_d13) ⋅
-                                      (match msg_6180 with
-                                        | GET_c19 =>
-                                          !A_6179 ⋅ ((ref_t_6174) A_6179)
-                                        | SET_c20 =>
-                                          ?A_6179 ⋅ ((ref_t_6174) A_6179)
-                                        | FREE_c21 => end))) string_d12)
-                          | FREE_c21 => end)> ?= _6091 : L)
-                (@main ?= _6090 : L)
-                (_6106 ?= ref_6080 : hc<((ref_t_74) (@[U]string_d12))>)
-                (_6107 ?= main_6081 : @main)}]()=>
-                 (match ((get_ref_107) ??3 ref_6080) with
-                   | (sig_intro_c13 msg1_6183 ref_6184) =>
-                     (match ((free_ref_114) ??4 ref_6184) with
-                       | tt_c1 => main_6081)))
-           })
-a := ??5
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ }]((sig_intro_c13 msg1_6288 ref_6289))=>
-                 (match ((free_ref_114) ??4 ref_6289) with
-                   | tt_c1 => _6107))
-           })
-a := (sig_d8 (@[U]??3) (fun
-                         | _6293 => hc<((ref_t_74) (@[U]??3))>)) -o ??5
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{
-                  (_6294 ?= (sig_intro_c13 _6300 _6299 msg1_6288 ref_6289) : 
-                  (sig_d8 (@[U]??3)
-                  (fun
-                    | _6303 => hc<((ref_t_74) (@[U]??3))>)))}]()=>
-                 (match ((free_ref_114) ??4 ref_6289) with
-                   | tt_c1 => _6107))
-           })
-a := ??5
-check_prbm({ global=( eqns{ })
-             clause=( [eqns{ }](_6309)=>
-                        hc<((ref_t_74) (@[U]??3))>)
-           })
-a := (@[U](@[U]??3)) -> L
-check_prbm({ global=( eqns{ })
-             clause=(
-               [eqns{ (_6311 ?= _6309 : (@[U](@[U]??3)))}]()=>
-                 hc<((ref_t_74) (@[U]??3))>)
-           })
-a := L
-check_prbm({
-             global=(
-               eqns{
-                 ((sig_d8 (@[U]??3)
-                  (fun
-                    | _6400 => hc<((ref_t_74) (@[U]??3))>)) ?= (sig_d8
-                                                                 (@[U]
-                                                                 (@[U]??3))
-                                                               (@[(@[U]
-                                                                  (@[U]??3)) ->
-                                                                    L]
-                                                               (fun
-                                                                 | _6404 =>
-                                                                   hc<
-                                                                 ((ref_t_74) 
-                                                                 (@[U]??3))>))) : L)})
-             clause=(
-               [eqns{ (??3 ?= _6300 : U)
-                ((fun
-                   | _6407 => hc<((ref_t_74) (@[U]??3))>) ?= _6299 : 
-                (@[U]??3) -> L) (x_6350 ?= msg1_6288 : (@[U]??3))
-                (_6351 ?= ref_6289 : (((fun
-                                         | _6411 =>
-                                           hc<((ref_t_74) (@[U]??3))>)) x_6350))}]()=>
-                 (match ((free_ref_114) ??4 ref_6289) with
-                   | tt_c1 => _6107))
-           })
-a := ??5
-check_prbm({ global=( eqns{ }) clause=( [eqns{ }](tt_c1)=>
-                                          _6107) })
-a := unit_d1 -o ??5
-check_prbm({ global=( eqns{ })
-             clause=( [eqns{ (_6478 ?= tt_c1 : unit_d1)}]()=>
-                        _6107)
-           })
-a := ??5
-check_prbm({ global=( eqns{ (unit_d1 ?= unit_d1 : U)})
-             clause=( [eqns{ }]()=>
-                        _6107)
-           })
-a := ??5
+trans01 success-------------------------------------
+
 data unit_d1 : U
   | tt_c1 : unit_d1
 
@@ -2962,38 +429,40 @@ data nat_d3 : U
   | zero_c4 : nat_d3
   | succ_c5 : nat_d3 -> nat_d3
 
-def (addn_2 := addn_7127) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_7131 => x_7131
-  | (succ_c5 x_7132) y_7133 => (succ_c5 ((addn_7127) x_7132 y_7133))
+def (addn_3 := addn_10805) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_10809 => x_10809
+  | (succ_c5 x_10810) y_10811 => (succ_c5 ((addn_10805) x_10810 y_10811))
 
-data option_d4 (A_7134 : U) : U
-  | none_c6 (A_7135 : U) : (option_d4 A_7135)
-  | some_c7 (A_7136 : U) : A_7136 -> (option_d4 A_7136)
+data option_d4 (A_10812 : U) : U
+  | none_c6 (A_10813 : U) : (option_d4 A_10813)
+  | some_c7 (A_10814 : U) : A_10814 -> (option_d4 A_10814)
 
-data list_d5 (A_7138 : U) : U
-  | nil_c8 (A_7139 : U) : (list_d5 A_7139)
-  | cons_c9 (A_7140 : U) : A_7140 -> (list_d5 A_7140) -> (list_d5 A_7140)
+data list_d5 (A_10816 : U) : U
+  | nil_c8 (A_10817 : U) : (list_d5 A_10817)
+  | cons_c9 (A_10818 : U) : A_10818 -> (list_d5 A_10818) -> (list_d5 A_10818)
 
-data vec_d6 (A_7144 : U) : nat_d3 -> U
-  | vnil_c10 (A_7146 : U) : (vec_d6 A_7146 zero_c4)
-  | vcons_c11 (A_7147 : U) :
-    ∀ (n_7148 : nat_d3) ->
-      A_7147 -> (vec_d6 A_7147 n_7148) -> (vec_d6 A_7147 (succ_c5 n_7148))
+data vec_d6 (A_10822 : U) : nat_d3 -> U
+  | vnil_c10 (A_10824 : U) : (vec_d6 A_10824 zero_c4)
+  | vcons_c11 (A_10825 : U) :
+    ∀ (n_10826 : nat_d3) ->
+      A_10825 ->
+        (vec_d6 A_10825 n_10826) -> (vec_d6 A_10825 (succ_c5 n_10826))
 
-data ex_d7 (A_7153 : U) (P_7154 : A_7153 -> U) : U
-  | ex_intro_c12 (A_7156 : U) (P_7157 : A_7156 -> U) :
-    ∀ (x_7159 : A_7156) -> ((P_7157) x_7159) -> (ex_d7 A_7156 P_7157)
+data ex_d7 (A_10831 : U) (P_10832 : A_10831 -> U) : U
+  | ex_intro_c12 (A_10834 : U) (P_10835 : A_10834 -> U) :
+    ∀ (x_10837 : A_10834) -> ((P_10835) x_10837) -> (ex_d7 A_10834 P_10835)
 
-data sig_d8 (A_7161 : U) (P_7162 : A_7161 -> L) : L
-  | sig_intro_c13 (A_7164 : U) (P_7165 : A_7164 -> L) :
-    ∀ (x_7167 : A_7164) -> ((P_7165) x_7167) -> (sig_d8 A_7164 P_7165)
+data sig_d8 (A_10839 : U) (P_10840 : A_10839 -> L) : L
+  | sig_intro_c13 (A_10842 : U) (P_10843 : A_10842 -> L) :
+    ∀ (x_10845 : A_10842) ->
+      ((P_10843) x_10845) -> (sig_d8 A_10842 P_10843)
 
-data tnsr_d9 (A_7169 : L) (B_7170 : L) : L
-  | tnsr_intro_c14 (A_7171 : L) (B_7172 : L) :
-    A_7171 -> B_7172 -> (tnsr_d9 A_7171 B_7172)
+data tnsr_d9 (A_10847 : L) (B_10848 : L) : L
+  | tnsr_intro_c14 (A_10849 : L) (B_10850 : L) :
+    A_10849 -> B_10850 -> (tnsr_d9 A_10849 B_10850)
 
-data box_d10 (A_7176 : U) : L
-  | box_intro_c15 (A_7177 : U) : A_7177 -> (box_d10 A_7177)
+data box_d10 (A_10854 : U) : L
+  | box_intro_c15 (A_10855 : U) : A_10855 -> (box_d10 A_10855)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -3006,217 +475,419 @@ data string_d12 : U
   | EmptyString_c17 : string_d12
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
-def (stdin_rec_59 := stdin_rec_7218) : unit_d1 -> proto
+def (cat_60 := cat_10896) : string_d12 -> string_d12 -> string_d12
+  | EmptyString_c17 s_10900 => s_10900
+  | (String_c18 c_10901 s1_10902) s2_10903 =>
+    (String_c18 c_10901 ((cat_10896) s1_10902 s2_10903))
+
+data le_d13 (n_10904 : nat_d3) : nat_d3 -> U
+  | le_refl_c19 (n_10906 : nat_d3) : (le_d13 n_10906 n_10906)
+  | le_succ_c20 (n_10907 : nat_d3) :
+    ∀ (m_10908 : nat_d3) ->
+      (le_d13 n_10907 m_10908) -> (le_d13 n_10907 (succ_c5 m_10908))
+
+def (lt_73 := lt_10910) : nat_d3 -> nat_d3 -> U
+  | m_10914 n_10915 => (le_d13 (succ_c5 m_10914) n_10915)
+
+data eq_d14 (A_10916 : U) (x_10917 : A_10916) : A_10916 -> U
+  | refl_c21 (A_10919 : U) (x_10920 : A_10919) :
+    (eq_d14 A_10919 x_10920 x_10920)
+
+def (stdin_rec_83 := stdin_rec_10921) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_7220 : bool_d2) ⋅
-      (match b_7220 with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_7218) tt_c1)
+    !(b_10923 : bool_d2) ⋅
+      (match b_10923 return proto with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_10921) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_63 := stdout_rec_7222) : unit_d1 -> proto
+def (stdout_rec_87 := stdout_rec_10925) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_7224 : bool_d2) ⋅
-      (match b_7224 with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_7222) tt_c1)
+    !(b_10927 : bool_d2) ⋅
+      (match b_10927 return proto with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_10925) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_67 := stderr_rec_7226) : unit_d1 -> proto
+def (stderr_rec_91 := stderr_rec_10929) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_7228 : bool_d2) ⋅
-      (match b_7228 with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_7226) tt_c1)
+    !(b_10931 : bool_d2) ⋅
+      (match b_10931 return proto with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_10929) tt_c1)
         | false_c3 => end)
 
-def stdin_t_71 := ((stdin_rec_59) tt_c1)
+def stdin_t_95 := ((stdin_rec_83) tt_c1)
 
-def stdout_t_72 := ((stdout_rec_63) tt_c1)
+def stdout_t_96 := ((stdout_rec_87) tt_c1)
 
-def stderr_t_73 := ((stderr_rec_67) tt_c1)
+def stderr_t_97 := ((stderr_rec_91) tt_c1)
 
-data ref_msg_d13 : U
-  | GET_c19 : ref_msg_d13
-  | SET_c20 : ref_msg_d13
-  | FREE_c21 : ref_msg_d13
+def (readline_98 := readline_10933) :
+  ch<stdin_t_95> -> (sig_d8 string_d12 (fun
+                                         | _10939 => ch<stdin_t_95>))
+  | ch_10940 => recv ((send ch_10940) true_c2)
 
-def (ref_t_74 := ref_t_7230) : U -> proto
-  | A_7232 =>
-    ?(msg_7233 : ref_msg_d13) ⋅
-      (match msg_7233 with
-        | GET_c19 => !A_7232 ⋅ ((ref_t_7230) A_7232)
-        | SET_c20 => ?A_7232 ⋅ ((ref_t_7230) A_7232)
-        | FREE_c21 => end)
+def (close_in_103 := close_in_10941) : ch<stdin_t_95> -> unit_d1
+  | ch_10943 => close ((send ch_10943) false_c3)
 
-def (ref_handler_80 := ref_handler_7236) :
-  ∀ (A_7237 : U) -> A_7237 -> ch<((ref_t_74) A_7237)> -o unit_d1
-  | A_7242 m_7243 ch_7244 =>
-    (match recv ch_7244 with
-      | (sig_intro_c13 GET_c19 ch_7245) =>
-        ((ref_handler_7236) A_7242 m_7243 ((send ch_7245) m_7243))
-      | (sig_intro_c13 SET_c20 ch_7246) =>
-        (match recv ch_7246 with
-          | (sig_intro_c13 m_7247 ch_7248) =>
-            ((ref_handler_7236) A_7242 m_7247 ch_7248))
-      | (sig_intro_c13 FREE_c21 ch_7249) => close ch_7249)
+def (printline_106 := printline_10944) :
+  ch<stdout_t_96> -> string_d12 -o ch<stdout_t_96>
+  | ch_10948 s_10949 => ((send ((send ch_10948) true_c2)) s_10949)
 
-def (mk_ref_92 := mk_ref_7250) :
-  ∀ (A_7251 : U) ->
-    A_7251 -> @main -> (tnsr_d9 hc<((ref_t_74) A_7251)> @main)
-  | A_7256 m_7257 x_7258 =>
-    fork (ref_7259 : ch<((ref_t_74) A_7256)>) <- x_7258 in
-      ((ref_handler_80) A_7256 m_7257 ref_7259)
+def (close_out_111 := close_out_10950) : ch<stdout_t_96> -> unit_d1
+  | ch_10952 => close ((send ch_10952) false_c3)
 
-def (set_ref_100 := set_ref_7260) :
-  ∀ (A_7261 : U) ->
-    A_7261 -> hc<((ref_t_74) A_7261)> -o hc<((ref_t_74) A_7261)>
-  | A_7266 m_7267 ref_7268 => ((send ((send ref_7268) SET_c20)) m_7267)
+def (printerr_114 := printerr_10953) :
+  ch<stderr_t_97> -> string_d12 -o ch<stderr_t_97>
+  | ch_10957 s_10958 => ((send ((send ch_10957) true_c2)) s_10958)
 
-def (get_ref_107 := get_ref_7269) :
-  ∀ (A_7270 : U) ->
-    hc<((ref_t_74) A_7270)> -o
-      (sig_d8 A_7270 (fun
-                       | _7277 => hc<((ref_t_74) A_7270)>))
-  | A_7278 ref_7279 => recv ((send ref_7279) GET_c19)
+def (close_err_119 := close_err_10959) : ch<stderr_t_97> -> unit_d1
+  | ch_10961 => close ((send ch_10961) false_c3)
 
-def (free_ref_114 := free_ref_7280) :
-  ∀ (A_7281 : U) -> hc<((ref_t_74) A_7281)> -o unit_d1
-  | A_7284 ref_7285 => close ((send ref_7285) FREE_c21)
+def loc_122 := nat_d3
 
-def (tail_119 := tail_7286) :
-  ∀ (A_7287 : U) ->
-    ∀ (n_7290 : nat_d3) -> (vec_d6 A_7287 (succ_c5 n_7290)) -> nat_d3
-  | _7293 _7294 (vcons_c11 _7295 _7296 tl_7297) => zero_c4
+axiom at_123 : U -> loc_122 -> L
 
-open @main as main_128
+axiom new_126 :
+  ∀ (A_10965 : U) ->
+    A_10965 -> (sig_d8 loc_122 (fun
+                                 | l_10972 => ((at_123) A_10965 l_10972)))
 
-def main_129 :=
-  (match ((mk_ref_92) string_d12 ??2 main_128) with
-    | (tnsr_intro_c14 ref_7298 main_7299) =>
-      (match ((get_ref_107) string_d12 ref_7298) with
-        | (sig_intro_c13 msg1_7300 ref_7301) =>
-          (match ((free_ref_114) string_d12 ref_7301) with
-            | tt_c1 => main_7299)))
+axiom free_131 :
+  ∀ (A_10973 : U) ->
+    ∀ (l_10976 : loc_122) ->
+      A_10973 -> ((at_123) A_10973 l_10976) -> unit_d1
+
+axiom get_136 :
+  ∀ (A_10982 : U) ->
+    ∀ (l_10985 : loc_122) ->
+      ((at_123) A_10982 l_10985) ->
+        (sig_d8 A_10982 (fun
+                          | _10992 => ((at_123) A_10982 l_10985)))
+
+axiom set_142 :
+  ∀ (A_10993 : U) ->
+    ∀ (B_10997 : U) ->
+      ∀ (l_11002 : loc_122) ->
+        A_10993 ->
+          ((at_123) A_10993 l_11002) -> B_10997 -o ((at_123) A_10993 l_11002)
+
+data ArrVec_d15 (A_11011 : U) (l_11012 : loc_122) : loc_122 -> L
+  | Nil_c22 (A_11014 : U) (l_11015 : loc_122) :
+    (ArrVec_d15 A_11014 l_11015 zero_c4)
+  | Cons_c23 (A_11016 : U) (l_11017 : loc_122) :
+    ∀ (n_11018 : nat_d3) ->
+      ((at_123) A_11016 ((addn_3) l_11017 n_11018)) ->
+        (ArrVec_d15 A_11016 l_11017 n_11018) ->
+          (ArrVec_d15 A_11016 l_11017 (succ_c5 n_11018))
+
+def (Array_159 := Array_11022) : U -> loc_122 -> L
+  | A_11026 n_11027 =>
+    (sig_d8 loc_122 (fun
+                      | l_11030 => (ArrVec_d15 A_11026 l_11030 n_11027)))
+
+def (nth_166 := nth_11031) :
+  ∀ (A_11032 : U) ->
+    ∀ (l_11038 : loc_122) ->
+      ∀ (m_11043 : loc_122) ->
+        ∀ (n_11046 : loc_122) ->
+          ((lt_73) m_11043 n_11046) ->
+            (ArrVec_d15 A_11032 l_11038 n_11046) ->
+              (tnsr_d9 ((at_123) A_11032 ((addn_3) l_11038 m_11043))
+              ((at_123) A_11032 ((addn_3) l_11038 m_11043)) -o
+                (ArrVec_d15 A_11032 l_11038 n_11046))
+  | _11054 _11055 _11056 _11057 le_refl_c19 (Cons_c23 n_11058 c_11059 v_11060) =>
+    (tnsr_intro_c14 c_11059
+    (fun
+      | c_11063 => (Cons_c23 n_11058 c_11063 v_11060)))
+  | _11064 _11065 m_11066 _11067 (le_succ_c20 _11068 pf_11069) (Cons_c23 n_11070 c0_11071 v0_11072) =>
+    (match ((nth_11031) _11064 _11065 m_11066 n_11070 pf_11069 v0_11072)
+     return
+       (tnsr_d9 ((at_123) _11064 ((addn_3) _11065 m_11066))
+       ((at_123) _11064 ((addn_3) _11065 m_11066)) -o
+         (ArrVec_d15 _11064 _11065 (succ_c5 _11068)))
+     with
+      | (tnsr_intro_c14 c_11074 f_11075) =>
+        (tnsr_intro_c14 c_11074
+        (fun
+          | c_11078 => (Cons_c23 n_11070 c0_11071 ((f_11075) c_11078)))))
+
+def (index_196 := index_11079) :
+  ∀ (A_11080 : U) ->
+    ∀ (m_11085 : loc_122) ->
+      ∀ (n_11088 : loc_122) ->
+        ((lt_73) m_11085 n_11088) ->
+          ((Array_159) A_11080 n_11088) ->
+            (sig_d8 A_11080 (fun
+                              | _11099 => ((Array_159) A_11080 n_11088)))
+  | _11100 m_11101 _11102 pf_11103 a_11104 =>
+    (match a_11104 return
+       (sig_d8 _11100 (fun
+                        | _11107 => ((Array_159) _11100 _11102)))
+     with
+      | (sig_intro_c13 l_11108 v_11109) =>
+        (match ((nth_166) _11100 l_11108 m_11101 _11102 pf_11103 v_11109)
+         return (sig_d8 _11100 (fun
+                                 | _11112 => ((Array_159) _11100 _11102)))
+         with
+          | (tnsr_intro_c14 c_11113 f_11114) =>
+            (match ((get_136) _11100 ((addn_3) l_11108 m_11101) c_11113)
+             return
+               (sig_d8 _11100 (fun
+                                | _11117 => ((Array_159) _11100 _11102)))
+             with
+              | (sig_intro_c13 x_11118 c_11119) =>
+                (sig_intro_c13 x_11118
+                (sig_intro_c13 l_11108 ((f_11114) c_11119))))))
+
+def _215 := main_1
 
 
-----------------------------------------------
-def (addn_2 := addn_7325) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_7329 => x_7329
-  | (succ_c5 x_7330) y_7331 => (succ_c5 ((addn_7325) x_7330 y_7331))
+trans1e success-------------------------------------
 
-def (stdin_rec_59 := stdin_rec_7332) : unit_d1 -> proto
-  | tt_c1 =>
-    !(b_7334 : bool_d2) ⋅
-      (match b_7334 with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_7332) tt_c1)
-        | false_c3 => end)
+def addn_3 :=
+  fix addn_14330 _14331 =>
+    (case _14331 of
+      | zero_c4 => lam _14332 => _14332
+      | (succ_c5 _14333) =>
+        lam _14334 => (succ_c5 ((addn_14330) _14333 _14334)))
 
-def (stdout_rec_63 := stdout_rec_7336) : unit_d1 -> proto
-  | tt_c1 =>
-    !(b_7338 : bool_d2) ⋅
-      (match b_7338 with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_7336) tt_c1)
-        | false_c3 => end)
+def cat_60 :=
+  fix cat_14335 _14336 =>
+    (case _14336 of
+      | EmptyString_c17 => lam _14337 => _14337
+      | (String_c18 _14338 _14339) =>
+        lam _14340 => (String_c18 _14338 ((cat_14335) _14339 _14340)))
 
-def (stderr_rec_67 := stderr_rec_7340) : unit_d1 -> proto
-  | tt_c1 =>
-    !(b_7342 : bool_d2) ⋅
-      (match b_7342 with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_7340) tt_c1)
-        | false_c3 => end)
+def lt_73 := fix lt_14341 _14342 _14343 => (le_d13 (succ_c5 _14342) _14343)
 
-def stdin_t_71 :=
-  !(b_7344 : bool_d2) ⋅
-    (match b_7344 with
-      | true_c2 =>
-        ?string_d12 ⋅
-          (((fun stdin_rec_7350 : unit_d1 -> proto
-              | tt_c1 =>
-                !(b_7354 : bool_d2) ⋅
-                  (match b_7354 with
-                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_7350) tt_c1)
-                    | false_c3 => end))) tt_c1)
-      | false_c3 => end)
+def stdin_rec_83 :=
+  fix stdin_rec_14344 _14345 =>
+    (case _14345 of
+      | tt_c1 =>
+        !(b_14346 : bool_d2) ⋅
+          ((lin _14349 =>
+              (case _14349 of
+                | true_c2 => ?string_d12 ⋅ ((stdin_rec_14344) tt_c1)
+                | false_c3 => end))
+            b_14346))
 
-def stdout_t_72 :=
-  !(b_7356 : bool_d2) ⋅
-    (match b_7356 with
-      | true_c2 =>
-        !string_d12 ⋅
-          (((fun stdout_rec_7362 : unit_d1 -> proto
-              | tt_c1 =>
-                !(b_7366 : bool_d2) ⋅
-                  (match b_7366 with
-                    | true_c2 => !string_d12 ⋅ ((stdout_rec_7362) tt_c1)
-                    | false_c3 => end))) tt_c1)
-      | false_c3 => end)
+def stdout_rec_87 :=
+  fix stdout_rec_14351 _14352 =>
+    (case _14352 of
+      | tt_c1 =>
+        !(b_14353 : bool_d2) ⋅
+          ((lin _14356 =>
+              (case _14356 of
+                | true_c2 => !string_d12 ⋅ ((stdout_rec_14351) tt_c1)
+                | false_c3 => end))
+            b_14353))
 
-def stderr_t_73 :=
-  !(b_7368 : bool_d2) ⋅
-    (match b_7368 with
-      | true_c2 =>
-        !string_d12 ⋅
-          (((fun stderr_rec_7374 : unit_d1 -> proto
-              | tt_c1 =>
-                !(b_7378 : bool_d2) ⋅
-                  (match b_7378 with
-                    | true_c2 => !string_d12 ⋅ ((stderr_rec_7374) tt_c1)
-                    | false_c3 => end))) tt_c1)
-      | false_c3 => end)
+def stderr_rec_91 :=
+  fix stderr_rec_14358 _14359 =>
+    (case _14359 of
+      | tt_c1 =>
+        !(b_14360 : bool_d2) ⋅
+          ((lin _14363 =>
+              (case _14363 of
+                | true_c2 => !string_d12 ⋅ ((stderr_rec_14358) tt_c1)
+                | false_c3 => end))
+            b_14360))
 
-def (ref_t_74 := ref_t_7380) : U -> proto
-  | A_7382 =>
-    ?(msg_7383 : ref_msg_d13) ⋅
-      (match msg_7383 with
-        | GET_c19 => !A_7382 ⋅ ((ref_t_7380) A_7382)
-        | SET_c20 => ?A_7382 ⋅ ((ref_t_7380) A_7382)
-        | FREE_c21 => end)
+def stdin_t_95 := ((stdin_rec_83) tt_c1)
 
-def (ref_handler_80 := ref_handler_7386) :
-  ∀ (A_7387 : U) -> A_7387 -> ch<((ref_t_74) A_7387)> -o unit_d1
-  | A_7392 m_7393 ch_7394 =>
-    (match recv ch_7394 with
-      | (sig_intro_c13 GET_c19 ch_7395) =>
-        ((ref_handler_7386) A_7392 m_7393 ((send ch_7395) m_7393))
-      | (sig_intro_c13 SET_c20 ch_7396) =>
-        (match recv ch_7396 with
-          | (sig_intro_c13 m_7397 ch_7398) =>
-            ((ref_handler_7386) A_7392 m_7397 ch_7398))
-      | (sig_intro_c13 FREE_c21 ch_7399) => close ch_7399)
+def stdout_t_96 := ((stdout_rec_87) tt_c1)
 
-def (mk_ref_92 := mk_ref_7400) :
-  ∀ (A_7401 : U) ->
-    A_7401 -> @main -> (tnsr_d9 hc<((ref_t_74) A_7401)> @main)
-  | A_7406 m_7407 x_7408 =>
-    fork (ref_7409 : ch<((ref_t_74) A_7406)>) <- x_7408 in
-      ((ref_handler_80) A_7406 m_7407 ref_7409)
+def stderr_t_97 := ((stderr_rec_91) tt_c1)
 
-def (set_ref_100 := set_ref_7410) :
-  ∀ (A_7411 : U) ->
-    A_7411 -> hc<((ref_t_74) A_7411)> -o hc<((ref_t_74) A_7411)>
-  | A_7416 m_7417 ref_7418 => ((send ((send ref_7418) SET_c20)) m_7417)
+def readline_98 := fix readline_14365 _14366 => recv ((send _14366) true_c2)
 
-def (get_ref_107 := get_ref_7419) :
-  ∀ (A_7420 : U) ->
-    hc<((ref_t_74) A_7420)> -o
-      (sig_d8 A_7420 (fun
-                       | _7427 => hc<((ref_t_74) A_7420)>))
-  | A_7428 ref_7429 => recv ((send ref_7429) GET_c19)
+def close_in_103 :=
+  fix close_in_14367 _14368 => close ((send _14368) false_c3)
 
-def (free_ref_114 := free_ref_7430) :
-  ∀ (A_7431 : U) -> hc<((ref_t_74) A_7431)> -o unit_d1
-  | A_7434 ref_7435 => close ((send ref_7435) FREE_c21)
+def printline_106 :=
+  fix printline_14369 _14370 =>
+    lin _14371 => ((send ((send _14370) true_c2)) _14371)
 
-def (tail_119 := tail_7436) :
-  ∀ (A_7437 : U) ->
-    ∀ (n_7440 : nat_d3) -> (vec_d6 A_7437 (succ_c5 n_7440)) -> nat_d3
-  | _7443 _7444 (vcons_c11 _7445 _7446 tl_7447) => zero_c4
+def close_out_111 :=
+  fix close_out_14372 _14373 => close ((send _14373) false_c3)
 
-def main_129 :=
-  (match fork (ref_7448 : ch<((ref_t_74) string_d12)>) <- main_128 in
-           ((ref_handler_80) string_d12 ??2 ref_7448) with
-    | (tnsr_intro_c14 ref_7449 main_7450) =>
-      (match ((get_ref_107) string_d12 ref_7449) with
-        | (sig_intro_c13 msg1_7451 ref_7452) =>
-          (match ((free_ref_114) string_d12 ref_7452) with
-            | tt_c1 => main_7450)))
+def printerr_114 :=
+  fix printerr_14374 _14375 =>
+    lin _14376 => ((send ((send _14375) true_c2)) _14376)
 
+def close_err_119 :=
+  fix close_err_14377 _14378 => close ((send _14378) false_c3)
+
+def loc_122 := nat_d3
+
+def Array_159 :=
+  fix Array_14379 _14380 _14381 =>
+    (sig_d8 loc_122 fix _14382 _14383 => (ArrVec_d15 _14380 _14383 _14381))
+
+def nth_166 :=
+  fix nth_14384 A_14385 l_14386 m_14387 n_14388 _14389 =>
+    (case _14389 of
+      | le_refl_c19 =>
+        lam _14390 =>
+          (case _14390 of
+            | Nil_c22 => absurd
+            | (Cons_c23 n_14391 _14392 _14393) =>
+              (tnsr_intro_c14 _14392
+              lin _14394 => (Cons_c23 m_14387 _14394 _14393)))
+      | (le_succ_c20 m_14395 _14396) =>
+        lam _14397 =>
+          (case _14397 of
+            | Nil_c22 => absurd
+            | (Cons_c23 n_14398 _14399 _14400) =>
+              ((lin _14401 =>
+                  (case _14401 of
+                    | (tnsr_intro_c14 _14402 _14403) =>
+                      (tnsr_intro_c14 _14402
+                      lin _14404 =>
+                        (Cons_c23 m_14395 _14399 ((_14403) _14404)))))
+                ((nth_14384) A_14385 l_14386 m_14387 m_14395 _14396 _14400))))
+
+def index_196 :=
+  fix index_14405 A_14406 m_14407 n_14408 _14409 _14410 =>
+    ((lin _14411 =>
+        (case _14411 of
+          | (sig_intro_c13 x_14412 _14413) =>
+            ((lin _14414 =>
+                (case _14414 of
+                  | (tnsr_intro_c14 _14415 _14416) =>
+                    ((lin _14417 =>
+                        (case _14417 of
+                          | (sig_intro_c13 x_14418 _14419) =>
+                            (sig_intro_c13 x_14418
+                            (sig_intro_c13 x_14412 ((_14416) _14419)))))
+                      ((get_136) A_14406 ((addn_3) x_14412 m_14407) _14415))))
+              ((nth_166) A_14406 x_14412 m_14407 n_14408 _14409 _14413))))
+      _14410)
+
+def _215 := main_1
+
+
+trans12 success-------------------------------------
+
+[(addn_3,
+  (VFix (addn_14420,
+     lam _14438 =>
+       (case _14438 of
+         | zero_c4 => lam _14439 => _14439
+         | (succ_c5 _14440) =>
+           lam _14441 => (succ_c5 ((addn_14420) _14440 _14441)))
+     )));
+  (cat_60,
+   (VFix (cat_14421,
+      lam _14442 =>
+        (case _14442 of
+          | EmptyString_c17 => lam _14443 => _14443
+          | (String_c18 _14444 _14445) =>
+            lam _14446 => (String_c18 _14444 ((cat_14421) _14445 _14446)))
+      )));
+  (lt_73,
+   (VFix (lt_14422, lam _14447 _14448 => (le_d13 (succ_c5 _14447) _14448))));
+  (stdin_rec_83,
+   (VFix (stdin_rec_14423,
+      lam _14449 =>
+        (case _14449 of
+          | tt_c1 =>
+            !(b_14450 : bool_d2) ⋅
+              ((lin _14453 =>
+                  (case _14453 of
+                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_14423) tt_c1)
+                    | false_c3 => end))
+                b_14450))
+      )));
+  (stdout_rec_87,
+   (VFix (stdout_rec_14424,
+      lam _14455 =>
+        (case _14455 of
+          | tt_c1 =>
+            !(b_14456 : bool_d2) ⋅
+              ((lin _14459 =>
+                  (case _14459 of
+                    | true_c2 => !string_d12 ⋅ ((stdout_rec_14424) tt_c1)
+                    | false_c3 => end))
+                b_14456))
+      )));
+  (stderr_rec_91,
+   (VFix (stderr_rec_14425,
+      lam _14461 =>
+        (case _14461 of
+          | tt_c1 =>
+            !(b_14462 : bool_d2) ⋅
+              ((lin _14465 =>
+                  (case _14465 of
+                    | true_c2 => !string_d12 ⋅ ((stderr_rec_14425) tt_c1)
+                    | false_c3 => end))
+                b_14462))
+      )));
+  (stdin_t_95, VBox); (stdout_t_96, VBox); (stderr_t_97, VBox);
+  (readline_98,
+   (VFix (readline_14429, lam _14467 => recv ((send _14467) true_c2))));
+  (close_in_103,
+   (VFix (close_in_14430, lam _14468 => close ((send _14468) false_c3))));
+  (printline_106,
+   (VFix (printline_14431,
+      lam _14469 => lin _14470 => ((send ((send _14469) true_c2)) _14470))));
+  (close_out_111,
+   (VFix (close_out_14432, lam _14471 => close ((send _14471) false_c3))));
+  (printerr_114,
+   (VFix (printerr_14433,
+      lam _14472 => lin _14473 => ((send ((send _14472) true_c2)) _14473))));
+  (close_err_119,
+   (VFix (close_err_14434, lam _14474 => close ((send _14474) false_c3))));
+  (loc_122, VBox);
+  (Array_159,
+   (VFix (Array_14435,
+      lam _14475 _14476 =>
+        (sig_d8 loc_122
+        fix _14477 _14478 => (ArrVec_d15 _14475 _14478 _14476))
+      )));
+  (nth_166,
+   (VFix (nth_14436,
+      lam A_14479 l_14480 m_14481 n_14482 _14483 =>
+        (case _14483 of
+          | le_refl_c19 =>
+            lam _14484 =>
+              (case _14484 of
+                | Nil_c22 => absurd
+                | (Cons_c23 n_14485 _14486 _14487) =>
+                  (tnsr_intro_c14 _14486
+                  lin _14488 => (Cons_c23 m_14481 _14488 _14487)))
+          | (le_succ_c20 m_14489 _14490) =>
+            lam _14491 =>
+              (case _14491 of
+                | Nil_c22 => absurd
+                | (Cons_c23 n_14492 _14493 _14494) =>
+                  ((lin _14495 =>
+                      (case _14495 of
+                        | (tnsr_intro_c14 _14496 _14497) =>
+                          (tnsr_intro_c14 _14496
+                          lin _14498 =>
+                            (Cons_c23 m_14489 _14493 ((_14497) _14498)))))
+                    ((nth_14436)
+                      A_14479 l_14480 m_14481 m_14489 _14490 _14494))))
+      )));
+  (index_196,
+   (VFix (index_14437,
+      lam A_14499 m_14500 n_14501 _14502 _14503 =>
+        ((lin _14504 =>
+            (case _14504 of
+              | (sig_intro_c13 x_14505 _14506) =>
+                ((lin _14507 =>
+                    (case _14507 of
+                      | (tnsr_intro_c14 _14508 _14509) =>
+                        ((lin _14510 =>
+                            (case _14510 of
+                              | (sig_intro_c13 x_14511 _14512) =>
+                                (sig_intro_c13 x_14511
+                                (sig_intro_c13 x_14505 ((_14509) _14512)))))
+                          ((get_136)
+                            A_14499 ((addn_3) x_14505 m_14500) _14508))))
+                  ((nth_166) A_14499 x_14505 m_14500 n_14501 _14502 _14506))))
+          _14503)
+      )));
+  (_215, VBox)]
+eval2 success---------------------------------------
 

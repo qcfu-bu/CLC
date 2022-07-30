@@ -20,7 +20,7 @@ let rec whnf rds env m =
       let x, n = unbind_tm abs in
       let abs = bind_tm x (Ann (a, n)) in
       whnf rds env (Let (m, abs))
-    | Match (ms, cls) ->
+    | Match (ms, b, cls) ->
       let cls =
         List.map
           (fun (Cl pabs) ->
@@ -29,7 +29,7 @@ let rec whnf rds env m =
             Cl (bindp_tm_opt ps m_opt))
           cls
       in
-      whnf rds env (Match (ms, cls))
+      whnf rds env (Match (ms, b, cls))
     | Fun (None, abs) -> Fun (Some a, abs)
     | _ -> m)
   | Var x ->
@@ -46,9 +46,9 @@ let rec whnf rds env m =
     match (m, sp) with
     | Fun (_, abs), _ :: _ ->
       if List.exists (( = ) Beta) rds then
-        let x, cls = unbind_cls abs in
+        let cls = asubst_cls abs m in
         match match_cls cls sp with
-        | Some (Some n) -> whnf rds env (subst x n m)
+        | Some (Some n) -> whnf rds env n
         | _ -> mkApps m sp
       else
         mkApps m sp
@@ -60,14 +60,29 @@ let rec whnf rds env m =
       whnf rds (VMap.add x m env) n
     else
       Let (m, abs)
-  | Match (ms, cls) ->
+  | Match (ms, a, cls) ->
     let ms = List.map (whnf rds env) ms in
+    let a = whnf rds env a in
     if List.exists (( = ) Iota) rds then
       match match_cls cls ms with
       | Some (Some m) -> whnf rds env m
-      | _ -> Match (ms, cls)
+      | _ -> Match (ms, a, cls)
     else
-      Match (ms, cls)
+      Match (ms, a, cls)
+  | If (m, tt, ff) ->
+    let m = whnf rd_all env m in
+    if List.exists (( = ) Iota) rds then
+      match m with
+      | Cons (c, _) ->
+        if C.equal c Prelude.true_c then
+          whnf rds env tt
+        else if C.equal c Prelude.false_c then
+          whnf rds env ff
+        else
+          If (m, tt, ff)
+      | _ -> If (m, tt, ff)
+    else
+      If (m, tt, ff)
   | Ch (r, m) -> Ch (r, whnf rds env m)
   | _ -> m
 
@@ -77,46 +92,10 @@ and match_cls cls ms =
       match acc with
       | Some _ -> acc
       | None -> (
-        let ps, m_opt = unbindp_tm_opt pabs in
-        try
-          let map =
-            List.fold_left2 (fun acc p m -> match_p acc p m) VMap.empty ps ms
-          in
-          Some (Option.map (msubst map) m_opt)
-        with
+        let ps, rhs = unbindp_tm_opt pabs in
+        try Some (substp_tm_opt ps rhs ms) with
         | _ -> None))
     None cls
-
-and match_p map p m =
-  match (p, m) with
-  | PVar x, _ -> VMap.add x m map
-  | PCons (c1, ps), Cons (c2, ms) ->
-    if C.equal c1 c2 then
-      List.fold_left2 (fun acc p m -> match_p acc p m) map ps ms
-    else
-      failwith "match_p"
-  | _ -> failwith "match_p"
-
-let rec eval rds env dcls =
-  match dcls with
-  | [] -> []
-  | DTm (x, a_opt, m) :: dcls ->
-    let a_opt = Option.map (whnf rds env) a_opt in
-    let m = whnf rds env m in
-    let env = VMap.add x m env in
-    let dcls = eval rds env dcls in
-    DTm (x, a_opt, m) :: dcls
-  | DFun (x, a, abs) :: dcls ->
-    let a = whnf rds env a in
-    let env = VMap.add x (Fun (Some a, abs)) env in
-    let dcls = eval rds env dcls in
-    DFun (x, a, abs) :: dcls
-  | DData _ :: dcls -> eval rds env dcls
-  | DOpen _ :: dcls -> eval rds env dcls
-  | DAxiom (x, a) :: dcls ->
-    let a = whnf rds env a in
-    let dcls = eval rds env dcls in
-    DAxiom (x, a) :: dcls
 
 let rec aeq m1 m2 =
   if m1 == m2 then
@@ -142,8 +121,8 @@ let rec aeq m1 m2 =
     | Let (m1, abs1), Let (m2, abs2) -> aeq m1 m2 && equal_abs aeq abs1 abs2
     | Data (d1, ms1), Data (d2, ms2) -> D.equal d1 d2 && List.equal aeq ms1 ms2
     | Cons (c1, ms1), Cons (c2, ms2) -> C.equal c1 c2 && List.equal aeq ms1 ms2
-    | Match (ms1, cls1), Match (ms2, cls2) ->
-      List.equal aeq ms1 ms2
+    | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
+      List.equal aeq ms1 ms2 && aeq a1 a2
       && List.equal
            (fun (Cl pabs1) (Cl pabs2) ->
              equal_pabs (Option.equal aeq) pabs1 pabs2)
@@ -177,14 +156,13 @@ let rec equal rds env m1 m2 =
     | Pi (s1, a1, abs1), Pi (s2, a2, abs2) ->
       s1 = s2 && equal rds env a1 a2 && equal_abs (equal rds env) abs1 abs2
     | Fun (a1_opt, abs1), Fun (a2_opt, abs2) ->
-      Option.equal (equal rds env) a1_opt a2_opt
-      && equal_abs
-           (fun cls1 cls2 ->
-             List.equal
-               (fun (Cl pabs1) (Cl pabs2) ->
-                 equal_pabs (Option.equal (equal rds env)) pabs1 pabs2)
-               cls1 cls2)
-           abs1 abs2
+      equal_abs
+        (fun cls1 cls2 ->
+          List.equal
+            (fun (Cl pabs1) (Cl pabs2) ->
+              equal_pabs (Option.equal (equal rds env)) pabs1 pabs2)
+            cls1 cls2)
+        abs1 abs2
     | App (m1, n1), App (m2, n2) -> equal rds env m1 m2 && equal rds env n1 n2
     | Let (m1, abs1), Let (m2, abs2) ->
       equal rds env m1 m2 && equal_abs (equal rds env) abs1 abs2
@@ -192,8 +170,9 @@ let rec equal rds env m1 m2 =
       D.equal d1 d2 && List.equal (equal rds env) ms1 ms2
     | Cons (c1, ms1), Cons (c2, ms2) ->
       C.equal c1 c2 && List.equal (equal rds env) ms1 ms2
-    | Match (ms1, cls1), Match (ms2, cls2) ->
+    | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
       List.equal (equal rds env) ms1 ms2
+      && equal rds env a1 a2
       && List.equal
            (fun (Cl pabs1) (Cl pabs2) ->
              equal_pabs (Option.equal (equal rds env)) pabs1 pabs2)

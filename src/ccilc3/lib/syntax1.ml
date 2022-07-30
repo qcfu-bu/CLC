@@ -20,7 +20,7 @@ and tm =
   | Data of D.t * tms
   | Cons of C.t * tms
   | Absurd
-  | Match of tms * cls
+  | Match of tms * tm * cls
   | If of tm * tm * tm
   | Main
   | Proto
@@ -48,7 +48,6 @@ type trg =
   | TStdin
   | TStdout
   | TStderr
-  | TMain
 [@@deriving show { with_path = false }]
 
 type dcl =
@@ -70,6 +69,8 @@ and ptl =
 and tl =
   | TBase of tm
   | TBind of tm * tl abs
+
+let var x = Var x
 
 let freshen_ps ps =
   let rec aux p =
@@ -148,8 +149,9 @@ let bindn_tm k xs m =
       let ms = List.map (aux k) ms in
       Cons (c, ms)
     | Absurd -> Absurd
-    | Match (ms, cls) ->
+    | Match (ms, a, cls) ->
       let ms = List.map (aux k) ms in
+      let a = aux k a in
       let cls =
         List.map
           (fun (Cl (PAbs (ps, m_opt))) ->
@@ -159,7 +161,7 @@ let bindn_tm k xs m =
             Cl (PAbs (ps, m_opt)))
           cls
       in
-      Match (ms, cls)
+      Match (ms, a, cls)
     | If (m, n1, n2) ->
       let m = aux k m in
       let n1 = aux k n1 in
@@ -198,7 +200,7 @@ let unbindn_tm k xs m =
     | Type s -> Type s
     | Var y -> (
       match V.is_bound y sz k with
-      | Some i -> Var (List.nth xs (i - k))
+      | Some i -> List.nth xs (i - k)
       | None -> Var y)
     | Pi (s, a, Abs (x, b)) ->
       let a = aux k a in
@@ -231,8 +233,9 @@ let unbindn_tm k xs m =
       let ms = List.map (aux k) ms in
       Cons (c, ms)
     | Absurd -> Absurd
-    | Match (ms, cls) ->
+    | Match (ms, a, cls) ->
       let ms = List.map (aux k) ms in
+      let a = aux k a in
       let cls =
         List.map
           (fun (Cl (PAbs (ps, m_opt))) ->
@@ -242,7 +245,7 @@ let unbindn_tm k xs m =
             Cl (PAbs (ps, m_opt)))
           cls
       in
-      Match (ms, cls)
+      Match (ms, a, cls)
     | If (m, n1, n2) ->
       let m = aux k m in
       let n1 = aux k n1 in
@@ -339,29 +342,29 @@ let bind_tl x tl = Abs (x, bindn_tl 0 [ x ] tl)
 
 let unbind_cls (Abs (x, cls)) =
   let x = V.freshen x in
-  (x, unbindn_cls 0 [ x ] cls)
+  (x, unbindn_cls 0 [ Var x ] cls)
 
 let unbind_tm (Abs (x, m)) =
   let x = V.freshen x in
-  (x, unbindn_tm 0 [ x ] m)
+  (x, unbindn_tm 0 [ Var x ] m)
 
 let unbindp_tm_opt (PAbs (ps, m_opt)) =
   let ps = freshen_ps ps in
-  let xs = xs_of_ps ps in
+  let xs = ps |> xs_of_ps |> List.map var in
   (ps, Option.map (unbindn_tm 0 xs) m_opt)
 
 let unbind_ptl (Abs (x, ptl)) =
   let x = V.freshen x in
-  (x, unbindn_ptl 0 [ x ] ptl)
+  (x, unbindn_ptl 0 [ Var x ] ptl)
 
 let unbind_tl (Abs (x, tl)) =
   let x = V.freshen x in
-  (x, unbindn_tl 0 [ x ] tl)
+  (x, unbindn_tl 0 [ Var x ] tl)
 
 let unbind2_tm (Abs (x, m)) (Abs (_, n)) =
   let x = V.freshen x in
-  let m = unbindn_tm 0 [ x ] m in
-  let n = unbindn_tm 0 [ x ] n in
+  let m = unbindn_tm 0 [ Var x ] m in
+  let n = unbindn_tm 0 [ Var x ] n in
   (x, m, n)
 
 let rec equal_p p1 p2 =
@@ -375,7 +378,7 @@ let rec equal_p p1 p2 =
 let unbindp2_tm_opt (PAbs (ps1, m_opt)) (PAbs (ps2, n_opt)) =
   if List.equal equal_p ps1 ps2 then
     let ps = freshen_ps ps1 in
-    let xs = xs_of_ps ps in
+    let xs = ps |> xs_of_ps |> List.map var in
     let m = Option.map (unbindn_tm 0 xs) m_opt in
     let n = Option.map (unbindn_tm 0 xs) n_opt in
     (ps, m, n)
@@ -384,12 +387,69 @@ let unbindp2_tm_opt (PAbs (ps1, m_opt)) (PAbs (ps2, n_opt)) =
 
 let unbind2_cls (Abs (x, cls1)) (Abs (_, cls2)) =
   let x = V.freshen x in
-  let cls1 = unbindn_cls 0 [ x ] cls1 in
-  let cls2 = unbindn_cls 0 [ x ] cls2 in
+  let cls1 = unbindn_cls 0 [ Var x ] cls1 in
+  let cls2 = unbindn_cls 0 [ Var x ] cls2 in
   (x, cls1, cls2)
 
 let equal_abs eq (Abs (_, m)) (Abs (_, n)) = eq m n
-let equal_pabs eq (PAbs (_, m)) (PAbs (_, n)) = eq m n
+
+let equal_pabs eq (PAbs (ps1, m)) (PAbs (ps2, n)) =
+  List.equal equal_p ps1 ps2 && eq m n
+
+let asubst_tm (Abs (_, m)) n = unbindn_tm 0 [ n ] m
+let asubst_tl (Abs (_, tl)) n = unbindn_tl 0 [ n ] tl
+let asubst_ptl (Abs (_, ptl)) n = unbindn_ptl 0 [ n ] ptl
+let asubst_cls (Abs (_, cls)) n = unbindn_cls 0 [ n ] cls
+
+let rec match_p p m =
+  match (p, m) with
+  | PVar x, _ -> [ m ]
+  | PCons (c1, ps), Cons (c2, ms) ->
+    if C.equal c1 c2 then
+      List.fold_left2 (fun acc p m -> acc @ match_p p m) [] ps ms
+    else
+      failwith "match_p"
+  | _ -> failwith "match_p"
+
+let substp_tm_opt ps rhs ns =
+  match rhs with
+  | Some m ->
+    let ns = List.concat (List.map2 match_p ps ns) in
+    let xs = xs_of_ps ps in
+    Some (unbindn_tm 0 ns (bindn_tm 0 xs m))
+  | None -> None
+
+let subst_tm x m n = unbindn_tm 0 [ n ] (bindn_tm 0 [ x ] m)
+
+let lam x m =
+  let cls = [ Cl (bindp_tm_opt [ PVar x ] (Some m)) ] in
+  Fun (None, bind_cls (V.blank ()) cls)
+
+let mLam xs m =
+  let ps = List.map (fun x -> PVar x) xs in
+  let cls = [ Cl (bindp_tm_opt ps (Some m)) ] in
+  Fun (None, bind_cls (V.blank ()) cls)
+
+let rec fold_tl f acc tl =
+  match tl with
+  | TBase b -> (acc, b)
+  | TBind (a, abs) ->
+    let x, tl = unbind_tl abs in
+    let acc, tl = f acc a x tl in
+    fold_tl f acc tl
+
+let rec mkApps hd ms =
+  match ms with
+  | m :: ms -> mkApps (App (hd, m)) ms
+  | [] -> hd
+
+let unApps m =
+  let rec aux m ns =
+    match m with
+    | App (m, n) -> aux m (n :: ns)
+    | _ -> (m, ns)
+  in
+  aux m []
 
 let rec occurs_tm x m =
   match m with
@@ -422,8 +482,9 @@ let rec occurs_tm x m =
   | Data (_, ms) -> List.exists (occurs_tm x) ms
   | Cons (_, ms) -> List.exists (occurs_tm x) ms
   | Absurd -> false
-  | Match (ms, cls) ->
+  | Match (ms, a, cls) ->
     List.exists (occurs_tm x) ms
+    || occurs_tm x a
     || List.exists
          (fun (Cl pabs) ->
            let _, m_opt = unbindp_tm_opt pabs in
@@ -467,137 +528,3 @@ let rec occurs_tl x tl =
     else
       let _, tl = unbind_tl abs in
       occurs_tl x tl
-
-let rec msubst map m =
-  match m with
-  | Ann (a, m) ->
-    let a = msubst map a in
-    let m = msubst map m in
-    Ann (a, m)
-  | Meta (x, ms) ->
-    let ms = List.map (msubst map) ms in
-    Meta (x, ms)
-  | Type s -> Type s
-  | Var x -> (
-    match VMap.find_opt x map with
-    | Some m -> m
-    | None -> Var x)
-  | Pi (s, a, abs) ->
-    let a = msubst map a in
-    let x, b = unbind_tm abs in
-    let b = msubst map b in
-    Pi (s, a, bind_tm x b)
-  | Fun (a_opt, abs) ->
-    let a_opt = Option.map (msubst map) a_opt in
-    let x, cls = unbind_cls abs in
-    let cls =
-      List.map
-        (fun (Cl pabs) ->
-          let p, m_opt = unbindp_tm_opt pabs in
-          let m_opt = Option.map (msubst map) m_opt in
-          Cl (bindp_tm_opt p m_opt))
-        cls
-    in
-    Fun (a_opt, bind_cls x cls)
-  | App (m, n) ->
-    let m = msubst map m in
-    let n = msubst map n in
-    App (m, n)
-  | Let (m, abs) ->
-    let m = msubst map m in
-    let x, n = unbind_tm abs in
-    let n = msubst map n in
-    Let (m, bind_tm x n)
-  | Data (d, ms) ->
-    let ms = List.map (msubst map) ms in
-    Data (d, ms)
-  | Cons (c, ms) ->
-    let ms = List.map (msubst map) ms in
-    Cons (c, ms)
-  | Absurd -> Absurd
-  | Match (ms, cls) ->
-    let ms = List.map (msubst map) ms in
-    let cls =
-      List.map
-        (fun (Cl pabs) ->
-          let p, m_opt = unbindp_tm_opt pabs in
-          let m_opt = Option.map (msubst map) m_opt in
-          Cl (bindp_tm_opt p m_opt))
-        cls
-    in
-    Match (ms, cls)
-  | If (m, n1, n2) ->
-    let m = msubst map m in
-    let n1 = msubst map n1 in
-    let n2 = msubst map n2 in
-    If (m, n1, n2)
-  | Main -> Main
-  | Proto -> Proto
-  | End -> End
-  | Act (r, a, abs) ->
-    let a = msubst map a in
-    let x, b = unbind_tm abs in
-    let b = msubst map b in
-    Act (r, a, bind_tm x b)
-  | Ch (r, a) ->
-    let a = msubst map a in
-    Ch (r, a)
-  | Fork (a, m, abs) ->
-    let a = msubst map a in
-    let m = msubst map m in
-    let x, n = unbind_tm abs in
-    let n = msubst map n in
-    Fork (a, m, bind_tm x n)
-  | Send m ->
-    let m = msubst map m in
-    Send m
-  | Recv m ->
-    let m = msubst map m in
-    Recv m
-  | Close m ->
-    let m = msubst map m in
-    Close m
-
-let subst x m n = msubst (VMap.singleton x n) m
-
-let rec msubst_tl map tl =
-  match tl with
-  | TBase b -> TBase (msubst map b)
-  | TBind (a, abs) ->
-    let a = msubst map a in
-    let x, tl = unbind_tl abs in
-    let tl = msubst_tl map tl in
-    TBind (a, bind_tl x tl)
-
-let rec msubst_ptl map ptl =
-  match ptl with
-  | PBase tl -> PBase (msubst_tl map tl)
-  | PBind (a, abs) ->
-    let a = msubst map a in
-    let x, ptl = unbind_ptl abs in
-    let ptl = msubst_ptl map ptl in
-    PBind (a, bind_ptl x ptl)
-
-let subst_tl x tl m = msubst_tl (VMap.singleton x m) tl
-let subst_ptl x ptl m = msubst_ptl (VMap.singleton x m) ptl
-
-let rec fold_tl f acc tl =
-  match tl with
-  | TBase b -> (acc, b)
-  | TBind (a, abs) ->
-    let x, tl = unbind_tl abs in
-    let acc, tl = f acc a x tl in
-    fold_tl f acc tl
-
-let rec mkApps hd ms =
-  match ms with
-  | m :: ms -> mkApps (App (hd, m)) ms
-  | [] -> hd
-
-let unApps m =
-  let rec aux m ns =
-    match m with
-    | App (m, n) -> aux m (n :: ns)
-    | _ -> (m, ns)
-  in
-  aux m []

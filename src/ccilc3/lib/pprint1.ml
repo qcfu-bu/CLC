@@ -15,10 +15,59 @@ and pp_ps sep fmt ps =
   | [ p ] -> pp_p fmt p
   | p :: ps -> pf fmt "%a%s%a" pp_p p sep (pp_ps sep) ps
 
+let rec nat_of m =
+  match m with
+  | Cons (c, []) when C.equal c Prelude.zero_c -> Some 0
+  | Cons (c, [ m ]) when C.equal c Prelude.succ_c -> (
+    match nat_of m with
+    | Some n -> Some (1 + n)
+    | None -> None)
+  | _ -> None
+
+let bin_of ms =
+  List.map
+    (fun m ->
+      match m with
+      | Cons (c, []) when C.equal Prelude.true_c c -> Some 1
+      | Cons (c, []) when C.equal Prelude.false_c c -> Some 0
+      | _ -> None)
+    ms
+
+let dec_of ns =
+  List.fold_left
+    (fun acc opt ->
+      match (acc, opt) with
+      | Some acc, Some n -> Some ((acc * 2) + n)
+      | _ -> None)
+    (Some 0) ns
+
+let char_of m =
+  match m with
+  | Cons (c, ms) when C.equal Prelude.ascii0_c c -> (
+    let n = ms |> bin_of |> dec_of in
+    match n with
+    | Some n -> Some (Char.chr n)
+    | None -> None)
+  | _ -> None
+
+let rec string_of m =
+  match m with
+  | Cons (c, []) when C.equal Prelude.emptyString_c c -> Some ""
+  | Cons (c, [ m; n ]) when C.equal Prelude.string0_c c -> (
+    match (char_of m, string_of n) with
+    | Some c, Some s -> Some (str "%c%s" c s)
+    | _ -> None)
+  | _ -> None
+
+let pp_sort fmt s =
+  match s with
+  | U -> pf fmt "U"
+  | L -> pf fmt "L"
+
 let rec pp_tm fmt m =
   match m with
-  | Ann (a, m) -> pf fmt "@[(@@[%a]%a)@]" pp_tm a pp_tm m
-  | Meta (x, ms) -> M.pp fmt x
+  | Ann (a, m) -> pf fmt "@[(@@[%a]@,%a)@]" pp_tm a pp_tm m
+  | Meta (x, ms) -> pf fmt "%a" M.pp x
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
   | Pi (s, a, abs) -> (
@@ -43,7 +92,7 @@ let rec pp_tm fmt m =
       pf fmt "@[<v 0>(@[fun %a@]@;<1 2>%a)@]" V.pp x (pp_cls " ") cls)
   | App _ ->
     let m, ms = unApps m in
-    pf fmt "@[((%a) %a)@]" pp_tm m (list ~sep:sp pp_tm) ms
+    pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm m (list ~sep:sp pp_tm) ms
   | Let (m, abs) ->
     let x, n = unbind_tm abs in
     pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x pp_tm m pp_tm n
@@ -54,11 +103,31 @@ let rec pp_tm fmt m =
   | Cons (c, ms) -> (
     match ms with
     | [] -> C.pp fmt c
-    | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
+    | _ ->
+      if C.equal c Prelude.zero_c || C.equal c Prelude.succ_c then
+        match nat_of m with
+        | Some n -> pf fmt "%d" n
+        | None -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms
+      else if C.equal c Prelude.string0_c || C.equal c Prelude.emptyString_c
+      then
+        match string_of m with
+        | Some s -> pf fmt "\"%s\"" (String.escaped s)
+        | None -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms
+      else if C.equal c Prelude.ascii0_c then
+        match char_of m with
+        | Some c -> pf fmt "\'%s\'" (Char.escaped c)
+        | None -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms
+      else
+        pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
   | Absurd -> pf fmt "absurd"
-  | Match (ms, cls) ->
-    pf fmt "@[<v 0>(@[match %a with@]@;<1 2>%a)@]" (list ~sep:comma pp_tm) ms
-      (pp_cls ", ") cls
+  | Match (ms, a, cls) ->
+    pf fmt
+      "@[<v 0>(@[@[match@;\
+       <1 2>%a@;\
+       <1 0>return@;\
+       <1 2>%a@;\
+       <1 0>@]with@]@;\
+       <1 2>%a)@]" (list ~sep:comma pp_tm) ms pp_tm a (pp_cls ", ") cls
   | If (m, n1, n2) ->
     pf fmt "@[if %a then@;<1 2>%a@.else@;<1 2>%a@]" pp_tm m pp_tm n1 pp_tm n2
   | Main -> pf fmt "@main"
@@ -78,11 +147,13 @@ let rec pp_tm fmt m =
       pf fmt "hc<%a>" pp_tm m
   | Fork (a, m, abs) ->
     let x, n = unbind_tm abs in
-    pf fmt "@[@[fork (%a :@;<1 2>%a) <-@;<1 2>%a@;<1 0>in@]@;<1 2>%a@]" V.pp x
+    pf fmt "@[@[fork (%a :@;<1 2>%a) <-@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x
       pp_tm a pp_tm m pp_tm n
   | Send m -> pf fmt "send %a" pp_tm m
   | Recv m -> pf fmt "recv %a" pp_tm m
   | Close m -> pf fmt "close %a" pp_tm m
+
+and pp_tms fmt ms = pf fmt "[%a]" (list ~sep:semi pp_tm) ms
 
 and pp_cl sep fmt (Cl abs) =
   let ps, m_opt = unbindp_tm_opt abs in
@@ -101,7 +172,6 @@ let pp_trg fmt targ =
   | TStdin -> pf fmt "@stdin"
   | TStdout -> pf fmt "@stdout"
   | TStderr -> pf fmt "@stderr"
-  | TMain -> pf fmt "@main"
 
 let rec pp_ptl fmt ptl =
   match ptl with
