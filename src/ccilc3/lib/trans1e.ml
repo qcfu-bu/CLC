@@ -344,19 +344,18 @@ and check_prbm ctx env eqns map prbm a =
   let fail_on_d ctx eqns map d ns s a =
     let _, cs = find_d d ctx in
     let ptls = List.map (fun c -> find_c c ctx) cs in
-    let rec loop b = function
-      | [] when b -> (eqns, map)
-      | [] -> failwith "fail_on_d(%a)" pp_tm (Data (d, ns))
+    let rec loop = function
+      | [] -> (eqns, map)
       | ptl :: ptls ->
         let tl, _ = tl_of_ptl ptl ns in
         let _, targ = fold_tl (fun () _ _ tl -> ((), tl)) () tl in
         let global = UVar.Eq (env, a, targ, Type s) :: prbm.global in
         if has_failed (fun () -> UVar.unify global) then
-          (eqns, map)
+          loop ptls
         else
-          loop false ptls
+          failwith "fail_on_d(%a)" pp_tm (Data (d, ns))
     in
-    loop true ptls
+    loop ptls
   in
   match prbm.clause with
   | [] -> (

@@ -18,8 +18,6 @@ def foo := maxn one
 
 def bar := (foo two)
 
-axiom baz : ch<stdin_t> -> unit
-
 open @stdout as stdout
 
 def _ := 
