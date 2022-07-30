@@ -1,6 +1,6 @@
 (lang dune 3.3)
 
-(name ccilc4)
+(name ccilc3)
 
 (generate_opam_files true)
 
@@ -16,7 +16,7 @@
 (documentation https://url/to/documentation)
 
 (package
- (name ccilc4)
+ (name ccilc3)
  (synopsis "A short synopsis")
  (description "A longer description")
  (depends ocaml dune)
