@@ -59,9 +59,14 @@ let rec string_of m =
     | _ -> None)
   | _ -> None
 
+let pp_sort fmt s =
+  match s with
+  | U -> pf fmt "U"
+  | L -> pf fmt "L"
+
 let rec pp_tm fmt m =
   match m with
-  | Ann (a, m) -> pf fmt "@[@@[%a]@;<1 0>%a@]" pp_tm a pp_tm m
+  | Ann (a, m) -> pf fmt "@[(@@[%a]@,%a)@]" pp_tm a pp_tm m
   | Meta (x, ms) -> pf fmt "%a" M.pp x
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
@@ -147,6 +152,8 @@ let rec pp_tm fmt m =
   | Send m -> pf fmt "send %a" pp_tm m
   | Recv m -> pf fmt "recv %a" pp_tm m
   | Close m -> pf fmt "close %a" pp_tm m
+
+and pp_tms fmt ms = pf fmt "[%a]" (list ~sep:semi pp_tm) ms
 
 and pp_cl sep fmt (Cl abs) =
   let ps, m_opt = unbindp_tm_opt abs in

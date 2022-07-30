@@ -56,13 +56,17 @@ let pp_cs fmt cs =
   in
   pf fmt "@[<v 0>cs={@;<1 2>%a}@]" aux cs
 
-let pp_ctx fmt ctx =
-  pf fmt "@[<v 0>ctx{@;<1 2>%a@;<1 2>%a@;<1 2>%a}@]" pp_vs ctx.vs pp_ds ctx.ds
-    pp_cs ctx.cs
+let pp_ctx fmt ctx = pf fmt "@[<v 0>ctx{@;<1 2>%a}@]" pp_vs ctx.vs
 
 let msubst_ctx map ctx =
   let vs = VMap.map (fun a -> UVar.msubst_tm map a) ctx.vs in
   { ctx with vs }
+
+let msubst_eqns map eqns =
+  List.map
+    (fun (UMeta.Eq (env, m, n)) ->
+      UMeta.Eq (env, UVar.msubst_tm map m, UVar.msubst_tm map n))
+    eqns
 
 let subst_ctx x ctx m =
   let ctx = { ctx with vs = VMap.remove x ctx.vs } in
@@ -411,12 +415,14 @@ and check_prbm ctx env eqns map prbm a =
     let vmap = UVar.unify es in
     let a = UVar.msubst_tm vmap a in
     let ctx = msubst_ctx vmap ctx in
+    let eqns = msubst_eqns vmap eqns in
     let rhs =
       match rhs with
       | Some m -> UVar.msubst_tm vmap m
       | None -> failwith "check_Finish"
     in
-    check_tm ctx env eqns map rhs a
+    let eqns, map = check_tm ctx env eqns map rhs a in
+    (eqns, map)
   | (es, ps, rhs) :: clause -> (
     let a = UMeta.resolve_tm map a in
     let a = whnf rd_all env a in
