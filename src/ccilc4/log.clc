@@ -429,40 +429,40 @@ data nat_d3 : U
   | zero_c4 : nat_d3
   | succ_c5 : nat_d3 -> nat_d3
 
-def (addn_3 := addn_10880) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_10884 => x_10884
-  | (succ_c5 x_10885) y_10886 => (succ_c5 ((addn_10880) x_10885 y_10886))
+def (addn_3 := addn_10805) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_10809 => x_10809
+  | (succ_c5 x_10810) y_10811 => (succ_c5 ((addn_10805) x_10810 y_10811))
 
-data option_d4 (A_10887 : U) : U
-  | none_c6 (A_10888 : U) : (option_d4 A_10888)
-  | some_c7 (A_10889 : U) : A_10889 -> (option_d4 A_10889)
+data option_d4 (A_10812 : U) : U
+  | none_c6 (A_10813 : U) : (option_d4 A_10813)
+  | some_c7 (A_10814 : U) : A_10814 -> (option_d4 A_10814)
 
-data list_d5 (A_10891 : U) : U
-  | nil_c8 (A_10892 : U) : (list_d5 A_10892)
-  | cons_c9 (A_10893 : U) : A_10893 -> (list_d5 A_10893) -> (list_d5 A_10893)
+data list_d5 (A_10816 : U) : U
+  | nil_c8 (A_10817 : U) : (list_d5 A_10817)
+  | cons_c9 (A_10818 : U) : A_10818 -> (list_d5 A_10818) -> (list_d5 A_10818)
 
-data vec_d6 (A_10897 : U) : nat_d3 -> U
-  | vnil_c10 (A_10899 : U) : (vec_d6 A_10899 zero_c4)
-  | vcons_c11 (A_10900 : U) :
-    ∀ (n_10901 : nat_d3) ->
-      A_10900 ->
-        (vec_d6 A_10900 n_10901) -> (vec_d6 A_10900 (succ_c5 n_10901))
+data vec_d6 (A_10822 : U) : nat_d3 -> U
+  | vnil_c10 (A_10824 : U) : (vec_d6 A_10824 zero_c4)
+  | vcons_c11 (A_10825 : U) :
+    ∀ (n_10826 : nat_d3) ->
+      A_10825 ->
+        (vec_d6 A_10825 n_10826) -> (vec_d6 A_10825 (succ_c5 n_10826))
 
-data ex_d7 (A_10906 : U) (P_10907 : A_10906 -> U) : U
-  | ex_intro_c12 (A_10909 : U) (P_10910 : A_10909 -> U) :
-    ∀ (x_10912 : A_10909) -> ((P_10910) x_10912) -> (ex_d7 A_10909 P_10910)
+data ex_d7 (A_10831 : U) (P_10832 : A_10831 -> U) : U
+  | ex_intro_c12 (A_10834 : U) (P_10835 : A_10834 -> U) :
+    ∀ (x_10837 : A_10834) -> ((P_10835) x_10837) -> (ex_d7 A_10834 P_10835)
 
-data sig_d8 (A_10914 : U) (P_10915 : A_10914 -> L) : L
-  | sig_intro_c13 (A_10917 : U) (P_10918 : A_10917 -> L) :
-    ∀ (x_10920 : A_10917) ->
-      ((P_10918) x_10920) -> (sig_d8 A_10917 P_10918)
+data sig_d8 (A_10839 : U) (P_10840 : A_10839 -> L) : L
+  | sig_intro_c13 (A_10842 : U) (P_10843 : A_10842 -> L) :
+    ∀ (x_10845 : A_10842) ->
+      ((P_10843) x_10845) -> (sig_d8 A_10842 P_10843)
 
-data tnsr_d9 (A_10922 : L) (B_10923 : L) : L
-  | tnsr_intro_c14 (A_10924 : L) (B_10925 : L) :
-    A_10924 -> B_10925 -> (tnsr_d9 A_10924 B_10925)
+data tnsr_d9 (A_10847 : L) (B_10848 : L) : L
+  | tnsr_intro_c14 (A_10849 : L) (B_10850 : L) :
+    A_10849 -> B_10850 -> (tnsr_d9 A_10849 B_10850)
 
-data box_d10 (A_10929 : U) : L
-  | box_intro_c15 (A_10930 : U) : A_10930 -> (box_d10 A_10930)
+data box_d10 (A_10854 : U) : L
+  | box_intro_c15 (A_10855 : U) : A_10855 -> (box_d10 A_10855)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -475,43 +475,43 @@ data string_d12 : U
   | EmptyString_c17 : string_d12
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
-def (cat_60 := cat_10971) : string_d12 -> string_d12 -> string_d12
-  | EmptyString_c17 s_10975 => s_10975
-  | (String_c18 c_10976 s1_10977) s2_10978 =>
-    (String_c18 c_10976 ((cat_10971) s1_10977 s2_10978))
+def (cat_60 := cat_10896) : string_d12 -> string_d12 -> string_d12
+  | EmptyString_c17 s_10900 => s_10900
+  | (String_c18 c_10901 s1_10902) s2_10903 =>
+    (String_c18 c_10901 ((cat_10896) s1_10902 s2_10903))
 
-data le_d13 (n_10979 : nat_d3) : nat_d3 -> U
-  | le_n_c19 (n_10981 : nat_d3) : (le_d13 n_10981 n_10981)
-  | le_succ_c20 (n_10982 : nat_d3) :
-    ∀ (m_10983 : nat_d3) ->
-      (le_d13 n_10982 m_10983) -> (le_d13 n_10982 (succ_c5 m_10983))
+data le_d13 (n_10904 : nat_d3) : nat_d3 -> U
+  | le_n_c19 (n_10906 : nat_d3) : (le_d13 n_10906 n_10906)
+  | le_succ_c20 (n_10907 : nat_d3) :
+    ∀ (m_10908 : nat_d3) ->
+      (le_d13 n_10907 m_10908) -> (le_d13 n_10907 (succ_c5 m_10908))
 
-def (lt_73 := lt_10985) : nat_d3 -> nat_d3 -> U
-  | m_10989 n_10990 => (le_d13 (succ_c5 m_10989) n_10990)
+def (lt_73 := lt_10910) : nat_d3 -> nat_d3 -> U
+  | m_10914 n_10915 => (le_d13 (succ_c5 m_10914) n_10915)
 
-data eq_d14 (A_10991 : U) (x_10992 : A_10991) : A_10991 -> U
-  | refl_c21 (A_10994 : U) (x_10995 : A_10994) :
-    (eq_d14 A_10994 x_10995 x_10995)
+data eq_d14 (A_10916 : U) (x_10917 : A_10916) : A_10916 -> U
+  | refl_c21 (A_10919 : U) (x_10920 : A_10919) :
+    (eq_d14 A_10919 x_10920 x_10920)
 
-def (stdin_rec_83 := stdin_rec_10996) : unit_d1 -> proto
+def (stdin_rec_83 := stdin_rec_10921) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_10998 : bool_d2) ⋅
-      (match b_10998 return proto with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_10996) tt_c1)
+    !(b_10923 : bool_d2) ⋅
+      (match b_10923 return proto with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_10921) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_87 := stdout_rec_11000) : unit_d1 -> proto
+def (stdout_rec_87 := stdout_rec_10925) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_11002 : bool_d2) ⋅
-      (match b_11002 return proto with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_11000) tt_c1)
+    !(b_10927 : bool_d2) ⋅
+      (match b_10927 return proto with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_10925) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_91 := stderr_rec_11004) : unit_d1 -> proto
+def (stderr_rec_91 := stderr_rec_10929) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_11006 : bool_d2) ⋅
-      (match b_11006 return proto with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_11004) tt_c1)
+    !(b_10931 : bool_d2) ⋅
+      (match b_10931 return proto with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_10929) tt_c1)
         | false_c3 => end)
 
 def stdin_t_95 := ((stdin_rec_83) tt_c1)
@@ -520,123 +520,123 @@ def stdout_t_96 := ((stdout_rec_87) tt_c1)
 
 def stderr_t_97 := ((stderr_rec_91) tt_c1)
 
-def (readline_98 := readline_11008) :
+def (readline_98 := readline_10933) :
   ch<stdin_t_95> -> (sig_d8 string_d12 (fun
-                                         | _11014 => ch<stdin_t_95>))
-  | ch_11015 => recv ((send ch_11015) true_c2)
+                                         | _10939 => ch<stdin_t_95>))
+  | ch_10940 => recv ((send ch_10940) true_c2)
 
-def (close_in_103 := close_in_11016) : ch<stdin_t_95> -> unit_d1
-  | ch_11018 => close ((send ch_11018) false_c3)
+def (close_in_103 := close_in_10941) : ch<stdin_t_95> -> unit_d1
+  | ch_10943 => close ((send ch_10943) false_c3)
 
-def (printline_106 := printline_11019) :
+def (printline_106 := printline_10944) :
   ch<stdout_t_96> -> string_d12 -o ch<stdout_t_96>
-  | ch_11023 s_11024 => ((send ((send ch_11023) true_c2)) s_11024)
+  | ch_10948 s_10949 => ((send ((send ch_10948) true_c2)) s_10949)
 
-def (close_out_111 := close_out_11025) : ch<stdout_t_96> -> unit_d1
-  | ch_11027 => close ((send ch_11027) false_c3)
+def (close_out_111 := close_out_10950) : ch<stdout_t_96> -> unit_d1
+  | ch_10952 => close ((send ch_10952) false_c3)
 
-def (printerr_114 := printerr_11028) :
+def (printerr_114 := printerr_10953) :
   ch<stderr_t_97> -> string_d12 -o ch<stderr_t_97>
-  | ch_11032 s_11033 => ((send ((send ch_11032) true_c2)) s_11033)
+  | ch_10957 s_10958 => ((send ((send ch_10957) true_c2)) s_10958)
 
-def (close_err_119 := close_err_11034) : ch<stderr_t_97> -> unit_d1
-  | ch_11036 => close ((send ch_11036) false_c3)
+def (close_err_119 := close_err_10959) : ch<stderr_t_97> -> unit_d1
+  | ch_10961 => close ((send ch_10961) false_c3)
 
 def loc_122 := nat_d3
 
 axiom at_123 : U -> loc_122 -> L
 
 axiom new_126 :
-  ∀ (A_11040 : U) ->
-    A_11040 -> (sig_d8 loc_122 (fun
-                                 | l_11047 => ((at_123) A_11040 l_11047)))
+  ∀ (A_10965 : U) ->
+    A_10965 -> (sig_d8 loc_122 (fun
+                                 | l_10972 => ((at_123) A_10965 l_10972)))
 
 axiom free_131 :
-  ∀ (A_11048 : U) ->
-    ∀ (l_11051 : loc_122) ->
-      A_11048 -> ((at_123) A_11048 l_11051) -> unit_d1
+  ∀ (A_10973 : U) ->
+    ∀ (l_10976 : loc_122) ->
+      A_10973 -> ((at_123) A_10973 l_10976) -> unit_d1
 
 axiom get_136 :
-  ∀ (A_11057 : U) ->
-    ∀ (l_11060 : loc_122) ->
-      ((at_123) A_11057 l_11060) ->
-        (sig_d8 A_11057 (fun
-                          | _11067 => ((at_123) A_11057 l_11060)))
+  ∀ (A_10982 : U) ->
+    ∀ (l_10985 : loc_122) ->
+      ((at_123) A_10982 l_10985) ->
+        (sig_d8 A_10982 (fun
+                          | _10992 => ((at_123) A_10982 l_10985)))
 
 axiom set_142 :
-  ∀ (A_11068 : U) ->
-    ∀ (B_11072 : U) ->
-      ∀ (l_11077 : loc_122) ->
-        A_11068 ->
-          ((at_123) A_11068 l_11077) -> B_11072 -o ((at_123) A_11068 l_11077)
+  ∀ (A_10993 : U) ->
+    ∀ (B_10997 : U) ->
+      ∀ (l_11002 : loc_122) ->
+        A_10993 ->
+          ((at_123) A_10993 l_11002) -> B_10997 -o ((at_123) A_10993 l_11002)
 
-data ArrVec_d15 (A_11086 : U) (l_11087 : loc_122) : loc_122 -> L
-  | Nil_c22 (A_11089 : U) (l_11090 : loc_122) :
-    (ArrVec_d15 A_11089 l_11090 zero_c4)
-  | Cons_c23 (A_11091 : U) (l_11092 : loc_122) :
-    ∀ (n_11093 : nat_d3) ->
-      ((at_123) A_11091 ((addn_3) l_11092 n_11093)) ->
-        (ArrVec_d15 A_11091 l_11092 n_11093) ->
-          (ArrVec_d15 A_11091 l_11092 (succ_c5 n_11093))
+data ArrVec_d15 (A_11011 : U) (l_11012 : loc_122) : loc_122 -> L
+  | Nil_c22 (A_11014 : U) (l_11015 : loc_122) :
+    (ArrVec_d15 A_11014 l_11015 zero_c4)
+  | Cons_c23 (A_11016 : U) (l_11017 : loc_122) :
+    ∀ (n_11018 : nat_d3) ->
+      ((at_123) A_11016 ((addn_3) l_11017 n_11018)) ->
+        (ArrVec_d15 A_11016 l_11017 n_11018) ->
+          (ArrVec_d15 A_11016 l_11017 (succ_c5 n_11018))
 
-def (Array_159 := Array_11097) : U -> loc_122 -> L
-  | A_11101 n_11102 =>
+def (Array_159 := Array_11022) : U -> loc_122 -> L
+  | A_11026 n_11027 =>
     (sig_d8 loc_122 (fun
-                      | l_11105 => (ArrVec_d15 A_11101 l_11105 n_11102)))
+                      | l_11030 => (ArrVec_d15 A_11026 l_11030 n_11027)))
 
-def (nth_166 := nth_11106) :
-  ∀ (A_11107 : U) ->
-    ∀ (l_11113 : loc_122) ->
-      ∀ (m_11118 : loc_122) ->
-        ∀ (n_11121 : loc_122) ->
-          ((lt_73) m_11118 n_11121) ->
-            (ArrVec_d15 A_11107 l_11113 n_11121) ->
-              (tnsr_d9 ((at_123) A_11107 ((addn_3) l_11113 m_11118))
-              ((at_123) A_11107 ((addn_3) l_11113 m_11118)) -o
-                (ArrVec_d15 A_11107 l_11113 n_11121))
-  | _11129 _11130 _11131 _11132 le_n_c19 (Cons_c23 n_11133 c_11134 v_11135) =>
-    (tnsr_intro_c14 c_11134
+def (nth_166 := nth_11031) :
+  ∀ (A_11032 : U) ->
+    ∀ (l_11038 : loc_122) ->
+      ∀ (m_11043 : loc_122) ->
+        ∀ (n_11046 : loc_122) ->
+          ((lt_73) m_11043 n_11046) ->
+            (ArrVec_d15 A_11032 l_11038 n_11046) ->
+              (tnsr_d9 ((at_123) A_11032 ((addn_3) l_11038 m_11043))
+              ((at_123) A_11032 ((addn_3) l_11038 m_11043)) -o
+                (ArrVec_d15 A_11032 l_11038 n_11046))
+  | _11054 _11055 _11056 _11057 le_n_c19 (Cons_c23 n_11058 c_11059 v_11060) =>
+    (tnsr_intro_c14 c_11059
     (fun
-      | c_11138 => (Cons_c23 n_11133 c_11138 v_11135)))
-  | _11139 _11140 m_11141 _11142 (le_succ_c20 _11143 pf_11144) (Cons_c23 n_11145 c0_11146 v0_11147) =>
-    (match ((nth_11106) _11139 _11140 m_11141 n_11145 pf_11144 v0_11147)
+      | c_11063 => (Cons_c23 n_11058 c_11063 v_11060)))
+  | _11064 _11065 m_11066 _11067 (le_succ_c20 _11068 pf_11069) (Cons_c23 n_11070 c0_11071 v0_11072) =>
+    (match ((nth_11031) _11064 _11065 m_11066 n_11070 pf_11069 v0_11072)
      return
-       (tnsr_d9 ((at_123) _11139 ((addn_3) _11140 m_11141))
-       ((at_123) _11139 ((addn_3) _11140 m_11141)) -o
-         (ArrVec_d15 _11139 _11140 (succ_c5 _11143)))
+       (tnsr_d9 ((at_123) _11064 ((addn_3) _11065 m_11066))
+       ((at_123) _11064 ((addn_3) _11065 m_11066)) -o
+         (ArrVec_d15 _11064 _11065 (succ_c5 _11068)))
      with
-      | (tnsr_intro_c14 c_11149 f_11150) =>
-        (tnsr_intro_c14 c_11149
+      | (tnsr_intro_c14 c_11074 f_11075) =>
+        (tnsr_intro_c14 c_11074
         (fun
-          | c_11153 => (Cons_c23 n_11145 c0_11146 ((f_11150) c_11153)))))
+          | c_11078 => (Cons_c23 n_11070 c0_11071 ((f_11075) c_11078)))))
 
-def (index_196 := index_11154) :
-  ∀ (A_11155 : U) ->
-    ∀ (m_11160 : loc_122) ->
-      ∀ (n_11163 : loc_122) ->
-        ((lt_73) m_11160 n_11163) ->
-          ((Array_159) A_11155 n_11163) ->
-            (sig_d8 A_11155 (fun
-                              | _11174 => ((Array_159) A_11155 n_11163)))
-  | _11175 m_11176 _11177 pf_11178 a_11179 =>
-    (match a_11179 return
-       (sig_d8 _11175 (fun
-                        | _11182 => ((Array_159) _11175 _11177)))
+def (index_196 := index_11079) :
+  ∀ (A_11080 : U) ->
+    ∀ (m_11085 : loc_122) ->
+      ∀ (n_11088 : loc_122) ->
+        ((lt_73) m_11085 n_11088) ->
+          ((Array_159) A_11080 n_11088) ->
+            (sig_d8 A_11080 (fun
+                              | _11099 => ((Array_159) A_11080 n_11088)))
+  | _11100 m_11101 _11102 pf_11103 a_11104 =>
+    (match a_11104 return
+       (sig_d8 _11100 (fun
+                        | _11107 => ((Array_159) _11100 _11102)))
      with
-      | (sig_intro_c13 l_11183 v_11184) =>
-        (match ((nth_166) _11175 l_11183 m_11176 _11177 pf_11178 v_11184)
-         return (sig_d8 _11175 (fun
-                                 | _11187 => ((Array_159) _11175 _11177)))
+      | (sig_intro_c13 l_11108 v_11109) =>
+        (match ((nth_166) _11100 l_11108 m_11101 _11102 pf_11103 v_11109)
+         return (sig_d8 _11100 (fun
+                                 | _11112 => ((Array_159) _11100 _11102)))
          with
-          | (tnsr_intro_c14 c_11188 f_11189) =>
-            (match ((get_136) _11175 ((addn_3) l_11183 m_11176) c_11188)
+          | (tnsr_intro_c14 c_11113 f_11114) =>
+            (match ((get_136) _11100 ((addn_3) l_11108 m_11101) c_11113)
              return
-               (sig_d8 _11175 (fun
-                                | _11192 => ((Array_159) _11175 _11177)))
+               (sig_d8 _11100 (fun
+                                | _11117 => ((Array_159) _11100 _11102)))
              with
-              | (sig_intro_c13 x_11193 c_11194) =>
-                (sig_intro_c13 x_11193
-                (sig_intro_c13 l_11183 ((f_11189) c_11194))))))
+              | (sig_intro_c13 x_11118 c_11119) =>
+                (sig_intro_c13 x_11118
+                (sig_intro_c13 l_11108 ((f_11114) c_11119))))))
 
 def _215 := main_1
 
@@ -644,53 +644,53 @@ def _215 := main_1
 trans1e success-------------------------------------
 
 def addn_3 :=
-  fix addn_14405 _14406 =>
-    (case _14406 of
-      | zero_c4 => lam _14407 => _14407
-      | (succ_c5 _14408) =>
-        lam _14409 => (succ_c5 ((addn_14405) _14408 _14409)))
+  fix addn_14330 _14331 =>
+    (case _14331 of
+      | zero_c4 => lam _14332 => _14332
+      | (succ_c5 _14333) =>
+        lam _14334 => (succ_c5 ((addn_14330) _14333 _14334)))
 
 def cat_60 :=
-  fix cat_14410 _14411 =>
-    (case _14411 of
-      | EmptyString_c17 => lam _14412 => _14412
-      | (String_c18 _14413 _14414) =>
-        lam _14415 => (String_c18 _14413 ((cat_14410) _14414 _14415)))
+  fix cat_14335 _14336 =>
+    (case _14336 of
+      | EmptyString_c17 => lam _14337 => _14337
+      | (String_c18 _14338 _14339) =>
+        lam _14340 => (String_c18 _14338 ((cat_14335) _14339 _14340)))
 
-def lt_73 := fix lt_14416 _14417 _14418 => (le_d13 (succ_c5 _14417) _14418)
+def lt_73 := fix lt_14341 _14342 _14343 => (le_d13 (succ_c5 _14342) _14343)
 
 def stdin_rec_83 :=
-  fix stdin_rec_14419 _14420 =>
-    (case _14420 of
+  fix stdin_rec_14344 _14345 =>
+    (case _14345 of
       | tt_c1 =>
-        !(b_14421 : bool_d2) ⋅
-          ((lin _14424 =>
-              (case _14424 of
-                | true_c2 => ?string_d12 ⋅ ((stdin_rec_14419) tt_c1)
+        !(b_14346 : bool_d2) ⋅
+          ((lin _14349 =>
+              (case _14349 of
+                | true_c2 => ?string_d12 ⋅ ((stdin_rec_14344) tt_c1)
                 | false_c3 => end))
-            b_14421))
+            b_14346))
 
 def stdout_rec_87 :=
-  fix stdout_rec_14426 _14427 =>
-    (case _14427 of
+  fix stdout_rec_14351 _14352 =>
+    (case _14352 of
       | tt_c1 =>
-        !(b_14428 : bool_d2) ⋅
-          ((lin _14431 =>
-              (case _14431 of
-                | true_c2 => !string_d12 ⋅ ((stdout_rec_14426) tt_c1)
+        !(b_14353 : bool_d2) ⋅
+          ((lin _14356 =>
+              (case _14356 of
+                | true_c2 => !string_d12 ⋅ ((stdout_rec_14351) tt_c1)
                 | false_c3 => end))
-            b_14428))
+            b_14353))
 
 def stderr_rec_91 :=
-  fix stderr_rec_14433 _14434 =>
-    (case _14434 of
+  fix stderr_rec_14358 _14359 =>
+    (case _14359 of
       | tt_c1 =>
-        !(b_14435 : bool_d2) ⋅
-          ((lin _14438 =>
-              (case _14438 of
-                | true_c2 => !string_d12 ⋅ ((stderr_rec_14433) tt_c1)
+        !(b_14360 : bool_d2) ⋅
+          ((lin _14363 =>
+              (case _14363 of
+                | true_c2 => !string_d12 ⋅ ((stderr_rec_14358) tt_c1)
                 | false_c3 => end))
-            b_14435))
+            b_14360))
 
 def stdin_t_95 := ((stdin_rec_83) tt_c1)
 
@@ -698,70 +698,70 @@ def stdout_t_96 := ((stdout_rec_87) tt_c1)
 
 def stderr_t_97 := ((stderr_rec_91) tt_c1)
 
-def readline_98 := fix readline_14440 _14441 => recv ((send _14441) true_c2)
+def readline_98 := fix readline_14365 _14366 => recv ((send _14366) true_c2)
 
 def close_in_103 :=
-  fix close_in_14442 _14443 => close ((send _14443) false_c3)
+  fix close_in_14367 _14368 => close ((send _14368) false_c3)
 
 def printline_106 :=
-  fix printline_14444 _14445 =>
-    lin _14446 => ((send ((send _14445) true_c2)) _14446)
+  fix printline_14369 _14370 =>
+    lin _14371 => ((send ((send _14370) true_c2)) _14371)
 
 def close_out_111 :=
-  fix close_out_14447 _14448 => close ((send _14448) false_c3)
+  fix close_out_14372 _14373 => close ((send _14373) false_c3)
 
 def printerr_114 :=
-  fix printerr_14449 _14450 =>
-    lin _14451 => ((send ((send _14450) true_c2)) _14451)
+  fix printerr_14374 _14375 =>
+    lin _14376 => ((send ((send _14375) true_c2)) _14376)
 
 def close_err_119 :=
-  fix close_err_14452 _14453 => close ((send _14453) false_c3)
+  fix close_err_14377 _14378 => close ((send _14378) false_c3)
 
 def loc_122 := nat_d3
 
 def Array_159 :=
-  fix Array_14454 _14455 _14456 =>
-    (sig_d8 loc_122 fix _14457 _14458 => (ArrVec_d15 _14455 _14458 _14456))
+  fix Array_14379 _14380 _14381 =>
+    (sig_d8 loc_122 fix _14382 _14383 => (ArrVec_d15 _14380 _14383 _14381))
 
 def nth_166 :=
-  fix nth_14459 A_14460 l_14461 m_14462 n_14463 _14464 =>
-    (case _14464 of
+  fix nth_14384 A_14385 l_14386 m_14387 n_14388 _14389 =>
+    (case _14389 of
       | le_n_c19 =>
-        lam _14465 =>
-          (case _14465 of
+        lam _14390 =>
+          (case _14390 of
             | Nil_c22 => absurd
-            | (Cons_c23 n_14466 _14467 _14468) =>
-              (tnsr_intro_c14 _14467
-              lin _14469 => (Cons_c23 m_14462 _14469 _14468)))
-      | (le_succ_c20 m_14470 _14471) =>
-        lam _14472 =>
-          (case _14472 of
+            | (Cons_c23 n_14391 _14392 _14393) =>
+              (tnsr_intro_c14 _14392
+              lin _14394 => (Cons_c23 m_14387 _14394 _14393)))
+      | (le_succ_c20 m_14395 _14396) =>
+        lam _14397 =>
+          (case _14397 of
             | Nil_c22 => absurd
-            | (Cons_c23 n_14473 _14474 _14475) =>
-              ((lin _14476 =>
-                  (case _14476 of
-                    | (tnsr_intro_c14 _14477 _14478) =>
-                      (tnsr_intro_c14 _14477
-                      lin _14479 =>
-                        (Cons_c23 m_14470 _14474 ((_14478) _14479)))))
-                ((nth_14459) A_14460 l_14461 m_14462 m_14470 _14471 _14475))))
+            | (Cons_c23 n_14398 _14399 _14400) =>
+              ((lin _14401 =>
+                  (case _14401 of
+                    | (tnsr_intro_c14 _14402 _14403) =>
+                      (tnsr_intro_c14 _14402
+                      lin _14404 =>
+                        (Cons_c23 m_14395 _14399 ((_14403) _14404)))))
+                ((nth_14384) A_14385 l_14386 m_14387 m_14395 _14396 _14400))))
 
 def index_196 :=
-  fix index_14480 A_14481 m_14482 n_14483 _14484 _14485 =>
-    ((lin _14486 =>
-        (case _14486 of
-          | (sig_intro_c13 x_14487 _14488) =>
-            ((lin _14489 =>
-                (case _14489 of
-                  | (tnsr_intro_c14 _14490 _14491) =>
-                    ((lin _14492 =>
-                        (case _14492 of
-                          | (sig_intro_c13 x_14493 _14494) =>
-                            (sig_intro_c13 x_14493
-                            (sig_intro_c13 x_14487 ((_14491) _14494)))))
-                      ((get_136) A_14481 ((addn_3) x_14487 m_14482) _14490))))
-              ((nth_166) A_14481 x_14487 m_14482 n_14483 _14484 _14488))))
-      _14485)
+  fix index_14405 A_14406 m_14407 n_14408 _14409 _14410 =>
+    ((lin _14411 =>
+        (case _14411 of
+          | (sig_intro_c13 x_14412 _14413) =>
+            ((lin _14414 =>
+                (case _14414 of
+                  | (tnsr_intro_c14 _14415 _14416) =>
+                    ((lin _14417 =>
+                        (case _14417 of
+                          | (sig_intro_c13 x_14418 _14419) =>
+                            (sig_intro_c13 x_14418
+                            (sig_intro_c13 x_14412 ((_14416) _14419)))))
+                      ((get_136) A_14406 ((addn_3) x_14412 m_14407) _14415))))
+              ((nth_166) A_14406 x_14412 m_14407 n_14408 _14409 _14413))))
+      _14410)
 
 def _215 := main_1
 
@@ -769,124 +769,124 @@ def _215 := main_1
 trans12 success-------------------------------------
 
 [(addn_3,
-  (VFix (addn_14495,
-     lam _14513 =>
-       (case _14513 of
-         | zero_c4 => lam _14514 => _14514
-         | (succ_c5 _14515) =>
-           lam _14516 => (succ_c5 ((addn_14495) _14515 _14516)))
+  (VFix (addn_14420,
+     lam _14438 =>
+       (case _14438 of
+         | zero_c4 => lam _14439 => _14439
+         | (succ_c5 _14440) =>
+           lam _14441 => (succ_c5 ((addn_14420) _14440 _14441)))
      )));
   (cat_60,
-   (VFix (cat_14496,
-      lam _14517 =>
-        (case _14517 of
-          | EmptyString_c17 => lam _14518 => _14518
-          | (String_c18 _14519 _14520) =>
-            lam _14521 => (String_c18 _14519 ((cat_14496) _14520 _14521)))
+   (VFix (cat_14421,
+      lam _14442 =>
+        (case _14442 of
+          | EmptyString_c17 => lam _14443 => _14443
+          | (String_c18 _14444 _14445) =>
+            lam _14446 => (String_c18 _14444 ((cat_14421) _14445 _14446)))
       )));
   (lt_73,
-   (VFix (lt_14497, lam _14522 _14523 => (le_d13 (succ_c5 _14522) _14523))));
+   (VFix (lt_14422, lam _14447 _14448 => (le_d13 (succ_c5 _14447) _14448))));
   (stdin_rec_83,
-   (VFix (stdin_rec_14498,
-      lam _14524 =>
-        (case _14524 of
+   (VFix (stdin_rec_14423,
+      lam _14449 =>
+        (case _14449 of
           | tt_c1 =>
-            !(b_14525 : bool_d2) ⋅
-              ((lin _14528 =>
-                  (case _14528 of
-                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_14498) tt_c1)
+            !(b_14450 : bool_d2) ⋅
+              ((lin _14453 =>
+                  (case _14453 of
+                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_14423) tt_c1)
                     | false_c3 => end))
-                b_14525))
+                b_14450))
       )));
   (stdout_rec_87,
-   (VFix (stdout_rec_14499,
-      lam _14530 =>
-        (case _14530 of
+   (VFix (stdout_rec_14424,
+      lam _14455 =>
+        (case _14455 of
           | tt_c1 =>
-            !(b_14531 : bool_d2) ⋅
-              ((lin _14534 =>
-                  (case _14534 of
-                    | true_c2 => !string_d12 ⋅ ((stdout_rec_14499) tt_c1)
+            !(b_14456 : bool_d2) ⋅
+              ((lin _14459 =>
+                  (case _14459 of
+                    | true_c2 => !string_d12 ⋅ ((stdout_rec_14424) tt_c1)
                     | false_c3 => end))
-                b_14531))
+                b_14456))
       )));
   (stderr_rec_91,
-   (VFix (stderr_rec_14500,
-      lam _14536 =>
-        (case _14536 of
+   (VFix (stderr_rec_14425,
+      lam _14461 =>
+        (case _14461 of
           | tt_c1 =>
-            !(b_14537 : bool_d2) ⋅
-              ((lin _14540 =>
-                  (case _14540 of
-                    | true_c2 => !string_d12 ⋅ ((stderr_rec_14500) tt_c1)
+            !(b_14462 : bool_d2) ⋅
+              ((lin _14465 =>
+                  (case _14465 of
+                    | true_c2 => !string_d12 ⋅ ((stderr_rec_14425) tt_c1)
                     | false_c3 => end))
-                b_14537))
+                b_14462))
       )));
   (stdin_t_95, VBox); (stdout_t_96, VBox); (stderr_t_97, VBox);
   (readline_98,
-   (VFix (readline_14504, lam _14542 => recv ((send _14542) true_c2))));
+   (VFix (readline_14429, lam _14467 => recv ((send _14467) true_c2))));
   (close_in_103,
-   (VFix (close_in_14505, lam _14543 => close ((send _14543) false_c3))));
+   (VFix (close_in_14430, lam _14468 => close ((send _14468) false_c3))));
   (printline_106,
-   (VFix (printline_14506,
-      lam _14544 => lin _14545 => ((send ((send _14544) true_c2)) _14545))));
+   (VFix (printline_14431,
+      lam _14469 => lin _14470 => ((send ((send _14469) true_c2)) _14470))));
   (close_out_111,
-   (VFix (close_out_14507, lam _14546 => close ((send _14546) false_c3))));
+   (VFix (close_out_14432, lam _14471 => close ((send _14471) false_c3))));
   (printerr_114,
-   (VFix (printerr_14508,
-      lam _14547 => lin _14548 => ((send ((send _14547) true_c2)) _14548))));
+   (VFix (printerr_14433,
+      lam _14472 => lin _14473 => ((send ((send _14472) true_c2)) _14473))));
   (close_err_119,
-   (VFix (close_err_14509, lam _14549 => close ((send _14549) false_c3))));
+   (VFix (close_err_14434, lam _14474 => close ((send _14474) false_c3))));
   (loc_122, VBox);
   (Array_159,
-   (VFix (Array_14510,
-      lam _14550 _14551 =>
+   (VFix (Array_14435,
+      lam _14475 _14476 =>
         (sig_d8 loc_122
-        fix _14552 _14553 => (ArrVec_d15 _14550 _14553 _14551))
+        fix _14477 _14478 => (ArrVec_d15 _14475 _14478 _14476))
       )));
   (nth_166,
-   (VFix (nth_14511,
-      lam A_14554 l_14555 m_14556 n_14557 _14558 =>
-        (case _14558 of
+   (VFix (nth_14436,
+      lam A_14479 l_14480 m_14481 n_14482 _14483 =>
+        (case _14483 of
           | le_n_c19 =>
-            lam _14559 =>
-              (case _14559 of
+            lam _14484 =>
+              (case _14484 of
                 | Nil_c22 => absurd
-                | (Cons_c23 n_14560 _14561 _14562) =>
-                  (tnsr_intro_c14 _14561
-                  lin _14563 => (Cons_c23 m_14556 _14563 _14562)))
-          | (le_succ_c20 m_14564 _14565) =>
-            lam _14566 =>
-              (case _14566 of
+                | (Cons_c23 n_14485 _14486 _14487) =>
+                  (tnsr_intro_c14 _14486
+                  lin _14488 => (Cons_c23 m_14481 _14488 _14487)))
+          | (le_succ_c20 m_14489 _14490) =>
+            lam _14491 =>
+              (case _14491 of
                 | Nil_c22 => absurd
-                | (Cons_c23 n_14567 _14568 _14569) =>
-                  ((lin _14570 =>
-                      (case _14570 of
-                        | (tnsr_intro_c14 _14571 _14572) =>
-                          (tnsr_intro_c14 _14571
-                          lin _14573 =>
-                            (Cons_c23 m_14564 _14568 ((_14572) _14573)))))
-                    ((nth_14511)
-                      A_14554 l_14555 m_14556 m_14564 _14565 _14569))))
+                | (Cons_c23 n_14492 _14493 _14494) =>
+                  ((lin _14495 =>
+                      (case _14495 of
+                        | (tnsr_intro_c14 _14496 _14497) =>
+                          (tnsr_intro_c14 _14496
+                          lin _14498 =>
+                            (Cons_c23 m_14489 _14493 ((_14497) _14498)))))
+                    ((nth_14436)
+                      A_14479 l_14480 m_14481 m_14489 _14490 _14494))))
       )));
   (index_196,
-   (VFix (index_14512,
-      lam A_14574 m_14575 n_14576 _14577 _14578 =>
-        ((lin _14579 =>
-            (case _14579 of
-              | (sig_intro_c13 x_14580 _14581) =>
-                ((lin _14582 =>
-                    (case _14582 of
-                      | (tnsr_intro_c14 _14583 _14584) =>
-                        ((lin _14585 =>
-                            (case _14585 of
-                              | (sig_intro_c13 x_14586 _14587) =>
-                                (sig_intro_c13 x_14586
-                                (sig_intro_c13 x_14580 ((_14584) _14587)))))
+   (VFix (index_14437,
+      lam A_14499 m_14500 n_14501 _14502 _14503 =>
+        ((lin _14504 =>
+            (case _14504 of
+              | (sig_intro_c13 x_14505 _14506) =>
+                ((lin _14507 =>
+                    (case _14507 of
+                      | (tnsr_intro_c14 _14508 _14509) =>
+                        ((lin _14510 =>
+                            (case _14510 of
+                              | (sig_intro_c13 x_14511 _14512) =>
+                                (sig_intro_c13 x_14511
+                                (sig_intro_c13 x_14505 ((_14509) _14512)))))
                           ((get_136)
-                            A_14574 ((addn_3) x_14580 m_14575) _14583))))
-                  ((nth_166) A_14574 x_14580 m_14575 n_14576 _14577 _14581))))
-          _14578)
+                            A_14499 ((addn_3) x_14505 m_14500) _14508))))
+                  ((nth_166) A_14499 x_14505 m_14500 n_14501 _14502 _14506))))
+          _14503)
       )));
   (_215, VBox)]
 eval2 success---------------------------------------
