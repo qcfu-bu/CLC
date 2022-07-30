@@ -3,9 +3,8 @@ open Names
 type sort =
   | U
   | L
-[@@deriving show { with_path = false }]
 
-type 'a abs = Abs of V.t * 'a [@@deriving show { with_path = false }]
+type 'a abs = Abs of V.t * 'a
 and 'a pabs = PAbs of p * 'a
 
 and tm =
@@ -45,12 +44,10 @@ type trg =
   | TStdin
   | TStdout
   | TStderr
-[@@deriving show { with_path = false }]
 
 type dcl =
   | DTm of V.t * tm
   | DOpen of trg * V.t
-[@@deriving show { with_path = false }]
 
 and dcls = dcl list
 and dcons = DCons of C.t * ptl
