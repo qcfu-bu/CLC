@@ -1,410 +1,219 @@
-[(DFun ("exn_p", (Pi (U, [(None, (Type U))], Proto)),
-    [(Cl
-        ([(PVar (Some "A"))],
-         (Some (Act (false, [((Some "b"), (Id "bool"))],
-                  (If ((Id "b"), (Act (false, [(None, (Id "A"))], End)), End
-                     ))
-                  )))))
-      ]
-    ));
-  (DData ("Exn", (PTl ([((Some "A"), (Type U))], (Tl ([], (Type L))))),
-     [(DCons ("Error",
-         (PTl ([((Some "A"), (Type U))],
-            (Tl ([], (App [(Id "Exn"); (Id "A")])))))
+[(DTm ((Some "loc"), None, (Id "nat")));
+  (DAxiom ("at",
+     (Pi (U, [((Some "A"), (Type U))],
+        (Pi (U, [(None, (Id "loc"))], (Type L)))))
+     ));
+  (DAxiom ("new",
+     (Pi (U, [((Some "A"), (Type U))],
+        (Pi (U, [(None, (Id "A"))],
+           (App
+              [(Id "sig"); (Id "loc");
+                (Fun (None, None,
+                   [(Cl
+                       ([(PVar (Some "l"))],
+                        (Some (App [(Id "at"); (Id "A"); (Id "l")]))))
+                     ]
+                   ))
+                ])
+           ))
+        ))
+     ));
+  (DAxiom ("free",
+     (Pi (U, [((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
+        (Pi (U, [(None, (Id "A"))],
+           (Pi (U, [(None, (App [(Id "at"); (Id "A"); (Id "l")]))],
+              (Id "unit")))
+           ))
+        ))
+     ));
+  (DAxiom ("get",
+     (Pi (U, [((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
+        (Pi (U, [(None, (App [(Id "at"); (Id "A"); (Id "l")]))],
+           (App
+              [(Id "sig"); (Id "A");
+                (Fun (None, None,
+                   [(Cl
+                       ([(PVar None)],
+                        (Some (App [(Id "at"); (Id "A"); (Id "l")]))))
+                     ]
+                   ))
+                ])
+           ))
+        ))
+     ));
+  (DAxiom ("set",
+     (Pi (U,
+        [((Some "A"), (Type U)); ((Some "B"), (Type U));
+          ((Some "l"), (Id "loc"))],
+        (Pi (U, [(None, (Id "A"))],
+           (Pi (U, [(None, (App [(Id "at"); (Id "A"); (Id "l")]))],
+              (Pi (L, [((Some "y"), (Id "B"))],
+                 (App [(Id "at"); (Id "A"); (Id "l")])))
+              ))
+           ))
+        ))
+     ));
+  (DData ("ArrVec",
+     (PTl ([((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
+        (Tl ([(None, (Id "loc"))], (Type L))))),
+     [(DCons ("Nil",
+         (PTl ([((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
+            (Tl ([],
+               (App [(Id "ArrVec"); (Id "A"); (Id "l"); (App [(Id "zero")])])
+               ))
+            ))
          ));
-       (DCons ("Ok",
-          (PTl ([((Some "A"), (Type U))],
+       (DCons ("Cons",
+          (PTl ([((Some "A"), (Type U)); ((Some "l"), (Id "loc"))],
              (Tl (
-                [(None, (Id "A"));
-                  (None, (Ch (true, (App [(Id "exn_p"); (Id "A")]))))],
-                (App [(Id "Exn"); (Id "A")])))
+                [((Some "n"), (Id "nat"));
+                  (None,
+                   (App
+                      [(Id "at"); (Id "A");
+                        (App [(Id "addn"); (Id "l"); (Id "n")])]));
+                  (None, (App [(Id "ArrVec"); (Id "A"); (Id "l"); (Id "n")]))
+                  ],
+                (App
+                   [(Id "ArrVec"); (Id "A"); (Id "l");
+                     (App [(Id "succ"); (Id "n")])])
+                ))
              ))
           ))
        ]
      ));
-  (DFun ("exn", (Pi (U, [(None, (Type U))], (Type U))),
+  (DFun ("Array",
+     (Pi (U, [(None, (Type U))], (Pi (U, [(None, (Id "loc"))], (Type L))))),
      [(Cl
-         ([(PVar (Some "A"))],
-          (Some (Pi (U,
-                   [(None, (Ch (true, (App [(Id "exn_p"); (Id "A")]))))],
-                   (App [(Id "Exn"); (Id "A")]))))))
+         ([(PVar (Some "A")); (PVar (Some "n"))],
+          (Some (App
+                   [(Id "sig"); (Id "loc");
+                     (Fun (None, None,
+                        [(Cl
+                            ([(PVar (Some "l"))],
+                             (Some (App
+                                      [(Id "ArrVec"); (Id "A"); (Id "l");
+                                        (Id "n")]))))
+                          ]
+                        ))
+                     ]))))
        ]
      ));
-  (DFun ("ret",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (U, [(None, (Id "A"))], (App [(Id "exn"); (Id "A")]))))),
-     [(Cl
-         ([(PVar None); (PVar (Some "m")); (PVar (Some "ch"))],
-          (Some (App [(Id "Ok"); (Id "m"); (Id "ch")]))))
-       ]
-     ));
-  (DFun ("throw",
-     (Pi (U, [((Some "A"), (Type U))], (App [(Id "exn"); (Id "A")]))),
-     [(Cl
-         ([(PVar None); (PVar (Some "ch"))],
-          (Some (Let ((PVar (Some "ch")),
-                   (App [(Send (Id "ch")); (Id "false")]),
-                   (Let ((PCons ("tt", [])), (Close (Id "ch")), (Id "Error")
-                      ))
-                   )))))
-       ]
-     ));
-  (DFun ("bind",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (U, [(None, (App [(Id "exn"); (Id "A")]))],
+  (DFun ("nth",
+     (Pi (U,
+        [((Some "A"), (Type U)); ((Some "l"), (Id "loc"));
+          ((Some "m"), (Id "loc")); ((Some "n"), (Id "loc"))],
+        (Pi (U, [(None, (App [(Id "lt"); (Id "m"); (Id "n")]))],
            (Pi (U,
-              [(None,
-                (Pi (U, [(None, (Id "A"))], (App [(Id "exn"); (Id "A")]))))],
-              (App [(Id "exn"); (Id "A")])))
-           ))
-        )),
-     [(Cl
-         ([(PVar None); (PVar (Some "e")); (PVar (Some "f"));
-            (PVar (Some "ch"))],
-          (Some (Match ([(App [(Id "e"); (Id "ch")])],
-                   [(Cl ([(PCons ("Error", []))], (Some (Id "Error"))));
-                     (Cl
-                        ([(PCons ("Ok",
-                             [(PVar (Some "m")); (PVar (Some "ch"))]))
-                           ],
-                         (Some (App [(Id "f"); (Id "m"); (Id "ch")]))))
-                     ]
-                   )))))
-       ]
-     ));
-  (DFun ("div2_exn_p",
-     (Pi (U, [(None, (Id "nat"))], (App [(Id "exn"); (Id "nat")]))),
-     [(Cl
-         ([(PCons ("zero", []))],
-          (Some (App [(Id "ret"); (Id "_"); (App [(Id "zero")])]))));
-       (Cl
-          ([(PCons ("succ", [(PCons ("zero", []))]))],
-           (Some (App [(Id "throw"); (Id "_")]))));
-       (Cl
-          ([(PCons ("succ", [(PCons ("succ", [(PVar (Some "n"))]))]))],
-           (Some (App
-                    [(Id "bind"); (Id "_");
-                      (App [(Id "div2_exn_p"); (Id "n")]);
-                      (Fun (None, None,
-                         [(Cl
-                             ([(PVar (Some "n"))],
-                              (Some (App
-                                       [(Id "ret"); (Id "_");
-                                         (App [(Id "succ"); (Id "n")])]))))
-                           ]
-                         ))
-                      ]))))
-       ]
-     ));
-  (DFun ("try_exn",
-     (Pi (U, [((Some "A"), (Type U))],
-        (Pi (L, [(None, Main)],
-           (Pi (L, [(None, (App [(Id "exn"); (Id "A")]))],
-              (Pi (L, [(None, (Id "A"))],
-                 (App
-                    [(Id "sig"); (Id "A");
-                      (Fun (None, None, [(Cl ([(PVar None)], (Some Main)))]))
-                      ])
-                 ))
+              [(None, (App [(Id "ArrVec"); (Id "A"); (Id "l"); (Id "n")]))],
+              (App
+                 [(Id "tnsr");
+                   (App
+                      [(Id "at"); (Id "A");
+                        (App [(Id "addn"); (Id "l"); (Id "m")])]);
+                   (Pi (L,
+                      [(None,
+                        (App
+                           [(Id "at"); (Id "A");
+                             (App [(Id "addn"); (Id "l"); (Id "m")])]))
+                        ],
+                      (App [(Id "ArrVec"); (Id "A"); (Id "l"); (Id "n")])))
+                   ])
               ))
            ))
         )),
      [(Cl
-         ([(PVar (Some "A")); (PVar (Some "m")); (PVar (Some "f_exn_p"));
-            (PVar (Some "default"))],
-          (Some (Let (
-                   (PCons ("tnsr_intro",
-                      [(PVar (Some "ch")); (PVar (Some "m"))])),
-                   (Fork ("ch", (Ch (true, (App [(Id "exn_p"); (Id "A")]))),
-                      (Id "m"),
-                      (Match ([(App [(Id "f_exn_p"); (Id "ch")])],
-                         [(Cl ([(PCons ("Error", []))], (Some (Id "tt"))));
-                           (Cl
-                              ([(PCons ("Ok",
-                                   [(PVar (Some "x")); (PVar (Some "ch"))]))
-                                 ],
-                               (Some (Let ((PVar (Some "ch")),
-                                        (App [(Send (Id "ch")); (Id "true")]),
-                                        (Let ((PVar (Some "ch")),
-                                           (App [(Send (Id "ch")); (Id "x")]),
-                                           (Close (Id "ch"))))
-                                        )))))
-                           ]
-                         ))
-                      )),
-                   (Match ([(Recv (Id "ch"))],
-                      [(Cl
-                          ([(PCons ("sig_intro",
-                               [(PCons ("true", [])); (PVar (Some "ch"))]))
-                             ],
-                           (Some (Let (
-                                    (PCons ("sig_intro",
-                                       [(PVar (Some "res"));
-                                         (PVar (Some "ch"))]
-                                       )),
-                                    (Recv (Id "ch")),
-                                    (Let ((PCons ("tt", [])),
-                                       (Close (Id "ch")),
-                                       (App
-                                          [(Id "sig_intro"); (Id "res");
-                                            (Id "m")])
-                                       ))
-                                    )))));
-                        (Cl
-                           ([(PCons ("sig_intro",
-                                [(PCons ("false", [])); (PVar (Some "ch"))]))
-                              ],
-                            (Some (Let ((PCons ("tt", [])),
-                                     (Close (Id "ch")),
-                                     (App
-                                        [(Id "sig_intro"); (Id "default");
-                                          (Id "m")])
-                                     )))))
-                        ]
-                      ))
-                   )))))
-       ]
-     ));
-  (DFun ("string_of_nat", (Pi (U, [(None, (Id "nat"))], (Id "string"))),
-     [(Cl
-         ([(PCons ("zero", []))],
+         ([(PVar None); (PVar None); (PVar None); (PVar None);
+            (PCons ("le_refl", []));
+            (PCons ("Cons",
+               [(PVar None); (PVar (Some "c")); (PVar (Some "v"))]))
+            ],
           (Some (App
-                   [(Id "String");
-                     (App
-                        [(Id "Ascii"); (App [(Id "false")]);
-                          (App [(Id "true")]); (App [(Id "true")]);
-                          (App [(Id "true")]); (App [(Id "true")]);
-                          (App [(Id "false")]); (App [(Id "true")]);
-                          (App [(Id "false")])]);
-                     (App
-                        [(Id "String");
-                          (App
-                             [(Id "Ascii"); (App [(Id "false")]);
-                               (App [(Id "true")]); (App [(Id "true")]);
-                               (App [(Id "false")]); (App [(Id "false")]);
-                               (App [(Id "true")]); (App [(Id "false")]);
-                               (App [(Id "true")])]);
-                          (App
-                             [(Id "String");
-                               (App
-                                  [(Id "Ascii"); (App [(Id "false")]);
-                                    (App [(Id "true")]); (App [(Id "true")]);
-                                    (App [(Id "true")]);
-                                    (App [(Id "false")]);
-                                    (App [(Id "false")]);
-                                    (App [(Id "true")]); (App [(Id "false")])
-                                    ]);
-                               (App
-                                  [(Id "String");
-                                    (App
-                                       [(Id "Ascii"); (App [(Id "false")]);
-                                         (App [(Id "true")]);
-                                         (App [(Id "true")]);
-                                         (App [(Id "false")]);
-                                         (App [(Id "true")]);
-                                         (App [(Id "true")]);
-                                         (App [(Id "true")]);
-                                         (App [(Id "true")])]);
-                                    (App [(Id "EmptyString")])])
-                               ])
-                          ])
+                   [(Id "tnsr_intro"); (Id "c");
+                     (Fun (None, None,
+                        [(Cl
+                            ([(PVar (Some "c"))],
+                             (Some (App
+                                      [(Id "Cons"); (Id "_"); (Id "c");
+                                        (Id "v")]))))
+                          ]
+                        ))
                      ]))));
        (Cl
-          ([(PCons ("succ", [(PVar (Some "n"))]))],
-           (Some (App
-                    [(Id "cat");
-                      (App
-                         [(Id "cat");
-                           (App
-                              [(Id "String");
-                                (App
-                                   [(Id "Ascii"); (App [(Id "false")]);
-                                     (App [(Id "true")]);
-                                     (App [(Id "true")]);
-                                     (App [(Id "true")]);
-                                     (App [(Id "false")]);
-                                     (App [(Id "false")]);
-                                     (App [(Id "true")]); (App [(Id "true")])
-                                     ]);
-                                (App
-                                   [(Id "String");
-                                     (App
-                                        [(Id "Ascii"); (App [(Id "false")]);
-                                          (App [(Id "true")]);
-                                          (App [(Id "true")]);
-                                          (App [(Id "true")]);
-                                          (App [(Id "false")]);
-                                          (App [(Id "true")]);
-                                          (App [(Id "false")]);
-                                          (App [(Id "true")])]);
-                                     (App
-                                        [(Id "String");
-                                          (App
-                                             [(Id "Ascii");
-                                               (App [(Id "false")]);
-                                               (App [(Id "true")]);
-                                               (App [(Id "true")]);
-                                               (App [(Id "false")]);
-                                               (App [(Id "false")]);
-                                               (App [(Id "false")]);
-                                               (App [(Id "true")]);
-                                               (App [(Id "true")])]);
-                                          (App
-                                             [(Id "String");
-                                               (App
-                                                  [(Id "Ascii");
-                                                    (App [(Id "false")]);
-                                                    (App [(Id "true")]);
-                                                    (App [(Id "true")]);
-                                                    (App [(Id "false")]);
-                                                    (App [(Id "false")]);
-                                                    (App [(Id "false")]);
-                                                    (App [(Id "true")]);
-                                                    (App [(Id "true")])]);
-                                               (App
-                                                  [(Id "String");
-                                                    (App
-                                                       [(Id "Ascii");
-                                                         (App [(Id "false")]);
-                                                         (App [(Id "false")]);
-                                                         (App [(Id "true")]);
-                                                         (App [(Id "false")]);
-                                                         (App [(Id "false")]);
-                                                         (App [(Id "false")]);
-                                                         (App [(Id "false")]);
-                                                         (App [(Id "false")])
-                                                         ]);
-                                                    (App
-                                                       [(Id "String");
-                                                         (App
-                                                            [(Id "Ascii");
-                                                              (App
-                                                                 [(Id "false")
-                                                                   ]);
-                                                              (App
-                                                                 [(Id "false")
-                                                                   ]);
-                                                              (App
-                                                                 [(Id "true")
-                                                                   ]);
-                                                              (App
-                                                                 [(Id "false")
-                                                                   ]);
-                                                              (App
-                                                                 [(Id "true")
-                                                                   ]);
-                                                              (App
-                                                                 [(Id "false")
-                                                                   ]);
-                                                              (App
-                                                                 [(Id "false")
-                                                                   ]);
-                                                              (App
-                                                                 [(Id "false")
-                                                                   ])
-                                                              ]);
-                                                         (App
-                                                            [(Id
-                                                                "EmptyString")
-                                                              ])
-                                                         ])
-                                                    ])
-                                               ])
-                                          ])
-                                     ])
-                                ]);
-                           (App [(Id "string_of_nat"); (Id "n")])]);
-                      (App
-                         [(Id "String");
-                           (App
-                              [(Id "Ascii"); (App [(Id "false")]);
-                                (App [(Id "false")]); (App [(Id "true")]);
-                                (App [(Id "false")]); (App [(Id "true")]);
-                                (App [(Id "false")]); (App [(Id "false")]);
-                                (App [(Id "true")])]);
-                           (App [(Id "EmptyString")])])
-                      ]))))
+          ([(PVar None); (PVar None); (PVar None); (PVar None);
+             (PCons ("le_succ", [(PVar None); (PVar (Some "pf"))]));
+             (PCons ("Cons",
+                [(PVar None); (PVar (Some "c0")); (PVar (Some "v0"))]))
+             ],
+           (Some (Let (
+                    (PCons ("tnsr_intro",
+                       [(PVar (Some "c")); (PVar (Some "f"))])),
+                    (App
+                       [(Id "nth"); (Id "_"); (Id "_"); (Id "_"); (Id "_");
+                         (Id "pf"); (Id "v0")]),
+                    (App
+                       [(Id "tnsr_intro"); (Id "c");
+                         (Fun (None, None,
+                            [(Cl
+                                ([(PVar (Some "c"))],
+                                 (Some (App
+                                          [(Id "Cons"); (Id "_"); (Id "c0");
+                                            (App [(Id "f"); (Id "c")])]))))
+                              ]
+                            ))
+                         ])
+                    )))))
        ]
      ));
-  (DOpen ("@stdout", "out"));
-  (DTm (None, None,
-     (Let ((PCons ("sig_intro", [(PVar (Some "n")); (PVar (Some "main"))])),
-        (App
-           [(Id "try_exn"); (Id "_"); (Id "main");
-             (App
-                [(Id "div2_exn_p");
-                  (App
-                     [(Id "succ");
-                       (App
-                          [(Id "succ");
-                            (App
-                               [(Id "succ");
-                                 (App
-                                    [(Id "succ");
-                                      (App
-                                         [(Id "succ");
-                                           (App
-                                              [(Id "succ");
-                                                (App
-                                                   [(Id "succ");
-                                                     (App
-                                                        [(Id "succ");
-                                                          (App
-                                                             [(Id "succ");
-                                                               (App
-                                                                  [(Id "succ");
-                                                                    (
-                                                                    App
-                                                                    [(Id
-                                                                    "succ");
-                                                                    (App
-                                                                    [(Id
-                                                                    "succ");
-                                                                    (App
-                                                                    [(Id
-                                                                    "succ");
-                                                                    (App
-                                                                    [(Id
-                                                                    "succ");
-                                                                    (App
-                                                                    [(Id
-                                                                    "zero")])
-                                                                    ])])])])])
-                                                               ])
-                                                          ])
-                                                     ])
-                                                ])
-                                           ])
-                                      ])
-                                 ])
-                            ])
-                       ])
-                  ]);
-             (App [(Id "zero")])]),
-        (Let ((PVar (Some "s")), (App [(Id "string_of_nat"); (Id "n")]),
-           (Let ((PVar (Some "out")),
+  (DFun ("index",
+     (Pi (U,
+        [((Some "A"), (Type U)); ((Some "m"), (Id "loc"));
+          ((Some "n"), (Id "loc"))],
+        (Pi (U, [(None, (App [(Id "lt"); (Id "m"); (Id "n")]))],
+           (Pi (U, [(None, (App [(Id "Array"); (Id "A"); (Id "n")]))],
               (App
-                 [(Id "printline"); (Id "out");
-                   (App
-                      [(Id "cat"); (Id "s");
-                        (App
-                           [(Id "String");
-                             (App
-                                [(Id "Ascii"); (App [(Id "false")]);
-                                  (App [(Id "false")]); (App [(Id "false")]);
-                                  (App [(Id "false")]); (App [(Id "true")]);
-                                  (App [(Id "false")]); (App [(Id "true")]);
-                                  (App [(Id "false")])]);
-                             (App [(Id "EmptyString")])])
-                        ])
-                   ]),
-              (Let ((PCons ("tt", [])), (App [(Id "close_out"); (Id "out")]),
-                 (Id "main")))
+                 [(Id "sig"); (Id "A");
+                   (Fun (None, None,
+                      [(Cl
+                          ([(PVar None)],
+                           (Some (App [(Id "Array"); (Id "A"); (Id "n")]))))
+                        ]
+                      ))
+                   ])
               ))
            ))
-        ))
-     ))
-  ]
+        )),
+     [(Cl
+         ([(PVar None); (PVar (Some "m")); (PVar None); (PVar (Some "pf"));
+            (PVar (Some "a"))],
+          (Some (Let (
+                   (PCons ("sig_intro",
+                      [(PVar (Some "l")); (PVar (Some "v"))])),
+                   (Id "a"),
+                   (Let (
+                      (PCons ("tnsr_intro",
+                         [(PVar (Some "c")); (PVar (Some "f"))])),
+                      (App
+                         [(Id "nth"); (Id "_"); (Id "l"); (Id "_"); (
+                           Id "_"); (Id "pf"); (Id "v")]),
+                      (Let (
+                         (PCons ("sig_intro",
+                            [(PVar (Some "x")); (PVar (Some "c"))])),
+                         (App
+                            [(Id "get"); (Id "_");
+                              (App [(Id "addn"); (Id "l"); (Id "m")]);
+                              (Id "c")]),
+                         (App
+                            [(Id "sig_intro"); (Id "x");
+                              (App
+                                 [(Id "sig_intro"); (Id "l");
+                                   (App [(Id "f"); (Id "c")])])
+                              ])
+                         ))
+                      ))
+                   )))))
+       ]
+     ));
+  (DTm (None, None, (Id "main")))]
 parse success---------------------------------------
 
 data unit_d1 : U
@@ -418,38 +227,38 @@ data nat_d3 : U
   | zero_c4 : nat_d3
   | succ_c5 : nat_d3 -> nat_d3
 
-def (addn_3 := addn_195) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_199 => x_199
-  | (succ_c5 x_200) y_201 => (succ_c5 ((addn_195) x_200 y_201))
+def (addn_3 := addn_217) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_221 => x_221
+  | (succ_c5 x_222) y_223 => (succ_c5 ((addn_217) x_222 y_223))
 
-data option_d4 (A_202 : U) : U
-  | none_c6 (A_203 : U) : (option_d4 A_203)
-  | some_c7 (A_204 : U) : A_204 -> (option_d4 A_204)
+data option_d4 (A_224 : U) : U
+  | none_c6 (A_225 : U) : (option_d4 A_225)
+  | some_c7 (A_226 : U) : A_226 -> (option_d4 A_226)
 
-data list_d5 (A_206 : U) : U
-  | nil_c8 (A_207 : U) : (list_d5 A_207)
-  | cons_c9 (A_208 : U) : A_208 -> (list_d5 A_208) -> (list_d5 A_208)
+data list_d5 (A_228 : U) : U
+  | nil_c8 (A_229 : U) : (list_d5 A_229)
+  | cons_c9 (A_230 : U) : A_230 -> (list_d5 A_230) -> (list_d5 A_230)
 
-data vec_d6 (A_212 : U) : nat_d3 -> U
-  | vnil_c10 (A_214 : U) : (vec_d6 A_214 zero_c4)
-  | vcons_c11 (A_215 : U) :
-    ∀ (n_216 : nat_d3) ->
-      A_215 -> (vec_d6 A_215 n_216) -> (vec_d6 A_215 (succ_c5 n_216))
+data vec_d6 (A_234 : U) : nat_d3 -> U
+  | vnil_c10 (A_236 : U) : (vec_d6 A_236 zero_c4)
+  | vcons_c11 (A_237 : U) :
+    ∀ (n_238 : nat_d3) ->
+      A_237 -> (vec_d6 A_237 n_238) -> (vec_d6 A_237 (succ_c5 n_238))
 
-data ex_d7 (A_221 : U) (P_222 : A_221 -> U) : U
-  | ex_intro_c12 (A_224 : U) (P_225 : A_224 -> U) :
-    ∀ (x_227 : A_224) -> ((P_225) x_227) -> (ex_d7 A_224 P_225)
+data ex_d7 (A_243 : U) (P_244 : A_243 -> U) : U
+  | ex_intro_c12 (A_246 : U) (P_247 : A_246 -> U) :
+    ∀ (x_249 : A_246) -> ((P_247) x_249) -> (ex_d7 A_246 P_247)
 
-data sig_d8 (A_229 : U) (P_230 : A_229 -> L) : L
-  | sig_intro_c13 (A_232 : U) (P_233 : A_232 -> L) :
-    ∀ (x_235 : A_232) -> ((P_233) x_235) -> (sig_d8 A_232 P_233)
+data sig_d8 (A_251 : U) (P_252 : A_251 -> L) : L
+  | sig_intro_c13 (A_254 : U) (P_255 : A_254 -> L) :
+    ∀ (x_257 : A_254) -> ((P_255) x_257) -> (sig_d8 A_254 P_255)
 
-data tnsr_d9 (A_237 : L) (B_238 : L) : L
-  | tnsr_intro_c14 (A_239 : L) (B_240 : L) :
-    A_239 -> B_240 -> (tnsr_d9 A_239 B_240)
+data tnsr_d9 (A_259 : L) (B_260 : L) : L
+  | tnsr_intro_c14 (A_261 : L) (B_262 : L) :
+    A_261 -> B_262 -> (tnsr_d9 A_261 B_262)
 
-data box_d10 (A_244 : U) : L
-  | box_intro_c15 (A_245 : U) : A_245 -> (box_d10 A_245)
+data box_d10 (A_266 : U) : L
+  | box_intro_c15 (A_267 : U) : A_267 -> (box_d10 A_267)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -462,42 +271,42 @@ data string_d12 : U
   | EmptyString_c17 : string_d12
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
-def (cat_60 := cat_286) : string_d12 -> string_d12 -> string_d12
-  | EmptyString_c17 s_290 => s_290
-  | (String_c18 c_291 s1_292) s2_293 =>
-    (String_c18 c_291 ((cat_286) s1_292 s2_293))
+def (cat_60 := cat_308) : string_d12 -> string_d12 -> string_d12
+  | EmptyString_c17 s_312 => s_312
+  | (String_c18 c_313 s1_314) s2_315 =>
+    (String_c18 c_313 ((cat_308) s1_314 s2_315))
 
-data le_d13 (n_294 : nat_d3) : nat_d3 -> U
-  | le_refl_c19 (n_296 : nat_d3) : (le_d13 n_296 n_296)
-  | le_succ_c20 (n_297 : nat_d3) :
-    ∀ (m_298 : nat_d3) ->
-      (le_d13 n_297 m_298) -> (le_d13 n_297 (succ_c5 m_298))
+data le_d13 (n_316 : nat_d3) : nat_d3 -> U
+  | le_refl_c19 (n_318 : nat_d3) : (le_d13 n_318 n_318)
+  | le_succ_c20 (n_319 : nat_d3) :
+    ∀ (m_320 : nat_d3) ->
+      (le_d13 n_319 m_320) -> (le_d13 n_319 (succ_c5 m_320))
 
-def (lt_73 := lt_300) : nat_d3 -> nat_d3 -> U
-  | m_304 n_305 => (le_d13 (succ_c5 m_304) n_305)
+def (lt_73 := lt_322) : nat_d3 -> nat_d3 -> U
+  | m_326 n_327 => (le_d13 (succ_c5 m_326) n_327)
 
-data eq_d14 (A_306 : U) (x_307 : A_306) : A_306 -> U
-  | refl_c21 (A_309 : U) (x_310 : A_309) : (eq_d14 A_309 x_310 x_310)
+data eq_d14 (A_328 : U) (x_329 : A_328) : A_328 -> U
+  | refl_c21 (A_331 : U) (x_332 : A_331) : (eq_d14 A_331 x_332 x_332)
 
-def (stdin_rec_83 := stdin_rec_311) : unit_d1 -> proto
+def (stdin_rec_83 := stdin_rec_333) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_313 : bool_d2) ⋅
-      (match b_313 return ??1 with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_311) tt_c1)
+    !(b_335 : bool_d2) ⋅
+      (match b_335 return ??1 with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_333) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_87 := stdout_rec_315) : unit_d1 -> proto
+def (stdout_rec_87 := stdout_rec_337) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_317 : bool_d2) ⋅
-      (match b_317 return ??2 with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_315) tt_c1)
+    !(b_339 : bool_d2) ⋅
+      (match b_339 return ??2 with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_337) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_91 := stderr_rec_319) : unit_d1 -> proto
+def (stderr_rec_91 := stderr_rec_341) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_321 : bool_d2) ⋅
-      (match b_321 return ??3 with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_319) tt_c1)
+    !(b_343 : bool_d2) ⋅
+      (match b_343 return ??3 with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_341) tt_c1)
         | false_c3 => end)
 
 def stdin_t_95 := ((stdin_rec_83) tt_c1)
@@ -506,107 +315,105 @@ def stdout_t_96 := ((stdout_rec_87) tt_c1)
 
 def stderr_t_97 := ((stderr_rec_91) tt_c1)
 
-def (readline_98 := readline_323) :
+def (readline_98 := readline_345) :
   ch<stdin_t_95> -> (sig_d8 string_d12 (fun
-                                         | _329 => ch<stdin_t_95>))
-  | ch_330 => recv ((send ch_330) true_c2)
+                                         | _351 => ch<stdin_t_95>))
+  | ch_352 => recv ((send ch_352) true_c2)
 
-def (close_in_103 := close_in_331) : ch<stdin_t_95> -> unit_d1
-  | ch_333 => close ((send ch_333) false_c3)
+def (close_in_103 := close_in_353) : ch<stdin_t_95> -> unit_d1
+  | ch_355 => close ((send ch_355) false_c3)
 
-def (printline_106 := printline_334) :
+def (printline_106 := printline_356) :
   ch<stdout_t_96> -> string_d12 -o ch<stdout_t_96>
-  | ch_338 s_339 => ((send ((send ch_338) true_c2)) s_339)
+  | ch_360 s_361 => ((send ((send ch_360) true_c2)) s_361)
 
-def (close_out_111 := close_out_340) : ch<stdout_t_96> -> unit_d1
-  | ch_342 => close ((send ch_342) false_c3)
+def (close_out_111 := close_out_362) : ch<stdout_t_96> -> unit_d1
+  | ch_364 => close ((send ch_364) false_c3)
 
-def (printerr_114 := printerr_343) :
+def (printerr_114 := printerr_365) :
   ch<stderr_t_97> -> string_d12 -o ch<stderr_t_97>
-  | ch_347 s_348 => ((send ((send ch_347) true_c2)) s_348)
+  | ch_369 s_370 => ((send ((send ch_369) true_c2)) s_370)
 
-def (close_err_119 := close_err_349) : ch<stderr_t_97> -> unit_d1
-  | ch_351 => close ((send ch_351) false_c3)
+def (close_err_119 := close_err_371) : ch<stderr_t_97> -> unit_d1
+  | ch_373 => close ((send ch_373) false_c3)
 
-def (exn_p_122 := exn_p_352) : U -> proto
-  | A_354 => !(b_355 : bool_d2) ⋅ if b_355 then !A_354 ⋅ end
-else
-  end
+def loc_122 := nat_d3
 
-data Exn_d15 (A_357 : U) : L
-  | Error_c22 (A_358 : U) : (Exn_d15 A_358)
-  | Ok_c23 (A_359 : U) : A_359 -> ch<((exn_p_122) A_359)> -> (Exn_d15 A_359)
+axiom at_123 : U -> loc_122 -> L
 
-def (exn_132 := exn_363) : U -> U
-  | A_365 => ch<((exn_p_122) A_365)> -> (Exn_d15 A_365)
+axiom new_126 :
+  ∀ (A_377 : U) ->
+    A_377 -> (sig_d8 loc_122 (fun
+                               | l_384 => ((at_123) A_377 l_384)))
 
-def (ret_136 := ret_367) : ∀ (A_368 : U) -> A_368 -> ((exn_132) A_368)
-  | _371 m_372 ch_373 => (Ok_c23 m_372 ch_373)
+axiom free_131 :
+  ∀ (A_385 : U) ->
+    ∀ (l_388 : loc_122) -> A_385 -> ((at_123) A_385 l_388) -> unit_d1
 
-def (throw_142 := throw_374) : ∀ (A_375 : U) -> ((exn_132) A_375)
-  | _376 ch_377 =>
-    let ch_378 := ((send ch_377) false_c3) in
-    (match close ch_378 return ??4 with
-      | tt_c1 => Error_c22)
+axiom get_136 :
+  ∀ (A_394 : U) ->
+    ∀ (l_397 : loc_122) ->
+      ((at_123) A_394 l_397) ->
+        (sig_d8 A_394 (fun
+                        | _404 => ((at_123) A_394 l_397)))
 
-def (bind_147 := bind_379) :
-  ∀ (A_380 : U) ->
-    ((exn_132) A_380) -> A_380 -> ((exn_132) A_380) -> ((exn_132) A_380)
-  | _387 e_388 f_389 ch_390 =>
-    (match ((e_388) ch_390) return ??5 with
-      | Error_c22 => Error_c22
-      | (Ok_c23 m_391 ch_392) => ((f_389) m_391 ch_392))
+axiom set_142 :
+  ∀ (A_405 : U) ->
+    ∀ (B_409 : U) ->
+      ∀ (l_414 : loc_122) ->
+        A_405 -> ((at_123) A_405 l_414) -> B_409 -o ((at_123) A_405 l_414)
 
-def (div2_exn_p_158 := div2_exn_p_393) : nat_d3 -> ((exn_132) nat_d3)
-  | zero_c4 => ((ret_136) ??6 zero_c4)
-  | (succ_c5 zero_c4) => ((throw_142) ??7)
-  | (succ_c5 (succ_c5 n_395)) =>
-    ((bind_147)
-      ??8 ((div2_exn_p_393) n_395)
-      (fun
-        | n_398 => ((ret_136) ??9 (succ_c5 n_398))))
+data ArrVec_d15 (A_423 : U) (l_424 : loc_122) : loc_122 -> L
+  | Nil_c22 (A_426 : U) (l_427 : loc_122) : (ArrVec_d15 A_426 l_427 zero_c4)
+  | Cons_c23 (A_428 : U) (l_429 : loc_122) :
+    ∀ (n_430 : nat_d3) ->
+      ((at_123) A_428 ((addn_3) l_429 n_430)) ->
+        (ArrVec_d15 A_428 l_429 n_430) ->
+          (ArrVec_d15 A_428 l_429 (succ_c5 n_430))
 
-def (try_exn_163 := try_exn_399) :
-  ∀ (A_400 : U) ->
-    @main -o
-      ((exn_132) A_400) -o A_400 -o (sig_d8 A_400 (fun
-                                                    | _417 => @main))
-  | A_418 m_419 f_exn_p_420 default_421 =>
-    (match
-       fork (ch_422 : ch<((exn_p_122) A_418)>) <- m_419 in
-       (match ((f_exn_p_420) ch_422) return ??10 with
-         | Error_c22 => tt_c1
-         | (Ok_c23 x_423 ch_424) =>
-           let ch_425 := ((send ch_424) true_c2) in
-           let ch_426 := ((send ch_425) x_423) in close ch_426)
-     return ??15 with
-      | (tnsr_intro_c14 ch_427 m_428) =>
-        (match recv ch_427 return ??14 with
-          | (sig_intro_c13 true_c2 ch_429) =>
-            (match recv ch_429 return ??12 with
-              | (sig_intro_c13 res_430 ch_431) =>
-                (match close ch_431 return ??11 with
-                  | tt_c1 => (sig_intro_c13 res_430 m_428)))
-          | (sig_intro_c13 false_c3 ch_432) =>
-            (match close ch_432 return ??13 with
-              | tt_c1 => (sig_intro_c13 default_421 m_428))))
+def (Array_159 := Array_434) : U -> loc_122 -> L
+  | A_438 n_439 =>
+    (sig_d8 loc_122 (fun
+                      | l_442 => (ArrVec_d15 A_438 l_442 n_439)))
 
-def (string_of_nat_185 := string_of_nat_433) : nat_d3 -> string_d12
-  | zero_c4 => "zero"
-  | (succ_c5 n_435) =>
-    ((cat_60) ((cat_60) "succ (" ((string_of_nat_433) n_435)) ")")
+def (nth_166 := nth_443) :
+  ∀ (A_444 : U) ->
+    ∀ (l_450 : loc_122) ->
+      ∀ (m_455 : loc_122) ->
+        ∀ (n_458 : loc_122) ->
+          ((lt_73) m_455 n_458) ->
+            (ArrVec_d15 A_444 l_450 n_458) ->
+              (tnsr_d9 ((at_123) A_444 ((addn_3) l_450 m_455))
+              ((at_123) A_444 ((addn_3) l_450 m_455)) -o
+                (ArrVec_d15 A_444 l_450 n_458))
+  | _466 _467 _468 _469 le_refl_c19 (Cons_c23 _470 c_471 v_472) =>
+    (tnsr_intro_c14 c_471 (fun
+                            | c_475 => (Cons_c23 ??4 c_475 v_472)))
+  | _476 _477 _478 _479 (le_succ_c20 _480 pf_481) (Cons_c23 _482 c0_483 v0_484) =>
+    (match ((nth_443) ??5 ??6 ??7 ??8 pf_481 v0_484) return ??10 with
+      | (tnsr_intro_c14 c_485 f_486) =>
+        (tnsr_intro_c14 c_485
+        (fun
+          | c_489 => (Cons_c23 ??9 c0_483 ((f_486) c_489)))))
 
-open @stdout as out_188
+def (index_196 := index_490) :
+  ∀ (A_491 : U) ->
+    ∀ (m_496 : loc_122) ->
+      ∀ (n_499 : loc_122) ->
+        ((lt_73) m_496 n_499) ->
+          ((Array_159) A_491 n_499) ->
+            (sig_d8 A_491 (fun
+                            | _510 => ((Array_159) A_491 n_499)))
+  | _511 m_512 _513 pf_514 a_515 =>
+    (match a_515 return ??17 with
+      | (sig_intro_c13 l_516 v_517) =>
+        (match ((nth_166) ??11 l_516 ??12 ??13 pf_514 v_517) return ??16 with
+          | (tnsr_intro_c14 c_518 f_519) =>
+            (match ((get_136) ??14 ((addn_3) l_516 m_512) c_518) return ??15 with
+              | (sig_intro_c13 x_520 c_521) =>
+                (sig_intro_c13 x_520 (sig_intro_c13 l_516 ((f_519) c_521))))))
 
-def _189 :=
-  (match ((try_exn_163) ??16 main_1 ((div2_exn_p_158) 14) zero_c4) return
-     ??18
-   with
-    | (sig_intro_c13 n_436 main_437) =>
-      let s_438 := ((string_of_nat_185) n_436) in
-      let out_439 := ((printline_106) out_188 ((cat_60) s_438 "\n")) in
-      (match ((close_out_111) out_439) return ??17 with
-        | tt_c1 => main_437))
+def _215 := main_1
 
 trans01 success-------------------------------------
 
@@ -621,40 +428,40 @@ data nat_d3 : U
   | zero_c4 : nat_d3
   | succ_c5 : nat_d3 -> nat_d3
 
-def (addn_3 := addn_18420) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_18424 => x_18424
-  | (succ_c5 x_18425) y_18426 => (succ_c5 ((addn_18420) x_18425 y_18426))
+def (addn_3 := addn_16578) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_16582 => x_16582
+  | (succ_c5 x_16583) y_16584 => (succ_c5 ((addn_16578) x_16583 y_16584))
 
-data option_d4 (A_18427 : U) : U
-  | none_c6 (A_18428 : U) : (option_d4 A_18428)
-  | some_c7 (A_18429 : U) : A_18429 -> (option_d4 A_18429)
+data option_d4 (A_16585 : U) : U
+  | none_c6 (A_16586 : U) : (option_d4 A_16586)
+  | some_c7 (A_16587 : U) : A_16587 -> (option_d4 A_16587)
 
-data list_d5 (A_18431 : U) : U
-  | nil_c8 (A_18432 : U) : (list_d5 A_18432)
-  | cons_c9 (A_18433 : U) : A_18433 -> (list_d5 A_18433) -> (list_d5 A_18433)
+data list_d5 (A_16589 : U) : U
+  | nil_c8 (A_16590 : U) : (list_d5 A_16590)
+  | cons_c9 (A_16591 : U) : A_16591 -> (list_d5 A_16591) -> (list_d5 A_16591)
 
-data vec_d6 (A_18437 : U) : nat_d3 -> U
-  | vnil_c10 (A_18439 : U) : (vec_d6 A_18439 zero_c4)
-  | vcons_c11 (A_18440 : U) :
-    ∀ (n_18441 : nat_d3) ->
-      A_18440 ->
-        (vec_d6 A_18440 n_18441) -> (vec_d6 A_18440 (succ_c5 n_18441))
+data vec_d6 (A_16595 : U) : nat_d3 -> U
+  | vnil_c10 (A_16597 : U) : (vec_d6 A_16597 zero_c4)
+  | vcons_c11 (A_16598 : U) :
+    ∀ (n_16599 : nat_d3) ->
+      A_16598 ->
+        (vec_d6 A_16598 n_16599) -> (vec_d6 A_16598 (succ_c5 n_16599))
 
-data ex_d7 (A_18446 : U) (P_18447 : A_18446 -> U) : U
-  | ex_intro_c12 (A_18449 : U) (P_18450 : A_18449 -> U) :
-    ∀ (x_18452 : A_18449) -> ((P_18450) x_18452) -> (ex_d7 A_18449 P_18450)
+data ex_d7 (A_16604 : U) (P_16605 : A_16604 -> U) : U
+  | ex_intro_c12 (A_16607 : U) (P_16608 : A_16607 -> U) :
+    ∀ (x_16610 : A_16607) -> ((P_16608) x_16610) -> (ex_d7 A_16607 P_16608)
 
-data sig_d8 (A_18454 : U) (P_18455 : A_18454 -> L) : L
-  | sig_intro_c13 (A_18457 : U) (P_18458 : A_18457 -> L) :
-    ∀ (x_18460 : A_18457) ->
-      ((P_18458) x_18460) -> (sig_d8 A_18457 P_18458)
+data sig_d8 (A_16612 : U) (P_16613 : A_16612 -> L) : L
+  | sig_intro_c13 (A_16615 : U) (P_16616 : A_16615 -> L) :
+    ∀ (x_16618 : A_16615) ->
+      ((P_16616) x_16618) -> (sig_d8 A_16615 P_16616)
 
-data tnsr_d9 (A_18462 : L) (B_18463 : L) : L
-  | tnsr_intro_c14 (A_18464 : L) (B_18465 : L) :
-    A_18464 -> B_18465 -> (tnsr_d9 A_18464 B_18465)
+data tnsr_d9 (A_16620 : L) (B_16621 : L) : L
+  | tnsr_intro_c14 (A_16622 : L) (B_16623 : L) :
+    A_16622 -> B_16623 -> (tnsr_d9 A_16622 B_16623)
 
-data box_d10 (A_18469 : U) : L
-  | box_intro_c15 (A_18470 : U) : A_18470 -> (box_d10 A_18470)
+data box_d10 (A_16627 : U) : L
+  | box_intro_c15 (A_16628 : U) : A_16628 -> (box_d10 A_16628)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -667,43 +474,43 @@ data string_d12 : U
   | EmptyString_c17 : string_d12
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
-def (cat_60 := cat_18511) : string_d12 -> string_d12 -> string_d12
-  | EmptyString_c17 s_18515 => s_18515
-  | (String_c18 c_18516 s1_18517) s2_18518 =>
-    (String_c18 c_18516 ((cat_18511) s1_18517 s2_18518))
+def (cat_60 := cat_16669) : string_d12 -> string_d12 -> string_d12
+  | EmptyString_c17 s_16673 => s_16673
+  | (String_c18 c_16674 s1_16675) s2_16676 =>
+    (String_c18 c_16674 ((cat_16669) s1_16675 s2_16676))
 
-data le_d13 (n_18519 : nat_d3) : nat_d3 -> U
-  | le_refl_c19 (n_18521 : nat_d3) : (le_d13 n_18521 n_18521)
-  | le_succ_c20 (n_18522 : nat_d3) :
-    ∀ (m_18523 : nat_d3) ->
-      (le_d13 n_18522 m_18523) -> (le_d13 n_18522 (succ_c5 m_18523))
+data le_d13 (n_16677 : nat_d3) : nat_d3 -> U
+  | le_refl_c19 (n_16679 : nat_d3) : (le_d13 n_16679 n_16679)
+  | le_succ_c20 (n_16680 : nat_d3) :
+    ∀ (m_16681 : nat_d3) ->
+      (le_d13 n_16680 m_16681) -> (le_d13 n_16680 (succ_c5 m_16681))
 
-def (lt_73 := lt_18525) : nat_d3 -> nat_d3 -> U
-  | m_18529 n_18530 => (le_d13 (succ_c5 m_18529) n_18530)
+def (lt_73 := lt_16683) : nat_d3 -> nat_d3 -> U
+  | m_16687 n_16688 => (le_d13 (succ_c5 m_16687) n_16688)
 
-data eq_d14 (A_18531 : U) (x_18532 : A_18531) : A_18531 -> U
-  | refl_c21 (A_18534 : U) (x_18535 : A_18534) :
-    (eq_d14 A_18534 x_18535 x_18535)
+data eq_d14 (A_16689 : U) (x_16690 : A_16689) : A_16689 -> U
+  | refl_c21 (A_16692 : U) (x_16693 : A_16692) :
+    (eq_d14 A_16692 x_16693 x_16693)
 
-def (stdin_rec_83 := stdin_rec_18536) : unit_d1 -> proto
+def (stdin_rec_83 := stdin_rec_16694) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_18538 : bool_d2) ⋅
-      (match b_18538 return proto with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_18536) tt_c1)
+    !(b_16696 : bool_d2) ⋅
+      (match b_16696 return proto with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_16694) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_87 := stdout_rec_18540) : unit_d1 -> proto
+def (stdout_rec_87 := stdout_rec_16698) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_18542 : bool_d2) ⋅
-      (match b_18542 return proto with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_18540) tt_c1)
+    !(b_16700 : bool_d2) ⋅
+      (match b_16700 return proto with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_16698) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_91 := stderr_rec_18544) : unit_d1 -> proto
+def (stderr_rec_91 := stderr_rec_16702) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_18546 : bool_d2) ⋅
-      (match b_18546 return proto with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_18544) tt_c1)
+    !(b_16704 : bool_d2) ⋅
+      (match b_16704 return proto with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_16702) tt_c1)
         | false_c3 => end)
 
 def stdin_t_95 := ((stdin_rec_83) tt_c1)
@@ -712,174 +519,175 @@ def stdout_t_96 := ((stdout_rec_87) tt_c1)
 
 def stderr_t_97 := ((stderr_rec_91) tt_c1)
 
-def (readline_98 := readline_18548) :
+def (readline_98 := readline_16706) :
   ch<stdin_t_95> -> (sig_d8 string_d12 (fun
-                                         | _18554 => ch<stdin_t_95>))
-  | ch_18555 => recv ((send ch_18555) true_c2)
+                                         | _16712 => ch<stdin_t_95>))
+  | ch_16713 => recv ((send ch_16713) true_c2)
 
-def (close_in_103 := close_in_18556) : ch<stdin_t_95> -> unit_d1
-  | ch_18558 => close ((send ch_18558) false_c3)
+def (close_in_103 := close_in_16714) : ch<stdin_t_95> -> unit_d1
+  | ch_16716 => close ((send ch_16716) false_c3)
 
-def (printline_106 := printline_18559) :
+def (printline_106 := printline_16717) :
   ch<stdout_t_96> -> string_d12 -o ch<stdout_t_96>
-  | ch_18563 s_18564 => ((send ((send ch_18563) true_c2)) s_18564)
+  | ch_16721 s_16722 => ((send ((send ch_16721) true_c2)) s_16722)
 
-def (close_out_111 := close_out_18565) : ch<stdout_t_96> -> unit_d1
-  | ch_18567 => close ((send ch_18567) false_c3)
+def (close_out_111 := close_out_16723) : ch<stdout_t_96> -> unit_d1
+  | ch_16725 => close ((send ch_16725) false_c3)
 
-def (printerr_114 := printerr_18568) :
+def (printerr_114 := printerr_16726) :
   ch<stderr_t_97> -> string_d12 -o ch<stderr_t_97>
-  | ch_18572 s_18573 => ((send ((send ch_18572) true_c2)) s_18573)
+  | ch_16730 s_16731 => ((send ((send ch_16730) true_c2)) s_16731)
 
-def (close_err_119 := close_err_18574) : ch<stderr_t_97> -> unit_d1
-  | ch_18576 => close ((send ch_18576) false_c3)
+def (close_err_119 := close_err_16732) : ch<stderr_t_97> -> unit_d1
+  | ch_16734 => close ((send ch_16734) false_c3)
 
-def (exn_p_122 := exn_p_18577) : U -> proto
-  | A_18579 => !(b_18580 : bool_d2) ⋅ if b_18580 then !A_18579 ⋅ end
-else
-  end
+def loc_122 := nat_d3
 
-data Exn_d15 (A_18582 : U) : L
-  | Error_c22 (A_18583 : U) : (Exn_d15 A_18583)
-  | Ok_c23 (A_18584 : U) :
-    A_18584 -> ch<((exn_p_122) A_18584)> -> (Exn_d15 A_18584)
+axiom at_123 : U -> loc_122 -> L
 
-def (exn_132 := exn_18588) : U -> U
-  | A_18590 => ch<((exn_p_122) A_18590)> -> (Exn_d15 A_18590)
+axiom new_126 :
+  ∀ (A_16738 : U) ->
+    A_16738 -> (sig_d8 loc_122 (fun
+                                 | l_16745 => ((at_123) A_16738 l_16745)))
 
-def (ret_136 := ret_18592) :
-  ∀ (A_18593 : U) -> A_18593 -> ((exn_132) A_18593)
-  | _18596 m_18597 ch_18598 => (Ok_c23 m_18597 ch_18598)
+axiom free_131 :
+  ∀ (A_16746 : U) ->
+    ∀ (l_16749 : loc_122) ->
+      A_16746 -> ((at_123) A_16746 l_16749) -> unit_d1
 
-def (throw_142 := throw_18599) : ∀ (A_18600 : U) -> ((exn_132) A_18600)
-  | _18601 ch_18602 =>
-    let ch_18603 := ((send ch_18602) false_c3) in
-    (match close ch_18603 return (Exn_d15 _18601) with
-      | tt_c1 => Error_c22)
+axiom get_136 :
+  ∀ (A_16755 : U) ->
+    ∀ (l_16758 : loc_122) ->
+      ((at_123) A_16755 l_16758) ->
+        (sig_d8 A_16755 (fun
+                          | _16765 => ((at_123) A_16755 l_16758)))
 
-def (bind_147 := bind_18604) :
-  ∀ (A_18605 : U) ->
-    ((exn_132) A_18605) ->
-      A_18605 -> ((exn_132) A_18605) -> ((exn_132) A_18605)
-  | _18612 e_18613 f_18614 ch_18615 =>
-    (match ((e_18613) ch_18615) return (Exn_d15 _18612) with
-      | Error_c22 => Error_c22
-      | (Ok_c23 m_18616 ch_18617) => ((f_18614) m_18616 ch_18617))
+axiom set_142 :
+  ∀ (A_16766 : U) ->
+    ∀ (B_16770 : U) ->
+      ∀ (l_16775 : loc_122) ->
+        A_16766 ->
+          ((at_123) A_16766 l_16775) -> B_16770 -o ((at_123) A_16766 l_16775)
 
-def (div2_exn_p_158 := div2_exn_p_18618) : nat_d3 -> ((exn_132) nat_d3)
-  | zero_c4 => ((ret_136) nat_d3 zero_c4)
-  | (succ_c5 zero_c4) => ((throw_142) nat_d3)
-  | (succ_c5 (succ_c5 n_18620)) =>
-    ((bind_147)
-      nat_d3 ((div2_exn_p_18618) n_18620)
-      (fun
-        | n_18623 => ((ret_136) nat_d3 (succ_c5 n_18623))))
+data ArrVec_d15 (A_16784 : U) (l_16785 : loc_122) : loc_122 -> L
+  | Nil_c22 (A_16787 : U) (l_16788 : loc_122) :
+    (ArrVec_d15 A_16787 l_16788 zero_c4)
+  | Cons_c23 (A_16789 : U) (l_16790 : loc_122) :
+    ∀ (n_16791 : nat_d3) ->
+      ((at_123) A_16789 ((addn_3) l_16790 n_16791)) ->
+        (ArrVec_d15 A_16789 l_16790 n_16791) ->
+          (ArrVec_d15 A_16789 l_16790 (succ_c5 n_16791))
 
-def (try_exn_163 := try_exn_18624) :
-  ∀ (A_18625 : U) ->
-    @main -o
-      ((exn_132) A_18625) -o
-        A_18625 -o (sig_d8 A_18625 (fun
-                                     | _18642 => @main))
-  | A_18643 m_18644 f_exn_p_18645 default_18646 =>
-    (match
-       fork (ch_18647 : ch<((exn_p_122) A_18643)>) <- m_18644 in
-       (match ((f_exn_p_18645) ch_18647) return unit_d1 with
-         | Error_c22 => tt_c1
-         | (Ok_c23 x_18648 ch_18649) =>
-           let ch_18650 := ((send ch_18649) true_c2) in
-           let ch_18651 := ((send ch_18650) x_18648) in close ch_18651)
-     return (sig_d8 A_18643 (fun
-                              | _18654 => @main))
+def (Array_159 := Array_16795) : U -> loc_122 -> L
+  | A_16799 n_16800 =>
+    (sig_d8 loc_122 (fun
+                      | l_16803 => (ArrVec_d15 A_16799 l_16803 n_16800)))
+
+def (nth_166 := nth_16804) :
+  ∀ (A_16805 : U) ->
+    ∀ (l_16811 : loc_122) ->
+      ∀ (m_16816 : loc_122) ->
+        ∀ (n_16819 : loc_122) ->
+          ((lt_73) m_16816 n_16819) ->
+            (ArrVec_d15 A_16805 l_16811 n_16819) ->
+              (tnsr_d9 ((at_123) A_16805 ((addn_3) l_16811 m_16816))
+              ((at_123) A_16805 ((addn_3) l_16811 m_16816)) -o
+                (ArrVec_d15 A_16805 l_16811 n_16819))
+  | _16827 _16828 _16829 _16830 le_refl_c19 (Cons_c23 _16831 c_16832 v_16833) =>
+    (tnsr_intro_c14 c_16832
+    (fun
+      | c_16836 => (Cons_c23 _16829 c_16836 v_16833)))
+  | _16837 _16838 _16839 _16840 (le_succ_c20 _16841 pf_16842) (Cons_c23 _16843 c0_16844 v0_16845) =>
+    (match ((nth_16804) _16837 _16838 _16839 _16841 pf_16842 v0_16845) return
+       (tnsr_d9 ((at_123) _16837 ((addn_3) _16838 _16839))
+       ((at_123) _16837 ((addn_3) _16838 _16839)) -o
+         (ArrVec_d15 _16837 _16838 (succ_c5 _16841)))
      with
-      | (tnsr_intro_c14 ch_18655 m_18656) =>
-        (match recv ch_18655 return (sig_d8 A_18643 (fun
-                                                      | _18659 => @main)) with
-          | (sig_intro_c13 true_c2 ch_18660) =>
-            (match recv ch_18660 return
-               (sig_d8 A_18643 (fun
-                                 | _18663 => @main))
+      | (tnsr_intro_c14 c_16847 f_16848) =>
+        (tnsr_intro_c14 c_16847
+        (fun
+          | c_16851 => (Cons_c23 _16841 c0_16844 ((f_16848) c_16851)))))
+
+def (index_196 := index_16852) :
+  ∀ (A_16853 : U) ->
+    ∀ (m_16858 : loc_122) ->
+      ∀ (n_16861 : loc_122) ->
+        ((lt_73) m_16858 n_16861) ->
+          ((Array_159) A_16853 n_16861) ->
+            (sig_d8 A_16853 (fun
+                              | _16872 => ((Array_159) A_16853 n_16861)))
+  | _16873 m_16874 _16875 pf_16876 a_16877 =>
+    (match a_16877 return
+       (sig_d8 _16873 (fun
+                        | _16880 => ((Array_159) _16873 _16875)))
+     with
+      | (sig_intro_c13 l_16881 v_16882) =>
+        (match ((nth_166) _16873 l_16881 m_16874 _16875 pf_16876 v_16882)
+         return (sig_d8 _16873 (fun
+                                 | _16885 => ((Array_159) _16873 _16875)))
+         with
+          | (tnsr_intro_c14 c_16886 f_16887) =>
+            (match ((get_136) _16873 ((addn_3) l_16881 m_16874) c_16886)
+             return
+               (sig_d8 _16873 (fun
+                                | _16890 => ((Array_159) _16873 _16875)))
              with
-              | (sig_intro_c13 res_18664 ch_18665) =>
-                (match close ch_18665 return
-                   (sig_d8 A_18643 (fun
-                                     | _18668 => @main))
-                 with
-                  | tt_c1 => (sig_intro_c13 res_18664 m_18656)))
-          | (sig_intro_c13 false_c3 ch_18669) =>
-            (match close ch_18669 return
-               (sig_d8 A_18643 (fun
-                                 | _18672 => @main))
-             with
-              | tt_c1 => (sig_intro_c13 default_18646 m_18656))))
+              | (sig_intro_c13 x_16891 c_16892) =>
+                (sig_intro_c13 x_16891
+                (sig_intro_c13 l_16881 ((f_16887) c_16892))))))
 
-def (string_of_nat_185 := string_of_nat_18673) : nat_d3 -> string_d12
-  | zero_c4 => "zero"
-  | (succ_c5 n_18675) =>
-    ((cat_60) ((cat_60) "succ (" ((string_of_nat_18673) n_18675)) ")")
-
-open @stdout as out_188
-
-def _189 :=
-  (match ((try_exn_163) nat_d3 main_1 ((div2_exn_p_158) 14) zero_c4) return
-     @main
-   with
-    | (sig_intro_c13 n_18676 main_18677) =>
-      let s_18678 := ((string_of_nat_185) n_18676) in
-      let out_18679 := ((printline_106) out_188 ((cat_60) s_18678 "\n")) in
-      (match ((close_out_111) out_18679) return @main with
-        | tt_c1 => main_18677))
+def _215 := main_1
 
 trans1e success-------------------------------------
 
 def addn_3 :=
-  fix addn_22429 _22430 =>
-    (case _22430 of
-      | zero_c4 => lam _22431 => _22431
-      | (succ_c5 _22432) =>
-        lam _22433 => (succ_c5 ((addn_22429) _22432 _22433)))
+  fix addn_20103 _20104 =>
+    (case _20104 of
+      | zero_c4 => lam _20105 => _20105
+      | (succ_c5 _20106) =>
+        lam _20107 => (succ_c5 ((addn_20103) _20106 _20107)))
 
 def cat_60 :=
-  fix cat_22434 _22435 =>
-    (case _22435 of
-      | EmptyString_c17 => lam _22436 => _22436
-      | (String_c18 _22437 _22438) =>
-        lam _22439 => (String_c18 _22437 ((cat_22434) _22438 _22439)))
+  fix cat_20108 _20109 =>
+    (case _20109 of
+      | EmptyString_c17 => lam _20110 => _20110
+      | (String_c18 _20111 _20112) =>
+        lam _20113 => (String_c18 _20111 ((cat_20108) _20112 _20113)))
 
-def lt_73 := fix lt_22440 _22441 _22442 => (le_d13 (succ_c5 _22441) _22442)
+def lt_73 := fix lt_20114 _20115 _20116 => (le_d13 (succ_c5 _20115) _20116)
 
 def stdin_rec_83 :=
-  fix stdin_rec_22443 _22444 =>
-    (case _22444 of
+  fix stdin_rec_20117 _20118 =>
+    (case _20118 of
       | tt_c1 =>
-        !(b_22445 : bool_d2) ⋅
-          ((lin _22448 =>
-              (case _22448 of
-                | true_c2 => ?string_d12 ⋅ ((stdin_rec_22443) tt_c1)
+        !(b_20119 : bool_d2) ⋅
+          ((lin _20122 =>
+              (case _20122 of
+                | true_c2 => ?string_d12 ⋅ ((stdin_rec_20117) tt_c1)
                 | false_c3 => end))
-            b_22445))
+            b_20119))
 
 def stdout_rec_87 :=
-  fix stdout_rec_22450 _22451 =>
-    (case _22451 of
+  fix stdout_rec_20124 _20125 =>
+    (case _20125 of
       | tt_c1 =>
-        !(b_22452 : bool_d2) ⋅
-          ((lin _22455 =>
-              (case _22455 of
-                | true_c2 => !string_d12 ⋅ ((stdout_rec_22450) tt_c1)
+        !(b_20126 : bool_d2) ⋅
+          ((lin _20129 =>
+              (case _20129 of
+                | true_c2 => !string_d12 ⋅ ((stdout_rec_20124) tt_c1)
                 | false_c3 => end))
-            b_22452))
+            b_20126))
 
 def stderr_rec_91 :=
-  fix stderr_rec_22457 _22458 =>
-    (case _22458 of
+  fix stderr_rec_20131 _20132 =>
+    (case _20132 of
       | tt_c1 =>
-        !(b_22459 : bool_d2) ⋅
-          ((lin _22462 =>
-              (case _22462 of
-                | true_c2 => !string_d12 ⋅ ((stderr_rec_22457) tt_c1)
+        !(b_20133 : bool_d2) ⋅
+          ((lin _20136 =>
+              (case _20136 of
+                | true_c2 => !string_d12 ⋅ ((stderr_rec_20131) tt_c1)
                 | false_c3 => end))
-            b_22459))
+            b_20133))
 
 def stdin_t_95 := ((stdin_rec_83) tt_c1)
 
@@ -887,278 +695,195 @@ def stdout_t_96 := ((stdout_rec_87) tt_c1)
 
 def stderr_t_97 := ((stderr_rec_91) tt_c1)
 
-def readline_98 := fix readline_22464 _22465 => recv ((send _22465) true_c2)
+def readline_98 := fix readline_20138 _20139 => recv ((send _20139) true_c2)
 
 def close_in_103 :=
-  fix close_in_22466 _22467 => close ((send _22467) false_c3)
+  fix close_in_20140 _20141 => close ((send _20141) false_c3)
 
 def printline_106 :=
-  fix printline_22468 _22469 =>
-    lin _22470 => ((send ((send _22469) true_c2)) _22470)
+  fix printline_20142 _20143 =>
+    lin _20144 => ((send ((send _20143) true_c2)) _20144)
 
 def close_out_111 :=
-  fix close_out_22471 _22472 => close ((send _22472) false_c3)
+  fix close_out_20145 _20146 => close ((send _20146) false_c3)
 
 def printerr_114 :=
-  fix printerr_22473 _22474 =>
-    lin _22475 => ((send ((send _22474) true_c2)) _22475)
+  fix printerr_20147 _20148 =>
+    lin _20149 => ((send ((send _20148) true_c2)) _20149)
 
 def close_err_119 :=
-  fix close_err_22476 _22477 => close ((send _22477) false_c3)
+  fix close_err_20150 _20151 => close ((send _20151) false_c3)
 
-def exn_p_122 :=
-  fix exn_p_22478 _22479 =>
-    !(b_22480 : bool_d2) ⋅
-      (case b_22480 of
-        | true_c2 => !_22479 ⋅ end
-        | false_c3 => end)
+def loc_122 := nat_d3
 
-def exn_132 :=
-  fix exn_22482 _22483 => ch<((exn_p_122) _22483)> -> (Exn_d15 _22483)
+def Array_159 :=
+  fix Array_20152 _20153 _20154 =>
+    (sig_d8 loc_122 fix _20155 _20156 => (ArrVec_d15 _20153 _20156 _20154))
 
-def ret_136 := fix ret_22485 A_22486 _22487 _22488 => (Ok_c23 _22487 _22488)
+def nth_166 :=
+  fix nth_20157 A_20158 l_20159 m_20160 n_20161 _20162 =>
+    (case _20162 of
+      | le_refl_c19 =>
+        lam _20163 =>
+          (case _20163 of
+            | Nil_c22 => absurd
+            | (Cons_c23 n_20164 _20165 _20166) =>
+              (tnsr_intro_c14 _20165
+              lin _20167 => (Cons_c23 m_20160 _20167 _20166)))
+      | (le_succ_c20 m_20168 _20169) =>
+        lam _20170 =>
+          (case _20170 of
+            | Nil_c22 => absurd
+            | (Cons_c23 n_20171 _20172 _20173) =>
+              ((lin _20174 =>
+                  (case _20174 of
+                    | (tnsr_intro_c14 _20175 _20176) =>
+                      (tnsr_intro_c14 _20175
+                      lin _20177 =>
+                        (Cons_c23 m_20168 _20172 ((_20176) _20177)))))
+                ((nth_20157) A_20158 l_20159 m_20160 m_20168 _20169 _20173))))
 
-def throw_142 :=
-  fix throw_22489 A_22490 _22491 =>
-    let ch_22492 := ((send _22491) false_c3) in
-    ((lin _22493 => (case _22493 of
-                      | tt_c1 => Error_c22)) close ch_22492)
+def index_196 :=
+  fix index_20178 A_20179 m_20180 n_20181 _20182 _20183 =>
+    ((lin _20184 =>
+        (case _20184 of
+          | (sig_intro_c13 x_20185 _20186) =>
+            ((lin _20187 =>
+                (case _20187 of
+                  | (tnsr_intro_c14 _20188 _20189) =>
+                    ((lin _20190 =>
+                        (case _20190 of
+                          | (sig_intro_c13 x_20191 _20192) =>
+                            (sig_intro_c13 x_20191
+                            (sig_intro_c13 x_20185 ((_20189) _20192)))))
+                      ((get_136) A_20179 ((addn_3) x_20185 m_20180) _20188))))
+              ((nth_166) A_20179 x_20185 m_20180 n_20181 _20182 _20186))))
+      _20183)
 
-def bind_147 :=
-  fix bind_22494 A_22495 _22496 _22497 _22498 =>
-    ((lin _22499 =>
-        (case _22499 of
-          | Error_c22 => Error_c22
-          | (Ok_c23 _22500 _22501) => ((_22497) _22500 _22501)))
-      ((_22496) _22498))
-
-def div2_exn_p_158 :=
-  fix div2_exn_p_22502 _22503 =>
-    (case _22503 of
-      | zero_c4 => ((ret_136) nat_d3 zero_c4)
-      | (succ_c5 _22504) =>
-        (case _22504 of
-          | zero_c4 => ((throw_142) nat_d3)
-          | (succ_c5 _22505) =>
-            ((bind_147)
-              nat_d3 ((div2_exn_p_22502) _22505)
-              fix _22506 _22507 => ((ret_136) nat_d3 (succ_c5 _22507)))))
-
-def try_exn_163 :=
-  fix try_exn_22508 A_22509 =>
-    lin _22510 _22511 _22512 =>
-      ((lin _22513 =>
-          (case _22513 of
-            | (tnsr_intro_c14 _22514 _22515) =>
-              ((lin _22516 =>
-                  (case _22516 of
-                    | (sig_intro_c13 x_22517 _22518) =>
-                      (case x_22517 of
-                        | true_c2 =>
-                          ((lin _22519 =>
-                              (case _22519 of
-                                | (sig_intro_c13 x_22520 _22521) =>
-                                  ((lin _22522 =>
-                                      (case _22522 of
-                                        | tt_c1 =>
-                                          (sig_intro_c13 x_22520 _22515)))
-                                    close _22521)))
-                            recv _22518)
-                        | false_c3 =>
-                          ((lin _22523 =>
-                              (case _22523 of
-                                | tt_c1 => (sig_intro_c13 _22512 _22515)))
-                            close _22518))))
-                recv _22514)))
-        fork (ch_22524 : ch<((exn_p_122) A_22509)>) <- _22510 in
-        ((lin _22525 =>
-            (case _22525 of
-              | Error_c22 => tt_c1
-              | (Ok_c23 _22526 _22527) =>
-                let ch_22528 := ((send _22527) true_c2) in
-                let ch_22529 := ((send ch_22528) _22526) in close ch_22529))
-          ((_22511) ch_22524)))
-
-def string_of_nat_185 :=
-  fix string_of_nat_22530 _22531 =>
-    (case _22531 of
-      | zero_c4 => "zero"
-      | (succ_c5 _22532) =>
-        ((cat_60) ((cat_60) "succ (" ((string_of_nat_22530) _22532)) ")"))
-
-open @stdout as out_188
-
-def _189 :=
-  ((lin _22533 =>
-      (case _22533 of
-        | (sig_intro_c13 x_22534 _22535) =>
-          let s_22536 := ((string_of_nat_185) x_22534) in
-          let out_22537 := ((printline_106) out_188 ((cat_60) s_22536 "\n"))
-          in
-          ((lin _22538 => (case _22538 of
-                            | tt_c1 => _22535))
-            ((close_out_111) out_22537))))
-    ((try_exn_163) nat_d3 main_1 ((div2_exn_p_158) 14) zero_c4))
+def _215 := main_1
 
 trans12 success-------------------------------------
 
 [(addn_3,
-  (VFix (addn_22539,
-     lam _23993 =>
-       (case _23993 of
-         | zero_c4 => lam _23994 => _23994
-         | (succ_c5 _23995) =>
-           lam _23996 => (succ_c5 ((addn_22539) _23995 _23996)))
+  (VFix (addn_20193,
+     lam _20211 =>
+       (case _20211 of
+         | zero_c4 => lam _20212 => _20212
+         | (succ_c5 _20213) =>
+           lam _20214 => (succ_c5 ((addn_20193) _20213 _20214)))
      )));
   (cat_60,
-   (VFix (cat_22540,
-      lam _23997 =>
-        (case _23997 of
-          | EmptyString_c17 => lam _23998 => _23998
-          | (String_c18 _23999 _24000) =>
-            lam _24001 => (String_c18 _23999 ((cat_22540) _24000 _24001)))
+   (VFix (cat_20194,
+      lam _20215 =>
+        (case _20215 of
+          | EmptyString_c17 => lam _20216 => _20216
+          | (String_c18 _20217 _20218) =>
+            lam _20219 => (String_c18 _20217 ((cat_20194) _20218 _20219)))
       )));
   (lt_73,
-   (VFix (lt_22541, lam _24002 _24003 => (le_d13 (succ_c5 _24002) _24003))));
+   (VFix (lt_20195, lam _20220 _20221 => (le_d13 (succ_c5 _20220) _20221))));
   (stdin_rec_83,
-   (VFix (stdin_rec_22542,
-      lam _24004 =>
-        (case _24004 of
+   (VFix (stdin_rec_20196,
+      lam _20222 =>
+        (case _20222 of
           | tt_c1 =>
-            !(b_24005 : bool_d2) ⋅
-              ((lin _24008 =>
-                  (case _24008 of
-                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_22542) tt_c1)
+            !(b_20223 : bool_d2) ⋅
+              ((lin _20226 =>
+                  (case _20226 of
+                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_20196) tt_c1)
                     | false_c3 => end))
-                b_24005))
+                b_20223))
       )));
   (stdout_rec_87,
-   (VFix (stdout_rec_22543,
-      lam _24010 =>
-        (case _24010 of
+   (VFix (stdout_rec_20197,
+      lam _20228 =>
+        (case _20228 of
           | tt_c1 =>
-            !(b_24011 : bool_d2) ⋅
-              ((lin _24014 =>
-                  (case _24014 of
-                    | true_c2 => !string_d12 ⋅ ((stdout_rec_22543) tt_c1)
+            !(b_20229 : bool_d2) ⋅
+              ((lin _20232 =>
+                  (case _20232 of
+                    | true_c2 => !string_d12 ⋅ ((stdout_rec_20197) tt_c1)
                     | false_c3 => end))
-                b_24011))
+                b_20229))
       )));
   (stderr_rec_91,
-   (VFix (stderr_rec_22544,
-      lam _24016 =>
-        (case _24016 of
+   (VFix (stderr_rec_20198,
+      lam _20234 =>
+        (case _20234 of
           | tt_c1 =>
-            !(b_24017 : bool_d2) ⋅
-              ((lin _24020 =>
-                  (case _24020 of
-                    | true_c2 => !string_d12 ⋅ ((stderr_rec_22544) tt_c1)
+            !(b_20235 : bool_d2) ⋅
+              ((lin _20238 =>
+                  (case _20238 of
+                    | true_c2 => !string_d12 ⋅ ((stderr_rec_20198) tt_c1)
                     | false_c3 => end))
-                b_24017))
+                b_20235))
       )));
   (stdin_t_95, VBox); (stdout_t_96, VBox); (stderr_t_97, VBox);
   (readline_98,
-   (VFix (readline_22548, lam _24022 => recv ((send _24022) true_c2))));
+   (VFix (readline_20202, lam _20240 => recv ((send _20240) true_c2))));
   (close_in_103,
-   (VFix (close_in_22549, lam _24023 => close ((send _24023) false_c3))));
+   (VFix (close_in_20203, lam _20241 => close ((send _20241) false_c3))));
   (printline_106,
-   (VFix (printline_22550,
-      lam _24024 => lin _24025 => ((send ((send _24024) true_c2)) _24025))));
+   (VFix (printline_20204,
+      lam _20242 => lin _20243 => ((send ((send _20242) true_c2)) _20243))));
   (close_out_111,
-   (VFix (close_out_22551, lam _24026 => close ((send _24026) false_c3))));
+   (VFix (close_out_20205, lam _20244 => close ((send _20244) false_c3))));
   (printerr_114,
-   (VFix (printerr_22552,
-      lam _24027 => lin _24028 => ((send ((send _24027) true_c2)) _24028))));
+   (VFix (printerr_20206,
+      lam _20245 => lin _20246 => ((send ((send _20245) true_c2)) _20246))));
   (close_err_119,
-   (VFix (close_err_22553, lam _24029 => close ((send _24029) false_c3))));
-  (exn_p_122,
-   (VFix (exn_p_22554,
-      lam _24030 =>
-        !(b_24031 : bool_d2) ⋅
-          (case b_24031 of
-            | true_c2 => !_24030 ⋅ end
-            | false_c3 => end)
+   (VFix (close_err_20207, lam _20247 => close ((send _20247) false_c3))));
+  (loc_122, VBox);
+  (Array_159,
+   (VFix (Array_20208,
+      lam _20248 _20249 =>
+        (sig_d8 loc_122
+        fix _20250 _20251 => (ArrVec_d15 _20248 _20251 _20249))
       )));
-  (exn_132,
-   (VFix (exn_22555,
-      lam _24033 => ch<((exn_p_122) _24033)> -> (Exn_d15 _24033))));
-  (ret_136,
-   (VFix (ret_22556, lam A_24035 _24036 _24037 => (Ok_c23 _24036 _24037))));
-  (throw_142,
-   (VFix (throw_22557,
-      lam A_24038 _24039 =>
-        let ch_24040 := ((send _24039) false_c3) in
-        ((lin _24041 => (case _24041 of
-                          | tt_c1 => Error_c22))
-          close ch_24040)
+  (nth_166,
+   (VFix (nth_20209,
+      lam A_20252 l_20253 m_20254 n_20255 _20256 =>
+        (case _20256 of
+          | le_refl_c19 =>
+            lam _20257 =>
+              (case _20257 of
+                | Nil_c22 => absurd
+                | (Cons_c23 n_20258 _20259 _20260) =>
+                  (tnsr_intro_c14 _20259
+                  lin _20261 => (Cons_c23 m_20254 _20261 _20260)))
+          | (le_succ_c20 m_20262 _20263) =>
+            lam _20264 =>
+              (case _20264 of
+                | Nil_c22 => absurd
+                | (Cons_c23 n_20265 _20266 _20267) =>
+                  ((lin _20268 =>
+                      (case _20268 of
+                        | (tnsr_intro_c14 _20269 _20270) =>
+                          (tnsr_intro_c14 _20269
+                          lin _20271 =>
+                            (Cons_c23 m_20262 _20266 ((_20270) _20271)))))
+                    ((nth_20209)
+                      A_20252 l_20253 m_20254 m_20262 _20263 _20267))))
       )));
-  (bind_147,
-   (VFix (bind_22558,
-      lam A_24042 _24043 _24044 _24045 =>
-        ((lin _24046 =>
-            (case _24046 of
-              | Error_c22 => Error_c22
-              | (Ok_c23 _24047 _24048) => ((_24044) _24047 _24048)))
-          ((_24043) _24045))
+  (index_196,
+   (VFix (index_20210,
+      lam A_20272 m_20273 n_20274 _20275 _20276 =>
+        ((lin _20277 =>
+            (case _20277 of
+              | (sig_intro_c13 x_20278 _20279) =>
+                ((lin _20280 =>
+                    (case _20280 of
+                      | (tnsr_intro_c14 _20281 _20282) =>
+                        ((lin _20283 =>
+                            (case _20283 of
+                              | (sig_intro_c13 x_20284 _20285) =>
+                                (sig_intro_c13 x_20284
+                                (sig_intro_c13 x_20278 ((_20282) _20285)))))
+                          ((get_136)
+                            A_20272 ((addn_3) x_20278 m_20273) _20281))))
+                  ((nth_166) A_20272 x_20278 m_20273 n_20274 _20275 _20279))))
+          _20276)
       )));
-  (div2_exn_p_158,
-   (VFix (div2_exn_p_22559,
-      lam _24049 =>
-        (case _24049 of
-          | zero_c4 => ((ret_136) nat_d3 zero_c4)
-          | (succ_c5 _24050) =>
-            (case _24050 of
-              | zero_c4 => ((throw_142) nat_d3)
-              | (succ_c5 _24051) =>
-                ((bind_147)
-                  nat_d3 ((div2_exn_p_22559) _24051)
-                  fix _24052 _24053 => ((ret_136) nat_d3 (succ_c5 _24053)))))
-      )));
-  (try_exn_163,
-   (VFix (try_exn_22560,
-      lam A_24054 =>
-        lin _24055 _24056 _24057 =>
-          ((lin _24058 =>
-              (case _24058 of
-                | (tnsr_intro_c14 _24059 _24060) =>
-                  ((lin _24061 =>
-                      (case _24061 of
-                        | (sig_intro_c13 x_24062 _24063) =>
-                          (case x_24062 of
-                            | true_c2 =>
-                              ((lin _24064 =>
-                                  (case _24064 of
-                                    | (sig_intro_c13 x_24065 _24066) =>
-                                      ((lin _24067 =>
-                                          (case _24067 of
-                                            | tt_c1 =>
-                                              (sig_intro_c13 x_24065 _24060)))
-                                        close _24066)))
-                                recv _24063)
-                            | false_c3 =>
-                              ((lin _24068 =>
-                                  (case _24068 of
-                                    | tt_c1 => (sig_intro_c13 _24057 _24060)))
-                                close _24063))))
-                    recv _24059)))
-            fork (ch_24069 : ch<((exn_p_122) A_24054)>) <- _24055 in
-            ((lin _24070 =>
-                (case _24070 of
-                  | Error_c22 => tt_c1
-                  | (Ok_c23 _24071 _24072) =>
-                    let ch_24073 := ((send _24072) true_c2) in
-                    let ch_24074 := ((send ch_24073) _24071) in
-                    close ch_24074))
-              ((_24056) ch_24069)))
-      )));
-  (string_of_nat_185,
-   (VFix (string_of_nat_22561,
-      lam _24075 =>
-        (case _24075 of
-          | zero_c4 => "zero"
-          | (succ_c5 _24076) =>
-            ((cat_60) ((cat_60) "succ (" ((string_of_nat_22561) _24076)) ")"))
-      )));
-  (_189, VBox)]
+  (_215, VBox)]
 eval2 success---------------------------------------
 
