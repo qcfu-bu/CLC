@@ -415,7 +415,6 @@ def (index_196 := index_490) :
 
 def _215 := main_1
 
-
 trans01 success-------------------------------------
 
 data unit_d1 : U
@@ -640,7 +639,6 @@ def (index_196 := index_11079) :
 
 def _215 := main_1
 
-
 trans1e success-------------------------------------
 
 def addn_3 :=
@@ -764,7 +762,6 @@ def index_196 :=
       _14410)
 
 def _215 := main_1
-
 
 trans12 success-------------------------------------
 

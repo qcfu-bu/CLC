@@ -217,4 +217,5 @@ let pp_dcl fmt dcl =
 let rec pp_dcls fmt dcls =
   match dcls with
   | [] -> ()
+  | [ dcl ] -> pf fmt "%a@." pp_dcl dcl
   | dcl :: dcls -> pf fmt "%a@.@.%a" pp_dcl dcl pp_dcls dcls
