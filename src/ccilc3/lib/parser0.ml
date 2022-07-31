@@ -558,19 +558,19 @@ and tm2_parser () =
 
 and tm3_parser () =
   let add_parser =
-    kw "+"
-    >>$ (fun m n -> App [ Id "addn"; m; n ])
-    <|> (kw "^" >>$ fun m n -> App [ Id "cat"; m; n ])
+    choice
+      [ (kw "+" >>$ fun m n -> App [ Id "addn"; m; n ])
+      ; (kw "^" >>$ fun m n -> App [ Id "cat"; m; n ])
+      ]
   in
   chain_left1 (tm2_parser ()) add_parser
 
 and tm4_parser () =
   let cmp_parser =
     choice
-      (List.map attempt
-         [ (kw "<=" >>$ fun m n -> App [ Id "le"; m; n ])
-         ; (kw "<" >>$ fun m n -> App [ Id "lt"; m; n ])
-         ])
+      [ (kw "<=" >>$ fun m n -> App [ Id "le"; m; n ])
+      ; (kw "<" >>$ fun m n -> App [ Id "lt"; m; n ])
+      ]
   in
   chain_left1 (tm3_parser ()) cmp_parser
 

@@ -13,6 +13,11 @@ def addn : nat -> nat -> nat
   | zero x => x
   | (succ x) y => succ (addn x y)
 
+def subn : nat -> nat -> nat
+  | zero _ => zero
+  | x zero => x
+  | (succ x) (succ y) => subn x y
+
 data option (A : U) : U
   | none : option A
   | some : A -> option A
@@ -50,6 +55,10 @@ data string : U
 def cat : string -> string -> string
   | EmptyString s => s
   | (String c s1) s2 => String c (cat s1 s2)
+
+def strlen : string -> nat
+  | EmptyString => zero
+  | String _ s => succ (strlen s)
 
 data le (n : nat) : nat -> U 
   | le_refl : le n n
