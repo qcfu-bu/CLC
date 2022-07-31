@@ -45,7 +45,6 @@ def fits : nat -> list (nat * mode * doc) -> bool
   | w ((i, Break, DocBreak s) :: z) => true
   | w ((i, m, DocGroup x) :: z)     => fits w ((i, Flat, x) :: z)
 
-
 def format : nat -> nat -> list (nat * mode * doc) -> sdoc
   | w k nil                           => SNil
   | w k ((i, m, DocNil) :: z)         => format w k z
