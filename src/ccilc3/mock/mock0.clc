@@ -1,10 +1,7 @@
-
 def maxn : nat -> nat -> nat
-  | x y =>
-    match x, y with
-    | zero, _ => y
-    | _, zero => x
-    | succ x, succ y => succ (maxn x y)
+  | zero x => x
+  | x zero => x
+  | (succ x) (succ y) => succ (maxn x y)
 
 def one := 
   if true then

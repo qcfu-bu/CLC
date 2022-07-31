@@ -1,4 +1,3 @@
-
 def foo : bool -> U := fun b =>
   if b then
     bool
