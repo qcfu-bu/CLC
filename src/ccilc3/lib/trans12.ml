@@ -184,7 +184,7 @@ and infer_tm ctx env m : tm * Syntax2.tm * bool VMap.t =
       let _ = infer_sort ctx env a in
       let m_elab, usage = check_tm ctx env (Fun (a_opt, abs)) a in
       (a, m_elab, usage)
-    | None -> failwith "infer_Fun(%a)" pp_tm m)
+    | None -> failwith "infer2_Fun(%a)" pp_tm m)
   | App (m, n) -> (
     let a, m_elab, usage1 = infer_tm ctx env m in
     match whnf rd_all env a with
@@ -397,6 +397,14 @@ and check_tm ctx env m a : Syntax2.tm * bool VMap.t =
     let _ = assert_equal env a b in
     (m_elab, usage)
 
+and tl_of_ptl ptl ns =
+  match (ptl, ns) with
+  | PBind (a, abs), n :: ns ->
+    let ptl = asubst_ptl abs (Ann (a, n)) in
+    tl_of_ptl ptl ns
+  | PBase tl, _ -> tl
+  | _ -> failwith "tl_of_ptl"
+
 and check_prbm ctx env prbm a =
   let rec is_absurd es rhs =
     match (es, rhs) with
@@ -420,22 +428,13 @@ and check_prbm ctx env prbm a =
     | _ :: es -> first_split es
     | [] -> failwith "first_split"
   in
-  let rec tl_of_ptl ptl ns =
-    match (ptl, ns) with
-    | PBind (a, abs), n :: ns ->
-      let ptl = asubst_ptl abs (Ann (a, n)) in
-      let tl, ns = tl_of_ptl ptl ns in
-      (tl, n :: ns)
-    | PBase tl, _ -> (tl, [])
-    | _ -> failwith "tl_of_ptl"
-  in
   let fail_on_d ctx d ns s a =
     let _, cs = find_d d ctx in
     let ptls = List.map (fun c -> find_c c ctx) cs in
     let rec loop = function
       | [] -> (Syntax2.Absurd, usage_of_ctx ctx)
       | ptl :: ptls ->
-        let tl, _ = tl_of_ptl ptl ns in
+        let tl = tl_of_ptl ptl ns in
         let _, targ = fold_tl (fun () a x tl -> ((), tl)) () tl in
         let global = UVar.Eq (env, a, targ, Type s) :: prbm.global in
         if has_failed (fun () -> UVar.unify global) then
@@ -476,7 +475,7 @@ and check_prbm ctx env prbm a =
       let usage, cls =
         List.fold_left2
           (fun (acc, cls) ptl c ->
-            let tl, args1 = tl_of_ptl ptl ns in
+            let tl = tl_of_ptl ptl ns in
             let (ctx, xs), targ =
               fold_tl
                 (fun (ctx, acc) a x tl ->
@@ -486,9 +485,9 @@ and check_prbm ctx env prbm a =
                 (ctx, []) tl
             in
             let xs = List.rev xs in
-            let args2 = List.map (fun (x, _) -> Var x) xs in
-            let args3 = List.map (fun (x, _) -> Syntax2.PVar x) xs in
-            let cons = Cons (c, args1 @ args2) in
+            let var_args = List.map (fun (x, _) -> Var x) xs in
+            let pvar_args = List.map (fun (x, _) -> Syntax2.PVar x) xs in
+            let cons = Ann (targ, Cons (c, var_args)) in
             let a = subst_tm x a cons in
             let ctx = subst_ctx x ctx cons in
             let prbm = prbm_subst ctx x prbm cons in
@@ -505,7 +504,7 @@ and check_prbm ctx env prbm a =
               | U -> usage
               | L -> VMap.add x false usage
             in
-            let cl = Syntax2.(Cl (bindp_tm (PCons (c, args3)) ct)) in
+            let cl = Syntax2.(Cl (bindp_tm (PCons (c, pvar_args)) ct)) in
             (refine_equal acc usage, cl :: cls))
           (usage_of_ctx ctx, [])
           ptls cs
@@ -555,8 +554,8 @@ and prbm_add ctx env prbm x a =
     match ptl with
     | PBase tl -> ps_of_tl ps tl
     | PBind (_, abs) ->
-      let x, ptl = unbind_ptl abs in
-      PVar x :: ps_of_ptl ps ptl
+      let _, ptl = unbind_ptl abs in
+      ps_of_ptl ps ptl
   and ps_of_tl ps tl =
     match tl with
     | TBase _ -> ps
@@ -601,16 +600,31 @@ and prbm_subst ctx x prbm m =
 and p_simpl ctx env m n a =
   let m = whnf rd_all env m in
   let n = whnf rd_all env n in
-  match (m, n) with
-  | Cons (c1, xs), Cons (c2, ys) ->
+  let a = whnf rd_all env a in
+  match (m, n, a) with
+  | Cons (c1, xs), Cons (c2, ys), Data (d, ns) ->
     if C.equal c1 c2 then
-      match whnf rd_all env a with
-      | Data (d, _) ->
+      let _, cs = find_d d ctx in
+      if List.exists (fun c -> c = c1) cs then
         let ptl = find_c c1 ctx in
-        ps_simpl_ptl ctx env xs ys ptl
-      | _ -> None
+        let tl = tl_of_ptl ptl ns in
+        ps_simpl_tl ctx env xs ys tl
+      else
+        failwith "p_simpl(%a, %a, %a)" pp_tm m pp_tm n pp_tm a
     else
       None
+  | Cons (c1, _), _, Data (d, _) ->
+    let _, cs = find_d d ctx in
+    if List.exists (fun c -> c = c1) cs then
+      Some [ UVar.Eq (env, m, n, a) ]
+    else
+      failwith "p_simpl(%a, %a, %a)" pp_tm m pp_tm n pp_tm a
+  | _, Cons (c2, _), Data (d, _) ->
+    let _, cs = find_d d ctx in
+    if List.exists (fun c -> c = c2) cs then
+      Some [ UVar.Eq (env, m, n, a) ]
+    else
+      failwith "p_simpl(%a, %a, %a)" pp_tm m pp_tm n pp_tm a
   | _ -> Some [ UVar.Eq (env, m, n, a) ]
 
 and ps_simpl_tl ctx env ms ns tl =
@@ -623,18 +637,6 @@ and ps_simpl_tl ctx env ms ns tl =
     | Some es1, Some es2 -> Some (es1 @ es2)
     | _ -> None)
   | [], [], TBase _ -> Some []
-  | _ -> None
-
-and ps_simpl_ptl ctx env ms ns ptl =
-  match (ms, ns, ptl) with
-  | m :: ms, n :: ns, PBind (a, abs) -> (
-    let opt1 = p_simpl ctx env m n a in
-    let ptl = asubst_ptl abs m in
-    let opt2 = ps_simpl_ptl ctx env ms ns ptl in
-    match (opt1, opt2) with
-    | Some es1, Some es2 -> Some (es1 @ es2)
-    | _ -> None)
-  | ms, ns, PBase tl -> ps_simpl_tl ctx env ms ns tl
   | _ -> None
 
 let rec infer_dcls ctx env dcls =
