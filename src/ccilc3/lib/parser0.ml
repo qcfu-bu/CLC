@@ -132,28 +132,46 @@ and pabsurd_parser () = kw "absurd" >>$ (PAbsurd, true)
 and p_tt_parser () = kw "(" >> kw ")" >>$ (PCons ("tt", []), false)
 
 and p_pair0_parser () =
+  let rhs_parser = kw "," >> p_parser () in
   let* _ = kw "(" in
-  let* p1, absurd1 = p_parser () in
-  let* _ = kw "," in
-  let* p2, absurd2 = p_parser () in
+  let* p, absurd = p_parser () in
+  let* ps = many1 rhs_parser in
   let* _ = kw ")" in
-  return (PCons ("ex_intro", [ p1; p2 ]), absurd1 || absurd2)
+  let p_res, absurd =
+    List.fold_left
+      (fun (acc_p, acc_b) (p, b) ->
+        (PCons ("ex_intro", [ acc_p; p ]), acc_b || b))
+      (p, absurd) ps
+  in
+  return (p_res, absurd)
 
 and p_pair1_parser () =
+  let rhs_parser = kw "," >> p_parser () in
   let* _ = kw "[" in
-  let* p1, absurd1 = p_parser () in
-  let* _ = kw "," in
-  let* p2, absurd2 = p_parser () in
+  let* p, absurd = p_parser () in
+  let* ps = many1 rhs_parser in
   let* _ = kw "]" in
-  return (PCons ("sig_intro", [ p1; p2 ]), absurd1 || absurd2)
+  let p_res, absurd =
+    List.fold_left
+      (fun (acc_p, acc_b) (p, b) ->
+        (PCons ("sig_intro", [ acc_p; p ]), acc_b || b))
+      (p, absurd) ps
+  in
+  return (p_res, absurd)
 
 and p_pair2_parser () =
+  let rhs_parser = kw "," >> p_parser () in
   let* _ = kw "⟨" in
-  let* p1, absurd1 = p_parser () in
-  let* _ = kw "," in
-  let* p2, absurd2 = p_parser () in
+  let* p, absurd = p_parser () in
+  let* ps = many1 rhs_parser in
   let* _ = kw "⟩" in
-  return (PCons ("tnsr_intro", [ p1; p2 ]), absurd1 || absurd2)
+  let p_res, absurd =
+    List.fold_left
+      (fun (acc_p, acc_b) (p, b) ->
+        (PCons ("tnsr_intro", [ acc_p; p ]), acc_b || b))
+      (p, absurd) ps
+  in
+  return (p_res, absurd)
 
 and p_box_parser () =
   let* _ = kw "[" in
@@ -161,7 +179,7 @@ and p_box_parser () =
   let* _ = kw "]" in
   return (PCons ("box_intro", [ p ]), absurd)
 
-and p_parser () =
+and p0_parser () =
   let* _ = return () in
   choice
     [ pcons_parser ()
@@ -174,6 +192,12 @@ and p_parser () =
     ; p_box_parser ()
     ; parens (p_parser ())
     ]
+
+and p_parser () =
+  let cons_parser =
+    kw "::" >>$ fun (m, b1) (n, b2) -> (PCons ("cons", [ m; n ]), b1 || b2)
+  in
+  chain_right1 (p0_parser ()) cons_parser
 
 and ps_parser () =
   let* ps = many (p_parser ()) in
@@ -358,28 +382,33 @@ and if_parser () =
 and tt_parser () = kw "(" >> kw ")" >>$ Id "tt"
 
 and pair0_parser () =
+  let rhs_parser = kw "," >> tm_parser () in
   let* _ = kw "(" in
   let* m = tm_parser () in
-  let* _ = kw "," in
-  let* n = tm_parser () in
+  let* ms = many1 rhs_parser in
   let* _ = kw ")" in
-  return (App [ Id "ex_intro"; m; n ])
+  let res = List.fold_left (fun acc m -> App [ Id "ex_intro"; acc; m ]) m ms in
+  return res
 
 and pair1_parser () =
+  let rhs_parser = kw "," >> tm_parser () in
   let* _ = kw "[" in
   let* m = tm_parser () in
-  let* _ = kw "," in
-  let* n = tm_parser () in
+  let* ms = many1 rhs_parser in
   let* _ = kw "]" in
-  return (App [ Id "sig_intro"; m; n ])
+  let res = List.fold_left (fun acc m -> App [ Id "sig_intro"; acc; m ]) m ms in
+  return res
 
 and pair2_parser () =
+  let rhs_parser = kw "," >> tm_parser () in
   let* _ = kw "⟨" in
   let* m = tm_parser () in
-  let* _ = kw "," in
-  let* n = tm_parser () in
+  let* ms = many1 rhs_parser in
   let* _ = kw "⟩" in
-  return (App [ Id "tnsr_intro"; m; n ])
+  let res =
+    List.fold_left (fun acc m -> App [ Id "tnsr_intro"; acc; m ]) m ms
+  in
+  return res
 
 and box_parser () =
   let* _ = kw "[" in
@@ -557,13 +586,23 @@ and tm2_parser () =
   chain_left1 (tm1_parser ()) prod_parser
 
 and tm3_parser () =
-  let add_parser =
+  let add_parser = kw "+" in
+  let sub_parser =
+    let* _ = string "-" in
+    let* opt = option (look_ahead (string ">" <|> string "o")) in
+    match opt with
+    | Some _ -> zero
+    | None -> ws
+  in
+  let cat_parser = kw "^" in
+  let opr_parser =
     choice
-      [ (kw "+" >>$ fun m n -> App [ Id "addn"; m; n ])
-      ; (kw "^" >>$ fun m n -> App [ Id "cat"; m; n ])
+      [ (add_parser >>$ fun m n -> App [ Id "addn"; m; n ])
+      ; (sub_parser >>$ fun m n -> App [ Id "subn"; m; n ])
+      ; (cat_parser >>$ fun m n -> App [ Id "cat"; m; n ])
       ]
   in
-  chain_left1 (tm2_parser ()) add_parser
+  chain_left1 (tm2_parser ()) opr_parser
 
 and tm4_parser () =
   let cmp_parser =
@@ -575,10 +614,14 @@ and tm4_parser () =
   chain_left1 (tm3_parser ()) cmp_parser
 
 and tm5_parser () =
-  let eq_parser = kw "=" >>$ fun m n -> App [ Id "eq"; Id "_"; m; n ] in
-  chain_left1 (tm4_parser ()) eq_parser
+  let cons_parser = kw "::" >>$ fun m n -> App [ Id "cons"; m; n ] in
+  chain_right1 (tm4_parser ()) cons_parser
 
 and tm6_parser () =
+  let eq_parser = kw "=" >>$ fun m n -> App [ Id "eq"; Id "_"; m; n ] in
+  chain_left1 (tm5_parser ()) eq_parser
+
+and tm7_parser () =
   let arrow_parser =
     let* _ = kw "→" <|> kw "->" in
     return (fun a b -> Pi (U, [ (None, a) ], b))
@@ -587,9 +630,9 @@ and tm6_parser () =
     let* _ = kw "⊸" <|> kw "-o" in
     return (fun a b -> Pi (L, [ (None, a) ], b))
   in
-  chain_right1 (tm5_parser ()) (arrow_parser <|> lolli_parser)
+  chain_right1 (tm6_parser ()) (arrow_parser <|> lolli_parser)
 
-and tm_parser () = tm6_parser ()
+and tm_parser () = tm7_parser ()
 
 let def_parser =
   let* _ = kw "def" in

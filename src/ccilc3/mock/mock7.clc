@@ -24,9 +24,6 @@ data mode : U
   | Flat  : mode
   | Break : mode
 
-data triple (A B C : U) : U
-  | tri : A -> B -> C -> triple A B C
-
 def sdocToString : sdoc -> string
   | SNil => ""
   | SText s d => s ^ sdocToString d
@@ -37,34 +34,35 @@ def sdocToString : sdoc -> string
     in
     "\n" ^ loop i ^ sdocToString d
 
-def fits : nat -> list (triple nat mode doc) -> bool
-  | zero _ => false
-  | w nil => true
-  | w (cons (tri i m DocNil) z)           => fits w z
-  | w (cons (tri i m (DocCons x y)) z)    => fits w (cons (tri i m x) (cons (tri i m y) z))
-  | w (cons (tri i m (DocNest j x)) z)    => fits w (cons (tri (i + j) m x) z)
-  | w (cons (tri i m (DocText s)) z)      => fits (subn w (strlen s)) z
-  | w (cons (tri i Flat (DocBreak s)) z)  => fits (subn w (strlen s)) z
-  | w (cons (tri i Break (DocBreak s)) z) => true
-  | w (cons (tri i m (DocGroup x)) z)     => fits w (cons (tri i Flat x) z)
+def fits : nat -> list (nat * mode * doc) -> bool
+  | zero _                          => false
+  | w nil                           => true
+  | w ((i, m, DocNil) :: z)         => fits w z
+  | w ((i, m, DocCons x y) :: z)    => fits w ((i, m, x) :: (i, m, y) :: z)
+  | w ((i, m, DocNest j x) :: z)    => fits w ((i + j, m, x) :: z)
+  | w ((i, m, DocText s) :: z)      => fits (w - strlen s) z
+  | w ((i, Flat, DocBreak s) :: z)  => fits (w - strlen s) z
+  | w ((i, Break, DocBreak s) :: z) => true
+  | w ((i, m, DocGroup x) :: z)     => fits w ((i, Flat, x) :: z)
 
-def format : nat -> nat -> list (triple nat mode doc) -> sdoc
-  | w k nil => SNil
-  | w k (cons (tri i m DocNil) z)           => format w k z
-  | w k (cons (tri i m (DocCons x y)) z)    => format w k (cons (tri i m x) (cons (tri i m y) z))
-  | w k (cons (tri i m (DocNest j x)) z)    => format w k (cons (tri (i + j) m x) z)
-  | w k (cons (tri i m (DocText s)) z)      => SText s (format w (k + strlen s) z)
-  | w k (cons (tri i Flat (DocBreak s)) z)  => SText s (format w (k + strlen s) z)
-  | w k (cons (tri i Break (DocBreak s)) z) => SLine i (format w i z)
-  | w k (cons (tri i m (DocGroup x)) z)     => 
-    if fits (subn w k) (cons (tri i Flat x) z) then
-      format w k (cons (tri i Flat x) z)
+
+def format : nat -> nat -> list (nat * mode * doc) -> sdoc
+  | w k nil                           => SNil
+  | w k ((i, m, DocNil) :: z)         => format w k z
+  | w k ((i, m, DocCons x y) :: z)    => format w k ((i, m, x) :: (i, m, y) :: z)
+  | w k ((i, m, DocNest j x) :: z)    => format w k ((i + j, m, x) :: z)
+  | w k ((i, m, DocText s) :: z)      => SText s (format w (k + strlen s) z)
+  | w k ((i, Flat, DocBreak s) :: z)  => SText s (format w (k + strlen s) z)
+  | w k ((i, Break, DocBreak s) :: z) => SLine i (format w i z)
+  | w k ((i, m, DocGroup x) :: z)     => 
+    if fits (w - k) ((i, Flat, x) :: z) then
+      format w k ((i, Flat, x) :: z)
     else
-      format w k (cons (tri i Break x) z)
+      format w k ((i, Break, x) :: z)
 
 def pretty : nat -> doc -> string
   | w d => 
-    let sd := format (succ w) 0 (cons (tri 0 Flat (group d)) nil) in
+    let sd := format (succ w) 0 ((0, Flat, group d) :: nil) in
     sdocToString sd ^ "\n"
 
 def join : doc -> doc -> doc
