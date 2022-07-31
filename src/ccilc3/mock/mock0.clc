@@ -16,7 +16,7 @@ def two := 2
 
 def foo := maxn one
 
-def bar := (foo two)
+def bar := foo two
 
 open @stdout as stdout
 
