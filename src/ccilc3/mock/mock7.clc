@@ -7,24 +7,13 @@ data doc : U
   | DocBreak : string -> doc
   | DocGroup : doc -> doc
 
-def dcons : doc -> doc -> doc
-  | x y => DocCons x y
-
+def dcons : doc -> doc -> doc | x y => DocCons x y
 def empty := DocNil
-
-def text : string -> doc
-  | s => DocText s
-
-def nest : nat -> doc -> doc
-  | i d => DocNest i d
-
+def text : string -> doc | s => DocText s
+def nest : nat -> doc -> doc | i d => DocNest i d
 def break := DocBreak " " 
-
-def breakWith : string -> doc
-  | s => DocBreak s
-
-def group : doc -> doc
-  | d => DocGroup d
+def breakWith : string -> doc | s => DocBreak s
+def group : doc -> doc | d => DocGroup d
 
 data sdoc : U
   | SNil  : sdoc
@@ -95,10 +84,10 @@ def expr2 := binop "a" "+" "b"
 
 def ifthen : doc -> doc -> doc -> doc
   | c e1 e2 =>
-    group (
-      join (group (nest 2 (join (text "if") c))) (
-      join (group (nest 2 (join (text "then") e1))) 
-           (group (nest 2 (join (text "else") e2)))))
+    group 
+      (join (group (nest 2 (join (text "if") c))) 
+      (join (group (nest 2 (join (text "then") e1))) 
+            (group (nest 2 (join (text "else") e2)))))
 
 def doc := ifthen cond expr1 expr2
 
