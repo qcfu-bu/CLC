@@ -3,10 +3,10 @@ def exn_p : U -> proto
 
 data Exn (A : U) : L 
   | Error : Exn A
-  | Ok : A -> ch<exn_p A> -> Exn A
+  | Ok : A -> ch‹exn_p A› -> Exn A
 
 def exn : U -> U 
-  | A => ch<exn_p A> -> Exn A
+  | A => ch‹exn_p A› -> Exn A
 
 def ret : ∀ (A : U) -> A -> exn A
   | _ m ch => Ok m ch
@@ -32,7 +32,7 @@ def div2_exn_p : nat -> exn nat
 def try_exn : ∀ (A : U) -> @main -o exn A -o A -o A × @main
   | A m f_exn_p default =>
     let ⟨ch, m⟩ :=
-      fork (ch : ch<exn_p A>) <- m with
+      fork (ch : ch‹exn_p A›) <- m with
       match f_exn_p ch with
       | Error => tt
       | Ok x ch =>

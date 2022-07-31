@@ -89,7 +89,7 @@ module Parser = struct
   let id_parser : id parser =
     let* s1 = many1_chars (letter <|> char '_') in
     let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
-    let* b = look_ahead (char '<') >>$ true <|> return false in
+    let* b = look_ahead (kw "‹") >>$ true <|> return false in
     if b then
       zero
     else
@@ -102,7 +102,7 @@ module Parser = struct
   let id_opt_parser : id_opt parser =
     let* s1 = many1_chars (letter <|> char '_') in
     let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
-    let* b = look_ahead (char '<') >>$ true <|> return false in
+    let* b = look_ahead (kw "‹") >>$ true <|> return false in
     if b then
       zero
     else
@@ -341,9 +341,9 @@ module Parser = struct
     return (Act (r, args, b))
 
   and ch_parser () =
-    let* r = kw "ch<" >>$ true <|> (kw "hc<" >>$ false) in
+    let* r = kw "ch‹" >>$ true <|> (kw "hc‹" >>$ false) in
     let* m = tm_parser () in
-    let* _ = kw ">" in
+    let* _ = kw "›" in
     return (Ch (r, m))
 
   and fork_parser () =

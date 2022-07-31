@@ -141,9 +141,9 @@ let rec pp_tm fmt m =
     | false, true -> pf fmt "@[!(%a : %a) ⋅@;<1 2>%a@]" V.pp x pp_tm a pp_tm b)
   | Ch (r, m) ->
     if r then
-      pf fmt "ch<%a>" pp_tm m
+      pf fmt "ch‹%a›" pp_tm m
     else
-      pf fmt "hc<%a>" pp_tm m
+      pf fmt "hc‹%a›" pp_tm m
   | Fork (a, m, abs) ->
     let x, n = unbind_tm abs in
     pf fmt "@[@[fork (%a :@;<1 2>%a) <-@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x
