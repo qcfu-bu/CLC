@@ -16,7 +16,7 @@ def ref_handler : ∀ (A : U) -> A -> ch‹ref_t A› -o unit
     match recv ch with
     | [GET, ch] => ref_handler _ m (send ch m)
     | [SET, ch] => 
-      let sig_intro m ch := recv ch in
+      let [m, ch] := recv ch in
       ref_handler A m ch
     | [FREE, ch] => close ch
 
