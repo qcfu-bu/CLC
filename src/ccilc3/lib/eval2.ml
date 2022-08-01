@@ -18,7 +18,7 @@ and value =
   | VBox
   | VCons of C.t * values
   | VLam of V.t * tm * env
-  | VFix of V.t * tm
+  | VFix of V.t * V.t * tm * env
   | VCh of ch
   | VSend of ch
 
@@ -83,23 +83,23 @@ let rec eval_tm env m =
     | _ -> failwith "eval_Var(%a)" V.pp x)
   | Pi _ -> VBox
   | Fix abs ->
-    let x, m = unbind_tm abs in
-    VFix (x, m)
+    let f, x, m = unbind_tm_abs abs in
+    VFix (f, x, m, env)
   | Lam (_, abs) ->
     let x, m = unbind_tm abs in
     VLam (x, m, env)
   | App (m, n) -> (
     let m = eval_tm env m in
+    let n = eval_tm env n in
     match m with
     | VLam (x, m, local) ->
-      let n = eval_tm env n in
       let local = VMap.add x n local in
       eval_tm local m
-    | VFix (x, m) ->
-      let env = VMap.add x (VFix (x, m)) env in
-      eval_tm env (App (m, n))
+    | VFix (f, x, m, local) ->
+      let local = VMap.add f (VFix (f, x, m, local)) local in
+      let local = VMap.add x n local in
+      eval_tm local m
     | VSend m -> (
-      let n = eval_tm env n in
       match m with
       | Channel ch ->
         let _ = sync (send ch n) in

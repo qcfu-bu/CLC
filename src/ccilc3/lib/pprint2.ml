@@ -88,9 +88,9 @@ let rec pp_tm fmt m =
     | L, true ->
       pf fmt "@[@[∀ (%a :@;<1 2>%a) -o@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b)
   | Fix abs ->
-    let x, m = unbind_tm abs in
+    let f, x, m = unbind_tm_abs abs in
     let xs, m = gather_lams U m in
-    pf fmt "@[fix %a %a=>@;<1 2>%a@]" V.pp x V.pps xs pp_tm m
+    pf fmt "@[fix %a %a %a=>@;<1 2>%a@]" V.pp f V.pp x V.pps xs pp_tm m
   | Lam (s, abs) -> (
     let x, m = unbind_tm abs in
     let xs, m = gather_lams s m in

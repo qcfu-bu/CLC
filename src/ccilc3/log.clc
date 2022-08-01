@@ -2118,98 +2118,94 @@ def _301 :=
 trans12 success-------------------------------------
 
 [(addn_3,
-  (VFix (addn_65432,
-     lam _70630 =>
-       (case _70630 of
-         | zero_c4 => lam _70631 => _70631
-         | (succ_c5 _70632) =>
-           lam _70633 => (succ_c5 ((addn_65432) _70632 _70633)))
-     )));
+  (VFix (addn_65432, _65433,
+     (case _65433 of
+       | zero_c4 => lam _69671 => _69671
+       | (succ_c5 _69672) =>
+         lam _69673 => (succ_c5 ((addn_65432) _69672 _69673))),
+     <opaque>)));
   (subn_9,
-   (VFix (subn_65433,
-      lam _70634 =>
-        (case _70634 of
-          | zero_c4 => lam _70635 => zero_c4
-          | (succ_c5 _70636) =>
-            lam _70637 =>
-              (case _70637 of
-                | zero_c4 => (succ_c5 _70636)
-                | (succ_c5 _70638) => ((subn_65433) _70636 _70638)))
-      )));
+   (VFix (subn_65434, _65435,
+      (case _65435 of
+        | zero_c4 => lam _69674 => zero_c4
+        | (succ_c5 _69675) =>
+          lam _69676 =>
+            (case _69676 of
+              | zero_c4 => (succ_c5 _69675)
+              | (succ_c5 _69677) => ((subn_65434) _69675 _69677))),
+      <opaque>)));
   (cat_67,
-   (VFix (cat_65434,
-      lam _70639 =>
-        (case _70639 of
-          | EmptyString_c17 => lam _70640 => _70640
-          | (String_c18 _70641 _70642) =>
-            lam _70643 => (String_c18 _70641 ((cat_65434) _70642 _70643)))
-      )));
+   (VFix (cat_65436, _65437,
+      (case _65437 of
+        | EmptyString_c17 => lam _69678 => _69678
+        | (String_c18 _69679 _69680) =>
+          lam _69681 => (String_c18 _69679 ((cat_65436) _69680 _69681))),
+      <opaque>)));
   (strlen_74,
-   (VFix (strlen_65435,
-      lam _70644 =>
-        (case _70644 of
-          | EmptyString_c17 => zero_c4
-          | (String_c18 _70645 _70646) => (succ_c5 ((strlen_65435) _70646)))
-      )));
+   (VFix (strlen_65438, _65439,
+      (case _65439 of
+        | EmptyString_c17 => zero_c4
+        | (String_c18 _69682 _69683) => (succ_c5 ((strlen_65438) _69683))),
+      <opaque>)));
   (lt_84,
-   (VFix (lt_65436, lam _70647 _70648 => (le_d13 (succ_c5 _70647) _70648))));
+   (VFix (lt_65440, _65441, lam _69684 => (le_d13 (succ_c5 _65441) _69684),
+      <opaque>)));
   (stdin_rec_94,
-   (VFix (stdin_rec_65437,
-      lam _70649 =>
-        (case _70649 of
-          | tt_c1 =>
-            !(b_70650 : bool_d2) ⋅
-              ((lin _70653 =>
-                  (case _70653 of
-                    | true_c2 => ?string_d12 ⋅ ((stdin_rec_65437) tt_c1)
-                    | false_c3 => end))
-                b_70650))
-      )));
+   (VFix (stdin_rec_65442, _65443,
+      (case _65443 of
+        | tt_c1 =>
+          !(b_69685 : bool_d2) ⋅
+            ((lin _69688 =>
+                (case _69688 of
+                  | true_c2 => ?string_d12 ⋅ ((stdin_rec_65442) tt_c1)
+                  | false_c3 => end))
+              b_69685)),
+      <opaque>)));
   (stdout_rec_98,
-   (VFix (stdout_rec_65438,
-      lam _70655 =>
-        (case _70655 of
-          | tt_c1 =>
-            !(b_70656 : bool_d2) ⋅
-              ((lin _70659 =>
-                  (case _70659 of
-                    | true_c2 => !string_d12 ⋅ ((stdout_rec_65438) tt_c1)
-                    | false_c3 => end))
-                b_70656))
-      )));
+   (VFix (stdout_rec_65444, _65445,
+      (case _65445 of
+        | tt_c1 =>
+          !(b_69690 : bool_d2) ⋅
+            ((lin _69693 =>
+                (case _69693 of
+                  | true_c2 => !string_d12 ⋅ ((stdout_rec_65444) tt_c1)
+                  | false_c3 => end))
+              b_69690)),
+      <opaque>)));
   (stderr_rec_102,
-   (VFix (stderr_rec_65439,
-      lam _70661 =>
-        (case _70661 of
-          | tt_c1 =>
-            !(b_70662 : bool_d2) ⋅
-              ((lin _70665 =>
-                  (case _70665 of
-                    | true_c2 => !string_d12 ⋅ ((stderr_rec_65439) tt_c1)
-                    | false_c3 => end))
-                b_70662))
-      )));
+   (VFix (stderr_rec_65446, _65447,
+      (case _65447 of
+        | tt_c1 =>
+          !(b_69695 : bool_d2) ⋅
+            ((lin _69698 =>
+                (case _69698 of
+                  | true_c2 => !string_d12 ⋅ ((stderr_rec_65446) tt_c1)
+                  | false_c3 => end))
+              b_69695)),
+      <opaque>)));
   (stdin_t_106, VBox); (stdout_t_107, VBox); (stderr_t_108, VBox);
   (readline_109,
-   (VFix (readline_65443, lam _70667 => recv ((send _70667) true_c2))));
+   (VFix (readline_65448, _65449, recv ((send _65449) true_c2), <opaque>)));
   (close_in_114,
-   (VFix (close_in_65444, lam _70668 => close ((send _70668) false_c3))));
+   (VFix (close_in_65450, _65451, close ((send _65451) false_c3), <opaque>)));
   (printline_117,
-   (VFix (printline_65445,
-      lam _70669 => lin _70670 => ((send ((send _70669) true_c2)) _70670))));
+   (VFix (printline_65452, _65453,
+      lin _69700 => ((send ((send _65453) true_c2)) _69700), <opaque>)));
   (close_out_122,
-   (VFix (close_out_65446, lam _70671 => close ((send _70671) false_c3))));
+   (VFix (close_out_65454, _65455, close ((send _65455) false_c3), <opaque>)));
   (printerr_125,
-   (VFix (printerr_65447,
-      lam _70672 => lin _70673 => ((send ((send _70672) true_c2)) _70673))));
+   (VFix (printerr_65456, _65457,
+      lin _69701 => ((send ((send _65457) true_c2)) _69701), <opaque>)));
   (close_err_130,
-   (VFix (close_err_65448, lam _70674 => close ((send _70674) false_c3))));
+   (VFix (close_err_65458, _65459, close ((send _65459) false_c3), <opaque>)));
   (dcons_140,
-   (VFix (dcons_65449, lam _70675 _70676 => (DocCons_c23 _70675 _70676))));
+   (VFix (dcons_65460, _65461, lam _69702 => (DocCons_c23 _65461 _69702),
+      <opaque>)));
   (empty_145, (VCons (DocNil_c22, [])));
-  (text_146, (VFix (text_65450, lam _70677 => (DocText_c24 _70677))));
+  (text_146, (VFix (text_65462, _65463, (DocText_c24 _65463), <opaque>)));
   (nest_149,
-   (VFix (nest_65451, lam _70678 _70679 => (DocNest_c25 _70678 _70679))));
+   (VFix (nest_65464, _65465, lam _69703 => (DocNest_c25 _65465 _69703),
+      <opaque>)));
   (break_154,
    (VCons (DocBreak_c26,
       [(VCons (String_c18,
@@ -2224,303 +2220,299 @@ trans12 success-------------------------------------
         ]
       )));
   (breakWith_155,
-   (VFix (breakWith_65452, lam _70680 => (DocBreak_c26 _70680))));
-  (group_158, (VFix (group_65453, lam _70681 => (DocGroup_c27 _70681))));
+   (VFix (breakWith_65466, _65467, (DocBreak_c26 _65467), <opaque>)));
+  (group_158, (VFix (group_65468, _65469, (DocGroup_c27 _65469), <opaque>)));
   (sdocToString_165,
-   (VFix (sdocToString_65454,
-      lam _70682 =>
-        (case _70682 of
-          | SNil_c28 => EmptyString_c17
-          | (SText_c29 _70683 _70684) =>
-            ((cat_67) _70683 ((sdocToString_65454) _70684))
-          | (SLine_c30 _70685 _70686) =>
-            let loop_70687 :=
-              fix loop_70688 _70689 =>
-                (case _70689 of
-                  | zero_c4 => EmptyString_c17
-                  | (succ_c5 _70690) => ((cat_67) " " ((loop_70688) _70690)))
-            in
-            ((cat_67)
-              ((cat_67) "\n" ((loop_70687) _70685))
-              ((sdocToString_65454) _70686)))
-      )));
+   (VFix (sdocToString_65470, _65471,
+      (case _65471 of
+        | SNil_c28 => EmptyString_c17
+        | (SText_c29 _69704 _69705) =>
+          ((cat_67) _69704 ((sdocToString_65470) _69705))
+        | (SLine_c30 _69706 _69707) =>
+          let loop_69708 :=
+            fix loop_69709 _69710 =>
+              (case _69710 of
+                | zero_c4 => EmptyString_c17
+                | (succ_c5 _69711) => ((cat_67) " " ((loop_69709) _69711)))
+          in
+          ((cat_67)
+            ((cat_67) "\n" ((loop_69708) _69706))
+            ((sdocToString_65470) _69707))),
+      <opaque>)));
   (fits_175,
-   (VFix (fits_65455,
-      lam _70691 =>
-        (case _70691 of
-          | zero_c4 => lam _70692 => false_c3
-          | (succ_c5 _70693) =>
-            lam _70694 =>
-              (case _70694 of
-                | nil_c8 => true_c2
-                | (cons_c9 _70695 _70696) =>
-                  (case _70695 of
-                    | (ex_intro_c12 x_70697 _70698) =>
-                      (case x_70697 of
-                        | (ex_intro_c12 x_70699 _70700) =>
-                          (case _70698 of
-                            | DocNil_c22 =>
-                              ((fits_65455) (succ_c5 _70693) _70696)
-                            | (DocCons_c23 _70701 _70702) =>
-                              ((fits_65455)
-                                (succ_c5 _70693)
-                                (cons_c9
-                                  (ex_intro_c12 (ex_intro_c12 x_70699 _70700)
-                                  _70701)
-                                (cons_c9
-                                  (ex_intro_c12 (ex_intro_c12 x_70699 _70700)
-                                  _70702)
-                                _70696)))
-                            | (DocText_c24 _70703) =>
-                              ((fits_65455)
-                                ((subn_9)
-                                  (succ_c5 _70693) ((strlen_74) _70703))
-                                _70696)
-                            | (DocNest_c25 _70704 _70705) =>
-                              ((fits_65455)
-                                (succ_c5 _70693)
-                                (cons_c9
-                                  (ex_intro_c12
-                                    (ex_intro_c12 ((addn_3) x_70699 _70704)
-                                    _70700)
-                                  _70705)
-                                _70696))
-                            | (DocBreak_c26 _70706) =>
-                              (case _70700 of
-                                | Flat_c31 =>
-                                  ((fits_65455)
-                                    ((subn_9)
-                                      (succ_c5 _70693) ((strlen_74) _70706))
-                                    _70696)
-                                | Break_c32 => true_c2)
-                            | (DocGroup_c27 _70707) =>
-                              ((fits_65455)
-                                (succ_c5 _70693)
-                                (cons_c9
-                                  (ex_intro_c12
-                                    (ex_intro_c12 x_70699 Flat_c31)
-                                  _70707)
-                                _70696)))))))
-      )));
-  (format_218,
-   (VFix (format_65456,
-      lam _70708 _70709 _70710 =>
-        (case _70710 of
-          | nil_c8 => SNil_c28
-          | (cons_c9 _70711 _70712) =>
-            (case _70711 of
-              | (ex_intro_c12 x_70713 _70714) =>
-                (case x_70713 of
-                  | (ex_intro_c12 x_70715 _70716) =>
-                    (case _70714 of
-                      | DocNil_c22 => ((format_65456) _70708 _70709 _70712)
-                      | (DocCons_c23 _70717 _70718) =>
-                        ((format_65456)
-                          _70708 _70709
-                          (cons_c9
-                            (ex_intro_c12 (ex_intro_c12 x_70715 _70716)
-                            _70717)
-                          (cons_c9
-                            (ex_intro_c12 (ex_intro_c12 x_70715 _70716)
-                            _70718)
-                          _70712)))
-                      | (DocText_c24 _70719) =>
-                        (SText_c29 _70719
-                        ((format_65456)
-                          _70708 ((addn_3) _70709 ((strlen_74) _70719))
-                          _70712))
-                      | (DocNest_c25 _70720 _70721) =>
-                        ((format_65456)
-                          _70708 _70709
-                          (cons_c9
-                            (ex_intro_c12
-                              (ex_intro_c12 ((addn_3) x_70715 _70720) _70716)
-                            _70721)
-                          _70712))
-                      | (DocBreak_c26 _70722) =>
-                        (case _70716 of
-                          | Flat_c31 =>
-                            (SText_c29 _70722
-                            ((format_65456)
-                              _70708 ((addn_3) _70709 ((strlen_74) _70722))
-                              _70712))
-                          | Break_c32 =>
-                            (SLine_c30 x_70715
-                            ((format_65456) _70708 x_70715 _70712)))
-                      | (DocGroup_c27 _70723) =>
-                        (case ((fits_175)
-                                ((subn_9) _70708 _70709)
-                                (cons_c9
-                                  (ex_intro_c12
-                                    (ex_intro_c12 x_70715 Flat_c31)
-                                  _70723)
-                                _70712))
-                         of
-                          | true_c2 =>
-                            ((format_65456)
-                              _70708 _70709
+   (VFix (fits_65472, _65473,
+      (case _65473 of
+        | zero_c4 => lam _69712 => false_c3
+        | (succ_c5 _69713) =>
+          lam _69714 =>
+            (case _69714 of
+              | nil_c8 => true_c2
+              | (cons_c9 _69715 _69716) =>
+                (case _69715 of
+                  | (ex_intro_c12 x_69717 _69718) =>
+                    (case x_69717 of
+                      | (ex_intro_c12 x_69719 _69720) =>
+                        (case _69718 of
+                          | DocNil_c22 =>
+                            ((fits_65472) (succ_c5 _69713) _69716)
+                          | (DocCons_c23 _69721 _69722) =>
+                            ((fits_65472)
+                              (succ_c5 _69713)
                               (cons_c9
-                                (ex_intro_c12 (ex_intro_c12 x_70715 Flat_c31)
-                                _70723)
-                              _70712))
-                          | false_c3 =>
-                            ((format_65456)
-                              _70708 _70709
+                                (ex_intro_c12 (ex_intro_c12 x_69719 _69720)
+                                _69721)
+                              (cons_c9
+                                (ex_intro_c12 (ex_intro_c12 x_69719 _69720)
+                                _69722)
+                              _69716)))
+                          | (DocText_c24 _69723) =>
+                            ((fits_65472)
+                              ((subn_9)
+                                (succ_c5 _69713) ((strlen_74) _69723))
+                              _69716)
+                          | (DocNest_c25 _69724 _69725) =>
+                            ((fits_65472)
+                              (succ_c5 _69713)
                               (cons_c9
                                 (ex_intro_c12
-                                  (ex_intro_c12 x_70715 Break_c32)
-                                _70723)
-                              _70712)))))))
-      )));
+                                  (ex_intro_c12 ((addn_3) x_69719 _69724)
+                                  _69720)
+                                _69725)
+                              _69716))
+                          | (DocBreak_c26 _69726) =>
+                            (case _69720 of
+                              | Flat_c31 =>
+                                ((fits_65472)
+                                  ((subn_9)
+                                    (succ_c5 _69713) ((strlen_74) _69726))
+                                  _69716)
+                              | Break_c32 => true_c2)
+                          | (DocGroup_c27 _69727) =>
+                            ((fits_65472)
+                              (succ_c5 _69713)
+                              (cons_c9
+                                (ex_intro_c12 (ex_intro_c12 x_69719 Flat_c31)
+                                _69727)
+                              _69716))))))),
+      <opaque>)));
+  (format_218,
+   (VFix (format_65474, _65475,
+      lam _69728 _69729 =>
+        (case _69729 of
+          | nil_c8 => SNil_c28
+          | (cons_c9 _69730 _69731) =>
+            (case _69730 of
+              | (ex_intro_c12 x_69732 _69733) =>
+                (case x_69732 of
+                  | (ex_intro_c12 x_69734 _69735) =>
+                    (case _69733 of
+                      | DocNil_c22 => ((format_65474) _65475 _69728 _69731)
+                      | (DocCons_c23 _69736 _69737) =>
+                        ((format_65474)
+                          _65475 _69728
+                          (cons_c9
+                            (ex_intro_c12 (ex_intro_c12 x_69734 _69735)
+                            _69736)
+                          (cons_c9
+                            (ex_intro_c12 (ex_intro_c12 x_69734 _69735)
+                            _69737)
+                          _69731)))
+                      | (DocText_c24 _69738) =>
+                        (SText_c29 _69738
+                        ((format_65474)
+                          _65475 ((addn_3) _69728 ((strlen_74) _69738))
+                          _69731))
+                      | (DocNest_c25 _69739 _69740) =>
+                        ((format_65474)
+                          _65475 _69728
+                          (cons_c9
+                            (ex_intro_c12
+                              (ex_intro_c12 ((addn_3) x_69734 _69739) _69735)
+                            _69740)
+                          _69731))
+                      | (DocBreak_c26 _69741) =>
+                        (case _69735 of
+                          | Flat_c31 =>
+                            (SText_c29 _69741
+                            ((format_65474)
+                              _65475 ((addn_3) _69728 ((strlen_74) _69741))
+                              _69731))
+                          | Break_c32 =>
+                            (SLine_c30 x_69734
+                            ((format_65474) _65475 x_69734 _69731)))
+                      | (DocGroup_c27 _69742) =>
+                        (case ((fits_175)
+                                ((subn_9) _65475 _69728)
+                                (cons_c9
+                                  (ex_intro_c12
+                                    (ex_intro_c12 x_69734 Flat_c31)
+                                  _69742)
+                                _69731))
+                         of
+                          | true_c2 =>
+                            ((format_65474)
+                              _65475 _69728
+                              (cons_c9
+                                (ex_intro_c12 (ex_intro_c12 x_69734 Flat_c31)
+                                _69742)
+                              _69731))
+                          | false_c3 =>
+                            ((format_65474)
+                              _65475 _69728
+                              (cons_c9
+                                (ex_intro_c12
+                                  (ex_intro_c12 x_69734 Break_c32)
+                                _69742)
+                              _69731))))))),
+      <opaque>)));
   (pretty_269,
-   (VFix (pretty_65457,
-      lam _70724 _70725 =>
-        let sd_70726 :=
+   (VFix (pretty_65476, _65477,
+      lam _69743 =>
+        let sd_69744 :=
           ((format_218)
-            (succ_c5 _70724) zero_c4
+            (succ_c5 _65477) zero_c4
             (cons_c9
               (ex_intro_c12 (ex_intro_c12 zero_c4 Flat_c31)
-              ((group_158) _70725))
+              ((group_158) _69743))
             nil_c8))
-        in ((cat_67) ((sdocToString_165) sd_70726) "\n")
-      )));
+        in ((cat_67) ((sdocToString_165) sd_69744) "\n"),
+      <opaque>)));
   (join_275,
-   (VFix (join_65458,
-      lam _70727 =>
-        (case _70727 of
-          | DocNil_c22 => lam _70728 => _70728
-          | (DocCons_c23 _70729 _70730) =>
-            lam _70731 =>
-              (case _70731 of
-                | DocNil_c22 => (DocCons_c23 _70729 _70730)
-                | (DocCons_c23 _70732 _70733) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocCons_c23 _70729 _70730) break_154)
-                    (DocCons_c23 _70732 _70733))
-                | (DocText_c24 _70734) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocCons_c23 _70729 _70730) break_154)
-                    (DocText_c24 _70734))
-                | (DocNest_c25 _70735 _70736) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocCons_c23 _70729 _70730) break_154)
-                    (DocNest_c25 _70735 _70736))
-                | (DocBreak_c26 _70737) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocCons_c23 _70729 _70730) break_154)
-                    (DocBreak_c26 _70737))
-                | (DocGroup_c27 _70738) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocCons_c23 _70729 _70730) break_154)
-                    (DocGroup_c27 _70738)))
-          | (DocText_c24 _70739) =>
-            lam _70740 =>
-              (case _70740 of
-                | DocNil_c22 => (DocText_c24 _70739)
-                | (DocCons_c23 _70741 _70742) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocText_c24 _70739) break_154)
-                    (DocCons_c23 _70741 _70742))
-                | (DocText_c24 _70743) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocText_c24 _70739) break_154)
-                    (DocText_c24 _70743))
-                | (DocNest_c25 _70744 _70745) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocText_c24 _70739) break_154)
-                    (DocNest_c25 _70744 _70745))
-                | (DocBreak_c26 _70746) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocText_c24 _70739) break_154)
-                    (DocBreak_c26 _70746))
-                | (DocGroup_c27 _70747) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocText_c24 _70739) break_154)
-                    (DocGroup_c27 _70747)))
-          | (DocNest_c25 _70748 _70749) =>
-            lam _70750 =>
-              (case _70750 of
-                | DocNil_c22 => (DocNest_c25 _70748 _70749)
-                | (DocCons_c23 _70751 _70752) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocNest_c25 _70748 _70749) break_154)
-                    (DocCons_c23 _70751 _70752))
-                | (DocText_c24 _70753) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocNest_c25 _70748 _70749) break_154)
-                    (DocText_c24 _70753))
-                | (DocNest_c25 _70754 _70755) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocNest_c25 _70748 _70749) break_154)
-                    (DocNest_c25 _70754 _70755))
-                | (DocBreak_c26 _70756) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocNest_c25 _70748 _70749) break_154)
-                    (DocBreak_c26 _70756))
-                | (DocGroup_c27 _70757) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocNest_c25 _70748 _70749) break_154)
-                    (DocGroup_c27 _70757)))
-          | (DocBreak_c26 _70758) =>
-            lam _70759 =>
-              (case _70759 of
-                | DocNil_c22 => (DocBreak_c26 _70758)
-                | (DocCons_c23 _70760 _70761) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocBreak_c26 _70758) break_154)
-                    (DocCons_c23 _70760 _70761))
-                | (DocText_c24 _70762) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocBreak_c26 _70758) break_154)
-                    (DocText_c24 _70762))
-                | (DocNest_c25 _70763 _70764) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocBreak_c26 _70758) break_154)
-                    (DocNest_c25 _70763 _70764))
-                | (DocBreak_c26 _70765) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocBreak_c26 _70758) break_154)
-                    (DocBreak_c26 _70765))
-                | (DocGroup_c27 _70766) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocBreak_c26 _70758) break_154)
-                    (DocGroup_c27 _70766)))
-          | (DocGroup_c27 _70767) =>
-            lam _70768 =>
-              (case _70768 of
-                | DocNil_c22 => (DocGroup_c27 _70767)
-                | (DocCons_c23 _70769 _70770) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocGroup_c27 _70767) break_154)
-                    (DocCons_c23 _70769 _70770))
-                | (DocText_c24 _70771) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocGroup_c27 _70767) break_154)
-                    (DocText_c24 _70771))
-                | (DocNest_c25 _70772 _70773) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocGroup_c27 _70767) break_154)
-                    (DocNest_c25 _70772 _70773))
-                | (DocBreak_c26 _70774) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocGroup_c27 _70767) break_154)
-                    (DocBreak_c26 _70774))
-                | (DocGroup_c27 _70775) =>
-                  ((dcons_140)
-                    ((dcons_140) (DocGroup_c27 _70767) break_154)
-                    (DocGroup_c27 _70775))))
-      )));
+   (VFix (join_65478, _65479,
+      (case _65479 of
+        | DocNil_c22 => lam _69745 => _69745
+        | (DocCons_c23 _69746 _69747) =>
+          lam _69748 =>
+            (case _69748 of
+              | DocNil_c22 => (DocCons_c23 _69746 _69747)
+              | (DocCons_c23 _69749 _69750) =>
+                ((dcons_140)
+                  ((dcons_140) (DocCons_c23 _69746 _69747) break_154)
+                  (DocCons_c23 _69749 _69750))
+              | (DocText_c24 _69751) =>
+                ((dcons_140)
+                  ((dcons_140) (DocCons_c23 _69746 _69747) break_154)
+                  (DocText_c24 _69751))
+              | (DocNest_c25 _69752 _69753) =>
+                ((dcons_140)
+                  ((dcons_140) (DocCons_c23 _69746 _69747) break_154)
+                  (DocNest_c25 _69752 _69753))
+              | (DocBreak_c26 _69754) =>
+                ((dcons_140)
+                  ((dcons_140) (DocCons_c23 _69746 _69747) break_154)
+                  (DocBreak_c26 _69754))
+              | (DocGroup_c27 _69755) =>
+                ((dcons_140)
+                  ((dcons_140) (DocCons_c23 _69746 _69747) break_154)
+                  (DocGroup_c27 _69755)))
+        | (DocText_c24 _69756) =>
+          lam _69757 =>
+            (case _69757 of
+              | DocNil_c22 => (DocText_c24 _69756)
+              | (DocCons_c23 _69758 _69759) =>
+                ((dcons_140)
+                  ((dcons_140) (DocText_c24 _69756) break_154)
+                  (DocCons_c23 _69758 _69759))
+              | (DocText_c24 _69760) =>
+                ((dcons_140)
+                  ((dcons_140) (DocText_c24 _69756) break_154)
+                  (DocText_c24 _69760))
+              | (DocNest_c25 _69761 _69762) =>
+                ((dcons_140)
+                  ((dcons_140) (DocText_c24 _69756) break_154)
+                  (DocNest_c25 _69761 _69762))
+              | (DocBreak_c26 _69763) =>
+                ((dcons_140)
+                  ((dcons_140) (DocText_c24 _69756) break_154)
+                  (DocBreak_c26 _69763))
+              | (DocGroup_c27 _69764) =>
+                ((dcons_140)
+                  ((dcons_140) (DocText_c24 _69756) break_154)
+                  (DocGroup_c27 _69764)))
+        | (DocNest_c25 _69765 _69766) =>
+          lam _69767 =>
+            (case _69767 of
+              | DocNil_c22 => (DocNest_c25 _69765 _69766)
+              | (DocCons_c23 _69768 _69769) =>
+                ((dcons_140)
+                  ((dcons_140) (DocNest_c25 _69765 _69766) break_154)
+                  (DocCons_c23 _69768 _69769))
+              | (DocText_c24 _69770) =>
+                ((dcons_140)
+                  ((dcons_140) (DocNest_c25 _69765 _69766) break_154)
+                  (DocText_c24 _69770))
+              | (DocNest_c25 _69771 _69772) =>
+                ((dcons_140)
+                  ((dcons_140) (DocNest_c25 _69765 _69766) break_154)
+                  (DocNest_c25 _69771 _69772))
+              | (DocBreak_c26 _69773) =>
+                ((dcons_140)
+                  ((dcons_140) (DocNest_c25 _69765 _69766) break_154)
+                  (DocBreak_c26 _69773))
+              | (DocGroup_c27 _69774) =>
+                ((dcons_140)
+                  ((dcons_140) (DocNest_c25 _69765 _69766) break_154)
+                  (DocGroup_c27 _69774)))
+        | (DocBreak_c26 _69775) =>
+          lam _69776 =>
+            (case _69776 of
+              | DocNil_c22 => (DocBreak_c26 _69775)
+              | (DocCons_c23 _69777 _69778) =>
+                ((dcons_140)
+                  ((dcons_140) (DocBreak_c26 _69775) break_154)
+                  (DocCons_c23 _69777 _69778))
+              | (DocText_c24 _69779) =>
+                ((dcons_140)
+                  ((dcons_140) (DocBreak_c26 _69775) break_154)
+                  (DocText_c24 _69779))
+              | (DocNest_c25 _69780 _69781) =>
+                ((dcons_140)
+                  ((dcons_140) (DocBreak_c26 _69775) break_154)
+                  (DocNest_c25 _69780 _69781))
+              | (DocBreak_c26 _69782) =>
+                ((dcons_140)
+                  ((dcons_140) (DocBreak_c26 _69775) break_154)
+                  (DocBreak_c26 _69782))
+              | (DocGroup_c27 _69783) =>
+                ((dcons_140)
+                  ((dcons_140) (DocBreak_c26 _69775) break_154)
+                  (DocGroup_c27 _69783)))
+        | (DocGroup_c27 _69784) =>
+          lam _69785 =>
+            (case _69785 of
+              | DocNil_c22 => (DocGroup_c27 _69784)
+              | (DocCons_c23 _69786 _69787) =>
+                ((dcons_140)
+                  ((dcons_140) (DocGroup_c27 _69784) break_154)
+                  (DocCons_c23 _69786 _69787))
+              | (DocText_c24 _69788) =>
+                ((dcons_140)
+                  ((dcons_140) (DocGroup_c27 _69784) break_154)
+                  (DocText_c24 _69788))
+              | (DocNest_c25 _69789 _69790) =>
+                ((dcons_140)
+                  ((dcons_140) (DocGroup_c27 _69784) break_154)
+                  (DocNest_c25 _69789 _69790))
+              | (DocBreak_c26 _69791) =>
+                ((dcons_140)
+                  ((dcons_140) (DocGroup_c27 _69784) break_154)
+                  (DocBreak_c26 _69791))
+              | (DocGroup_c27 _69792) =>
+                ((dcons_140)
+                  ((dcons_140) (DocGroup_c27 _69784) break_154)
+                  (DocGroup_c27 _69792)))),
+      <opaque>)));
   (binop_282,
-   (VFix (binop_65459,
-      lam _70776 _70777 _70778 =>
+   (VFix (binop_65480, _65481,
+      lam _69793 _69794 =>
         ((group_158)
           ((nest_149)
             2
             ((join_275)
               ((group_158)
-                ((join_275) ((text_146) _70776) ((text_146) _70777)))
-              ((text_146) _70778))))
-      )));
+                ((join_275) ((text_146) _65481) ((text_146) _69793)))
+              ((text_146) _69794)))),
+      <opaque>)));
   (cond_289,
    (VCons (DocGroup_c27,
       [(VCons (DocNest_c25,
@@ -2845,18 +2837,18 @@ trans12 success-------------------------------------
         ]
       )));
   (ifthen_292,
-   (VFix (ifthen_65574,
-      lam _70779 _70780 _70781 =>
+   (VFix (ifthen_65557, _65558,
+      lam _69795 _69796 =>
         ((group_158)
           ((join_275)
             ((group_158)
-              ((nest_149) 2 ((join_275) ((text_146) "if") _70779)))
+              ((nest_149) 2 ((join_275) ((text_146) "if") _65558)))
             ((join_275)
               ((group_158)
-                ((nest_149) 2 ((join_275) ((text_146) "then") _70780)))
+                ((nest_149) 2 ((join_275) ((text_146) "then") _69795)))
               ((group_158)
-                ((nest_149) 2 ((join_275) ((text_146) "else") _70781))))))
-      )));
+                ((nest_149) 2 ((join_275) ((text_146) "else") _69796)))))),
+      <opaque>)));
   (doc_299,
    (VCons (DocGroup_c27,
       [(VCons (DocCons_c23,

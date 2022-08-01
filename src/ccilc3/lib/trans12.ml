@@ -329,7 +329,7 @@ and check_tl ctx env ms tl =
 
 and check_tm ctx env m a : Syntax2.tm * bool VMap.t =
   match m with
-  | Fun (b_opt, abs) -> (
+  | Fun (b_opt, abs) ->
     let s, _ =
       match b_opt with
       | Some b ->
@@ -340,15 +340,12 @@ and check_tm ctx env m a : Syntax2.tm * bool VMap.t =
     in
     let x, cls = unbind_cls abs in
     let prbm = UVar.prbm_of_cls cls in
-    let ctx =
+    let ctx, opt =
       match s with
-      | U -> add_v x s a ctx
-      | L -> ctx
+      | U -> (add_v x s a ctx, Some x)
+      | L -> (ctx, None)
     in
-    let ct, usage = check_prbm ctx env prbm a in
-    match s with
-    | U -> (Syntax2.(Fix (bind_tm x ct)), usage)
-    | L -> (ct, usage))
+    check_prbm ctx env prbm a opt
   | Let (m, abs) ->
     let x, n = unbind_tm abs in
     let abs = bind_tm x (Ann (a, n)) in
@@ -389,7 +386,7 @@ and check_tm ctx env m a : Syntax2.tm * bool VMap.t =
     in
     let _ = infer_sort ctx env mot in
     let prbm = UVar.prbm_of_cls cls in
-    let ct, usage2 = check_prbm ctx env prbm mot in
+    let ct, usage2 = check_prbm ctx env prbm mot None in
     let _ = assert_equal env a b in
     (Syntax2.(mkApps ct (List.rev ms_elab)), merge usage1 usage2)
   | _ ->
@@ -405,7 +402,7 @@ and tl_of_ptl ptl ns =
   | PBase tl, _ -> tl
   | _ -> failwith "tl_of_ptl"
 
-and check_prbm ctx env prbm a =
+and check_prbm ctx env prbm a opt =
   let rec is_absurd es rhs =
     match (es, rhs) with
     | UVar.Eq (_, Var _, Absurd, _) :: _, None -> true
@@ -495,7 +492,7 @@ and check_prbm ctx env prbm a =
               UVar.
                 { prbm with global = Eq (env, b, targ, Type s) :: prbm.global }
             in
-            let ct, usage = check_prbm ctx env prbm a in
+            let ct, usage = check_prbm ctx env prbm a opt in
             let usage =
               List.fold_left (fun acc (x, s) -> remove x acc s) usage xs
             in
@@ -531,13 +528,16 @@ and check_prbm ctx env prbm a =
       let t, _ = infer_sort ctx env a in
       let ctx = add_v x t a ctx in
       let prbm = prbm_add ctx env prbm x a in
-      let ct, usage = check_prbm ctx env prbm b in
+      let ct, usage = check_prbm ctx env prbm b None in
       let usage = remove x usage t in
-      match s with
-      | U ->
+      match (s, opt) with
+      | U, Some f ->
+        let _ = assert_empty usage in
+        (Syntax2.(Fix (bind_tm_abs f x ct)), VMap.empty)
+      | U, None ->
         let _ = assert_empty usage in
         (Syntax2.(Lam (trans_sort s, bind_tm x ct)), VMap.empty)
-      | L -> (Syntax2.(Lam (trans_sort s, bind_tm x ct)), usage))
+      | L, _ -> (Syntax2.(Lam (trans_sort s, bind_tm x ct)), usage))
     | _ -> failwith "check_Intro")
 
 and prbm_add ctx env prbm x a =
@@ -687,15 +687,15 @@ let rec infer_dcls ctx env dcls =
     if s = U then
       let ctx1 = add_v y s a ctx in
       let prbm = UVar.prbm_of_cls cls in
-      let ct, usage = check_prbm ctx1 env prbm a in
+      let ct, usage = check_prbm ctx1 env prbm a (Some y) in
       let ctx = add_v x s a ctx in
       let env = VMap.add x (Fun (Some a, abs)) env in
       let _ = assert_empty usage in
       let dcls_elab, usage = infer_dcls ctx env dcls in
-      Syntax2.(DTm (x, Fix (bind_tm y ct)) :: dcls_elab, usage)
+      Syntax2.(DTm (x, ct) :: dcls_elab, usage)
     else
       let prbm = UVar.prbm_of_cls cls in
-      let ct, usage1 = check_prbm ctx env prbm a in
+      let ct, usage1 = check_prbm ctx env prbm a None in
       let dcls_elab, usage2 = infer_dcls (add_v x s a ctx) env dcls in
       Syntax2.(DTm (x, ct) :: dcls_elab, merge usage1 (remove x usage2 s))
   | DData (d, ptl, dconss) :: dcls ->

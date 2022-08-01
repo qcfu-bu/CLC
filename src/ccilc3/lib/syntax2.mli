@@ -11,7 +11,7 @@ and tm =
   | Type of sort
   | Var of V.t
   | Pi of sort * tm * tm abs
-  | Fix of tm abs
+  | Fix of tm abs abs
   | Lam of sort * tm abs
   | App of tm * tm
   | Let of tm * tm abs
@@ -63,10 +63,12 @@ and tl =
 
 val var : V.t -> tm
 val bind_tm : V.t -> tm -> tm abs
+val bind_tm_abs : V.t -> V.t -> tm -> tm abs abs
 val bindp_tm : p -> tm -> tm pabs
 val bind_ptl : V.t -> ptl -> ptl abs
 val bind_tl : V.t -> tl -> tl abs
 val unbind_tm : tm abs -> V.t * tm
+val unbind_tm_abs : tm abs abs -> V.t * V.t * tm
 val unbindp_tm : tm pabs -> p * tm
 val unbind_ptl : ptl abs -> V.t * ptl
 val unbind_tl : tl abs -> V.t * tl

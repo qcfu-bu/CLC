@@ -11,7 +11,7 @@ and tm =
   | Type of sort
   | Var of V.t
   | Pi of sort * tm * tm abs
-  | Fix of tm abs
+  | Fix of tm abs abs
   | Lam of sort * tm abs
   | App of tm * tm
   | Let of tm * tm abs
@@ -98,9 +98,9 @@ let bindn_tm k xs m =
       let a = aux k a in
       let b = aux (k + 1) b in
       Pi (s, a, Abs (x, b))
-    | Fix (Abs (x, m)) ->
-      let m = aux (k + 1) m in
-      Fix (Abs (x, m))
+    | Fix (Abs (f, Abs (x, m))) ->
+      let m = aux (k + 2) m in
+      Fix (Abs (f, Abs (x, m)))
     | Lam (s, Abs (x, m)) ->
       let m = aux (k + 1) m in
       Lam (s, Abs (x, m))
@@ -163,9 +163,9 @@ let unbindn_tm k xs m =
       let a = aux k a in
       let b = aux (k + 1) b in
       Pi (s, a, Abs (x, b))
-    | Fix (Abs (x, m)) ->
-      let m = aux (k + 1) m in
-      Fix (Abs (x, m))
+    | Fix (Abs (f, Abs (x, m))) ->
+      let m = aux (k + 2) m in
+      Fix (Abs (f, Abs (x, m)))
     | Lam (s, Abs (x, m)) ->
       let m = aux (k + 1) m in
       Lam (s, Abs (x, m))
@@ -276,6 +276,7 @@ and unbindn_tl k xs tl =
   aux k tl
 
 let bind_tm x m = Abs (x, bindn_tm 0 [ x ] m)
+let bind_tm_abs f x m = Abs (f, Abs (x, bindn_tm 0 [ f; x ] m))
 
 let bindp_tm p m =
   let xs = xs_of_p p in
@@ -287,6 +288,11 @@ let bind_tl x tl = Abs (x, bindn_tl 0 [ x ] tl)
 let unbind_tm (Abs (x, m)) =
   let x = V.freshen x in
   (x, unbindn_tm 0 [ Var x ] m)
+
+let unbind_tm_abs (Abs (f, Abs (x, m))) =
+  let f = V.freshen f in
+  let x = V.freshen x in
+  (f, x, unbindn_tm 0 [ Var f; Var x ] m)
 
 let unbindp_tm (PAbs (p, rhs)) =
   let ps = freshen_p p in
@@ -348,7 +354,7 @@ let rec occurs_tm x m =
     let _, b = unbind_tm abs in
     occurs_tm x a || occurs_tm x b
   | Fix abs ->
-    let _, m = unbind_tm abs in
+    let _, _, m = unbind_tm_abs abs in
     occurs_tm x m
   | Lam (_, abs) ->
     let _, m = unbind_tm abs in
