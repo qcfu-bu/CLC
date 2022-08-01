@@ -109,6 +109,7 @@ module C : sig
   val mk : string -> t
   val equal : t -> t -> bool
   val compare : t -> t -> int
+  val get_id : t -> int
   val pp : Format.formatter -> t -> unit
 end = struct
   type t = string * int
@@ -121,6 +122,7 @@ end = struct
 
   let equal x y = snd x = snd y
   let compare x y = Int.compare (snd x) (snd y)
+  let get_id (_, id) = id
   let pp fmt (s, id) = pf fmt "%s_c%d" s id
 end
 

@@ -5,9 +5,10 @@ open Parser0
 open Prelude
 open Equality1
 
-let run s1 s2 =
+let run s1 s2 s3 =
   let ch1 = open_in s1 in
   let ch2 = open_out s2 in
+  let ch3 = open_out s3 in
   try
     match parse_channel ch1 state0 with
     | Success (dcls, _) ->
@@ -18,7 +19,8 @@ let run s1 s2 =
           "parse success---------------------------------------\n\n"
       in
       let _, _, dcls = Trans01.trans_dcls nspc cs dcls in
-      let dcls = src1 @ dcls in
+      (* let dcls = src1 @ dcls in *)
+      let dcls = dcls in
       let s = str "%a@." Pprint1.pp_dcls dcls in
       let _ = Printf.fprintf ch2 "%s" s in
       let _ =
@@ -46,6 +48,14 @@ let run s1 s2 =
         Printf.fprintf ch2
           "eval2 success---------------------------------------\n\n"
       in
+      let prog = Trans23.trans_dcls dcls in
+      let s = str "%a@." Pprint3.pp_prog prog in
+      let _ = Printf.fprintf ch2 "%s" s in
+      let _ = Printf.fprintf ch3 "%s" s in
+      let _ =
+        Printf.fprintf ch2
+          "trans23 success-------------------------------------\n\n"
+      in
       ()
     | Failed (s, _) -> epr "%s\n" s
   with
@@ -55,4 +65,4 @@ let _ =
   if Array.length Sys.argv < 1 then
     epr "input file expected@."
   else
-    run Sys.argv.(1) "log.clc"
+    run Sys.argv.(1) "log.clc" "c/test.c"

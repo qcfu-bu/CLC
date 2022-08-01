@@ -1,23 +1,12 @@
+data nat : U 
+  | zero : nat
+  | succ : nat -> nat
+
 def maxn : nat -> nat -> nat
   | zero x => x
   | x zero => x
   | (succ x) (succ y) => succ (maxn x y)
 
-def one := 
-  if true then
-    1
-  else
-    0
+def foo := maxn 1 2
 
-def two := 2
-
-def foo := maxn one
-
-def bar := foo two
-
-open @stdout as stdout
-
-def _ := 
-  let stdout := printline stdout ("hello" ^ " " ^ "world\n") in
-  let () := close_out stdout in
-  main
+def _ := main
