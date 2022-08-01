@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <pthread.h>
+#include "chan.h"
 
 typedef void *CLC_ptr;
 
@@ -62,4 +64,9 @@ void INSTR_struct(CLC_ptr *x, int tag, int size, ...)
   }
   va_end(ap);
   *x = (CLC_ptr)tmp;
+}
+
+void INSTR_open(CLC_ptr *x)
+{
+  *x = (CLC_ptr)chan_init(0);
 }

@@ -15,6 +15,7 @@ and proc =
   ; return : value
   }
 
+and chs = V.t list
 and def = proc list
 
 and instr =
@@ -24,6 +25,11 @@ and instr =
   | Struct of V.t * int * values
   | Switch of value * cls
   | Break
+  | Open of V.t
+  | Fork of V.t * value * V.t * values
+  | Send of V.t * value
+  | Recv of V.t * value
+  | Close of V.t
 
 and instrs = instr list
 and cl = int * instrs
