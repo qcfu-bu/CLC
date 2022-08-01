@@ -699,24 +699,20 @@ let rec infer_dcls ctx env dcls =
       let dcls_elab, usage2 = infer_dcls (add_v x s a ctx) env dcls in
       Syntax2.(DTm (x, ct) :: dcls_elab, merge usage1 (remove x usage2 s))
   | DData (d, ptl, dconss) :: dcls ->
-    let _ = infer_ptl ctx env ptl U in
+    let ptl_elab = infer_ptl ctx env ptl U in
     let ctx = add_d d ptl [] ctx in
-    let _ =
-      List.iter
-        (fun (DCons (_, ptl)) ->
-          let _ = infer_ptl ctx env ptl U in
-          param_ptl ptl d [])
-        dconss
-    in
-    let cs, ctx =
+    let dconss_elab, cs, ctx =
       List.fold_right
-        (fun (DCons (c, ptl)) (acc, ctx) ->
+        (fun (DCons (c, ptl)) (dconss_elab, acc, ctx) ->
+          let ptl_elab = infer_ptl ctx env ptl U in
+          let _ = param_ptl ptl d [] in
           let ctx = add_c c ptl ctx in
-          (c :: acc, ctx))
-        dconss ([], ctx)
+          (Syntax2.DCons (c, ptl_elab) :: dconss_elab, c :: acc, ctx))
+        dconss ([], [], ctx)
     in
     let ctx = add_d d ptl cs ctx in
-    infer_dcls ctx env dcls
+    let dcls_elab, usage = infer_dcls ctx env dcls in
+    Syntax2.(DData (d, ptl_elab, dconss_elab) :: dcls_elab, usage)
   | DOpen (trg, x) :: dcls -> (
     match trg with
     | TStdin ->
@@ -732,9 +728,9 @@ let rec infer_dcls ctx env dcls =
       let dcls_elab, usage = infer_dcls (add_v x L a ctx) env dcls in
       Syntax2.(DOpen (trans_trg trg, x) :: dcls_elab, remove x usage L))
   | DAxiom (x, a) :: dcls ->
-    let s, _ = infer_sort ctx env a in
+    let s, a_elab = infer_sort ctx env a in
     let dcls_elab, usage = infer_dcls (add_v x s a ctx) env dcls in
-    (dcls_elab, remove x usage s)
+    Syntax2.(DAxiom (x, a_elab) :: dcls_elab, remove x usage s)
   | [] -> failwith "infer_dcls"
 
 and param_ptl ptl d xs =
@@ -771,25 +767,27 @@ and param_tl tl d xs =
 and infer_tl ctx env tl s =
   match tl with
   | TBase a ->
-    let t, _ = infer_sort ctx env a in
+    let t, a = infer_sort ctx env a in
     if cmp_sort t s then
-      ()
+      Syntax2.TBase a
     else
       failwith "infer_tl"
   | TBind (a, abs) ->
     let x, tl = unbind_tl abs in
-    let t, _ = infer_sort ctx env a in
+    let t, a_elab = infer_sort ctx env a in
     let ctx = add_v x t a ctx in
-    infer_tl ctx env tl (min_sort s t)
+    let tl_elab = infer_tl ctx env tl (min_sort s t) in
+    Syntax2.(TBind (a_elab, bind_tl x tl_elab))
 
 and infer_ptl ctx env ptl s =
   match ptl with
-  | PBase tl -> infer_tl ctx env tl s
+  | PBase tl -> Syntax2.PBase (infer_tl ctx env tl s)
   | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
-    let t, _ = infer_sort ctx env a in
+    let t, a_elab = infer_sort ctx env a in
     let ctx = add_v x t a ctx in
-    infer_ptl ctx env ptl (min_sort s t)
+    let ptl = infer_ptl ctx env ptl (min_sort s t) in
+    Syntax2.(PBind (a_elab, bind_ptl x ptl))
 
 and min_sort s1 s2 =
   match s1 with

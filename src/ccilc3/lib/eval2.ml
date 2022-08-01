@@ -192,5 +192,7 @@ let eval_dcls dcls =
       | TStdin -> aux (VMap.add x (VCh (Stdin false)) env) dcls
       | TStdout -> aux (VMap.add x (VCh (Stdout false)) env) dcls
       | TStderr -> aux (VMap.add x (VCh (Stderr false)) env) dcls)
+    | DData _ :: dcls -> aux env dcls
+    | DAxiom (x, _) :: dcls -> aux (VMap.add x VBox env) dcls
   in
   aux env dcls

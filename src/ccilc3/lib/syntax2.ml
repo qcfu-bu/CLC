@@ -47,7 +47,9 @@ type trg =
 
 type dcl =
   | DTm of V.t * tm
+  | DData of D.t * ptl * dconss
   | DOpen of trg * V.t
+  | DAxiom of V.t * tm
 
 and dcls = dcl list
 and dcons = DCons of C.t * ptl

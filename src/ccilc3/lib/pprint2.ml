@@ -197,6 +197,9 @@ let pp_dcl fmt dcl =
   match dcl with
   | DTm (x, m) -> pf fmt "@[def %a :=@;<1 2>%a@]" V.pp x pp_tm m
   | DOpen (targ, x) -> pf fmt "open %a as %a" pp_trg targ V.pp x
+  | DData (d, ptl, dconss) ->
+    pf fmt "@[<v 0>@[data %a %a@]@;<1 2>%a@]" D.pp d pp_ptl ptl pp_dconss dconss
+  | DAxiom (x, a) -> pf fmt "@[axiom %a :@;<1 2>%a@]" V.pp x pp_tm a
 
 let rec pp_dcls fmt dcls =
   match dcls with
