@@ -27,7 +27,7 @@ and tm =
   | Fork of tm * tm * tm abs
   | Send of tm
   | Recv of sort * tm
-  | Close of tm
+  | Close of bool * tm
 
 and tms = tm list
 and tm_opt = tm option
@@ -148,7 +148,7 @@ let bindn_tm k xs m =
       Fork (a, m, Abs (x, n))
     | Send m -> Send (aux k m)
     | Recv (s, m) -> Recv (s, aux k m)
-    | Close m -> Close (aux k m)
+    | Close (r, m) -> Close (r, aux k m)
   in
   aux k m
 
@@ -213,7 +213,7 @@ let unbindn_tm k xs m =
       Fork (a, m, Abs (x, n))
     | Send m -> Send (aux k m)
     | Recv (s, m) -> Recv (s, aux k m)
-    | Close m -> Close (aux k m)
+    | Close (r, m) -> Close (r, aux k m)
   in
   aux k m
 
@@ -387,7 +387,7 @@ let rec occurs_tm x m =
     occurs_tm x a || occurs_tm x m || occurs_tm x n
   | Send m -> occurs_tm x m
   | Recv (s, m) -> occurs_tm x m
-  | Close m -> occurs_tm x m
+  | Close (r, m) -> occurs_tm x m
 
 let rec occurs_tl x tl =
   match tl with

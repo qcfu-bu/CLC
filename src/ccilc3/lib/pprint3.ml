@@ -28,6 +28,10 @@ let rec gather_var ctx instrs =
     in
     gather_var ctx instrs
   | Break :: instrs -> gather_var ctx instrs
+  | Open (x, _, _, _) :: instrs -> gather_var (VSet.add x ctx) instrs
+  | Send (x, _) :: instrs -> gather_var (VSet.add x ctx) instrs
+  | Recv (x, _, _) :: instrs -> gather_var (VSet.add x ctx) instrs
+  | Close (x, _) :: instrs -> gather_var (VSet.add x ctx) instrs
 
 let pp_xs fmt ctx =
   let xs = VSet.elements ctx in
@@ -40,13 +44,18 @@ let pp_xs fmt ctx =
 
 let rec pp_proc fmt proc =
   let xs = gather_var VSet.empty proc.body in
+  let pp_arg fmt opt =
+    match opt with
+    | None -> ()
+    | Some x -> pf fmt "CLC_ptr %a, " V.pp x
+  in
   pf fmt
-    "@[<v 0>CLC_ptr %a(CLC_ptr %a, CLC_env env)@;\
+    "@[<v 0>CLC_ptr %a(%aCLC_env env)@;\
      <1 0>{@;\
      <1 2>@[<v 0>%a@]@;\
      <1 2>@[%a@]@;\
      <1 2>return %a;@;\
-     <1 0>}@]" V.pp proc.name V.pp proc.arg pp_xs xs pp_instrs proc.body
+     <1 0>}@]" V.pp proc.name pp_arg proc.arg pp_xs xs pp_instrs proc.body
     pp_value proc.return
 
 and pp_def fmt def =
@@ -71,6 +80,14 @@ and pp_instr fmt instr =
     pf fmt "@[<v 0>switch(((CLC_node)%a)->tag){@;<1 2>@[%a@]}@]" pp_value m
       pp_cls cls
   | Break -> pf fmt "break;"
+  | Open (x, f, m, vs) ->
+    pf fmt "INSTR_open(&%a, &%a, %a, %d, %d, %a);" V.pp x V.pp f pp_value m
+      (C.get_id Prelude.tnsr_intro_c)
+      (List.length vs) pp_values vs
+  | Send (x, v) -> pf fmt "INSTR_send(&%a, %a);" V.pp x pp_value v
+  | Recv (x, v, tag) -> pf fmt "INSTR_recv(&%a, %a, %d);" V.pp x pp_value v tag
+  | Close (x, v) ->
+    pf fmt "INSTR_close(&%a, %a, %d);" V.pp x pp_value v (C.get_id Prelude.tt_c)
 
 and pp_instrs fmt instrs =
   let rec aux fmt instrs =

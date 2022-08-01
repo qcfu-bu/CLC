@@ -6,6 +6,14 @@ open Pprint2
 
 let extend_env local env = List.map fst local @ env
 
+let pp_local fmt local =
+  let rec aux fmt = function
+    | [] -> ()
+    | [ (x, v) ] -> pf fmt "%a := %a;" V.pp x pp_value v
+    | (x, v) :: local -> pf fmt "%a := %a;@;<1 0>%a" V.pp x pp_value v aux local
+  in
+  pf fmt "@[<v 0>%a@]" aux local
+
 let value_of local env =
   let env1 = List.map snd local in
   let env2 = List.mapi (fun i _ -> Env i) env in
@@ -23,7 +31,7 @@ let findi y ls =
   loop 0 ls
 
 let trans_p local p v =
-  let aux c i = function
+  let aux local c i = function
     | PVar x -> ([ Mov (x, Proj (v, i)) ], local @ [ (x, Reg x) ])
     | _ -> failwith "trans_p"
   in
@@ -32,7 +40,7 @@ let trans_p local p v =
     let _, instr, local =
       List.fold_left
         (fun (i, instr, local) p ->
-          let p_instr, local = aux c i p in
+          let p_instr, local = aux local c i p in
           (i + 1, instr @ p_instr, local))
         (0, [], local) ps
     in
@@ -56,7 +64,7 @@ let rec trans_tm def local env m =
     in
     let name = V.freshen f in
     let tmp = V.blank () in
-    let proc = { name; arg = x; body = instr; return = v } in
+    let proc = { name; arg = Some x; body = instr; return = v } in
     (def @ [ proc ], [ Clo (tmp, name, Zero :: value_of local env) ], Reg tmp)
   | Lam (_, abs) ->
     let f = V.blank () in
@@ -66,7 +74,7 @@ let rec trans_tm def local env m =
     in
     let name = V.freshen f in
     let tmp = V.blank () in
-    let proc = { name; arg = x; body = instr; return = v } in
+    let proc = { name; arg = Some x; body = instr; return = v } in
     (def @ [ proc ], [ Clo (tmp, name, Zero :: value_of local env) ], Reg tmp)
   | App (m, n) ->
     let def, m_instr, m_v = trans_tm def local env m in
@@ -107,7 +115,40 @@ let rec trans_tm def local env m =
     (def, [ Switch (m_v, cls) ], Reg tmp)
   | Absurd -> (def, [], Zero)
   | Main -> (def, [], Zero)
-  | _ -> failwith "TODO"
+  | Proto -> (def, [], Zero)
+  | End -> (def, [], Zero)
+  | Act _ -> (def, [], Zero)
+  | Ch _ -> (def, [], Zero)
+  | Fork (_, m, abs) ->
+    let x, n = unbind_tm abs in
+    let def, m_instr, m_v = trans_tm def local env m in
+    let def, n_instr, n_v = trans_tm def [] (x :: extend_env local env) n in
+    let tmp = V.blank () in
+    let name = V.blank () in
+    let proc = { name; arg = None; body = n_instr; return = n_v } in
+    ( def @ [ proc ]
+    , m_instr @ [ Open (tmp, name, m_v, value_of local env) ]
+    , Reg tmp )
+  | Send m ->
+    let def, instr, ch = trans_tm def local env m in
+    let tmp = V.blank () in
+    (def, instr @ [ Send (tmp, ch) ], Reg tmp)
+  | Recv (s, m) ->
+    let def, instr, ch = trans_tm def local env m in
+    let tag =
+      match s with
+      | U -> C.get_id Prelude.sig_intro_c
+      | L -> C.get_id Prelude.tnsr_intro_c
+    in
+    let tmp = V.blank () in
+    (def, instr @ [ Recv (tmp, ch, tag) ], Reg tmp)
+  | Close (r, m) ->
+    let tmp = V.blank () in
+    if r then
+      let def, instr, ch = trans_tm def local env m in
+      (def, instr @ [ Close (tmp, ch) ], Reg tmp)
+    else
+      (def, [ Struct (tmp, C.get_id Prelude.tt_c, []) ], Reg tmp)
 
 let trans_dcls dcls =
   let rec aux def local env dcls =

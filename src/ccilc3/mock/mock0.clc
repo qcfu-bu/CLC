@@ -1,7 +1,3 @@
-data nat : U 
-  | zero : nat
-  | succ : nat -> nat
-
 def maxn : nat -> nat -> nat
   | zero x => x
   | x zero => x
@@ -9,4 +5,12 @@ def maxn : nat -> nat -> nat
 
 def foo := maxn 1 2
 
-def _ := main
+def _ := 
+  let ⟨ch, main⟩ := 
+    fork (ch : ch‹!nat ⋅ end›) <- main with
+    let ch := send ch foo in 
+    close ch
+  in
+  let [msg, ch] := recv ch in
+  let () := close ch in
+  main

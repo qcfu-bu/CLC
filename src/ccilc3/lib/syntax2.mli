@@ -27,7 +27,7 @@ and tm =
   | Fork of tm * tm * tm abs
   | Send of tm
   | Recv of sort * tm
-  | Close of tm
+  | Close of bool * tm
 
 and tms = tm list
 and tm_opt = tm option

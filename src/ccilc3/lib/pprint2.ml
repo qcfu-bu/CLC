@@ -150,7 +150,7 @@ let rec pp_tm fmt m =
       pp_tm a pp_tm m pp_tm n
   | Send m -> pf fmt "send %a" pp_tm m
   | Recv (_, m) -> pf fmt "recv %a" pp_tm m
-  | Close m -> pf fmt "close %a" pp_tm m
+  | Close (_, m) -> pf fmt "close %a" pp_tm m
 
 and pp_cl fmt (Cl abs) =
   let p, rhs = unbindp_tm abs in

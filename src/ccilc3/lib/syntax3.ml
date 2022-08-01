@@ -5,12 +5,13 @@ type value =
   | Reg of V.t
   | Env of int
   | Proj of value * int
+[@@deriving show { with_path = false }]
 
 and values = value list
 
 and proc =
   { name : V.t
-  ; arg : V.t
+  ; arg : V.t option
   ; body : instrs
   ; return : value
   }
@@ -25,11 +26,10 @@ and instr =
   | Struct of V.t * int * values
   | Switch of value * cls
   | Break
-  | Open of V.t
-  | Fork of V.t * value * V.t * values
+  | Open of V.t * V.t * value * values
   | Send of V.t * value
-  | Recv of V.t * value
-  | Close of V.t
+  | Recv of V.t * value * int
+  | Close of V.t * value
 
 and instrs = instr list
 and cl = int * instrs

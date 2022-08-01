@@ -292,7 +292,8 @@ and infer_tm ctx env m : tm * Syntax2.tm * bool VMap.t =
   | Close m -> (
     let a, m_elab, usage = infer_tm ctx env m in
     match whnf rd_all env a with
-    | Ch (_, End) -> (Data (Prelude.unit_d, []), Syntax2.(Close m_elab), usage)
+    | Ch (r, End) ->
+      (Data (Prelude.unit_d, []), Syntax2.(Close (r, m_elab)), usage)
     | a -> failwith "infer_Close(%a)" pp_tm a)
 
 and check_ptl ctx env ms ptl =
