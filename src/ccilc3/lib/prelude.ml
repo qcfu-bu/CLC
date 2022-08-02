@@ -540,3 +540,13 @@ let string0_c = find_c "String"
 let stdin_t = find_v "stdin_t"
 let stdout_t = find_v "stdout_t"
 let stderr_t = find_v "stderr_t"
+
+let gen_prelude ch =
+  let _ = Printf.fprintf ch "#ifndef prelude_h\n\n" in
+  let _ =
+    SMap.iter
+      (fun s c -> Printf.fprintf ch "#define %s_c %d\n" s (C.get_id c))
+      cs
+  in
+  let _ = Printf.fprintf ch "\n#endif" in
+  close_out ch

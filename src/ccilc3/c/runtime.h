@@ -29,10 +29,10 @@ void instr_mov(clc_ptr *x, clc_ptr v);
 void instr_clo(clc_ptr *x, clc_ptr (*f)(clc_ptr, clc_env), int size, ...);
 void instr_call(clc_ptr *x, clc_ptr clo, clc_ptr v);
 void instr_struct(clc_ptr *x, int tag, int size, ...);
-void instr_open(clc_ptr *x, clc_ptr (*f)(clc_env), clc_ptr m, int tag, int size, ...);
+void instr_open(clc_ptr *x, clc_ptr (*f)(clc_env), clc_ptr m, int size, ...);
 void instr_send(clc_ptr *x, clc_ptr ch);
 void instr_recv(clc_ptr *x, clc_ptr ch, int tag);
-void instr_close(clc_ptr *x, clc_ptr ch, int tag);
+void instr_close(clc_ptr *x, clc_ptr ch);
 void instr_trg(clc_ptr *x, clc_ptr (*f)(clc_ptr));
 
 #endif

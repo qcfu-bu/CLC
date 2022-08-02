@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include "chan.h"
 
+#include "prelude.h"
 #include "runtime.h"
 
 void instr_mov(clc_ptr *x, clc_ptr v)
@@ -58,7 +59,6 @@ void instr_open(
     clc_ptr *x,
     clc_ptr (*f)(clc_env),
     clc_ptr m,
-    int tag,
     int size, ...)
 {
   va_list ap;
@@ -75,7 +75,7 @@ void instr_open(
   va_end(ap);
 
   pthread_create(&th, m, (void *)f, env);
-  instr_struct(x, tag, 2, ch, m);
+  instr_struct(x, tnsr_intro_c, 2, ch, m);
 }
 
 clc_ptr proc_sender(clc_ptr x, clc_env env)
@@ -96,10 +96,10 @@ void instr_recv(clc_ptr *x, clc_ptr ch, int tag)
   instr_struct(x, tag, 2, msg, ch);
 }
 
-void instr_close(clc_ptr *x, clc_ptr ch, int tag)
+void instr_close(clc_ptr *x, clc_ptr ch)
 {
   chan_dispose((chan_t *)ch);
-  instr_struct(x, tag, 0);
+  instr_struct(x, tt_c, 0);
 }
 
 clc_ptr instr_to_bit(int i)
@@ -107,11 +107,11 @@ clc_ptr instr_to_bit(int i)
   clc_node x = (clc_node)malloc(sizeof(_clc_node));
   if (i)
   {
-    x->tag = 2;
+    x->tag = true_c;
   }
   else
   {
-    x->tag = 3;
+    x->tag = false_c;
   }
   return x;
 }
@@ -119,7 +119,7 @@ clc_ptr instr_to_bit(int i)
 clc_ptr instr_to_ascii(char c)
 {
   clc_node x = (clc_node)malloc(sizeof(_clc_node));
-  x->tag = 16;
+  x->tag = Ascii_c;
   x->data = (clc_ptr *)malloc(sizeof(clc_ptr) * 8);
   int bit;
   for (int i = 0; i < 8; i++)
@@ -134,12 +134,12 @@ clc_ptr instr_to_string(char *s)
 {
   clc_node tmp;
   clc_node x = (clc_node)malloc(sizeof(_clc_node));
-  x->tag = 17;
+  x->tag = EmptyString_c;
   int len = strlen(s);
   for (int i = 1; i <= len; i++)
   {
     tmp = (clc_node)malloc(sizeof(_clc_node));
-    tmp->tag = 18;
+    tmp->tag = String_c;
     tmp->data = (clc_ptr *)malloc(sizeof(clc_ptr) * 2);
     tmp->data[0] = instr_to_ascii(s[len - i]);
     tmp->data[1] = x;
@@ -157,10 +157,10 @@ char instr_from_ascii(clc_ptr x)
     b = ((clc_node)x)->data[7 - i];
     switch (((clc_node)b)->tag)
     {
-    case 2:
+    case true_c:
       c |= 1 << i;
       break;
-    case 3:
+    case false_c:
       c &= ~(1 << i);
       break;
     }
@@ -173,7 +173,7 @@ char *instr_from_string(clc_ptr x)
   char *str;
   int len = 0;
   clc_node tmp = (clc_node)x;
-  while (tmp->tag != 17)
+  while (tmp->tag != EmptyString_c)
   {
     tmp = (clc_node)(tmp->data[1]);
     len++;
@@ -207,10 +207,10 @@ clc_ptr proc_stdout(clc_ptr ch)
     {
       switch (((clc_node)msg)->tag)
       {
-      case 2:
+      case true_c:
         b = !b;
         break;
-      case 3:
+      case false_c:
         rep = !rep;
         break;
       }
@@ -240,10 +240,10 @@ clc_ptr proc_stdin(clc_ptr ch)
       chan_recv((chan_t *)ch, &msg);
       switch (((clc_node)msg)->tag)
       {
-      case 2:
+      case true_c:
         b = !b;
         break;
-      case 3:
+      case false_c:
         rep = !rep;
         break;
       }
@@ -271,10 +271,10 @@ clc_ptr proc_stderr(clc_ptr ch)
     {
       switch (((clc_node)msg)->tag)
       {
-      case 2:
+      case true_c:
         b = !b;
         break;
-      case 3:
+      case false_c:
         rep = !rep;
         break;
       }

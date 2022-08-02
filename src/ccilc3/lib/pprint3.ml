@@ -86,16 +86,14 @@ and pp_instr fmt instr =
   | Open (x, trg) -> (
     match trg with
     | TCh (f, m, vs) ->
-      pf fmt "instr_open(&%a, &%a, %a, %d, %d%a);" V.pp x V.pp f pp_value m
-        (C.get_id Prelude.tnsr_intro_c)
+      pf fmt "instr_open(&%a, &%a, %a, %d%a);" V.pp x V.pp f pp_value m
         (List.length vs) pp_values vs
     | TStdout -> pf fmt "instr_trg(&%a, &proc_stdout);" V.pp x
     | TStdin -> pf fmt "instr_trg(&%a, &proc_stdin);" V.pp x
     | TStderr -> pf fmt "instr_trg(&%a, &proc_stderr);" V.pp x)
   | Send (x, v) -> pf fmt "instr_send(&%a, %a);" V.pp x pp_value v
   | Recv (x, v, tag) -> pf fmt "instr_recv(&%a, %a, %d);" V.pp x pp_value v tag
-  | Close (x, v) ->
-    pf fmt "instr_close(&%a, %a, %d);" V.pp x pp_value v (C.get_id Prelude.tt_c)
+  | Close (x, v) -> pf fmt "instr_close(&%a, %a);" V.pp x pp_value v
 
 and pp_instrs fmt instrs =
   let rec aux fmt instrs =
