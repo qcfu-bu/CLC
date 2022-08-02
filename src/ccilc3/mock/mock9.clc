@@ -1,6 +1,9 @@
-open @stdout as ch
+open @stdin as stdin
+open @stdout as stdout
 
 def _ :=
-  let ch := printline ch "abc" in
-  let () := close_out ch in
+  let [msg, stdin] := readline stdin in
+  let stdout := printline stdout msg in
+  let () := close_out stdout in
+  let () := close_in stdin in
   main

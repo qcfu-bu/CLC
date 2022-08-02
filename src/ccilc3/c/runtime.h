@@ -239,6 +239,33 @@ CLC_ptr PROC_stdout(CLC_ptr ch)
 CLC_ptr PROC_stdin(CLC_ptr ch)
 {
   int b = 0, rep = 1;
+  char *buffer;
+  size_t len;
+  CLC_ptr msg;
+  while (rep)
+  {
+    if (b)
+    {
+      getline(&buffer, &len, stdin);
+      msg = INSTR_to_string(buffer);
+      free(buffer);
+      chan_send((chan_t *)ch, msg);
+      b = !b;
+    }
+    else
+    {
+      chan_recv((chan_t *)ch, &msg);
+      switch (((CLC_node)msg)->tag)
+      {
+      case 2:
+        b = !b;
+        break;
+      case 3:
+        rep = !rep;
+        break;
+      }
+    }
+  }
   return NULL;
 }
 
