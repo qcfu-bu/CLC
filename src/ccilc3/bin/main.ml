@@ -64,4 +64,4 @@ let _ =
   if Array.length Sys.argv < 1 then
     epr "input file expected@."
   else
-    run Sys.argv.(1) "log.clc" "c/test.c"
+    run Sys.argv.(1) "log.clc" "c/main.c"
