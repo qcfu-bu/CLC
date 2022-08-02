@@ -148,7 +148,8 @@ let rec trans_tm def local env m =
       let def, instr, ch = trans_tm def local env m in
       (def, instr @ [ Close (tmp, ch) ], Reg tmp)
     else
-      (def, [ Struct (tmp, C.get_id Prelude.tt_c, []) ], Reg tmp)
+      let def, instr, ch = trans_tm def local env m in
+      (def, instr @ [ Struct (tmp, C.get_id Prelude.tt_c, []) ], Reg tmp)
 
 let trans_dcls dcls =
   let rec aux def local env dcls =
@@ -170,5 +171,3 @@ let trans_dcls dcls =
       (def, [ Mov (x, Zero) ] @ instr, v)
   in
   aux [] [ (Prelude.main_v, Zero) ] [] dcls
-
-(* 0x0000000100306270 *)

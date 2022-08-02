@@ -51,9 +51,9 @@ let rec pp_proc fmt proc =
   pf fmt
     "@[<v 0>CLC_ptr %a(%aCLC_env env)@;\
      <1 0>{@;\
-     <1 2>@[<v 0>%a@]@;\
-     <1 2>@[%a@]@;\
-     <1 2>return %a;@;\
+     <1 2>@[%a@;\
+     <1 0>%a@;\
+     <1 0>return %a@];@;\
      <1 0>}@]" V.pp proc.name pp_arg proc.arg pp_xs xs pp_instrs proc.body
     pp_value proc.return
 
@@ -112,9 +112,8 @@ and pp_cls fmt cls =
 let pp_prog fmt (def, instr, v) =
   let xs = gather_var VSet.empty instr in
   pf fmt
-    "#include \"runtime.h\"@.@.%a@.@.@[<v 0>int main()@;\
+    "#include \"runtime.h\"@.@.@[%a@]@.@.%a@.@.@[<v 0>int main()@;\
      <1 0>{@;\
-     <1 2>@[<v 0>%a@]@;\
      <1 2>%a@;\
      <1 2>return %a;@;\
-     <1 0>}@]" pp_def def pp_xs xs pp_instrs instr pp_value v
+     <1 0>}@]" pp_xs xs pp_def def pp_instrs instr pp_value v
