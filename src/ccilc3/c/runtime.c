@@ -26,9 +26,9 @@ void instr_clo(
     int narg, ...)
 {
   va_list ap;
-  clc_clo tmp = (clc_clo)GC_MALLOC(clc_clo_sz);
+  clc_clo tmp = (clc_clo)GC_malloc(clc_clo_sz);
   tmp->f = f;
-  tmp->env = (clc_env)GC_MALLOC(clc_ptr_sz * (size + narg + 1));
+  tmp->env = (clc_env)GC_malloc(clc_ptr_sz * (size + narg + 1));
 
   tmp->env[0] = 0;
   memcpy(tmp->env + narg + 1, env, size * clc_ptr_sz);
@@ -53,9 +53,9 @@ void instr_call(clc_ptr *x, clc_ptr clo, clc_ptr v)
 void instr_struct(clc_ptr *x, int tag, int size, ...)
 {
   va_list ap;
-  clc_node tmp = (clc_node)GC_MALLOC(clc_node_sz);
+  clc_node tmp = (clc_node)GC_malloc(clc_node_sz);
   tmp->tag = tag;
-  tmp->data = (clc_ptr *)GC_MALLOC(clc_ptr_sz * size);
+  tmp->data = (clc_ptr *)GC_malloc(clc_ptr_sz * size);
 
   va_start(ap, size);
   for (int i = 0; i < size; i++)
@@ -76,7 +76,7 @@ void instr_open(
   va_list ap;
   pthread_t th;
   clc_ptr ch = (clc_ptr)chan_init(0);
-  clc_env local = (clc_env)GC_MALLOC(clc_ptr_sz * (size + narg + 1));
+  clc_env local = (clc_env)GC_malloc(clc_ptr_sz * (size + narg + 1));
 
   local[0] = ch;
   memcpy(local + narg + 1, env, size * clc_ptr_sz);
@@ -117,7 +117,7 @@ void instr_close(clc_ptr *x, clc_ptr ch)
 
 clc_ptr instr_to_bit(int i)
 {
-  clc_node x = (clc_node)GC_MALLOC(clc_node_sz);
+  clc_node x = (clc_node)GC_malloc(clc_node_sz);
   if (i)
   {
     x->tag = true_c;
@@ -131,9 +131,9 @@ clc_ptr instr_to_bit(int i)
 
 clc_ptr instr_to_ascii(char c)
 {
-  clc_node x = (clc_node)GC_MALLOC(clc_node_sz);
+  clc_node x = (clc_node)GC_malloc(clc_node_sz);
   x->tag = Ascii_c;
-  x->data = (clc_ptr *)GC_MALLOC(clc_ptr_sz * 8);
+  x->data = (clc_ptr *)GC_malloc(clc_ptr_sz * 8);
   int bit;
   for (int i = 0; i < 8; i++)
   {
@@ -146,14 +146,14 @@ clc_ptr instr_to_ascii(char c)
 clc_ptr instr_to_string(char *s)
 {
   clc_node tmp;
-  clc_node x = (clc_node)GC_MALLOC(clc_node_sz);
+  clc_node x = (clc_node)GC_malloc(clc_node_sz);
   x->tag = EmptyString_c;
   int len = strlen(s);
   for (int i = 1; i <= len; i++)
   {
-    tmp = (clc_node)GC_MALLOC(clc_node_sz);
+    tmp = (clc_node)GC_malloc(clc_node_sz);
     tmp->tag = String_c;
-    tmp->data = (clc_ptr *)GC_MALLOC(clc_ptr_sz * 2);
+    tmp->data = (clc_ptr *)GC_malloc(clc_ptr_sz * 2);
     tmp->data[0] = instr_to_ascii(s[len - i]);
     tmp->data[1] = x;
     x = tmp;
@@ -191,7 +191,7 @@ char *instr_from_string(clc_ptr x)
     tmp = (clc_node)(tmp->data[1]);
     len++;
   }
-  str = (char *)GC_MALLOC(len + 1);
+  str = (char *)GC_malloc(len + 1);
   tmp = (clc_node)x;
   for (int i = 0; i < len; i++)
   {
@@ -213,7 +213,7 @@ clc_ptr proc_stdout(clc_ptr ch)
     {
       str = instr_from_string(msg);
       fputs(str, stdout);
-      GC_FREE(str);
+      GC_free(str);
       b = !b;
     }
     else
@@ -277,7 +277,7 @@ clc_ptr proc_stderr(clc_ptr ch)
     {
       str = instr_from_string(msg);
       fputs(str, stderr);
-      GC_FREE(str);
+      GC_free(str);
       b = !b;
     }
     else
@@ -307,17 +307,17 @@ void instr_trg(clc_ptr *x, clc_ptr (*f)(clc_ptr))
 
 void instr_free_clo(clc_ptr *x)
 {
-  GC_FREE(((clc_clo)x)->env);
-  GC_FREE(x);
+  GC_free(((clc_clo)x)->env);
+  GC_free(x);
 }
 
 void instr_free_struct(clc_ptr *x)
 {
-  GC_FREE(((clc_node)x)->data);
-  GC_FREE(x);
+  GC_free(((clc_node)x)->data);
+  GC_free(x);
 }
 
 void instr_free_thread(clc_env env)
 {
-  GC_FREE(env);
+  GC_free(env);
 }

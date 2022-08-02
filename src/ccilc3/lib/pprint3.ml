@@ -16,7 +16,9 @@ let pp_values fmt vs =
     | [ v ] -> pp_value fmt v
     | v :: vs -> pf fmt "%a,@ %a" pp_value v aux vs
   in
-  pf fmt ",@;<1 2>@[%a@]" aux vs
+  match vs with
+  | [] -> ()
+  | _ -> pf fmt ",@;<1 2>@[%a@]" aux vs
 
 let rec gather_var ctx instrs =
   match instrs with
@@ -99,7 +101,7 @@ and pp_instr fmt instr =
   | Close (x, v) -> pf fmt "instr_close(&%a, %a);" V.pp x pp_value v
   | FreeClo v -> pf fmt "instr_free_clo(%a);" pp_value v
   | FreeStruct v -> pf fmt "instr_free_struct(%a);" pp_value v
-  | FreeThread -> pf fmt "infer_free_thread(env);"
+  | FreeThread -> pf fmt "instr_free_thread(env);"
 
 and pp_instrs fmt instrs =
   let rec aux fmt instrs =
