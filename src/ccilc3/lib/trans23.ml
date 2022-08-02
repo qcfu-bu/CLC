@@ -112,7 +112,7 @@ let rec trans_tm def local env m =
           (def, cls @ [ cl ]))
         (def, []) cls
     in
-    (def, [ Switch (m_v, cls) ], Reg tmp)
+    (def, m_instr @ [ Switch (m_v, cls) ], Reg tmp)
   | Absurd -> (def, [], Zero)
   | Main -> (def, [], Zero)
   | Proto -> (def, [], Zero)
