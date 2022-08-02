@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <pthread.h>
@@ -231,7 +232,7 @@ clc_ptr proc_stdin(clc_ptr ch)
     {
       getline(&buffer, &len, stdin);
       msg = instr_to_string(buffer);
-      GC_FREE(buffer);
+      free(buffer);
       chan_send((chan_t *)ch, msg);
       b = !b;
     }
