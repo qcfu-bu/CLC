@@ -165,6 +165,9 @@ let trans_dcls dcls =
       | TStdout ->
         let def, instr, v = aux def ((x, Reg x) :: local) env dcls in
         (def, [ Open (x, TStdout) ] @ instr, v)
+      | TStderr ->
+        let def, instr, v = aux def ((x, Reg x) :: local) env dcls in
+        (def, [ Open (x, TStderr) ] @ instr, v)
       | _ -> failwith "TODO")
     | DAxiom (x, a) :: dcls ->
       let def, instr, v = aux def ((x, Reg x) :: local) env dcls in

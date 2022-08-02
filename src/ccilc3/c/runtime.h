@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #include <pthread.h>
 #include "chan.h"
 
@@ -118,7 +119,53 @@ void INSTR_close(CLC_ptr *x, CLC_ptr ch, int tag)
   INSTR_struct(x, tag, 0);
 }
 
-char INSTR_ascii(CLC_ptr x)
+CLC_ptr INSTR_to_bit(int i)
+{
+  CLC_node x = (CLC_node)malloc(sizeof(CLC_NODE));
+  if (i)
+  {
+    x->tag = 2;
+  }
+  else
+  {
+    x->tag = 3;
+  }
+  return x;
+}
+
+CLC_ptr INSTR_to_ascii(char c)
+{
+  CLC_node x = (CLC_node)malloc(sizeof(CLC_NODE));
+  x->tag = 16;
+  x->data = (CLC_ptr *)malloc(sizeof(CLC_ptr) * 8);
+  int bit;
+  for (int i = 0; i < 8; i++)
+  {
+    bit = (c & (1 << i)) >> i;
+    x->data[7 - i] = INSTR_to_bit(bit);
+  }
+  return (CLC_ptr)x;
+}
+
+CLC_ptr INSTR_to_string(char *s)
+{
+  CLC_node tmp;
+  CLC_node x = (CLC_node)malloc(sizeof(CLC_NODE));
+  x->tag = 17;
+  int len = strlen(s);
+  for (int i = 1; i <= len; i++)
+  {
+    tmp = (CLC_node)malloc(sizeof(CLC_NODE));
+    tmp->tag = 18;
+    tmp->data = (CLC_ptr *)malloc(sizeof(CLC_ptr) * 2);
+    tmp->data[0] = INSTR_to_ascii(s[len - i]);
+    tmp->data[1] = x;
+    x = tmp;
+  }
+  return (CLC_ptr)x;
+}
+
+char INSTR_from_ascii(CLC_ptr x)
 {
   char c;
   CLC_ptr b;
@@ -138,7 +185,7 @@ char INSTR_ascii(CLC_ptr x)
   return c;
 }
 
-char *INSTR_string(CLC_ptr x)
+char *INSTR_from_string(CLC_ptr x)
 {
   char *str;
   int len = 0;
@@ -152,7 +199,7 @@ char *INSTR_string(CLC_ptr x)
   tmp = (CLC_node)x;
   for (int i = 0; i < len; i++)
   {
-    str[i] = INSTR_ascii(tmp->data[0]);
+    str[i] = INSTR_from_ascii(tmp->data[0]);
     tmp = (CLC_node)(tmp->data[1]);
   }
   return str;
@@ -168,8 +215,45 @@ CLC_ptr PROC_stdout(CLC_ptr ch)
     chan_recv((chan_t *)ch, &msg);
     if (b)
     {
-      str = INSTR_string(msg);
+      str = INSTR_from_string(msg);
       fputs(str, stdout);
+      free(str);
+      b = !b;
+    }
+    else
+    {
+      switch (((CLC_node)msg)->tag)
+      {
+      case 2:
+        b = !b;
+        break;
+      case 3:
+        rep = !rep;
+        break;
+      }
+    }
+  }
+  return NULL;
+}
+
+CLC_ptr PROC_stdin(CLC_ptr ch)
+{
+  int b = 0, rep = 1;
+  return NULL;
+}
+
+CLC_ptr PROC_stderr(CLC_ptr ch)
+{
+  int b = 0, rep = 1;
+  char *str;
+  CLC_ptr msg;
+  while (rep)
+  {
+    chan_recv((chan_t *)ch, &msg);
+    if (b)
+    {
+      str = INSTR_from_string(msg);
+      fputs(str, stderr);
       free(str);
       b = !b;
     }

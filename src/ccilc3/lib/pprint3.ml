@@ -86,7 +86,8 @@ and pp_instr fmt instr =
         (C.get_id Prelude.tnsr_intro_c)
         (List.length vs) pp_values vs
     | TStdout -> pf fmt "INSTR_trg(&%a, &PROC_stdout);" V.pp x
-    | _ -> failwith "TODO")
+    | TStdin -> pf fmt "INSTR_trg(&%a, &PROC_stdin);" V.pp x
+    | TStderr -> pf fmt "INSTR_trg(&%a, &PROC_stderr);" V.pp x)
   | Send (x, v) -> pf fmt "INSTR_send(&%a, %a);" V.pp x pp_value v
   | Recv (x, v, tag) -> pf fmt "INSTR_recv(&%a, %a, %d);" V.pp x pp_value v tag
   | Close (x, v) ->
@@ -112,8 +113,9 @@ and pp_cls fmt cls =
 let pp_prog fmt (def, instr, v) =
   let xs = gather_var VSet.empty instr in
   pf fmt
-    "#include \"runtime.h\"@.@.@[<v 0>%a@]@.@.%a@.@.@[<v 0>int main()@;\
+    "#include \"runtime.h\"@.@.%a@.@.@[<v 0>int main()@;\
      <1 0>{@;\
      <1 2>@[%a@;\
+     <1 0>%a@;\
      <1 0>return %a;@]@;\
-     <1 0>}@]" pp_xs xs pp_def def pp_instrs instr pp_value v
+     <1 0>}@]" pp_def def pp_xs xs pp_instrs instr pp_value v
