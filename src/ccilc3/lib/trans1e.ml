@@ -191,14 +191,14 @@ and infer_tm ctx env eqns map m =
     let _, eqns, map = infer_sort ctx env eqns map a in
     let a = UMeta.resolve_tm map a in
     match whnf rd_all env a with
-    | Ch (r, a) ->
+    | Ch (true, a) ->
       let x, n = unbind_tm abs in
       let eqns, map = check_tm ctx env eqns map a Proto in
       let eqns, map = check_tm ctx env eqns map m Main in
       let unit = Data (Prelude.unit_d, []) in
-      let ctx = add_v x (Ch (r, a)) ctx in
+      let ctx = add_v x (Ch (true, a)) ctx in
       let eqns, map = check_tm ctx env eqns map n unit in
-      let a = Ch (not r, a) in
+      let a = Ch (false, a) in
       (Data (Prelude.tnsr_d, [ a; Main ]), eqns, map)
     | _ -> failwith "infer_Fork(%a)" pp_tm m)
   | Send m -> (

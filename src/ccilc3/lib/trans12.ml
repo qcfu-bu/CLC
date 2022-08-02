@@ -252,14 +252,14 @@ and infer_tm ctx env m : tm * Syntax2.tm * bool VMap.t =
   | Fork (a, m, abs) -> (
     let _, a_elab = infer_sort ctx env a in
     match whnf rd_all env a with
-    | Ch (r, a) ->
+    | Ch (true, a) ->
       let x, n = unbind_tm abs in
       let _, usage1 = check_tm ctx env a Proto in
       let m_elab, usage2 = check_tm ctx env m Main in
       let unit = Data (Prelude.unit_d, []) in
-      let n_elab, usage3 = check_tm (add_v x L (Ch (r, a)) ctx) env n unit in
+      let n_elab, usage3 = check_tm (add_v x L (Ch (true, a)) ctx) env n unit in
       let usage3 = remove x usage3 L in
-      let a = Ch (not r, a) in
+      let a = Ch (false, a) in
       let _ = assert_empty usage1 in
       ( Data (Prelude.tnsr_d, [ a; Main ])
       , Syntax2.(Fork (a_elab, m_elab, bind_tm x n_elab))
