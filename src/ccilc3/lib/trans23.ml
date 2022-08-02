@@ -3,6 +3,7 @@ open Names
 open Syntax2
 open Syntax3
 open Pprint2
+open Pprint3
 
 let extend_env local env = List.map fst local @ env
 

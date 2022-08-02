@@ -9,10 +9,14 @@ let rec pp_value fmt v =
   | Env i -> pf fmt "env[%d]" i
   | Proj (v, i) -> pf fmt "((CLC_node)%a)->data[%d]" pp_value v i
 
-let rec pp_values fmt vs =
-  match vs with
-  | [] -> ()
-  | v :: vs -> pf fmt ", %a%a" pp_value v pp_values vs
+let pp_values fmt vs =
+  let rec aux fmt vs =
+    match vs with
+    | [] -> ()
+    | [ v ] -> pp_value fmt v
+    | v :: vs -> pf fmt "%a,@ %a" pp_value v aux vs
+  in
+  pf fmt ",@;<1 2>@[%a@]" aux vs
 
 let rec gather_var ctx instrs =
   match instrs with
@@ -67,8 +71,8 @@ and pp_instr fmt instr =
   match instr with
   | Mov (x, v) -> pf fmt "INSTR_mov(&%a, %a);" V.pp x pp_value v
   | Clo (x, f, vs) ->
-    pf fmt "INSTR_clo(&%a, &%a, %d%a);" V.pp x V.pp f (List.length vs) pp_values
-      vs
+    pf fmt "@[INSTR_clo(&%a, &%a, %d%a);@]" V.pp x V.pp f (List.length vs)
+      pp_values vs
   | Call (x, v1, v2) ->
     pf fmt "INSTR_call(&%a, %a, %a);" V.pp x pp_value v1 pp_value v2
   | Struct (x, tag, []) -> pf fmt "INSTR_struct(&%a, %d, %d);" V.pp x tag 0

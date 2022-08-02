@@ -5,7 +5,6 @@ type value =
   | Reg of V.t
   | Env of int
   | Proj of value * int
-[@@deriving show { with_path = false }]
 
 and values = value list
 
