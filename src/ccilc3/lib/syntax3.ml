@@ -35,6 +35,9 @@ and instr =
   | Send of V.t * value
   | Recv of V.t * value * int
   | Close of V.t * value
+  | FreeClo of value
+  | FreeStruct of value
+  | FreeThread
 
 and instrs = instr list
 and cl = int * instrs

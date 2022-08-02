@@ -13,11 +13,11 @@ and tm =
   | Pi of sort * tm * tm abs
   | Fix of tm abs abs
   | Lam of sort * tm abs
-  | App of tm * tm
+  | App of sort * tm * tm
   | Let of tm * tm abs
   | Data of D.t * tms
   | Cons of C.t * tms
-  | Case of tm * cls
+  | Case of sort * tm * cls
   | Absurd
   | Main
   | Proto
@@ -106,10 +106,10 @@ let bindn_tm k xs m =
     | Lam (s, Abs (x, m)) ->
       let m = aux (k + 1) m in
       Lam (s, Abs (x, m))
-    | App (m, n) ->
+    | App (s, m, n) ->
       let m = aux k m in
       let n = aux k n in
-      App (m, n)
+      App (s, m, n)
     | Let (m, Abs (x, n)) ->
       let m = aux k m in
       let n = aux (k + 1) n in
@@ -120,7 +120,7 @@ let bindn_tm k xs m =
     | Cons (c, ms) ->
       let ms = List.map (aux k) ms in
       Cons (c, ms)
-    | Case (m, cls) ->
+    | Case (s, m, cls) ->
       let m = aux k m in
       let cls =
         List.map
@@ -131,7 +131,7 @@ let bindn_tm k xs m =
             Cl (PAbs (p, rhs)))
           cls
       in
-      Case (m, cls)
+      Case (s, m, cls)
     | Absurd -> Absurd
     | Main -> Main
     | Proto -> Proto
@@ -171,10 +171,10 @@ let unbindn_tm k xs m =
     | Lam (s, Abs (x, m)) ->
       let m = aux (k + 1) m in
       Lam (s, Abs (x, m))
-    | App (m, n) ->
+    | App (s, m, n) ->
       let m = aux k m in
       let n = aux k n in
-      App (m, n)
+      App (s, m, n)
     | Let (m, Abs (x, n)) ->
       let m = aux k m in
       let n = aux (k + 1) n in
@@ -185,7 +185,7 @@ let unbindn_tm k xs m =
     | Cons (c, ms) ->
       let ms = List.map (aux k) ms in
       Cons (c, ms)
-    | Case (m, cls) ->
+    | Case (s, m, cls) ->
       let m = aux k m in
       let cls =
         List.map
@@ -196,7 +196,7 @@ let unbindn_tm k xs m =
             Cl (PAbs (p, rhs)))
           cls
       in
-      Case (m, cls)
+      Case (s, m, cls)
     | Absurd -> Absurd
     | Main -> Main
     | Proto -> Proto
@@ -332,15 +332,15 @@ let asubst_ptl (Abs (_, ptl)) n = unbindn_ptl 0 [ n ] ptl
 let asubstp_tm (PAbs (p, m)) n = unbindn_tm 0 (match_p p n) m
 let subst_tm x m n = unbindn_tm 0 [ n ] (bindn_tm 0 [ x ] m)
 
-let rec mkApps hd ms =
+let rec mkApps s hd ms =
   match ms with
-  | m :: ms -> mkApps (App (hd, m)) ms
+  | m :: ms -> mkApps s (App (s, hd, m)) ms
   | [] -> hd
 
 let unApps m =
   let rec aux m ns =
     match m with
-    | App (m, n) -> aux m (n :: ns)
+    | App (_, m, n) -> aux m (n :: ns)
     | _ -> (m, ns)
   in
   aux m []
@@ -361,13 +361,13 @@ let rec occurs_tm x m =
   | Lam (_, abs) ->
     let _, m = unbind_tm abs in
     occurs_tm x m
-  | App (m, n) -> occurs_tm x m || occurs_tm x n
+  | App (_, m, n) -> occurs_tm x m || occurs_tm x n
   | Let (m, abs) ->
     let _, n = unbind_tm abs in
     occurs_tm x m || occurs_tm x n
   | Data (_, ms) -> List.exists (occurs_tm x) ms
   | Cons (_, ms) -> List.exists (occurs_tm x) ms
-  | Case (m, cls) ->
+  | Case (_, m, cls) ->
     occurs_tm x m
     || List.exists
          (fun (Cl pabs) ->

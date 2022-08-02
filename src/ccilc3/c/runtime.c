@@ -304,3 +304,20 @@ void instr_trg(clc_ptr *x, clc_ptr (*f)(clc_ptr))
   pthread_create(&th, NULL, (void *)f, ch);
   *x = ch;
 }
+
+void instr_free_clo(clc_ptr *x)
+{
+  GC_FREE(((clc_clo)x)->env);
+  GC_FREE(x);
+}
+
+void instr_free_struct(clc_ptr *x)
+{
+  GC_FREE(((clc_node)x)->data);
+  GC_FREE(x);
+}
+
+void instr_free_thread(clc_env env)
+{
+  GC_FREE(env);
+}

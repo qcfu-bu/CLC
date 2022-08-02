@@ -127,7 +127,7 @@ let rec pp_tm fmt m =
       else
         pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
   | Absurd -> pf fmt "absurd"
-  | Case (m, cls) ->
+  | Case (_, m, cls) ->
     pf fmt "@[<v 0>(@[case %a@;<1 0>of@]@;<1 2>%a)@]" pp_tm m pp_cls cls
   | Main -> pf fmt "@main"
   | Proto -> pf fmt "proto"

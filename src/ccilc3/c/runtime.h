@@ -41,5 +41,8 @@ void instr_send(clc_ptr *x, clc_ptr ch);
 void instr_recv(clc_ptr *x, clc_ptr ch, int tag);
 void instr_close(clc_ptr *x, clc_ptr ch);
 void instr_trg(clc_ptr *x, clc_ptr (*f)(clc_ptr));
+void instr_free_clo(clc_ptr *x);
+void instr_free_struct(clc_ptr *x);
+void instr_free_thread(clc_env env);
 
 #endif

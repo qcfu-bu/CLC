@@ -88,7 +88,7 @@ let rec eval_tm env m =
   | Lam (_, abs) ->
     let x, m = unbind_tm abs in
     VLam (x, m, env)
-  | App (m, n) -> (
+  | App (_, m, n) -> (
     let m = eval_tm env m in
     let n = eval_tm env n in
     match m with
@@ -124,7 +124,7 @@ let rec eval_tm env m =
   | Cons (c, ms) ->
     let ms = List.map (eval_tm env) ms in
     VCons (c, ms)
-  | Case (m, cls) -> (
+  | Case (s, m, cls) -> (
     let v = eval_tm env m in
     let opt =
       List.fold_left
@@ -142,7 +142,7 @@ let rec eval_tm env m =
     in
     match opt with
     | Some m -> m
-    | None -> failwith "eval_Case(%a)" pp_tm (Case (m, cls)))
+    | None -> failwith "eval_Case(%a)" pp_tm (Case (s, m, cls)))
   | Absurd -> failwith "eval_Absurd"
   | Main -> VBox
   | Proto -> VBox

@@ -28,13 +28,13 @@ let findi y ls =
   in
   loop 0 ls
 
-let trans_p local p v =
+let trans_p local p v s =
   let aux local c i = function
     | PVar x -> ([ Mov (x, Proj (v, i)) ], local @ [ (x, Reg x) ])
     | _ -> failwith "trans_p"
   in
   match p with
-  | PCons (c, ps) ->
+  | PCons (c, ps) -> (
     let _, instr, local =
       List.fold_left
         (fun (i, instr, local) p ->
@@ -42,7 +42,9 @@ let trans_p local p v =
           (i + 1, instr @ p_instr, local))
         (0, [], local) ps
     in
-    (c, instr, local)
+    match s with
+    | U -> (c, instr, local)
+    | L -> (c, instr @ [ FreeStruct v ], local))
   | _ -> failwith "trans_p"
 
 let rec trans_tm def local env m =
@@ -78,11 +80,16 @@ let rec trans_tm def local env m =
     ( def @ [ proc ]
     , [ Clo (tmp, name, List.length env, value_of local) ]
     , Reg tmp )
-  | App (m, n) ->
+  | App (s, m, n) ->
     let def, m_instr, m_v = trans_tm def local env m in
     let def, n_instr, n_v = trans_tm def local env n in
     let tmp = V.mk "tmp" in
-    (def, m_instr @ n_instr @ [ Call (tmp, m_v, n_v) ], Reg tmp)
+    let app_instr =
+      match s with
+      | U -> [ Call (tmp, m_v, n_v) ]
+      | L -> [ Call (tmp, m_v, n_v); FreeClo m_v ]
+    in
+    (def, m_instr @ n_instr @ app_instr, Reg tmp)
   | Let (m, abs) ->
     let x, n = unbind_tm abs in
     let def, m_instr, m_v = trans_tm def local env m in
@@ -99,14 +106,14 @@ let rec trans_tm def local env m =
     in
     let tmp = V.mk (str "%a" C.pp c) in
     (def, ms_instr @ [ Struct (tmp, C.get_id c, ms_v) ], Reg tmp)
-  | Case (m, cls) ->
+  | Case (s, m, cls) ->
     let def, m_instr, m_v = trans_tm def local env m in
     let tmp = V.mk "case" in
     let def, cls =
       List.fold_left
         (fun (def, cls) (Cl pabs) ->
           let p, rhs = unbindp_tm pabs in
-          let c, p_instr, local = trans_p local p m_v in
+          let c, p_instr, local = trans_p local p m_v s in
           let def, rhs_instr, rhs_v = trans_tm def local env rhs in
           let cl =
             (C.get_id c, p_instr @ rhs_instr @ [ Mov (tmp, rhs_v); Break ])
@@ -125,12 +132,14 @@ let rec trans_tm def local env m =
     let x, n = unbind_tm abs in
     let def, m_instr, m_v = trans_tm def local env m in
     let def, n_instr, n_v = trans_tm def [] (x :: extend_env local env) n in
-    let tmp = V.mk "fork_res" in
+    let final = V.mk "fork_final" in
+    let n_instr = n_instr @ [ Mov (final, n_v); FreeThread ] in
+    let res = V.mk "fork_res" in
     let name = V.mk "fork_proc" in
-    let proc = { name; arg = None; body = n_instr; return = n_v } in
+    let proc = { name; arg = None; body = n_instr; return = Reg final } in
     ( def @ [ proc ]
-    , m_instr @ [ Open (tmp, TCh (name, m_v, List.length env, value_of local)) ]
-    , Reg tmp )
+    , m_instr @ [ Open (res, TCh (name, m_v, List.length env, value_of local)) ]
+    , Reg res )
   | Send m ->
     let def, instr, ch = trans_tm def local env m in
     let tmp = V.mk "send_clo" in

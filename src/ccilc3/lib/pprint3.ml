@@ -35,6 +35,9 @@ let rec gather_var ctx instrs =
   | Send (x, _) :: instrs -> gather_var (VSet.add x ctx) instrs
   | Recv (x, _, _) :: instrs -> gather_var (VSet.add x ctx) instrs
   | Close (x, _) :: instrs -> gather_var (VSet.add x ctx) instrs
+  | FreeClo _ :: instrs -> gather_var ctx instrs
+  | FreeStruct _ :: instrs -> gather_var ctx instrs
+  | FreeThread :: instrs -> gather_var ctx instrs
 
 let pp_xs fmt ctx =
   let xs = VSet.elements ctx in
@@ -94,6 +97,9 @@ and pp_instr fmt instr =
   | Send (x, v) -> pf fmt "instr_send(&%a, %a);" V.pp x pp_value v
   | Recv (x, v, tag) -> pf fmt "instr_recv(&%a, %a, %d);" V.pp x pp_value v tag
   | Close (x, v) -> pf fmt "instr_close(&%a, %a);" V.pp x pp_value v
+  | FreeClo v -> pf fmt "instr_free_clo(%a);" pp_value v
+  | FreeStruct v -> pf fmt "instr_free_struct(%a);" pp_value v
+  | FreeThread -> pf fmt "infer_free_thread(env);"
 
 and pp_instrs fmt instrs =
   let rec aux fmt instrs =

@@ -194,10 +194,12 @@ and infer_tm ctx env m : tm * Syntax2.tm * bool VMap.t =
       match t with
       | U ->
         let _ = assert_empty usage2 in
-        (asubst_tm abs (Ann (a, n)), Syntax2.(App (m_elab, n_elab)), usage1)
+        ( asubst_tm abs (Ann (a, n))
+        , Syntax2.(App (trans_sort s, m_elab, n_elab))
+        , usage1 )
       | L ->
         ( asubst_tm abs (Ann (a, n))
-        , Syntax2.(App (m_elab, n_elab))
+        , Syntax2.(App (trans_sort s, m_elab, n_elab))
         , merge usage1 usage2 ))
     | _ -> failwith "infer_App(%a)" pp_tm m)
   | Let (m, abs) -> (
@@ -235,7 +237,7 @@ and infer_tm ctx env m : tm * Syntax2.tm * bool VMap.t =
     let usage2 = refine_equal tt_u ff_u in
     let tt_cl = Syntax2.(Cl (bindp_tm (PCons (Prelude.true_c, [])) tt_elab)) in
     let ff_cl = Syntax2.(Cl (bindp_tm (PCons (Prelude.false_c, [])) ff_elab)) in
-    (tt_ty, Syntax2.(Case (m_elab, [ tt_cl; ff_cl ])), merge usage1 usage2)
+    (tt_ty, Syntax2.(Case (U, m_elab, [ tt_cl; ff_cl ])), merge usage1 usage2)
   | Main -> (Type L, Syntax2.Main, VMap.empty)
   | Proto -> (Type U, Syntax2.Proto, VMap.empty)
   | End -> (Proto, Syntax2.End, VMap.empty)
@@ -389,7 +391,7 @@ and check_tm ctx env m a : Syntax2.tm * bool VMap.t =
     let prbm = UVar.prbm_of_cls cls in
     let ct, usage2 = check_prbm ctx env prbm mot None in
     let _ = assert_equal env a b in
-    (Syntax2.(mkApps ct (List.rev ms_elab)), merge usage1 usage2)
+    (Syntax2.(mkApps L ct (List.rev ms_elab)), merge usage1 usage2)
   | _ ->
     let b, m_elab, usage = infer_tm ctx env m in
     let _ = assert_equal env a b in
@@ -507,7 +509,7 @@ and check_prbm ctx env prbm a opt =
           (usage_of_ctx ctx, [])
           ptls cs
       in
-      (Syntax2.(Case (Var x, List.rev cls)), usage)
+      (Syntax2.(Case (trans_sort s, Var x, List.rev cls)), usage)
     | _ -> failwith "check_Split(%a)" pp_tm b)
   | (es, [], rhs) :: _ ->
     let es = prbm.global @ es in

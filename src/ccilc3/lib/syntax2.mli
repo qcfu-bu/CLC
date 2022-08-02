@@ -13,11 +13,11 @@ and tm =
   | Pi of sort * tm * tm abs
   | Fix of tm abs abs
   | Lam of sort * tm abs
-  | App of tm * tm
+  | App of sort * tm * tm
   | Let of tm * tm abs
   | Data of D.t * tms
   | Cons of C.t * tms
-  | Case of tm * cls
+  | Case of sort * tm * cls
   | Absurd
   | Main
   | Proto
@@ -80,7 +80,7 @@ val asubst_tm : tm abs -> tm -> tm
 val asubst_tl : tl abs -> tm -> tl
 val asubst_ptl : ptl abs -> tm -> ptl
 val subst_tm : V.t -> tm -> tm -> tm
-val mkApps : tm -> tms -> tm
+val mkApps : sort -> tm -> tms -> tm
 val unApps : tm -> tm * tms
 val occurs_tm : V.t -> tm -> bool
 val occurs_tl : V.t -> tl -> bool
