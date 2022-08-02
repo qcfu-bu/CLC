@@ -25,6 +25,7 @@ clc_ptr proc_stdout(clc_ptr ch);
 clc_ptr proc_stdin(clc_ptr ch);
 clc_ptr proc_stderr(clc_ptr ch);
 
+void instr_init();
 void instr_mov(clc_ptr *x, clc_ptr v);
 void instr_clo(clc_ptr *x, clc_ptr (*f)(clc_ptr, clc_env), int size, ...);
 void instr_call(clc_ptr *x, clc_ptr clo, clc_ptr v);

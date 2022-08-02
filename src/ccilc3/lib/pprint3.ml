@@ -118,6 +118,7 @@ let pp_prog fmt (def, instr, v) =
     "#include \"runtime.h\"@.@.%a@.@.@[<v 0>int main()@;\
      <1 0>{@;\
      <1 2>@[<v 0>@[%a@]@;\
+     <1 0>instr_init();@;\
      <1 0>%a@;\
      <1 0>return %a;@]@;\
      <1 0>}@]" pp_def def pp_xs xs pp_instrs instr pp_value v

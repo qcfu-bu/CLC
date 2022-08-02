@@ -9,6 +9,11 @@
 #include "prelude.h"
 #include "runtime.h"
 
+void instr_init()
+{
+  GC_INIT();
+}
+
 void instr_mov(clc_ptr *x, clc_ptr v)
 {
   *x = v;
@@ -56,11 +61,7 @@ void instr_struct(clc_ptr *x, int tag, int size, ...)
   *x = (clc_ptr)tmp;
 }
 
-void instr_open(
-    clc_ptr *x,
-    clc_ptr (*f)(clc_env),
-    clc_ptr m,
-    int size, ...)
+void instr_open(clc_ptr *x, clc_ptr (*f)(clc_env), clc_ptr m, int size, ...)
 {
   va_list ap;
   pthread_t th;
