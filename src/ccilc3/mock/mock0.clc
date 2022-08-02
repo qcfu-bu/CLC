@@ -1,4 +1,4 @@
-def maxn : nat -> nat -> nat
+def maxn : nat -> nat -> nat 
   | zero x => x
   | x zero => x
   | (succ x) (succ y) => succ (maxn x y)

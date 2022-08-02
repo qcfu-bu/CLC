@@ -63,7 +63,7 @@ let rec trans_tm def local env m =
       trans_tm def [ (x, Reg x) ] (f :: extend_env local env) m
     in
     let name = V.freshen f in
-    let tmp = V.blank () in
+    let tmp = V.freshen f in
     let proc = { name; arg = Some x; body = instr; return = v } in
     (def @ [ proc ], [ Clo (tmp, name, Zero :: value_of local env) ], Reg tmp)
   | Lam (_, abs) ->
@@ -73,13 +73,13 @@ let rec trans_tm def local env m =
       trans_tm def [ (x, Reg x) ] (f :: extend_env local env) m
     in
     let name = V.freshen f in
-    let tmp = V.blank () in
+    let tmp = V.mk "clo" in
     let proc = { name; arg = Some x; body = instr; return = v } in
     (def @ [ proc ], [ Clo (tmp, name, Zero :: value_of local env) ], Reg tmp)
   | App (m, n) ->
     let def, m_instr, m_v = trans_tm def local env m in
     let def, n_instr, n_v = trans_tm def local env n in
-    let tmp = V.blank () in
+    let tmp = V.mk "tmp" in
     (def, m_instr @ n_instr @ [ Call (tmp, m_v, n_v) ], Reg tmp)
   | Let (m, abs) ->
     let x, n = unbind_tm abs in
@@ -95,11 +95,11 @@ let rec trans_tm def local env m =
           (def, ms_instr @ m_instr, ms_v @ [ m_v ]))
         (def, [], []) ms
     in
-    let tmp = V.blank () in
+    let tmp = V.mk (str "%a" C.pp c) in
     (def, ms_instr @ [ Struct (tmp, C.get_id c, ms_v) ], Reg tmp)
   | Case (m, cls) ->
     let def, m_instr, m_v = trans_tm def local env m in
-    let tmp = V.blank () in
+    let tmp = V.mk "case" in
     let def, cls =
       List.fold_left
         (fun (def, cls) (Cl pabs) ->
@@ -123,15 +123,15 @@ let rec trans_tm def local env m =
     let x, n = unbind_tm abs in
     let def, m_instr, m_v = trans_tm def local env m in
     let def, n_instr, n_v = trans_tm def [] (x :: extend_env local env) n in
-    let tmp = V.blank () in
-    let name = V.blank () in
+    let tmp = V.mk "fork_res" in
+    let name = V.mk "fork_proc" in
     let proc = { name; arg = None; body = n_instr; return = n_v } in
     ( def @ [ proc ]
     , m_instr @ [ Open (tmp, name, m_v, value_of local env) ]
     , Reg tmp )
   | Send m ->
     let def, instr, ch = trans_tm def local env m in
-    let tmp = V.blank () in
+    let tmp = V.mk "send_clo" in
     (def, instr @ [ Send (tmp, ch) ], Reg tmp)
   | Recv (s, m) ->
     let def, instr, ch = trans_tm def local env m in
@@ -140,11 +140,11 @@ let rec trans_tm def local env m =
       | U -> C.get_id Prelude.sig_intro_c
       | L -> C.get_id Prelude.tnsr_intro_c
     in
-    let tmp = V.blank () in
+    let tmp = V.mk "recv_struct" in
     (def, instr @ [ Recv (tmp, ch, tag) ], Reg tmp)
   | Close (r, m) ->
-    let tmp = V.blank () in
-    if r then
+    let tmp = V.mk "unit_struct" in
+    if not r then
       let def, instr, ch = trans_tm def local env m in
       (def, instr @ [ Close (tmp, ch) ], Reg tmp)
     else
@@ -162,3 +162,5 @@ let trans_dcls dcls =
     | _ -> failwith "TODO"
   in
   aux [] [ (Prelude.main_v, Zero) ] [] dcls
+
+(* 0x0000000100404290 *)

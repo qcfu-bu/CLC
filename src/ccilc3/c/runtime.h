@@ -20,8 +20,14 @@ typedef struct
   CLC_ptr *data;
 } CLC_NODE;
 
+typedef struct
+{
+  chan_t *ch;
+} CLC_CH;
+
 typedef CLC_CLO *CLC_clo;
 typedef CLC_NODE *CLC_node;
+typedef CLC_CH *CLC_ch;
 
 void INSTR_mov(CLC_ptr *x, CLC_ptr v)
 {
@@ -79,7 +85,8 @@ void INSTR_open(
 {
   va_list ap;
   pthread_t th;
-  CLC_ptr ch = (CLC_ptr)chan_init(0);
+  CLC_ch ch = (CLC_ch)malloc(sizeof(CLC_CH));
+  ch->ch = (CLC_ptr)chan_init(0);
   CLC_env env = (CLC_env)malloc(sizeof(CLC_ptr) * (size + 1));
 
   va_start(ap, size);
@@ -96,24 +103,24 @@ void INSTR_open(
 
 CLC_ptr CLC_sender(CLC_ptr x, CLC_env env)
 {
-  chan_send(env[0], x);
+  int res = chan_send(((CLC_ch)env[1])->ch, x);
   return env[0];
 }
 
 void INSTR_send(CLC_ptr *x, CLC_ptr ch)
 {
-  INSTR_clo(x, &CLC_sender, 1, ch);
+  INSTR_clo(x, &CLC_sender, 2, 0, ch);
 }
 
 void INSTR_recv(CLC_ptr *x, CLC_ptr ch, int tag)
 {
   CLC_ptr msg;
-  chan_recv((chan_t *)ch, &msg);
+  int res = chan_recv(((CLC_ch)ch)->ch, &msg);
   INSTR_struct(x, tag, 2, msg, ch);
 }
 
 void INSTR_close(CLC_ptr *x, CLC_ptr ch, int tag)
 {
-  chan_dispose((chan_t *)ch);
+  chan_dispose(((CLC_ch)ch)->ch);
   INSTR_struct(x, tag, 0);
 }
