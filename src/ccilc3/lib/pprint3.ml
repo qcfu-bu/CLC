@@ -7,7 +7,7 @@ let rec pp_value fmt v =
   | Zero -> pf fmt "0"
   | Reg x -> V.pp fmt x
   | Env i -> pf fmt "env[%d]" i
-  | Proj (v, i) -> pf fmt "((CLC_node)%a)->data[%d]" pp_value v i
+  | Proj (v, i) -> pf fmt "((clc_node)%a)->data[%d]" pp_value v i
 
 let pp_values fmt vs =
   let rec aux fmt vs =
@@ -40,8 +40,8 @@ let pp_xs fmt ctx =
   let xs = VSet.elements ctx in
   let rec aux fmt = function
     | [] -> ()
-    | [ x ] -> pf fmt "CLC_ptr %a;" V.pp x
-    | x :: xs -> pf fmt "CLC_ptr %a;@;<1 0>%a" V.pp x aux xs
+    | [ x ] -> pf fmt "clc_ptr %a;" V.pp x
+    | x :: xs -> pf fmt "clc_ptr %a;@;<1 0>%a" V.pp x aux xs
   in
   aux fmt xs
 
@@ -50,10 +50,10 @@ let rec pp_proc fmt proc =
   let pp_arg fmt opt =
     match opt with
     | None -> ()
-    | Some x -> pf fmt "CLC_ptr %a, " V.pp x
+    | Some x -> pf fmt "clc_ptr %a, " V.pp x
   in
   pf fmt
-    "@[<v 0>CLC_ptr %a(%aCLC_env env)@;\
+    "@[<v 0>clc_ptr %a(%aclc_env env)@;\
      <1 0>{@;\
      <1 2>@[<v 0>@[%a@]@;\
      <1 0>%a@;\
@@ -69,33 +69,33 @@ and pp_def fmt def =
 
 and pp_instr fmt instr =
   match instr with
-  | Mov (x, v) -> pf fmt "INSTR_mov(&%a, %a);" V.pp x pp_value v
+  | Mov (x, v) -> pf fmt "instr_mov(&%a, %a);" V.pp x pp_value v
   | Clo (x, f, vs) ->
-    pf fmt "@[INSTR_clo(&%a, &%a, %d%a);@]" V.pp x V.pp f (List.length vs)
+    pf fmt "@[instr_clo(&%a, &%a, %d%a);@]" V.pp x V.pp f (List.length vs)
       pp_values vs
   | Call (x, v1, v2) ->
-    pf fmt "INSTR_call(&%a, %a, %a);" V.pp x pp_value v1 pp_value v2
-  | Struct (x, tag, []) -> pf fmt "INSTR_struct(&%a, %d, %d);" V.pp x tag 0
+    pf fmt "instr_call(&%a, %a, %a);" V.pp x pp_value v1 pp_value v2
+  | Struct (x, tag, []) -> pf fmt "instr_struct(&%a, %d, %d);" V.pp x tag 0
   | Struct (x, tag, vs) ->
-    pf fmt "INSTR_struct(&%a, %d, %d%a);" V.pp x tag (List.length vs) pp_values
+    pf fmt "instr_struct(&%a, %d, %d%a);" V.pp x tag (List.length vs) pp_values
       vs
   | Switch (m, cls) ->
-    pf fmt "@[<v 0>switch(((CLC_node)%a)->tag){@;<1 2>@[%a@]}@]" pp_value m
+    pf fmt "@[<v 0>switch(((clc_node)%a)->tag){@;<1 2>@[%a@]}@]" pp_value m
       pp_cls cls
   | Break -> pf fmt "break;"
   | Open (x, trg) -> (
     match trg with
     | TCh (f, m, vs) ->
-      pf fmt "INSTR_open(&%a, &%a, %a, %d, %d%a);" V.pp x V.pp f pp_value m
+      pf fmt "instr_open(&%a, &%a, %a, %d, %d%a);" V.pp x V.pp f pp_value m
         (C.get_id Prelude.tnsr_intro_c)
         (List.length vs) pp_values vs
-    | TStdout -> pf fmt "INSTR_trg(&%a, &PROC_stdout);" V.pp x
-    | TStdin -> pf fmt "INSTR_trg(&%a, &PROC_stdin);" V.pp x
-    | TStderr -> pf fmt "INSTR_trg(&%a, &PROC_stderr);" V.pp x)
-  | Send (x, v) -> pf fmt "INSTR_send(&%a, %a);" V.pp x pp_value v
-  | Recv (x, v, tag) -> pf fmt "INSTR_recv(&%a, %a, %d);" V.pp x pp_value v tag
+    | TStdout -> pf fmt "instr_trg(&%a, &proc_stdout);" V.pp x
+    | TStdin -> pf fmt "instr_trg(&%a, &proc_stdin);" V.pp x
+    | TStderr -> pf fmt "instr_trg(&%a, &proc_stderr);" V.pp x)
+  | Send (x, v) -> pf fmt "instr_send(&%a, %a);" V.pp x pp_value v
+  | Recv (x, v, tag) -> pf fmt "instr_recv(&%a, %a, %d);" V.pp x pp_value v tag
   | Close (x, v) ->
-    pf fmt "INSTR_close(&%a, %a, %d);" V.pp x pp_value v (C.get_id Prelude.tt_c)
+    pf fmt "instr_close(&%a, %a, %d);" V.pp x pp_value v (C.get_id Prelude.tt_c)
 
 and pp_instrs fmt instrs =
   let rec aux fmt instrs =
