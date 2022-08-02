@@ -112,8 +112,8 @@ and pp_cls fmt cls =
 let pp_prog fmt (def, instr, v) =
   let xs = gather_var VSet.empty instr in
   pf fmt
-    "#include \"runtime.h\"@.@.@[%a@]@.@.%a@.@.@[<v 0>int main()@;\
+    "#include \"runtime.h\"@.@.@[<v 0>%a@]@.@.%a@.@.@[<v 0>int main()@;\
      <1 0>{@;\
-     <1 2>%a@;\
-     <1 2>return %a;@;\
+     <1 2>@[%a@;\
+     <1 0>return %a;@]@;\
      <1 0>}@]" pp_xs xs pp_def def pp_instrs instr pp_value v
