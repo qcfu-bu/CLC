@@ -5,12 +5,13 @@ def maxn : nat -> nat -> nat
 
 def foo := maxn 1 2
 
+def string_of_nat : nat -> string
+  | zero => "zero"
+  | succ n => "succ (" ^ string_of_nat n ^ ")"
+
+open @stdout as out
+
 def _ := 
-  let ⟨ch, main⟩ := 
-    fork (ch : ch‹!nat ⋅ end›) <- main with
-    let ch := send ch foo in 
-    close ch
-  in
-  let [msg, ch] := recv ch in
-  let () := close ch in
+  let out := printline out (string_of_nat foo) in
+  let () := close_out out in
   main

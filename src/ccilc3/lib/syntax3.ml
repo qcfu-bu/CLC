@@ -19,14 +19,14 @@ and chs = V.t list
 and def = proc list
 
 and trg =
-  | TCh of V.t * value * values
+  | TCh of V.t * value * int * values
   | TStdin
   | TStdout
   | TStderr
 
 and instr =
   | Mov of V.t * value
-  | Clo of V.t * V.t * values
+  | Clo of V.t * V.t * int * values
   | Call of V.t * value * value
   | Struct of V.t * int * values
   | Switch of value * cls

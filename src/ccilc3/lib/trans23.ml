@@ -15,10 +15,7 @@ let pp_local fmt local =
   in
   pf fmt "@[<v 0>%a@]" aux local
 
-let value_of local env =
-  let env1 = List.map snd local in
-  let env2 = List.mapi (fun i _ -> Env i) env in
-  env1 @ env2
+let value_of local = List.map snd local
 
 let findi y ls =
   let rec loop i = function
@@ -66,7 +63,9 @@ let rec trans_tm def local env m =
     let name = V.freshen f in
     let tmp = V.freshen f in
     let proc = { name; arg = Some x; body = instr; return = v } in
-    (def @ [ proc ], [ Clo (tmp, name, Zero :: value_of local env) ], Reg tmp)
+    ( def @ [ proc ]
+    , [ Clo (tmp, name, List.length env, value_of local) ]
+    , Reg tmp )
   | Lam (_, abs) ->
     let f = V.blank () in
     let x, m = unbind_tm abs in
@@ -76,7 +75,9 @@ let rec trans_tm def local env m =
     let name = V.mk "lam" in
     let tmp = V.mk "clo" in
     let proc = { name; arg = Some x; body = instr; return = v } in
-    (def @ [ proc ], [ Clo (tmp, name, Zero :: value_of local env) ], Reg tmp)
+    ( def @ [ proc ]
+    , [ Clo (tmp, name, List.length env, value_of local) ]
+    , Reg tmp )
   | App (m, n) ->
     let def, m_instr, m_v = trans_tm def local env m in
     let def, n_instr, n_v = trans_tm def local env n in
@@ -128,7 +129,7 @@ let rec trans_tm def local env m =
     let name = V.mk "fork_proc" in
     let proc = { name; arg = None; body = n_instr; return = n_v } in
     ( def @ [ proc ]
-    , m_instr @ [ Open (tmp, TCh (name, m_v, value_of local env)) ]
+    , m_instr @ [ Open (tmp, TCh (name, m_v, List.length env, value_of local)) ]
     , Reg tmp )
   | Send m ->
     let def, instr, ch = trans_tm def local env m in

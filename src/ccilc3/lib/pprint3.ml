@@ -22,7 +22,7 @@ let rec gather_var ctx instrs =
   match instrs with
   | [] -> ctx
   | Mov (x, v) :: instrs -> gather_var (VSet.add x ctx) instrs
-  | Clo (x, _, _) :: instrs -> gather_var (VSet.add x ctx) instrs
+  | Clo (x, _, _, _) :: instrs -> gather_var (VSet.add x ctx) instrs
   | Call (x, _, _) :: instrs -> gather_var (VSet.add x ctx) instrs
   | Struct (x, _, _) :: instrs -> gather_var (VSet.add x ctx) instrs
   | Switch (_, cls) :: instrs ->
@@ -70,9 +70,9 @@ and pp_def fmt def =
 and pp_instr fmt instr =
   match instr with
   | Mov (x, v) -> pf fmt "instr_mov(&%a, %a);" V.pp x pp_value v
-  | Clo (x, f, vs) ->
-    pf fmt "@[instr_clo(&%a, &%a, %d%a);@]" V.pp x V.pp f (List.length vs)
-      pp_values vs
+  | Clo (x, f, sz, vs) ->
+    pf fmt "@[instr_clo(&%a, &%a, %d, env, %d%a);@]" V.pp x V.pp f sz
+      (List.length vs) pp_values vs
   | Call (x, v1, v2) ->
     pf fmt "instr_call(&%a, %a, %a);" V.pp x pp_value v1 pp_value v2
   | Struct (x, tag, []) -> pf fmt "instr_struct(&%a, %d, %d);" V.pp x tag 0
@@ -85,9 +85,9 @@ and pp_instr fmt instr =
   | Break -> pf fmt "break;"
   | Open (x, trg) -> (
     match trg with
-    | TCh (f, m, vs) ->
-      pf fmt "instr_open(&%a, &%a, %a, %d%a);" V.pp x V.pp f pp_value m
-        (List.length vs) pp_values vs
+    | TCh (f, m, sz, vs) ->
+      pf fmt "instr_open(&%a, &%a, %a, %d, env, %d%a);" V.pp x V.pp f pp_value m
+        sz (List.length vs) pp_values vs
     | TStdout -> pf fmt "instr_trg(&%a, &proc_stdout);" V.pp x
     | TStdin -> pf fmt "instr_trg(&%a, &proc_stdin);" V.pp x
     | TStderr -> pf fmt "instr_trg(&%a, &proc_stderr);" V.pp x)
@@ -118,6 +118,7 @@ let pp_prog fmt (def, instr, v) =
     "#include \"runtime.h\"@.@.%a@.@.@[<v 0>int main()@;\
      <1 0>{@;\
      <1 2>@[<v 0>@[%a@]@;\
+     <1 0>clc_env env = 0;@;\
      <1 0>instr_init();@;\
      <1 0>%a@;\
      <1 0>return %a;@]@;\
