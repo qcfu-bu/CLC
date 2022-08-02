@@ -12,8 +12,7 @@ let rec pp_value fmt v =
 let rec pp_values fmt vs =
   match vs with
   | [] -> ()
-  | [ v ] -> pp_value fmt v
-  | v :: vs -> pf fmt "%a, %a" pp_value v pp_values vs
+  | v :: vs -> pf fmt ", %a%a" pp_value v pp_values vs
 
 let rec gather_var ctx instrs =
   match instrs with
@@ -28,7 +27,7 @@ let rec gather_var ctx instrs =
     in
     gather_var ctx instrs
   | Break :: instrs -> gather_var ctx instrs
-  | Open (x, _, _, _) :: instrs -> gather_var (VSet.add x ctx) instrs
+  | Open (x, _) :: instrs -> gather_var (VSet.add x ctx) instrs
   | Send (x, _) :: instrs -> gather_var (VSet.add x ctx) instrs
   | Recv (x, _, _) :: instrs -> gather_var (VSet.add x ctx) instrs
   | Close (x, _) :: instrs -> gather_var (VSet.add x ctx) instrs
@@ -68,22 +67,26 @@ and pp_instr fmt instr =
   match instr with
   | Mov (x, v) -> pf fmt "INSTR_mov(&%a, %a);" V.pp x pp_value v
   | Clo (x, f, vs) ->
-    pf fmt "INSTR_clo(&%a, &%a, %d, %a);" V.pp x V.pp f (List.length vs)
-      pp_values vs
+    pf fmt "INSTR_clo(&%a, &%a, %d%a);" V.pp x V.pp f (List.length vs) pp_values
+      vs
   | Call (x, v1, v2) ->
     pf fmt "INSTR_call(&%a, %a, %a);" V.pp x pp_value v1 pp_value v2
   | Struct (x, tag, []) -> pf fmt "INSTR_struct(&%a, %d, %d);" V.pp x tag 0
   | Struct (x, tag, vs) ->
-    pf fmt "INSTR_struct(&%a, %d, %d, %a);" V.pp x tag (List.length vs)
-      pp_values vs
+    pf fmt "INSTR_struct(&%a, %d, %d%a);" V.pp x tag (List.length vs) pp_values
+      vs
   | Switch (m, cls) ->
     pf fmt "@[<v 0>switch(((CLC_node)%a)->tag){@;<1 2>@[%a@]}@]" pp_value m
       pp_cls cls
   | Break -> pf fmt "break;"
-  | Open (x, f, m, vs) ->
-    pf fmt "INSTR_open(&%a, &%a, %a, %d, %d, %a);" V.pp x V.pp f pp_value m
-      (C.get_id Prelude.tnsr_intro_c)
-      (List.length vs) pp_values vs
+  | Open (x, trg) -> (
+    match trg with
+    | TCh (f, m, vs) ->
+      pf fmt "INSTR_open(&%a, &%a, %a, %d, %d%a);" V.pp x V.pp f pp_value m
+        (C.get_id Prelude.tnsr_intro_c)
+        (List.length vs) pp_values vs
+    | TStdout -> pf fmt "INSTR_trg(&%a, &PROC_stdout);" V.pp x
+    | _ -> failwith "TODO")
   | Send (x, v) -> pf fmt "INSTR_send(&%a, %a);" V.pp x pp_value v
   | Recv (x, v, tag) -> pf fmt "INSTR_recv(&%a, %a, %d);" V.pp x pp_value v tag
   | Close (x, v) ->

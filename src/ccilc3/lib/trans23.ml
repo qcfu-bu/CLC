@@ -127,7 +127,7 @@ let rec trans_tm def local env m =
     let name = V.mk "fork_proc" in
     let proc = { name; arg = None; body = n_instr; return = n_v } in
     ( def @ [ proc ]
-    , m_instr @ [ Open (tmp, name, m_v, value_of local env) ]
+    , m_instr @ [ Open (tmp, TCh (name, m_v, value_of local env)) ]
     , Reg tmp )
   | Send m ->
     let def, instr, ch = trans_tm def local env m in
@@ -159,8 +159,16 @@ let trans_dcls dcls =
       let def, instr, v = aux def ((x, Reg x) :: local) env dcls in
       (def, m_instr @ [ Mov (x, m_v) ] @ instr, v)
     | DData (_, _, _) :: dcls -> aux def local env dcls
-    | _ -> failwith "TODO"
+    | DOpen (trg, x) :: dcls -> (
+      match trg with
+      | TStdout ->
+        let def, instr, v = aux def ((x, Reg x) :: local) env dcls in
+        (def, [ Open (x, TStdout) ] @ instr, v)
+      | _ -> failwith "TODO")
+    | DAxiom (x, a) :: dcls ->
+      let def, instr, v = aux def ((x, Reg x) :: local) env dcls in
+      (def, [ Mov (x, Zero) ] @ instr, v)
   in
   aux [] [ (Prelude.main_v, Zero) ] [] dcls
 
-(* 0x0000000100404290 *)
+(* 0x0000000100306270 *)

@@ -20,14 +20,8 @@ typedef struct
   CLC_ptr *data;
 } CLC_NODE;
 
-typedef struct
-{
-  chan_t *ch;
-} CLC_CH;
-
 typedef CLC_CLO *CLC_clo;
 typedef CLC_NODE *CLC_node;
-typedef CLC_CH *CLC_ch;
 
 void INSTR_mov(CLC_ptr *x, CLC_ptr v)
 {
@@ -85,8 +79,7 @@ void INSTR_open(
 {
   va_list ap;
   pthread_t th;
-  CLC_ch ch = (CLC_ch)malloc(sizeof(CLC_CH));
-  ch->ch = (CLC_ptr)chan_init(0);
+  CLC_ptr ch = (CLC_ptr)chan_init(0);
   CLC_env env = (CLC_env)malloc(sizeof(CLC_ptr) * (size + 1));
 
   va_start(ap, size);
@@ -101,26 +94,106 @@ void INSTR_open(
   INSTR_struct(x, tag, 2, ch, m);
 }
 
-CLC_ptr CLC_sender(CLC_ptr x, CLC_env env)
+CLC_ptr PROC_sender(CLC_ptr x, CLC_env env)
 {
-  int res = chan_send(((CLC_ch)env[1])->ch, x);
-  return env[0];
+  int res = chan_send((chan_t *)env[1], x);
+  return env[1];
 }
 
 void INSTR_send(CLC_ptr *x, CLC_ptr ch)
 {
-  INSTR_clo(x, &CLC_sender, 2, 0, ch);
+  INSTR_clo(x, &PROC_sender, 2, 0, ch);
 }
 
 void INSTR_recv(CLC_ptr *x, CLC_ptr ch, int tag)
 {
   CLC_ptr msg;
-  int res = chan_recv(((CLC_ch)ch)->ch, &msg);
+  int res = chan_recv((chan_t *)ch, &msg);
   INSTR_struct(x, tag, 2, msg, ch);
 }
 
 void INSTR_close(CLC_ptr *x, CLC_ptr ch, int tag)
 {
-  chan_dispose(((CLC_ch)ch)->ch);
+  chan_dispose((chan_t *)ch);
   INSTR_struct(x, tag, 0);
+}
+
+char INSTR_ascii(CLC_ptr x)
+{
+  char c;
+  CLC_ptr b;
+  for (int i = 0; i < 8; i++)
+  {
+    b = ((CLC_node)x)->data[7 - i];
+    switch (((CLC_node)b)->tag)
+    {
+    case 2:
+      c |= 1 << i;
+      break;
+    case 3:
+      c &= ~(1 << i);
+      break;
+    }
+  }
+  return c;
+}
+
+char *INSTR_string(CLC_ptr x)
+{
+  char *str;
+  int len = 0;
+  CLC_node tmp = (CLC_node)x;
+  while (tmp->tag != 17)
+  {
+    tmp = (CLC_node)(tmp->data[1]);
+    len++;
+  }
+  str = (char *)malloc(sizeof(char) * len + 1);
+  tmp = (CLC_node)x;
+  for (int i = 0; i < len; i++)
+  {
+    str[i] = INSTR_ascii(tmp->data[0]);
+    tmp = (CLC_node)(tmp->data[1]);
+  }
+  return str;
+}
+
+CLC_ptr PROC_stdout(CLC_ptr ch)
+{
+  int b = 0, rep = 1;
+  char *str;
+  CLC_ptr msg;
+  while (rep)
+  {
+    chan_recv((chan_t *)ch, &msg);
+    if (b)
+    {
+      str = INSTR_string(msg);
+      fputs(str, stdout);
+      free(str);
+      b = !b;
+    }
+    else
+    {
+      switch (((CLC_node)msg)->tag)
+      {
+      case 2:
+        b = !b;
+        break;
+      case 3:
+        rep = !rep;
+        break;
+      }
+    }
+  }
+  return NULL;
+}
+
+void INSTR_trg(CLC_ptr *x, CLC_ptr (*f)(CLC_ptr))
+{
+  va_list ap;
+  pthread_t th;
+  CLC_ptr ch = (CLC_ptr)chan_init(0);
+  pthread_create(&th, NULL, (void *)f, ch);
+  *x = ch;
 }

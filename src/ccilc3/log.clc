@@ -1,31 +1,38 @@
-[(DFun ("maxn",
-    (Pi (U, [(None, (Id "nat"))], (Pi (U, [(None, (Id "nat"))], (Id "nat")))
-       )),
-    [(Cl ([(PCons ("zero", [])); (PVar (Some "x"))], (Some (Id "x"))));
-      (Cl ([(PVar (Some "x")); (PCons ("zero", []))], (Some (Id "x"))));
-      (Cl
-         ([(PCons ("succ", [(PVar (Some "x"))]));
-            (PCons ("succ", [(PVar (Some "y"))]))],
-          (Some (App [(Id "succ"); (App [(Id "maxn"); (Id "x"); (Id "y")])]))))
-      ]
-    ));
-  (DTm ((Some "foo"), None,
-     (App
-        [(Id "maxn"); (App [(Id "succ"); (App [(Id "zero")])]);
-          (App [(Id "succ"); (App [(Id "succ"); (App [(Id "zero")])])])])
-     ));
+[(DOpen ("@stdout", "ch"));
   (DTm (None, None,
-     (Let (
-        (PCons ("tnsr_intro", [(PVar (Some "ch")); (PVar (Some "main"))])),
-        (Fork ("ch", (Ch (true, (Act (false, [(None, (Id "nat"))], End)))),
-           (Id "main"),
-           (Let ((PVar (Some "ch")), (App [(Send (Id "ch")); (Id "foo")]),
-              (Close (Id "ch"))))
-           )),
-        (Let (
-           (PCons ("sig_intro", [(PVar (Some "msg")); (PVar (Some "ch"))])),
-           (Recv (Id "ch")),
-           (Let ((PCons ("tt", [])), (Close (Id "ch")), (Id "main")))))
+     (Let ((PVar (Some "ch")),
+        (App
+           [(Id "printline"); (Id "ch");
+             (App
+                [(Id "String");
+                  (App
+                     [(Id "Ascii"); (App [(Id "false")]);
+                       (App [(Id "true")]); (App [(Id "true")]);
+                       (App [(Id "false")]); (App [(Id "false")]);
+                       (App [(Id "false")]); (App [(Id "false")]);
+                       (App [(Id "true")])]);
+                  (App
+                     [(Id "String");
+                       (App
+                          [(Id "Ascii"); (App [(Id "false")]);
+                            (App [(Id "true")]); (App [(Id "true")]);
+                            (App [(Id "false")]); (App [(Id "false")]);
+                            (App [(Id "false")]); (App [(Id "true")]);
+                            (App [(Id "false")])]);
+                       (App
+                          [(Id "String");
+                            (App
+                               [(Id "Ascii"); (App [(Id "false")]);
+                                 (App [(Id "true")]); (App [(Id "true")]);
+                                 (App [(Id "false")]); (App [(Id "false")]);
+                                 (App [(Id "false")]); (App [(Id "true")]);
+                                 (App [(Id "true")])]);
+                            (App [(Id "EmptyString")])])
+                       ])
+                  ])
+             ]),
+        (Let ((PCons ("tt", [])), (App [(Id "close_out"); (Id "ch")]),
+           (Id "main")))
         ))
      ))
   ]
@@ -42,43 +49,43 @@ data nat_d3 : U
   | zero_c4 : nat_d3
   | succ_c5 : nat_d3 -> nat_d3
 
-def (addn_3 := addn_150) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_154 => x_154
-  | (succ_c5 x_155) y_156 => (succ_c5 ((addn_150) x_155 y_156))
+def (addn_3 := addn_137) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_141 => x_141
+  | (succ_c5 x_142) y_143 => (succ_c5 ((addn_137) x_142 y_143))
 
-def (subn_9 := subn_157) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 _161 => zero_c4
-  | x_162 zero_c4 => x_162
-  | (succ_c5 x_163) (succ_c5 y_164) => ((subn_157) x_163 y_164)
+def (subn_9 := subn_144) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 _148 => zero_c4
+  | x_149 zero_c4 => x_149
+  | (succ_c5 x_150) (succ_c5 y_151) => ((subn_144) x_150 y_151)
 
-data option_d4 (A_165 : U) : U
-  | none_c6 (A_166 : U) : (option_d4 A_166)
-  | some_c7 (A_167 : U) : A_167 -> (option_d4 A_167)
+data option_d4 (A_152 : U) : U
+  | none_c6 (A_153 : U) : (option_d4 A_153)
+  | some_c7 (A_154 : U) : A_154 -> (option_d4 A_154)
 
-data list_d5 (A_169 : U) : U
-  | nil_c8 (A_170 : U) : (list_d5 A_170)
-  | cons_c9 (A_171 : U) : A_171 -> (list_d5 A_171) -> (list_d5 A_171)
+data list_d5 (A_156 : U) : U
+  | nil_c8 (A_157 : U) : (list_d5 A_157)
+  | cons_c9 (A_158 : U) : A_158 -> (list_d5 A_158) -> (list_d5 A_158)
 
-data vec_d6 (A_175 : U) : nat_d3 -> U
-  | vnil_c10 (A_177 : U) : (vec_d6 A_177 zero_c4)
-  | vcons_c11 (A_178 : U) :
-    ∀ (n_179 : nat_d3) ->
-      A_178 -> (vec_d6 A_178 n_179) -> (vec_d6 A_178 (succ_c5 n_179))
+data vec_d6 (A_162 : U) : nat_d3 -> U
+  | vnil_c10 (A_164 : U) : (vec_d6 A_164 zero_c4)
+  | vcons_c11 (A_165 : U) :
+    ∀ (n_166 : nat_d3) ->
+      A_165 -> (vec_d6 A_165 n_166) -> (vec_d6 A_165 (succ_c5 n_166))
 
-data ex_d7 (A_184 : U) (P_185 : A_184 -> U) : U
-  | ex_intro_c12 (A_187 : U) (P_188 : A_187 -> U) :
-    ∀ (x_190 : A_187) -> ((P_188) x_190) -> (ex_d7 A_187 P_188)
+data ex_d7 (A_171 : U) (P_172 : A_171 -> U) : U
+  | ex_intro_c12 (A_174 : U) (P_175 : A_174 -> U) :
+    ∀ (x_177 : A_174) -> ((P_175) x_177) -> (ex_d7 A_174 P_175)
 
-data sig_d8 (A_192 : U) (P_193 : A_192 -> L) : L
-  | sig_intro_c13 (A_195 : U) (P_196 : A_195 -> L) :
-    ∀ (x_198 : A_195) -> ((P_196) x_198) -> (sig_d8 A_195 P_196)
+data sig_d8 (A_179 : U) (P_180 : A_179 -> L) : L
+  | sig_intro_c13 (A_182 : U) (P_183 : A_182 -> L) :
+    ∀ (x_185 : A_182) -> ((P_183) x_185) -> (sig_d8 A_182 P_183)
 
-data tnsr_d9 (A_200 : L) (B_201 : L) : L
-  | tnsr_intro_c14 (A_202 : L) (B_203 : L) :
-    A_202 -> B_203 -> (tnsr_d9 A_202 B_203)
+data tnsr_d9 (A_187 : L) (B_188 : L) : L
+  | tnsr_intro_c14 (A_189 : L) (B_190 : L) :
+    A_189 -> B_190 -> (tnsr_d9 A_189 B_190)
 
-data box_d10 (A_207 : U) : L
-  | box_intro_c15 (A_208 : U) : A_208 -> (box_d10 A_208)
+data box_d10 (A_194 : U) : L
+  | box_intro_c15 (A_195 : U) : A_195 -> (box_d10 A_195)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -91,46 +98,46 @@ data string_d12 : U
   | EmptyString_c17 : string_d12
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
-def (cat_67 := cat_249) : string_d12 -> string_d12 -> string_d12
-  | EmptyString_c17 s_253 => s_253
-  | (String_c18 c_254 s1_255) s2_256 =>
-    (String_c18 c_254 ((cat_249) s1_255 s2_256))
+def (cat_67 := cat_236) : string_d12 -> string_d12 -> string_d12
+  | EmptyString_c17 s_240 => s_240
+  | (String_c18 c_241 s1_242) s2_243 =>
+    (String_c18 c_241 ((cat_236) s1_242 s2_243))
 
-def (strlen_74 := strlen_257) : string_d12 -> nat_d3
+def (strlen_74 := strlen_244) : string_d12 -> nat_d3
   | EmptyString_c17 => zero_c4
-  | (String_c18 _259 s_260) => (succ_c5 ((strlen_257) s_260))
+  | (String_c18 _246 s_247) => (succ_c5 ((strlen_244) s_247))
 
-data le_d13 (n_261 : nat_d3) : nat_d3 -> U
-  | le_refl_c19 (n_263 : nat_d3) : (le_d13 n_263 n_263)
-  | le_succ_c20 (n_264 : nat_d3) :
-    ∀ (m_265 : nat_d3) ->
-      (le_d13 n_264 m_265) -> (le_d13 n_264 (succ_c5 m_265))
+data le_d13 (n_248 : nat_d3) : nat_d3 -> U
+  | le_refl_c19 (n_250 : nat_d3) : (le_d13 n_250 n_250)
+  | le_succ_c20 (n_251 : nat_d3) :
+    ∀ (m_252 : nat_d3) ->
+      (le_d13 n_251 m_252) -> (le_d13 n_251 (succ_c5 m_252))
 
-def (lt_84 := lt_267) : nat_d3 -> nat_d3 -> U
-  | m_271 n_272 => (le_d13 (succ_c5 m_271) n_272)
+def (lt_84 := lt_254) : nat_d3 -> nat_d3 -> U
+  | m_258 n_259 => (le_d13 (succ_c5 m_258) n_259)
 
-data eq_d14 (A_273 : U) (x_274 : A_273) : A_273 -> U
-  | refl_c21 (A_276 : U) (x_277 : A_276) : (eq_d14 A_276 x_277 x_277)
+data eq_d14 (A_260 : U) (x_261 : A_260) : A_260 -> U
+  | refl_c21 (A_263 : U) (x_264 : A_263) : (eq_d14 A_263 x_264 x_264)
 
-def (stdin_rec_94 := stdin_rec_278) : unit_d1 -> proto
+def (stdin_rec_94 := stdin_rec_265) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_280 : bool_d2) ⋅
-      (match b_280 return ??1 with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_278) tt_c1)
+    !(b_267 : bool_d2) ⋅
+      (match b_267 return ??1 with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_265) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_98 := stdout_rec_282) : unit_d1 -> proto
+def (stdout_rec_98 := stdout_rec_269) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_284 : bool_d2) ⋅
-      (match b_284 return ??2 with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_282) tt_c1)
+    !(b_271 : bool_d2) ⋅
+      (match b_271 return ??2 with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_269) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_102 := stderr_rec_286) : unit_d1 -> proto
+def (stderr_rec_102 := stderr_rec_273) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_288 : bool_d2) ⋅
-      (match b_288 return ??3 with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_286) tt_c1)
+    !(b_275 : bool_d2) ⋅
+      (match b_275 return ??3 with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_273) tt_c1)
         | false_c3 => end)
 
 def stdin_t_106 := ((stdin_rec_94) tt_c1)
@@ -139,46 +146,35 @@ def stdout_t_107 := ((stdout_rec_98) tt_c1)
 
 def stderr_t_108 := ((stderr_rec_102) tt_c1)
 
-def (readline_109 := readline_290) :
+def (readline_109 := readline_277) :
   ch‹stdin_t_106› ->
     (sig_d8 string_d12 (fun
-                         | _296 => ch‹stdin_t_106›))
-  | ch_297 => recv ((send ch_297) true_c2)
+                         | _283 => ch‹stdin_t_106›))
+  | ch_284 => recv ((send ch_284) true_c2)
 
-def (close_in_114 := close_in_298) : ch‹stdin_t_106› -> unit_d1
-  | ch_300 => close ((send ch_300) false_c3)
+def (close_in_114 := close_in_285) : ch‹stdin_t_106› -> unit_d1
+  | ch_287 => close ((send ch_287) false_c3)
 
-def (printline_117 := printline_301) :
+def (printline_117 := printline_288) :
   ch‹stdout_t_107› -> string_d12 -o ch‹stdout_t_107›
-  | ch_305 s_306 => ((send ((send ch_305) true_c2)) s_306)
+  | ch_292 s_293 => ((send ((send ch_292) true_c2)) s_293)
 
-def (close_out_122 := close_out_307) : ch‹stdout_t_107› -> unit_d1
-  | ch_309 => close ((send ch_309) false_c3)
+def (close_out_122 := close_out_294) : ch‹stdout_t_107› -> unit_d1
+  | ch_296 => close ((send ch_296) false_c3)
 
-def (printerr_125 := printerr_310) :
+def (printerr_125 := printerr_297) :
   ch‹stderr_t_108› -> string_d12 -o ch‹stderr_t_108›
-  | ch_314 s_315 => ((send ((send ch_314) true_c2)) s_315)
+  | ch_301 s_302 => ((send ((send ch_301) true_c2)) s_302)
 
-def (close_err_130 := close_err_316) : ch‹stderr_t_108› -> unit_d1
-  | ch_318 => close ((send ch_318) false_c3)
+def (close_err_130 := close_err_303) : ch‹stderr_t_108› -> unit_d1
+  | ch_305 => close ((send ch_305) false_c3)
 
-def (maxn_133 := maxn_319) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_323 => x_323
-  | x_324 zero_c4 => x_324
-  | (succ_c5 x_325) (succ_c5 y_326) => (succ_c5 ((maxn_319) x_325 y_326))
+open @stdout as ch_133
 
-def foo_140 := ((maxn_133) 1 2)
-
-def _141 :=
-  (match
-     fork (ch_327 : ch‹!nat_d3 ⋅ end›) <- main_1 in
-     let ch_329 := ((send ch_327) foo_140) in close ch_329
-   return ??6 with
-    | (tnsr_intro_c14 ch_330 main_331) =>
-      (match recv ch_330 return ??5 with
-        | (sig_intro_c13 msg_332 ch_333) =>
-          (match close ch_333 return ??4 with
-            | tt_c1 => main_331)))
+def _134 :=
+  let ch_306 := ((printline_117) ch_133 "abc") in
+  (match ((close_out_122) ch_306) return ??4 with
+    | tt_c1 => main_1)
 
 trans01 success-------------------------------------
 
@@ -193,43 +189,43 @@ data nat_d3 : U
   | zero_c4 : nat_d3
   | succ_c5 : nat_d3 -> nat_d3
 
-def (addn_3 := addn_3162) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_3166 => x_3166
-  | (succ_c5 x_3167) y_3168 => (succ_c5 ((addn_3162) x_3167 y_3168))
+def (addn_3 := addn_2050) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 x_2054 => x_2054
+  | (succ_c5 x_2055) y_2056 => (succ_c5 ((addn_2050) x_2055 y_2056))
 
-def (subn_9 := subn_3169) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 _3173 => zero_c4
-  | x_3174 zero_c4 => x_3174
-  | (succ_c5 x_3175) (succ_c5 y_3176) => ((subn_3169) x_3175 y_3176)
+def (subn_9 := subn_2057) : nat_d3 -> nat_d3 -> nat_d3
+  | zero_c4 _2061 => zero_c4
+  | x_2062 zero_c4 => x_2062
+  | (succ_c5 x_2063) (succ_c5 y_2064) => ((subn_2057) x_2063 y_2064)
 
-data option_d4 (A_3177 : U) : U
-  | none_c6 (A_3178 : U) : (option_d4 A_3178)
-  | some_c7 (A_3179 : U) : A_3179 -> (option_d4 A_3179)
+data option_d4 (A_2065 : U) : U
+  | none_c6 (A_2066 : U) : (option_d4 A_2066)
+  | some_c7 (A_2067 : U) : A_2067 -> (option_d4 A_2067)
 
-data list_d5 (A_3181 : U) : U
-  | nil_c8 (A_3182 : U) : (list_d5 A_3182)
-  | cons_c9 (A_3183 : U) : A_3183 -> (list_d5 A_3183) -> (list_d5 A_3183)
+data list_d5 (A_2069 : U) : U
+  | nil_c8 (A_2070 : U) : (list_d5 A_2070)
+  | cons_c9 (A_2071 : U) : A_2071 -> (list_d5 A_2071) -> (list_d5 A_2071)
 
-data vec_d6 (A_3187 : U) : nat_d3 -> U
-  | vnil_c10 (A_3189 : U) : (vec_d6 A_3189 zero_c4)
-  | vcons_c11 (A_3190 : U) :
-    ∀ (n_3191 : nat_d3) ->
-      A_3190 -> (vec_d6 A_3190 n_3191) -> (vec_d6 A_3190 (succ_c5 n_3191))
+data vec_d6 (A_2075 : U) : nat_d3 -> U
+  | vnil_c10 (A_2077 : U) : (vec_d6 A_2077 zero_c4)
+  | vcons_c11 (A_2078 : U) :
+    ∀ (n_2079 : nat_d3) ->
+      A_2078 -> (vec_d6 A_2078 n_2079) -> (vec_d6 A_2078 (succ_c5 n_2079))
 
-data ex_d7 (A_3196 : U) (P_3197 : A_3196 -> U) : U
-  | ex_intro_c12 (A_3199 : U) (P_3200 : A_3199 -> U) :
-    ∀ (x_3202 : A_3199) -> ((P_3200) x_3202) -> (ex_d7 A_3199 P_3200)
+data ex_d7 (A_2084 : U) (P_2085 : A_2084 -> U) : U
+  | ex_intro_c12 (A_2087 : U) (P_2088 : A_2087 -> U) :
+    ∀ (x_2090 : A_2087) -> ((P_2088) x_2090) -> (ex_d7 A_2087 P_2088)
 
-data sig_d8 (A_3204 : U) (P_3205 : A_3204 -> L) : L
-  | sig_intro_c13 (A_3207 : U) (P_3208 : A_3207 -> L) :
-    ∀ (x_3210 : A_3207) -> ((P_3208) x_3210) -> (sig_d8 A_3207 P_3208)
+data sig_d8 (A_2092 : U) (P_2093 : A_2092 -> L) : L
+  | sig_intro_c13 (A_2095 : U) (P_2096 : A_2095 -> L) :
+    ∀ (x_2098 : A_2095) -> ((P_2096) x_2098) -> (sig_d8 A_2095 P_2096)
 
-data tnsr_d9 (A_3212 : L) (B_3213 : L) : L
-  | tnsr_intro_c14 (A_3214 : L) (B_3215 : L) :
-    A_3214 -> B_3215 -> (tnsr_d9 A_3214 B_3215)
+data tnsr_d9 (A_2100 : L) (B_2101 : L) : L
+  | tnsr_intro_c14 (A_2102 : L) (B_2103 : L) :
+    A_2102 -> B_2103 -> (tnsr_d9 A_2102 B_2103)
 
-data box_d10 (A_3219 : U) : L
-  | box_intro_c15 (A_3220 : U) : A_3220 -> (box_d10 A_3220)
+data box_d10 (A_2107 : U) : L
+  | box_intro_c15 (A_2108 : U) : A_2108 -> (box_d10 A_2108)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -242,46 +238,46 @@ data string_d12 : U
   | EmptyString_c17 : string_d12
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
-def (cat_67 := cat_3261) : string_d12 -> string_d12 -> string_d12
-  | EmptyString_c17 s_3265 => s_3265
-  | (String_c18 c_3266 s1_3267) s2_3268 =>
-    (String_c18 c_3266 ((cat_3261) s1_3267 s2_3268))
+def (cat_67 := cat_2149) : string_d12 -> string_d12 -> string_d12
+  | EmptyString_c17 s_2153 => s_2153
+  | (String_c18 c_2154 s1_2155) s2_2156 =>
+    (String_c18 c_2154 ((cat_2149) s1_2155 s2_2156))
 
-def (strlen_74 := strlen_3269) : string_d12 -> nat_d3
+def (strlen_74 := strlen_2157) : string_d12 -> nat_d3
   | EmptyString_c17 => zero_c4
-  | (String_c18 _3271 s_3272) => (succ_c5 ((strlen_3269) s_3272))
+  | (String_c18 _2159 s_2160) => (succ_c5 ((strlen_2157) s_2160))
 
-data le_d13 (n_3273 : nat_d3) : nat_d3 -> U
-  | le_refl_c19 (n_3275 : nat_d3) : (le_d13 n_3275 n_3275)
-  | le_succ_c20 (n_3276 : nat_d3) :
-    ∀ (m_3277 : nat_d3) ->
-      (le_d13 n_3276 m_3277) -> (le_d13 n_3276 (succ_c5 m_3277))
+data le_d13 (n_2161 : nat_d3) : nat_d3 -> U
+  | le_refl_c19 (n_2163 : nat_d3) : (le_d13 n_2163 n_2163)
+  | le_succ_c20 (n_2164 : nat_d3) :
+    ∀ (m_2165 : nat_d3) ->
+      (le_d13 n_2164 m_2165) -> (le_d13 n_2164 (succ_c5 m_2165))
 
-def (lt_84 := lt_3279) : nat_d3 -> nat_d3 -> U
-  | m_3283 n_3284 => (le_d13 (succ_c5 m_3283) n_3284)
+def (lt_84 := lt_2167) : nat_d3 -> nat_d3 -> U
+  | m_2171 n_2172 => (le_d13 (succ_c5 m_2171) n_2172)
 
-data eq_d14 (A_3285 : U) (x_3286 : A_3285) : A_3285 -> U
-  | refl_c21 (A_3288 : U) (x_3289 : A_3288) : (eq_d14 A_3288 x_3289 x_3289)
+data eq_d14 (A_2173 : U) (x_2174 : A_2173) : A_2173 -> U
+  | refl_c21 (A_2176 : U) (x_2177 : A_2176) : (eq_d14 A_2176 x_2177 x_2177)
 
-def (stdin_rec_94 := stdin_rec_3290) : unit_d1 -> proto
+def (stdin_rec_94 := stdin_rec_2178) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_3292 : bool_d2) ⋅
-      (match b_3292 return proto with
-        | true_c2 => ?string_d12 ⋅ ((stdin_rec_3290) tt_c1)
+    !(b_2180 : bool_d2) ⋅
+      (match b_2180 return proto with
+        | true_c2 => ?string_d12 ⋅ ((stdin_rec_2178) tt_c1)
         | false_c3 => end)
 
-def (stdout_rec_98 := stdout_rec_3294) : unit_d1 -> proto
+def (stdout_rec_98 := stdout_rec_2182) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_3296 : bool_d2) ⋅
-      (match b_3296 return proto with
-        | true_c2 => !string_d12 ⋅ ((stdout_rec_3294) tt_c1)
+    !(b_2184 : bool_d2) ⋅
+      (match b_2184 return proto with
+        | true_c2 => !string_d12 ⋅ ((stdout_rec_2182) tt_c1)
         | false_c3 => end)
 
-def (stderr_rec_102 := stderr_rec_3298) : unit_d1 -> proto
+def (stderr_rec_102 := stderr_rec_2186) : unit_d1 -> proto
   | tt_c1 =>
-    !(b_3300 : bool_d2) ⋅
-      (match b_3300 return proto with
-        | true_c2 => !string_d12 ⋅ ((stderr_rec_3298) tt_c1)
+    !(b_2188 : bool_d2) ⋅
+      (match b_2188 return proto with
+        | true_c2 => !string_d12 ⋅ ((stderr_rec_2186) tt_c1)
         | false_c3 => end)
 
 def stdin_t_106 := ((stdin_rec_94) tt_c1)
@@ -290,47 +286,35 @@ def stdout_t_107 := ((stdout_rec_98) tt_c1)
 
 def stderr_t_108 := ((stderr_rec_102) tt_c1)
 
-def (readline_109 := readline_3302) :
+def (readline_109 := readline_2190) :
   ch‹stdin_t_106› ->
     (sig_d8 string_d12 (fun
-                         | _3308 => ch‹stdin_t_106›))
-  | ch_3309 => recv ((send ch_3309) true_c2)
+                         | _2196 => ch‹stdin_t_106›))
+  | ch_2197 => recv ((send ch_2197) true_c2)
 
-def (close_in_114 := close_in_3310) : ch‹stdin_t_106› -> unit_d1
-  | ch_3312 => close ((send ch_3312) false_c3)
+def (close_in_114 := close_in_2198) : ch‹stdin_t_106› -> unit_d1
+  | ch_2200 => close ((send ch_2200) false_c3)
 
-def (printline_117 := printline_3313) :
+def (printline_117 := printline_2201) :
   ch‹stdout_t_107› -> string_d12 -o ch‹stdout_t_107›
-  | ch_3317 s_3318 => ((send ((send ch_3317) true_c2)) s_3318)
+  | ch_2205 s_2206 => ((send ((send ch_2205) true_c2)) s_2206)
 
-def (close_out_122 := close_out_3319) : ch‹stdout_t_107› -> unit_d1
-  | ch_3321 => close ((send ch_3321) false_c3)
+def (close_out_122 := close_out_2207) : ch‹stdout_t_107› -> unit_d1
+  | ch_2209 => close ((send ch_2209) false_c3)
 
-def (printerr_125 := printerr_3322) :
+def (printerr_125 := printerr_2210) :
   ch‹stderr_t_108› -> string_d12 -o ch‹stderr_t_108›
-  | ch_3326 s_3327 => ((send ((send ch_3326) true_c2)) s_3327)
+  | ch_2214 s_2215 => ((send ((send ch_2214) true_c2)) s_2215)
 
-def (close_err_130 := close_err_3328) : ch‹stderr_t_108› -> unit_d1
-  | ch_3330 => close ((send ch_3330) false_c3)
+def (close_err_130 := close_err_2216) : ch‹stderr_t_108› -> unit_d1
+  | ch_2218 => close ((send ch_2218) false_c3)
 
-def (maxn_133 := maxn_3331) : nat_d3 -> nat_d3 -> nat_d3
-  | zero_c4 x_3335 => x_3335
-  | x_3336 zero_c4 => x_3336
-  | (succ_c5 x_3337) (succ_c5 y_3338) =>
-    (succ_c5 ((maxn_3331) x_3337 y_3338))
+open @stdout as ch_133
 
-def foo_140 := ((maxn_133) 1 2)
-
-def _141 :=
-  (match
-     fork (ch_3339 : ch‹!nat_d3 ⋅ end›) <- main_1 in
-     let ch_3341 := ((send ch_3339) foo_140) in close ch_3341
-   return @main with
-    | (tnsr_intro_c14 ch_3342 main_3343) =>
-      (match recv ch_3342 return @main with
-        | (sig_intro_c13 msg_3344 ch_3345) =>
-          (match close ch_3345 return @main with
-            | tt_c1 => main_3343)))
+def _134 :=
+  let ch_2219 := ((printline_117) ch_133 "abc") in
+  (match ((close_out_122) ch_2219) return @main with
+    | tt_c1 => main_1)
 
 trans1e success-------------------------------------
 
@@ -346,49 +330,49 @@ data nat_d3 : U
   | succ_c5 : nat_d3 -> nat_d3
 
 def addn_3 :=
-  fix addn_4550 _4551 =>
-    (case _4551 of
-      | zero_c4 => lam _4552 => _4552
-      | (succ_c5 _4553) => lam _4554 => (succ_c5 ((addn_4550) _4553 _4554)))
+  fix addn_2953 _2954 =>
+    (case _2954 of
+      | zero_c4 => lam _2955 => _2955
+      | (succ_c5 _2956) => lam _2957 => (succ_c5 ((addn_2953) _2956 _2957)))
 
 def subn_9 :=
-  fix subn_4555 _4556 =>
-    (case _4556 of
-      | zero_c4 => lam _4557 => zero_c4
-      | (succ_c5 _4558) =>
-        lam _4559 =>
-          (case _4559 of
-            | zero_c4 => (succ_c5 _4558)
-            | (succ_c5 _4560) => ((subn_4555) _4558 _4560)))
+  fix subn_2958 _2959 =>
+    (case _2959 of
+      | zero_c4 => lam _2960 => zero_c4
+      | (succ_c5 _2961) =>
+        lam _2962 =>
+          (case _2962 of
+            | zero_c4 => (succ_c5 _2961)
+            | (succ_c5 _2963) => ((subn_2958) _2961 _2963)))
 
-data option_d4 (A_4561 : U) : U
-  | none_c6 (A_4562 : U) : (option_d4 A_4562)
-  | some_c7 (A_4563 : U) : A_4563 -> (option_d4 A_4563)
+data option_d4 (A_2964 : U) : U
+  | none_c6 (A_2965 : U) : (option_d4 A_2965)
+  | some_c7 (A_2966 : U) : A_2966 -> (option_d4 A_2966)
 
-data list_d5 (A_4565 : U) : U
-  | nil_c8 (A_4566 : U) : (list_d5 A_4566)
-  | cons_c9 (A_4567 : U) : A_4567 -> (list_d5 A_4567) -> (list_d5 A_4567)
+data list_d5 (A_2968 : U) : U
+  | nil_c8 (A_2969 : U) : (list_d5 A_2969)
+  | cons_c9 (A_2970 : U) : A_2970 -> (list_d5 A_2970) -> (list_d5 A_2970)
 
-data vec_d6 (A_4571 : U) : nat_d3 -> U
-  | vnil_c10 (A_4573 : U) : (vec_d6 A_4573 zero_c4)
-  | vcons_c11 (A_4574 : U) :
-    ∀ (n_4575 : nat_d3) ->
-      A_4574 -> (vec_d6 A_4574 n_4575) -> (vec_d6 A_4574 (succ_c5 n_4575))
+data vec_d6 (A_2974 : U) : nat_d3 -> U
+  | vnil_c10 (A_2976 : U) : (vec_d6 A_2976 zero_c4)
+  | vcons_c11 (A_2977 : U) :
+    ∀ (n_2978 : nat_d3) ->
+      A_2977 -> (vec_d6 A_2977 n_2978) -> (vec_d6 A_2977 (succ_c5 n_2978))
 
-data ex_d7 (A_4580 : U) (P_4581 : A_4580 -> U) : U
-  | ex_intro_c12 (A_4583 : U) (P_4584 : A_4583 -> U) :
-    ∀ (x_4586 : A_4583) -> ((P_4584) x_4586) -> (ex_d7 A_4583 P_4584)
+data ex_d7 (A_2983 : U) (P_2984 : A_2983 -> U) : U
+  | ex_intro_c12 (A_2986 : U) (P_2987 : A_2986 -> U) :
+    ∀ (x_2989 : A_2986) -> ((P_2987) x_2989) -> (ex_d7 A_2986 P_2987)
 
-data sig_d8 (A_4588 : U) (P_4589 : A_4588 -> L) : L
-  | sig_intro_c13 (A_4591 : U) (P_4592 : A_4591 -> L) :
-    ∀ (x_4594 : A_4591) -> ((P_4592) x_4594) -> (sig_d8 A_4591 P_4592)
+data sig_d8 (A_2991 : U) (P_2992 : A_2991 -> L) : L
+  | sig_intro_c13 (A_2994 : U) (P_2995 : A_2994 -> L) :
+    ∀ (x_2997 : A_2994) -> ((P_2995) x_2997) -> (sig_d8 A_2994 P_2995)
 
-data tnsr_d9 (A_4596 : L) (B_4597 : L) : L
-  | tnsr_intro_c14 (A_4598 : L) (B_4599 : L) :
-    A_4598 -> B_4599 -> (tnsr_d9 A_4598 B_4599)
+data tnsr_d9 (A_2999 : L) (B_3000 : L) : L
+  | tnsr_intro_c14 (A_3001 : L) (B_3002 : L) :
+    A_3001 -> B_3002 -> (tnsr_d9 A_3001 B_3002)
 
-data box_d10 (A_4603 : U) : L
-  | box_intro_c15 (A_4604 : U) : A_4604 -> (box_d10 A_4604)
+data box_d10 (A_3006 : U) : L
+  | box_intro_c15 (A_3007 : U) : A_3007 -> (box_d10 A_3007)
 
 data ascii_d11 : U
   | Ascii_c16 :
@@ -402,61 +386,61 @@ data string_d12 : U
   | String_c18 : ascii_d11 -> string_d12 -> string_d12
 
 def cat_67 :=
-  fix cat_4645 _4646 =>
-    (case _4646 of
-      | EmptyString_c17 => lam _4647 => _4647
-      | (String_c18 _4648 _4649) =>
-        lam _4650 => (String_c18 _4648 ((cat_4645) _4649 _4650)))
+  fix cat_3048 _3049 =>
+    (case _3049 of
+      | EmptyString_c17 => lam _3050 => _3050
+      | (String_c18 _3051 _3052) =>
+        lam _3053 => (String_c18 _3051 ((cat_3048) _3052 _3053)))
 
 def strlen_74 :=
-  fix strlen_4651 _4652 =>
-    (case _4652 of
+  fix strlen_3054 _3055 =>
+    (case _3055 of
       | EmptyString_c17 => zero_c4
-      | (String_c18 _4653 _4654) => (succ_c5 ((strlen_4651) _4654)))
+      | (String_c18 _3056 _3057) => (succ_c5 ((strlen_3054) _3057)))
 
-data le_d13 (n_4655 : nat_d3) : nat_d3 -> U
-  | le_refl_c19 (n_4657 : nat_d3) : (le_d13 n_4657 n_4657)
-  | le_succ_c20 (n_4658 : nat_d3) :
-    ∀ (m_4659 : nat_d3) ->
-      (le_d13 n_4658 m_4659) -> (le_d13 n_4658 (succ_c5 m_4659))
+data le_d13 (n_3058 : nat_d3) : nat_d3 -> U
+  | le_refl_c19 (n_3060 : nat_d3) : (le_d13 n_3060 n_3060)
+  | le_succ_c20 (n_3061 : nat_d3) :
+    ∀ (m_3062 : nat_d3) ->
+      (le_d13 n_3061 m_3062) -> (le_d13 n_3061 (succ_c5 m_3062))
 
-def lt_84 := fix lt_4661 _4662 _4663 => (le_d13 (succ_c5 _4662) _4663)
+def lt_84 := fix lt_3064 _3065 _3066 => (le_d13 (succ_c5 _3065) _3066)
 
-data eq_d14 (A_4664 : U) (x_4665 : A_4664) : A_4664 -> U
-  | refl_c21 (A_4667 : U) (x_4668 : A_4667) : (eq_d14 A_4667 x_4668 x_4668)
+data eq_d14 (A_3067 : U) (x_3068 : A_3067) : A_3067 -> U
+  | refl_c21 (A_3070 : U) (x_3071 : A_3070) : (eq_d14 A_3070 x_3071 x_3071)
 
 def stdin_rec_94 :=
-  fix stdin_rec_4669 _4670 =>
-    (case _4670 of
+  fix stdin_rec_3072 _3073 =>
+    (case _3073 of
       | tt_c1 =>
-        !(b_4671 : bool_d2) ⋅
-          ((lin _4674 =>
-              (case _4674 of
-                | true_c2 => ?string_d12 ⋅ ((stdin_rec_4669) tt_c1)
+        !(b_3074 : bool_d2) ⋅
+          ((lin _3077 =>
+              (case _3077 of
+                | true_c2 => ?string_d12 ⋅ ((stdin_rec_3072) tt_c1)
                 | false_c3 => end))
-            b_4671))
+            b_3074))
 
 def stdout_rec_98 :=
-  fix stdout_rec_4676 _4677 =>
-    (case _4677 of
+  fix stdout_rec_3079 _3080 =>
+    (case _3080 of
       | tt_c1 =>
-        !(b_4678 : bool_d2) ⋅
-          ((lin _4681 =>
-              (case _4681 of
-                | true_c2 => !string_d12 ⋅ ((stdout_rec_4676) tt_c1)
+        !(b_3081 : bool_d2) ⋅
+          ((lin _3084 =>
+              (case _3084 of
+                | true_c2 => !string_d12 ⋅ ((stdout_rec_3079) tt_c1)
                 | false_c3 => end))
-            b_4678))
+            b_3081))
 
 def stderr_rec_102 :=
-  fix stderr_rec_4683 _4684 =>
-    (case _4684 of
+  fix stderr_rec_3086 _3087 =>
+    (case _3087 of
       | tt_c1 =>
-        !(b_4685 : bool_d2) ⋅
-          ((lin _4688 =>
-              (case _4688 of
-                | true_c2 => !string_d12 ⋅ ((stderr_rec_4683) tt_c1)
+        !(b_3088 : bool_d2) ⋅
+          ((lin _3091 =>
+              (case _3091 of
+                | true_c2 => !string_d12 ⋅ ((stderr_rec_3086) tt_c1)
                 | false_c3 => end))
-            b_4685))
+            b_3088))
 
 def stdin_t_106 := ((stdin_rec_94) tt_c1)
 
@@ -464,628 +448,547 @@ def stdout_t_107 := ((stdout_rec_98) tt_c1)
 
 def stderr_t_108 := ((stderr_rec_102) tt_c1)
 
-def readline_109 := fix readline_4690 _4691 => recv ((send _4691) true_c2)
+def readline_109 := fix readline_3093 _3094 => recv ((send _3094) true_c2)
 
-def close_in_114 := fix close_in_4692 _4693 => close ((send _4693) false_c3)
+def close_in_114 := fix close_in_3095 _3096 => close ((send _3096) false_c3)
 
 def printline_117 :=
-  fix printline_4694 _4695 =>
-    lin _4696 => ((send ((send _4695) true_c2)) _4696)
+  fix printline_3097 _3098 =>
+    lin _3099 => ((send ((send _3098) true_c2)) _3099)
 
 def close_out_122 :=
-  fix close_out_4697 _4698 => close ((send _4698) false_c3)
+  fix close_out_3100 _3101 => close ((send _3101) false_c3)
 
 def printerr_125 :=
-  fix printerr_4699 _4700 =>
-    lin _4701 => ((send ((send _4700) true_c2)) _4701)
+  fix printerr_3102 _3103 =>
+    lin _3104 => ((send ((send _3103) true_c2)) _3104)
 
 def close_err_130 :=
-  fix close_err_4702 _4703 => close ((send _4703) false_c3)
+  fix close_err_3105 _3106 => close ((send _3106) false_c3)
 
-def maxn_133 :=
-  fix maxn_4704 _4705 =>
-    (case _4705 of
-      | zero_c4 => lam _4706 => _4706
-      | (succ_c5 _4707) =>
-        lam _4708 =>
-          (case _4708 of
-            | zero_c4 => (succ_c5 _4707)
-            | (succ_c5 _4709) => (succ_c5 ((maxn_4704) _4707 _4709))))
+open @stdout as ch_133
 
-def foo_140 := ((maxn_133) 1 2)
-
-def _141 :=
-  ((lin _4710 =>
-      (case _4710 of
-        | (tnsr_intro_c14 _4711 _4712) =>
-          ((lin _4713 =>
-              (case _4713 of
-                | (sig_intro_c13 x_4714 _4715) =>
-                  ((lin _4716 => (case _4716 of
-                                   | tt_c1 => _4712))
-                    close _4715)))
-            recv _4711)))
-    fork (ch_4717 : ch‹!nat_d3 ⋅ end›) <- main_1 in
-    let ch_4719 := ((send ch_4717) foo_140) in close ch_4719)
+def _134 :=
+  let ch_3107 := ((printline_117) ch_133 "abc") in
+  ((lin _3108 => (case _3108 of
+                   | tt_c1 => main_1))
+    ((close_out_122) ch_3107))
 
 trans12 success-------------------------------------
 
 [(addn_3,
-  (VFix (addn_4720, _4721,
-     (case _4721 of
-       | zero_c4 => lam _4763 => _4763
-       | (succ_c5 _4764) => lam _4765 => (succ_c5 ((addn_4720) _4764 _4765))),
+  (VFix (addn_3109, _3110,
+     (case _3110 of
+       | zero_c4 => lam _3140 => _3140
+       | (succ_c5 _3141) => lam _3142 => (succ_c5 ((addn_3109) _3141 _3142))),
      <opaque>)));
   (subn_9,
-   (VFix (subn_4722, _4723,
-      (case _4723 of
-        | zero_c4 => lam _4766 => zero_c4
-        | (succ_c5 _4767) =>
-          lam _4768 =>
-            (case _4768 of
-              | zero_c4 => (succ_c5 _4767)
-              | (succ_c5 _4769) => ((subn_4722) _4767 _4769))),
+   (VFix (subn_3111, _3112,
+      (case _3112 of
+        | zero_c4 => lam _3143 => zero_c4
+        | (succ_c5 _3144) =>
+          lam _3145 =>
+            (case _3145 of
+              | zero_c4 => (succ_c5 _3144)
+              | (succ_c5 _3146) => ((subn_3111) _3144 _3146))),
       <opaque>)));
   (cat_67,
-   (VFix (cat_4724, _4725,
-      (case _4725 of
-        | EmptyString_c17 => lam _4770 => _4770
-        | (String_c18 _4771 _4772) =>
-          lam _4773 => (String_c18 _4771 ((cat_4724) _4772 _4773))),
+   (VFix (cat_3113, _3114,
+      (case _3114 of
+        | EmptyString_c17 => lam _3147 => _3147
+        | (String_c18 _3148 _3149) =>
+          lam _3150 => (String_c18 _3148 ((cat_3113) _3149 _3150))),
       <opaque>)));
   (strlen_74,
-   (VFix (strlen_4726, _4727,
-      (case _4727 of
+   (VFix (strlen_3115, _3116,
+      (case _3116 of
         | EmptyString_c17 => zero_c4
-        | (String_c18 _4774 _4775) => (succ_c5 ((strlen_4726) _4775))),
+        | (String_c18 _3151 _3152) => (succ_c5 ((strlen_3115) _3152))),
       <opaque>)));
   (lt_84,
-   (VFix (lt_4728, _4729, lam _4776 => (le_d13 (succ_c5 _4729) _4776),
+   (VFix (lt_3117, _3118, lam _3153 => (le_d13 (succ_c5 _3118) _3153),
       <opaque>)));
   (stdin_rec_94,
-   (VFix (stdin_rec_4730, _4731,
-      (case _4731 of
+   (VFix (stdin_rec_3119, _3120,
+      (case _3120 of
         | tt_c1 =>
-          !(b_4777 : bool_d2) ⋅
-            ((lin _4780 =>
-                (case _4780 of
-                  | true_c2 => ?string_d12 ⋅ ((stdin_rec_4730) tt_c1)
+          !(b_3154 : bool_d2) ⋅
+            ((lin _3157 =>
+                (case _3157 of
+                  | true_c2 => ?string_d12 ⋅ ((stdin_rec_3119) tt_c1)
                   | false_c3 => end))
-              b_4777)),
+              b_3154)),
       <opaque>)));
   (stdout_rec_98,
-   (VFix (stdout_rec_4732, _4733,
-      (case _4733 of
+   (VFix (stdout_rec_3121, _3122,
+      (case _3122 of
         | tt_c1 =>
-          !(b_4782 : bool_d2) ⋅
-            ((lin _4785 =>
-                (case _4785 of
-                  | true_c2 => !string_d12 ⋅ ((stdout_rec_4732) tt_c1)
+          !(b_3159 : bool_d2) ⋅
+            ((lin _3162 =>
+                (case _3162 of
+                  | true_c2 => !string_d12 ⋅ ((stdout_rec_3121) tt_c1)
                   | false_c3 => end))
-              b_4782)),
+              b_3159)),
       <opaque>)));
   (stderr_rec_102,
-   (VFix (stderr_rec_4734, _4735,
-      (case _4735 of
+   (VFix (stderr_rec_3123, _3124,
+      (case _3124 of
         | tt_c1 =>
-          !(b_4787 : bool_d2) ⋅
-            ((lin _4790 =>
-                (case _4790 of
-                  | true_c2 => !string_d12 ⋅ ((stderr_rec_4734) tt_c1)
+          !(b_3164 : bool_d2) ⋅
+            ((lin _3167 =>
+                (case _3167 of
+                  | true_c2 => !string_d12 ⋅ ((stderr_rec_3123) tt_c1)
                   | false_c3 => end))
-              b_4787)),
+              b_3164)),
       <opaque>)));
   (stdin_t_106, VBox); (stdout_t_107, VBox); (stderr_t_108, VBox);
   (readline_109,
-   (VFix (readline_4736, _4737, recv ((send _4737) true_c2), <opaque>)));
+   (VFix (readline_3125, _3126, recv ((send _3126) true_c2), <opaque>)));
   (close_in_114,
-   (VFix (close_in_4738, _4739, close ((send _4739) false_c3), <opaque>)));
+   (VFix (close_in_3127, _3128, close ((send _3128) false_c3), <opaque>)));
   (printline_117,
-   (VFix (printline_4740, _4741,
-      lin _4792 => ((send ((send _4741) true_c2)) _4792), <opaque>)));
+   (VFix (printline_3129, _3130,
+      lin _3169 => ((send ((send _3130) true_c2)) _3169), <opaque>)));
   (close_out_122,
-   (VFix (close_out_4742, _4743, close ((send _4743) false_c3), <opaque>)));
+   (VFix (close_out_3131, _3132, close ((send _3132) false_c3), <opaque>)));
   (printerr_125,
-   (VFix (printerr_4744, _4745,
-      lin _4793 => ((send ((send _4745) true_c2)) _4793), <opaque>)));
+   (VFix (printerr_3133, _3134,
+      lin _3170 => ((send ((send _3134) true_c2)) _3170), <opaque>)));
   (close_err_130,
-   (VFix (close_err_4746, _4747, close ((send _4747) false_c3), <opaque>)));
-  (maxn_133,
-   (VFix (maxn_4748, _4749,
-      (case _4749 of
-        | zero_c4 => lam _4794 => _4794
-        | (succ_c5 _4795) =>
-          lam _4796 =>
-            (case _4796 of
-              | zero_c4 => (succ_c5 _4795)
-              | (succ_c5 _4797) => (succ_c5 ((maxn_4748) _4795 _4797)))),
-      <opaque>)));
-  (foo_140, (VCons (succ_c5, [(VCons (succ_c5, [(VCons (zero_c4, []))]))])));
-  (_141, VBox)]
+   (VFix (close_err_3135, _3136, close ((send _3136) false_c3), <opaque>)));
+  (_134, VBox)]
 eval2 success---------------------------------------
 
 #include "runtime.h"
 
-CLC_ptr _4803(CLC_ptr _4802, CLC_env env)
+CLC_ptr _3176(CLC_ptr _3175, CLC_env env)
 {
   
   
-  return _4802;
+  return _3175;
 }
 
-CLC_ptr _4811(CLC_ptr _4807, CLC_env env)
+CLC_ptr _3184(CLC_ptr _3180, CLC_env env)
 {
-  CLC_ptr succ_c5_4810;
-  CLC_ptr tmp_4808;
-  CLC_ptr tmp_4809;
-  INSTR_call(&tmp_4808, env[3], env[2]);
-  INSTR_call(&tmp_4809, tmp_4808, _4807);
-  INSTR_struct(&succ_c5_4810, 5, 1, tmp_4809);
-  return succ_c5_4810;
+  CLC_ptr succ_c5_3183;
+  CLC_ptr tmp_3181;
+  CLC_ptr tmp_3182;
+  INSTR_call(&tmp_3181, env[3], env[2]);
+  INSTR_call(&tmp_3182, tmp_3181, _3180);
+  INSTR_struct(&succ_c5_3183, 5, 1, tmp_3182);
+  return succ_c5_3183;
 }
 
-CLC_ptr addn_4813(CLC_ptr _4799, CLC_env env)
+CLC_ptr addn_3186(CLC_ptr _3172, CLC_env env)
 {
-  CLC_ptr _4805;
-  CLC_ptr case_4800;
-  CLC_ptr clo_4804;
-  CLC_ptr clo_4812;
-  switch(((CLC_node)_4799)->tag){
+  CLC_ptr _3178;
+  CLC_ptr case_3173;
+  CLC_ptr clo_3177;
+  CLC_ptr clo_3185;
+  switch(((CLC_node)_3172)->tag){
     case 4:
-      INSTR_clo(&clo_4804, &_4803, 4, 0, _4799, env[0], env[1]);
-      INSTR_mov(&case_4800, clo_4804);
+      INSTR_clo(&clo_3177, &_3176, 4, 0, _3172, env[0], env[1]);
+      INSTR_mov(&case_3173, clo_3177);
       break;
     case 5:
-      INSTR_mov(&_4805, ((CLC_node)_4799)->data[0]);
-      INSTR_clo(&clo_4812, &_4811, 5, 0, _4799, _4805, env[0], env[1]);
-      INSTR_mov(&case_4800, clo_4812);
+      INSTR_mov(&_3178, ((CLC_node)_3172)->data[0]);
+      INSTR_clo(&clo_3185, &_3184, 5, 0, _3172, _3178, env[0], env[1]);
+      INSTR_mov(&case_3173, clo_3185);
       break;}
-  return case_4800;
+  return case_3173;
 }
 
-CLC_ptr _4821(CLC_ptr _4819, CLC_env env)
+CLC_ptr _3194(CLC_ptr _3192, CLC_env env)
 {
-  CLC_ptr zero_c4_4820;
-  INSTR_struct(&zero_c4_4820, 4, 0);
-  return zero_c4_4820;
+  CLC_ptr zero_c4_3193;
+  INSTR_struct(&zero_c4_3193, 4, 0);
+  return zero_c4_3193;
 }
 
-CLC_ptr _4831(CLC_ptr _4825, CLC_env env)
+CLC_ptr _3204(CLC_ptr _3198, CLC_env env)
 {
-  CLC_ptr _4828;
-  CLC_ptr case_4826;
-  CLC_ptr succ_c5_4827;
-  CLC_ptr tmp_4829;
-  CLC_ptr tmp_4830;
-  switch(((CLC_node)_4825)->tag){
+  CLC_ptr _3201;
+  CLC_ptr case_3199;
+  CLC_ptr succ_c5_3200;
+  CLC_ptr tmp_3202;
+  CLC_ptr tmp_3203;
+  switch(((CLC_node)_3198)->tag){
     case 4:
-      INSTR_struct(&succ_c5_4827, 5, 1, env[2]);
-      INSTR_mov(&case_4826, succ_c5_4827);
+      INSTR_struct(&succ_c5_3200, 5, 1, env[2]);
+      INSTR_mov(&case_3199, succ_c5_3200);
       break;
     case 5:
-      INSTR_mov(&_4828, ((CLC_node)_4825)->data[0]);
-      INSTR_call(&tmp_4829, env[3], env[2]);
-      INSTR_call(&tmp_4830, tmp_4829, _4828);
-      INSTR_mov(&case_4826, tmp_4830);
+      INSTR_mov(&_3201, ((CLC_node)_3198)->data[0]);
+      INSTR_call(&tmp_3202, env[3], env[2]);
+      INSTR_call(&tmp_3203, tmp_3202, _3201);
+      INSTR_mov(&case_3199, tmp_3203);
       break;}
-  return case_4826;
+  return case_3199;
 }
 
-CLC_ptr subn_4833(CLC_ptr _4816, CLC_env env)
+CLC_ptr subn_3206(CLC_ptr _3189, CLC_env env)
 {
-  CLC_ptr _4823;
-  CLC_ptr case_4817;
-  CLC_ptr clo_4822;
-  CLC_ptr clo_4832;
-  switch(((CLC_node)_4816)->tag){
+  CLC_ptr _3196;
+  CLC_ptr case_3190;
+  CLC_ptr clo_3195;
+  CLC_ptr clo_3205;
+  switch(((CLC_node)_3189)->tag){
     case 4:
-      INSTR_clo(&clo_4822, &_4821, 5, 0, _4816, env[0], env[1], env[2]);
-      INSTR_mov(&case_4817, clo_4822);
+      INSTR_clo(&clo_3195, &_3194, 5, 0, _3189, env[0], env[1], env[2]);
+      INSTR_mov(&case_3190, clo_3195);
       break;
     case 5:
-      INSTR_mov(&_4823, ((CLC_node)_4816)->data[0]);
-      INSTR_clo(&clo_4832, &_4831, 6, 0, _4816, _4823, env[0], env[1], env[2]);
-      INSTR_mov(&case_4817, clo_4832);
+      INSTR_mov(&_3196, ((CLC_node)_3189)->data[0]);
+      INSTR_clo(&clo_3205, &_3204, 6, 0, _3189, _3196, env[0], env[1], env[2]);
+      INSTR_mov(&case_3190, clo_3205);
       break;}
-  return case_4817;
+  return case_3190;
 }
 
-CLC_ptr _4840(CLC_ptr _4839, CLC_env env)
+CLC_ptr _3213(CLC_ptr _3212, CLC_env env)
 {
   
   
-  return _4839;
+  return _3212;
 }
 
-CLC_ptr _4849(CLC_ptr _4845, CLC_env env)
+CLC_ptr _3222(CLC_ptr _3218, CLC_env env)
 {
-  CLC_ptr String_c18_4848;
-  CLC_ptr tmp_4846;
-  CLC_ptr tmp_4847;
-  INSTR_call(&tmp_4846, env[4], env[3]);
-  INSTR_call(&tmp_4847, tmp_4846, _4845);
-  INSTR_struct(&String_c18_4848, 18, 2, env[2], tmp_4847);
-  return String_c18_4848;
+  CLC_ptr String_c18_3221;
+  CLC_ptr tmp_3219;
+  CLC_ptr tmp_3220;
+  INSTR_call(&tmp_3219, env[4], env[3]);
+  INSTR_call(&tmp_3220, tmp_3219, _3218);
+  INSTR_struct(&String_c18_3221, 18, 2, env[2], tmp_3220);
+  return String_c18_3221;
 }
 
-CLC_ptr cat_4851(CLC_ptr _4836, CLC_env env)
+CLC_ptr cat_3224(CLC_ptr _3209, CLC_env env)
 {
-  CLC_ptr _4842;
-  CLC_ptr _4843;
-  CLC_ptr case_4837;
-  CLC_ptr clo_4841;
-  CLC_ptr clo_4850;
-  switch(((CLC_node)_4836)->tag){
+  CLC_ptr _3215;
+  CLC_ptr _3216;
+  CLC_ptr case_3210;
+  CLC_ptr clo_3214;
+  CLC_ptr clo_3223;
+  switch(((CLC_node)_3209)->tag){
     case 17:
-      INSTR_clo(&clo_4841, &_4840, 6, 0, _4836, env[0], env[1], env[2], env[3]);
-      INSTR_mov(&case_4837, clo_4841);
+      INSTR_clo(&clo_3214, &_3213, 6, 0, _3209, env[0], env[1], env[2], env[3]);
+      INSTR_mov(&case_3210, clo_3214);
       break;
     case 18:
-      INSTR_mov(&_4842, ((CLC_node)_4836)->data[0]);
-      INSTR_mov(&_4843, ((CLC_node)_4836)->data[1]);
-      INSTR_clo(&clo_4850, &_4849, 8, 0, _4836, _4842, _4843, env[0], env[1], env[2], env[3]);
-      INSTR_mov(&case_4837, clo_4850);
+      INSTR_mov(&_3215, ((CLC_node)_3209)->data[0]);
+      INSTR_mov(&_3216, ((CLC_node)_3209)->data[1]);
+      INSTR_clo(&clo_3223, &_3222, 8, 0, _3209, _3215, _3216, env[0], env[1], env[2], env[3]);
+      INSTR_mov(&case_3210, clo_3223);
       break;}
-  return case_4837;
+  return case_3210;
 }
 
-CLC_ptr strlen_4861(CLC_ptr _4854, CLC_env env)
+CLC_ptr strlen_3234(CLC_ptr _3227, CLC_env env)
 {
-  CLC_ptr _4857;
-  CLC_ptr _4858;
-  CLC_ptr case_4855;
-  CLC_ptr succ_c5_4860;
-  CLC_ptr tmp_4859;
-  CLC_ptr zero_c4_4856;
-  switch(((CLC_node)_4854)->tag){
+  CLC_ptr _3230;
+  CLC_ptr _3231;
+  CLC_ptr case_3228;
+  CLC_ptr succ_c5_3233;
+  CLC_ptr tmp_3232;
+  CLC_ptr zero_c4_3229;
+  switch(((CLC_node)_3227)->tag){
     case 17:
-      INSTR_struct(&zero_c4_4856, 4, 0);
-      INSTR_mov(&case_4855, zero_c4_4856);
+      INSTR_struct(&zero_c4_3229, 4, 0);
+      INSTR_mov(&case_3228, zero_c4_3229);
       break;
     case 18:
-      INSTR_mov(&_4857, ((CLC_node)_4854)->data[0]);
-      INSTR_mov(&_4858, ((CLC_node)_4854)->data[1]);
-      INSTR_call(&tmp_4859, env[0], _4858);
-      INSTR_struct(&succ_c5_4860, 5, 1, tmp_4859);
-      INSTR_mov(&case_4855, succ_c5_4860);
+      INSTR_mov(&_3230, ((CLC_node)_3227)->data[0]);
+      INSTR_mov(&_3231, ((CLC_node)_3227)->data[1]);
+      INSTR_call(&tmp_3232, env[0], _3231);
+      INSTR_struct(&succ_c5_3233, 5, 1, tmp_3232);
+      INSTR_mov(&case_3228, succ_c5_3233);
       break;}
-  return case_4855;
+  return case_3228;
 }
 
-CLC_ptr _4867(CLC_ptr _4866, CLC_env env)
+CLC_ptr _3240(CLC_ptr _3239, CLC_env env)
 {
   
   
   return 0;
 }
 
-CLC_ptr lt_4869(CLC_ptr _4864, CLC_env env)
+CLC_ptr lt_3242(CLC_ptr _3237, CLC_env env)
 {
-  CLC_ptr clo_4868;
-  INSTR_clo(&clo_4868, &_4867, 8, 0, _4864, env[0], env[1], env[2], env[3], env[4], env[5]);
-  return clo_4868;
+  CLC_ptr clo_3241;
+  INSTR_clo(&clo_3241, &_3240, 8, 0, _3237, env[0], env[1], env[2], env[3], env[4], env[5]);
+  return clo_3241;
 }
 
-CLC_ptr stdin_rec_4874(CLC_ptr _4872, CLC_env env)
+CLC_ptr stdin_rec_3247(CLC_ptr _3245, CLC_env env)
 {
-  CLC_ptr case_4873;
-  switch(((CLC_node)_4872)->tag){
-    case 1: INSTR_mov(&case_4873, 0);
+  CLC_ptr case_3246;
+  switch(((CLC_node)_3245)->tag){
+    case 1: INSTR_mov(&case_3246, 0);
             break;}
-  return case_4873;
+  return case_3246;
 }
 
-CLC_ptr stdout_rec_4879(CLC_ptr _4877, CLC_env env)
+CLC_ptr stdout_rec_3252(CLC_ptr _3250, CLC_env env)
 {
-  CLC_ptr case_4878;
-  switch(((CLC_node)_4877)->tag){
-    case 1: INSTR_mov(&case_4878, 0);
+  CLC_ptr case_3251;
+  switch(((CLC_node)_3250)->tag){
+    case 1: INSTR_mov(&case_3251, 0);
             break;}
-  return case_4878;
+  return case_3251;
 }
 
-CLC_ptr stderr_rec_4884(CLC_ptr _4882, CLC_env env)
+CLC_ptr stderr_rec_3257(CLC_ptr _3255, CLC_env env)
 {
-  CLC_ptr case_4883;
-  switch(((CLC_node)_4882)->tag){
-    case 1: INSTR_mov(&case_4883, 0);
+  CLC_ptr case_3256;
+  switch(((CLC_node)_3255)->tag){
+    case 1: INSTR_mov(&case_3256, 0);
             break;}
-  return case_4883;
+  return case_3256;
 }
 
-CLC_ptr readline_4898(CLC_ptr _4893, CLC_env env)
+CLC_ptr readline_3271(CLC_ptr _3266, CLC_env env)
 {
-  CLC_ptr recv_struct_4897;
-  CLC_ptr send_clo_4894;
-  CLC_ptr tmp_4896;
-  CLC_ptr true_c2_4895;
-  INSTR_send(&send_clo_4894, _4893);
-  INSTR_struct(&true_c2_4895, 2, 0);
-  INSTR_call(&tmp_4896, send_clo_4894, true_c2_4895);
-  INSTR_recv(&recv_struct_4897, tmp_4896, 13);
-  return recv_struct_4897;
+  CLC_ptr recv_struct_3270;
+  CLC_ptr send_clo_3267;
+  CLC_ptr tmp_3269;
+  CLC_ptr true_c2_3268;
+  INSTR_send(&send_clo_3267, _3266);
+  INSTR_struct(&true_c2_3268, 2, 0);
+  INSTR_call(&tmp_3269, send_clo_3267, true_c2_3268);
+  INSTR_recv(&recv_struct_3270, tmp_3269, 13);
+  return recv_struct_3270;
 }
 
-CLC_ptr close_in_4903(CLC_ptr _4901, CLC_env env)
+CLC_ptr close_in_3276(CLC_ptr _3274, CLC_env env)
 {
-  CLC_ptr unit_struct_4902;
-  INSTR_struct(&unit_struct_4902, 1, 0);
-  return unit_struct_4902;
+  CLC_ptr unit_struct_3275;
+  INSTR_struct(&unit_struct_3275, 1, 0);
+  return unit_struct_3275;
 }
 
-CLC_ptr _4914(CLC_ptr _4908, CLC_env env)
+CLC_ptr _3287(CLC_ptr _3281, CLC_env env)
 {
-  CLC_ptr send_clo_4909;
-  CLC_ptr send_clo_4912;
-  CLC_ptr tmp_4911;
-  CLC_ptr tmp_4913;
-  CLC_ptr true_c2_4910;
-  INSTR_send(&send_clo_4909, env[1]);
-  INSTR_struct(&true_c2_4910, 2, 0);
-  INSTR_call(&tmp_4911, send_clo_4909, true_c2_4910);
-  INSTR_send(&send_clo_4912, tmp_4911);
-  INSTR_call(&tmp_4913, send_clo_4912, _4908);
-  return tmp_4913;
+  CLC_ptr send_clo_3282;
+  CLC_ptr send_clo_3285;
+  CLC_ptr tmp_3284;
+  CLC_ptr tmp_3286;
+  CLC_ptr true_c2_3283;
+  INSTR_send(&send_clo_3282, env[1]);
+  INSTR_struct(&true_c2_3283, 2, 0);
+  INSTR_call(&tmp_3284, send_clo_3282, true_c2_3283);
+  INSTR_send(&send_clo_3285, tmp_3284);
+  INSTR_call(&tmp_3286, send_clo_3285, _3281);
+  return tmp_3286;
 }
 
-CLC_ptr printline_4916(CLC_ptr _4906, CLC_env env)
+CLC_ptr printline_3289(CLC_ptr _3279, CLC_env env)
 {
-  CLC_ptr clo_4915;
-  INSTR_clo(&clo_4915, &_4914, 17, 0, _4906, env[0], env[1], env[2], env[3], env[4], env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14]);
-  return clo_4915;
+  CLC_ptr clo_3288;
+  INSTR_clo(&clo_3288, &_3287, 17, 0, _3279, env[0], env[1], env[2], env[3], env[4], env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14]);
+  return clo_3288;
 }
 
-CLC_ptr close_out_4921(CLC_ptr _4919, CLC_env env)
+CLC_ptr close_out_3294(CLC_ptr _3292, CLC_env env)
 {
-  CLC_ptr unit_struct_4920;
-  INSTR_struct(&unit_struct_4920, 1, 0);
-  return unit_struct_4920;
+  CLC_ptr unit_struct_3293;
+  INSTR_struct(&unit_struct_3293, 1, 0);
+  return unit_struct_3293;
 }
 
-CLC_ptr _4932(CLC_ptr _4926, CLC_env env)
+CLC_ptr _3305(CLC_ptr _3299, CLC_env env)
 {
-  CLC_ptr send_clo_4927;
-  CLC_ptr send_clo_4930;
-  CLC_ptr tmp_4929;
-  CLC_ptr tmp_4931;
-  CLC_ptr true_c2_4928;
-  INSTR_send(&send_clo_4927, env[1]);
-  INSTR_struct(&true_c2_4928, 2, 0);
-  INSTR_call(&tmp_4929, send_clo_4927, true_c2_4928);
-  INSTR_send(&send_clo_4930, tmp_4929);
-  INSTR_call(&tmp_4931, send_clo_4930, _4926);
-  return tmp_4931;
+  CLC_ptr send_clo_3300;
+  CLC_ptr send_clo_3303;
+  CLC_ptr tmp_3302;
+  CLC_ptr tmp_3304;
+  CLC_ptr true_c2_3301;
+  INSTR_send(&send_clo_3300, env[1]);
+  INSTR_struct(&true_c2_3301, 2, 0);
+  INSTR_call(&tmp_3302, send_clo_3300, true_c2_3301);
+  INSTR_send(&send_clo_3303, tmp_3302);
+  INSTR_call(&tmp_3304, send_clo_3303, _3299);
+  return tmp_3304;
 }
 
-CLC_ptr printerr_4934(CLC_ptr _4924, CLC_env env)
+CLC_ptr printerr_3307(CLC_ptr _3297, CLC_env env)
 {
-  CLC_ptr clo_4933;
-  INSTR_clo(&clo_4933, &_4932, 19, 0, _4924, env[0], env[1], env[2], env[3], env[4], env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14], env[15], env[16]);
-  return clo_4933;
+  CLC_ptr clo_3306;
+  INSTR_clo(&clo_3306, &_3305, 19, 0, _3297, env[0], env[1], env[2], env[3], env[4], env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14], env[15], env[16]);
+  return clo_3306;
 }
 
-CLC_ptr close_err_4939(CLC_ptr _4937, CLC_env env)
+CLC_ptr close_err_3312(CLC_ptr _3310, CLC_env env)
 {
-  CLC_ptr unit_struct_4938;
-  INSTR_struct(&unit_struct_4938, 1, 0);
-  return unit_struct_4938;
+  CLC_ptr unit_struct_3311;
+  INSTR_struct(&unit_struct_3311, 1, 0);
+  return unit_struct_3311;
 }
 
-CLC_ptr _4946(CLC_ptr _4945, CLC_env env)
+CLC_ptr _3351(CLC_ptr _3349, CLC_env env)
 {
-  
-  
-  return _4945;
-}
-
-CLC_ptr _4957(CLC_ptr _4950, CLC_env env)
-{
-  CLC_ptr _4953;
-  CLC_ptr case_4951;
-  CLC_ptr succ_c5_4952;
-  CLC_ptr succ_c5_4956;
-  CLC_ptr tmp_4954;
-  CLC_ptr tmp_4955;
-  switch(((CLC_node)_4950)->tag){
-    case 4:
-      INSTR_struct(&succ_c5_4952, 5, 1, env[2]);
-      INSTR_mov(&case_4951, succ_c5_4952);
-      break;
-    case 5:
-      INSTR_mov(&_4953, ((CLC_node)_4950)->data[0]);
-      INSTR_call(&tmp_4954, env[3], env[2]);
-      INSTR_call(&tmp_4955, tmp_4954, _4953);
-      INSTR_struct(&succ_c5_4956, 5, 1, tmp_4955);
-      INSTR_mov(&case_4951, succ_c5_4956);
-      break;}
-  return case_4951;
-}
-
-CLC_ptr maxn_4959(CLC_ptr _4942, CLC_env env)
-{
-  CLC_ptr _4948;
-  CLC_ptr case_4943;
-  CLC_ptr clo_4947;
-  CLC_ptr clo_4958;
-  switch(((CLC_node)_4942)->tag){
-    case 4:
-      INSTR_clo(&clo_4947, &_4946, 21, 0, _4942, env[0], env[1], env[2], env[3], env[4], env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14], env[15], env[16], env[17], env[18]);
-      INSTR_mov(&case_4943, clo_4947);
-      break;
-    case 5:
-      INSTR_mov(&_4948, ((CLC_node)_4942)->data[0]);
-      INSTR_clo(&clo_4958, &_4957, 22, 0, _4942, _4948, env[0], env[1], env[2], env[3], env[4], env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14], env[15], env[16], env[17], env[18]);
-      INSTR_mov(&case_4943, clo_4958);
-      break;}
-  return case_4943;
-}
-
-CLC_ptr _4981(CLC_ptr _4979, CLC_env env)
-{
-  CLC_ptr case_4980;
-  switch(((CLC_node)_4979)->tag){
-    case 1: INSTR_mov(&case_4980, env[7]);
+  CLC_ptr case_3350;
+  switch(((CLC_node)_3349)->tag){
+    case 1: INSTR_mov(&case_3350, env[20]);
             break;}
-  return case_4980;
-}
-
-CLC_ptr _4985(CLC_ptr _4974, CLC_env env)
-{
-  CLC_ptr _4977;
-  CLC_ptr case_4975;
-  CLC_ptr clo_4982;
-  CLC_ptr tmp_4984;
-  CLC_ptr unit_struct_4983;
-  CLC_ptr x_4976;
-  switch(((CLC_node)_4974)->tag){
-    case 13:
-      INSTR_mov(&x_4976, ((CLC_node)_4974)->data[0]);
-      INSTR_mov(&_4977, ((CLC_node)_4974)->data[1]);
-      INSTR_clo(&clo_4982, &_4981, 29, 0, _4974, x_4976, _4977, env[0], env[1], env[2], env[3], env[4], env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14], env[15], env[16], env[17], env[18], env[19], env[20], env[21], env[22], env[23], env[24]);
-      INSTR_close(&unit_struct_4983, _4977, 1);
-      INSTR_call(&tmp_4984, clo_4982, unit_struct_4983);
-      INSTR_mov(&case_4975, tmp_4984);
-      break;}
-  return case_4975;
-}
-
-CLC_ptr _4989(CLC_ptr _4969, CLC_env env)
-{
-  CLC_ptr _4971;
-  CLC_ptr _4972;
-  CLC_ptr case_4970;
-  CLC_ptr clo_4986;
-  CLC_ptr recv_struct_4987;
-  CLC_ptr tmp_4988;
-  switch(((CLC_node)_4969)->tag){
-    case 14:
-      INSTR_mov(&_4971, ((CLC_node)_4969)->data[0]);
-      INSTR_mov(&_4972, ((CLC_node)_4969)->data[1]);
-      INSTR_clo(&clo_4986, &_4985, 25, 0, _4969, _4971, _4972, env[0], env[1], env[2], env[3], env[4], env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14], env[15], env[16], env[17], env[18], env[19], env[20]);
-      INSTR_recv(&recv_struct_4987, _4971, 13);
-      INSTR_call(&tmp_4988, clo_4986, recv_struct_4987);
-      INSTR_mov(&case_4970, tmp_4988);
-      break;}
-  return case_4970;
-}
-
-CLC_ptr fork_proc_4997(CLC_env env)
-{
-  CLC_ptr ch_4992;
-  CLC_ptr send_clo_4993;
-  CLC_ptr tmp_4994;
-  CLC_ptr unit_struct_4995;
-  INSTR_send(&send_clo_4993, env[0]);
-  INSTR_call(&tmp_4994, send_clo_4993, env[1]);
-  INSTR_mov(&ch_4992, tmp_4994);
-  INSTR_struct(&unit_struct_4995, 1, 0);
-  return unit_struct_4995;
+  return case_3350;
 }
 
 int main()
 {
-  CLC_ptr _141;
+  CLC_ptr _134;
+  CLC_ptr Ascii_c16_3324;
+  CLC_ptr Ascii_c16_3333;
+  CLC_ptr Ascii_c16_3342;
+  CLC_ptr EmptyString_c17_3343;
+  CLC_ptr String_c18_3344;
+  CLC_ptr String_c18_3345;
+  CLC_ptr String_c18_3346;
   CLC_ptr addn_3;
-  CLC_ptr addn_4814;
+  CLC_ptr addn_3187;
   CLC_ptr cat_67;
-  CLC_ptr cat_4852;
-  CLC_ptr clo_4990;
+  CLC_ptr cat_3225;
+  CLC_ptr ch_133;
+  CLC_ptr ch_3314;
+  CLC_ptr clo_3352;
   CLC_ptr close_err_130;
-  CLC_ptr close_err_4940;
+  CLC_ptr close_err_3313;
   CLC_ptr close_in_114;
-  CLC_ptr close_in_4904;
+  CLC_ptr close_in_3277;
   CLC_ptr close_out_122;
-  CLC_ptr close_out_4922;
-  CLC_ptr foo_140;
-  CLC_ptr fork_res_4996;
+  CLC_ptr close_out_3295;
+  CLC_ptr false_c3_3316;
+  CLC_ptr false_c3_3319;
+  CLC_ptr false_c3_3320;
+  CLC_ptr false_c3_3321;
+  CLC_ptr false_c3_3322;
+  CLC_ptr false_c3_3325;
+  CLC_ptr false_c3_3328;
+  CLC_ptr false_c3_3329;
+  CLC_ptr false_c3_3330;
+  CLC_ptr false_c3_3332;
+  CLC_ptr false_c3_3334;
+  CLC_ptr false_c3_3337;
+  CLC_ptr false_c3_3338;
+  CLC_ptr false_c3_3339;
   CLC_ptr lt_84;
-  CLC_ptr lt_4870;
-  CLC_ptr maxn_133;
-  CLC_ptr maxn_4960;
+  CLC_ptr lt_3243;
   CLC_ptr printerr_125;
-  CLC_ptr printerr_4935;
+  CLC_ptr printerr_3308;
   CLC_ptr printline_117;
-  CLC_ptr printline_4917;
+  CLC_ptr printline_3290;
   CLC_ptr readline_109;
-  CLC_ptr readline_4899;
+  CLC_ptr readline_3272;
   CLC_ptr stderr_rec_102;
-  CLC_ptr stderr_rec_4885;
+  CLC_ptr stderr_rec_3258;
   CLC_ptr stderr_t_108;
   CLC_ptr stdin_rec_94;
-  CLC_ptr stdin_rec_4875;
+  CLC_ptr stdin_rec_3248;
   CLC_ptr stdin_t_106;
   CLC_ptr stdout_rec_98;
-  CLC_ptr stdout_rec_4880;
+  CLC_ptr stdout_rec_3253;
   CLC_ptr stdout_t_107;
   CLC_ptr strlen_74;
-  CLC_ptr strlen_4862;
+  CLC_ptr strlen_3235;
   CLC_ptr subn_9;
-  CLC_ptr subn_4834;
-  CLC_ptr succ_c5_4962;
-  CLC_ptr succ_c5_4965;
-  CLC_ptr succ_c5_4966;
-  CLC_ptr tmp_4887;
-  CLC_ptr tmp_4889;
-  CLC_ptr tmp_4891;
-  CLC_ptr tmp_4963;
-  CLC_ptr tmp_4967;
-  CLC_ptr tmp_4998;
-  CLC_ptr tt_c1_4886;
-  CLC_ptr tt_c1_4888;
-  CLC_ptr tt_c1_4890;
-  CLC_ptr zero_c4_4961;
-  CLC_ptr zero_c4_4964;
-  INSTR_clo(&addn_4814, &addn_4813, 2, 0, 0);
-  INSTR_mov(&addn_3, addn_4814);
-  INSTR_clo(&subn_4834, &subn_4833, 3, 0, addn_3, 0);
-  INSTR_mov(&subn_9, subn_4834);
-  INSTR_clo(&cat_4852, &cat_4851, 4, 0, subn_9, addn_3, 0);
-  INSTR_mov(&cat_67, cat_4852);
-  INSTR_clo(&strlen_4862, &strlen_4861, 5, 0, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&strlen_74, strlen_4862);
-  INSTR_clo(&lt_4870, &lt_4869, 6, 0, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&lt_84, lt_4870);
-  INSTR_clo(&stdin_rec_4875, &stdin_rec_4874, 7, 0, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&stdin_rec_94, stdin_rec_4875);
-  INSTR_clo(&stdout_rec_4880, &stdout_rec_4879, 8, 0, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&stdout_rec_98, stdout_rec_4880);
-  INSTR_clo(&stderr_rec_4885, &stderr_rec_4884, 9, 0, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&stderr_rec_102, stderr_rec_4885);
-  INSTR_struct(&tt_c1_4886, 1, 0);
-  INSTR_call(&tmp_4887, stdin_rec_94, tt_c1_4886);
-  INSTR_mov(&stdin_t_106, tmp_4887);
-  INSTR_struct(&tt_c1_4888, 1, 0);
-  INSTR_call(&tmp_4889, stdout_rec_98, tt_c1_4888);
-  INSTR_mov(&stdout_t_107, tmp_4889);
-  INSTR_struct(&tt_c1_4890, 1, 0);
-  INSTR_call(&tmp_4891, stderr_rec_102, tt_c1_4890);
-  INSTR_mov(&stderr_t_108, tmp_4891);
-  INSTR_clo(&readline_4899, &readline_4898, 13, 0, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&readline_109, readline_4899);
-  INSTR_clo(&close_in_4904, &close_in_4903, 14, 0, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&close_in_114, close_in_4904);
-  INSTR_clo(&printline_4917, &printline_4916, 15, 0, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&printline_117, printline_4917);
-  INSTR_clo(&close_out_4922, &close_out_4921, 16, 0, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&close_out_122, close_out_4922);
-  INSTR_clo(&printerr_4935, &printerr_4934, 17, 0, close_out_122, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&printerr_125, printerr_4935);
-  INSTR_clo(&close_err_4940, &close_err_4939, 18, 0, printerr_125, close_out_122, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&close_err_130, close_err_4940);
-  INSTR_clo(&maxn_4960, &maxn_4959, 19, 0, close_err_130, printerr_125, close_out_122, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_mov(&maxn_133, maxn_4960);
-  INSTR_struct(&zero_c4_4961, 4, 0);
-  INSTR_struct(&succ_c5_4962, 5, 1, zero_c4_4961);
-  INSTR_call(&tmp_4963, maxn_133, succ_c5_4962);
-  INSTR_struct(&zero_c4_4964, 4, 0);
-  INSTR_struct(&succ_c5_4965, 5, 1, zero_c4_4964);
-  INSTR_struct(&succ_c5_4966, 5, 1, succ_c5_4965);
-  INSTR_call(&tmp_4967, tmp_4963, succ_c5_4966);
-  INSTR_mov(&foo_140, tmp_4967);
-  INSTR_clo(&clo_4990, &_4989, 21, 0, foo_140, maxn_133, close_err_130, printerr_125, close_out_122, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_open(&fork_res_4996, &fork_proc_4997, 0, 14, 20, foo_140, maxn_133, close_err_130, printerr_125, close_out_122, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
-  INSTR_call(&tmp_4998, clo_4990, fork_res_4996);
-  INSTR_mov(&_141, tmp_4998);
+  CLC_ptr subn_3207;
+  CLC_ptr tmp_3260;
+  CLC_ptr tmp_3262;
+  CLC_ptr tmp_3264;
+  CLC_ptr tmp_3315;
+  CLC_ptr tmp_3347;
+  CLC_ptr tmp_3353;
+  CLC_ptr tmp_3354;
+  CLC_ptr true_c2_3317;
+  CLC_ptr true_c2_3318;
+  CLC_ptr true_c2_3323;
+  CLC_ptr true_c2_3326;
+  CLC_ptr true_c2_3327;
+  CLC_ptr true_c2_3331;
+  CLC_ptr true_c2_3335;
+  CLC_ptr true_c2_3336;
+  CLC_ptr true_c2_3340;
+  CLC_ptr true_c2_3341;
+  CLC_ptr tt_c1_3259;
+  CLC_ptr tt_c1_3261;
+  CLC_ptr tt_c1_3263;
+  INSTR_clo(&addn_3187, &addn_3186, 2, 0, 0);
+  INSTR_mov(&addn_3, addn_3187);
+  INSTR_clo(&subn_3207, &subn_3206, 3, 0, addn_3, 0);
+  INSTR_mov(&subn_9, subn_3207);
+  INSTR_clo(&cat_3225, &cat_3224, 4, 0, subn_9, addn_3, 0);
+  INSTR_mov(&cat_67, cat_3225);
+  INSTR_clo(&strlen_3235, &strlen_3234, 5, 0, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&strlen_74, strlen_3235);
+  INSTR_clo(&lt_3243, &lt_3242, 6, 0, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&lt_84, lt_3243);
+  INSTR_clo(&stdin_rec_3248, &stdin_rec_3247, 7, 0, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&stdin_rec_94, stdin_rec_3248);
+  INSTR_clo(&stdout_rec_3253, &stdout_rec_3252, 8, 0, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&stdout_rec_98, stdout_rec_3253);
+  INSTR_clo(&stderr_rec_3258, &stderr_rec_3257, 9, 0, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&stderr_rec_102, stderr_rec_3258);
+  INSTR_struct(&tt_c1_3259, 1, 0);
+  INSTR_call(&tmp_3260, stdin_rec_94, tt_c1_3259);
+  INSTR_mov(&stdin_t_106, tmp_3260);
+  INSTR_struct(&tt_c1_3261, 1, 0);
+  INSTR_call(&tmp_3262, stdout_rec_98, tt_c1_3261);
+  INSTR_mov(&stdout_t_107, tmp_3262);
+  INSTR_struct(&tt_c1_3263, 1, 0);
+  INSTR_call(&tmp_3264, stderr_rec_102, tt_c1_3263);
+  INSTR_mov(&stderr_t_108, tmp_3264);
+  INSTR_clo(&readline_3272, &readline_3271, 13, 0, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&readline_109, readline_3272);
+  INSTR_clo(&close_in_3277, &close_in_3276, 14, 0, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&close_in_114, close_in_3277);
+  INSTR_clo(&printline_3290, &printline_3289, 15, 0, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&printline_117, printline_3290);
+  INSTR_clo(&close_out_3295, &close_out_3294, 16, 0, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&close_out_122, close_out_3295);
+  INSTR_clo(&printerr_3308, &printerr_3307, 17, 0, close_out_122, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&printerr_125, printerr_3308);
+  INSTR_clo(&close_err_3313, &close_err_3312, 18, 0, printerr_125, close_out_122, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_mov(&close_err_130, close_err_3313);
+  INSTR_trg(&ch_133, &PROC_stdout);
+  INSTR_call(&tmp_3315, printline_117, ch_133);
+  INSTR_struct(&false_c3_3316, 3, 0);
+  INSTR_struct(&true_c2_3317, 2, 0);
+  INSTR_struct(&true_c2_3318, 2, 0);
+  INSTR_struct(&false_c3_3319, 3, 0);
+  INSTR_struct(&false_c3_3320, 3, 0);
+  INSTR_struct(&false_c3_3321, 3, 0);
+  INSTR_struct(&false_c3_3322, 3, 0);
+  INSTR_struct(&true_c2_3323, 2, 0);
+  INSTR_struct(&Ascii_c16_3324, 16, 8, false_c3_3316, true_c2_3317, true_c2_3318, false_c3_3319, false_c3_3320, false_c3_3321, false_c3_3322, true_c2_3323);
+  INSTR_struct(&false_c3_3325, 3, 0);
+  INSTR_struct(&true_c2_3326, 2, 0);
+  INSTR_struct(&true_c2_3327, 2, 0);
+  INSTR_struct(&false_c3_3328, 3, 0);
+  INSTR_struct(&false_c3_3329, 3, 0);
+  INSTR_struct(&false_c3_3330, 3, 0);
+  INSTR_struct(&true_c2_3331, 2, 0);
+  INSTR_struct(&false_c3_3332, 3, 0);
+  INSTR_struct(&Ascii_c16_3333, 16, 8, false_c3_3325, true_c2_3326, true_c2_3327, false_c3_3328, false_c3_3329, false_c3_3330, true_c2_3331, false_c3_3332);
+  INSTR_struct(&false_c3_3334, 3, 0);
+  INSTR_struct(&true_c2_3335, 2, 0);
+  INSTR_struct(&true_c2_3336, 2, 0);
+  INSTR_struct(&false_c3_3337, 3, 0);
+  INSTR_struct(&false_c3_3338, 3, 0);
+  INSTR_struct(&false_c3_3339, 3, 0);
+  INSTR_struct(&true_c2_3340, 2, 0);
+  INSTR_struct(&true_c2_3341, 2, 0);
+  INSTR_struct(&Ascii_c16_3342, 16, 8, false_c3_3334, true_c2_3335, true_c2_3336, false_c3_3337, false_c3_3338, false_c3_3339, true_c2_3340, true_c2_3341);
+  INSTR_struct(&EmptyString_c17_3343, 17, 0);
+  INSTR_struct(&String_c18_3344, 18, 2, Ascii_c16_3342, EmptyString_c17_3343);
+  INSTR_struct(&String_c18_3345, 18, 2, Ascii_c16_3333, String_c18_3344);
+  INSTR_struct(&String_c18_3346, 18, 2, Ascii_c16_3324, String_c18_3345);
+  INSTR_call(&tmp_3347, tmp_3315, String_c18_3346);
+  INSTR_mov(&ch_3314, tmp_3347);
+  INSTR_clo(&clo_3352, &_3351, 21, 0, ch_3314, ch_133, close_err_130, printerr_125, close_out_122, printline_117, close_in_114, readline_109, stderr_t_108, stdout_t_107, stdin_t_106, stderr_rec_102, stdout_rec_98, stdin_rec_94, lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
+  INSTR_call(&tmp_3353, close_out_122, ch_3314);
+  INSTR_call(&tmp_3354, clo_3352, tmp_3353);
+  INSTR_mov(&_134, tmp_3354);
   return 0;
 }
 trans23 success-------------------------------------

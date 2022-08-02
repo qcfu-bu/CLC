@@ -1,0 +1,6 @@
+open @stdout as ch
+
+def _ :=
+  let ch := printline ch "abc" in
+  let () := close_out ch in
+  main

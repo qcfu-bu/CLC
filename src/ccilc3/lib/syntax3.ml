@@ -19,6 +19,12 @@ and proc =
 and chs = V.t list
 and def = proc list
 
+and trg =
+  | TCh of V.t * value * values
+  | TStdin
+  | TStdout
+  | TStderr
+
 and instr =
   | Mov of V.t * value
   | Clo of V.t * V.t * values
@@ -26,7 +32,7 @@ and instr =
   | Struct of V.t * int * values
   | Switch of value * cls
   | Break
-  | Open of V.t * V.t * value * values
+  | Open of V.t * trg
   | Send of V.t * value
   | Recv of V.t * value * int
   | Close of V.t * value
