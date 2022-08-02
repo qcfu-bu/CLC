@@ -55,7 +55,7 @@ let rec pp_proc fmt proc =
   pf fmt
     "@[<v 0>CLC_ptr %a(%aCLC_env env)@;\
      <1 0>{@;\
-     <1 2>@[%a@;\
+     <1 2>@[<v 0>@[%a@]@;\
      <1 0>%a@;\
      <1 0>return %a@];@;\
      <1 0>}@]" V.pp proc.name pp_arg proc.arg pp_xs xs pp_instrs proc.body
@@ -119,7 +119,7 @@ let pp_prog fmt (def, instr, v) =
   pf fmt
     "#include \"runtime.h\"@.@.%a@.@.@[<v 0>int main()@;\
      <1 0>{@;\
-     <1 2>@[%a@;\
+     <1 2>@[<v 0>@[%a@]@;\
      <1 0>%a@;\
      <1 0>return %a;@]@;\
      <1 0>}@]" pp_def def pp_xs xs pp_instrs instr pp_value v

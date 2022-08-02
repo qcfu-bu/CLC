@@ -3916,12 +3916,14 @@ eval2 success---------------------------------------
 
 #include "runtime.h"
 
-CLC_ptr _69913(CLC_ptr _69912, CLC_env env)
+CLC_ptr lam_69913(CLC_ptr _69912, CLC_env env)
 {
-    return _69912;
+  
+  
+  return _69912;
 }
 
-CLC_ptr _69921(CLC_ptr _69917, CLC_env env)
+CLC_ptr lam_69921(CLC_ptr _69917, CLC_env env)
 {
   CLC_ptr succ_c5_69920; CLC_ptr tmp_69918; CLC_ptr tmp_69919;
   INSTR_call(&tmp_69918, env[3], env[2]);
@@ -3936,24 +3938,26 @@ CLC_ptr addn_69923(CLC_ptr _69909, CLC_env env)
   CLC_ptr _69915; CLC_ptr case_69910; CLC_ptr clo_69914; CLC_ptr clo_69922;
   switch(((CLC_node)_69909)->tag){
     case 4:
-      INSTR_clo(&clo_69914, &_69913, 4, 0, _69909, env[0], env[1]);
+      INSTR_clo(&clo_69914, &lam_69913, 4, 0, _69909, env[0], env[1]);
       INSTR_mov(&case_69910, clo_69914);
       break;
     case 5:
       INSTR_mov(&_69915, ((CLC_node)_69909)->data[0]);
-      INSTR_clo(&clo_69922, &_69921, 5, 0, _69909, _69915, env[0], env[1]);
+      INSTR_clo(&clo_69922, &lam_69921, 5,
+        0, _69909, _69915, env[0], env[1]);
       INSTR_mov(&case_69910, clo_69922);
       break;}
   return case_69910;
 }
 
-CLC_ptr _69931(CLC_ptr _69929, CLC_env env)
+CLC_ptr lam_69931(CLC_ptr _69929, CLC_env env)
 {
-  CLC_ptr zero_c4_69930; INSTR_struct(&zero_c4_69930, 4, 0);
+  CLC_ptr zero_c4_69930;
+  INSTR_struct(&zero_c4_69930, 4, 0);
   return zero_c4_69930;
 }
 
-CLC_ptr _69941(CLC_ptr _69935, CLC_env env)
+CLC_ptr lam_69941(CLC_ptr _69935, CLC_env env)
 {
   CLC_ptr _69938; CLC_ptr case_69936; CLC_ptr succ_c5_69937;
   CLC_ptr tmp_69939; CLC_ptr tmp_69940;
@@ -3977,24 +3981,27 @@ CLC_ptr subn_69943(CLC_ptr _69926, CLC_env env)
   CLC_ptr _69933; CLC_ptr case_69927; CLC_ptr clo_69932; CLC_ptr clo_69942;
   switch(((CLC_node)_69926)->tag){
     case 4:
-      INSTR_clo(&clo_69932, &_69931, 5, 0, _69926, env[0], env[1], env[2]);
+      INSTR_clo(&clo_69932, &lam_69931, 5,
+        0, _69926, env[0], env[1], env[2]);
       INSTR_mov(&case_69927, clo_69932);
       break;
     case 5:
       INSTR_mov(&_69933, ((CLC_node)_69926)->data[0]);
-      INSTR_clo(&clo_69942, &_69941, 6,
+      INSTR_clo(&clo_69942, &lam_69941, 6,
         0, _69926, _69933, env[0], env[1], env[2]);
       INSTR_mov(&case_69927, clo_69942);
       break;}
   return case_69927;
 }
 
-CLC_ptr _69950(CLC_ptr _69949, CLC_env env)
+CLC_ptr lam_69950(CLC_ptr _69949, CLC_env env)
 {
-    return _69949;
+  
+  
+  return _69949;
 }
 
-CLC_ptr _69959(CLC_ptr _69955, CLC_env env)
+CLC_ptr lam_69959(CLC_ptr _69955, CLC_env env)
 {
   CLC_ptr String_c18_69958; CLC_ptr tmp_69956; CLC_ptr tmp_69957;
   INSTR_call(&tmp_69956, env[4], env[3]);
@@ -4010,14 +4017,14 @@ CLC_ptr cat_69961(CLC_ptr _69946, CLC_env env)
   CLC_ptr clo_69960;
   switch(((CLC_node)_69946)->tag){
     case 17:
-      INSTR_clo(&clo_69951, &_69950, 6,
+      INSTR_clo(&clo_69951, &lam_69950, 6,
         0, _69946, env[0], env[1], env[2], env[3]);
       INSTR_mov(&case_69947, clo_69951);
       break;
     case 18:
       INSTR_mov(&_69952, ((CLC_node)_69946)->data[0]);
       INSTR_mov(&_69953, ((CLC_node)_69946)->data[1]);
-      INSTR_clo(&clo_69960, &_69959, 8,
+      INSTR_clo(&clo_69960, &lam_69959, 8,
         0, _69946, _69952, _69953, env[0], env[1], env[2], env[3]);
       INSTR_mov(&case_69947, clo_69960);
       break;}
@@ -4044,15 +4051,17 @@ CLC_ptr strlen_69971(CLC_ptr _69964, CLC_env env)
   return case_69965;
 }
 
-CLC_ptr _69977(CLC_ptr _69976, CLC_env env)
+CLC_ptr lam_69977(CLC_ptr _69976, CLC_env env)
 {
-    return 0;
+  
+  
+  return 0;
 }
 
 CLC_ptr lt_69979(CLC_ptr _69974, CLC_env env)
 {
   CLC_ptr clo_69978;
-  INSTR_clo(&clo_69978, &_69977, 8,
+  INSTR_clo(&clo_69978, &lam_69977, 8,
     0, _69974, env[0], env[1], env[2], env[3], env[4], env[5]);
   return clo_69978;
 }
@@ -4091,7 +4100,8 @@ CLC_ptr readline_70008(CLC_ptr _70003, CLC_env env)
   INSTR_send(&send_clo_70004, _70003);
   INSTR_struct(&true_c2_70005, 2, 0);
   INSTR_call(&tmp_70006, send_clo_70004, true_c2_70005);
-  INSTR_recv(&recv_struct_70007, tmp_70006, 13); return recv_struct_70007;
+  INSTR_recv(&recv_struct_70007, tmp_70006, 13);
+  return recv_struct_70007;
 }
 
 CLC_ptr close_in_70016(CLC_ptr _70011, CLC_env env)
@@ -4101,10 +4111,11 @@ CLC_ptr close_in_70016(CLC_ptr _70011, CLC_env env)
   INSTR_send(&send_clo_70013, _70011);
   INSTR_struct(&false_c3_70014, 3, 0);
   INSTR_call(&tmp_70015, send_clo_70013, false_c3_70014);
-  INSTR_struct(&unit_struct_70012, 1, 0); return unit_struct_70012;
+  INSTR_struct(&unit_struct_70012, 1, 0);
+  return unit_struct_70012;
 }
 
-CLC_ptr _70027(CLC_ptr _70021, CLC_env env)
+CLC_ptr lam_70027(CLC_ptr _70021, CLC_env env)
 {
   CLC_ptr send_clo_70022; CLC_ptr send_clo_70025; CLC_ptr tmp_70024;
   CLC_ptr tmp_70026; CLC_ptr true_c2_70023;
@@ -4112,13 +4123,14 @@ CLC_ptr _70027(CLC_ptr _70021, CLC_env env)
   INSTR_struct(&true_c2_70023, 2, 0);
   INSTR_call(&tmp_70024, send_clo_70022, true_c2_70023);
   INSTR_send(&send_clo_70025, tmp_70024);
-  INSTR_call(&tmp_70026, send_clo_70025, _70021); return tmp_70026;
+  INSTR_call(&tmp_70026, send_clo_70025, _70021);
+  return tmp_70026;
 }
 
 CLC_ptr printline_70029(CLC_ptr _70019, CLC_env env)
 {
   CLC_ptr clo_70028;
-  INSTR_clo(&clo_70028, &_70027, 17,
+  INSTR_clo(&clo_70028, &lam_70027, 17,
     0, _70019, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14]);
   return clo_70028;
@@ -4131,10 +4143,11 @@ CLC_ptr close_out_70037(CLC_ptr _70032, CLC_env env)
   INSTR_send(&send_clo_70034, _70032);
   INSTR_struct(&false_c3_70035, 3, 0);
   INSTR_call(&tmp_70036, send_clo_70034, false_c3_70035);
-  INSTR_struct(&unit_struct_70033, 1, 0); return unit_struct_70033;
+  INSTR_struct(&unit_struct_70033, 1, 0);
+  return unit_struct_70033;
 }
 
-CLC_ptr _70048(CLC_ptr _70042, CLC_env env)
+CLC_ptr lam_70048(CLC_ptr _70042, CLC_env env)
 {
   CLC_ptr send_clo_70043; CLC_ptr send_clo_70046; CLC_ptr tmp_70045;
   CLC_ptr tmp_70047; CLC_ptr true_c2_70044;
@@ -4142,13 +4155,14 @@ CLC_ptr _70048(CLC_ptr _70042, CLC_env env)
   INSTR_struct(&true_c2_70044, 2, 0);
   INSTR_call(&tmp_70045, send_clo_70043, true_c2_70044);
   INSTR_send(&send_clo_70046, tmp_70045);
-  INSTR_call(&tmp_70047, send_clo_70046, _70042); return tmp_70047;
+  INSTR_call(&tmp_70047, send_clo_70046, _70042);
+  return tmp_70047;
 }
 
 CLC_ptr printerr_70050(CLC_ptr _70040, CLC_env env)
 {
   CLC_ptr clo_70049;
-  INSTR_clo(&clo_70049, &_70048, 19,
+  INSTR_clo(&clo_70049, &lam_70048, 19,
     0, _70040, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16]);
@@ -4162,10 +4176,11 @@ CLC_ptr close_err_70058(CLC_ptr _70053, CLC_env env)
   INSTR_send(&send_clo_70055, _70053);
   INSTR_struct(&false_c3_70056, 3, 0);
   INSTR_call(&tmp_70057, send_clo_70055, false_c3_70056);
-  INSTR_struct(&unit_struct_70054, 1, 0); return unit_struct_70054;
+  INSTR_struct(&unit_struct_70054, 1, 0);
+  return unit_struct_70054;
 }
 
-CLC_ptr _70065(CLC_ptr _70063, CLC_env env)
+CLC_ptr lam_70065(CLC_ptr _70063, CLC_env env)
 {
   CLC_ptr DocCons_c23_70064;
   INSTR_struct(&DocCons_c23_70064, 23, 2,
@@ -4176,7 +4191,7 @@ CLC_ptr _70065(CLC_ptr _70063, CLC_env env)
 CLC_ptr dcons_70067(CLC_ptr _70061, CLC_env env)
 {
   CLC_ptr clo_70066;
-  INSTR_clo(&clo_70066, &_70065, 21,
+  INSTR_clo(&clo_70066, &lam_70065, 21,
     0, _70061, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16], env[17], env[18]);
@@ -4185,12 +4200,13 @@ CLC_ptr dcons_70067(CLC_ptr _70061, CLC_env env)
 
 CLC_ptr text_70073(CLC_ptr _70071, CLC_env env)
 {
-  CLC_ptr DocText_c24_70072; INSTR_struct(&DocText_c24_70072, 24, 1,
-                               _70071);
+  CLC_ptr DocText_c24_70072;
+  INSTR_struct(&DocText_c24_70072, 24, 1,
+    _70071);
   return DocText_c24_70072;
 }
 
-CLC_ptr _70080(CLC_ptr _70078, CLC_env env)
+CLC_ptr lam_70080(CLC_ptr _70078, CLC_env env)
 {
   CLC_ptr DocNest_c25_70079;
   INSTR_struct(&DocNest_c25_70079, 25, 2,
@@ -4201,7 +4217,7 @@ CLC_ptr _70080(CLC_ptr _70078, CLC_env env)
 CLC_ptr nest_70082(CLC_ptr _70076, CLC_env env)
 {
   CLC_ptr clo_70081;
-  INSTR_clo(&clo_70081, &_70080, 24,
+  INSTR_clo(&clo_70081, &lam_70080, 24,
     0, _70076, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16], env[17], env[18], env[19], env[20], env[21]);
@@ -4319,13 +4335,14 @@ CLC_ptr sdocToString_70156(CLC_ptr _70107, CLC_env env)
   return case_70108;
 }
 
-CLC_ptr _70164(CLC_ptr _70162, CLC_env env)
+CLC_ptr lam_70164(CLC_ptr _70162, CLC_env env)
 {
-  CLC_ptr false_c3_70163; INSTR_struct(&false_c3_70163, 3, 0);
+  CLC_ptr false_c3_70163;
+  INSTR_struct(&false_c3_70163, 3, 0);
   return false_c3_70163;
 }
 
-CLC_ptr _70228(CLC_ptr _70168, CLC_env env)
+CLC_ptr lam_70228(CLC_ptr _70168, CLC_env env)
 {
   CLC_ptr _70171; CLC_ptr _70172; CLC_ptr _70175; CLC_ptr _70178;
   CLC_ptr _70183; CLC_ptr _70184; CLC_ptr _70194; CLC_ptr _70201;
@@ -4467,7 +4484,7 @@ CLC_ptr fits_70230(CLC_ptr _70159, CLC_env env)
   CLC_ptr _70166; CLC_ptr case_70160; CLC_ptr clo_70165; CLC_ptr clo_70229;
   switch(((CLC_node)_70159)->tag){
     case 4:
-      INSTR_clo(&clo_70165, &_70164, 29,
+      INSTR_clo(&clo_70165, &lam_70164, 29,
         0, _70159, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
         env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
         env[15], env[16], env[17], env[18], env[19], env[20], env[21],
@@ -4476,7 +4493,7 @@ CLC_ptr fits_70230(CLC_ptr _70159, CLC_env env)
       break;
     case 5:
       INSTR_mov(&_70166, ((CLC_node)_70159)->data[0]);
-      INSTR_clo(&clo_70229, &_70228, 30,
+      INSTR_clo(&clo_70229, &lam_70228, 30,
         0, _70159, _70166, env[0], env[1], env[2], env[3], env[4], env[5],
         env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13],
         env[14], env[15], env[16], env[17], env[18], env[19], env[20],
@@ -4486,7 +4503,7 @@ CLC_ptr fits_70230(CLC_ptr _70159, CLC_env env)
   return case_70160;
 }
 
-CLC_ptr _70318(CLC_ptr _70237, CLC_env env)
+CLC_ptr lam_70318(CLC_ptr _70237, CLC_env env)
 {
   CLC_ptr _70240; CLC_ptr _70241; CLC_ptr _70244; CLC_ptr _70247;
   CLC_ptr _70252; CLC_ptr _70253; CLC_ptr _70263; CLC_ptr _70271;
@@ -4659,10 +4676,10 @@ CLC_ptr _70318(CLC_ptr _70237, CLC_env env)
   return case_70238;
 }
 
-CLC_ptr _70320(CLC_ptr _70235, CLC_env env)
+CLC_ptr lam_70320(CLC_ptr _70235, CLC_env env)
 {
   CLC_ptr clo_70319;
-  INSTR_clo(&clo_70319, &_70318, 32,
+  INSTR_clo(&clo_70319, &lam_70318, 32,
     0, _70235, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16], env[17], env[18], env[19], env[20], env[21], env[22],
@@ -4673,7 +4690,7 @@ CLC_ptr _70320(CLC_ptr _70235, CLC_env env)
 CLC_ptr format_70322(CLC_ptr _70233, CLC_env env)
 {
   CLC_ptr clo_70321;
-  INSTR_clo(&clo_70321, &_70320, 30,
+  INSTR_clo(&clo_70321, &lam_70320, 30,
     0, _70233, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16], env[17], env[18], env[19], env[20], env[21], env[22],
@@ -4681,7 +4698,7 @@ CLC_ptr format_70322(CLC_ptr _70233, CLC_env env)
   return clo_70321;
 }
 
-CLC_ptr _70355(CLC_ptr _70327, CLC_env env)
+CLC_ptr lam_70355(CLC_ptr _70327, CLC_env env)
 {
   CLC_ptr Ascii_c16_70351; CLC_ptr EmptyString_c17_70352;
   CLC_ptr Flat_c31_70334; CLC_ptr String_c18_70353; CLC_ptr cons_c9_70339;
@@ -4726,13 +4743,14 @@ CLC_ptr _70355(CLC_ptr _70327, CLC_env env)
   INSTR_struct(&EmptyString_c17_70352, 17, 0);
   INSTR_struct(&String_c18_70353, 18, 2,
     Ascii_c16_70351, EmptyString_c17_70352);
-  INSTR_call(&tmp_70354, tmp_70342, String_c18_70353); return tmp_70354;
+  INSTR_call(&tmp_70354, tmp_70342, String_c18_70353);
+  return tmp_70354;
 }
 
 CLC_ptr pretty_70357(CLC_ptr _70325, CLC_env env)
 {
   CLC_ptr clo_70356;
-  INSTR_clo(&clo_70356, &_70355, 31,
+  INSTR_clo(&clo_70356, &lam_70355, 31,
     0, _70325, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16], env[17], env[18], env[19], env[20], env[21], env[22],
@@ -4740,12 +4758,14 @@ CLC_ptr pretty_70357(CLC_ptr _70325, CLC_env env)
   return clo_70356;
 }
 
-CLC_ptr _70364(CLC_ptr _70363, CLC_env env)
+CLC_ptr lam_70364(CLC_ptr _70363, CLC_env env)
 {
-    return _70363;
+  
+  
+  return _70363;
 }
 
-CLC_ptr _70409(CLC_ptr _70369, CLC_env env)
+CLC_ptr lam_70409(CLC_ptr _70369, CLC_env env)
 {
   CLC_ptr _70372; CLC_ptr _70373; CLC_ptr _70380; CLC_ptr _70387;
   CLC_ptr _70388; CLC_ptr _70395; CLC_ptr _70402; CLC_ptr DocBreak_c26_70400;
@@ -4830,7 +4850,7 @@ CLC_ptr _70409(CLC_ptr _70369, CLC_env env)
   return case_70370;
 }
 
-CLC_ptr _70453(CLC_ptr _70413, CLC_env env)
+CLC_ptr lam_70453(CLC_ptr _70413, CLC_env env)
 {
   CLC_ptr _70416; CLC_ptr _70417; CLC_ptr _70424; CLC_ptr _70431;
   CLC_ptr _70432; CLC_ptr _70439; CLC_ptr _70446; CLC_ptr DocBreak_c26_70444;
@@ -4915,7 +4935,7 @@ CLC_ptr _70453(CLC_ptr _70413, CLC_env env)
   return case_70414;
 }
 
-CLC_ptr _70498(CLC_ptr _70458, CLC_env env)
+CLC_ptr lam_70498(CLC_ptr _70458, CLC_env env)
 {
   CLC_ptr _70461; CLC_ptr _70462; CLC_ptr _70469; CLC_ptr _70476;
   CLC_ptr _70477; CLC_ptr _70484; CLC_ptr _70491; CLC_ptr DocBreak_c26_70489;
@@ -5000,7 +5020,7 @@ CLC_ptr _70498(CLC_ptr _70458, CLC_env env)
   return case_70459;
 }
 
-CLC_ptr _70542(CLC_ptr _70502, CLC_env env)
+CLC_ptr lam_70542(CLC_ptr _70502, CLC_env env)
 {
   CLC_ptr _70505; CLC_ptr _70506; CLC_ptr _70513; CLC_ptr _70520;
   CLC_ptr _70521; CLC_ptr _70528; CLC_ptr _70535; CLC_ptr DocBreak_c26_70504;
@@ -5085,7 +5105,7 @@ CLC_ptr _70542(CLC_ptr _70502, CLC_env env)
   return case_70503;
 }
 
-CLC_ptr _70586(CLC_ptr _70546, CLC_env env)
+CLC_ptr lam_70586(CLC_ptr _70546, CLC_env env)
 {
   CLC_ptr _70549; CLC_ptr _70550; CLC_ptr _70557; CLC_ptr _70564;
   CLC_ptr _70565; CLC_ptr _70572; CLC_ptr _70579; CLC_ptr DocBreak_c26_70577;
@@ -5178,7 +5198,7 @@ CLC_ptr join_70588(CLC_ptr _70360, CLC_env env)
   CLC_ptr clo_70543; CLC_ptr clo_70587;
   switch(((CLC_node)_70360)->tag){
     case 22:
-      INSTR_clo(&clo_70365, &_70364, 32,
+      INSTR_clo(&clo_70365, &lam_70364, 32,
         0, _70360, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
         env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
         env[15], env[16], env[17], env[18], env[19], env[20], env[21],
@@ -5189,7 +5209,7 @@ CLC_ptr join_70588(CLC_ptr _70360, CLC_env env)
     case 23:
       INSTR_mov(&_70366, ((CLC_node)_70360)->data[0]);
       INSTR_mov(&_70367, ((CLC_node)_70360)->data[1]);
-      INSTR_clo(&clo_70410, &_70409, 34,
+      INSTR_clo(&clo_70410, &lam_70409, 34,
         0, _70360, _70366, _70367, env[0], env[1], env[2], env[3], env[4],
         env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12],
         env[13], env[14], env[15], env[16], env[17], env[18], env[19],
@@ -5199,7 +5219,7 @@ CLC_ptr join_70588(CLC_ptr _70360, CLC_env env)
       break;
     case 24:
       INSTR_mov(&_70411, ((CLC_node)_70360)->data[0]);
-      INSTR_clo(&clo_70454, &_70453, 33,
+      INSTR_clo(&clo_70454, &lam_70453, 33,
         0, _70360, _70411, env[0], env[1], env[2], env[3], env[4], env[5],
         env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13],
         env[14], env[15], env[16], env[17], env[18], env[19], env[20],
@@ -5210,7 +5230,7 @@ CLC_ptr join_70588(CLC_ptr _70360, CLC_env env)
     case 25:
       INSTR_mov(&_70455, ((CLC_node)_70360)->data[0]);
       INSTR_mov(&_70456, ((CLC_node)_70360)->data[1]);
-      INSTR_clo(&clo_70499, &_70498, 34,
+      INSTR_clo(&clo_70499, &lam_70498, 34,
         0, _70360, _70455, _70456, env[0], env[1], env[2], env[3], env[4],
         env[5], env[6], env[7], env[8], env[9], env[10], env[11], env[12],
         env[13], env[14], env[15], env[16], env[17], env[18], env[19],
@@ -5220,7 +5240,7 @@ CLC_ptr join_70588(CLC_ptr _70360, CLC_env env)
       break;
     case 26:
       INSTR_mov(&_70500, ((CLC_node)_70360)->data[0]);
-      INSTR_clo(&clo_70543, &_70542, 33,
+      INSTR_clo(&clo_70543, &lam_70542, 33,
         0, _70360, _70500, env[0], env[1], env[2], env[3], env[4], env[5],
         env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13],
         env[14], env[15], env[16], env[17], env[18], env[19], env[20],
@@ -5230,7 +5250,7 @@ CLC_ptr join_70588(CLC_ptr _70360, CLC_env env)
       break;
     case 27:
       INSTR_mov(&_70544, ((CLC_node)_70360)->data[0]);
-      INSTR_clo(&clo_70587, &_70586, 33,
+      INSTR_clo(&clo_70587, &lam_70586, 33,
         0, _70360, _70544, env[0], env[1], env[2], env[3], env[4], env[5],
         env[6], env[7], env[8], env[9], env[10], env[11], env[12], env[13],
         env[14], env[15], env[16], env[17], env[18], env[19], env[20],
@@ -5241,7 +5261,7 @@ CLC_ptr join_70588(CLC_ptr _70360, CLC_env env)
   return case_70361;
 }
 
-CLC_ptr _70610(CLC_ptr _70595, CLC_env env)
+CLC_ptr lam_70610(CLC_ptr _70595, CLC_env env)
 {
   CLC_ptr succ_c5_70597; CLC_ptr succ_c5_70598; CLC_ptr tmp_70599;
   CLC_ptr tmp_70600; CLC_ptr tmp_70601; CLC_ptr tmp_70602; CLC_ptr tmp_70603;
@@ -5262,13 +5282,14 @@ CLC_ptr _70610(CLC_ptr _70595, CLC_env env)
   INSTR_call(&tmp_70606, env[14], _70595);
   INSTR_call(&tmp_70607, tmp_70605, tmp_70606);
   INSTR_call(&tmp_70608, tmp_70599, tmp_70607);
-  INSTR_call(&tmp_70609, env[10], tmp_70608); return tmp_70609;
+  INSTR_call(&tmp_70609, env[10], tmp_70608);
+  return tmp_70609;
 }
 
-CLC_ptr _70612(CLC_ptr _70593, CLC_env env)
+CLC_ptr lam_70612(CLC_ptr _70593, CLC_env env)
 {
   CLC_ptr clo_70611;
-  INSTR_clo(&clo_70611, &_70610, 35,
+  INSTR_clo(&clo_70611, &lam_70610, 35,
     0, _70593, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16], env[17], env[18], env[19], env[20], env[21], env[22],
@@ -5280,7 +5301,7 @@ CLC_ptr _70612(CLC_ptr _70593, CLC_env env)
 CLC_ptr binop_70614(CLC_ptr _70591, CLC_env env)
 {
   CLC_ptr clo_70613;
-  INSTR_clo(&clo_70613, &_70612, 33,
+  INSTR_clo(&clo_70613, &lam_70612, 33,
     0, _70591, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16], env[17], env[18], env[19], env[20], env[21], env[22],
@@ -5288,7 +5309,7 @@ CLC_ptr binop_70614(CLC_ptr _70591, CLC_env env)
   return clo_70613;
 }
 
-CLC_ptr _70885(CLC_ptr _70749, CLC_env env)
+CLC_ptr lam_70885(CLC_ptr _70749, CLC_env env)
 {
   CLC_ptr Ascii_c16_70762; CLC_ptr Ascii_c16_70771; CLC_ptr Ascii_c16_70793;
   CLC_ptr Ascii_c16_70802; CLC_ptr Ascii_c16_70811; CLC_ptr Ascii_c16_70820;
@@ -5506,13 +5527,14 @@ CLC_ptr _70885(CLC_ptr _70749, CLC_env env)
   INSTR_call(&tmp_70881, env[14], tmp_70880);
   INSTR_call(&tmp_70882, tmp_70831, tmp_70881);
   INSTR_call(&tmp_70883, tmp_70780, tmp_70882);
-  INSTR_call(&tmp_70884, env[14], tmp_70883); return tmp_70884;
+  INSTR_call(&tmp_70884, env[14], tmp_70883);
+  return tmp_70884;
 }
 
-CLC_ptr _70887(CLC_ptr _70747, CLC_env env)
+CLC_ptr lam_70887(CLC_ptr _70747, CLC_env env)
 {
   CLC_ptr clo_70886;
-  INSTR_clo(&clo_70886, &_70885, 39,
+  INSTR_clo(&clo_70886, &lam_70885, 39,
     0, _70747, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16], env[17], env[18], env[19], env[20], env[21], env[22],
@@ -5524,7 +5546,7 @@ CLC_ptr _70887(CLC_ptr _70747, CLC_env env)
 CLC_ptr ifthen_70889(CLC_ptr _70745, CLC_env env)
 {
   CLC_ptr clo_70888;
-  INSTR_clo(&clo_70888, &_70887, 37,
+  INSTR_clo(&clo_70888, &lam_70887, 37,
     0, _70745, env[0], env[1], env[2], env[3], env[4], env[5], env[6],
     env[7], env[8], env[9], env[10], env[11], env[12], env[13], env[14],
     env[15], env[16], env[17], env[18], env[19], env[20], env[21], env[22],
@@ -5533,7 +5555,7 @@ CLC_ptr ifthen_70889(CLC_ptr _70745, CLC_env env)
   return clo_70888;
 }
 
-CLC_ptr _70913(CLC_ptr _70911, CLC_env env)
+CLC_ptr lam_70913(CLC_ptr _70911, CLC_env env)
 {
   CLC_ptr case_70912;
   switch(((CLC_node)_70911)->tag){
@@ -5977,7 +5999,7 @@ int main()
   INSTR_call(&tmp_70908, tmp_70907, doc_299);
   INSTR_call(&tmp_70909, tmp_70895, tmp_70908);
   INSTR_mov(&stdout_70894, tmp_70909);
-  INSTR_clo(&clo_70914, &_70913, 39,
+  INSTR_clo(&clo_70914, &lam_70913, 39,
     0, stdout_70894, stdout_300, doc_299, ifthen_292, expr2_291, expr1_290,
     cond_289, binop_282, join_275, pretty_269, format_218, fits_175,
     sdocToString_165, group_158, breakWith_155, break_154, nest_149,
@@ -5987,7 +6009,8 @@ int main()
     lt_84, strlen_74, cat_67, subn_9, addn_3, 0);
   INSTR_call(&tmp_70915, close_out_122, stdout_70894);
   INSTR_call(&tmp_70916, clo_70914, tmp_70915);
-  INSTR_mov(&_301, tmp_70916); return 0;
+  INSTR_mov(&_301, tmp_70916);
+  return 0;
 }
 trans23 success-------------------------------------
 

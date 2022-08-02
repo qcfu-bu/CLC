@@ -73,7 +73,7 @@ let rec trans_tm def local env m =
     let def, instr, v =
       trans_tm def [ (x, Reg x) ] (f :: extend_env local env) m
     in
-    let name = V.freshen f in
+    let name = V.mk "lam" in
     let tmp = V.mk "clo" in
     let proc = { name; arg = Some x; body = instr; return = v } in
     (def @ [ proc ], [ Clo (tmp, name, Zero :: value_of local env) ], Reg tmp)
