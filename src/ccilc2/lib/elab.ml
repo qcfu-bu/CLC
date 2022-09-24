@@ -370,7 +370,7 @@ module ElabTm = struct
         let b = UnifyTm.resolve mmap b in
         match zdnf env b with
         | Ind (id, ms) ->
-          let (Tp.Ind (_, b, cs)) = find_id id ictx in
+          let (Tp.Ind (_, _, cs)) = find_id id ictx in
           let cover, eqns, mmap = coverage vctx ictx env eqns mmap cls cs ms in
           check_cover cover ictx env eqns mmap a
         | _ -> failwith (asprintf "check non-inductive(%a)" Tm.pp b))
