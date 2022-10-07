@@ -1,0 +1,22 @@
+-R . CCLC
+
+AutosubstSsr.v
+ARS.v
+clc_context.v
+clc_ast.v
+clc_confluence.v
+clc_typing.v
+clc_weakening.v
+clc_substitution.v
+clc_inversion.v
+clc_validity.v
+clc_soundness.v
+clc_linearity.v
+clc_act.v
+cclc_eval.v
+cclc_ast.v
+cclc_typing.v
+cclc_weakening.v
+cclc_substitution.v
+cclc_linearity.v
+cclc_soundness.v
