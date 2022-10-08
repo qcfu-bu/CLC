@@ -246,9 +246,19 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     apply: clc_case...
     asimpl...
     asimpl... }
-  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn Δ σ agr. asimpl.
+  move=>Γ1 Γ2 Γ m n A s t k mrg tym ihm tyA ihA tyn ihn Δ σ agr. asimpl.
   { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
-    apply: clc_letin1... }
+    replace A.[m.[σ] .: σ] with A.[up σ].[m.[σ]/] by autosubst.
+    apply: clc_letin1.
+    apply: agree_subst_key agr1 k.
+    all: eauto...
+    apply: ihA.
+    destruct s; simpl.
+    replace (Unit :U [G2] ⊢ up σ ⊣ Unit :U [Γ2])
+      with (Unit.[σ] :U [G2] ⊢ up σ ⊣ Unit.[σ] :U [Γ2]) by autosubst.
+    apply: agree_subst_ty...
+    apply: agree_subst_n...
+    asimpl. have:=ihn _ _ agr2. asimpl... }
   move=>Γ1 Γ2 Γ A B C m n s r t k x leq key mrg
     tym ihm tyC ihC tyn ihn Δ σ agr. asimpl.
   { move:(merge_agree_subst_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
@@ -385,10 +395,10 @@ Proof.
     eauto. }
 Qed.
 
-Lemma substitutionN Γ1 Γ2 m n A B :
-  _: Γ1 ⊢ m : B -> Γ2 ⊢ n : A -> Γ1 ⊢ m.[n/] : B.[n/].
+Lemma substitutionN Γ m n A :
+  _: Γ ⊢ m : A -> Γ ⊢ m.[n/] : A.[n/].
 Proof with eauto.
-  move=>tym tyn.
+  move=>tym.
   apply: esubstitution...
   apply: agree_subst_wkN...
 Qed.
@@ -397,9 +407,7 @@ Lemma strengthen Γ m A :
   _: Γ ⊢ m.[ren (+1)] : A.[ren (+1)] -> Γ ⊢ m : A.
 Proof with eauto using key.
   move=>tym.
-  have ty : (nil ⊢ Sort U : Sort U).
-  apply: clc_axiom...
-  have := (substitutionN tym ty).
+  have := (substitutionN (Sort U) tym).
   by asimpl.
 Qed.
 

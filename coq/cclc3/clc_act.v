@@ -203,82 +203,106 @@ Proof.
     left. exists (Pair m (Act r1 A1 B1 s1) t).
     split; asimpl; eauto.
     intros; intro. inv H. }
-  move=>m ihm n1 ihn1 n2 ihn2 Y ξ st. inv st.
-  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihm _ _ H3; subst.
-    left. exists (Case Z1 n1 n2).
+  move=>A ihA m ihm n1 ihn1 n2 ihn2 Y ξ st. inv st.
+  { asimpl in H4.
+    have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihA _ _ H4; subst.
+    left. exists (Case Z1 m n1 n2).
+    split; asimpl; eauto.
+    intros; intro. inv H.
+    left. exists (Case (Act r1 A1 B1 s1) m n1 n2).
+    split; asimpl; eauto.
+    intros; intro. inv H. }
+  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihm _ _ H4; subst.
+    left. exists (Case A Z1 n1 n2).
     split; eauto.
     intros; intro. inv H.
-    left. exists (Case (Act r1 A1 B1 s1) n1 n2).
+    left. exists (Case A (Act r1 A1 B1 s1) n1 n2).
     split; eauto.
     intros; intro. inv H. }
-  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihn1 _ _ H3; subst.
-    left. exists (Case m Z1 n2).
+  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihn1 _ _ H4; subst.
+    left. exists (Case A m Z1 n2).
     split; eauto.
     intros; intro. inv H.
-    left. exists (Case m (Act r1 A1 B1 s1) n2).
+    left. exists (Case A m (Act r1 A1 B1 s1) n2).
     split; eauto.
     intros; intro. inv H. }
-  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihn2 _ _ H3; subst.
-    left. exists (Case m n1 Z1).
+  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihn2 _ _ H4; subst.
+    left. exists (Case A m n1 Z1).
     split; eauto.
     intros; intro. inv H.
-    left. exists (Case m n1 (Act r1 A1 B1 s1)).
+    left. exists (Case A m n1 (Act r1 A1 B1 s1)).
     split; eauto.
     intros; intro. inv H. }
-  { destruct m; inv H0.
-    have[h|[r[A[B[s e]]]]]:=(decide_act n1.[ren ξ] id).
+  { destruct m; inv H1.
+    have[h|[r[A0[B[s e]]]]]:=(decide_act n1.[ren ξ] id).
     left. exists n1. asimpl in h. eauto.
     destruct n1; inv e.
     right. exists r. exists n1. exists B0. exists s. eauto. }
-  { destruct m; inv H0.
-    have[h|[r[A[B[s e]]]]]:=(decide_act n2.[ren ξ] id).
+  { destruct m; inv H1.
+    have[h|[r[A0[B[s e]]]]]:=(decide_act n2.[ren ξ] id).
     left. exists n2. asimpl in h. eauto.
     destruct n2; inv e.
     right. exists r. exists n2. exists B0. exists s. eauto. }
-  move=>m ihm n ihn Y ξ st. inv st.
-  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihm _ _ H2; subst.
-    left. exists (LetIn1 Z1 n).
+  move=>A ihA m ihm n ihn Y ξ st. inv st.
+  { asimpl in H3.
+    have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihA _ _ H3; subst.
+    left. exists (LetIn1 Z1 m n).
+    split; asimpl; eauto.
+    intros; intro. inv H.
+    left. exists (LetIn1 (Act r1 A1 B1 s1) m n).
+    split; asimpl; eauto.
+    intros; intro. inv H. }
+  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihm _ _ H3; subst.
+    left. exists (LetIn1 A Z1 n).
     split; eauto.
     intros; intro. inv H.
-    left. exists (LetIn1 (Act r1 A1 B1 s1) n).
+    left. exists (LetIn1 A (Act r1 A1 B1 s1) n).
     split; eauto.
     intros; intro. inv H. }
-  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihn _ _ H2; subst.
-    left. exists (LetIn1 m Z1).
+  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihn _ _ H3; subst.
+    left. exists (LetIn1 A m Z1).
     split; eauto.
     intros; intro. inv H.
-    left. exists (LetIn1 m (Act r1 A1 B1 s1)).
+    left. exists (LetIn1 A m (Act r1 A1 B1 s1)).
     split; eauto.
     intros; intro. inv H. }
-  { destruct m; inv H0.
-    have[h|[r[A[B[s e]]]]]:=(decide_act n.[ren ξ] id).
+  { destruct m; inv H1.
+    have[h|[r[A0[B[s e]]]]]:=(decide_act n.[ren ξ] id).
     left. exists n. asimpl in h. eauto.
     destruct n; inv e.
     right. exists r. exists n. exists B0. exists s. eauto. }
-  move=>m ihm n ihn Y ξ st. inv st.
-  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihm _ _ H2; subst.
-    left. exists (LetIn2 Z1 n).
+  move=>A ihA m ihm n ihn Y ξ st. inv st.
+  { asimpl in H3.
+    have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihA _ _ H3; subst.
+    left. exists (LetIn2 Z1 m n).
+    split; asimpl; eauto.
+    intros; intro. inv H.
+    left. exists (LetIn2 (Act r1 A1 B1 s1) m n).
+    split; asimpl; eauto.
+    intros; intro. inv H. }
+  { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihm _ _ H3; subst.
+    left. exists (LetIn2 A Z1 n).
     split; eauto.
     intros; intro. inv H.
-    left. exists (LetIn2 (Act r1 A1 B1 s1) n).
+    left. exists (LetIn2 A (Act r1 A1 B1 s1) n).
     split; eauto.
     intros; intro. inv H. }
   { replace n.[upn 2 (ren ξ)]
-      with n.[ren (upren (upren ξ))] in H2 by autosubst.
-    have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihn _ _ H2; subst.
-    left. exists (LetIn2 m Z1).
+      with n.[ren (upren (upren ξ))] in H3 by autosubst.
+    have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihn _ _ H3; subst.
+    left. exists (LetIn2 A m Z1).
     split; asimpl; eauto.
     intros; intro. inv H.
-    left. exists (LetIn2 m (Act r1 A1 B1 s1)).
+    left. exists (LetIn2 A m (Act r1 A1 B1 s1)).
     split; asimpl; eauto.
     intros; intro. inv H. }
-  { destruct m; inv H0.
+  { destruct m; inv H1.
     asimpl.
     replace (n.[m4.[ren ξ] .: m3.[ren ξ] .: ren ξ])
       with n.[m4,m3/].[ren ξ] by autosubst.
-    have[h|[r[A[B[s e]]]]]:=(decide_act n.[m4,m3/] ξ).
+    have[h|[r[A0[B[s e]]]]]:=(decide_act n.[m4,m3/] ξ).
     left. exists n.[m4,m3/]. eauto.
-    right. exists r. exists A. exists B. exists s.
+    right. exists r. exists A0. exists B. exists s.
     rewrite e. asimpl; eauto. }
   move=>r A ihA B ihB s Y ξ st. inv st.
   { have[[Z1[e h1]]|[r1[A1[B1[s1 e]]]]]:=ihA _ _ H4; subst.

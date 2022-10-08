@@ -15,7 +15,7 @@ Lemma congr0_type Γ p q :
   Γ ⊢ p -> congr0 p q -> Γ ⊢ q.
 Proof with eauto using cclc_type, congr0.
   move=>ty. elim: ty q=>{Γ p}.
-  move=>Γ m A s tym q cr. inv cr.
+  move=>Γ m A tym q cr. inv cr.
   move=>Γ1 Γ2 Γ p q mrg typ ihp tyq ihq q0 cr. inv cr.
   { econstructor.
     apply: merge_sym...
@@ -118,7 +118,7 @@ Proof.
     have{}H1:=clc_weakening.weakeningN H1.
     asimpl in H1.
     rewrite<-eren_comp in H1.
-    have{H1}[G1[G2[B[t[mrg[tyF h]]]]]]:=plug_inv (n_ok (n_ok wf)) H1.
+    have{H1}[G1[G2[B[mrg[tyF h]]]]]:=plug_inv (n_ok (n_ok wf)) H1.
     inv mrg. inv H2.
     have[wf0 wf3]:=merge_context_ok_inv H3 wf.
     have[_[B'[_ e]]]:=narity_ren1 (n_ok wf0) tyF; subst.
@@ -127,9 +127,9 @@ Proof.
     have {}tyF:=clc_substitution.strengthen tyF.
     have[_[B[_ e]]]:=narity_ren1 wf0 tyF; subst.
     have {}tyF:=clc_substitution.strengthen tyF.
-    have[G1[G2[r1[r2[A0[B0[s0[t0[e[sb0[mrg[d[tyA[tyv tym]]]]]]]]]]]]]]:=
+    have[G1[G2[r1[r2[A0[B0[t0[sb0[mrg[d[tyA[tyv tym]]]]]]]]]]]]:=
       fork_inv tyF; subst.
-    have[A1[s1[hs[sb1 e]]]]:=var_inv tyv; subst.
+    have[A1[s1[hs sb]]]:=var_inv tyv; subst.
     inv hs.
     have/h{}h:~_: _: Γ0 |> U.
     { move=>k. inv k. inv H1.

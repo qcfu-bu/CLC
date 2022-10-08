@@ -58,7 +58,7 @@ Proof with eauto using clc_type, re_pure, merge_re_id, key.
     simpl in tyB. rewrite<-re_invo in tyB.
     exists r. by apply: (substitution tyB k mrg tyn).
     simpl in tyB. rewrite<-re_invo in tyB.
-    exists r. have:=substitutionN tyB tyn.
+    exists r. have:=substitutionN n tyB.
     by rewrite e2.
   move=>Γ A m k tyA ihA tym ihm o.
     rewrite<-pure_re...
@@ -78,12 +78,16 @@ Proof with eauto using clc_type, re_pure, merge_re_id, key.
       apply: merge_re3. apply: merge_sym...
       rewrite<-pure_re... }
     exists t. have//:=substitution tyA k mrg tym.
-    exists t. have:=substitutionN tyA tym.
+    exists t. have:=substitutionN m tyA.
     by rewrite e2.
-  move=>Γ1 Γ2 Γ m n A mrg _ _ tyn ihn o.
-    move:(merge_context_ok_inv mrg o)=>[_/ihn tyA]{ihn}.
-    move:(merge_re_re mrg)=>[_[_ e]].
-    by rewrite<-e.
+  move=>Γ1 Γ2 Γ m n A s t k mrg tym ihm tyA ihA tyn ihn o.
+    move:(merge_re_re mrg)=>[e0[e1 e2]].
+    destruct s; simpl in tyA.
+    have mrg1:[Γ2] ∘ Γ1 => [Γ].
+    rewrite e2 (pure_re k) e1.
+    apply: merge_re_id.
+    exists t. have:=substitution tyA k mrg1 tym. by asimpl.
+    exists t. have:=substitutionN m tyA. rewrite e2. by asimpl.
   move=>Γ1 Γ2 Γ A B C m n s r t k x leq key mrg
     tym _ tyC _ tyn _ o.
     move:(merge_re_re mrg)=>[e0[e1 e2]].
@@ -93,7 +97,7 @@ Proof with eauto using clc_type, re_pure, merge_re_id, key.
     apply: merge_re_id. inv leq.
     exists x. have:=substitution tyC key mrg1 tym.
     by asimpl.
-    exists x. have:=substitutionN tyC tym.
+    exists x. have:=substitutionN m tyC.
     by rewrite e2.
   move=>Γ k wf...
   move=>Γ k o...

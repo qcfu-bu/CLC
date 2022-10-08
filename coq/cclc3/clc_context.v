@@ -79,6 +79,8 @@ Inductive has {T} `{Ids T} `{Subst T} :
   Γ |> U ->
   has (A :{s} Γ) 0 s A.[ren (+1)]
 | has_S Γ A B x s :    
+      rewrite<-re_invo in e7.
+      rewrite<-re_invo in e8.
   has Γ x s A ->
   has (B :U Γ) x.+1 s A.[ren (+1)]
 | has_N Γ A x s :

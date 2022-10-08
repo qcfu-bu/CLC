@@ -22,9 +22,9 @@ Inductive term : Type :=
 | Right
 | Sigma  (A : term) (B : {bind term}) (s r t : sort)
 | Pair   (m n : term) (t : sort)
-| Case   (m n1 n2 : term)
-| LetIn1 (m n : term)
-| LetIn2 (m : term) (n : {bind 2 of term})
+| Case   (A : {bind term}) (m n1 n2 : term)
+| LetIn1 (A : {bind term}) (m n : term)
+| LetIn2 (A : {bind term}) (m : term) (n : {bind 2 of term})
 (* session *)
 | Main
 | Proto
@@ -84,35 +84,44 @@ Inductive step : term -> term -> Prop :=
 | step_pairR m n n' t :
   n ~> n' ->
   Pair m n t ~> Pair m n' t
-| step_caseL m m' n1 n2 :
+| step_caseA A A' m n1 n2 :
+  A ~> A' ->
+  Case A m n1 n2 ~> Case A' m n1 n2
+| step_caseL A m m' n1 n2 :
   m ~> m' ->
-  Case m n1 n2 ~> Case m' n1 n2
-| step_caseR1 m n1 n1' n2 :
+  Case A m n1 n2 ~> Case A m' n1 n2
+| step_caseR1 A m n1 n1' n2 :
   n1 ~> n1' ->
-  Case m n1 n2 ~> Case m n1' n2
-| step_caseR2 m n1 n2 n2' :
+  Case A m n1 n2 ~> Case A m n1' n2
+| step_caseR2 A m n1 n2 n2' :
   n2 ~> n2' ->
-  Case m n1 n2 ~> Case m n1 n2'
-| step_iotaL n1 n2 :
-  Case Left n1 n2 ~> n1
-| step_iotaR n1 n2 :
-  Case Right n1 n2 ~> n2
-| step_letin1L m m' n :
+  Case A m n1 n2 ~> Case A m n1 n2'
+| step_iotaL A n1 n2 :
+  Case A Left n1 n2 ~> n1
+| step_iotaR A n1 n2 :
+  Case A Right n1 n2 ~> n2
+| step_letin1A A A' m n :
+  A ~> A' ->
+  LetIn1 A m n ~> LetIn1 A' m n
+| step_letin1L A m m' n :
   m ~> m' ->
-  LetIn1 m n ~> LetIn1 m' n
-| step_letin1R m n n' :
+  LetIn1 A m n ~> LetIn1 A m' n
+| step_letin1R A m n n' :
   n ~> n' ->
-  LetIn1 m n ~> LetIn1 m n'
-| step_iota1 n :
-  LetIn1 It n ~> n
-| step_letin2L m m' n :
+  LetIn1 A m n ~> LetIn1 A m n'
+| step_iota1 A n :
+  LetIn1 A It n ~> n
+| step_letin2A A A' m n :
+  A ~> A' ->
+  LetIn2 A m n ~> LetIn2 A' m n
+| step_letin2L A m m' n :
   m ~> m' ->
-  LetIn2 m n ~> LetIn2 m' n
-| step_letin2R m n n' :
+  LetIn2 A m n ~> LetIn2 A m' n
+| step_letin2R A m n n' :
   n ~> n' ->
-  LetIn2 m n ~> LetIn2 m n'
-| step_iota2 m1 m2 n t :
-  LetIn2 (Pair m1 m2 t) n ~> n.[m2,m1/]
+  LetIn2 A m n ~> LetIn2 A m n'
+| step_iota2 A m1 m2 n t :
+  LetIn2 A (Pair m1 m2 t) n ~> n.[m2,m1/]
 | step_actL r A A' B s :
   A ~> A' ->
   Act r A B s ~> Act r A' B s

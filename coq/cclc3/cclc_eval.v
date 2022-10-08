@@ -40,9 +40,9 @@ Inductive eval_context :=
 | EAppR m : value m -> eval_context -> eval_context
 | EPairL : eval_context -> term -> sort -> eval_context
 | EPairR m : value m -> eval_context -> sort -> eval_context
-| ECase : eval_context -> term -> term -> eval_context
-| ELetIn1 : eval_context -> term -> eval_context
-| ELetIn2 : eval_context -> term -> eval_context
+| ECase : term -> eval_context -> term -> term -> eval_context
+| ELetIn1 : term -> eval_context -> term -> eval_context
+| ELetIn2 : term -> eval_context -> term -> eval_context
 | EFork : eval_context -> term -> eval_context
 | ESend : eval_context -> eval_context
 | ERecv : eval_context -> eval_context
@@ -61,9 +61,9 @@ Fixpoint plug (e : eval_context) (t : term) : term :=
   | EAppR m _ e => App m (plug e t)
   | EPairL e m s => Pair (plug e t) m s
   | EPairR m _ e s => Pair m (plug e t) s
-  | ECase e n1 n2 => Case (plug e t) n1 n2
-  | ELetIn1 e m => LetIn1 (plug e t) m
-  | ELetIn2 e m => LetIn2 (plug e t) m
+  | ECase A e n1 n2 => Case A (plug e t) n1 n2
+  | ELetIn1 A e m => LetIn1 A (plug e t) m
+  | ELetIn2 A e m => LetIn2 A (plug e t) m
   | EFork e m => Fork (plug e t) m
   | ESend e => Send (plug e t)
   | ERecv e => Recv (plug e t)
@@ -87,9 +87,9 @@ Fixpoint eren (e : eval_context) (ξ : var -> var) : eval_context :=
   | EAppR m v e => EAppR (value_ren ξ v) (eren e ξ)
   | EPairL e m s => EPairL (eren e ξ) m.[ren ξ] s
   | EPairR m v e s => EPairR (value_ren ξ v) (eren e ξ) s
-  | ECase e n1 n2 => ECase (eren e ξ) n1.[ren ξ] n2.[ren ξ]
-  | ELetIn1 e m => ELetIn1 (eren e ξ) m.[ren ξ]
-  | ELetIn2 e m => ELetIn2 (eren e ξ) m.[upn 2 (ren ξ)]
+  | ECase A e n1 n2 => ECase A.[ren (upren ξ)] (eren e ξ) n1.[ren ξ] n2.[ren ξ]
+  | ELetIn1 A e m => ELetIn1 A.[ren (upren ξ)] (eren e ξ) m.[ren ξ]
+  | ELetIn2 A e m => ELetIn2 A.[ren (upren ξ)] (eren e ξ) m.[upn 2 (ren ξ)]
   | EFork e m => EFork (eren e ξ) m.[ren ξ]
   | ESend e => ESend (eren e ξ)
   | ERecv e => ERecv (eren e ξ)

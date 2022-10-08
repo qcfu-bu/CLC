@@ -191,7 +191,7 @@ Proof.
       rewrite e1. rewrite<-e3. rewrite<-pure_re; eauto.
       have:=substitution tyB0 k1 mrg2 tym. 
       asimpl; eauto. }
-    { have:=substitutionN tyB0 tym.
+    { have:=substitutionN m tyB0.
       rewrite e4. by rewrite<-e2. } }
   move=>Γ A B m s sb1 tym ihm tyB ihB
     m0 n e A0 B0 s0 r t x sb2 tyS; subst.
@@ -211,23 +211,23 @@ Lemma pair_inv Γ m n A B s r t1 t2 x :
     Γ2 ⊢ n : B.[m/].
 Proof. move=>tyP tyS. apply: pair_invX; eauto. Qed.
 
-Lemma case_inv Γ m n1 n2 C :
-  Γ ⊢ Case m n1 n2 : C ->
-  exists Γ1 Γ2 A,
+Lemma case_inv Γ m n1 n2 A C :
+  Γ ⊢ Case A m n1 n2 : C ->
+  exists Γ1 Γ2,
     Γ1 ∘ Γ2 => Γ /\
     A.[m/] === C /\
     Γ1 ⊢ m : Either /\
     Γ2 ⊢ n1 : A.[Left/] /\
     Γ2 ⊢ n2 : A.[Right/].
 Proof.
-  move e:(Case m n1 n2)=>n tp. elim: tp m n1 n2 e=>//{Γ n C}.
+  move e:(Case A m n1 n2)=>n tp. elim: tp A m n1 n2 e=>//{Γ n C}.
   move=>Γ1 Γ2 Γ m n1 n2 A s t k mrg
-    tym _ tyA _ tyn1 _ tyn2 _ m0 n0 n3 [e1 e2 e3]; subst.
-  exists Γ1. exists Γ2. exists A.
+    tym _ tyA _ tyn1 _ tyn2 _ A0 m0 n0 n3[e1 e2 e3 e4]; subst.
+  exists Γ1. exists Γ2.
   repeat split; eauto.
-  move=>Γ A B m s sb tym ihm _ _ m0 n1 n2 e; subst.
-  have{ihm}[G1[G2[A0[mrg'[sb'[tym0[tyn1 tyn2]]]]]]]:=ihm _ _ _ erefl.
-  exists G1. exists G2. exists A0.
+  move=>Γ A B m s sb tym ihm _ _ A0 m0 n1 n2 e; subst.
+  have{ihm}[G1[G2[mrg'[sb'[tym0[tyn1 tyn2]]]]]]:=ihm _ _ _ _ erefl.
+  exists G1. exists G2.
   repeat split; eauto.
   apply: conv_trans; eauto.
 Qed.

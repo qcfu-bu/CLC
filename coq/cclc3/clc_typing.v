@@ -73,12 +73,14 @@ Inductive clc_type : context term -> term -> term -> Prop :=
   [Either :{s} Γ2] ⊢ A : Sort t ->
   Γ2 ⊢ n1 : A.[Left/] ->
   Γ2 ⊢ n2 : A.[Right/] ->
-  Γ ⊢ Case m n1 n2 : A.[m/]
-| clc_letin1 Γ1 Γ2 Γ m n A :
+  Γ ⊢ Case A m n1 n2 : A.[m/]
+| clc_letin1 Γ1 Γ2 Γ m n A s t :
+  Γ1 |> s ->
   Γ1 ∘ Γ2 => Γ ->
   Γ1 ⊢ m : Unit ->
-  Γ2 ⊢ n : A ->
-  Γ ⊢ LetIn1 m n : A
+  [Unit :{s} Γ2] ⊢ A : Sort t ->
+  Γ2 ⊢ n : A.[It/] ->
+  Γ ⊢ LetIn1 A m n : A.[m/]
 | clc_letin2 Γ1 Γ2 Γ A B C m n s r t k x :
   t ≤ k ->
   Γ1 |> k ->
@@ -86,7 +88,7 @@ Inductive clc_type : context term -> term -> term -> Prop :=
   Γ1 ⊢ m : Sigma A B s r t ->
   [Sigma A B s r t :{k} Γ2] ⊢ C : Sort x ->
   B :{r} A :{s} Γ2 ⊢ n : C.[Pair (Var 1) (Var 0) t .: ren (+2)] ->
-  Γ ⊢ LetIn2 m n : C.[m/]
+  Γ ⊢ LetIn2 C m n : C.[m/]
 | clc_main Γ :
   Γ |> U ->
   Γ ⊢ Main : Sort L

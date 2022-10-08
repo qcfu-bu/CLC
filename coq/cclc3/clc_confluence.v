@@ -54,33 +54,36 @@ Inductive pstep : term -> term -> Prop :=
   pstep m m' ->
   pstep n n' ->
   pstep (Pair m n t) (Pair m' n' t)
-| pstep_case m m' n1 n1' n2 n2' :
+| pstep_case A A' m m' n1 n1' n2 n2' :
+  pstep A A' ->
   pstep m m' ->
   pstep n1 n1' ->
   pstep n2 n2' ->
-  pstep (Case m n1 n2) (Case m' n1' n2')
-| pstep_iotaL n1 n1' n2 :
+  pstep (Case A m n1 n2) (Case A' m' n1' n2')
+| pstep_iotaL A n1 n1' n2 :
   pstep n1 n1' ->
-  pstep (Case Left n1 n2) n1'
-| pstep_iotaR n1 n2 n2' :
+  pstep (Case A Left n1 n2) n1'
+| pstep_iotaR A n1 n2 n2' :
   pstep n2 n2' ->
-  pstep (Case Right n1 n2) n2'
-| pstep_letin1 m m' n n' :
+  pstep (Case A Right n1 n2) n2'
+| pstep_letin1 A A' m m' n n' :
+  pstep A A' ->
   pstep m m' ->
   pstep n n' ->
-  pstep (LetIn1 m n) (LetIn1 m' n')
-| pstep_iota1 n n' :
+  pstep (LetIn1 A m n) (LetIn1 A' m' n')
+| pstep_iota1 A n n' :
   pstep n n' ->
-  pstep (LetIn1 It n) n'
-| pstep_letin2 m m' n n' :
+  pstep (LetIn1 A It n) n'
+| pstep_letin2 A A' m m' n n' :
+  pstep A A' ->
   pstep m m' ->
   pstep n n' ->
-  pstep (LetIn2 m n) (LetIn2 m' n')
-| pstep_iota2 m1 m1' m2 m2' n n' t :
+  pstep (LetIn2 A m n) (LetIn2 A' m' n')
+| pstep_iota2 A m1 m1' m2 m2' n n' t :
   pstep m1 m1' ->
   pstep m2 m2' ->
   pstep n n' ->
-  pstep (LetIn2 (Pair m1 m2 t) n) n'.[m2',m1'/]
+  pstep (LetIn2 A (Pair m1 m2 t) n) n'.[m2',m1'/]
 | pstep_main :
   pstep Main Main
 | pstep_proto :
@@ -125,7 +128,7 @@ Proof.
     replace (m.[Fix A m/].[σ]) with (m.[up σ].[(Fix A m).[σ]/])
       by autosubst.
     apply step_iota0.
-  move=> m1 m2 n t σ.
+  move=>A m1 m2 n t σ.
     replace (n.[m2,m1/].[σ]) with (n.[upn 2 σ].[m2.[σ],m1.[σ]/])
       by autosubst.
     apply: step_iota2.
@@ -187,33 +190,39 @@ Proof.
   apply: (star_hom ((Pair m')^~ t)) r2=>x y. exact: step_pairR.
 Qed.
 
-Lemma red_case m m' n1 n1' n2 n2' :
-  m ~>* m' -> n1 ~>* n1' -> n2 ~>* n2' -> Case m n1 n2 ~>* Case m' n1' n2'.
+Lemma red_case A A' m m' n1 n1' n2 n2' :
+  A ~>* A' -> m ~>* m' -> n1 ~>* n1' -> n2 ~>* n2' -> Case A m n1 n2 ~>* Case A' m' n1' n2'.
+Proof.
+  move=>r1 r2 r3 r4.
+  apply: (star_trans (Case A' m n1 n2)).
+  apply: (star_hom (((Case^~ m)^~ n1)^~n2)) r1=>x y. exact: step_caseA.
+  apply: (star_trans (Case A' m' n1 n2)).
+  apply: (star_hom (((Case A')^~ n1)^~n2)) r2=>x y. exact: step_caseL.
+  apply: (star_trans (Case A' m' n1' n2)).
+  apply: (star_hom ((Case A' m')^~n2)) r3=>x y. exact: step_caseR1.
+  apply: (star_hom (Case A' m' n1')) r4=>x y. exact: step_caseR2.
+Qed.
+
+Lemma red_letin1 A A' m m' n n' :
+  A ~>* A' -> m ~>* m' -> n ~>* n' -> LetIn1 A m n ~>* LetIn1 A' m' n'.
 Proof.
   move=>r1 r2 r3.
-  apply: (star_trans (Case m' n1 n2)).
-  apply: (star_hom ((Case^~ n1)^~ n2)) r1=>x y. exact: step_caseL.
-  apply: (star_trans (Case m' n1' n2)).
-  apply: (star_hom ((Case m')^~ n2)) r2=>x y. exact: step_caseR1.
-  apply: (star_hom (Case m' n1')) r3=> x y. exact: step_caseR2.
+  apply: (star_trans (LetIn1 A' m n)).
+  apply: (star_hom ((LetIn1^~ m)^~ n)) r1=>x y. exact: step_letin1A.
+  apply: (star_trans (LetIn1 A' m' n)).
+  apply: (star_hom (LetIn1 A'^~ n)) r2=>x y. exact: step_letin1L.
+  apply: (star_hom (LetIn1 A' m')) r3=>x y. exact: step_letin1R.
 Qed.
 
-Lemma red_letin1 m m' n n' :
-  m ~>* m' -> n ~>* n' -> LetIn1 m n ~>* LetIn1 m' n'.
+Lemma red_letin2 A A' m m' n n' :
+  A ~>* A' -> m ~>* m' -> n ~>* n' -> LetIn2 A m n ~>* LetIn2 A' m' n'.
 Proof.
-  move=>r1 r2.
-  apply: (star_trans (LetIn1 m' n)).
-  apply: (star_hom (LetIn1^~ n)) r1=>x y. exact: step_letin1L.
-  apply: (star_hom (LetIn1 m')) r2=>x y. exact: step_letin1R.
-Qed.
-
-Lemma red_letin2 m m' n n' :
-  m ~>* m' -> n ~>* n' -> LetIn2 m n ~>* LetIn2 m' n'.
-Proof.
-  move=>r1 r2.
-  apply: (star_trans (LetIn2 m' n)).
-  apply: (star_hom (LetIn2^~ n)) r1=>x y. exact: step_letin2L.
-  apply: (star_hom (LetIn2 m')) r2=>x y. exact: step_letin2R.
+  move=>r1 r2 r3.
+  apply: (star_trans (LetIn2 A' m n)).
+  apply: (star_hom ((LetIn2^~ m)^~ n)) r1=>x y. exact: step_letin2A.
+  apply: (star_trans (LetIn2 A' m' n)).
+  apply: (star_hom (LetIn2 A'^~ n)) r2=>x y. exact: step_letin2L.
+  apply: (star_hom (LetIn2 A' m')) r3=>x y. exact: step_letin2R.
 Qed.
 
 Lemma red_act r A A' B B' s :
@@ -293,7 +302,7 @@ Hint Resolve
   red_close red_wait sred_up sred_upn : red_congr.
 
 Lemma red_compat σ τ s : sred σ τ -> red s.[σ] s.[τ].
-Proof. elim: s σ τ => *; asimpl; eauto with red_congr. Qed.
+Proof. elim: s σ τ => *; asimpl; eauto 7 with red_congr. Qed.
 
 Definition sconv (σ τ : var -> term) :=
   forall x, σ x === τ x.
@@ -354,33 +363,39 @@ Proof.
   apply: (conv_hom ((Pair m')^~ t)) r2=>x y. exact: step_pairR.
 Qed.
 
-Lemma conv_case m m' n1 n1' n2 n2' :
-  m === m' -> n1 === n1' -> n2 === n2' -> Case m n1 n2 === Case m' n1' n2'.
+Lemma conv_case A A' m m' n1 n1' n2 n2' :
+  A === A' -> m === m' -> n1 === n1' -> n2 === n2' -> Case A m n1 n2 === Case A' m' n1' n2'.
+Proof.
+  move=>r1 r2 r3 r4.
+  apply: (conv_trans (Case A' m n1 n2)).
+  apply: (conv_hom (((Case^~ m)^~n1)^~n2)) r1=>x y. exact: step_caseA.
+  apply: (conv_trans (Case A' m' n1 n2)).
+  apply: (conv_hom ((Case A'^~ n1)^~ n2)) r2=>x y. exact: step_caseL.
+  apply: (conv_trans (Case A' m' n1' n2)).
+  apply: (conv_hom ((Case A' m')^~ n2)) r3=>x y. exact: step_caseR1.
+  apply: (conv_hom (Case A' m' n1')) r4=> x y. exact: step_caseR2.
+Qed.
+
+Lemma conv_letin1 A A' m m' n n' :
+  A === A' -> m === m' -> n === n' -> LetIn1 A m n === LetIn1 A' m' n'.
 Proof.
   move=>r1 r2 r3.
-  apply: (conv_trans (Case m' n1 n2)).
-  apply: (conv_hom ((Case^~ n1)^~ n2)) r1=>x y. exact: step_caseL.
-  apply: (conv_trans (Case m' n1' n2)).
-  apply: (conv_hom ((Case m')^~ n2)) r2=>x y. exact: step_caseR1.
-  apply: (conv_hom (Case m' n1')) r3=> x y. exact: step_caseR2.
+  apply: (conv_trans (LetIn1 A' m n)).
+  apply: (conv_hom ((LetIn1^~ m)^~n)) r1=>x y. exact: step_letin1A.
+  apply: (conv_trans (LetIn1 A' m' n)).
+  apply: (conv_hom (LetIn1 A'^~ n)) r2=>x y. exact: step_letin1L.
+  apply: (conv_hom (LetIn1 A' m')) r3=>x y. exact: step_letin1R.
 Qed.
 
-Lemma conv_letin1 m m' n n' :
-  m === m' -> n === n' -> LetIn1 m n === LetIn1 m' n'.
+Lemma conv_letin2 A A' m m' n n' :
+  A === A' -> m === m' -> n === n' -> LetIn2 A m n === LetIn2 A' m' n'.
 Proof.
-  move=>r1 r2.
-  apply: (conv_trans (LetIn1 m' n)).
-  apply: (conv_hom (LetIn1^~ n)) r1=>x y. exact: step_letin1L.
-  apply: (conv_hom (LetIn1 m')) r2=>x y. exact: step_letin1R.
-Qed.
-
-Lemma conv_letin2 m m' n n' :
-  m === m' -> n === n' -> LetIn2 m n === LetIn2 m' n'.
-Proof.
-  move=>r1 r2.
-  apply: (conv_trans (LetIn2 m' n)).
-  apply: (conv_hom (LetIn2^~ n)) r1=>x y. exact: step_letin2L.
-  apply: (conv_hom (LetIn2 m')) r2=>x y. exact: step_letin2R.
+  move=>r1 r2 r3.
+  apply: (conv_trans (LetIn2 A' m n)).
+  apply: (conv_hom ((LetIn2^~ m)^~ n)) r1=>x y. exact: step_letin2A.
+  apply: (conv_trans (LetIn2 A' m' n)).
+  apply: (conv_hom (LetIn2 A'^~ n)) r2=>x y. exact: step_letin2L.
+  apply: (conv_hom (LetIn2 A' m')) r3=>x y. exact: step_letin2R.
 Qed.
 
 Lemma conv_act r A A' B B' s :
@@ -457,7 +472,7 @@ Hint Resolve
 
 Lemma conv_compat σ τ s :
   sconv σ τ -> s.[σ] === s.[τ].
-Proof. elim: s σ τ => *; asimpl; eauto with conv_congr. Qed.
+Proof. elim: s σ τ => *; asimpl; eauto 7 with conv_congr. Qed.
 
 Lemma conv_beta s t1 t2 : t1 === t2 -> s.[t1/] === s.[t2/].
 Proof. move=> c. by apply: conv_compat => -[]. Qed.
@@ -482,13 +497,13 @@ Proof.
     by apply: red_subst.
     apply: red_compat=>-[|-[]]//=.
     by apply: red_fix.
-  move=>n1 n1' n2 p r.
+  move=>A n1 n1' n2 p r.
     apply: starES. by constructor. exact: r.
-  move=>n1 n2 n2' p r.
+  move=>A n1 n2 n2' p r.
     apply: starES. by constructor. exact: r.
-  move=>n n' p1 r1.
+  move=>A n n' p1 r1.
     apply: starES. by constructor. exact: r1.
-  move=>m1 m1' m2 m2' n n' t p1 r1 p2 r2 pn rn.
+  move=>A m1 m1' m2 m2' n n' t p1 r1 p2 r2 pn rn.
     apply: starES. by constructor.
     apply: (star_trans n'.[m2,m1/]).
     by apply: red_subst.
@@ -511,12 +526,12 @@ Proof with eauto using pstep, pstep_refl.
       with (m'.[up σ].[Fix A'.[σ] m'.[up σ]/])
       by autosubst.
     constructor; eauto.
-  move=>m1 m1' m2 m2' n n' t p1 ih1 p2 ih2 pn ihn σ.
+  move=>A m1 m1' m2 m2' n n' t p1 ih1 p2 ih2 pn ihn σ.
     asimpl.
     specialize (ih1 σ).
     specialize (ih2 σ).
     specialize (ihn (upn 2 σ)).
-    have:=(pstep_iota2 t ih1 ih2 ihn).
+    have:=(pstep_iota2 A.[up σ] t ih1 ih2 ihn).
     by asimpl.
 Qed.
 
@@ -544,23 +559,36 @@ Proof with eauto 6 using pstep, psstep_up.
   move=> ps. elim: ps σ τ=>{s t}...
   move=> A m m' n n' s t ps1 ih1 ps2 ih2 σ τ pss.
     asimpl.
-    have {}ih1:=ih1 _ _ (psstep_up pss).
-    have {}ih2:=ih2 _ _ pss.
+    have{}ih1:=ih1 _ _ (psstep_up pss).
+    have{}ih2:=ih2 _ _ pss.
     have:=pstep_beta A.[σ] s t ih1 ih2.
     by asimpl.
   move=>A A' m m' pA ihA pm ihm σ τ pss.
     asimpl.
-    have {}ihA:=ihA _ _ pss.
-    have {}ihm:=ihm _ _ (psstep_up pss).
+    have{}ihA:=ihA _ _ pss.
+    have{}ihm:=ihm _ _ (psstep_up pss).
     replace (m'.[Fix A'.[τ] m'.[up τ] .: τ])
       with (m'.[up τ].[Fix A'.[τ] m'.[up τ]/])
       by autosubst.
     constructor...
-  move=>m1 m1' m2 m2' n n' t p1 ih1 p2 ih2 pn ihn σ τ pss.
-    have {}ih1:=ih1 _ _ pss.
-    have {}ih2:=ih2 _ _ pss.
-    have {}ihn:=ihn _ _ (psstep_upn 2 pss).
-    have:=pstep_iota2 t ih1 ih2 ihn.
+  move=>A A' m1 m1' m2 m2' n n' pA ihA p1 ih1 p2 ih2 pn ihn σ τ pss.
+    have{}ihA:=ihA _ _ (psstep_up pss).
+    have{}ih1:=ih1 _ _ pss.
+    have{}ih2:=ih2 _ _ pss.
+    have{}ihn:=ihn _ _ pss.
+    have:=pstep_case ihA ih1 ih2 ihn.
+    by asimpl.
+  move=>A A' m m' n n' pA ihA pm ihm pn ihn σ τ pss.
+    have{}ihA:=ihA _ _ (psstep_up pss).
+    have{}ihm:=ihm _ _ pss.
+    have{}ihn:=ihn _ _ (psstep_upn 2 pss).
+    have:=pstep_letin2 ihA ihm ihn.
+    by asimpl.
+  move=>A m1 m1' m2 m2' n n' t pm1 ihm1 pm2 ihm2 pn ihn σ τ pss.
+    have{}ihm1:=ihm1 _ _ pss.
+    have{}ihm2:=ihm2 _ _ pss.
+    have{}ihn:=ihn _ _ (psstep_upn 2 pss).
+    have:=pstep_iota2 A.[up σ] t ihm1 ihm2 ihn.
     by asimpl.
 Qed.
 
@@ -654,63 +682,66 @@ Proof with eauto 6 using
     have[mx pm1 pm2]:=ihm _ H3.
     have[nx pn1 pn2]:=ihn _ H4.
     exists (Pair mx nx t)...
-  move=>m m' n1 n1' n2 n2' pm ihm p1 ih1 p2 ih2 m2 p.
+  move=>A A' m m' n1 n1' n2 n2' pA ihA pm ihm p1 ih1 p2 ih2 m2 p.
     inv p.
-    have[mx pm1 pm2]:=ihm _ H2.
+    have[Ax pA1 pA2]:=ihA _ H3.
+    have[mx pm1 pm2]:=ihm _ H5.
+    have[x px1 px2]:=ih1 _ H6.
+    have[y py1 py2]:=ih2 _ H7.
+    exists (Case Ax mx x y)...
+    inv pm.
     have[x px1 px2]:=ih1 _ H4.
-    have[y py1 py2]:=ih2 _ H5.
-    exists (Case mx x y)...
-    inv pm.
-    have[x px1 px2]:=ih1 _ H3.
     exists x...
     inv pm.
-    have[y py1 py2]:=ih2 _ H3.
+    have[y py1 py2]:=ih2 _ H4.
     exists y...
-  move=>n1 n1' n2 pn ih m2 p.
-    inv p. inv H2.
-    have[x px1 px2]:=ih _ H4.
+  move=>A n1 n1' n2 pn ih m2 p.
+    inv p. inv H5.
+    have[x px1 px2]:=ih _ H6.
     exists x...
-    have[x px1 px2]:=ih _ H2.
+    have[x px1 px2]:=ih _ H3.
     exists x...
-  move=>n1 n2 n2' pn ih m2 p.
-    inv p. inv H2.
-    have[x px1 px2]:=ih _ H5.
+  move=>A n1 n2 n2' pn ih m2 p.
+    inv p. inv H5.
+    have[x px1 px2]:=ih _ H7.
     exists x...
-    have[x px1 px2]:=ih _ H2.
+    have[x px1 px2]:=ih _ H3.
     exists x...
-  move=>m m' n n' pm ihm pn ihn m2 p.
+  move=>A A' m m' n n' pA ihA pm ihm pn ihn m2 p.
     inv p.
-    have[mx pm1 pm2]:=ihm _ H1.
-    have[nx pn1 pn2]:=ihn _ H3.
-    exists (LetIn1 mx nx)...
+    have[Ax pA1 pA2]:=ihA _ H2.
+    have[mx pm1 pm2]:=ihm _ H4.
+    have[nx pn1 pn2]:=ihn _ H5.
+    exists (LetIn1 Ax mx nx)...
     inv pm.
+    have[nx pn1 pn2]:=ihn _ H3.
+    exists nx...
+  move=>A n n' pn ihn m2 p. 
+    inv p. inv H4.
+    have[nx pn1 pn2]:=ihn _ H5.
+    exists nx...
     have[nx pn1 pn2]:=ihn _ H2.
     exists nx...
-  move=>n n' pn ihn m2 p. 
-    inv p. inv H1.
-    have[nx pn1 pn2]:=ihn _ H3.
-    exists nx...
-    have[nx pn1 pn2]:=ihn _ H0.
-    exists nx...
-  move=>m m' n n' pm ihm pn ihn m2 p.
+  move=>A A' m m' n n' pA ihA pm ihm pn ihn m2 p.
     inv p.
-    have[mx pm1 pm2]:=ihm _ H1.
-    have[nx pn1 pn2]:=ihn _ H3.
-    exists (LetIn2 mx nx)...
+    have[Ax pA1 pA2]:=ihA _ H2.
+    have[mx pm1 pm2]:=ihm _ H4.
+    have[nx pn1 pn2]:=ihn _ H5.
+    exists (LetIn2 Ax mx nx)...
     inv pm.
-    have{ihn}[nx pn1 pn2]:=ihn _ H4.
+    have{ihn}[nx pn1 pn2]:=ihn _ H5.
     have{}/ihm[mx p1 p2]:pstep (Pair m1 m0 t) (Pair m1' m2' t)...
     inv p1. inv p2.
     exists (nx.[n'2,m'/])...
-  move=>m1 m1' m2 m2' n n' p1 t ih1 p2 ih2 pn ihn m0 p.
-    inv p. inv H1.
+  move=>A m1 m1' m2 m2' n n' p1 t ih1 p2 ih2 pn ihn m0 p.
+    inv p. inv H4.
+    have[mx1 p11 p12]:=ih1 _ H6.
+    have[mx2 p21 p22]:=ih2 _ H7.
+    have[nx pn1 pn2]:=ihn _ H5.
+    exists (nx.[mx2,mx1/])...
     have[mx1 p11 p12]:=ih1 _ H5.
     have[mx2 p21 p22]:=ih2 _ H6.
-    have[nx pn1 pn2]:=ihn _ H3.
-    exists (nx.[mx2,mx1/])...
-    have[mx1 p11 p12]:=ih1 _ H4.
-    have[mx2 p21 p22]:=ih2 _ H5.
-    have[nx pn1 pn2]:=ihn _ H6.
+    have[nx pn1 pn2]:=ihn _ H7.
     exists (nx.[mx2,mx1/])...
   move=>m2 p. inv p. exists Main...
   move=>m2 p. inv p. exists Proto...

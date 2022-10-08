@@ -178,16 +178,21 @@ Proof with eauto using
     { destruct s; simpl; constructor... }
     asimpl in ihA.
     have{}k:=agree_ren_key agr1 k.
+    replace A.[up (ren ξ)].[m.[ren ξ]/] with A.[ren (upren ξ)].[m.[ren ξ]/] by autosubst.
     apply: clc_case...
     asimpl...
-    asimpl...
     asimpl... }
-  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn ihn Γ' ξ agr.
+  move=>Γ1 Γ2 Γ m n A s t k mrg tym ihm tyA ihA tyn ihn Γ' ξ agr.
   { asimpl.
     move:(merge_agree_ren_inv agr mrg)=>[G1[G2[mrg1[agr1 agr2]]]].
     move:(ihm _ _ agr1)=>{}ihm.
     move:(ihn _ _ agr2)=>{}ihn.
-    apply: clc_letin1... }
+    replace A.[m.[ren ξ] .: ren ξ] with A.[ren (upren ξ)].[m.[ren ξ]/] by autosubst.
+    have{}k:=agree_ren_key agr1 k.
+    apply: clc_letin1...
+    apply: ihA.
+    destruct s; simpl; constructor...
+    asimpl. asimpl in ihn... }
   move=>Γ1 Γ2 Γ A B C m n s r t k x leq key mrg
     tym ihm tyC ihC tyn ihn Γ' ξ agr.
   { asimpl.
