@@ -138,6 +138,51 @@ Proof with eauto.
     econstructor... }
 Qed.
 
+Lemma sim_ch_inj A1 A2 r1 r2 :
+  sim (Ch r1 A1) (Ch r2 A2) -> r1 = r2 /\ A1 === A2.
+Proof with eauto.
+  move=>sm. inv sm.
+  elim: H0 A1 A2 r1 r2 H H1=>{x y}.
+  all: try solve[intros; exfalso; solve_conv].
+  { move=>m n A1 A2 r1 r2 eq1 eq2.
+    have/ch_inj//:=conv_trans _ eq1 eq2. }
+  { move=>A m A1 A2 r1 r2 eq1 eq2.
+    have/ch_inj//:=conv_trans _ eq1 eq2. }
+  { move=>A m n1 n2 A1 A2 r1 r2 eq1 eq2.
+    have/ch_inj//:=conv_trans _ eq1 eq2. }
+  { move=>A m n A1 A2 r1 r2 eq1 eq2.
+    have/ch_inj//:=conv_trans _ eq1 eq2. } 
+  { move=>A m n A1 A2 r1 r2 eq1 eq2.
+    have/ch_inj//:=conv_trans _ eq1 eq2. } 
+  { move=>r A A1 A2 r1 r2/ch_inj[-> eq1]/ch_inj[-> eq2].
+    split...
+    apply: conv_trans... }
+Qed.
+
+Lemma sim_act_inj A1 A2 B1 B2 s1 s2 r1 r2 :
+  sim (Act r1 A1 B1 s1) (Act r2 A2 B2 s2) ->
+    A1 === A2 /\ B1 === B2 /\ s1 = s2 /\ r1 = r2 .
+Proof with eauto.
+  move=>sm. inv sm.
+  elim: H0 A1 A2 B1 B2 s1 s2 r1 r2 H H1=>{x y}.
+  all: try solve[intros; exfalso; solve_conv].
+  { move=>m n A1 A2 B1 B2 s1 s2 r1 r2 eq1 eq2.
+    have/act_inj//:=conv_trans _ eq1 eq2. }
+  { move=>A m A1 A2 B1 B2 s1 s2 r1 r2 eq1 eq2.
+    have/act_inj//:=conv_trans _ eq1 eq2. }
+  { move=>A m n1 n2 A1 A2 B1 B2 s1 s2 r1 r2 eq1 eq2.
+    have/act_inj//:=conv_trans _ eq1 eq2. }
+  { move=>A m n A1 A2 B1 B2 s1 s2 r1 r2 eq1 eq2.
+    have/act_inj//:=conv_trans _ eq1 eq2. }
+  { move=>A m n A1 A2 B1 B2 s1 s2 r1 r2 eq1 eq2.
+    have/act_inj//:=conv_trans _ eq1 eq2. }
+  { move=>r A B s A1 A2 B1 B2 s1 s2 r1 r2
+      /act_inj[eq1[eq2[e1 e2]]]/act_inj[eq3[eq4[e3 e4]]]; subst.
+    repeat split...
+    apply: conv_trans...
+    apply: conv_trans... }
+Qed.
+
 Lemma clc_sort_uniq Γ s A :
   Γ ⊢ Sort s : A -> sim (Sort U) A.
 Proof with eauto.
@@ -404,18 +449,34 @@ Lemma clc_send_uniq Γ m A B C s r1 r2 :
 Proof with eauto.
   move e:(Send m)=>x ty. elim: ty A B m s r1 r2 e=>//{Γ x C}.
   { move=>Γ r1 r2 A B m s xor tym _ A0 B0 m0 s0 r0 r3[e]h; subst.
-    
-  }
+    have/sim_ch_inj[->/act_inj[eq1[eq2[->_]]]]:=h _ tym.
+    econstructor.
+    apply: conv_pi.
+    apply: eq1.
+    apply: conv_ch.
+    apply: eq2.
+    apply: head_sim_refl.
+    eauto. }
+  { move=>Γ A B m s eq tym ihm tyB _ A0 B0 m0 s0 r1 r2 e h; subst.
+    have eq':=ihm _ _ _ _ _ _ erefl h.
+    apply: sim_transL... }
+Qed.
 
-  ihm : ∀ (Γ2 G1 G2 Γ0 : context term) (B0 : term),
-          Γ2 ⊢ m : B0 → Γ ∘ G1 => Γ0 → Γ2 ∘ G2 => Γ0 → sim (Ch r1 (Act r2 A B s)) B0
-  Γ2, G1, G2, Γ0 : context term
-  B0 : term
-  ty : Γ2 ⊢ Send m : B0
-  mrg1 : Γ ∘ G1 => Γ0
-  mrg2 : Γ2 ∘ G2 => Γ0
-  ============================
-  sim (Pi A (Ch r1 B) s L) B0
+Lemma clc_wait_uniq Γ m B : Γ ⊢ Wait m : B -> sim Unit B.
+Proof with eauto.
+  move e:(Wait m)=>x ty. elim: ty m e=>//{Γ x B}.
+  move=>Γ A B m s eq tym ih tyB _ m0 e; subst.
+  have eq':=ih _ erefl.
+  apply: sim_transL...
+Qed.
+
+Lemma clc_close_uniq Γ m B : Γ ⊢ Close m : B -> sim Unit B.
+Proof with eauto.
+  move e:(Close m)=>x ty. elim: ty m e=>//{Γ x B}.
+  move=>Γ A B m s eq tym ih tyB _ m0 e; subst.
+  have eq':=ih _ erefl.
+  apply: sim_transL...
+Qed.
 
 Lemma clc_uniq Γ1 Γ2 G1 G2 Γ m A B :
   Γ1 ⊢ m : A -> Γ2 ⊢ m : B -> Γ1 ∘ G1 => Γ -> Γ2 ∘ G2 => Γ -> sim A B.
@@ -496,21 +557,26 @@ Proof with eauto.
   { move=>Γ r1 r2 A B m s xor tym ihm Γ2 G1 G2 Γ0 B0 ty mrg1 mrg2.
     apply: clc_recv_uniq... }
   { move=>Γ r1 r2 A B m s xor tym ihm Γ2 G1 G2 Γ0 B0 ty mrg1 mrg2.
-    
-  }
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  admit.
-  intros.
-  have eq':=H1 _ _ _ _ _ H4 H5 H6.
-  apply: sim_transR...
-  apply: conv_sym...
+    apply: clc_send_uniq... }
+  { move=>Γ r1 r2 m xor tym ihm Γ2 G1 G2 Γ0 B ty mrg1 mrg2.
+    apply: clc_wait_uniq... }
+  { move=>Γ r1 r2 m xor tym ihm Γ2 G1 G2 Γ0 B ty mrg1 mrg2.
+    apply: clc_close_uniq... }
+  { move=>Γ A B m s eq tym ihm tyB _ Γ2 G1 G2 Γ0 B0 ty mrg1 mrg2.
+    have eq':=ihm _ _ _ _ _ ty mrg1 mrg2.
+    apply: sim_transR...
+    apply: conv_sym... }
+Qed.
+
+Theorem unicity Γ m s t :
+  Γ ⊢ m : Sort s -> Γ ⊢ m : Sort t -> s = t.
+Proof with eauto.
+  move=>ty1 ty2.
+  apply: sim_sort.
+  apply: clc_uniq.
+  apply: ty1.
+  apply: ty2.
+  apply: merge_reR.
+  apply: merge_reR.
+Qed.
+  
