@@ -276,9 +276,9 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       econstructor.
       apply: (key_impure G4).
       all: eauto. } }
-  move=>Γ1 Γ2 Γ m n A mrg tym ihm tyn _ wf c m0 e.
+  move=>Γ1 Γ2 Γ m n A s t k mrg tym ihm tyA ihA tyn _ wf c m0 e.
   { destruct c; simpl in e; inv e. 
-    { exists Γ. exists [Γ]. exists A.
+    { exists Γ. exists [Γ]. exists A.[m/].
       repeat split...
       move=>k' Γ3 Γ' m0 mrg0 tym0//=.
       have->//:=merge_pureR mrg0 (re_pure _). }
@@ -291,7 +291,14 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       move=>k' Γ3 Γ' n0 mrg3 tyn0//=.
       have[G4[mrg4 mrg5]]:=merge_splitL (merge_sym mrg3) mrg1.
       have{}ih:=ih k' _ _ _ (merge_sym mrg4) tyn0.
-      econstructor... } }
+      destruct s.
+      have[]//:=merge_pure_inv mrg0 k.
+      have os:of_sort (_: [Γ2]) 0 None by constructor.
+      have oc:=narity tyA os.
+      have->:=nsubst_subst c.[m0] c.[n0] oc.
+      econstructor.
+      apply: key_impure G4.
+      all: eauto. } }
   move=>Γ1 Γ2 Γ A B C m n s r t k x lte key mrg
     tym ihm tyC _ tyn _ wf c m0 e.
   { destruct c; simpl in e; inv e. 
@@ -423,9 +430,9 @@ Proof.
   move=>m v e ih m0 ξ. by rewrite ih.
   move=> e ih t s m ξ. by rewrite ih.
   move=>m v e ih s m0 ξ. by rewrite ih.
-  move=>e ih t1 t2 m ξ. by rewrite ih.
-  move=>e ih t m ξ. by rewrite ih.
-  move=>e ih t m ξ. by rewrite ih.
+  move=>A e ih t1 t2 m ξ. asimpl. by rewrite ih.
+  move=>A e ih t m ξ. asimpl. by rewrite ih.
+  move=>A e ih t m ξ. asimpl. by rewrite ih.
   move=>e ih t m ξ. by rewrite ih.
   move=>e ih m ξ. by rewrite ih.
   move=>e ih m ξ. by rewrite ih.
