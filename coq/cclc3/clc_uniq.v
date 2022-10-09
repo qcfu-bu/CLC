@@ -366,7 +366,7 @@ Proof with eauto.
   move e:(LetIn2 A m n)=>x ty. elim: ty A m n e=>//{Γ B x}.
   { move=>Γ1 Γ2 Γ A B C m n s r t k x leq key mrg tym _ tyC _ tyn _
       A0 m0 n0[e1 e2 e3]; subst.
-    apply: sim_refl. }.
+    apply: sim_refl. }
   { move=>Γ A B m s k tym ihm tyB _ A0 m0 n e; subst.
     have eq':=ihm _ _ _ erefl.
     apply: sim_transL... }

@@ -304,6 +304,7 @@ Proof.
         have{sb4}[e7 sb4]:=ch_inj sb4; subst.
         have[eA0[sb5[e7[e8 _]]]]:=pi_inj sb1; subst.
         have tyA:=clc_substitution.strengthen H1.
+        Locate dual_conv.
         have[A6[B6[ty6[sb6i sb6]]]]:=dual_conv (re_ok wf) sb3 tyA can_cancel2. asimpl in sb6.
         have[A7[B7[ty7[sb7i sb7]]]]:=dual_conv (re_ok wf) sb4 tyA can_cancel2. asimpl in sb7.
         have sb8:Act r4 A3 B3 s1 === Act r0 A'.[ren (+1)] B.[ren (0 .: (+2))] s4.
@@ -612,6 +613,7 @@ Proof.
       replace (Pi A'.[ren (+1)] B.[up (ren (+1))] s2 r t0)
         with (Pi A' B s2 r t0).[ren (+1)] in tyS by autosubst.
       move/clc_substitution.strengthen in tyS.
+      have:=send_inv.
       have[r5[r6[A3[B5[t[e[sb1[xor2 ty1]]]]]]]]:=send_inv tyS; subst.
       have[A2[t0[hs[sb3 e]]]]:=var_inv ty1; subst.
       inv hs. asimpl in sb3.
