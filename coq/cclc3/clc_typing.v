@@ -110,7 +110,7 @@ Inductive clc_type : context term -> term -> term -> Prop :=
 | clc_fork Γ1 Γ2 r1 r2 Γ m n A B t :
   Γ1 ∘ Γ2 => Γ ->
   r1 = ~~r2 ->
-  [Γ] ⊢ A : Proto ->
+  (* [Γ] ⊢ A : Proto -> *)
   Γ1 ⊢ m : Main ->
   Γ2 ⊢ n : Pi (Ch r2 A) B L t ->
   Γ ⊢ Fork m n : Sigma (Ch r1 A) Main L L L

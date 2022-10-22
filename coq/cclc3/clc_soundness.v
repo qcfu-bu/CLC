@@ -501,7 +501,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: re_ok... }
   move=>Γ r A k tyA ihA n o st. inv st.
   { constructor... }
-  move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tyA ihA tym ihm tyn ihn n0 wf st. inv st.
+  move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tym ihm tyn ihn n0 wf st. inv st.
   { have[wf1 wf2]:=merge_context_ok_inv mrg wf.
     econstructor... }
   { have[wf1 wf2]:=merge_context_ok_inv mrg wf.

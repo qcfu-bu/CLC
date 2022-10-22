@@ -421,7 +421,7 @@ Lemma clc_fork_uniq Γ m n A C r :
   Γ ⊢ Fork m n : C -> sim (Sigma (Ch (~~r) A) Main L L L) C.
 Proof with eauto.
   move e:(Fork m n)=>x ty. elim: ty A m n r e=>//{Γ x C}.
-  { move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tyA _ tym _ tyn _
+  { move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tym _ tyn _
       A0 B0 m0 r[e1 e2]; subst.
     econstructor. eauto.
     econstructor. eauto. }
@@ -551,7 +551,7 @@ Proof with eauto.
     apply: clc_act_uniq... }
   { move=>Γ r A k tyA ihA Γ2 G1 G2 Γ0 B tyC mrg1 mrg2.
     apply: clc_ch_uniq... }
-  { move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tyA ihA tym ihm tyn ihn
+  { move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tym ihm tyn ihn
       Γ0 G1 G2 Γ3 B0 tyF mrg1 mrg2; subst.
     apply: clc_fork_uniq... }
   { move=>Γ r1 r2 A B m s xor tym ihm Γ2 G1 G2 Γ0 B0 ty mrg1 mrg2.

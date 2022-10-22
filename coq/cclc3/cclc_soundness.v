@@ -128,7 +128,7 @@ Proof with eauto.
     have[_[B[_ e]]]:=narity_ren1 wf0 tyF; subst.
     have {}tyF:=clc_substitution.strengthen tyF.
     have[G1[G2[r1[r2[A0[B0[t0[sb0[mrg[d[tyA[tyv tym]]]]]]]]]]]]:=
-      fork_inv tyF; subst.
+      fork_inv wf0 tyF; subst.
     have[A1[s1[hs sb]]]:=var_inv tyv; subst.
     inv hs.
     destruct s1.

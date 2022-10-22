@@ -350,7 +350,7 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
     exists Γ. exists Γ. exists (Sort L).
     repeat split...
     move=>//. }
-  move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tyA _ tym ihm tyn ihn wf c m0 e.
+  move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tym ihm tyn ihn wf c m0 e.
   { destruct c; simpl in e; inv e.
     { exists Γ. exists [Γ]. exists (Sigma (Ch (~~r2) A) Main L L L).
       repeat split...
@@ -369,8 +369,6 @@ Proof with eauto using clc_type, merge_reR, merge_pure.
       have[_[e3 e4]]:=merge_re_re mrg.
       econstructor.
       apply: mrg5.
-      eauto.
-      rewrite<-e2. rewrite e4; eauto.
       all: eauto. } }
   move=>Γ r1 r2 A B m s xor tym ihm wf c m0 e.
   { destruct c; simpl in e; inv e.

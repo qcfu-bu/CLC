@@ -249,28 +249,6 @@ Proof.
   move=>Γ r A k tyA ihA r0 A0 [e1 e2]; subst=>//.
 Qed.
 
-Lemma fork_inv Γ m n T :
-  Γ ⊢ Fork m n : T ->
-  exists Γ1 Γ2 r1 r2 A B t,
-    Sigma (Ch r1 A) Main L L L === T /\
-    Γ1 ∘ Γ2 => Γ /\
-    r1 = ~~ r2 /\
-    [Γ] ⊢ A : Proto /\
-    Γ1 ⊢ m : Main /\
-    Γ2 ⊢ n : Pi (Ch r2 A) B L t.
-Proof.
-  move e:(Fork m n)=>x tp. elim: tp m n e=>//{Γ x T}.
-  move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tyA _ tym _ tyn _ m0 n0 [e1 e2]; subst.
-  exists Γ1. exists Γ2. exists (~~r2). exists r2. exists A. exists B. exists t.
-  repeat split; eauto.
-  move=>Γ A B m s sb tym ih tyB _ m0 n e; subst.
-  have[G1[G2[r1[r2[A0[B0[t0]]]]]]]:=ih _ _ erefl.
-  firstorder; subst.
-  exists G1. exists G2. exists (~~r2). exists r2. exists A0. exists B0. exists t0.
-  repeat split; eauto.
-  apply: conv_trans; eauto.
-Qed.
-
 Lemma recv_inv Γ m C :
   Γ ⊢ Recv m : C ->
   exists r1 r2 A B s,

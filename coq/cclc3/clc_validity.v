@@ -104,10 +104,14 @@ Proof with eauto using clc_type, re_pure, merge_re_id, key.
   move=>Γ r k o...
   move=>Γ r A B s k tyA ihA tyB ihB o...
   move=>Γ r A k tyA ihA o...
-  move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tyA _ _ _ _ _ wf.
+  move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tym ihm tyn ihn wf.
+    have[wf1 wf2]:=merge_context_ok_inv mrg wf.
     have[_[e1 e2]]:=merge_re_re mrg.
+    have[s/pi_inv[/ch_inv tyA _]]:=ihn wf2.
     exists L. econstructor; simpl...
     constructor.
+    constructor...
+    rewrite<-e2...
   move=>Γ r1 r2 A B m s xor tym ihm o.
     have[r/ch_inv/act_inv[tyA tyB]]:=ihm o.
     exists L. apply: clc_sigma...
@@ -118,4 +122,30 @@ Proof with eauto using clc_type, re_pure, merge_re_id, key.
   move=>Γ r1 r2 m xor tym ihm o...
   move=>Γ r1 r2 m xor tym ihm o...
   move=>Γ A B m s sb tym ihm tyB ihB o...
+Qed.
+
+Lemma fork_inv Γ m n T :
+  ok Γ -> Γ ⊢ Fork m n : T ->
+  exists Γ1 Γ2 r1 r2 A B t,
+    Sigma (Ch r1 A) Main L L L === T /\
+    Γ1 ∘ Γ2 => Γ /\
+    r1 = ~~ r2 /\
+    [Γ] ⊢ A : Proto /\
+    Γ1 ⊢ m : Main /\
+    Γ2 ⊢ n : Pi (Ch r2 A) B L t.
+Proof.
+  move e:(Fork m n)=>x wf tp. elim: tp wf m n e=>//{Γ x T}.
+  move=>Γ1 Γ2 r1 r2 Γ m n A B t mrg d tym _ tyn _ wf m0 n0 [e1 e2]; subst.
+  exists Γ1. exists Γ2. exists (~~r2). exists r2. exists A. exists B. exists t.
+  repeat split; eauto.
+  have[wf1 wf2]:=merge_context_ok_inv mrg wf.
+  have[e0[e1 e2]]:=merge_re_re mrg.
+  have[s/pi_inv[/ch_inv tyA _]]:=validity wf2 tyn.
+  rewrite<-e2=>//.
+  move=>Γ A B m s sb tym ih tyB _ wf m0 n e; subst.
+  have[G1[G2[r1[r2[A0[B0[t0]]]]]]]:=ih wf _ _ erefl.
+  firstorder; subst.
+  exists G1. exists G2. exists (~~r2). exists r2. exists A0. exists B0. exists t0.
+  repeat split; eauto.
+  apply: conv_trans; eauto.
 Qed.
