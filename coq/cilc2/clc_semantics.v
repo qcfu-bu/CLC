@@ -581,7 +581,7 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       have->:=nf_agree_resolve H4 le agr1. apply:ihm...
       have->:=nf_agree_resolve H5 le agr2. apply:ihn...
       exfalso. apply: lookup_wr_ptr; eauto. } }
-  move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
+  move=>Γ A Cs s l1 l2 k ar cCs tyA ihA tyCs ihCs Θ1 Θ2 Θ m σ σ' x mrg rsm wr agr.
   { inv rsm; asimpl.
     { have k2:=agree_resolve_key agr k.
       econstructor...
@@ -592,7 +592,7 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       apply: agree_resolve_upTy... }
     { inv H0.
       have nfI:=lookup_wr_nf H wr.
-      have fr:lookup Θ1 l0 (spine (Ind A0 Cs0 s) nil) Θ' by eauto.
+      have fr:lookup Θ1 l (spine (Ind A0 Cs0 s) nil) Θ' by eauto.
       have e:=lookup_wr_ind fr wr; subst.
       have k2:=agree_resolve_key agr k.
       have[e1 e2]:=merge_pure_eq mrg H6 k2; subst.
@@ -630,7 +630,7 @@ Proof with eauto using resolve, merge_pure_pure, All2.
       have e:=merge_pureR mrg1 k2; subst=>//.
       apply: lookup_wr...
       exfalso. apply: lookup_wr_ptr... } }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms//=leq ar key mrg1 
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms//=leq ar key mrg1 
     tym ihm tyQ ihQ tyFs ihFs Θ1 Θ2 Θ m0 σ σ' x mrg2 rsm wr agr.
   { inv rsm; asimpl.
     { have[wr1 wr2]:=wr_merge_inv H2 wr.
@@ -1086,7 +1086,7 @@ Proof with eauto 6 using
         constructor; eauto. } }
     { rewrite<-spine_app_rcons in H.
       inv H. } }
-  move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs
+  move=>Γ A Cs s l1 l2 k ar cCs tyA ihA tyCs ihCs
     Θ1 Θ2 Θ Θ' m m' rsm e wr mrg ev; subst.
   { inv rsm; inv ev; try solve_spine.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
@@ -1130,7 +1130,7 @@ Proof with eauto 6 using
       have//:=resolve_wr_nfi H5 wr1 nfI. }
     { have[e mrg']:=lookup_subset mrg H5 H; subst. inv H0. }
     { have[e mrg']:=lookup_subset mrg H5 H; subst. inv H0. } }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms//=leq ar key mrg1 
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms//=leq ar key mrg1 
     tym ihm tyQ ihQ tyFs ihFs Θ1 Θ2 Θ Θ' m0 m' rsm e wr mrg2 ev; subst.
   { inv mrg1.
     inv rsm; inv ev; try solve_spine.
@@ -1139,7 +1139,7 @@ Proof with eauto 6 using
         ihm _ _ _ _ _ _ H5 erefl wr mrg4 H9.
       have[Θ3p[Θ2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
       have[Θy[mrp1 mrp2]]:=merge_splitL (merge_sym mrgx) mrp.
-      have[l tysp]:=validity nil_ok tym.
+      have[l0 tysp]:=validity nil_ok tym.
       have tyI:=ind_spine (key_nil _ _) tysp.
       inv wrs.
       exists Θy. exists Θ2p.
@@ -1161,7 +1161,7 @@ Proof with eauto 6 using
           apply: conv_sym.
           apply: star_conv.
           apply: red_app... }
-        have[l0[sp _]]:=ind_spine_inv (key_nil _ _) ar tysp.
+        have[sp _]:=ind_spine_inv (key_nil _ _) ar tysp.
         have{}sp:=rearity_spine s' sp ar leq (key_nil _ _) tyI.
         have spQ:=app_arity_spine tyQ sp (merge_nil _).
         destruct k=>//=.
@@ -1185,9 +1185,9 @@ Proof with eauto 6 using
       apply: app_resolve_spine...
       have[G1[G2[A0[s1[mrg7[tyC tysp]]]]]]:=spine_inv nil_ok tym.
       inv mrg7.
-      have//=[l0 tyA0]:=validity nil_ok tyC.
+      have//=[l1 tyA0]:=validity nil_ok tyC.
       have[A1[C0[Cs0[e1[_[ig0[e2[sb tyI']]]]]]]]:=constr_inv tyC; subst.
-      have[l1[_[_[ar1[cCs0[tyA1 tyCs0]]]]]]:=ind_inv tyI'.
+      have[l2[l3[_[_[ar1[cCs0[tyA1 tyCs0]]]]]]]:=ind_inv tyI'.
       have[C[ig1[cC tyF']]]:=iget_All2i tyFs ig'.
       have cC0:=iget_All1 ig0 cCs0.
       have{}tysp:=typing_spine_strengthen tysp sb tyA0.
@@ -1205,12 +1205,12 @@ Proof with eauto 6 using
         apply: conv_subst.
         apply: conv_sym... }
       have{}tysp:=typing_spine_strengthen tysp h3 tyCI.
-      have//=[l2 tyIsp]:=validity nil_ok tym.
-      have[l3[arsp _]]:=ind_spine_inv (key_nil _ _) ar tyIsp.
+      have//=[l4 tyIsp]:=validity nil_ok tym.
+      have[arsp _]:=ind_spine_inv (key_nil _ _) ar tyIsp.
       have tyI:=ind_spine (key_nil _ _) tyIsp.
       have{}arsp:=rearity_spine s' arsp ar leq (key_nil _ _) tyI.
       have spQ:=app_arity_spine tyQ arsp (merge_nil _).
-      have[l4[_[_[_[_[tyA tyCs]]]]]]:=ind_inv tyI.
+      have[l5[l6[_[_[_[_[tyA tyCs]]]]]]]:=ind_inv tyI.
       have tyCx:=iget_All1 igx tyCs.
       have//={}tyCx:=substitution tyCx (key_nil _ _) (merge_nil _) tyI.
       have h4 :

@@ -456,13 +456,13 @@ Proof with eauto using resolve, re_pure, merge_re_id, All2.
     apply: re_sort.
     have{}rsP:=rsP Θ.
     inv rsP. rewrite<-re_invo... }
-  move=>Γ A Cs s l k ar _ tyA ihA tyCs ihCs Θ.
+  move=>Γ A Cs s l1 l2 k ar _ tyA ihA tyCs ihCs Θ.
   { apply: resolve_indd...
     elim: ihCs tyCs=>{Cs}...
     move=>C Cs h hd ih tl.
     inv tl.
     constructor... }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms I leq ar key mrg
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms I leq ar key mrg
     tym ihm tyQ ihQ tyFs ihFs Θ.
   { apply: resolve_case...
     apply: resolve_type_refl_All2i... }
@@ -504,14 +504,14 @@ Proof with eauto using resolve, re_pure, merge_re_id, re_pure, All1.
   move=>Γ1 Γ2 Γ A B m n s r t k mrg tym ihm tyn ihn Θ n0 rs. inv rs.
   { erewrite ihm...
     erewrite ihn... }
-  move=>Γ A Cs s l k ar _ tyA ihA tyCs ihCs Θ n rs. inv rs.
+  move=>Γ A Cs s l1 l2 k ar _ tyA ihA tyCs ihCs Θ n rs. inv rs.
   { f_equal...
     elim: H6 ihCs tyCs=>{Cs Cs'}...
     move=>C C' Cs Cs' rs hCs hd ih tl. inv ih. inv tl.
     f_equal... }
   move=>Γ A s i C Cs I k ig tyI ihI Θ n rs. inv rs.
   { erewrite ihI... }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms I leq ar key mrg
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms I leq ar key mrg
     tym ihm tyQ ihQ tyFs ihFs Θ n rs. inv rs.
   { f_equal...
     apply: resolve_type_id_All2i... }
@@ -883,7 +883,7 @@ Proof with eauto using nf.
     constructor.
     rewrite<-e1...
     rewrite<-e2... }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms leq ar key mrg
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms leq ar key mrg
     tym ihm tyQ ihQ tyFs ihFs.
   { have[e1 e2]:=merge_size mrg.
     constructor.
@@ -1617,7 +1617,7 @@ Proof with eauto using key_impure.
   { inv mrg.
     have[ms'[e1 e2]]:=ind_spine_app_inv H; subst.
     have tyI:=ind_spine (key_nil _ _) tym.
-    have[l[_[_[ar[cCs[tyA0 tyCs]]]]]]:=ind_inv tyI.
+    have[l1[l2[_[_[ar[cCs[tyA0 tyCs]]]]]]]:=ind_inv tyI.
     have[A'[t0[l0[ar'[tyA'[sp sb]]]]]]:=ind_spine_invX (key_nil _ _) ar tym.
     inv ar'.
     exfalso; solve_sub.
@@ -1644,7 +1644,7 @@ Proof with eauto using key_impure.
     inv mrg.
     have[l tyA0]:=validity nil_ok tyC.
     have[A1[C[Cs[e1[_[ig[e2[sb tyI]]]]]]]]:=constr_inv tyC; subst.
-    have[l0[_[_[_[cCs[_ tyCs]]]]]]:=ind_inv tyI.
+    have[l1[l2[_[_[_[cCs[_ tyCs]]]]]]]:=ind_inv tyI.
     have c:=iget_All1 ig cCs.
     have tyc:=iget_All1 ig tyCs.
     have//=tycI:=substitution tyc (key_nil _ _) (merge_nil _) tyI.
@@ -1682,7 +1682,7 @@ Proof with eauto using key_impure.
   { destruct s.
     apply: resolve_constr_inv; eauto.
     apply: key_impure. }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms I leq ar key mrg
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms I leq ar key mrg
     tym ihm tyQ ihQ tyFs ihFs Θ m0 e val. inv val.
   { exfalso. solve_spine. }
   { exfalso. solve_spine. }
