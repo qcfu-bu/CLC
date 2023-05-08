@@ -30,7 +30,7 @@ Proof. move/conv_sub1. apply. exact: sub1_refl. Qed.
 
 Lemma sub_refl A : A <: A.
 Proof. apply: sub1_sub. exact: sub1_refl. Qed.
-Hint Resolve sub_refl.
+#[global] Hint Resolve sub_refl.
 
 Lemma sub_sort s n m : n <= m -> s @ n <: s @ m.
 Proof. move=> leq. exact/sub1_sub/sub1_sort. Qed.

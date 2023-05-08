@@ -9,10 +9,10 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma arity_step s A A' : arity s A -> A ~> A' -> arity s A'.
+Lemma arity_step s l A A' : arity s l A -> A ~> A' -> arity s l A'.
 Proof.
   move=>ar. elim: ar A'=>{A}.
-  move=> l A' st. inv st; solve_fix.
+  move=> A' st. inv st; solve_fix.
   move=> A0 B a ih A' st. inv st; solve_fix.
   constructor; eauto.
   constructor; eauto.
@@ -363,11 +363,11 @@ Proof.
   apply: ih. apply: sub_list_ok; eauto.
 Qed.
 
-Lemma All2i_mkcase_stepQ Γ A Q Q' Fs Cs Xs n k s s' l :
+Lemma All2i_mkcase_stepQ Γ A Q Q' Fs Cs Xs n k s s' l1 l2 :
   let I := Ind A Cs s in
   s ≤ k ->
   Q ~> Q' ->
-  arity s A ->
+  arity s l1 A ->
   [Γ] ⊢ I : A : U ->
   [Γ] ⊢ Q' : rearity k s' I A : U ->
   sub_list n Cs Xs ->
@@ -375,7 +375,7 @@ Lemma All2i_mkcase_stepQ Γ A Q Q' Fs Cs Xs n k s s' l :
     constr 0 s C /\
     let T := mkcase k s' I Q (Constr i I s) C in
     Γ ⊢ F : T.2 : T.1) n Fs Xs ->
-  All1 (fun C => A :U [Γ] ⊢ C : s @ l : U) Xs ->
+  All1 (fun C => A :U [Γ] ⊢ C : s @ l2 : U) Xs ->
   All2i (fun i F C =>
     constr 0 s C /\
     let T := mkcase k s' I Q' (Constr i I s) C in
@@ -388,7 +388,7 @@ Proof.
   constructor; eauto.
   split; eauto.
   have h1 : (I .: ids) 0 = Ind A Cs s by eauto.
-  have h2 : [Γ] ⊢ C.[I/] : (s @ l).[I/] : U.
+  have h2 : [Γ] ⊢ C.[I/] : (s @ l2).[I/] : U.
   { apply: substitution.
     apply: H1.
     apply: (re_pure Γ).
@@ -543,7 +543,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     econstructor.
     apply: k.
     all: eauto. }
-  move=>Γ A Cs s l k ar cCs tyA ihA tyCs ihCs n wf st. inv st; solve_fix.
+  move=>Γ A Cs s l1 l2 k ar cCs tyA ihA tyCs ihCs n wf st. inv st; solve_fix.
   { apply: clc_conv.
     apply: conv_sub.
     apply: conv1i...
@@ -576,8 +576,8 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
   { have st : Ind A Cs s ~> Ind A' Cs s.
     { constructor; eauto. }
     have{}ih:=ih _ wf st.
-    have[l[_[_[ar[cCs[tyA tyCs]]]]]]:=ind_inv tyI.
-    have[l'[_[_[_[_[tyA' _]]]]]]:=ind_inv ih.
+    have[l1[l2[_[_[ar[cCs[tyA tyCs]]]]]]]:=ind_inv tyI.
+    have[l3[l4[_[_[_[_[tyA' _]]]]]]]:=ind_inv ih.
     have tyC:=iget_All1 ig tyCs.
     have//=tyCI:=substitution tyC k (merge_pure k) tyI.
     apply: clc_conv.
@@ -594,8 +594,8 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
   { have st : Ind A Cs s ~> Ind A Cs' s.
     { constructor... }
     have{}ih:=ih _ wf st.
-    have[l[_[_[ar[cCs[tyA tyCs]]]]]]:=ind_inv tyI.
-    have[l'[_[_[_[cCs'[tyA' tyCs']]]]]]:=ind_inv ih.
+    have[l1[l2[_[_[ar[cCs[tyA tyCs]]]]]]]:=ind_inv tyI.
+    have[l3[l4[_[_[_[cCs'[tyA' tyCs']]]]]]]:=ind_inv ih.
     have[C' e' ig']:=iget_step ig H4.
     have tyC:=iget_All1 ig tyCs.
     have tyC':=iget_All1 ig' tyCs'.
@@ -611,7 +611,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     apply: clc_constr...
     rewrite<-pure_re... }
   { subst I; solve_fix. }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms I leq ar key mrg
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms I leq ar key mrg
     tym ihm tyQ ihQ tyFs ihFs n wf st.
   have[wf1 wf2]:=merge_context_ok_inv mrg wf.
   have[e12[e1 e2]]:=merge_re_re mrg.
@@ -623,7 +623,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
       apply: conv_app...
       apply: conv_sym.
       apply: conv1... }
-    have[l1[sp _]]:=ind_spine_inv (re_pure _) ar tysp.
+    have[sp _]:=ind_spine_inv (re_pure _) ar tysp.
     have tyI:=ind_spine (re_pure _) tysp.
     have{}sp:=rearity_spine s' sp ar leq (re_pure _) tyI.
     have{sp}spQ:=app_arity_spine tyQ sp (merge_re3 (merge_sym mrg)).
@@ -644,7 +644,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
       apply: clc_case...
       apply: spQ. } }
   { have{}ihQ:=ihQ _ (re_ok wf2) H3.
-    have[l1[sp _]]:=ind_spine_inv (re_pure _) ar tysp.
+    have[sp _]:=ind_spine_inv (re_pure _) ar tysp.
     have tyI:=ind_spine (re_pure _) tysp.
     have{}sp:=rearity_spine s' sp ar leq (re_pure _) tyI.
     have spQ:=app_arity_spine tyQ sp (merge_re3 (merge_sym mrg)).
@@ -659,7 +659,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
       apply: conv_sym.
       apply: conv1.
       apply: head_spine_step... }
-    have[l[_[_[_[_[_ tyCs]]]]]]:=ind_inv tyI.
+    have[l1[l2[_[_[_[_[_ tyCs]]]]]]]:=ind_inv tyI.
     apply: clc_conv.
     apply: st.
     apply: clc_case...
@@ -668,7 +668,7 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
     constructor.
     rewrite<-e12...
     destruct k=>//=... inv leq.
-    replace (s' @ l1) with (s' @ l1).[m/] by autosubst.
+    replace (s' @ l) with (s' @ l).[m/] by autosubst.
     apply: clc_app...
     replace Γ1 with [Γ1].
     rewrite e1. apply: merge_re_id.
@@ -678,13 +678,13 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
   { have tyI:=ind_spine (re_pure _) tysp.
     have[G1[G2[A0[s1[mrg0[tyC sp]]]]]]:=spine_inv wf1 tym.
     have[A1[C[Cs0[e3[key'[ig[e4[sb tyI0]]]]]]]]:=constr_inv tyC; subst.
-    have[l1[_[_[_[cCs[tyA tyCs]]]]]]:=ind_inv tyI.
-    have[l2[_[_[ar0[cCs0[tyA1 tyCs0]]]]]]:=ind_inv tyI0.
+    have[l1[l2[_[_[_[cCs[tyA tyCs]]]]]]]:=ind_inv tyI.
+    have[l3[l4[_[_[ar0[cCs0[tyA1 tyCs0]]]]]]]:=ind_inv tyI0.
     have tyC0:=iget_All1 ig tyCs0.
     have c:=iget_All1 ig cCs0.
     have[wf3 wf4]:=merge_context_ok_inv mrg0 wf1.
     have[eG[eG1 eG2]]:=merge_re_re mrg0.
-    have[l3 tyA0]:=validity wf3 tyC.
+    have[l5 tyA0]:=validity wf3 tyC.
     rewrite eG in tyA0.
     have{}sp:=typing_spine_strengthen sp sb tyA0.
     have h1 : (Ind A1 Cs0 s1 .: ids) 0 = Ind A1 Cs0 s1 by eauto.
@@ -701,14 +701,14 @@ Proof with eauto using clc_type, step, ok, merge_re_id.
       apply: cv.
       apply: conv_subst.
       apply: conv_sym... }
-    have tyCI: [G2] ⊢ C.[Ind A1 Cs0 s/] : s @ l2 : U.
+    have tyCI: [G2] ⊢ C.[Ind A1 Cs0 s/] : s @ l3 : U.
     { rewrite<-eG.
       rewrite<-pure_re; eauto.
-      replace (s @ l2) with (s @ l2).[Ind A1 Cs0 s/] by autosubst.
+      replace (s @ l3) with (s @ l3).[Ind A1 Cs0 s/] by autosubst.
       apply: substitution...
       apply: merge_pure... }
     have{}sp:=typing_spine_strengthen sp sbC tyCI.
-    have[l4[asp _]]:=ind_spine_inv (re_pure _) ar tysp.
+    have[asp _]:=ind_spine_inv (re_pure _) ar tysp.
     have{}asp:=rearity_spine s' asp ar leq (re_pure _) tyI.
     have spQ:=app_arity_spine tyQ asp (merge_re3 (merge_sym mrg)).
     have tyC':=iget_All1 ig' tyCs.

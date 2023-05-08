@@ -381,7 +381,7 @@ Proof.
     have[e12[e1 e2]]:=merge_re_re H3.
     have[l3[tyA1[_[_ tyB1]]]]:=pi_inv tyP.
     have[l4[tyA2[_[_ tyB2]]]]:=pi_inv H1.
-    have[l5[_[_[ar _]]]]:=ind_inv tyI.
+    have[l5[l6[_[_[ar _]]]]]:=ind_inv tyI.
     have ar1:=arity_ren (+1) ar.
     have h3 : up I x.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U.
     { asimpl. rewrite h1. autosubst. }
@@ -481,7 +481,7 @@ Proof.
     have[e12[e1 e2]]:=merge_re_re H3.
     have[l3[tyA1[_[_ tyB1]]]]:=pi_inv tyP.
     have[l4[tyA2[_[_ tyB2]]]]:=pi_inv H1.
-    have[l5[_[_[ar _]]]]:=ind_inv tyI.
+    have[l5[l6[_[_[ar _]]]]]:=ind_inv tyI.
     have ar1:=arity_ren (+1) ar.
     have h3 : up I x.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] U.
     { asimpl. rewrite h1. autosubst. }
@@ -606,7 +606,7 @@ Proof.
     have[e12[e1 e2]]:=merge_re_re H3.
     have[l3[tyA1[_[_ tyB1]]]]:=pi_inv tyP.
     have[l4[tyA2[_[_ tyB2]]]]:=pi_inv H1.
-    have[l5[_[_[ar _]]]]:=ind_inv tyI.
+    have[l5[l6[_[_[ar _]]]]]:=ind_inv tyI.
     have ar1:=arity_ren (+1) ar.
     have h3 : up I x.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] r.
     { asimpl. rewrite h1. autosubst. }
@@ -690,7 +690,7 @@ Proof.
     have[e12[e1 e2]]:=merge_re_re H3.
     have[l3[tyA1[_[_ tyB1]]]]:=pi_inv tyP.
     have[l4[tyA2[_[_ tyB2]]]]:=pi_inv H1.
-    have[l5[_[_[ar _]]]]:=ind_inv tyI.
+    have[l5[l6[_[_[ar _]]]]]:=ind_inv tyI.
     have ar1:=arity_ren (+1) ar.
     have h3 : up I x.+1 = Ind A0.[ren (+1)] Cs..[up (ren (+1))] r.
     { asimpl. rewrite h1. autosubst. }

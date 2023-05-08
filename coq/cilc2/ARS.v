@@ -92,7 +92,7 @@ Qed.
 
 End Definitions.
 
-Hint Resolve starR convR.
+#[global] Hint Resolve starR convR.
 Arguments star_trans {T e} y {x z} A B.
 Arguments conv_trans {T e} y {x z} A B.
 

@@ -114,7 +114,7 @@ Proof with eauto 6 using merge, agree_ren.
     exists (_: G2)...
 Qed.
 
-Lemma arity_ren s A ξ : arity s A -> arity s A.[ren ξ].
+Lemma arity_ren s l A ξ : arity s l A -> arity s l A.[ren ξ].
 Proof with eauto using arity.
   move=>ar. elim: ar ξ=>//={A}...
   move=>A B ar ih ξ.
@@ -301,11 +301,11 @@ Proof.
   by apply: respine_ren1.
 Qed.
 
-Lemma rearity_ren k s s' I A ξ :
-  arity s A -> (rearity k s' I A).[ren ξ] = rearity k s' I.[ren ξ] A.[ren ξ].
+Lemma rearity_ren k s s' l I A ξ :
+  arity s l A -> (rearity k s' I A).[ren ξ] = rearity k s' I.[ren ξ] A.[ren ξ].
 Proof.
   move=>ar. elim: ar I ξ s'=>{A}//=.
-  move=>l I ξ s'. destruct k=>//.
+  move=>I ξ s'. destruct k=>//.
   move=>A B ar ih I ξ s'. asimpl.
   rewrite ih. by asimpl.
 Qed.
@@ -527,7 +527,7 @@ Proof with eauto using
       by autosubst.
     apply: clc_app...
     asimpl in tym... }
-  move=>Γ A Cs s l k ar ctr tyA ihA tyCs ihCs Γ' ξ agr.
+  move=>Γ A Cs s l1 l2 k ar ctr tyA ihA tyCs ihCs Γ' ξ agr.
   { asimpl.
     apply: clc_indd...
     apply: arity_ren...
@@ -548,7 +548,7 @@ Proof with eauto using
         by autosubst.
     apply: clc_constr...
     apply: iget_subst... }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms leq ar key mrg tym ihm tyQ ihQ tyFs ihFs Γ' ξ agr.
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms leq ar key mrg tym ihm tyQ ihQ tyFs ihFs Γ' ξ agr.
   { rewrite kapp_ren.
     rewrite spine_subst.
     have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_ren_inv agr mrg.

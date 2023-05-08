@@ -61,7 +61,7 @@ Proof with eauto using agree_subst.
   have: A.[ids] :{s} Γ ⊢ up ids ⊣ A :{s} Γ... by asimpl.
   have: _: Γ ⊢ up ids ⊣ _: Γ... by asimpl.
 Qed.
-Hint Resolve agree_subst_refl.
+#[global] Hint Resolve agree_subst_refl.
 
 Lemma agree_subst_has Δ σ Γ x s A :
   Δ ⊢ σ ⊣ Γ -> has Γ x s A -> Δ ⊢ σ x : A.[σ] : s.
@@ -189,7 +189,7 @@ Proof with eauto 6 using merge, agree_subst, agree_subst_key.
     rewrite g3... }
 Qed.
 
-Lemma arity_subst s A σ : arity s A -> arity s A.[σ].
+Lemma arity_subst s l A σ : arity s l A -> arity s l A.[σ].
 Proof with eauto using arity. move=>ar. elim: ar σ... Qed.
 
 Definition n_subst σ x :=
@@ -365,11 +365,11 @@ Proof with eauto.
     apply: n_subst_up... }
 Qed.
 
-Lemma rearity_subst k s s' I A σ :
-  arity s A -> (rearity k s' I A).[σ] = rearity k s' I.[σ] A.[σ].
+Lemma rearity_subst k s s' l I A σ :
+  arity s l A -> (rearity k s' I A).[σ] = rearity k s' I.[σ] A.[σ].
 Proof.
   move=>ar. elim: ar I σ=>//={A}.
-  move=>l I σ.
+  move=>I σ.
   destruct k; asimpl=>//.
   move=>A B ar ih I σ.
   rewrite ih.
@@ -616,7 +616,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
     replace B.[n.[σ] .: σ] with B.[up σ].[n.[σ]/] by autosubst.
     move:(agree_subst_key agr2 k)=>{}k.
     apply: clc_app... }
-  move=>Γ A Cs s l k ar ctr tyA ihA tyCs ihCs Δ σ agr. asimpl.
+  move=>Γ A Cs s l1 l2 k ar ctr tyA ihA tyCs ihCs Δ σ agr. asimpl.
   { asimpl.
     apply: clc_indd...
     apply: arity_subst...
@@ -636,7 +636,7 @@ Proof with eauto using agree_subst, agree_subst_re, agree_subst_key.
       with (C.[up σ]).[Ind A.[σ] Cs..[up σ] s/] by autosubst.
     apply: clc_constr...
     apply: iget_subst... }
-  move=>Γ1 Γ2 Γ A Q s s'//=k Fs Cs m ms leq ar key mrg tym ihm tyQ ihQ tyFs ihFs Δ σ agr.
+  move=>Γ1 Γ2 Γ A Q s s' l//=k Fs Cs m ms leq ar key mrg tym ihm tyQ ihQ tyFs ihFs Δ σ agr.
   { rewrite kapp_subst.
     rewrite spine_subst.
     have[G1[G2[mrg'[agr1 agr2]]]]:=merge_agree_subst_inv agr mrg.

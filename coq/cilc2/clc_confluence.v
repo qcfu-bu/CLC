@@ -601,7 +601,7 @@ Qed.
 Lemma sred_up σ τ : sred σ τ -> sred (up σ) (up τ).
 Proof. move=> A [|n] //=. asimpl. apply: red_subst. exact: A. Qed.
 
-Hint Resolve
+#[export] Hint Resolve
   red_app red_lam red_pi
   red_ind red_constr red_case red_fix
   red_ls red_subst sred_up : red_congr.
@@ -755,7 +755,7 @@ Qed.
 Lemma sconv_up σ τ : sconv σ τ -> sconv (up σ) (up τ).
 Proof. move=> A [|x] //=. asimpl. exact: conv_subst. Qed.
 
-Hint Resolve
+#[export] Hint Resolve
   conv_app conv_lam conv_pi
   conv_ind conv_constr conv_case conv_fix
   conv_ls sconv_up : conv_congr.
@@ -785,11 +785,11 @@ Proof with eauto using pstep, All2.
   move=>m Q Fs pm pQ ih.
   constructor... elim: ih...
 Qed.
-Hint Resolve pstep_refl.
+#[global] Hint Resolve pstep_refl.
 
 Lemma All2_pstep_refl ls : All2 pstep ls ls.
 Proof with eauto using pstep_refl, All2. elim: ls... Qed.
-Hint Resolve All2_pstep_refl.
+#[global] Hint Resolve All2_pstep_refl.
 
 Lemma All2_rcons P m1 m2 ms1 ms2 :
   All2 P ms1 ms2 -> P m1 m2 -> All2 P (rcons ms1 m1) (rcons ms2 m2).
@@ -880,7 +880,7 @@ Proof with eauto using pstep, All2.
     apply: pstep_iota1.
     apply: iget_subst...
     elim: ihMs...
-    elim: ihFs...
+    clear ig. elim: ihFs...
   move=>i k A A' m m' n n' ms ms' ns ns' s e
     pA ihA pM ihM pN ihN pMs ihMs pNs ihNs σ.
     rewrite!spine_subst.
@@ -901,7 +901,7 @@ Definition psstep (σ τ : var -> term) :=
 
 Lemma psstep_refl σ : psstep σ σ.
 Proof with eauto using pstep_refl. elim... Qed.
-Hint Resolve psstep_refl.
+#[global] Hint Resolve psstep_refl.
 
 Lemma psstep_up σ τ : psstep σ τ -> psstep (up σ) (up τ).
 Proof with eauto using pstep.
@@ -929,7 +929,7 @@ Proof with eauto 6 using pstep, All2, psstep_up.
     apply: pstep_iota1.
     apply: iget_subst...
     elim: ihms...
-    elim: ihFs...
+    clear ig. elim: ihFs...
   move=>i k A A' m m' n n' ms ms' ns ns' s e
     pA ihA pm ihm pn ihn pms ihms pns ihns σ τ pss.
     rewrite!spine_subst.

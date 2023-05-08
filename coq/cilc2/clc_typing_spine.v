@@ -200,7 +200,7 @@ Proof.
       repeat split; eauto.
       rewrite rev_cons.
       apply: typing_spine_pi_rcons; eauto. } }
-  move=>Γ A Cs s l k ar cCs tyA ihA tyCs m ms wf e.
+  move=>Γ A Cs s l1 l2 k ar cCs tyA ihA tyCs m ms wf e.
   { destruct ms; simpl in e; inv e.
     exists Γ. exists [Γ]. exists A. exists U.
     repeat split.
@@ -211,7 +211,7 @@ Proof.
     rewrite<-pure_re; eauto. }
   move=>Γ A s i C Cs I k ig tyI ihI m ms wf e.
   { destruct ms; simpl in e; inv e.
-    have[l[_[_[_[_[_ tyCs]]]]]]:=ind_inv tyI.
+    have[l1[l2[_[_[_[_[_ tyCs]]]]]]]:=ind_inv tyI.
     have tyC:=iget_All1 ig tyCs.
     have//=tyCI:=substitution tyC k (merge_pure k) tyI.
     exists Γ. exists [Γ]. exists C.[I/]. exists s.
@@ -221,15 +221,15 @@ Proof.
     apply: typing_spine_nil; eauto.
     apply: re_pure.
     rewrite<-pure_re; eauto. }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms I leq ar key mrg
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms I leq ar key mrg
     tym ihm tyQ ihQ tyFs m0 ms0 wf e.
   { destruct ms0; simpl in e; inv e.
     have[wf1 wf2]:=merge_context_ok_inv mrg wf.
     have[e0[e1 e2]]:=merge_re_re mrg.
-    have[l tysp]:=validity wf1 tym.
+    have[l0 tysp]:=validity wf1 tym.
     have tyI:=ind_spine (re_pure _) tysp.
-    have[l0[_[_[_[cCs[tyA tyCs]]]]]]:=ind_inv tyI.
-    have[l1[sp _]]:=ind_spine_inv (re_pure _) ar tysp.
+    have[l1[l2[_[_[_[cCs[tyA tyCs]]]]]]]:=ind_inv tyI.
+    have[sp _]:=ind_spine_inv (re_pure _) ar tysp.
     have{sp}/arity_typing_spine sp:=rearity_spine s' sp ar leq (re_pure _) tyI.
     have spQ:=app_typing_spine tyQ sp (merge_sym (merge_re3 mrg)).
     exists Γ. exists [Γ]. exists (kapp k (spine Q ms) m). exists s'.

@@ -14,11 +14,6 @@ void instr_init()
   GC_INIT();
 }
 
-void instr_mov(clc_ptr *x, clc_ptr v)
-{
-  *x = v;
-}
-
 void instr_clo(
     clc_ptr *x,
     clc_ptr (*f)(clc_ptr, clc_env),

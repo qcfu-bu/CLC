@@ -76,10 +76,10 @@ Lemma ind_type_false Γ X Cs A B C s r t u v x y l :
 Proof.
   move e:(Ind X Cs x)=>m ty.
   elim: ty X Cs A B s r t v x y l e=>//{Γ m C u}.
-  move=>Γ A Cs s l k ar cCs tyA ihA tyCs X Cs0 A0 B s0 r t v x y l0
+  move=>Γ A Cs s l1 l2 k ar cCs tyA ihA tyCs X Cs0 A0 B s0 r t v x y l0
     [e1 e2 e3] sb tyI; subst.
   { inv ar. solve_sub.
-    have[l1[sb' _]]:=ind_inv tyI.
+    have[l3[l4[sb' _]]]:=ind_inv tyI.
     solve_sub. }
   move=>Γ A B m s i sb tym ihm _ _ X Cs A0 B0 s0 r t v x y l e sb' tym'; subst.
   { apply: ihm; eauto.
@@ -108,36 +108,36 @@ Ltac solve_spine :=
     rewrite spine_spine'_rev in H; solve_spine'
   end.
 
-Lemma constr_respineU Γ I Cs A Q c C n s t l :
+Lemma constr_respineU Γ I Cs A Q c C n s t l1 l2 :
   constr n U C ->
-  arity U A ->
+  arity U l1 A ->
   (I n = Ind A Cs U) ->
   [Γ] ⊢ I n : A : U ->
   [Γ] ⊢ Q : rearity U s (Ind A Cs U) A : U ->
-  [Γ] ⊢ C.[I] : t @ l : U ->
+  [Γ] ⊢ C.[I] : t @ l2 : U ->
   [Γ] ⊢ c : C.[I] : t ->
   exists l,
     let T := respine U s Q c C.[I] in
     [Γ] ⊢ T.2 : T.1 @ l : U.
 Proof.
-  elim: C Γ I Cs A Q c n s t l.
+  elim: C Γ I Cs A Q c n s t l1 l2.
   all: try solve
       [intros;
        match goal with
        | [ H : constr _ _ _ |- _ ] =>
            inv H; exfalso; solve_spine
        end].
-  move=>x Γ I Cs A Q c n s t l cst ar e tyI tyQ tyv tyc.
+  move=>x Γ I Cs A Q c n s t l1 l2 cst ar e tyI tyQ tyv tyc.
   { inv cst.
     have[e1 e2]:=spine_var H; subst. inv ar.
-    { exists l0=>//=. rewrite e=>//=.
+    { exists l1=>//=. rewrite e=>//=.
       simpl in tyQ.
       simpl in tyc.
       simpl in tyv.
       rewrite e in tyc.
       rewrite e in tyv.
-      have[_[/sub_sort_inv[e' _]_]]:=ind_inv tyv; subst.
-      replace (s @ l0) with (s @ l0).[c/] by autosubst.
+      have[_[_[/sub_sort_inv[e' _]_]]]:=ind_inv tyv; subst.
+      replace (s @ l1) with (s @ l1).[c/] by autosubst.
       apply: clc_app; eauto.
       apply: (re_pure Γ).
       apply: merge_re_id; eauto. }
@@ -148,7 +148,7 @@ Proof.
       apply: ind_type_false.
       apply: tyI.
       all: eauto. } }
-  move=>A ihA B ihB s r t Γ I Cs A0 Q c n s0 t0 l cst ar e tyI tyQ tyP tyc.
+  move=>A ihA B ihB s r t Γ I Cs A0 Q c n s0 t0 l1 l2 cst ar e tyI tyQ tyP tyc.
   { specialize
       (@ihB (A.[I] :{s} Γ) (up I)
             Cs..[up (ren (+1))] A0.[ren (+1)] Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) n.+1).
@@ -174,8 +174,8 @@ Proof.
       asimpl in tyv.
       have tyapp:=clc_app (re_pure (A.[I] :U Γ)) (merge_re_id _) tyc' tyv.
       asimpl in tyapp.
-      have[l1 ty]:=ihB _ _ _ H9 ar' e' tyI' tyQ' tyB tyapp.
-      exists (maxn l0 l1)=>//=.
+      have[l3 ty]:=ihB _ _ _ _ H9 ar' e' tyI' tyQ' tyB tyapp.
+      exists (maxn l0 l3)=>//=.
       simpl in ty.
       remember (respine U s0 Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) B.[up I]) as h.
       destruct h=>//=.
@@ -204,8 +204,8 @@ Proof.
       asimpl in tyv.
       have tyapp:=clc_app (re_pure (A.[I] :U Γ)) (merge_re_id _) tyc' tyv.
       asimpl in tyapp.
-      have[l1 ty]:=ihB _ _ _ H8 ar' e' tyI' tyQ' tyB tyapp.
-      exists (maxn l0 l1)=>//=.
+      have[l3 ty]:=ihB _ _ _ _ H8 ar' e' tyI' tyQ' tyB tyapp.
+      exists (maxn l0 l3)=>//=.
       simpl in ty.
       remember (respine U s0 Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) B.[up I]) as h.
       destruct h=>//=.
@@ -213,7 +213,7 @@ Proof.
       apply: clc_pi_max; eauto=>//=.
       apply: re_pure.
       rewrite<-re_invo; eauto. } }
-  move=>m ihm n ihn Γ I Cs A Q c x s t l cst ar e tyI tyQ tyapp tyc.
+  move=>m ihm n ihn Γ I Cs A Q c x s t l1 l2 cst ar e tyI tyQ tyapp tyc.
   { inv cst.
     rewrite<-H in tyapp.
     rewrite<-H in tyc.
@@ -227,12 +227,12 @@ Proof.
     rewrite e in tyapp.
     rewrite e in tyc.
     rewrite e in tyI.
-    have[l0[sp e']]:=ind_spine_inv (re_pure _) ar tyapp; subst.
+    have[sp e']:=ind_spine_inv (re_pure _) ar tyapp; subst.
     have//={}sp:=rearity_spine s sp ar (sort_leqU U) (re_pure _) tyI.
     have spQ:=app_arity_spine tyQ sp (merge_re_id _).
-    exists l0.
+    exists l1.
     pose proof (respine_spine_ind Q c A Cs U U s ms..[I]) as [->->]=>//=.
-    replace (s @ l0) with (s @ l0).[c/] by autosubst.
+    replace (s @ l1) with (s @ l1).[c/] by autosubst.
     apply: clc_app.
     apply: (re_pure Γ).
     apply: merge_re_id.
@@ -240,28 +240,28 @@ Proof.
     apply: tyc. }
 Qed.
 
-Lemma constr_respineL Γ I Cs A Q c C n s s' t l :
+Lemma constr_respineL Γ I Cs A Q c C n s s' t l1 l2 :
   constr n s C ->
-  arity s A ->
+  arity s l1 A ->
   (I n = Ind A Cs s) ->
   [Γ] ⊢ I n : A : U ->
   [Γ] ⊢ Q : rearity L s' (Ind A Cs s) A : U ->
-  [Γ] ⊢ C.[I] : t @ l : U ->
+  [Γ] ⊢ C.[I] : t @ l2 : U ->
   exists l,
     let T := respine L s' Q c C.[I] in
     [Γ] ⊢ T.2 : T.1 @ l : U.
 Proof.
-  elim: C Γ I Cs A Q c n s s' t l.
+  elim: C Γ I Cs A Q c n s s' t l1 l2.
   all: try solve
       [intros;
        match goal with
        | [ H : constr _ _ _ |- _ ] =>
            inv H; exfalso; solve_spine
        end].
-  move=>x Γ I Cs A Q c n s s' t l cst ar e tyI tyQ tyv.
+  move=>x Γ I Cs A Q c n s s' t l1 l2 cst ar e tyI tyQ tyv.
   { inv cst.
     have[e1 e2]:=spine_var H; subst. inv ar.
-    { exists l0=>//=. rewrite e=>//=. }
+    { exists l1=>//=. rewrite e=>//=. }
     { simpl in tyv.
       rewrite e in tyI.
       rewrite e in tyv.
@@ -269,7 +269,7 @@ Proof.
       apply: ind_type_false.
       apply: tyI.
       all: eauto. } }
-  move=>A ihA B ihB s r t Γ I Cs A0 Q c n s0 s' t0 l cst ar e tyI tyQ tyP.
+  move=>A ihA B ihB s r t Γ I Cs A0 Q c n s0 s' t0 l1 l2 cst ar e tyI tyQ tyP.
   { specialize
       (@ihB (A.[I] :{s} Γ) (up I)
             Cs..[up (ren (+1))] A0.[ren (+1)] Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) n.+1).
@@ -289,8 +289,8 @@ Proof.
       { destruct s=>//=.
         apply: eweakeningU; eauto. erewrite rearity_ren; eauto.
         apply: eweakeningN; eauto. erewrite rearity_ren; eauto. }
-      have[l1 ty]:=ihB _ _ _ _ H9 ar' e' tyI' tyQ' tyB.
-      exists (maxn l0 l1)=>//=.
+      have[l3 ty]:=ihB _ _ _ _ _ H9 ar' e' tyI' tyQ' tyB.
+      exists (maxn l0 l3)=>//=.
       simpl in ty.
       remember (respine L s' Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) B.[up I]) as h.
       destruct h=>//=.
@@ -315,8 +315,8 @@ Proof.
       { destruct s=>//=.
         apply: eweakeningU; eauto. erewrite rearity_ren; eauto.
         apply: eweakeningN; eauto. erewrite rearity_ren; eauto. }
-      have[l1 ty]:=ihB _ _ _ _ H8 ar' e' tyI' tyQ' tyB.
-      exists (maxn l0 l1)=>//=.
+      have[l3 ty]:=ihB _ _ _ _ _ H8 ar' e' tyI' tyQ' tyB.
+      exists (maxn l0 l3)=>//=.
       simpl in ty.
       remember (respine L s' Q.[ren (+1)] (App c.[ren (+1)] (Var 0)) B.[up I]) as h.
       destruct h=>//=.
@@ -326,7 +326,7 @@ Proof.
       destruct s.
       rewrite<-re_invo; eauto.
       rewrite<-re_invo; eauto. } }
-  move=>m ihm n ihn Γ I Cs A Q c x s s' t l cst ar e tyI tyQ tyapp.
+  move=>m ihm n ihn Γ I Cs A Q c x s s' t l1 l2 cst ar e tyI tyQ tyapp.
   { inv cst.
     rewrite<-H in tyapp.
     rewrite spine_subst.
@@ -336,11 +336,11 @@ Proof.
     rewrite e.
     rewrite e in tyapp.
     rewrite e in tyI.
-    have[l0[sp e']]:=ind_spine_inv (re_pure _) ar tyapp; subst.
+    have[sp e']:=ind_spine_inv (re_pure _) ar tyapp; subst.
     have leq: t ≤ L.
     { destruct t; constructor. }
     have//={}sp:=rearity_spine s' sp ar leq (re_pure _) tyI.
     have spQ:=app_arity_spine tyQ sp (merge_re_id _).
-    exists l0.
+    exists l1.
     pose proof (respine_spine_ind Q c A Cs L t s' ms..[I]) as [->->]=>//=. }
 Qed.

@@ -61,29 +61,29 @@ Proof with eauto using clc_type, re_pure, merge_re_id.
     by apply: (substitution tyB k mrg tyn).
     move:(substitutionN tyB tyn).
     by rewrite e2. }
-  move=>Γ A Cs s l k ar cCs tyA _ tyCs ihCs wf.
-  { exists l. rewrite<-pure_re; eauto. }
+  move=>Γ A Cs s l1 l2 k ar cCs tyA _ tyCs ihCs wf.
+  { exists l2. rewrite<-pure_re; eauto. }
   move=>Γ A s i C Cs//=k ig tyI ihI wf.
-  { have[l[_[_[ar[cCs[tyA tyCs]]]]]]:=ind_inv tyI.
-    exists l.
+  { have[l1[l2[_[_[ar[cCs[tyA tyCs]]]]]]]:=ind_inv tyI.
+    exists l1.
     have tyC:=iget_All1 ig tyCs.
-    replace (s @ l) with (s @ l).[Ind A Cs s/] by autosubst.
+    replace (s @ l1) with (s @ l1).[Ind A Cs s/] by autosubst.
     apply: substitution...
     rewrite<-pure_re...
     apply: merge_pure... }
-  move=>Γ1 Γ2 Γ A Q s s' k Fs Cs m ms//=leq ar key mrg tym ihm tyQ ihQ tyFs ihFs wf.
+  move=>Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms//=leq ar key mrg tym ihm tyQ ihQ tyFs ihFs wf.
   { have[wf1 wf2]:=merge_context_ok_inv mrg wf.
     have[e0[<- e2]]:=merge_re_re mrg.
-    have{ihm}[l tysp]:=ihm wf1.
+    have{ihm}[l0 tysp]:=ihm wf1.
     have k1 : [Γ1] |> U by apply re_pure.
-    have[l0[sp _]]:=ind_spine_inv k1 ar tysp.
+    have[sp _]:=ind_spine_inv k1 ar tysp.
     have tyI:=ind_spine k1 tysp.
     have {}sp:=rearity_spine s' sp ar leq k1 tyI.
     rewrite<-e0 in tyQ.
     have mrg1:=merge_re_id Γ1.
     have tySp:=app_arity_spine tyQ sp mrg1.
-    exists l0. destruct k=>//=; simpl in tySp.
-    replace (s' @ l0) with (s' @ l0).[m/] by autosubst.
+    exists l. destruct k=>//=; simpl in tySp.
+    replace (s' @ l) with (s' @ l).[m/] by autosubst.
     apply: clc_app...
     rewrite<-pure_re...
     inv leq... }

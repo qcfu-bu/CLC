@@ -7,9 +7,9 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Inductive arity (s : sort) : term -> Prop :=
-| arity_sort l : arity s (s @ l)
-| arity_pi A B : arity s B -> arity s (Pi A B U U U).
+Inductive arity (s : sort) (l : nat) : term -> Prop :=
+| arity_sort : arity s l (s @ l)
+| arity_pi A B : arity s l B -> arity s l (Pi A B U U U).
 
 Inductive noccurs : var -> term -> Prop :=
 | noccurs_var x y : ~x = y -> noccurs x (Var y)
@@ -198,12 +198,12 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   Γ1 ⊢ m : Pi A B s r t : t ->
   Γ2 ⊢ n : A : s ->
   Γ ⊢ App m n : B.[n/] : r
-| clc_indd Γ A Cs s l :
+| clc_indd Γ A Cs s l1 l2 :
   Γ |> U ->
-  arity s A ->
+  arity s l1 A ->
   All1 (constr 0 s) Cs ->
-  Γ ⊢ A : U @ l : U ->
-  All1 (fun C => A :U Γ ⊢ C : s @ l : U) Cs ->
+  Γ ⊢ A : U @ l2 : U ->
+  All1 (fun C => A :U Γ ⊢ C : s @ l1 : U) Cs ->
   Γ ⊢ Ind A Cs s : A : U
 | clc_constr Γ A s i C Cs :
   let I := Ind A Cs s in
@@ -211,10 +211,10 @@ Inductive clc_type : context term -> term -> term -> sort -> Prop :=
   iget i Cs C ->
   Γ ⊢ I : A : U ->
   Γ ⊢ Constr i I s : C.[I/] : s
-| clc_case Γ1 Γ2 Γ A Q s s' k Fs Cs m ms :
+| clc_case Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms :
   let I := Ind A Cs s in
   s ≤ k ->
-  arity s A ->
+  arity s l A ->
   Γ1 |> k ->
   Γ1 ∘ Γ2 => Γ ->
   Γ1 ⊢ m : spine I ms : s ->
@@ -258,13 +258,13 @@ Section clc_type_ind_nested.
     Γ1 ⊢ m : Pi A B s r t : t -> P Γ1 m (Pi A B s r t) t ->
     Γ2 ⊢ n : A : s -> P Γ2 n A s ->
     P Γ (App m n) B.[n/] r.
-  Hypothesis ih_indd : forall Γ A Cs s l,
+  Hypothesis ih_indd : forall Γ A Cs s l1 l2,
     Γ |> U ->
-    arity s A ->
+    arity s l1 A ->
     All1 (constr 0 s) Cs ->
-    Γ ⊢ A : U @ l : U -> P Γ A (U @ l) U ->
-    All1 (fun C => A :U Γ ⊢ C : s @ l : U) Cs ->
-    All1 (fun C => P (A :U Γ) C (s @ l) U) Cs ->
+    Γ ⊢ A : U @ l2 : U -> P Γ A (U @ l2) U ->
+    All1 (fun C => A :U Γ ⊢ C : s @ l1 : U) Cs ->
+    All1 (fun C => P (A :U Γ) C (s @ l1) U) Cs ->
     P Γ (Ind A Cs s) A U.
   Hypothesis ih_constr : forall Γ A s i C Cs,
     let I := Ind A Cs s in
@@ -272,10 +272,10 @@ Section clc_type_ind_nested.
     iget i Cs C ->
     Γ ⊢ I : A : U -> P Γ I A U ->
     P Γ (Constr i I s) C.[I/] s.
-  Hypothesis ih_case : forall Γ1 Γ2 Γ A Q s s' k Fs Cs m ms,
+  Hypothesis ih_case : forall Γ1 Γ2 Γ A Q s s' l k Fs Cs m ms,
     let I := Ind A Cs s in
     s ≤ k ->
-    arity s A ->
+    arity s l A ->
     Γ1 |> k ->
     Γ1 ∘ Γ2 => Γ ->
     Γ1 ⊢ m : spine I ms : s -> P Γ1 m (spine I ms) s ->
@@ -311,8 +311,8 @@ Section clc_type_ind_nested.
     apply: ih_app; eauto.
     apply: ih_indd; eauto.
     have ih_nested :=
-      fix fold Cs (pf : All1 (fun C => A0 :U Γ0 ⊢ C : s0 @ l : U) Cs) :
-        All1 (fun C => P (A0 :U Γ0) C (s0 @ l) U) Cs :=
+      fix fold Cs (pf : All1 (fun C => A0 :U Γ0 ⊢ C : s0 @ l1 : U) Cs) :
+        All1 (fun C => P (A0 :U Γ0) C (s0 @ l1) U) Cs :=
         match pf with
         | All1_nil => All1_nil _
         | All1_cons _ _ hd tl =>

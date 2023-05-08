@@ -100,26 +100,25 @@ Qed.
 
 Lemma ind_inv Γ A B Cs s t :
   Γ ⊢ Ind A Cs s : B : t ->
-  exists l,
+  exists l1 l2,
     A <: B /\ t = U /\
-    arity s A /\
+    arity s l1 A /\
     All1 (constr 0 s) Cs /\
-    Γ ⊢ A : U @ l : U /\
-    All1 (fun C => A :U Γ ⊢ C : s @ l : U) Cs.
+    Γ ⊢ A : U @ l2 : U /\
+    All1 (fun C => A :U Γ ⊢ C : s @ l1 : U) Cs.
 Proof.
   move e:(Ind A Cs s)=>n tp.
   elim: tp A Cs s e=>//={Γ n B t}.
-  move=>Γ A Cs s l k ar cCs
+  move=>Γ A Cs s l1 l2 k ar cCs
     tyA _ tyCs A0 Cs0 s0[e1 e2 e3]; subst.
-  exists l.
+  exists l1. exists l2.
   repeat split; eauto.
   move=>Γ A B m s i sb tym ihm tyB _ A0 Cs s0 e; subst.
-  have[l[sb'[e[ar[cCs[tyA tyCs]]]]]]:=ihm _ _ _ erefl.
-  exists l.
+  have[l1[l2[sb'[e[ar[cCs[tyA tyCs]]]]]]]:=ihm _ _ _ erefl.
+  exists l1. exists l2.
   repeat split; eauto.
   apply: sub_trans; eauto.
 Qed.
-
 
 Lemma constr_inv Γ i I CI s t :
   Γ ⊢ Constr i I s : CI : t ->
