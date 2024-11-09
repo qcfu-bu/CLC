@@ -189,7 +189,7 @@ Proof with eauto using
     move:(ihn _ _ agr2)=>{}ihn.
     replace A.[m.[ren ξ] .: ren ξ] with A.[ren (upren ξ)].[m.[ren ξ]/] by autosubst.
     have{}k:=agree_ren_key agr1 k.
-    apply: clc_letin1...
+    apply: clc_letin1. apply: k. apply: mrg1. apply: ihm. 
     apply: ihA.
     destruct s; simpl; constructor...
     asimpl. asimpl in ihn... }

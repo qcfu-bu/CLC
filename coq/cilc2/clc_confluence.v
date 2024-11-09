@@ -126,27 +126,62 @@ Section pstep_ind_nested.
 
   Fixpoint pstep_ind_nested m m' (st : pstep m m') : P m m'.
   Proof.
-    have ih_nested :=
-      fix fold ls1 ls2 (p : All2 pstep ls1 ls2) : All2 P ls1 ls2 :=
+    refine(
+      let fix ih_nested ls1 ls2 (p : All2 pstep ls1 ls2) : All2 P ls1 ls2 :=
         match p with
         | All2_nil => All2_nil _
         | All2_cons _ _ _ _ hd tl =>
-          All2_cons (pstep_ind_nested _ _ hd) (fold _ _ tl)
-        end.
-    case st; move=>*.
-    apply: ih_var.
-    apply: ih_sort.
-    apply: ih_lam; eauto.
-    apply: ih_app; eauto.
-    apply: ih_beta; eauto.
-    apply: ih_pi; eauto.
-    apply: ih_indd; eauto.
-    apply: ih_constr; eauto.
-    apply: ih_case; eauto.
-    apply: ih_iota1; eauto.
-    apply: ih_fix; eauto.
-    apply: ih_iota2; eauto.
-    apply: ih_ptr; eauto.
+          All2_cons (pstep_ind_nested _ _ hd) (ih_nested _ _ tl)
+        end
+      in
+      match st with
+      | pstep_var x => ih_var x
+      | pstep_sort s l => ih_sort s l
+      | pstep_lam A A' n n' s t pA pn => 
+        let hA := pstep_ind_nested A A' pA in
+        let hn := pstep_ind_nested n n' pn in
+        ih_lam s t pA hA pn hn
+      | pstep_app m m' n n' pm pn => 
+        let hm := pstep_ind_nested m m' pm in
+        let hn := pstep_ind_nested n n' pn in
+        ih_app pm hm pn hn
+      | pstep_beta A m m' n n' s t pm pn => 
+        let hm := pstep_ind_nested m m' pm in
+        let hn := pstep_ind_nested n n' pn in
+        ih_beta A s t pm hm pn hn
+      | pstep_pi A A' B B' s r t pA pB => 
+        let hA := pstep_ind_nested A A' pA in
+        let hB := pstep_ind_nested B B' pB in
+        ih_pi s r t pA hA pB hB
+      | pstep_indd A A' Cs Cs' s pA pCs => 
+        let hA := pstep_ind_nested A A' pA in
+        let hCs := ih_nested Cs Cs' pCs in
+        ih_indd s pA hA pCs hCs
+      | pstep_constr i m m' s pm => 
+        let hm := pstep_ind_nested m m' pm in
+        ih_constr i s pm hm
+      | pstep_case m m' Q Q' Fs Fs' pm pQ pFs => 
+        let hm := pstep_ind_nested m m' pm in
+        let hQ := pstep_ind_nested Q Q' pQ in
+        let hFs := ih_nested Fs Fs' pFs in
+        ih_case pm hm pQ hQ pFs hFs
+      | pstep_iota1 i m ms ms' Q Fs Fs' F' s gt pms pFs => 
+        let hms := ih_nested ms ms' pms in
+        let hFs := ih_nested Fs Fs' pFs in
+        ih_iota1 m Q s gt pms hms pFs hFs
+      | pstep_fix k A A' m m' pA pm => 
+        let hA := pstep_ind_nested A A' pA in
+        let hm := pstep_ind_nested m m' pm in
+        ih_fix k pA hA pm hm
+      | pstep_iota2 i k A A' m m' n n' ms ms' ns ns' s e pA pm pn pms pns => 
+        let hA := pstep_ind_nested A A' pA in
+        let hm := pstep_ind_nested m m' pm in
+        let hn := pstep_ind_nested n n' pn in
+        let hms := ih_nested ms ms' pms in
+        let hns := ih_nested ns ns' pns in
+        ih_iota2 i s e pA hA pm hm pn hn pms hms pns hns
+      | pstep_ptr l => ih_ptr l
+      end).
   Qed.
 End pstep_ind_nested.
 

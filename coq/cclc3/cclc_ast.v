@@ -37,7 +37,7 @@ Notation "p .[ m /]" := (proc_subst p (m .: ids))
     format "p .[ m /]") : proc_scope.
 Notation "p .[ m1 , m2 , .. , mn /]" := 
   (proc_subst p (scons m1 (scons m2 .. (scons mn ids) ..)))
-  (at level 2, left associativity,
+  (at level 2, m1 at level 200, left associativity,
     format "p '[ ' .[ m1 , '/' m2 , '/' .. , '/' mn /] ']'") : proc_scope.
 
 Inductive congr0 : proc -> proc -> Prop :=

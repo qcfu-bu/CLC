@@ -59,24 +59,47 @@ Section noccurs_ind_nested.
 
   Fixpoint noccurs_ind_nested x m (no : noccurs x m) : P x m.
   Proof.
-    have ih_nestd :=
-      fix fold x ls (no : All1 (noccurs x) ls) : All1 (P x) ls :=
+    refine(
+      let fix ih_nested x ls (no : All1 (noccurs x) ls) : All1 (P x) ls :=
         match no with
         | All1_nil => All1_nil _
         | All1_cons _ _ hd tl =>
-          All1_cons (noccurs_ind_nested x _ hd) (fold x _ tl)
-        end.
-    case no; move=>*.
-    apply: ih_var; eauto.
-    apply: ih_sort; eauto.
-    apply: ih_pi; eauto.
-    apply: ih_lam; eauto.
-    apply: ih_app; eauto.
-    apply: ih_indd; eauto.
-    apply: ih_constr; eauto.
-    apply: ih_case; eauto.
-    apply: ih_fix; eauto.
-    apply: ih_ptr; eauto.
+          All1_cons (noccurs_ind_nested x _ hd) (ih_nested x _ tl)
+        end
+      in
+      match no with
+      | noccurs_var x y e => ih_var e 
+      | noccurs_sort x s l => ih_sort x s l
+      | noccurs_pi x A B s r t nA nB => 
+        let hA := noccurs_ind_nested x A nA in
+        let hB := noccurs_ind_nested x.+1 B nB in
+        ih_pi s r t nA hA nB hB 
+      | noccurs_lam x A m s t nA nm => 
+        let hA := noccurs_ind_nested x A nA in
+        let hm := noccurs_ind_nested x.+1 m nm in
+        ih_lam s t nA hA nm hm
+      | noccurs_app x m n nm nn => 
+        let hm := noccurs_ind_nested x m nm in
+        let hn := noccurs_ind_nested x n nn in
+        ih_app nm hm nn hn
+      | noccurs_indd x A Cs s nA nCs => 
+        let hA := noccurs_ind_nested x A nA in
+        let hCs := ih_nested x.+1 Cs nCs in
+        ih_indd s nA hA nCs hCs 
+      | noccurs_constr x i m s nm => 
+        let hm := noccurs_ind_nested x m nm in
+        ih_constr i s nm hm
+      | noccurs_case x m Q Fs nm nQ nFs => 
+        let hm := noccurs_ind_nested x m nm in
+        let hQ := noccurs_ind_nested x Q nQ in
+        let hFs := ih_nested x Fs nFs in
+        ih_case nm hm nQ hQ nFs hFs
+      | noccurs_fix x k A m nA nm => 
+        let hA := noccurs_ind_nested x A nA in
+        let hm := noccurs_ind_nested x.+1 m nm in
+        ih_fix k nA hA nm hm
+      | noccurs_ptr x l => ih_ptr x l
+      end).
   Qed.
 End noccurs_ind_nested.
 
@@ -303,45 +326,72 @@ Section clc_type_ind_nested.
   Fixpoint clc_type_ind_nested
     Γ m A s (pf : Γ ⊢ m : A : s) : P Γ m A s.
   Proof.
-    case pf; intros.
-    apply: ih_sort; eauto.
-    apply: ih_pi; eauto.
-    apply: ih_var; eauto.
-    apply: ih_lam; eauto.
-    apply: ih_app; eauto.
-    apply: ih_indd; eauto.
-    have ih_nested :=
-      fix fold Cs (pf : All1 (fun C => A0 :U Γ0 ⊢ C : s0 @ l1 : U) Cs) :
-        All1 (fun C => P (A0 :U Γ0) C (s0 @ l1) U) Cs :=
-        match pf with
-        | All1_nil => All1_nil _
-        | All1_cons _ _ hd tl =>
-          All1_cons (clc_type_ind_nested _ _ _ _ hd) (fold _ tl)
-        end; eauto.
-    apply: ih_constr; eauto.
-    apply: ih_case; eauto.
-    have ih_nested :=
-      fix fold n Fs Cs
+    refine(
+      match pf with
+      | clc_axiom Γ s l k => ih_sort s l k
+      | clc_pi Γ A B s r t i k tyA tyB => 
+        let hA := clc_type_ind_nested _ _ _ _ tyA in
+        let hB := clc_type_ind_nested _ _ _ _ tyB in
+        ih_pi t k tyA hA tyB hB
+      | clc_var Γ x A s hs => ih_var hs
+      | clc_lam Γ A B m s r t i k tyP tym => 
+        let hP := clc_type_ind_nested _ _ _ _ tyP in
+        let hm := clc_type_ind_nested _ _ _ _ tym in
+        ih_lam k tyP hP tym hm
+      | clc_app Γ1 Γ2 Γ A B m n s r t k mrg tym tyn => 
+        let hm := clc_type_ind_nested _ _ _ _ tym in
+        let hn := clc_type_ind_nested _ _ _ _ tyn in
+        ih_app k mrg tym hm tyn hn
+      | clc_indd Γ A Cs s l1 l2 k ar cs tyA tyCs => 
+        let fix ih_nested Cs (pf : All1 (fun C => A :U Γ ⊢ C : s @ l1 : U) Cs) :
+          All1 (fun C => P (A :U Γ) C (s @ l1) U) Cs :=
+          match pf with
+          | All1_nil => All1_nil _
+          | All1_cons _ _ hd tl =>
+            All1_cons (clc_type_ind_nested _ _ _ _ hd) (ih_nested _ tl)
+          end
+        in
+        let hA := clc_type_ind_nested _ _ _ _ tyA in
+        let hCs := ih_nested _ tyCs in
+        ih_indd k ar cs tyA hA tyCs hCs
+      | clc_constr Γ A s i C Cs k gt tyI => 
+        let hI := clc_type_ind_nested _ _ _ _ tyI in
+        ih_constr k gt tyI hI
+      | clc_case Γ1 Γ2 Γ A Q s s' l k0 Fs Cs m ms lt ar k mrg tym tyQ FsCs => 
+        let I := Ind A Cs s in
+        let fix ih_nested n Fs Cs
           (pf : All2i (fun i F C =>
-                         constr 0 s0 C ∧
-                           let T := mkcase k s' I Q (Constr i I s0) C in
-                           Γ2 ⊢ F : T.2 : T.1) n Fs Cs) :
-        All2i (fun i F C =>
-                 constr 0 s0 C ∧
-                   let T := mkcase k s' I Q (Constr i I s0) C in
-                   P Γ2 F T.2 T.1) n Fs Cs :=
-        match pf in All2i _ n Fs Cs return
-          All2i (fun i F C =>
-                   constr 0 s0 C /\
-                     let T := mkcase k s' I Q (Constr i I s0) C in
-                     P Γ2 F T.2 T.1) n Fs Cs
-        with
-        | All2i_nil _ => All2i_nil _ _
-        | All2i_cons _ _ _ _ _ (conj h1 h2) tl =>
-          All2i_cons (conj h1 (clc_type_ind_nested _ _ _ _ h2)) (fold _ _ _ tl)
-        end; eauto.
-    apply: ih_fix; eauto.
-    apply: ih_conv; eauto.
+                        constr 0 s C ∧
+                        let T := mkcase k0 s' I Q (Constr i I s) C in
+                        Γ2 ⊢ F : T.2 : T.1) n Fs Cs) :
+                All2i (fun i F C =>
+                        constr 0 s C ∧
+                        let T := mkcase k0 s' I Q (Constr i I s) C in
+                        P Γ2 F T.2 T.1) n Fs Cs :=
+          match pf in All2i _ n Fs Cs return
+            All2i (fun i F C =>
+                    constr 0 s C /\
+                    let T := mkcase k0 s' I Q (Constr i I s) C in
+                    P Γ2 F T.2 T.1) n Fs Cs
+          with
+          | All2i_nil _ => All2i_nil _ _
+          | All2i_cons _ _ _ _ _ (conj h1 h2) tl =>
+            All2i_cons (conj h1 (clc_type_ind_nested _ _ _ _ h2)) (ih_nested _ _ _ tl)
+          end
+        in
+        let hm := clc_type_ind_nested _ _ _ _ tym in
+        let hQ := clc_type_ind_nested _ _ _ _ tyQ in
+        let hFsCs := ih_nested _ _ _ FsCs in
+        ih_case lt ar k mrg tym hm tyQ hQ FsCs hFsCs
+      | clc_fix Γ k0 A m l k tyA tym => 
+        let hA := clc_type_ind_nested _ _ _ _ tyA in
+        let hm := clc_type_ind_nested _ _ _ _ tym in
+        ih_fix k0 k tyA hA tym hm
+      | clc_conv Γ A B m s i sb tym tyB => 
+        let hm := clc_type_ind_nested _ _ _ _ tym in
+        let hB := clc_type_ind_nested _ _ _ _ tyB in
+        ih_conv sb tym hm tyB hB
+      end).
   Qed.
 End clc_type_ind_nested.
 

@@ -46,26 +46,27 @@ Section value_ind_nested.
 
   Fixpoint value_ind_nested m (pf : value m) : P m.
   Proof.
-    case pf; intros.
-    apply: ih_sort; eauto.
-    apply: ih_pi; eauto.
-    apply: ih_lam; eauto.
-    have ih_nested:=
-      fix fold ms (pf : All1 value ms) : All1 P ms :=
+    refine(
+      let fix ih_nested ms (pf : All1 value ms) : All1 P ms :=
         match pf with
         | All1_nil => All1_nil _
         | All1_cons _ _ hd tl =>
-          All1_cons (value_ind_nested _ hd) (fold _ tl)
-        end; eauto.
-    have ih_nested:=
-      fix fold ms (pf : All1 value ms) : All1 P ms :=
-        match pf with
-        | All1_nil => All1_nil _
-        | All1_cons _ _ hd tl =>
-          All1_cons (value_ind_nested _ hd) (fold _ tl)
-        end; eauto.
-    apply: ih_fix; eauto.
-    apply: ih_ptr; eauto.
+          All1_cons (value_ind_nested _ hd) (ih_nested _ tl)
+        end
+      in
+      match pf with
+      | value_sort s l => ih_sort s l
+      | value_pi A B s r t => ih_pi A B s r t
+      | value_lam A m s t => ih_lam A m s t
+      | value_indd A Cs s ms vms => 
+        let hms := ih_nested ms vms in
+        ih_indd _ _ _ vms hms
+      | value_constr i I0 s ms vms => 
+        let hms := ih_nested ms vms in
+        ih_constr _ _ _ vms hms
+      | value_fix k A m => ih_fix _ _ _
+      | value_ptr l => ih_ptr _
+      end).
   Qed.
 End value_ind_nested.
 
@@ -197,31 +198,56 @@ Section resolve_ind_nested.
   Fixpoint resolve_ind_nested
     Θ m m' (pf : resolve Θ m m') : P Θ m m'.
   Proof.
-    case pf; intros.
-    apply: ih_var; eauto.
-    apply: ih_sort; eauto.
-    apply: ih_pi; eauto.
-    apply: ih_lam; eauto.
-    apply: ih_app; eauto.
-    have ih_nested :=
-      fix fold Cs Cs' (pf : All2 (resolve Θ0) Cs Cs') :
-        All2 (P Θ0) Cs Cs' :=
-        match pf with
-        | All2_nil => All2_nil _
-        | All2_cons _ _ _ _ hd tl =>
-          All2_cons (resolve_ind_nested _ _ _ hd) (fold _ _ tl)
-        end; eauto.
-    apply: ih_constr; eauto.
-    have ih_nested :=
-      fix fold Fs Fs' (pf : All2 (resolve Θ2) Fs Fs') :
-        All2 (P Θ2) Fs Fs' :=
-        match pf with
-        | All2_nil => All2_nil _
-        | All2_cons _ _ _ _ hd tl =>
-          All2_cons (resolve_ind_nested _ _ _ hd) (fold _ _ tl)
-        end; eauto.
-    apply: ih_fix; eauto.
-    apply: ih_ptr; eauto.
+    refine(
+      match pf with
+      | resolve_var Θ x k => ih_var x k
+      | resolve_sort Θ s l k => ih_sort _ _ k
+      | resolve_pi Θ A A' B B' s r t k rA rB => 
+        let hA := resolve_ind_nested _ _ _ rA in
+        let hB := resolve_ind_nested _ _ _ rB in
+        ih_pi _ _ _ k rA hA rB hB
+      | resolve_lam Θ A A' m m' s t k rA rm => 
+        let hA := resolve_ind_nested _ _ _ rA in
+        let hm := resolve_ind_nested _ _ _ rm in
+        ih_lam _ k rA hA rm hm
+      | resolve_app Θ1 Θ2 Θ m m' n n' mrg rm rn => 
+        let hm := resolve_ind_nested _ _ _ rm in
+        let hn := resolve_ind_nested _ _ _ rn in
+        ih_app mrg rm hm rn hn
+      | resolve_indd Θ A A' Cs Cs' s k rA rCs => 
+        let fix ih_nested Cs Cs' (pf : All2 (resolve Θ) Cs Cs') : All2 (P Θ) Cs Cs' :=
+          match pf with
+          | All2_nil => All2_nil _
+          | All2_cons _ _ _ _ hd tl =>
+            All2_cons (resolve_ind_nested _ _ _ hd) (ih_nested _ _ tl)
+          end
+        in
+        let hA := resolve_ind_nested _ _ _ rA in
+        let hCs := ih_nested _ _ rCs in
+        ih_indd _ k rA hA rCs hCs
+      | resolve_constr Θ i I0 I0' s k rI => 
+        let hI := resolve_ind_nested _ _ _ rI in
+        ih_constr _ _ k rI hI
+      | resolve_case Θ1 Θ2 Θ m m' Q Q' Fs Fs' mrg rm rQ rFs => 
+        let fix ih_nested Fs Fs' (pf : All2 (resolve Θ2) Fs Fs') : All2 (P Θ2) Fs Fs' :=
+          match pf with
+          | All2_nil => All2_nil _
+          | All2_cons _ _ _ _ hd tl =>
+            All2_cons (resolve_ind_nested _ _ _ hd) (ih_nested _ _ tl)
+          end
+        in
+        let hm := resolve_ind_nested _ _ _ rm in
+        let hQ := resolve_ind_nested _ _ _ rQ in
+        let hFs := ih_nested _ _ rFs in
+        ih_case mrg rm hm rQ hQ rFs hFs
+      | resolve_fix Θ k0 A A' m m' k rA rm => 
+        let hA := resolve_ind_nested _ _ _ rA in
+        let hm := resolve_ind_nested _ _ _ rm in
+        ih_fix k0 k rA hA rm hm
+      | resolve_ptr Θ Θ' l m m' lk rm => 
+        let hm := resolve_ind_nested _ _ _ rm in
+        ih_ptr lk rm hm
+      end).
   Qed.
 End resolve_ind_nested.
 
@@ -302,28 +328,51 @@ Section resolved_ind_nested.
   Fixpoint resolved_ind_nested
     m (pf : resolved m) : P m.
   Proof.
-    case pf; intros.
-    apply: ih_var; eauto.
-    apply: ih_sort; eauto.
-    apply: ih_pi; eauto.
-    apply: ih_lam; eauto.
-    apply: ih_app; eauto.
-    have ih_nested:=
-      fix fold Cs (pf : All1 resolved Cs) : All1 P Cs :=
-        match pf with
-        | All1_nil => All1_nil _
-        | All1_cons _ _ hd tl =>
-          All1_cons (resolved_ind_nested _ hd) (fold _ tl)
-        end; eauto.
-    apply: ih_constr; eauto.
-    have ih_nested:=
-      fix fold Fs (pf : All1 resolved Fs) : All1 P Fs :=
-        match pf with
-        | All1_nil => All1_nil _
-        | All1_cons _ _ hd tl =>
-          All1_cons (resolved_ind_nested _ hd) (fold _ tl)
-        end; eauto.
-    apply: ih_fix; eauto.
+    refine(
+      match pf with
+      | resolved_var x => ih_var _
+      | resolved_sort s l => ih_sort _ _
+      | resolved_pi A B s r t rA rB => 
+        let hA := resolved_ind_nested _ rA in
+        let hB := resolved_ind_nested _ rB in
+        ih_pi _ _ _ rA hA rB hB
+      | resolved_lam A m s t rA rm => 
+        let hA := resolved_ind_nested _ rA in
+        let hm := resolved_ind_nested _ rm in
+        ih_lam _ _ rA hA rm hm
+      | resolved_app m n rm rn => 
+        let hm := resolved_ind_nested _ rm in
+        let hn := resolved_ind_nested _ rn in
+        ih_app rm hm rn hn
+      | resolved_indd A Cs s rA rCs => 
+        let fix ih_nested Cs (pf : All1 resolved Cs) : All1 P Cs :=
+          match pf with
+          | All1_nil => All1_nil _
+          | All1_cons _ _ hd tl => All1_cons (resolved_ind_nested _ hd) (ih_nested _ tl)
+          end
+        in
+        let hA := resolved_ind_nested _ rA in
+        let hCs := ih_nested _ rCs in
+        ih_indd _ rA hA rCs hCs
+      | resolved_constr i I0 s rI => 
+        let hI := resolved_ind_nested _ rI in
+        ih_constr _ _ rI hI
+      | resolved_case m Q Fs rm rQ rFs => 
+        let fix ih_nested Fs (pf : All1 resolved Fs) : All1 P Fs :=
+          match pf with
+          | All1_nil => All1_nil _
+          | All1_cons _ _ hd tl => All1_cons (resolved_ind_nested _ hd) (ih_nested _ tl)
+          end
+        in
+        let hm := resolved_ind_nested _ rm in
+        let hQ := resolved_ind_nested _ rQ in
+        let hFs := ih_nested _ rFs in
+        ih_case rm hm rQ hQ rFs hFs
+      | resolved_fix k A m rA rm => 
+        let hA := resolved_ind_nested _ rA in
+        let hm := resolved_ind_nested _ rm in
+        ih_fix _ rA hA rm hm
+      end).
   Qed.
 End resolved_ind_nested.
 
@@ -785,29 +834,52 @@ Section nf_ind_nested.
   Fixpoint nf_ind_nested
     i m (pf : nf i m) : P i m.
   Proof.
-    case pf; intros.
-    apply: ih_var; eauto.
-    apply: ih_sort; eauto.
-    apply: ih_pi; eauto.
-    apply: ih_lam; eauto.
-    apply: ih_app; eauto.
-    have ih_nested:=
-      fix fold i Cs (pf : All1 (nf i) Cs) : All1 (P i) Cs :=
-        match pf with
-        | All1_nil => All1_nil _
-        | All1_cons _ _ hd tl =>
-          All1_cons (nf_ind_nested _ _ hd) (fold _ _ tl)
-        end; eauto.
-    apply: ih_constr; eauto.
-    have ih_nested:=
-      fix fold i Fs (pf : All1 (nf i) Fs) : All1 (P i) Fs :=
-        match pf with
-        | All1_nil => All1_nil _
-        | All1_cons _ _ hd tl =>
-          All1_cons (nf_ind_nested _ _ hd) (fold _ _ tl)
-        end; eauto.
-    apply: ih_fix; eauto.
-    apply: ih_ptr; eauto.
+    refine(
+      match pf with
+      | nf_var i x lt => ih_var lt
+      | nf_sort i s l => ih_sort _ _ _
+      | nf_pi i A B s r t nfA nfB => 
+        let hA := nf_ind_nested _ _ nfA in
+        let hB := nf_ind_nested _ _ nfB in
+        ih_pi _ _ _ nfA hA nfB hB
+      | nf_lam i A m s t nfA nfm => 
+        let hA := nf_ind_nested _ _ nfA in
+        let hm := nf_ind_nested _ _ nfm in
+        ih_lam _ _ nfA hA nfm hm
+      | nf_app i m n nfm nfn => 
+        let hm := nf_ind_nested _ _ nfm in
+        let hn := nf_ind_nested _ _ nfn in
+        ih_app nfm hm nfn hn 
+      | nf_indd i A Cs s nfA nfCs => 
+        let fix ih_nested i Cs (pf : All1 (nf i) Cs) : All1 (P i) Cs :=
+          match pf with
+          | All1_nil => All1_nil _
+          | All1_cons _ _ hd tl => All1_cons (nf_ind_nested _ _ hd) (ih_nested _ _ tl)
+          end
+        in
+        let hA := nf_ind_nested _ _ nfA in
+        let hCs := ih_nested _ _ nfCs in
+        ih_indd _ nfA hA nfCs hCs
+      | nf_constr i x I0 s nfI => 
+        let hI := nf_ind_nested _ _ nfI in
+        ih_constr _ _ nfI hI
+      | nf_case i m Q Fs nfm nfQ nfFs => 
+        let fix ih_nested i Fs (pf : All1 (nf i) Fs) : All1 (P i) Fs :=
+          match pf with
+          | All1_nil => All1_nil _
+          | All1_cons _ _ hd tl => All1_cons (nf_ind_nested _ _ hd) (ih_nested _ _ tl)
+          end
+        in
+        let hm := nf_ind_nested _ _ nfm in
+        let hQ := nf_ind_nested _ _ nfQ in
+        let hFs := ih_nested _ _ nfFs in
+        ih_case nfm hm nfQ hQ nfFs hFs
+      | nf_fix i k A m nfA nfm => 
+        let hA := nf_ind_nested _ _ nfA in
+        let hm := nf_ind_nested _ _ nfm in
+        ih_fix _ nfA hA nfm hm
+      | nf_ptr i l => ih_ptr _ _
+      end).
   Qed.
 End nf_ind_nested.
 
